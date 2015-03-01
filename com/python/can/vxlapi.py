@@ -19,32 +19,6 @@ import ctypes
 from vxlapih import *
 
 __all__ = ['vxlapi','XLuint64','XLaccess','XLstatus','XLporthandle','XLevent']
-
-def __GenVxapih__():
-    '''convert the vxapi.h to python language'''
-    import re
-    reDefine = re.compile(r'#define\s+(XL_|LIN_|RECEIVE_|MAX_)(\w+)\s+(.+)')
-    reEnum  = re.compile(r'(XL_|LIN_|RECEIVE_)(\w+)\s+=\s+(.+)')
-    fp1 = open('../../clang/include/vxlapi.h','r')
-    fp2 = open('vxlapih.py','w')
-    
-    for el in fp1.readlines():
-        if(reDefine.search(el)):
-            grp = reDefine.search(el).groups()
-            name = grp[0] + grp[1]
-            value = grp[2].replace('unsigned','').replace('int','').replace('short','').replace('long','') \
-                    .replace('char','').replace('(','').replace(')','').replace('//','#').replace('/*','#').replace('*/','')
-            fp2.write('%-64s = %s\n'%(name,value))
-        elif(reEnum.search(el)):
-            grp = reEnum.search(el).groups()
-            name = grp[0] + grp[1]
-            value = grp[2].replace('unsigned','').replace('int','').replace('short','').replace('long','') \
-                    .replace('char','').replace('(','').replace(')','').replace('//','#').replace('/*','#').replace('*/','')
-            fp2.write('%-64s = %s\n'%(name,value))
-        else:
-            fp2.write('#'+el)
-    fp2.close()
-    fp1.close()
         
 XLuint64=ctypes.c_ulonglong
 XLaccess=XLuint64
