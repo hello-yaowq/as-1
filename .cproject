@@ -56,16 +56,22 @@
 		<project id="AS.null.1418499110" name="AS"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/AS"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.mingw.base.6909538;cdt.managedbuild.toolchain.gnu.mingw.base.6909538.215832556;cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.720432065;cdt.managedbuild.tool.gnu.cpp.compiler.input.851466793">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.mingw.base.6909538;cdt.managedbuild.toolchain.gnu.mingw.base.6909538.215832556;cdt.managedbuild.tool.gnu.c.compiler.mingw.base.416167798;cdt.managedbuild.tool.gnu.c.compiler.input.1403200940">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 		<buildTargets>
-			<target name="all" path="release/pyascom/src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments/>
-				<buildTarget>all</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
 			<target name="clean" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
 				<buildArguments/>
@@ -91,19 +97,5 @@
 				<runAllBuilders>true</runAllBuilders>
 			</target>
 		</buildTargets>
-	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Default">
-			<resource resourceType="PROJECT" workspacePath="/AS"/>
-		</configuration>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.mingw.base.6909538;cdt.managedbuild.toolchain.gnu.mingw.base.6909538.215832556;cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.720432065;cdt.managedbuild.tool.gnu.cpp.compiler.input.851466793">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.mingw.base.6909538;cdt.managedbuild.toolchain.gnu.mingw.base.6909538.215832556;cdt.managedbuild.tool.gnu.c.compiler.mingw.base.416167798;cdt.managedbuild.tool.gnu.c.compiler.input.1403200940">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>

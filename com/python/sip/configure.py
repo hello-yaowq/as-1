@@ -20,6 +20,7 @@ def sip_makefile(module):
     # specific prefixes or extensions (e.g. the "lib" prefix on UNIX, or the
     # ".dll" extension on Windows).
     makefile.extra_libs = [module]
+    makefile.extra_lib_dirs = ['.']
     
     # Generate the Makefile itself.
     makefile.generate()

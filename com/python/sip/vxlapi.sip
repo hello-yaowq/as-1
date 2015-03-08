@@ -1,5 +1,5 @@
 /* Define the SIP wrapper to the vxlapi library. */  
-%Module(name=add, language="C")  
+%Module(name=vxlapi, language="C")  
 
 /* Hint for type declare
  * struct Word {
@@ -12,7 +12,7 @@
 struct s_xl_application_notification {
 %TypeHeaderCode  
 #include "vxlapi2.h"
-%End	
+%End
 };
 
 
