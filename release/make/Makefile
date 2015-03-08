@@ -43,19 +43,19 @@ $(exe-dir):
 
 include $(wildcard $(obj-dir)/*.d)
 
-all:$(obj-dir) $(exe-dir) $(obj-y)
-	@echo ">> LD $(target-y).EXE"
+exe:$(obj-dir) $(exe-dir) $(obj-y)
+	@echo "  >> LD $(target-y).EXE"
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll:$(obj-dir) $(exe-dir) $(obj-y)
-	@echo ">> LD $(target-y).DLL"
+	@echo "  >> LD $(target-y).DLL"
 	@$(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
-	@echo ">> LD $(target-y).LIB"
-	@$(AR) -r $(exe-dir)/$(target-y).lib  $(obj-y)  
+	@echo "  >> LD $(target-y).LIB"
+	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 clean:
 	@rm -fv $(obj-dir)/*
