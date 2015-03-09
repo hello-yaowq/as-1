@@ -21,6 +21,7 @@ def sip_makefile(module):
     # ".dll" extension on Windows).
     makefile.extra_libs = [module]
     makefile.extra_lib_dirs = ['.']
+    makefile.extra_defines  = ['DYNAMIC_XLDRIVER_DLL','POINTER_32=']
     
     # Generate the Makefile itself.
     makefile.generate()

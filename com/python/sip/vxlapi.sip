@@ -1,6 +1,8 @@
 /* Define the SIP wrapper to the vxlapi library. */  
 %Module(name=vxlapi, language="C")  
 
+typedef short XLstatus;
+
 /* Hint for type declare
  * struct Word {
  * 		%TypeHeaderCode  
@@ -11,8 +13,22 @@
  */
 struct s_xl_application_notification {
 %TypeHeaderCode  
-#include "vxlapi2.h"
+#include "vxlapi.h"
 %End
+	unsigned int 	notifyReason;
+  	unsigned int*	reserved
+	{
+		%GetCode
+			
+		%End
+
+		%SetCode
+			
+		%End
+	};
 };
+
+XLstatus xlOpenDriver(void);
+XLstatus xlCloseDriver(void);
 
 
