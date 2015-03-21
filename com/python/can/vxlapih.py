@@ -555,8 +555,8 @@ XL_MAX_HWTYPE                                                    = 81
 #//------------------------------------------------------------------------------
 #
 #// defines for xlLinSetChannelParams
-XL_LIN_MASTER                                                    =   01 #!< channel is a LIN master
-XL_LIN_SLAVE                                                     =   02 #!< channel is a LIN slave
+XL_LIN_MASTER                                                    =   1 #!< channel is a LIN master
+XL_LIN_SLAVE                                                     =   2 #!< channel is a LIN slave
 XL_LIN_VERSION_1_3                                               =   0x01 #!< LIN version 1.3
 XL_LIN_VERSION_2_0                                               =   0x02 #!< LIN version 2.0
 XL_LIN_VERSION_2_1                                               =   0x03 #!< LIN version 2.1
@@ -852,8 +852,8 @@ XL_BUS_ACTIVE_CAP_ETHERNET                                       = XL_BUS_COMPAT
 #//------------------------------------------------------------------------------
 #// acceptance filter                                                                      
 #
-XL_CAN_STD                                                       = 01                                  #!< flag for standard ID's
-XL_CAN_EXT                                                       = 02                                  #!< flag for extended ID's                            
+XL_CAN_STD                                                       = 1                                  #!< flag for standard ID's
+XL_CAN_EXT                                                       = 2                                  #!< flag for extended ID's                            
 #
 #//------------------------------------------------------------------------------
 #// bit timing

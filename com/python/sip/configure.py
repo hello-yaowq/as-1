@@ -22,7 +22,7 @@ def sip_makefile(module):
     makefile.extra_libs = [module]
     makefile.extra_lib_dirs = ['.']
     makefile.extra_defines  = ['DYNAMIC_XLDRIVER_DLL','POINTER_32=']
-    
+    makefile.extra_cflags = ['--std=gnu99']
     # Generate the Makefile itself.
     makefile.generate()
     
