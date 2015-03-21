@@ -884,7 +884,7 @@ typedef struct {
 #define  XL_BUS_PARAMS_MOST_SPEED_GRADE_25    0x01
 #define  XL_BUS_PARAMS_MOST_SPEED_GRADE_150   0x02
 
-typedef struct {                                                                         
+typedef struct s_xl_bus_params{
   unsigned int busType;
   union {
     struct {
@@ -2292,7 +2292,7 @@ typedef struct xl_daio_set_port{
 // defines for xlIoSetDigitalOutput
 typedef struct xl_daio_digital_params{
 	unsigned int portMask;     //!< Use defines XL_DAIO_PORT_MASK_DIGITAL_*
-	unsigned int valueMask;    //!< Specify the port value (ON/HIGH ñ 1 | OFF/LOW - 0)
+	unsigned int valueMask;    //!< Specify the port value (ON/HIGH ÔøΩ1 | OFF/LOW - 0)
 } XLdaioDigitalParams;
 
 // defines for portMask
@@ -2848,12 +2848,12 @@ typedef struct {
 // Maximum number of states that can be configured for a sequence
 #define XL_MOST150_ECL_SEQ_NUM_STATES_MAX               200
 // Value range for duration of ECL sequence states
-#define XL_MOST150_ECL_SEQ_DURATION_MIN                  1      // -> 100 µs
+#define XL_MOST150_ECL_SEQ_DURATION_MIN                  1      // -> 100 Á•ç
 #define XL_MOST150_ECL_SEQ_DURATION_MAX                  655350 // -> 65535 ms
 
 // xlMost150EclSetGlitchFilter
 // Value range for setting the glitch filter
-#define XL_MOST150_ECL_GLITCH_FILTER_MIN                 50      // -> 50 µs
+#define XL_MOST150_ECL_GLITCH_FILTER_MIN                 50      // -> 50 Á•ç
 #define XL_MOST150_ECL_GLITCH_FILTER_MAX                 50000   // -> 50 ms
 
 // XL_MOST150_GEN_LIGHT_ERROR_EV.stressStarted
@@ -3511,7 +3511,7 @@ typedef struct s_xl_most150_stream_get_info {
 // CAN / CAN-FD tx event definitions
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct {
+typedef struct s_xl_can_tx_msg {
   unsigned int       canId;
   unsigned int       msgFlags;
   unsigned char      dlc;
@@ -3519,7 +3519,7 @@ typedef struct {
   unsigned char      data[XL_CAN_MAX_DATA_LEN];
 } XL_CAN_TX_MSG;
 
-typedef struct {
+typedef struct s_xl_can_tx_event {
   unsigned short     tag;              //  2 - type of the event
   unsigned short     transId;          //  2
   unsigned char      channelIndex;     //  1 - internal has to be 0
@@ -5449,7 +5449,7 @@ DECL_STDXL_FUNC (xlMost150GenerateBypassStress, XLFP_MOST150GENERATEBYPASSSTRESS
  *                                         if an event is received spontaneously
  *  \param  numStates                 [IN] Number of states during the sequence (max. XL_MOST150_ECL_SEQ_NUM_STATES_MAX)
  *  \param  pEclStates                [IN] Pointer to a buffer containing the ECL sequence states (1: High, 0: Low)
- *  \param  pEclStatesDuration        [IN] Pointer to a buffer containing the ECL sequence states duration in multiple of 100 µs (max. value XL_MOST150_ECL_SEQ_DURATION_MAX)
+ *  \param  pEclStatesDuration        [IN] Pointer to a buffer containing the ECL sequence states duration in multiple of 100 Á•ç (max. value XL_MOST150_ECL_SEQ_DURATION_MAX)
  *                                         NOTE: Both buffers have to have at least the size <numStates> DWORDS!
  *  \return XLstatus                       general status information
  */
@@ -5472,7 +5472,7 @@ DECL_STDXL_FUNC (xlMost150EclGenerateSeq, XLFP_MOST150ECLGENERATESEQ, (DEFPARAMS
  *  \param  XLaccess accessMask:      [IN] determines on which channel an API should work
  *  \param  XLuserHandle userHandle:  [IN] used to match the response of the driver to the requests of the application
  *                                         if an event is received spontaneously
- *  \param  duration                  [IN] Duration (in µs) of glitches to be filtered. Value range: 50 µs .. 50 ms (Default: 1 ms)
+ *  \param  duration                  [IN] Duration (in Á•ç) of glitches to be filtered. Value range: 50 Á•ç .. 50 ms (Default: 1 ms)
  *  \return XLstatus                       general status information
  */
 DECL_STDXL_FUNC (xlMost150SetECLGlitchFilter, XLFP_MOST150SETECLGLITCHFILTER, (DEFPARAMS, unsigned int duration));
