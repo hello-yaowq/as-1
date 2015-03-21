@@ -199,6 +199,7 @@ class vxlapi():
         */
             xlOpenPort() without parameter will open CANcaseXL port0
         '''
+        userName = ctypes.c_char_p(bytes(userName,'ascii'))
         portHandle=XLporthandle(XL_INVALID_PORTHANDLE)
         self.candll.xlOpenPort.argtypes=[ctypes.POINTER(XLporthandle), ctypes.c_char_p, XLaccess, ctypes.POINTER(XLaccess), ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
         status=self.candll.xlOpenPort(portHandle, userName, accessMask, permissionMask, rxQueueSize, xlInterfaceVersion, busType)
@@ -301,7 +302,7 @@ class vxlapi():
 
     def xlSetApplConfig(self, appName, appChannel, hwType=XL_HWTYPE_CANCASEXL, hwIndex=0,  hwChannel=0, busType=XL_BUS_TYPE_CAN):
         self.candll.xlSetApplConfig.argtypes=[ctypes.c_char_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-        status=self.candll.xlSetApplConfig(ctypes.c_char_p(appName), ctypes.c_uint(appChannel), ctypes.c_uint(hwType),
+        status=self.candll.xlSetApplConfig(ctypes.c_char_p(bytes(appName,'ascii')), ctypes.c_uint(appChannel), ctypes.c_uint(hwType),
                                         ctypes.c_uint(hwIndex), ctypes.c_uint(hwChannel), ctypes.c_uint(busType))
         if(status != XL_SUCCESS):print('vxapi error: xlSetApplConfig failed <%s=%s>.'%(status,self.xlGetErrorString(status)))
         return status    
@@ -324,7 +325,7 @@ def __test__():
         event_count=ctypes.c_uint(1)
         status = xl.xlReceive(portHandle, event_count, event_list)
         if(status == XL_SUCCESS):
-            print xl.xlGetEventString(event_list)
+            print(xl.xlGetEventString(event_list))
         else:
             time.sleep(0.01)
         loop = loop -1
