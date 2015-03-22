@@ -17,7 +17,15 @@
 #include <windows.h>
 #include "vxlapi.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define CAN_REPORT_ERROR_AND_EXIT(error)													\
+	do	{																					\
+		if(XL_SUCCESS != error)																\
+		{																					\
+			printf("CAN ERROR In %s line %d: %s\n",__FUNCTION__,__LINE__,					\
+							xlGetErrorString(error));										\
+			return E_NOT_OK;																\
+		}																					\
+	}while(0)
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DATAS     ] ====================================================== */
@@ -26,6 +34,7 @@
 static boolean 		IsXLReady = FALSE;
 static XLportHandle xlPortHandle[32];
 static XLaccess     xlAccess[32];
+static uint64       xlPortInUseMask=0;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 Std_ReturnType Can_Init(uint32 port,uint32 baudrate)
 {
@@ -36,40 +45,98 @@ Std_ReturnType Can_Init(uint32 port,uint32 baudrate)
 	{
 		status = xlOpenDriver();
 
-		if(XL_SUCCESS == status)
-		{
-			IsXLReady = TRUE;
-		}
-		else
-		{
-			IsXLReady = FALSE;
-			printf("CAM::start XL device failed.\n");
-			return E_NOT_OK;
-		}
+		CAN_REPORT_ERROR_AND_EXIT(status);
+
+		IsXLReady = TRUE;
 	}
 
 
 	sprintf(userName,"port%d",(int)port);
 	accessMask = 1<<port;
 	status= xlOpenPort(&xlPortHandle[port],userName,accessMask,&xlAccess[port],512,XL_INTERFACE_VERSION,XL_BUS_TYPE_CAN);
-	if(XL_SUCCESS != status)
-	{
-		printf(xlGetErrorString(status));
-		return E_NOT_OK;
-	}
+	CAN_REPORT_ERROR_AND_EXIT(status);
+
+	xlPortInUseMask |= accessMask;
 
 	status = xlCanSetChannelBitrate(xlPortHandle[port],xlAccess[port],baudrate);
-	if(XL_SUCCESS != status)
+	CAN_REPORT_ERROR_AND_EXIT(status);
+
+
+	status = xlActivateChannel(xlPortHandle[port],xlAccess[port],XL_BUS_TYPE_CAN,XL_ACTIVATE_RESET_CLOCK);
+	CAN_REPORT_ERROR_AND_EXIT(status);
+
+	return E_OK;
+}
+
+Std_ReturnType Can_Receive(uint32 port,char** message)
+{
+	XLstatus status;
+	XLaccess accessMask;
+	accessMask = 1<<port;
+
+	if(xlPortInUseMask&accessMask)
 	{
-		printf(xlGetErrorString(status));
+		unsigned int EventCount = 1;
+		XLevent Event;
+		status = xlReceive(xlPortHandle[port],&EventCount,&Event);
+		CAN_REPORT_ERROR_AND_EXIT(status);
+		*message = xlGetEventString(&Event);
+		CAN_REPORT_ERROR_AND_EXIT(status);
+	}
+	else
+	{
+		*message = "CAN ERROR: this port is not in active status\n";
 		return E_NOT_OK;
 	}
 
-	status = xlActivateChannel(xlPortHandle[port],xlAccess[port],XL_BUS_TYPE_CAN,XL_ACTIVATE_RESET_CLOCK);
-	if(XL_SUCCESS != status)
+	return E_OK;
+}
+
+Std_ReturnType Can_Write(uint32  port, Can_PduType *pduInfo )
+{
+	XLstatus status;
+	XLaccess accessMask;
+	accessMask = 1<<port;
+
+	if(xlPortInUseMask&accessMask)
 	{
-		printf(xlGetErrorString(status));
+		XLevent Event;
+		unsigned int EventCount = 1;
+		Event.tag=XL_TRANSMIT_MSG;
+		Event.tagData.msg.id=pduInfo->id;
+		Event.tagData.msg.flags=0;
+		assert(pduInfo->length<=8);
+		memcpy(Event.tagData.msg.data,pduInfo->sdu,pduInfo->length);
+		Event.tagData.msg.dlc=pduInfo->length;
+		status = xlCanTransmit(xlPortHandle[port],xlAccess[port], &EventCount, &Event);
+		CAN_REPORT_ERROR_AND_EXIT(status);
+	}
+	else
+	{
 		return E_NOT_OK;
 	}
+
+	return E_OK;
+}
+
+Std_ReturnType Can_DeInit(uint32 port)
+{
+	XLstatus status;
+	XLaccess accessMask;
+	accessMask = 1<<port;
+
+	if(xlPortInUseMask&accessMask)
+	{
+		status = xlClosePort(xlPortHandle[port]);
+		CAN_REPORT_ERROR_AND_EXIT(status);
+		xlPortInUseMask &= ~accessMask;
+	}
+
+	if(0==xlPortInUseMask)
+	{
+		status = xlCloseDriver();
+		CAN_REPORT_ERROR_AND_EXIT(status);
+	}
+
 	return E_OK;
 }

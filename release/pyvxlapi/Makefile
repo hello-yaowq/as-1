@@ -11,6 +11,8 @@ def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 vxlapi-dll = "C:\Users\Public\Documents\Vector XL Driver Library\bin\vxlapi.dll"
 $(sip-dir):
 	@mkdir -p $(sip-dir)
+$(src-dir):
+	@mkdir -p $(src-dir)
 	
 dep:$(src-dir) $(sip-dir)
 	@(cd $(src-dir);ln -fs ../../../com/clang/include/vxlapi.h vxlapi.h)
