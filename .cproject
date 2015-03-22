@@ -22,6 +22,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.assembler.mingw.base.1075117010" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.mingw.base">
 								<option id="gnu.both.asm.option.include.paths.1890150035" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1008590005" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -29,6 +31,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.720432065" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1789912849" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.348262577" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -38,6 +42,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.base.416167798" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.base">
 								<option id="gnu.c.compiler.option.include.paths.1480859545" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.906918185" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>

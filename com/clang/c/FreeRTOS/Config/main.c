@@ -5,8 +5,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "Lcd.h"
 void Task1( void * param)
 {
+	Lcd_Init();
 	while(1)
 	{
 		printf("Task1 is running!\n");

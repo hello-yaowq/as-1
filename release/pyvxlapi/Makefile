@@ -6,6 +6,8 @@ exe-dir = ./out
 src-dir = ./src
 sip-dir = ./sip
 
+LNFS  = python ../../make/lnfs.py
+
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 
 vxlapi-dll = "C:\Users\Public\Documents\Vector XL Driver Library\bin\vxlapi.dll"
@@ -15,14 +17,14 @@ $(src-dir):
 	@mkdir -p $(src-dir)
 	
 dep:$(src-dir) $(sip-dir)
-	@(cd $(src-dir);ln -fs ../../../com/clang/include/vxlapi.h vxlapi.h)
-	@(cd $(src-dir);ln -fs ../../../com/clang/cplusplus/xlLoadlib.cpp xlLoadlib.c)
-	@(cd $(sip-dir);ln -fs ../../../com/clang/include/vxlapi.h vxlapi.h)
-	@(cd $(sip-dir);ln -fs ../../../com/python/sip/vxlapi.sip vxlapi.sip)
-	@(cd $(sip-dir);ln -fs ../../../com/python/sip/configure.py configure.py)
-	@(cd $(sip-dir);ln -fs ../../../com/python/sip/test.py test.py)
-	@(cd $(sip-dir);ln -fs ../../../com/python/can/vxlapih.py vxlapih.py)
-	@(cd $(sip-dir);ln -fs $(vxlapi-dll) vxlapi.dll)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/vxlapi.h vxlapi.h)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/xlLoadlib.cpp xlLoadlib.c)
+	@(cd $(sip-dir);$(LNFS) ../../../com/clang/include/vxlapi.h vxlapi.h)
+	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/vxlapi.sip vxlapi.sip)
+	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/configure.py configure.py)
+	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/test.py test.py)
+	@(cd $(sip-dir);$(LNFS) ../../../com/python/can/vxlapih.py vxlapih.py)
+	@(cd $(sip-dir);$(LNFS) $(vxlapi-dll) vxlapi.dll)
 
 include ../make/Makefile
 
@@ -44,7 +46,7 @@ vxlapi:
 	@(cd $(sip-dir);echo "#endif /* VXLAPI2_H */" >> vxlapi2.h)
 	
 	
-all:clean dep lib vxlapi sip2 pyascom
+all:lib vxlapi sip2 pyascom
 
 clean:clean-obj-src
 	@rm -frv $(sip-dir)/*
