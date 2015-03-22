@@ -36,9 +36,9 @@ sip2:
 	@(cd $(sip-dir);python configure.py)
 	@(cd $(sip-dir);sed -i "12 i\#include \"Can.h\"" sipAPICan.h)
 	
-all:clean2 dep lib sip2 pycan
+all:clean dep lib sip2 pycan
 
-clean2:clean
+clean:clean-obj-src
 	@rm -frv $(sip-dir)/*
 	
  

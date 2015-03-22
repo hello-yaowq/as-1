@@ -58,7 +58,10 @@ lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 
-clean:
+clean-obj:
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*
+	
+clean-obj-src:clean-obj
 	@rm -fv $(src-dir)/*
+

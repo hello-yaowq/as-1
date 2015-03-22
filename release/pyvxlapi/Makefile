@@ -44,9 +44,9 @@ vxlapi:
 	@(cd $(sip-dir);echo "#endif /* VXLAPI2_H */" >> vxlapi2.h)
 	
 	
-all:clean2 dep lib vxlapi sip2 pyascom
+all:clean dep lib vxlapi sip2 pyascom
 
-clean2:clean
+clean:clean-obj-src
 	@rm -frv $(sip-dir)/*
 	
  
