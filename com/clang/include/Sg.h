@@ -12,24 +12,21 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_LCD_H_
-#define COM_CLANG_INCLUDE_LCD_H_
+#ifndef COM_CLANG_INCLUDE_SG_H_
+#define COM_CLANG_INCLUDE_SG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-
+/* declaration of the LCD size */
+#define SG_LCD_WIGTH 	300
+#define SG_LCD_WHEIGHT  400
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-/* Lcd_Init
- * width  : width  of the LCD screen
- * height : height of the LCD screen
- * pixel  : pixel size of the LCD screen
- */
-void Lcd_Init(uint32 width,uint32 height,uint8 pixel);
-void LCD_DrawPixel( uint32 x, uint32 y, uint32 color );
-#endif /* COM_CLANG_INCLUDE_LCD_H_ */
+void Sg_Init(void);
+void Sg_ManagerTask(void);
+#endif /* COM_CLANG_INCLUDE_SG_H_ */

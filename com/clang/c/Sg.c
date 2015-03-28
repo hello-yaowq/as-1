@@ -11,11 +11,11 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
+ * Sg: static GUI
  */
-#ifndef COM_CLANG_INCLUDE_LCD_H_
-#define COM_CLANG_INCLUDE_LCD_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
+#include "Sg.h"
+#include "SgDraw.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -25,11 +25,16 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-/* Lcd_Init
- * width  : width  of the LCD screen
- * height : height of the LCD screen
- * pixel  : pixel size of the LCD screen
- */
-void Lcd_Init(uint32 width,uint32 height,uint8 pixel);
-void LCD_DrawPixel( uint32 x, uint32 y, uint32 color );
-#endif /* COM_CLANG_INCLUDE_LCD_H_ */
+void Sg_Init(void)
+{
+
+}
+
+
+void Sg_ManagerTask(void)
+{
+	Sg_FillArea(5,5,10,15,0xC567BD);
+	Sg_FillCircle(50,50,25,0xC500BD);
+
+	Sg_DrawEllipse(200,300,25,50,0xC50000);
+}

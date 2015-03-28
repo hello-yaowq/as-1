@@ -25,24 +25,28 @@
 #define LCD_IMAGE        0
 #define LCD_DRAWING_AREA 1
 #define cfgLcdHandle   LCD_DRAWING_AREA
-#define LCD_WIDTH   320
-#define LCD_HEIGHT  400
-/* ============================ [ TYPES     ] ====================================================== */
-typedef struct
-{
-	uint32_t color;
-}tPixel;
+/* static malloc 1MB buffer */
+#define LCD_MAX_WIDTH    (1024)
+#define LCD_MAX_HEIGHT   (1024)
+#define LCD_WIDTH        (lcdWidth*lcdPixel)
+#define LCD_HEIGHT       (lcdHeight*lcdPixel)
 
-typedef struct
-{
-	tPixel P[LCD_WIDTH][LCD_HEIGHT];
-}tLcd;
+#define LCD_X0(x)	(x*lcdPixel)
+#define LCD_Y0(y)	(y*lcdPixel)
+
+#define LCD_X1(x)	(x*lcdPixel + lcdPixel)
+#define LCD_Y1(y)	(y*lcdPixel + lcdPixel)
+/* ============================ [ TYPES     ] ====================================================== */
+
 /* ============================ [ DATAS     ] ====================================================== */
 static GtkWidget*       pLcd        = NULL;
+static HANDLE 			lcdThread   = NULL;
+static uint32           pLcdBuffer[LCD_MAX_WIDTH*LCD_MAX_HEIGHT];
 static GdkPixbuf*       pLcdImage   = NULL;
-static tLcd sLcd;
-static HANDLE lcdThread = NULL;
-
+static uint32           lcdWidth    = 0;
+static uint32           lcdHeight   = 0;
+static uint8            lcdPixel    = 0;
+static GtkWidget*       pStatusbar  = NULL;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 #if(cfgLcdHandle == LCD_DRAWING_AREA)
@@ -60,6 +64,7 @@ scribble_motion_notify_event (GtkWidget      *widget,
                               gpointer        data)
 {
   int x, y;
+  guchar text[256];
   GdkModifierType state;
 
   /* This call is very important; it requests the next motion event.
@@ -75,15 +80,23 @@ scribble_motion_notify_event (GtkWidget      *widget,
 
   gdk_window_get_device_position (event->window, event->device, &x, &y, &state);
 
+  sprintf((char*)text,"X=%d,Y=%d",(x/lcdPixel),(y/lcdPixel));
+  gtk_statusbar_pop (GTK_STATUSBAR(pStatusbar), 0); /* clear any previous message,
+  										    * underflow is allowed
+  										    */
+
+  gtk_statusbar_push (GTK_STATUSBAR(pStatusbar), 0, (const gchar*)text);
   /* We've handled it, stop processing */
   return TRUE;
 }
 #endif
 static gboolean Refresh(gpointer data)
 {
-	uint32_t x,y;
+	uint32 x,y;
 	int width, height, rowstride, n_channels;
 	guchar *pixels, *p;
+	uint32 index;
+	uint32 color;
 
 	n_channels = gdk_pixbuf_get_n_channels (pLcdImage);
 
@@ -102,11 +115,13 @@ static gboolean Refresh(gpointer data)
 	rowstride = gdk_pixbuf_get_rowstride (pLcdImage);
 	pixels = gdk_pixbuf_get_pixels (pLcdImage);
 
-	for(x=0;x<LCD_WIDTH;x++)
+	for(x=0;x<width;x++)
 	{
-		for(y=0;y<LCD_HEIGHT;y++)
+		for(y=0;y<height;y++)
 		{
-			uint32_t color = sLcd.P[x][y].color;
+			index = y*width + x;
+			assert(index < (width*height));
+			color = pLcdBuffer[index];
 			p = pixels + y * rowstride + x * n_channels;
 			p[0] = (color>>16)&0xFF; // red
 			p[1] = (color>>8 )&0xFF; // green
@@ -127,7 +142,7 @@ static GtkWidget* Lcd(void)
 	pBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
 	gtk_box_set_homogeneous(GTK_BOX(pBox),FALSE);
 
-	memset(&sLcd,0,sizeof(&sLcd));
+	memset(pLcdBuffer,0,sizeof(pLcdBuffer));
 
 	g_timeout_add(40,Refresh,NULL); // Refresh LCD 25 times each 1s
 
@@ -154,11 +169,21 @@ static GtkWidget* Lcd(void)
 #endif
 	gtk_box_pack_start(GTK_BOX(pBox),pLcd,FALSE,FALSE,0);
 
+	pStatusbar = gtk_statusbar_new ();
+	gtk_box_pack_start(GTK_BOX(pBox),pStatusbar,FALSE,FALSE,0);
+
 	return pBox;
+}
+static void lcd_main_quit(void)
+{
+	lcdThread = NULL;
+
+	gtk_main_quit();
 }
 static DWORD Lcd_Thread(LPVOID param)
 {
 	GtkWidget* pWindow;
+	printf("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
 	pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(pWindow),"LCD\n");
@@ -167,17 +192,62 @@ static DWORD Lcd_Thread(LPVOID param)
 
 	gtk_widget_show_all (pWindow);
 
-	g_signal_connect (pWindow, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+	g_signal_connect (pWindow, "destroy", G_CALLBACK (lcd_main_quit), NULL);
 
 	gtk_main ();
+
+	printf("# Lcd_Thread Exit\n");
 
 	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
-
-void Lcd_Init(void)
+void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 {
-	lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
-	ResumeThread( lcdThread );
+	if(NULL == lcdThread)
+	{
+		lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
+
+		lcdWidth  = width;
+		lcdHeight = height;
+		lcdPixel  = pixel;
+
+		assert(LCD_WIDTH  < LCD_MAX_WIDTH);
+		assert(LCD_HEIGHT < LCD_MAX_HEIGHT);
+
+		assert(lcdThread!=NULL);
+
+		ResumeThread( lcdThread );
+	}
+	else
+	{
+		// do nothing as already started.
+	}
+}
+
+void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
+{
+	uint32 x0,y0;
+	if(NULL != lcdThread)
+	{
+		if((x<lcdWidth) && (y<lcdHeight))
+		{
+			for(x0=LCD_X0(x);x0<LCD_X1(x);x0++)
+			{
+				for(y0=LCD_Y0(y);y0<LCD_Y1(y);y0++)
+				{
+					uint32 index = y0*LCD_WIDTH + x0;
+					assert(index < (LCD_WIDTH*LCD_HEIGHT));
+					pLcdBuffer[index] = color;
+				}
+			}
+		}
+		else
+		{
+			/* out of range */
+		}
+	}
+	else
+	{
+		/* device not ready */
+	}
 }

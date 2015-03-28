@@ -24,6 +24,7 @@
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gdk-pixbuf-2.0&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1008590005" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -33,6 +34,7 @@
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gdk-pixbuf-2.0&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.348262577" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -44,6 +46,7 @@
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gtk-3.0&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;D:\MinGW\include\gdk-pixbuf-2.0&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.906918185" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -84,37 +87,9 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 		<buildTargets>
-			<target name="clean" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildTarget>clean2</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="all" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildTarget>all</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="dep" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildTarget>dep</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="dll" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments/>
-				<buildTarget>dll</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
 			<target name="test.py" path="release/pyascom/sip" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>python</buildCommand>
+				<buildArguments/>
 				<buildTarget>test.py</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
@@ -122,12 +97,29 @@
 			</target>
 			<target name="all" path="release/pyascom/sip" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
+				<buildArguments/>
 				<buildTarget>all</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
-			<target name="dep" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+			<target name="clean" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>clean2</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="all" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>all</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="dep" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
 				<buildArguments/>
 				<buildTarget>dep</buildTarget>
@@ -135,25 +127,15 @@
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
-			<target name="clean" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+			<target name="dll" path="release/pyascom" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
-				<buildTarget>clean</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="all" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments/>
-				<buildTarget>all</buildTarget>
+				<buildTarget>dll</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
 			<target name="all" path="release/pycan" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>all</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -161,7 +143,6 @@
 			</target>
 			<target name="clean" path="release/pycan" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>clean</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -169,14 +150,36 @@
 			</target>
 			<target name="dep" path="release/pycan" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>dep</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="dep" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>dep</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="clean" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>clean</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="all DEBUG=TRUE" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>all DEBUG=TRUE</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
 			<target name="vxlapi.py" path="com/python/can" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>python</buildCommand>
+				<buildArguments/>
 				<buildTarget>vxlapi.py</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
@@ -184,7 +187,6 @@
 			</target>
 			<target name="all" path="release/pyvxlapi" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>all</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -192,7 +194,6 @@
 			</target>
 			<target name="clean" path="release/pyvxlapi" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>clean</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -200,7 +201,6 @@
 			</target>
 			<target name="dep" path="release/pyvxlapi" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>dep</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -208,7 +208,6 @@
 			</target>
 			<target name="all" path="com/clang/c/FreeRTOS" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>all</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -216,7 +215,6 @@
 			</target>
 			<target name="clean" path="com/clang/c/FreeRTOS" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>clean</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>

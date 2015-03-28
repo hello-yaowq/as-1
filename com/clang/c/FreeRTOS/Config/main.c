@@ -6,13 +6,16 @@
 #include "task.h"
 #include "semphr.h"
 #include "Lcd.h"
+#include "Sg.h"
+
 void Task1( void * param)
 {
-	Lcd_Init();
+	Lcd_Init(SG_LCD_WIGTH,SG_LCD_WHEIGHT,1);
+	Sg_Init();
 	while(1)
 	{
-		printf("Task1 is running!\n");
-		vTaskDelay(1000);
+		Sg_ManagerTask();
+		vTaskDelay(10);
 	}
 }
 void Task2( void * param)

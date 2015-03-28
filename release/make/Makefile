@@ -6,8 +6,13 @@ AR  = ar
 RM  = rm
 
 #common flags
+ifeq ($(DEBUG),)
 cflags-y   += -c -g  -O2 -Wall
 ldflags-y  += -g  -O2 -Wall	
+else
+cflags-y   += -c -g  -O0 -Wall
+ldflags-y  += -g  -O0 -Wall	
+endif
 
 dir-y += $(src-dir)
 

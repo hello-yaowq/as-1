@@ -11,9 +11,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
+ * SgDraw: static GUI basic draw function
  */
-#ifndef COM_CLANG_INCLUDE_LCD_H_
-#define COM_CLANG_INCLUDE_LCD_H_
+#ifndef COM_CLANG_INCLUDE_SGDRAW_H_
+#define COM_CLANG_INCLUDE_SGDRAW_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 
@@ -25,11 +26,11 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-/* Lcd_Init
- * width  : width  of the LCD screen
- * height : height of the LCD screen
- * pixel  : pixel size of the LCD screen
- */
-void Lcd_Init(uint32 width,uint32 height,uint8 pixel);
-void LCD_DrawPixel( uint32 x, uint32 y, uint32 color );
-#endif /* COM_CLANG_INCLUDE_LCD_H_ */
+void Sg_DrawPixel(int x,int y,uint32 color);
+void Sg_DrawLine(int x0,int y0,int x1,int y1,uint32 color);
+void Sg_FillArea(int x, int y, int cx, int cy, uint32 color);
+void Sg_DrawCircle(int x, int y, int radius, uint32 color);
+void Sg_FillCircle(int x, int y, int radius, uint32 color);
+void Sg_DrawEllipse(int x, int y, int a, int b, uint32 color);
+void Sg_FillEllipse(int x, int y, int a, int b, uint32 color);
+#endif /* COM_CLANG_INCLUDE_SGDRAW_H_ */
