@@ -1,56 +1,73 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Sg>
 <!-- Sg Configuration File -->
-<!-- attributes comment -->
 <!-- name: name of the widget or the resource -->
-<!-- picture{n}: n static picture resources -->
-<!-- x: -->
-<!-- y: -->
+<!-- SgBMP{n}: n static SgBMP resources -->
 <!-- w: width of the widget  -->
 <!-- h: height of the widget -->
-
+<!-- This SgBMP(x,y) center point is use for rotation -->	
 <SgWidget 
-	name     = "WatchBackground"
-	type     = "picture{1}" 
-	x        = "0"
-	y        = "80"
-	w        = "320"
-	h        = "320"
-	layer    = "0">
-	<SgPciture name='WatchBackground' locate='watch_bg.bmp' />
+	name     = 'WatchBackground'	
+	type     = 'SgBMP{1}' 			
+	x        = '0'
+	y        = '80'
+	w        = '320'	
+	h        = '320'				
+	layer    = '0'>
+	<SgBMP 
+		name   = 'WatchBackground' 
+		locate = 'watch_bg.png' 
+		x      = '160' 				
+		y      = '160'  					
+		/>
 </SgWidget>
 
 <SgWidget 
-	name     = "PointerHour"
-	type     = "picture{1}" 
-	x        = "134"
-	y        = "234"
-	w        = "109"
-	h        = "14"	
-	layer    = "1">
-	<SgPciture name='PointerHour' locate='watch_pointer_hour.png' />
+	name     = 'PointerHour'
+	type     = 'SgBMP{1}' 
+	x        = '134'
+	y        = '234'
+	w        = '109'
+	h        = '14'	
+	layer    = '1'>
+	<SgBMP 
+		name='PointerHour' 
+		locate='watch_pointer_hour.png' 
+		x='0' 
+		y='0' 
+		/>
 </SgWidget>
 
 <SgWidget 
-	name     = "PointerMinute"
-	type     = "picture{1}" 
-	x        = "134"
-	y        = "236"	
-	w        = "136"
-	h        = "12"		
-	layer    = "2">
-	<SgPciture name='PointerMinute' locate='watch_pointer_minute.png' />
+	name     = 'PointerMinute'
+	type     = 'SgBMP{1}' 
+	x        = '134'
+	y        = '236'	
+	w        = '136'
+	h        = '12'		
+	layer    = '2'>
+	<SgBMP 
+		name='PointerMinute' 
+		locate='watch_pointer_minute.png' 
+		x='0'
+		y='0' 
+		/>
 </SgWidget>
 
 <SgWidget 
-	name     = "PointerSecond"
-	type     = "picture{1}" 
-	x        = "114"
-	y        = "232"
-	w        = "149"
-	h        = "15"			
-	layer    = "3">
-	<SgPciture name='PointerSecond' locate='watch_pointer_second.png' />
+	name     = 'PointerSecond'
+	type     = 'SgBMP{1}' 
+	x        = '114'
+	y        = '232'
+	w        = '149'
+	h        = '15'			
+	layer    = '3'>
+	<SgBMP 
+		name='PointerSecond' 
+		locate='watch_pointer_second.png' 
+		x='0' 
+		y='0' 
+		/>
 </SgWidget>
 
 </Sg>	

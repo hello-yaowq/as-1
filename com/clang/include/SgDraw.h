@@ -33,4 +33,6 @@ void Sg_DrawCircle(int x, int y, int radius, uint32 color);
 void Sg_FillCircle(int x, int y, int radius, uint32 color);
 void Sg_DrawEllipse(int x, int y, int a, int b, uint32 color);
 void Sg_FillEllipse(int x, int y, int a, int b, uint32 color);
+
+void Sg_Update(void);
 #endif /* COM_CLANG_INCLUDE_SGDRAW_H_ */

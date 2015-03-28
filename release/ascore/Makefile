@@ -31,6 +31,9 @@ dep:$(src-dir)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Source Source)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Config Config)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
+	
+sg:
+	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
 all: exe
 
 clean: clean-obj

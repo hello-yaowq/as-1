@@ -51,7 +51,8 @@ enum
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct	/* base resource object */
 {
-	uint8   t;
+	uint32  x;
+	uint32  y;
 	uint32  w;
 	uint32  h;
 	union{
@@ -63,7 +64,8 @@ typedef struct	/* base resource object */
 
 typedef struct	/* public:SgRes*/
 {
-	uint8   t;
+	uint32  x;
+	uint32  y;
 	uint32  w;
 	uint32  h;
 	const uint8*  p;	/* without information of color, for fonts */
@@ -71,7 +73,9 @@ typedef struct	/* public:SgRes*/
 
 typedef struct	/* public:SgRes*/
 {
-	uint8   t;
+	/* (x,y) record the related center point of this BMP resource */
+	uint32  x;
+	uint32  y;
 	uint32  w;
 	uint32  h;
 	const uint32* p;	/* with information of color, for pictures */
@@ -79,11 +83,19 @@ typedef struct	/* public:SgRes*/
 
 typedef struct	/* public:SgRes */
 {
-	uint8   t;
+	uint32  x;
+	uint32  y;
 	uint32  w;
 	uint32  h;
 	void* (*f)(void*);
 }SgSDD;	/*Sg Special Dynamic Draw */
+
+typedef struct
+{
+	uint8           t;
+	uint16  		rs;	/* resource size */
+	const SgRes **  r;	/* resource */
+}SgSRC;	/* static resource configuration */
 /*		  	  Width (w)
  * 		  + ---------- x
  *  H     |
@@ -100,9 +112,11 @@ typedef struct
 	uint32 y;
 	uint32 w;
 	uint32 h;
+	uint32 c;	/* color 		 */
+	uint16 d;	/* rotate degree */
 	uint8  l;	/* layer number of the widget */
 	uint8  ri;  /* resource index */
-	const SgRes ** r;	/* resource */
+	const SgSRC const* src;
 }SgWidget;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -110,4 +124,5 @@ typedef struct
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sg_Init(void);
 void Sg_ManagerTask(void);
+boolean Sg_IsDataReady ( void );
 #endif /* COM_CLANG_INCLUDE_SG_H_ */

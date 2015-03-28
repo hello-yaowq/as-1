@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <windows.h>
+#include <Sg.h>
 
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage
@@ -97,6 +98,7 @@ static gboolean Refresh(gpointer data)
 	guchar *pixels, *p;
 	uint32 index;
 	uint32 color;
+	if(FALSE == Sg_IsDataReady()) { return TRUE; }
 
 	n_channels = gdk_pixbuf_get_n_channels (pLcdImage);
 
@@ -142,9 +144,7 @@ static GtkWidget* Lcd(void)
 	pBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
 	gtk_box_set_homogeneous(GTK_BOX(pBox),FALSE);
 
-	memset(pLcdBuffer,0,sizeof(pLcdBuffer));
-
-	g_timeout_add(40,Refresh,NULL); // Refresh LCD 25 times each 1s
+	g_timeout_add(10,Refresh,NULL); // Refresh LCD 100 times each 1s
 
 	pLcdImage = gdk_pixbuf_new(GDK_COLORSPACE_RGB,FALSE,8,LCD_WIDTH,LCD_HEIGHT);
 

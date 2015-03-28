@@ -21,7 +21,7 @@ from PyQt4.QtGui import *
 import xml.etree.ElementTree as ET
 import re
 
-rePic = re.compile(r'picture\{(\d+)\}')
+reSgBMP = re.compile(r'SgBMP\{(\d+)\}')
 
 qtApp = QtGui.QApplication(sys.argv)
 
@@ -30,7 +30,7 @@ class Sg():
     def __init__(self,file,option=None):
         self.file = file
         self.option = option
-    def toU8Dot(self,fp):
+    def toU8Dot(self,fp,X=0,Y=0):
         name = os.path.basename(self.file).replace('.','_')
         aname = os.path.abspath(self.file)
         fp.write('#include "Sg.h"\n')
@@ -57,11 +57,12 @@ class Sg():
         fp.write('\n};\n')
         fp.write('static const SgDMP %s_DMP=\n'%(name))
         fp.write('{  /* %s */\n'%(aname))
-        fp.write('\t/*t=*/SGT_DMP,\n')
+        fp.write('\t/*x=*/%s,\n'%(X))
+        fp.write('\t/*y=*/%s,\n'%(Y))        
         fp.write('\t/*w=*/%s,\n'%(IM.size().width()))
         fp.write('\t/*h=*/%s,\n'%(IM.size().height()))
         fp.write('\t/*p=*/%s_dmp\n};\n'%(name))
-    def toU8Pixel(self,fp):
+    def toU8Pixel(self,fp,X=0,Y=0):
         name = os.path.basename(self.file).replace('.','_')
         aname = os.path.abspath(self.file)
         fp.write('#include "SgRes.h"\n')
@@ -75,7 +76,8 @@ class Sg():
         fp.write('\n};\n')
         fp.write('static const SgBMP %s_BMP=\n'%(name))
         fp.write('{  /* %s */\n'%(aname))
-        fp.write('\t/*t=*/SGT_BMP,\n')
+        fp.write('\t/*x=*/%s,\n'%(X))
+        fp.write('\t/*y=*/%s,\n'%(Y))
         fp.write('\t/*w=*/%s,\n'%(IM.size().width()))
         fp.write('\t/*h=*/%s,\n'%(IM.size().height()))
         fp.write('\t/*p=*/%s_bmp\n};\n'%(name))
@@ -83,7 +85,7 @@ class Sg():
 def GetSgImage(IML=[],fp=None):
     for image in IML:
         if(fp != None):
-            Sg(image).toU8Pixel(fp)
+            Sg(image[0]).toU8Pixel(fp,image[1],image[2])
 
 def GetSgFont(IML=[],fp=None):
     for image in IML:
@@ -94,33 +96,44 @@ def GenerateWidget(widget,fph,fpc):
     global __SGL_MAX
     print('## Process Widget %s'%(widget.attrib['name']))
     fp = open('SgRes/%s.c'%(widget.attrib['name']),'w')
-    if(rePic.search(widget.attrib['type']) != None):
-        size = int(rePic.search(widget.attrib['type']).groups()[0],10)
+    if(reSgBMP.search(widget.attrib['type']) != None):
+        size = int(reSgBMP.search(widget.attrib['type']).groups()[0],10)
         IML = []
         for p in widget:
-            if(p.tag=='SgPciture'):IML.append(p.attrib['locate'])
+            if(p.tag=='SgBMP'):
+                IML.append((p.attrib['locate'],p.attrib['x'],p.attrib['y']))
         if(len(IML) == size):
             GetSgImage(IML,fp)
         else:
             raise Exception('size SG widget picture is not right <size=%s,len(SgPciture)=%s>!'%(size,len(IML)))
-        fp.write('const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size+1))
-        for i,file in enumerate(IML):
+        fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size+1))
+        for i,(file,x,y) in enumerate(IML):
             name = os.path.basename(file).replace('.','_')
             fp.write('\t&%s_BMP,\n'%(name))
             fph.write("#define SGR_%-32s %s\n"%(name.upper(),i))
-        fph.write('extern const SgBMP* %s_BMPS[%s];\n'%(widget.attrib['name'],size+1))
         fp.write('\tNULL\n};\n\n')
+        
+        fp.write('const SgSRC %s_SRC = \n{\n'%(widget.attrib['name']))
+        fp.write('\t/*t =*/%s,\n'%('SGT_BMP'))
+        fp.write('\t/*rs=*/%s,\n'%(size))
+        fp.write('\t/*r =*/(const SgRes**)%s_BMPS\n'%(widget.attrib['name']))
+        fp.write('};\n\n')
+        
+        fph.write('extern const SgSRC %s_SRC;\n'%(widget.attrib['name']))
+        
         
         fpc.write('\t{ /* SGW_%s */\n'%(widget.attrib['name'].upper()))
         fpc.write('\t\t/*x =*/%s,\n'%(widget.attrib['x']))
         fpc.write('\t\t/*y =*/%s,\n'%(widget.attrib['y']))
         fpc.write('\t\t/*w =*/%s,\n'%(widget.attrib['w']))
         fpc.write('\t\t/*h =*/%s,\n'%(widget.attrib['h']))
+        fpc.write('\t\t/*c =*/%s,\n'%(0))
+        fpc.write('\t\t/*d =*/%s,\n'%(0))
         fpc.write('\t\t/*l =*/%s,\n'%(widget.attrib['layer']))
         if(int(widget.attrib['layer'],10) > __SGL_MAX ): __SGL_MAX = int(widget.attrib['layer'],10)
-        name = os.path.basename(IML[0]).replace('.','_')
+        name = os.path.basename(IML[0][0]).replace('.','_')
         fpc.write('\t\t/*ri=*/SGR_%s,\n'%(name.upper()))
-        fpc.write('\t\t/*r =*/(const SgRes**)%s_BMPS,\n'%(widget.attrib['name']))
+        fpc.write('\t\t/*src =*/&%s_SRC\n'%(widget.attrib['name']))
         fpc.write('\t},\n')
     else:
         raise Exception('unknown SG widget type!')
@@ -147,7 +160,6 @@ def GenerateSg(file):
         fph.write('#define SGW_%-32s %s\n'%(w.attrib['name'].upper(),i))
     fph.write('#define SGW_%-32s %s\n'%('MAX',len(root)))
     fph.write('\n\nextern SgWidget SGWidget[%s];\n\n'%(len(root)))
-    
     fph.write("\n\n#define SGL_MAX %s\n\n"%(__SGL_MAX+1))
     fph.write('#endif\n\n')
     fph.close()

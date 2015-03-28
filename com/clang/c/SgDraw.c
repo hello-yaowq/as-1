@@ -225,3 +225,4 @@ void Sg_FillEllipse(int x, int y, int a, int b, uint32 color)
 		Sg_DrawPixel(x-dx, y, color);
    }
 }
+

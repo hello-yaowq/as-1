@@ -25,40 +25,51 @@
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static boolean sgUpdateInProcessing  = FALSE;
+static uint8   sgLayer = 0;
+static uint32  sgWI    = 0;
 static void SgDrawBMP(SgWidget* w)
 {
-	const SgBMP* bmp = (SgBMP*)w->r[w->ri];	/* TODO:no check index out of range */
+	const SgBMP* bmp;
+	uint32 x,y,W,H,color;
 	uint32 X = w->x;
 	uint32 Y = w->y;
-	uint32 W = bmp->w;
-	uint32 H = bmp->h;
-	uint32 x,y;
-	uint32 color;
 
-	if( (bmp->w <= W) && (bmp->h <= H) )
+	if(w->ri < w->src->rs)
 	{
-		X += (w->w-W)/2;
-		Y += (w->h-H)/2;
-		for(x=0;x<W;x++)
+		bmp = (SgBMP*)w->src->r[w->ri];
+		W = bmp->w;
+		H = bmp->h;
+
+		if( (bmp->w <= W) && (bmp->h <= H) )
 		{
-			for(y=0;y<H;y++)
+			X += (w->w-W)/2;
+			Y += (w->h-H)/2;
+			for(x=0;x<W;x++)
 			{
-				color = bmp->p[y*W + x];
-				Sg_DrawPixel(X+x,Y+y,color);
+				for(y=0;y<H;y++)
+				{
+					color = bmp->p[y*W + x];
+					Sg_DrawPixel(X+x,Y+y,color);
+				}
 			}
 		}
+		else
+		{
+			/* out of range */
+			assert(0);
+		}
+
 	}
 	else
 	{
-		/* out of range */
 		assert(0);
 	}
-
 
 }
 static void SgDrawWidget(SgWidget* w)
 {
-	switch(w->r[w->ri]->t) /* TODO: no check index out of range */
+	switch(w->src->t)
 	{
 		case SGT_DMP:
 			break;
@@ -75,24 +86,76 @@ static void SgDrawWidget(SgWidget* w)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sg_Init(void)
 {
+	uint32 x,y;
+	sgLayer = 0;
+	sgWI    = 0;
+	sgUpdateInProcessing = FALSE;
+
+	for(x=0;x<SG_LCD_WIGTH;x++)
+	{
+		for(y=0;y<SG_LCD_HEIGHT;y++)
+		{
+			Sg_DrawPixel(x,y,0xFDFDFD);
+		}
+	}
+
 
 }
 
 
 void Sg_ManagerTask(void)
 {
-	uint8  layer;
-	uint32 i;
 	SgWidget* w;
-	for(layer=0;layer<SGL_MAX;layer++)
+	boolean  drawFlag = FALSE;
+
+	if(sgUpdateInProcessing)
 	{
-		for(i=0;i<SGW_MAX;i++)
-		{
-			w = &SGWidget[i];
-			if(w->l == layer)
+		/* do nothing as now, only 1 buffer is used */
+	}
+	else
+	{
+		while (sgLayer < SGL_MAX)
+		{	/* render 1 widget */
+			while(sgWI < SGW_MAX)
 			{
-				SgDrawWidget(w);
+				w = &SGWidget[sgWI];
+				sgWI ++;
+				if(w->l == sgLayer)
+				{
+					SgDrawWidget(w);
+					drawFlag = TRUE;
+				}
+				else
+				{
+					/* continue */
+				}
+			}
+			if(SGW_MAX <= sgWI)
+			{
+				sgLayer ++;
+				sgWI = 0;
+			}
+
+			if(drawFlag)
+			{
+				break;
 			}
 		}
+
+		if(SGL_MAX <= sgLayer)
+		{
+			sgLayer = 0;
+			sgUpdateInProcessing = TRUE;
+		}
 	}
+}
+
+boolean Sg_IsDataReady ( void )
+{
+
+	boolean isReady = sgUpdateInProcessing;
+
+	sgUpdateInProcessing = FALSE;
+
+	return isReady;
 }

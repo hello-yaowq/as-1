@@ -15,7 +15,7 @@ void Task1( void * param)
 	while(1)
 	{
 		Sg_ManagerTask();
-		vTaskDelay(10);
+		vTaskDelay(5);
 	}
 }
 void Task2( void * param)
@@ -23,7 +23,7 @@ void Task2( void * param)
 	while(1)
 	{
 		printf("Task2 is running!\n");
-		vTaskDelay(2000);
+		vTaskDelay(1000);
 	}
 }
 int main( int argc, char* argv[] )
