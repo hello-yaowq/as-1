@@ -10,7 +10,7 @@
 
 void Task1( void * param)
 {
-	Lcd_Init(SG_LCD_WIGTH,SG_LCD_WHEIGHT,1);
+	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
 	while(1)
 	{

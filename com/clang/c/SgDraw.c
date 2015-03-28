@@ -25,7 +25,14 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sg_DrawPixel(int X,int Y,uint32 color)
 {
-	LCD_DrawPixel(X,Y,color);
+	if(color != 0)
+	{
+		LCD_DrawPixel(X,Y,color);
+	}
+	else
+	{
+		/* do nothing */
+	}
 }
 
 void Sg_DrawLine(int x0,int y0,int x1,int y1,uint32 color)
@@ -37,10 +44,12 @@ void Sg_DrawLine(int x0,int y0,int x1,int y1,uint32 color)
 
 	// speed improvement if vertical or horizontal
 	if (x0 == x1) {
-		if (y1 > y0)
+		if (y1 > y0) {
 			Sg_FillArea(x0, y0, 1, y1-y0+1, color);
-		else
+		}
+		else {
 			Sg_FillArea(x0, y1, 1, y0-y1+1, color);
+		}
 		return;
 	}
 	if (y0 == y1) {

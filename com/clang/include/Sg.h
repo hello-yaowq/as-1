@@ -19,10 +19,91 @@
 
 /* ============================ [ MACROS    ] ====================================================== */
 /* declaration of the LCD size */
-#define SG_LCD_WIGTH 	300
-#define SG_LCD_WHEIGHT  400
+#define SG_LCD_WIGTH 	320
+#define SG_LCD_HEIGHT   480
+enum
+{
+	SGT_DMP,
+	SGT_BMP,
+	SGT_TXT,
+	SGT_INVALID = 0xFF
+};
+enum
+{	/* layer */
+	SGL_0,
+	SGL_1,
+	SGL_2,
+	SGL_3,
+	SGL_4,
+	SGL_5,
+	SGL_6,
+	SGL_7,
+	SGL_8,
+	SGL_9,
+	SGL_10,
+	SGL_11,
+	SGL_12,
+	SGL_13,
+	SGL_14,
+	SGL_16,
+	SGL_INVALID = 0xFF
+};
 /* ============================ [ TYPES     ] ====================================================== */
+typedef struct	/* base resource object */
+{
+	uint8   t;
+	uint32  w;
+	uint32  h;
+	union{
+		uint8*   pu8;
+		uint32*  pu32;
+		void* (*f)(void*);
+	}u;
+}SgRes;
 
+typedef struct	/* public:SgRes*/
+{
+	uint8   t;
+	uint32  w;
+	uint32  h;
+	const uint8*  p;	/* without information of color, for fonts */
+}SgDMP;	/* dotmap */
+
+typedef struct	/* public:SgRes*/
+{
+	uint8   t;
+	uint32  w;
+	uint32  h;
+	const uint32* p;	/* with information of color, for pictures */
+}SgBMP;	/* bitmap */
+
+typedef struct	/* public:SgRes */
+{
+	uint8   t;
+	uint32  w;
+	uint32  h;
+	void* (*f)(void*);
+}SgSDD;	/*Sg Special Dynamic Draw */
+/*		  	  Width (w)
+ * 		  + ---------- x
+ *  H     |
+ *  e     |
+ *  i     |
+ *  g (h) |
+ *  h     |
+ *  t     |
+ *        y
+ */
+typedef struct
+{
+	uint32 x;
+	uint32 y;
+	uint32 w;
+	uint32 h;
+	uint8  l;	/* layer number of the widget */
+	uint8  ri;  /* resource index */
+	const SgRes ** r;	/* resource */
+}SgWidget;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

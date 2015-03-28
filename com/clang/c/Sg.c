@@ -16,6 +16,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
+#include "SgRes.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -24,6 +25,53 @@
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static void SgDrawBMP(SgWidget* w)
+{
+	const SgBMP* bmp = (SgBMP*)w->r[w->ri];	/* TODO:no check index out of range */
+	uint32 X = w->x;
+	uint32 Y = w->y;
+	uint32 W = bmp->w;
+	uint32 H = bmp->h;
+	uint32 x,y;
+	uint32 color;
+
+	if( (bmp->w <= W) && (bmp->h <= H) )
+	{
+		X += (w->w-W)/2;
+		Y += (w->h-H)/2;
+		for(x=0;x<W;x++)
+		{
+			for(y=0;y<H;y++)
+			{
+				color = bmp->p[y*W + x];
+				Sg_DrawPixel(X+x,Y+y,color);
+			}
+		}
+	}
+	else
+	{
+		/* out of range */
+		assert(0);
+	}
+
+
+}
+static void SgDrawWidget(SgWidget* w)
+{
+	switch(w->r[w->ri]->t) /* TODO: no check index out of range */
+	{
+		case SGT_DMP:
+			break;
+		case SGT_BMP:
+			SgDrawBMP(w);
+			break;
+		case SGT_TXT:
+			break;
+		default:
+			assert(0);
+			break;
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sg_Init(void)
 {
@@ -33,8 +81,18 @@ void Sg_Init(void)
 
 void Sg_ManagerTask(void)
 {
-	Sg_FillArea(5,5,10,15,0xC567BD);
-	Sg_FillCircle(50,50,25,0xC500BD);
-
-	Sg_DrawEllipse(200,300,25,50,0xC50000);
+	uint8  layer;
+	uint32 i;
+	SgWidget* w;
+	for(layer=0;layer<SGL_MAX;layer++)
+	{
+		for(i=0;i<SGW_MAX;i++)
+		{
+			w = &SGWidget[i];
+			if(w->l == layer)
+			{
+				SgDrawWidget(w);
+			}
+		}
+	}
 }

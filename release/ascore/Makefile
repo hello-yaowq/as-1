@@ -13,6 +13,8 @@ cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
 			 -lpthread
+			 
+dir-y += ./SgDesign/SgRes		 
 
 include ../make/Makefile
 

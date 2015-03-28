@@ -17,3 +17,8 @@ Till now, I think I already know well about RTOS/CAN/NVM/COM/DCM, but I still ha
 
 lower layer to simulate a fixed size LCD displayer on FreeRTOS
 
+* Sg
+
+static GUI manager
+
+
