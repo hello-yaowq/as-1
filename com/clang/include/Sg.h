@@ -90,12 +90,21 @@ typedef struct	/* public:SgRes */
 	void* (*f)(void*);
 }SgSDD;	/*Sg Special Dynamic Draw */
 
+typedef struct	/* public:SgRes */
+{
+	const uint16* l;	/* look up table          */
+	const uint8** p;	/* resource pointer table */
+	uint32  w;
+	uint32  h;
+	uint16  s;
+}SgTXT;
+
 typedef struct
 {
 	uint8           t;
 	uint16  		rs;	/* resource size */
 	const SgRes **  r;	/* resource */
-	void          (*rf)(void*);
+	void*         (*rf)(void*);
 }SgSRC;	/* static resource configuration */
 /*		  	  Width (w)
  * 		  + ---------- x

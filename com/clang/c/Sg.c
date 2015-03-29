@@ -29,6 +29,47 @@ static uint8   sgLayer = 0;
 static uint32  sgWI    = 0;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static void	SgDrawDot(uint32 x, uint32 y,const uint8* d,uint32 c)
+{
+	uint8 w,h;
+	uint32 X,Y;
+	w = d[0];
+	h = d[1];
+	d = d + 2;
+	for(Y=0;Y<h;Y++)
+	{
+		for(X=0;X<w;X++)
+		{
+			uint8 Dot = d[Y*((w+7)/8)+X/8];
+			if(Dot&(1<<(X&7)))
+			{
+				Sg_DrawPixel(X+x,Y+y,c);
+			}
+		}
+	}
+}
+static const uint8* SgfLookup(const SgTXT* txt,uint16 code)
+{
+	uint16 low = 0, high = txt->s, mid;
+    while( low <= high )
+    {
+        mid = ( low + high )/2;
+        if( txt->l[mid] == code )
+        {
+            return txt->p[mid];
+        }
+        else if( txt->l[mid] < code )
+        {
+            low = mid + 1;
+        }
+        else
+        {
+            high = mid - 1;
+        }
+    }
+
+	return NULL;
+}
 static void SgDrawBMP0(SgWidget* w)
 {
 	const SgBMP* bmp;
@@ -104,6 +145,10 @@ static void SgDrawBMPd(SgWidget* w)
 }
 static void SgDrawBMP(SgWidget* w)
 {
+	if(NULL != w->src->rf)
+	{
+		w->src->rf(w);
+	}
 	if(w->ri < w->src->rs)
 	{
 		if(0xFFFF == w->d)
@@ -121,6 +166,40 @@ static void SgDrawBMP(SgWidget* w)
 	}
 
 }
+static void SgDrawTXT(SgWidget* w)
+{
+	const SgTXT* txt;
+	const uint16* utext;
+	uint16 size;
+	uint16 i;
+	uint32 x,y;
+	const uint8* d;
+
+	if(w->ri < w->src->rs)
+	{
+		txt = (SgTXT*)w->src->r[w->ri];
+		utext = w->src->rf(w);
+		size = utext[0];
+		utext ++;
+
+		x = w->x+(w->w-txt->w*size)/2;
+		y = w->y+(w->h-txt->h)/2;
+
+		for(i=0;i<size;i++)
+		{
+			d = SgfLookup(txt,utext[i]);
+			if(d != NULL)
+			{
+				SgDrawDot(x,y,d,w->c);
+			}
+			x += txt->w;
+		}
+	}
+	else
+	{
+		assert(0);
+	}
+}
 static void SgDrawWidget(SgWidget* w)
 {
 	switch(w->src->t)
@@ -131,6 +210,7 @@ static void SgDrawWidget(SgWidget* w)
 			SgDrawBMP(w);
 			break;
 		case SGT_TXT:
+			SgDrawTXT(w);
 			break;
 		default:
 			assert(0);
@@ -152,10 +232,7 @@ void Sg_Init(void)
 			Sg_DrawPixel(x,y,0xFDFDFD);
 		}
 	}
-
-
 }
-
 
 void Sg_ManagerTask(void)
 {
@@ -176,10 +253,6 @@ void Sg_ManagerTask(void)
 				sgWI ++;
 				if(w->l == sgLayer)
 				{
-					if(NULL != w->src->rf)
-					{
-						w->src->rf(w);
-					}
 					SgDrawWidget(w);
 					drawFlag = TRUE;
 				}
