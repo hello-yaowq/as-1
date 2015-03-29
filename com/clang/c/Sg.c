@@ -17,49 +17,103 @@
 #include "Sg.h"
 #include "SgDraw.h"
 #include "SgRes.h"
+#include <math.h>
 
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DATAS     ] ====================================================== */
-/* ============================ [ DECLARES  ] ====================================================== */
-/* ============================ [ LOCALS    ] ====================================================== */
 static boolean sgUpdateInProcessing  = FALSE;
 static uint8   sgLayer = 0;
 static uint32  sgWI    = 0;
-static void SgDrawBMP(SgWidget* w)
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ LOCALS    ] ====================================================== */
+static void SgDrawBMP0(SgWidget* w)
 {
 	const SgBMP* bmp;
 	uint32 x,y,W,H,color;
-	uint32 X = w->x;
-	uint32 Y = w->y;
+	uint32 X;
+	uint32 Y;
+	bmp = (SgBMP*)w->src->r[w->ri];
+	W = bmp->w;
+	H = bmp->h;
+	X = w->x;
+	Y = w->y;
 
-	if(w->ri < w->src->rs)
+	if( (w->w >= W) && (w->h >= H) )
 	{
-		bmp = (SgBMP*)w->src->r[w->ri];
-		W = bmp->w;
-		H = bmp->h;
-
-		if( (bmp->w <= W) && (bmp->h <= H) )
+		X += (w->w-W)/2;
+		Y += (w->h-H)/2;
+		for(x=0;x<W;x++)
 		{
-			X += (w->w-W)/2;
-			Y += (w->h-H)/2;
-			for(x=0;x<W;x++)
+			for(y=0;y<H;y++)
 			{
-				for(y=0;y<H;y++)
-				{
-					color = bmp->p[y*W + x];
-					Sg_DrawPixel(X+x,Y+y,color);
-				}
+				color = bmp->p[y*W + x];
+				Sg_DrawPixel(X+x,Y+y,color);
 			}
 		}
-		else
-		{
-			/* out of range */
-			assert(0);
-		}
+	}
+	else
+	{
+		/* out of range */
+		assert(0);
+	}
+}
+void Sg_Calc(uint32 *px,uint32 *py,uint32 cx,uint32 cy,uint16 d)
+{ /* This is difficult, I think I need a lib to do this job */
+	if(d == 0)
+	{
+		/* output by default */
+	}
+	else
+	{
+		double O = (double)M_PI*d / (double)180;
+		double COS = cos(O);
+		double SIN = sin(O);
+		int x = px[0];
+		int y = py[0];
 
+		px[0]= (uint32)(((double)(x-(int)cx)*COS - (double)(y-(int)cy)*SIN) + (int)cx);
+		py[0]= (uint32)(((double)(x-(int)cx)*SIN + (double)(y-(int)cy)*COS) + (int)cy);
+	}
+}
+static void SgDrawBMPd(SgWidget* w)
+{
+	const SgBMP* bmp;
+	uint32 x,y,W,H,color;
+	uint32 Xc,Yc;
+	uint32 cx,cy;
+	bmp = (SgBMP*)w->src->r[w->ri];
+	W = bmp->w;
+	H = bmp->h;
+	Xc = w->x;
+	Yc = w->y;
+	for(x=0;x<W;x++)
+	{
+		for(y=0;y<H;y++)
+		{
+			cx = Xc + x - bmp->x;
+			cy = Yc + y - bmp->y;
+			Sg_Calc(&cx,&cy,Xc,Yc,w->d);
+			color = bmp->p[y*W + x];
+			Sg_DrawPixel(cx,cy,color);
+			Sg_DrawPixel(cx+1,cy,color);
+		}
+	}
+}
+static void SgDrawBMP(SgWidget* w)
+{
+	if(w->ri < w->src->rs)
+	{
+		if(0xFFFF == w->d)
+		{	/* no degree */
+			SgDrawBMP0(w);
+		}
+		else
+		{	/* draw with rotation */
+			SgDrawBMPd(w);
+		}
 	}
 	else
 	{
@@ -122,6 +176,10 @@ void Sg_ManagerTask(void)
 				sgWI ++;
 				if(w->l == sgLayer)
 				{
+					if(NULL != w->src->rf)
+					{
+						w->src->rf(w);
+					}
 					SgDrawWidget(w);
 					drawFlag = TRUE;
 				}

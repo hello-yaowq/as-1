@@ -106,18 +106,22 @@ def GenerateWidget(widget,fph,fpc):
             GetSgImage(IML,fp)
         else:
             raise Exception('size SG widget picture is not right <size=%s,len(SgPciture)=%s>!'%(size,len(IML)))
-        fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size+1))
+        fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size))
         for i,(file,x,y) in enumerate(IML):
             name = os.path.basename(file).replace('.','_')
             fp.write('\t&%s_BMP,\n'%(name))
             fph.write("#define SGR_%-32s %s\n"%(name.upper(),i))
-        fp.write('\tNULL\n};\n\n')
+        fp.write('};\n\n')
         
         fp.write('const SgSRC %s_SRC = \n{\n'%(widget.attrib['name']))
         fp.write('\t/*t =*/%s,\n'%('SGT_BMP'))
         fp.write('\t/*rs=*/%s,\n'%(size))
-        fp.write('\t/*r =*/(const SgRes**)%s_BMPS\n'%(widget.attrib['name']))
+        fp.write('\t/*r =*/(const SgRes**)%s_BMPS,\n'%(widget.attrib['name']))
+        fp.write('\t/*rf=*/(void(*)(void*))%s\n'%(widget.attrib['refresh']))
         fp.write('};\n\n')
+        
+        if(widget.attrib['refresh'] != 'NULL'):
+            fph.write('extern void %s(SgWidget* w);\n'%(widget.attrib['refresh']))
         
         fph.write('extern const SgSRC %s_SRC;\n'%(widget.attrib['name']))
         
@@ -128,7 +132,7 @@ def GenerateWidget(widget,fph,fpc):
         fpc.write('\t\t/*w =*/%s,\n'%(widget.attrib['w']))
         fpc.write('\t\t/*h =*/%s,\n'%(widget.attrib['h']))
         fpc.write('\t\t/*c =*/%s,\n'%(0))
-        fpc.write('\t\t/*d =*/%s,\n'%(0))
+        fpc.write('\t\t/*d =*/%s,\n'%('0xFFFF/*no rotation*/'))
         fpc.write('\t\t/*l =*/%s,\n'%(widget.attrib['layer']))
         if(int(widget.attrib['layer'],10) > __SGL_MAX ): __SGL_MAX = int(widget.attrib['layer'],10)
         name = os.path.basename(IML[0][0]).replace('.','_')

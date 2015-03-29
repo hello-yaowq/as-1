@@ -95,6 +95,7 @@ typedef struct
 	uint8           t;
 	uint16  		rs;	/* resource size */
 	const SgRes **  r;	/* resource */
+	void          (*rf)(void*);
 }SgSRC;	/* static resource configuration */
 /*		  	  Width (w)
  * 		  + ---------- x
@@ -113,7 +114,7 @@ typedef struct
 	uint32 w;
 	uint32 h;
 	uint32 c;	/* color 		 */
-	uint16 d;	/* rotate degree */
+	uint16 d;	/* rotate degree:unit in 1 */
 	uint8  l;	/* layer number of the widget */
 	uint8  ri;  /* resource index */
 	const SgSRC const* src;
