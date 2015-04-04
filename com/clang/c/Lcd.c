@@ -200,6 +200,13 @@ static DWORD Lcd_Thread(LPVOID param)
 
 	return 0;
 }
+static DWORD Lcd_Thread_VG(LPVOID param)
+{
+	extern int ri_main(void);
+	ri_main();
+
+	return 0;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 {
@@ -222,6 +229,8 @@ void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 	{
 		// do nothing as already started.
 	}
+
+	CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread_VG, NULL, 0, NULL );
 }
 
 void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
