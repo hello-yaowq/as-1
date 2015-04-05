@@ -15,8 +15,14 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 
 #include "Lcd.h"
+#ifdef GUI_USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#else
+#include "VG/openvg.h"
+#include "VG/vgu.h"
+#include "EGL/egl.h"
+#endif
 #include <windows.h>
 #include <Sg.h>
 
@@ -40,16 +46,25 @@
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef GUI_USE_GTK
 static GtkWidget*       pLcd        = NULL;
+static GdkPixbuf*       pLcdImage   = NULL;
+static GtkWidget*       pStatusbar  = NULL;
+#else
+EGLDisplay			egldisplay;
+EGLConfig			eglconfig;
+EGLSurface			eglsurface;
+EGLContext			eglcontext;
+#endif
 static HANDLE 			lcdThread   = NULL;
 static uint32           pLcdBuffer[LCD_MAX_WIDTH*LCD_MAX_HEIGHT];
-static GdkPixbuf*       pLcdImage   = NULL;
 static uint32           lcdWidth    = 0;
 static uint32           lcdHeight   = 0;
 static uint8            lcdPixel    = 0;
-static GtkWidget*       pStatusbar  = NULL;
+
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef GUI_USE_GTK
 #if(cfgLcdHandle == LCD_DRAWING_AREA)
 static gboolean scribble_draw (GtkWidget *widget,
          cairo_t   *cr,
@@ -200,13 +215,161 @@ static DWORD Lcd_Thread(LPVOID param)
 
 	return 0;
 }
-static DWORD Lcd_Thread_VG(LPVOID param)
+#else
+void init(NativeWindowType window)
 {
-	extern int ri_main(void);
-	ri_main();
+	static const EGLint s_configAttribs[] =
+	{
+		EGL_RED_SIZE,		8,
+		EGL_GREEN_SIZE, 	8,
+		EGL_BLUE_SIZE,		8,
+		EGL_ALPHA_SIZE, 	8,
+		EGL_LUMINANCE_SIZE, EGL_DONT_CARE,			//EGL_DONT_CARE
+		EGL_SURFACE_TYPE,	EGL_WINDOW_BIT,
+		EGL_SAMPLES,		1,
+		EGL_NONE
+	};
+	EGLint numconfigs;
 
+	egldisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	eglInitialize(egldisplay, NULL, NULL);
+	assert(eglGetError() == EGL_SUCCESS);
+	eglBindAPI(EGL_OPENVG_API);
+
+	eglChooseConfig(egldisplay, s_configAttribs, &eglconfig, 1, &numconfigs);
+	assert(eglGetError() == EGL_SUCCESS);
+	assert(numconfigs == 1);
+
+	eglsurface = eglCreateWindowSurface(egldisplay, eglconfig, window, NULL);
+	assert(eglGetError() == EGL_SUCCESS);
+	eglcontext = eglCreateContext(egldisplay, eglconfig, NULL, NULL);
+	assert(eglGetError() == EGL_SUCCESS);
+	eglMakeCurrent(egldisplay, eglsurface, eglsurface, eglcontext);
+	assert(eglGetError() == EGL_SUCCESS);
+
+}
+void deinit(void)
+{
+	eglMakeCurrent(egldisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	assert(eglGetError() == EGL_SUCCESS);
+	eglTerminate(egldisplay);
+	assert(eglGetError() == EGL_SUCCESS);
+	eglReleaseThread();
+}
+void render(int w, int h)
+{
+	if(FALSE == Sg_IsDataReady()) { return; }
+
+	uint32 x,y;
+	uint8 n_channels = 4;
+	VGint dataStride = LCD_WIDTH*n_channels;
+	uint8* vgdata= malloc(n_channels*LCD_WIDTH*LCD_HEIGHT);
+
+	eglSwapBuffers(egldisplay, eglsurface);	//force EGL to recognize resize
+/*
+ * for VG x-y                    for SG x-y
+ *  Y ^   this is not            ------------> X
+ *    |  the same as my          |
+ *    |  SG design               |
+ *    |                          |
+ *    --------------> X          V  Y
+ */
+
+	for(x=0;x<LCD_WIDTH;x++)
+	{
+		for(y=0;y<LCD_HEIGHT;y++)
+		{
+			uint32 index = y*LCD_WIDTH + x;
+			assert(index < (LCD_WIDTH*LCD_HEIGHT));
+			uint32 color = pLcdBuffer[index];
+
+			uint8* p = vgdata + (LCD_HEIGHT - y -1) * dataStride + x * n_channels;
+			p[0] = (color>>16)&0xFF; // red
+			p[1] = (color>>8 )&0xFF; // green
+			p[2] = (color>>0 )&0xFF; // blue
+			p[3] = (color>>24)&0xFF; // alpha
+		}
+	}
+	vgWritePixels(vgdata,dataStride,VG_sRGBA_8888_PRE,0,0,LCD_WIDTH,LCD_HEIGHT);
+
+	assert(vgGetError() == VG_NO_ERROR);
+
+	eglSwapBuffers(egldisplay, eglsurface);
+	assert(eglGetError() == EGL_SUCCESS);
+	free(vgdata);
+}
+static LONG WINAPI windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_CLOSE:
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_PAINT:
+		{
+			RECT rect;
+			InvalidateRect(hWnd, NULL, 0);
+			GetClientRect(hWnd, &rect);
+			render(rect.right - rect.left, rect.bottom - rect.top);
+			return 0;
+		}
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+static DWORD Lcd_Thread(LPVOID param)
+{
+	HWND window;
+	{
+		WNDCLASS wndclass;
+		wndclass.style		   = 0;
+		wndclass.lpfnWndProc   = windowProc;
+		wndclass.cbClsExtra    = 0;
+		wndclass.cbWndExtra    = 0;
+		wndclass.hInstance	   = (HINSTANCE)GetModuleHandle(NULL);
+		wndclass.hIcon		   = LoadIcon(wndclass.hInstance, MAKEINTRESOURCE(101));
+		wndclass.hCursor	   = LoadCursor(NULL, IDC_ARROW);
+		wndclass.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
+		wndclass.lpszMenuName  = NULL;
+		wndclass.lpszClassName = "MainWndClass";
+		if (!wndclass.hIcon)
+			wndclass.hIcon = LoadIcon(NULL, IDI_EXCLAMATION);
+		RegisterClass(&wndclass);
+	}
+
+	window = CreateWindow(
+		"MainWndClass",
+		"LCD for openVG study, by parai@AS",
+		WS_OVERLAPPEDWINDOW,
+		200, 200, LCD_WIDTH+20, LCD_HEIGHT+20,
+		NULL,
+		NULL,
+		(HINSTANCE)GetModuleHandle(NULL),
+		NULL);
+	if (!window)
+		return -1;
+
+	init((NativeWindowType)window);
+
+	{
+		MSG msg;
+		ShowWindow(window, SW_SHOW);
+		while (GetMessage(&msg, NULL, 0, 0))
+		{
+			DispatchMessage(&msg);
+			if (msg.message == WM_QUIT)
+				break;
+		}
+	}
+
+	deinit();
+
+	DestroyWindow(window);
 	return 0;
 }
+#endif /* GUI_USE_GTK */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 {
@@ -229,8 +392,6 @@ void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 	{
 		// do nothing as already started.
 	}
-
-	CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread_VG, NULL, 0, NULL );
 }
 
 void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )

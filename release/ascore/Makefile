@@ -1,4 +1,6 @@
 # specific target as libcan.a
+# slect GUI openVG/GTK
+gui-used = openVG
 target-y = FreeRTOS
 
 obj-dir = ./obj
@@ -8,11 +10,18 @@ src-dir = ./src
 LNFS  = python ../../make/lnfs.py
 		 
 ldflags-y += -lm -lwinmm
-		 
+	
+	 
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
 			 -lpthread
+
+ifeq ($(gui-used),GTK)			 
+def-y += -DGUI_USE_GTK			 
+else	 
+def-y += -DGUI_USE_OPENVG	
+endif		 
 			 
 ldflags-y += -lstdc++	 
 			 			 
@@ -26,6 +35,8 @@ inc-dir = ./include
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 
 def-y += -D__AS_BY_PARAI__
+
+
 
 #cflags-y += -Werror
 
@@ -46,9 +57,6 @@ dep:$(src-dir) $(inc-dir)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Config TRUE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg FALSE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/win32 FALSE)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/samples/tiger/tiger.c tiger.c)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/samples/tiger/tiger.h tiger.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/samples/tiger/main.c ri_main.c)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/EGL)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
