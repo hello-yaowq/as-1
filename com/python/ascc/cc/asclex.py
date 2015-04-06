@@ -17,14 +17,16 @@
 
 from ply import *
 
-keywords = ('VERSION','NS_','BS_','BU_','BO_','SG_', 'EV_')
+keywords = ('VERSION','NS_','BS_','BU_','BO_','SG_', 'EV_', 
+            'BA_', 'CM_','BA_DEF_','BA_DEF_DEF_','INT','ENUM',
+            'STRING','HEX','FLOAT')
 
 tokens = keywords + (
      'EQUALS','PLUS','MINUS','TIMES','DIVIDE','POWER',  # =, +, -, *, /, ^
      'LPAREN','RPAREN','LBRACE','RBRACE','LBK','RBK',   # (, ), {, }, [, ],
      'LT','LE','GT','GE','NE',                          # <, <=, >, >=, !=
      'COLON','COMMA','SEMI','OR','AND','AT',            # :, ,, ;, |, &, @
-     'INTEGER','FLOAT', 'STRING','ID','EOL'
+     'INTEGER','DIGIT','STR','ID','EOL'
 )
 
 t_EQUALS  = r'='
@@ -51,8 +53,8 @@ t_OR      = r'\|'
 t_AND     = r'\&'
 t_AT      = r'\@'
 t_INTEGER = r'(0(x|X)[0-9a-fA-F]+)|(\d+)'  
-t_FLOAT   = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
-t_STRING  = r'\".*?\"'
+t_DIGIT   = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
+t_STR     = r'"(.|\n)*?"'
 
 def t_ID(t):
     r'[_A-Za-z][_A-Za-z0-9]*'

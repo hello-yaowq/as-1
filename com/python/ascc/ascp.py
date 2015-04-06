@@ -14,13 +14,14 @@
  * for more details.
  */
 '''
-import ascyacc
+from cc import ascyacc
 import sys,os
-if (__name__ == '__main__'):
 
-    fp = open('./CANMatrix.dbc','r')
+
+def ASCP(file):
+    ''' AS Can Process'''
+    fp = open(file,'r')
     data = fp.read()
     fp.close()
-    print(' >> ASCP ./CANMatrix.dbc')
     p = ascyacc.parse(data)
     print(p)
