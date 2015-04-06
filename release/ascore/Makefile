@@ -1,6 +1,7 @@
 # specific target as libcan.a
 # slect GUI openVG/GTK
 gui-used = openVG
+#gui-used = GTK
 target-y = FreeRTOS
 
 obj-dir = ./obj

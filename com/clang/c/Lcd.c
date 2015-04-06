@@ -201,7 +201,7 @@ static DWORD Lcd_Thread(LPVOID param)
 	printf("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
 	pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(pWindow),"LCD\n");
+	gtk_window_set_title(GTK_WINDOW(pWindow),"LCD");
 
 	gtk_container_add(GTK_CONTAINER (pWindow), Lcd());
 
@@ -216,7 +216,7 @@ static DWORD Lcd_Thread(LPVOID param)
 	return 0;
 }
 #else
-void init(NativeWindowType window)
+static void init(NativeWindowType window)
 {
 	static const EGLint s_configAttribs[] =
 	{
@@ -248,7 +248,7 @@ void init(NativeWindowType window)
 	assert(eglGetError() == EGL_SUCCESS);
 
 }
-void deinit(void)
+static void deinit(void)
 {
 	eglMakeCurrent(egldisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	assert(eglGetError() == EGL_SUCCESS);
@@ -256,7 +256,7 @@ void deinit(void)
 	assert(eglGetError() == EGL_SUCCESS);
 	eglReleaseThread();
 }
-void render(int w, int h)
+static void render(int w, int h)
 {
 	if(FALSE == Sg_IsDataReady()) { return; }
 
@@ -284,10 +284,10 @@ void render(int w, int h)
 			uint32 color = pLcdBuffer[index];
 
 			uint8* p = vgdata + (LCD_HEIGHT - y -1) * dataStride + x * n_channels;
-			p[0] = (color>>16)&0xFF; // red
-			p[1] = (color>>8 )&0xFF; // green
-			p[2] = (color>>0 )&0xFF; // blue
-			p[3] = (color>>24)&0xFF; // alpha
+			p[0] = (color>>24)&0xFF; // alpha
+			p[3] = (color>>16)&0xFF; // red
+			p[2] = (color>>8 )&0xFF; // green
+			p[1] = (color>>0 )&0xFF; // blue
 		}
 	}
 	vgWritePixels(vgdata,dataStride,VG_sRGBA_8888_PRE,0,0,LCD_WIDTH,LCD_HEIGHT);
@@ -341,7 +341,7 @@ static DWORD Lcd_Thread(LPVOID param)
 
 	window = CreateWindow(
 		"MainWndClass",
-		"LCD for openVG study, by parai@AS",
+		"LCD",
 		WS_OVERLAPPEDWINDOW,
 		200, 200, LCD_WIDTH+20, LCD_HEIGHT+20,
 		NULL,
