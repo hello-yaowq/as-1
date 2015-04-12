@@ -15,13 +15,13 @@
  */
 '''
 import sys,os
-from ascp import ASCP
-def ASCC(file):
+from cc.ascp import ASCP
+def ASCC(file,args):
     if(file[-4:].upper() == '.DBC'):
-        ASCP(file)
+        ASCP(file,args)
 
 if(__name__ == '__main__'):
-    if len(sys.argv) == 2:
-        ASCC(sys.argv[1])
+    if len(sys.argv) >= 2:
+        ASCC(sys.argv[1],sys.argv[2:])
     else:
-        print("Usage: ASCC file")
+        print("Usage: ASCC file **args")

@@ -146,10 +146,9 @@ def p_cmList(p):
 def p_cm(p):
     '''cm : CM_ SG_ digit ID STR SEMI EOL
         | CM_ STR SEMI EOL'''
-    if(len(p) == 5):
-        p[0] = {'cm':p[2]}
-    else:
-        p[0] = {'cm':{'id':p[3],'name':p[4],'cm':p[5]}}
+    p[0] = []
+    for i in range(1,len(p)):
+        p[0].append(p[i])
         
 def p_badefList(p):      
     '''badefList : badefList badef
@@ -229,7 +228,7 @@ def p_sgList(p):
         p[0].append(p[2])
 
 def p_sg(p):
-    '''sg : SG_ ID COLON digit OR digit AT digit PLUS  LPAREN digit COMMA digit RPAREN LBK digit OR digit RBK STR idList EOL
+    '''sg : SG_ ID COLON digit OR digit AT digit PLUS  LPAREN digit COMMA digit RPAREN LBK digit OR digit RBK STR rxNodeList EOL
         |   SG_ ID COLON digit OR digit AT digit MINUS LPAREN digit COMMA digit RPAREN LBK digit OR digit RBK STR idList EOL'''
     p[0] = {'sg':{'name':p[2],'start':p[4],'size':p[6],'u':p[8],'factor':p[11],'offset':p[13],'min':p[16],'max':p[18],'unit':p[20],'node':p[21]}}
 
@@ -244,6 +243,18 @@ def p_idList(p):
         p[0] = p[1]
         if(not p[0]):p[0] = []
         p[0].append(p[2])
+        
+def p_rxNodeList(p):
+    '''rxNodeList : rxNodeList COMMA ID
+                    | ID
+                    | empty '''
+    if(len(p)==2):
+        if(not p[0]):p[0] = []
+        p[0].append(p[1])
+    elif(len(p)==4):
+        p[0] = p[1]
+        if(not p[0]):p[0] = []
+        p[0].append(p[3])        
         
 def p_nsList(p):
     '''nsList : nsList ID EOL
