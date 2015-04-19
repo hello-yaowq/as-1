@@ -1,0 +1,62 @@
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
+/* ============================ [ INCLUDES  ] ====================================================== */
+#include "Os.h"
+
+/* ============================ [ MACROS    ] ====================================================== */
+/* ============================ [ TYPES     ] ====================================================== */
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ DATAS     ] ====================================================== */
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
+
+TASK(TaskApp)
+{
+	printf("TaskApp is running!\n");
+
+	OsTerminateTask(TaskApp);
+}
+TASK(TaskCom)
+{
+	printf("TaskCom is running!\n");
+	OsTerminateTask(TaskCom);
+}
+TASK(TaskSg)
+{
+	printf("TaskSg is running!\n");
+
+	OsTerminateTask(TaskSg);
+}
+
+ALARM(Alarm5ms)
+{
+	printf("Alarm5ms is running!\n");
+}
+ALARM(Alarm10ms)
+{
+	printf("Alarm10ms is running!\n");
+}
+ALARM(Alarm20ms)
+{
+	printf("Alarm20ms is running!\n");
+}
+ALARM(Alarm50ms)
+{
+	printf("Alarm50ms is running!\n");
+}
+ALARM(Alarm100ms)
+{
+	printf("Alarm100ms is running!\n");
+}

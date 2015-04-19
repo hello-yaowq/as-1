@@ -28,9 +28,11 @@ ldflags-y += -lstdc++
 			 			 
 dir-y += ./SgDesign/SgRes		
 dir-y += ./app
+dir-y += ./app/config
 inc-y += -I./include
 inc-y += -I./include/EGL
 inc-y += -I./include/VG
+inc-y += -I./app/config
 inc-dir = ./include
 
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
@@ -49,6 +51,8 @@ $(src-dir):
 dep:$(src-dir) $(inc-dir)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Lcd.c Lcd.c)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Lcd.h Lcd.h)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Os.h Os.h)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Std_Types.h Std_Types.h)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/SgDraw.h SgDraw.h)
@@ -60,7 +64,7 @@ dep:$(src-dir) $(inc-dir)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/EGL)
-	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
+	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
 	
 sg:
 	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
