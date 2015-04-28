@@ -42,21 +42,19 @@ TASK(TaskSg)
 
 ALARM(Alarm5ms)
 {
-	printf("Alarm5ms is running!\n");
+	OsActivateTask(TaskSg);
+	OsActivateTask(TaskCom);
 }
 ALARM(Alarm10ms)
 {
-	printf("Alarm10ms is running!\n");
 }
 ALARM(Alarm20ms)
 {
-	printf("Alarm20ms is running!\n");
+	OsActivateTask(TaskApp);
 }
 ALARM(Alarm50ms)
 {
-	printf("Alarm50ms is running!\n");
 }
 ALARM(Alarm100ms)
 {
-	printf("Alarm100ms is running!\n");
 }

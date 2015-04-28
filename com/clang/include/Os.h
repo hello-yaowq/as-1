@@ -33,22 +33,22 @@
 #define	E_OS_STATE 		(StatusType)7
 #define	E_OS_VALUE 		(StatusType)8
 
-#define OsWaitEvent(TaskName,mask)									\
-		xEventGroupWaitBits	(	os_task_events[TASK_ID_##TaskName],	\
+#define OsWaitEvent_impl(ID,mask)									\
+		xEventGroupWaitBits	(	os_task_events[ID],					\
 								mask,								\
 								pdFALSE,							\
 								pdFALSE,							\
 								portMAX_DELAY						\
 							)
 
-#define OsClearEvent(TaskName,mask) xEventGroupClearBits( os_task_events[TASK_ID_##TaskName], mask )
-#define OsGetEvent(TaskName)		xEventGroupClearBits( os_task_events[TASK_ID_##TaskName], 0 )
-#define OsSetEvent(TaskName,mask)	xEventGroupSetBits( os_task_events[TASK_ID_##TaskName], mask )
-#define OsSetEventFromISR(TaskName,mask)								\
+#define OsClearEvent_impl(ID,mask)  xEventGroupClearBits( os_task_events[ID], mask )
+#define OsGetEvent_impl(ID)			xEventGroupClearBits( os_task_events[ID], 0 )
+#define OsSetEvent_impl(ID,mask)			xEventGroupSetBits( os_task_events[ID], mask )
+#define OsSetEventFromISR_impl(ID,mask)									\
 	do {																\
 		BaseType_t xHigherPriorityTaskWoken, xResult;					\
 		xHigherPriorityTaskWoken = pdFALSE;								\
-		xEventGroupSetBitsFromISR( 	os_task_events[TASK_ID_##TaskName],	\
+		xEventGroupSetBitsFromISR( 	os_task_events[ID],					\
 									mask, 								\
 									&xHigherPriorityTaskWoken);			\
 		if( xResult == pdPASS )											\
@@ -60,14 +60,14 @@
 /*
  * Task maximum activation is 1.
  */
-#define OsActivateTask(TaskName) 	OsSetEvent(TaskName,EVENT_MASK_##TaskName##_Activation)
+#define OsActivateTask_impl(ID) 	OsSetEvent_impl(ID,OS_EVENT_TASK_ACTIVATION)
 /*
  * This will only clear the activation bit of the task.
  * Task will terminate itself when it returns from its main function TASK()
  */
-#define OsTerminateTask(TaskName)   OsClearEvent(TaskName,EVENT_MASK_##TaskName##_Activation)
+#define OsTerminateTask_impl(ID)   	OsClearEvent_impl(ID,OS_EVENT_TASK_ACTIVATION)
 
-#define OsSetRelAlarm(AlarmName,Increment,Cycle)													\
+#define OsSetRelAlarm_impl(ID,Increment,Cycle)												\
 	do {																							\
 			BaseType_t xResult;																		\
 			TickType offset;																		\
@@ -76,11 +76,23 @@
 			{																						\
 				offset = 1;																			\
 			}																						\
-			xResult = xTimerChangePeriod(os_alarm_handles[ALARM_ID_##AlarmName],offset,100);		\
-			os_alarm_increment[ALARM_ID_##AlarmName]	=	offset;									\
-			os_alarm_period[ALARM_ID_##AlarmName]	=	Cycle;										\
+			xResult = xTimerChangePeriod(os_alarm_handles[ID],offset,100);							\
+			os_alarm_increment[ID]	=	offset;														\
+			os_alarm_period[ID]	=	Cycle;															\
 			assert(xResult == pdPASS);																\
 	}while(0)
+
+
+#define OsWaitEvent(TaskName,mask)					OsWaitEvent_impl(TASK_ID_##TaskName,mask)
+#define OsClearEvent(TaskName,mask)					OsClearEvent_impl(TASK_ID_##TaskName,mask)
+#define OsGetEvent(TaskName)						OsGetEvent_impl(TASK_ID_##TaskName)
+#define OsSetEvent(TaskName,mask)					OsSetEvent_impl(TASK_ID_##TaskName,mask)
+#define OsSetEventFromISR(TaskName,mask)			OsSetEventFromISR_impl(TASK_ID_##TaskName,mask)
+
+#define OsActivateTask(TaskName)					OsActivateTask_impl(TASK_ID_##TaskName)
+#define OsTerminateTask(TaskName)					OsTerminateTask_impl(TASK_ID_##TaskName)
+
+#define OsSetRelAlarm(AlarmName,Increment,Cycle) 	OsSetRelAlarm_impl(ALARM_ID_##AlarmName,Increment,Cycle)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint32 		AppModeType;
 typedef uint8 		StatusType;
