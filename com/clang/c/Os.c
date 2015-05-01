@@ -19,31 +19,8 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void OsTaskInit(void);
-extern void OsAlarmInit(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
-void StartOS( AppModeType app_mode )
-{
-	OsTaskInit();
-	OsAlarmInit();
 
-	vTaskStartScheduler();
-}
-
-void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
-{
-	_assert(__FUNCTION__, pcFileName, ulLine);
-}
-
-unsigned long ulGetRunTimeCounterValue( void )
-{
-	return 0;
-}
-
-void vConfigureTimerForRunTimeStats( void )
-{
-
-}
