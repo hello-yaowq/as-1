@@ -14,29 +14,31 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-
+#include "Lcd.h"
+#include "Sg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void StartupHook(void)
+{
+	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
+	Sg_Init();
+}
 
 TASK(TaskApp)
 {
-	printf("TaskApp is running!\n");
-
 	OsTerminateTask(TaskApp);
 }
 TASK(TaskCom)
 {
-	printf("TaskCom is running!\n");
 	OsTerminateTask(TaskCom);
 }
 TASK(TaskSg)
 {
-	printf("TaskSg is running!\n");
-
+	Sg_ManagerTask();
 	OsTerminateTask(TaskSg);
 }
 
@@ -57,4 +59,21 @@ ALARM(Alarm50ms)
 }
 ALARM(Alarm100ms)
 {
+}
+
+void ErrorHook(StatusType ercd)
+{
+
+}
+void PreTaskHook(void)
+{
+
+}
+void PostTaskHook(void)
+{
+
+}
+void ShutdownHook(StatusType ercd)
+{
+
 }

@@ -29,8 +29,12 @@
 #ifndef MAX
 #define MAX(_x,_y) (((_x) > (_y)) ? (_x) : (_y))
 #endif
+#ifndef E_OK
 #define E_OK 					(Std_ReturnType)0
+#endif
+#ifndef E_NOT_OK
 #define E_NOT_OK 				(Std_ReturnType)1
+#endif
 
 #ifndef TRUE
 #define TRUE                    (boolean)1

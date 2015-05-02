@@ -2,7 +2,9 @@
 # slect GUI openVG/GTK
 gui-used = openVG
 #gui-used = GTK
-target-y = FreeRTOS
+
+#target-y = FreeRTOS
+target-y = toppers_osek
 
 obj-dir = ./obj
 exe-dir = ./out
@@ -58,8 +60,14 @@ dep:$(src-dir) $(inc-dir)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/SgDraw.h SgDraw.h)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Sg.c Sg.c)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/SgDraw.c SgDraw.c)
+ifeq ($(target-y),FreeRTOS)	
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Source TRUE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Config TRUE)
+else
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/include TRUE)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/mingw TRUE)
+endif
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg FALSE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)

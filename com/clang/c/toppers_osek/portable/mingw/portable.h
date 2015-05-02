@@ -12,22 +12,35 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_OS_H_
-#define COM_CLANG_INCLUDE_OS_H_
+#ifndef COM_CLANG_C_TOPPERS_OSEK_PORTABLE_MINGW_PORTABLE_H_
+#define COM_CLANG_C_TOPPERS_OSEK_PORTABLE_MINGW_PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Os_Cfg.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef AS_OS_BASED_ON_TOPPERS_OSEK
-#define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
-#define OsTerminateTask(x)	TerminateTask()
-#endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
+#define Inline static __inline__
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void StartOS( AppModeType app_mode );
+extern void disable_int(void);
+extern void enable_int(void);
 
-extern void StartupHook( void );
-#endif /* COM_CLANG_INCLUDE_OS_H_ */
+extern void dispatch(void);
+extern void set_ipl(IPL ipl);
+extern IPL  current_ipl(void);
+extern void start_dispatch(void);
+extern void exit_and_dispatch(void);
+extern void activate_context(TaskType TaskID);
+
+extern void cpu_terminate(void);
+extern void sys_exit(void);
+
+extern void cpu_initialize(void);
+extern void sys_initialize(void);
+extern void tool_initialize(void);
+
+extern void EnterISR2(void);
+extern void ExitISR2(void);
+#endif /* COM_CLANG_C_TOPPERS_OSEK_PORTABLE_MINGW_PORTABLE_H_ */

@@ -12,22 +12,68 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_OS_H_
-#define COM_CLANG_INCLUDE_OS_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Os_Cfg.h"
+#include "osek_kernel.h"
+#include "task.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef AS_OS_BASED_ON_TOPPERS_OSEK
-#define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
-#define OsTerminateTask(x)	TerminateTask()
-#endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void StartOS( AppModeType app_mode );
 
-extern void StartupHook( void );
-#endif /* COM_CLANG_INCLUDE_OS_H_ */
+void disable_int(void)
+{
+}
+void enable_int(void)
+{
+}
+
+void dispatch(void)
+{
+}
+void set_ipl(IPL ipl)
+{
+}
+IPL  current_ipl(void)
+{
+	return 0;
+}
+void start_dispatch(void)
+{
+}
+void exit_and_dispatch(void)
+{
+}
+void activate_context(TaskType TaskID)
+{
+}
+
+void cpu_initialize(void)
+{
+
+}
+void sys_initialize(void)
+{
+
+}
+void tool_initialize(void)
+{
+
+}
+
+void EnterISR2(void)
+{
+}
+void ExitISR2(void)
+{
+}
+
+void cpu_terminate(void)
+{
+
+}
+void sys_exit(void)
+{
+}
+
