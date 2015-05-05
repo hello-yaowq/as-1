@@ -30,6 +30,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+	//printf("TaskApp is running!\n");
 	OsTerminateTask(TaskApp);
 }
 TASK(TaskCom)
@@ -64,6 +65,45 @@ ALARM(Alarm100ms)
 void ErrorHook(StatusType ercd)
 {
 
+	switch(ercd)
+	{
+		case E_OS_ACCESS:
+			printf("ercd = %d E_OS_ACCESS!\n",ercd);
+			break;
+		case E_OS_CALLEVEL:
+			printf("ercd = %d E_OS_CALLEVEL!\n",ercd);
+			break;
+		case E_OS_ID:
+			printf("ercd = %d E_OS_ID!\n",ercd);
+			break;
+		case E_OS_LIMIT:
+			printf("ercd = %d E_OS_LIMIT!\n",ercd);
+			break;
+		case E_OS_NOFUNC:
+			printf("ercd = %d E_OS_NOFUNC!\n",ercd);
+			break;
+		case E_OS_RESOURCE:
+			printf("ercd = %d E_OS_RESOURCE!\n",ercd);
+			break;
+		case E_OS_STATE:
+			printf("ercd = %d E_OS_STATE!\n",ercd);
+			break;
+		case E_OS_VALUE	:
+			printf("ercd = %d E_OS_VALUE!\n",ercd);
+			break;
+		default:
+			printf("ercd = %d unknown error!\n",ercd);
+			break;
+	}
+
+	if(E_OS_CALLEVEL == ercd)
+	{
+		ShutdownOS(E_OS_CALLEVEL);
+	}
+	else
+	{
+		/* recover-able error */
+	}
 }
 void PreTaskHook(void)
 {
@@ -75,5 +115,5 @@ void PostTaskHook(void)
 }
 void ShutdownHook(StatusType ercd)
 {
-
+	for(;;);
 }

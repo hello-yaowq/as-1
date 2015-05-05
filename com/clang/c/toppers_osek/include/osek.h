@@ -64,8 +64,12 @@ typedef	signed char		    INT8;		/* 8 bit integer */
 typedef	unsigned char		UINT8;		/* 8 bit unsigned integer */
 typedef	signed short		INT16;		/* 16 bit integer */
 typedef	unsigned short  	UINT16;	    /* 16 bit unsigned integer */
+#ifndef WIN32
 typedef	signed long	    	INT32;		/* 32 bit integer */
 typedef	unsigned long	    UINT32;		/* 32 bit unsigned integer */
+#else
+#include <basetsd.h>
+#endif
 typedef	signed long long	INT64;		/* 64 bit unsigned intege */
 typedef	unsigned long long  UINT64;		/* 64 bit unsigned intege */
 typedef UINT8		StatusType;			

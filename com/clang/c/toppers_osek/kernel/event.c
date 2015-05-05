@@ -68,7 +68,11 @@
  *  Set a event or a group of event for a task
  */
 StatusType
+#ifndef WIN32
 SetEvent(TaskType tskid, EventMaskType mask)
+#else
+SetEvent2(TaskType tskid, EventMaskType mask)
+#endif
 {
 	StatusType	ercd = E_OK;
 

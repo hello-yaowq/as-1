@@ -1,7 +1,6 @@
 # specific target as libcan.a
 # slect GUI openVG/GTK
 gui-used = openVG
-#gui-used = GTK
 
 #target-y = FreeRTOS
 target-y = toppers_osek
@@ -68,10 +67,12 @@ else
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/mingw TRUE)
 endif
+ifeq ($(gui-used),openVG)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg FALSE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/EGL)
+endif
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
 	
 sg:
