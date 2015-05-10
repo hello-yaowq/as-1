@@ -19,8 +19,13 @@
 
 /* ============================ [ MACROS    ] ====================================================== */
 /* declaration of the LCD size */
+#ifdef CHIP_AT91SAM3S
+#define SG_LCD_WIGTH 	240
+#define SG_LCD_HEIGHT   320
+#else
 #define SG_LCD_WIGTH 	320
 #define SG_LCD_HEIGHT   480
+#endif
 enum
 {
 	SGT_DMP,

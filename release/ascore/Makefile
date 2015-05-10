@@ -12,6 +12,8 @@ obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
 
+INFRASTRUCTURE = ../../../com/as.infrastructure/
+
 LNFS  = python ../../make/lnfs.py
 		 
 ldflags-y += -lm -lwinmm
@@ -54,36 +56,36 @@ $(src-dir):
 	@mkdir -p $@
 dep:$(src-dir) $(inc-dir)
 ifeq ($(arch-y),AT91SAM3S)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/arch/at91sam3s/libraries)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries)
 else
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Lcd.c Lcd.c)
-endif	
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Lcd.h Lcd.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Os.h Os.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Os.c Os.c)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Std_Types.h Std_Types.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Sg.h Sg.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/SgDraw.h SgDraw.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Sg.c Sg.c)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/SgDraw.c SgDraw.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.c Lcd.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.h Lcd.h)
+endif
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h Std_Types.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.c Sg.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)
 ifeq ($(target-y),FreeRTOS)	
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Source TRUE)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Config TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
 else
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/include TRUE)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 ifeq ($(arch-y),AT91SAM3S)	
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/armv7_m TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
 else
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/mingw TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/mingw TRUE)
 endif	
 endif
 ifeq ($(gui-used),openVG)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg FALSE)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg/win32 FALSE)
-	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)
-	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/EGL)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg/win32 FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
 	
 	

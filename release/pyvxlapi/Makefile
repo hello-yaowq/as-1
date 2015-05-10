@@ -10,20 +10,23 @@ LNFS  = python ../../make/lnfs.py
 
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 
-vxlapi-dll = "C:\Users\Public\Documents\Vector XL Driver Library\bin\vxlapi.dll"
+FROM = ../../../com/as.tool/cancasexl.access
+INFRASTRUCTURE = ../../../com/as.infrastructure/
+
+vxlapi-dll = "C:/Users/Public/Documents/Vector\ XL\ Driver\ Library/bin/vxlapi.dll"
 $(sip-dir):
 	@mkdir -p $(sip-dir)
 $(src-dir):
 	@mkdir -p $(src-dir)
 	
 dep:$(src-dir) $(sip-dir)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/vxlapi.h vxlapi.h)
-	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/xlLoadlib.cpp xlLoadlib.c)
-	@(cd $(sip-dir);$(LNFS) ../../../com/clang/include/vxlapi.h vxlapi.h)
-	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/vxlapi.sip vxlapi.sip)
-	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/configure.py configure.py)
-	@(cd $(sip-dir);$(LNFS) ../../../com/python/sip/test.py test.py)
-	@(cd $(sip-dir);$(LNFS) ../../../com/python/can/vxlapih.py vxlapih.py)
+	@(cd $(src-dir);$(LNFS) $(FROM)/vxlapi.h vxlapi.h)
+	@(cd $(src-dir);$(LNFS) $(FROM)/xlLoadlib.cpp xlLoadlib.c)
+	@(cd $(sip-dir);$(LNFS) $(FROM)/vxlapi.h vxlapi.h)
+	@(cd $(sip-dir);$(LNFS) $(FROM)/vxlapi.sip vxlapi.sip)
+	@(cd $(sip-dir);$(LNFS) $(FROM)/configure.py configure.py)
+	@(cd $(sip-dir);$(LNFS) $(FROM)/sip/test.py test.py)
+	@(cd $(sip-dir);$(LNFS) $(FROM)/vxlapih.py vxlapih.py)
 	@(cd $(sip-dir);$(LNFS) $(vxlapi-dll) vxlapi.dll)
 
 include ../make/Makefile

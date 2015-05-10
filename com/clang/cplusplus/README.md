@@ -1,1 +1,0 @@
-# c++ language software component
