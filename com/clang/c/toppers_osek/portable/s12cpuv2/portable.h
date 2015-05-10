@@ -7,7 +7,7 @@
 #define dispatch()  { __asm swi;}
 
 extern void set_ipl(IPL ipl);
-extern IPL current_ipl(void);
+extern IPL  current_ipl(void);
 extern void start_dispatch(void);
 extern void exit_and_dispatch(void);
 extern void activate_context(TaskType TaskID);

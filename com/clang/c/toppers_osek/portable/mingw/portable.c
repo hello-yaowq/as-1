@@ -243,6 +243,7 @@ static void prvToppersOSEK_TaskProcess(void * param)
 			PreTaskHook();
 			unlock_cpu();
 			callevel = TCL_TASK;
+			tcb_curpri[runtsk] = tinib_exepri[runtsk];
 			tinib_task[taskId]();
 		}
 		else

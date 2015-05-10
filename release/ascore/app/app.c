@@ -14,7 +14,11 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#ifdef CHIP_AT91SAM3S
+#include "board.h"
+#else
 #include "Lcd.h"
+#endif
 #include "Sg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -24,8 +28,13 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
+#ifdef CHIP_AT91SAM3S
+//	LCDD_Initialize();
+//	LCDD_On();
+#else
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
-	Sg_Init();
+        Sg_Init();
+#endif
 }
 
 TASK(TaskApp)
@@ -39,10 +48,17 @@ TASK(TaskCom)
 }
 TASK(TaskSg)
 {
+#ifdef CHIP_AT91SAM3S
+#else  
 	Sg_ManagerTask();
+#endif
 	OsTerminateTask(TaskSg);
 }
 
+TASK(TaskIdle)
+{
+	for(;;);
+}
 ALARM(Alarm5ms)
 {
 	OsActivateTask(TaskSg);

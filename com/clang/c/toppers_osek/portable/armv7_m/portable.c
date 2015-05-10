@@ -13,18 +13,75 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Os.h"
-
+#include "osek_kernel.h"
+#include "task.h"
+#include "board.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
 /* ============================ [ TYPES     ] ====================================================== */
-
-/* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void knl_activate_r(void);
+/* ============================ [ DATAS     ] ====================================================== */
+uint8 knl_system_stack[SYSTEM_STACK_SIZE];
+uint8 knl_taskindp;
+
+VP tcxb_sp[TASK_NUM];
+FP tcxb_pc[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-int main()
+void set_ipl(IPL ipl)
 {
-	StartOS(OSDEFAULTAPPMODE);
+	if(ipl > 0)
+	{
+		disable_int();
+	}
+}
+IPL  current_ipl(void)
+{
 	return 0;
+}
+void activate_r(void)
+{
+    tcb_curpri[runtsk] = tinib_exepri[runtsk];
+    enable_int();
+    tinib_task[runtsk]();
+}
+void activate_context(TaskType TaskID)
+{
+    tcxb_pc[TaskID] = (FP)knl_activate_r;
+
+	tcxb_sp[TaskID] = (VP)( (UINT32)tinib_stk[TaskID] + (UINT32)tinib_stksz[TaskID]);
+}
+void cpu_terminate(void)
+{
+
+}
+void sys_exit(void)
+{
+
+}
+
+void cpu_initialize(void)
+{
+	WDT_Disable(WDT);
+	/* Set 3 FWS for Embedded Flash Access */
+	EFC->EEFC_FMR = EEFC_FMR_FWS(3);
+	CLOCK_SetConfig(2);
+	/* I don't know why, the baudrate is 38400 = 115200/3 */
+	UART_Configure(115200, 64000000/3);// so I add this to solve the problem
+
+	knl_taskindp = 0;
+
+	if (SysTick_Config(64000000 / 1000))
+	{
+		/* Capture error */
+		while (1);
+	}
+}
+void sys_initialize(void)
+{
+
+}
+void tool_initialize(void)
+{
+
 }

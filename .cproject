@@ -50,6 +50,7 @@
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.906918185" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
+									<listOptionValue builtIn="false" value="CHIP_AT91SAM3S"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1403200940" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

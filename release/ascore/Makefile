@@ -1,9 +1,12 @@
 # specific target as libcan.a
 # slect GUI openVG/GTK
-gui-used = openVG
+gui-used = GTK
 
 #target-y = FreeRTOS
 target-y = toppers_osek
+# this is only for make dep
+# AT91SAM3S/MINGW
+arch-y = AT91SAM3S
 
 obj-dir = ./obj
 exe-dir = ./out
@@ -50,7 +53,11 @@ $(inc-dir):
 $(src-dir):
 	@mkdir -p $@
 dep:$(src-dir) $(inc-dir)
+ifeq ($(arch-y),AT91SAM3S)
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/arch/at91sam3s/libraries)
+else
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Lcd.c Lcd.c)
+endif	
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Lcd.h Lcd.h)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/include/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/Os.c Os.c)
@@ -62,10 +69,15 @@ dep:$(src-dir) $(inc-dir)
 ifeq ($(target-y),FreeRTOS)	
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Source TRUE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/FreeRTOS/Config TRUE)
+	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
 else
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/kernel TRUE)
+ifeq ($(arch-y),AT91SAM3S)	
+	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/armv7_m TRUE)
+else
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/c/toppers_osek/portable/mingw TRUE)
+endif	
 endif
 ifeq ($(gui-used),openVG)
 	@(cd $(src-dir);$(LNFS) ../../../com/clang/cplusplus/vg FALSE)
@@ -73,14 +85,14 @@ ifeq ($(gui-used),openVG)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/VG)
 	@(cd $(inc-dir);$(LNFS) ../../../com/clang/include/EGL)
 endif
-	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
+	
 	
 sg:
 	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
 all: exe
 
 clean: clean-obj
-	@rm -frv ./$(src-dir)
+	@rm -fv $(src-dir)/*
 	
 	
  
