@@ -17,7 +17,7 @@
 #include "portable.h"
 
     EXTERN runtsk, schedtsk, knl_taskindp
-    EXTERN callevel,tcxb_sp,tcxb_pc,activate_r
+    EXTERN callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
     SECTION .text:CODE
     THUMB
     PUBLIC enaint
@@ -120,6 +120,12 @@ ExitISR:
     cmp     r0, #0
     
     bne     l_nodispatch
+
+    ldr     r0, = knl_dispatch_started
+    ldr     r0, [r0]
+    cmp     r0, #0
+
+    beq     l_nodispatch
 
     ldr     r0, =runtsk
     ldr     r1, =schedtsk
