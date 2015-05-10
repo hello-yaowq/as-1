@@ -17,7 +17,7 @@
 #include "portable.h"
 
     EXTERN runtsk, schedtsk, knl_taskindp
-    EXTERN knl_system_stack,callevel
+    EXTERN callevel,tcxb_sp,tcxb_pc,activate_r
     SECTION .text:CODE
     THUMB
     PUBLIC enaint
@@ -40,46 +40,91 @@ disint:
     
     SECTION .text:CODE
     THUMB
+    PUBLIC knl_activate_r
+knl_activate_r:
+    mov r3, #TS_PSR_T
+    ldr r2, =activate_r
+    push {r2,r3}
+    subs  SP,SP,#24
+    bx lr
 
-    PUBLIC knl_exit_and_dispatch
-knl_exit_and_dispatch:
-    b knl_exit_and_dispatch
-    PUBLIC knl_dispatch_entry
-
-knl_dispatch_entry:
-     b knl_dispatch_entry
-
-knl_dispatch_ret_int:
+    PUBLIC  knl_dispatch_r
+knl_dispatch_r:
+     /* start to restore task's context */
+    pop     {r4-r11}
+    cpsie   i
     bx      lr
+
+dispatch_task:
+    ldr     r2, =tcxb_pc
+    ldr     r3,[r2,r0,LSL #2]
+    bx      r3
+
+    PUBLIC knl_start_dispatch
+knl_start_dispatch:
+    ldr     r0, =schedtsk
+    ldrb    r0, [r0]
+    ldr     r1, =runtsk
+    strb    r0, [r1]
+
+    ldr     r2, =tcxb_sp
+    ldr     sp, [r2,r0, LSL #2]
+    b       dispatch_task
+
+    PUBLIC knl_dispatch_entry
+knl_dispatch_ret_int:
+knl_dispatch_entry:
+    push    {r4-r11}
+
+    ldr     r1, =runtsk
+    ldrb    r0, [r1]
+
+    ldr     r2, =tcxb_sp
+    str     sp, [r2,r0, LSL #2]
+
+    ldr     r2, =tcxb_pc
+
+    ldr     r12, =knl_dispatch_r
+    str     r12, [r2,r0, LSL #2]
+
+    b       knl_start_dispatch
 
     PUBLIC EnterISR
 EnterISR:    
-    ldr     r1, =knl_taskindp              /* Enter task independent part */
+    ldr     r1, =knl_taskindp
     ldr     r2, [r1]
-    add     r3, r2, #1  /* knl_taskindp++ */
+    add     r3, r2, #1
     str     r3, [r1]
-    push    {r1, r2}           /* Here I say wonderful Idea, do you know the reason? */
-    cpsie   i     /* Enable Interrupr */
+    push    {r1, r2}
+    ldr     r1, = callevel
+    ldrb    r3, [r1]
+    push    {r3}
+    mov     r2, #2    /* callevel = TCL_ISR2 */
+    strb    r2,[r1]
+    cpsie   i
     bx      lr
 
 
     PUBLIC ExitISR
 ExitISR:
-    pop     {r1,r2}          /* here same as knl_taskindp--, do you know why? */
-    str     r2, [r1]                             /* Leave task independent part */
+    pop     {r3}
+    ldr     r1, = callevel
+    strb    r3, [r1]
+    pop     {r1,r2}
+    str     r2, [r1]
     pop     {lr}
     cpsid   i
 
-    ldr     r0, =knl_taskindp              /* Is it a nesting interrupt? */
+    ldr     r0, =knl_taskindp
     ldr     r0, [r0]
     cmp     r0, #0
     
     bne     l_nodispatch
 
-    ldr     r0, =runtsk                /* Is dispatch required? */
+    ldr     r0, =runtsk
     ldr     r1, =schedtsk
-    ldr     r0, [r0]
-    ldr     r1, [r1]
+    ldrb    r0, [r0]
+    ldrb    r1, [r1]
     cmp     r0, r1
     bne     knl_dispatch_ret_int                 /* To dispatch processing */
 
@@ -87,17 +132,13 @@ l_nodispatch:
     cpsie   i
     bx      lr
 
-    EXTERN SignalCounter
-
+    EXTERN knl_system_tick_handler
     PUBLIC knl_system_tick
 knl_system_tick:
 
     push {lr}
     bl EnterISR
-
-    mov r0,#0
-    bl SignalCounter
-    bl TimeTick_Increment
+    bl knl_system_tick_handler
     b  ExitISR
 
     END

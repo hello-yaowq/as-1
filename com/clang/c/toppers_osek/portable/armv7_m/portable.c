@@ -21,11 +21,14 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void knl_activate_r(void);
 /* ============================ [ DATAS     ] ====================================================== */
-uint8 knl_system_stack[SYSTEM_STACK_SIZE];
-uint8 knl_taskindp;
+uint32 knl_taskindp;
 
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
+
+extern uint32 __vector_table[];
+
+boolean knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void set_ipl(IPL ipl)
@@ -42,6 +45,9 @@ IPL  current_ipl(void)
 void activate_r(void)
 {
     tcb_curpri[runtsk] = tinib_exepri[runtsk];
+    callevel = TCL_PREPOST;
+    PreTaskHook();
+    callevel = TCL_TASK;
     enable_int();
     tinib_task[runtsk]();
 }
@@ -62,20 +68,38 @@ void sys_exit(void)
 
 void cpu_initialize(void)
 {
+	uint32_t* pSrc;
+
 	WDT_Disable(WDT);
-	/* Set 3 FWS for Embedded Flash Access */
-	EFC->EEFC_FMR = EEFC_FMR_FWS(3);
-	CLOCK_SetConfig(2);
-	/* I don't know why, the baudrate is 38400 = 115200/3 */
-	UART_Configure(115200, 64000000/3);// so I add this to solve the problem
+	pSrc = __vector_table ;
+
+	/* Low level Initialize */
+	LowLevelInit() ;
+
+	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
+
+	if ( ((uint32_t)pSrc >= IRAM_ADDR) && ((uint32_t)pSrc < IRAM_ADDR+IRAM_SIZE) )
+	{
+		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
+	}
 
 	knl_taskindp = 0;
-
+	knl_dispatch_started = FALSE;
 	if (SysTick_Config(64000000 / 1000))
 	{
 		/* Capture error */
 		while (1);
 	}
+}
+
+void knl_system_tick_handler(void)
+{
+	if(knl_dispatch_started == TRUE)
+	{
+		SignalCounter(0);
+	}
+
+	TimeTick_Increment();
 }
 void sys_initialize(void)
 {

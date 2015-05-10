@@ -31,7 +31,7 @@
 #define enable_int()  __asm("cpsie   i")
 
 #define dispatch()	  		{ __asm("cpsie   i");SCB->ICSR = SCB_ICSR_PENDSVSET_Msk; }
-#define start_dispatch()	{ __asm("cpsie   i"); __asm("svc 0"); }
+#define start_dispatch()	{ knl_dispatch_started=TRUE;__asm("cpsie   i"); __asm("svc 0"); }
 #define exit_and_dispatch() { PostTaskHook(); start_dispatch();   }
 
 /* Program status register (PSR) */
@@ -54,12 +54,14 @@
 #define TS_CTL_PSP             0x2               /* Select PSP */
 #define TS_CTL_SVC             0x0               /* Select supervisor mode */
 #define TS_CTL_USR             0x1               /* Select user mode */
+#ifndef _MACRO_ONLY
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern boolean knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#ifndef _MACRO_ONLY
+
 extern void set_ipl(IPL ipl);
 extern IPL  current_ipl(void);
 extern void activate_context(TaskType TaskID);
