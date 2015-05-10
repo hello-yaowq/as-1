@@ -29,17 +29,22 @@
 void StartupHook(void)
 {
 #ifdef CHIP_AT91SAM3S
-//	LCDD_Initialize();
-//	LCDD_On();
+	LCDD_Initialize();
+	LCDD_On();
+	LED_Configure(LED_BLUE);
+	LED_Configure(LED_GREEN);
+	LED_Configure(LED_RED);
 #else
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
-        Sg_Init();
+    Sg_Init();
 #endif
 }
 
 TASK(TaskApp)
 {
-	//printf("TaskApp is running!\n");
+	LED_Toggle(LED_BLUE);
+	LED_Toggle(LED_GREEN);
+	LED_Toggle(LED_RED);
 	OsTerminateTask(TaskApp);
 }
 TASK(TaskCom)
@@ -84,31 +89,31 @@ void ErrorHook(StatusType ercd)
 	switch(ercd)
 	{
 		case E_OS_ACCESS:
-			printf("ercd = %d E_OS_ACCESS!\n",ercd);
+			printf("ercd = %d E_OS_ACCESS!\r\n",ercd);
 			break;
 		case E_OS_CALLEVEL:
-			printf("ercd = %d E_OS_CALLEVEL!\n",ercd);
+			printf("ercd = %d E_OS_CALLEVEL!\r\n",ercd);
 			break;
 		case E_OS_ID:
-			printf("ercd = %d E_OS_ID!\n",ercd);
+			printf("ercd = %d E_OS_ID!\r\n",ercd);
 			break;
 		case E_OS_LIMIT:
-			printf("ercd = %d E_OS_LIMIT!\n",ercd);
+			printf("ercd = %d E_OS_LIMIT!\r\n",ercd);
 			break;
 		case E_OS_NOFUNC:
-			printf("ercd = %d E_OS_NOFUNC!\n",ercd);
+			printf("ercd = %d E_OS_NOFUNC!\r\n",ercd);
 			break;
 		case E_OS_RESOURCE:
-			printf("ercd = %d E_OS_RESOURCE!\n",ercd);
+			printf("ercd = %d E_OS_RESOURCE!\r\n",ercd);
 			break;
 		case E_OS_STATE:
-			printf("ercd = %d E_OS_STATE!\n",ercd);
+			printf("ercd = %d E_OS_STATE!\r\n",ercd);
 			break;
 		case E_OS_VALUE	:
-			printf("ercd = %d E_OS_VALUE!\n",ercd);
+			printf("ercd = %d E_OS_VALUE!\r\n",ercd);
 			break;
 		default:
-			printf("ercd = %d unknown error!\n",ercd);
+			printf("ercd = %d unknown error!\r\n",ercd);
 			break;
 	}
 

@@ -26,7 +26,7 @@ uint32 knl_taskindp;
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
 
-extern uint32 __vector_table[];
+extern const uint32 __vector_table[];
 
 boolean knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -69,19 +69,18 @@ void sys_exit(void)
 void cpu_initialize(void)
 {
 	uint32_t* pSrc;
-
-	WDT_Disable(WDT);
 	pSrc = __vector_table ;
-
-	/* Low level Initialize */
-	LowLevelInit() ;
-
 	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
 
 	if ( ((uint32_t)pSrc >= IRAM_ADDR) && ((uint32_t)pSrc < IRAM_ADDR+IRAM_SIZE) )
 	{
 		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
 	}
+
+	WDT_Disable(WDT);
+
+	/* Low level Initialize */
+	LowLevelInit() ;
 
 	knl_taskindp = 0;
 	knl_dispatch_started = FALSE;
