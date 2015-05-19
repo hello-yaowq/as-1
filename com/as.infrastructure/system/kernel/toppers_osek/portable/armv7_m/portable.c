@@ -28,7 +28,7 @@ FP tcxb_pc[TASK_NUM];
 
 extern const uint32 __vector_table[];
 
-boolean knl_dispatch_started;
+uint32 knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void set_ipl(IPL ipl)
@@ -68,7 +68,7 @@ void sys_exit(void)
 
 void cpu_initialize(void)
 {
-	uint32_t* pSrc;
+	const uint32_t* pSrc;
 	pSrc = __vector_table ;
 	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
 
