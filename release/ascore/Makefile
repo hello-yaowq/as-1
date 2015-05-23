@@ -1,12 +1,4 @@
-# specific target as libcan.a
-# slect GUI openVG/GTK
-gui-used = GTK
-
-#target-y = FreeRTOS
-target-y = toppers_osek
-# this is only for make dep
-# AT91SAM3S/MINGW
-arch-y = AT91SAM3S
+target-y = $(board)
 
 obj-dir = ./obj
 exe-dir = ./out
@@ -22,10 +14,10 @@ inc-y += -I./include
 inc-y += -I./app/config
 inc-dir = ./include
 		 
-ifeq ($(arch-y),MINGW)		 
-ldflags-y += -lm -lwinmm
-	
-	 
+ifeq ($(board),mingw)	
+# slect GUI openVG/GTK
+gui-used = GTK	 
+ldflags-y += -lm -lwinmm 
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
@@ -43,7 +35,7 @@ inc-y += -I./include/VG
 dir-y += ./SgDesign/SgRes		
 endif	# MINGW end
 
-ifeq ($(arch-y),AT91SAM3S)
+ifeq ($(board),at91sam3s)
 ifeq ($(DEBUG),TRUE)
 link-script = $(IAR_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-sram.icf
 else
@@ -110,7 +102,7 @@ endif	# AT91SAM3S end
 def-y += -D__AS_BY_PARAI__	 
 
 
-ifeq ($(arch-y),MINGW)
+ifeq ($(board),mingw)
 #cflags-y += -Werror
 include ../make/mingw.mk
 else
@@ -122,8 +114,9 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
+	
 dep:$(src-dir) $(inc-dir)
-ifeq ($(arch-y),AT91SAM3S)
+ifeq ($(board),at91sam3s)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.c Lcd.c)
@@ -136,14 +129,14 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h Std_Types.h)
-ifeq ($(target-y),FreeRTOS)	
+ifeq ($(board),mingw)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
-ifeq ($(arch-y),AT91SAM3S)	
+ifeq ($(board),at91sam3s)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/mingw TRUE)
@@ -155,14 +148,17 @@ ifeq ($(gui-used),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
-	#@(gfind $(src-dir)/libraries -name "*.[cC]" > clist.txt)
+#	@(gfind $(src-dir)/libraries -name "*.[cC]" > clist.txt)
 	
 	
 sg:
 	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
+	
 all: exe
-
+	
 clean: clean-obj
+	
+clean-dist:clean
 	@rm -fv $(src-dir)/*
 	
 	

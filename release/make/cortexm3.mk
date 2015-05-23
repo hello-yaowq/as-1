@@ -11,7 +11,7 @@ cflags-y += --no_cse --no_unroll --no_inline --no_code_motion
 cflags-y += --no_tbaa --no_clustering --no_scheduling 
 cflags-y += --cpu=Cortex-M3 -e --fpu=None --endian=little
 cflags-y += --dlib_config $(IAR_DIR)/arm/INC/c/DLib_Config_Normal.h
-
+cflags-y += --diag_suppress=Pa050
 ifeq ($(DEBUG),TRUE)
 cflags-y += --debug -On
 else
@@ -42,7 +42,10 @@ $(obj-dir)/%.o:%.s
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
+	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	
+include $(wildcard $(obj-dir)/*.d)
 	
 .PHONY:all clean
 

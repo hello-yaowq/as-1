@@ -88,6 +88,9 @@ void StartupHook(void)
 	LED_Configure(LED_RED);
 	LED_Configure(LED_BLUE);
 	LED_Configure(LED_GREEN);
+	LED_Set(LED_RED);
+	LED_Clear(LED_BLUE);
+	LED_Clear(LED_GREEN);
 
 	LCDD_DrawString( 30, 20, (uint8_t *)"smc_lcd example", COLOR_BLACK ) ;
 
@@ -109,13 +112,12 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
-	LED_Clear(LED_BLUE);
-	LED_Clear(LED_GREEN);
 	ledCounter ++;
 	if(50 <= ledCounter)	/* 50x20ms = 1000ms */
 	{
 		LED_Toggle(LED_RED);
-		LCD_SetDisplayLandscape(0x112233);
+		LED_Toggle(LED_BLUE);
+		LED_Toggle(LED_GREEN);
 		ledCounter = 0;
 	}
 
