@@ -4,9 +4,11 @@ obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
 
-INFRASTRUCTURE = ../../../com/as.infrastructure/
+prj-dir = $(subst release/ascore,,$(CURDIR))
 
-LNFS  = python ../../make/lnfs.py
+INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure/
+
+LNFS  = python $(prj-dir)/release/make/lnfs.py
 
 dir-y += ./app
 dir-y += ./app/config
@@ -48,6 +50,10 @@ inc-y += -I./src/libraries/libboard_sam3s-ek
 inc-y += -I./src/libraries/libboard_sam3s-ek/include
 VPATH += ./src/libraries/libchip_sam3s/source
 VPATH += ./src/libraries/libboard_sam3s-ek/source
+inc-y += -I./src/libraries
+dir-y += ./src/libraries/usb/common/core
+dir-y += ./src/libraries/usb/device/cdc-serial
+obj-y +=$(obj-dir)/portableS.o $(obj-dir)/startup.o 
 obj-y +=$(obj-dir)/ads7843.o \
         $(obj-dir)/at45d.o \
         $(obj-dir)/at45_spi.o \
@@ -106,18 +112,24 @@ ifeq ($(board),mingw)
 #cflags-y += -Werror
 include ../make/mingw.mk
 else
+$(warning   >> fix your IAR compiler directory.)
 IAR_DIR = "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
 include ../make/cortexm3.mk
 endif
 
+$(inc-dir)/utility:
+	@mkdir -p $@
+	
 $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
 	
-dep:$(src-dir) $(inc-dir)
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility
 ifeq ($(board),at91sam3s)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries)
+	@(cd $(inc-dir)/utility;$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/libchip_sam3s/include/trace.h trace.h)
+	@(cd $(inc-dir)/utility;cp -fv $(IAR_DIR)/arm/inc/c/assert.h assert.h)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.c Lcd.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.h Lcd.h)
@@ -155,7 +167,7 @@ sg:
 	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
 	
 all: exe
-	
+	@(echo enjoy yourself)
 clean: clean-obj
 	
 clean-dist:clean

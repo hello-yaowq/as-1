@@ -29,9 +29,6 @@ VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
 	
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
-obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))	
-obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))	
-
 #common rules	
 
 $(obj-dir)/%.o:%.s
