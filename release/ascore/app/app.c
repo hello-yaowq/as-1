@@ -18,8 +18,9 @@
 #include "board.h"
 #else
 #include "Lcd.h"
-#endif
 #include "Sg.h"
+#endif
+
 /* ============================ [ MACROS    ] ====================================================== */
 /** Test image height. */
 #define IMAGE_HEIGHT    50

@@ -29,7 +29,7 @@ dep:$(src-dir) $(sip-dir)
 	@(cd $(sip-dir);$(LNFS) $(FROM)/vxlapih.py vxlapih.py)
 	@(cd $(sip-dir);$(LNFS) $(vxlapi-dll) vxlapi.dll)
 
-include ../make/Makefile
+include ../make/mingw.mk
 
 pyascom:
 	@(cp -fv $(exe-dir)/lib$(target-y).a $(sip-dir)/lib$(target-y).a)
