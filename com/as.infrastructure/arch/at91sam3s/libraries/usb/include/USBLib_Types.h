@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
- * Copyright (c) 2008, Atmel Corporation
+ * Copyright (c) 2010, Atmel Corporation
  *
  * All rights reserved.
  *
@@ -28,44 +28,38 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
+ *  Definitions for USB Lib compiling.
  */
-/** \addtogroup usb_cdc
- *@{
- */
+
+#ifndef USBLIB_TYPES_H
+#define USBLIB_TYPES_H
 
 /*----------------------------------------------------------------------------
- *         Headers
+ *         Defines
  *----------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+/** USB status ReturnCode */
+typedef enum _USBRC {
+    USBRC_OK = 0,      /**< Operation was successful */
+    USBRC_SUCCESS = 0, /**< Operation was successful */
+    /* Bool codes */
+    USBRC_FALSE = 0,   /**< As boolean TRUE */
+    USBRC_TRUE  = 1,   /**< As boolean FALSE */
+    /* Error codes */    
+    USBRC_BUSY,        /**< EP/Device is already busy */
+    USBRC_ABORTED,     /**< Operation aborted due to error or stall */
+    USBRC_CANCELED,    /**< Operation canceled by user */
+    USBRC_RESET,       /**< Operation aborted due to init/reset/un-configure */
+    USBRC_PARTIAL_DONE,/**< Part of operation successfully done */
+    USBRC_FINISHED,    /**< All operation successfully done and terminate */
 
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+    USBRC_PARAM_ERR,   /**< Failed due to parameter error */
+    USBRC_STATE_ERR,   /**< Failed due to state error */
+    USBRC_ERROR,       /**< General error */
 
-/**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
- */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
-{
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
-}
-
-/**@}*/
+    USBRC_SW_NOT_SUPPORTED = 0xFD, /**< Failed due to SW not supported */
+    USBRC_HW_NOT_SUPPORTED = 0xFE  /**< Failed due to HW not supported */
+} USBRC;
+ 
+#endif /* #define USBLIB_TYPES_H */
 

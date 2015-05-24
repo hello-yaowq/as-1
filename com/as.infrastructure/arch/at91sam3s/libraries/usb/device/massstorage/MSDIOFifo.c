@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -28,44 +28,48 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
- */
-/** \addtogroup usb_cdc
+ * \addtogroup usbd_msd
  *@{
  */
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "MSDIOFifo.h"
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
+ *         Internal variables
+ *------------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------------
  *         Exported functions
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * \brief  Initializes a MSDIOFifo instance.
+ * \param  pFifo        Pointer to the MSDIOFifo instance to initialize
+ * \param  pBuffer      Pointer to a buffer used for read/write operation and
+ *                      which must be blockSize bytes aligned.
+ * \param  bufferSize   Total size of the buffer in bytes
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+void MSDIOFifo_Init(MSDIOFifo *pFifo,
+                    void * pBuffer, unsigned short bufferSize)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    pFifo->pBuffer = pBuffer;
+    pFifo->bufferSize = bufferSize;
+
+    pFifo->inputNdx = 0;
+    pFifo->outputNdx = 0;
+    pFifo->inputTotal = 0;
+    pFifo->outputTotal = 0;
+
+    pFifo->inputState = MSDIO_IDLE;
+    pFifo->outputState = MSDIO_IDLE;
+
+    pFifo->fullCnt = 0;
+    pFifo->nullCnt = 0;
 }
 
 /**@}*/
-

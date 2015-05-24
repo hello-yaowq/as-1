@@ -51,6 +51,7 @@ inc-y += -I./src/libraries/libboard_sam3s-ek/include
 VPATH += ./src/libraries/libchip_sam3s/source
 VPATH += ./src/libraries/libboard_sam3s-ek/source
 inc-y += -I./src/libraries
+inc-y += -I./src/libraries/usb/include
 dir-y += ./src/libraries/usb/common/core
 dir-y += ./src/libraries/usb/common/cdc
 dir-y += ./src/libraries/usb/device/core
@@ -104,7 +105,8 @@ obj-y +=$(obj-dir)/ads7843.o \
         $(obj-dir)/twi.o \
         $(obj-dir)/twid.o \
         $(obj-dir)/usart.o \
-        $(obj-dir)/wdt.o
+        $(obj-dir)/wdt.o	\
+        $(obj-dir)/USBD_HAL.o
 endif	# AT91SAM3S end
 
 def-y += -D__AS_BY_PARAI__	 

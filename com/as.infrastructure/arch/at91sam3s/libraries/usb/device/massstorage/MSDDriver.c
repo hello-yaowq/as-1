@@ -27,89 +27,86 @@
  * ----------------------------------------------------------------------------
  */
 
-/**\file
- *   Title: CDCDSerialDriver implementation
- *
- *   About: Purpose
- *       Implementation of the CDCDSerialDriver class methods.
- */
-
-/** \addtogroup usbd_cdc
+/** \file
+ *  \addtogroup usbd_msd
  *@{
+ *  Implement a single interface device with single MS function in.
  */
 
 /*------------------------------------------------------------------------------
- *         Headers
+ *      Includes
  *------------------------------------------------------------------------------*/
 
-#include "CDCDSerialDriver.h"
-
+#include <MSDDriver.h>
+#include <MSDFunction.h>
 #include <USBLib_Trace.h>
-#include <USBDDriver.h>
+#include <USBD.h>
 #include <USBD_HAL.h>
+#include <USBDDriver.h>
 
-/*------------------------------------------------------------------------------
- *         Types
- *------------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  *         Internal variables
- *------------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------*/
 
-/*------------------------------------------------------------------------------
- *         Internal functions
- *------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------
+ *      Internal functions
+ *-----------------------------------------------------------------------------*/
 
-/*------------------------------------------------------------------------------
- *         Exported functions
- *------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------
+ *      Exported functions
+ *-----------------------------------------------------------------------------*/
 
 /**
- *  Initializes the USB Device CDC serial driver & USBD Driver.
- *  \param  pDescriptors Pointer to Descriptors list for CDC Serial Device.
+ * Initializes the MSD driver and the associated USB driver.
+ * \param  pDescriptors Pointer to Descriptors list for MSD Device.
+ * \param  pLuns        Pointer to a list of LUNs
+ * \param  numLuns      Number of LUN in list
+ * \see MSDLun
  */
-void CDCDSerialDriver_Initialize(const USBDDriverDescriptors *pDescriptors)
+void MSDDriver_Initialize(
+    const USBDDriverDescriptors *pDescriptors,
+    MSDLun *pLuns, unsigned char numLuns)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
-
-    /* Initialize the standard driver */
-    USBDDriver_Initialize(pUsbd,
-                          pDescriptors,
-                          0); /* Multiple settings for interfaces not supported */
-
-    CDCDSerial_Initialize(pUsbd, CDCDSerialDriver_CC_INTERFACE);
-
-    /* Initialize the USB driver */
+    USBDDriver_Initialize(pUsbd, pDescriptors, 0);
+    MSDFunction_Initialize(pUsbd, 0, pLuns, numLuns);
     USBD_Init();
 }
 
 /**
- * Invoked whenever the active configuration of device is changed by the
- * host.
- * \param cfgnum Configuration number.
+ * Invoked when the configuration of the device changes. Resets the mass
+ * storage driver.
+ * \param  pMsdDriver  Pointer to MSDDriver instance.
+ * \param  cfgnum      New configuration number.
  */
-void CDCDSerialDriver_ConfigurationChangedHandler(uint8_t cfgnum)
+void MSDDriver_ConfigurationChangeHandler(
+    uint8_t cfgnum)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
     USBConfigurationDescriptor *pDesc;
     if (cfgnum) {
         pDesc = USBDDriver_GetCfgDescriptors(pUsbd, cfgnum);
-        CDCDSerial_ConfigureFunction((USBGenericDescriptor *)pDesc,
-                                      pDesc->wTotalLength);
+        MSDFunction_Configure((USBGenericDescriptor*)pDesc,
+                              pDesc->wTotalLength);
     }
 }
 
 /**
- * Handles CDC-specific SETUP requests. Should be called from a
- * re-implementation of USBDCallbacks_RequestReceived() method.
- * \param request Pointer to a USBGenericRequest instance.
+ * Handler for incoming SETUP requests on default Control endpoint 0.
+ *
+ * Standard requests are forwarded to the USBDDriver_RequestHandler
+ * method.
+ * \param  pMsdDriver  Pointer to MSDDriver instance.
+ * \param  request Pointer to a USBGenericRequest instance
  */
-void CDCDSerialDriver_RequestHandler(const USBGenericRequest *request)
+void MSDDriver_RequestHandler(
+    const USBGenericRequest *request)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
     TRACE_INFO_WP("NewReq ");
-    if (CDCDSerial_RequestHandler(request))
+    if (MSDFunction_RequestHandler(request)) {
         USBDDriver_RequestHandler(pUsbd, request);
+    }
 }
 
 /**@}*/

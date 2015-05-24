@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support 
+ *         ATMEL Microcontroller Software Support
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -27,62 +27,62 @@
  * ----------------------------------------------------------------------------
  */
 
-//------------------------------------------------------------------------------
-//      Headers
-//------------------------------------------------------------------------------
+/** \file
+ * \addtogroup usbd_interface
+ *@{
+ */
+
+/*------------------------------------------------------------------------------
+ *      Headers
+ *------------------------------------------------------------------------------*/
+
+#include <USBLib_Trace.h>
 
 #include "USBDDriver.h"
-#include "USBDDriverCallbacks.h"
 #include "USBD.h"
-#include <board.h>
-#include <utility/trace.h>
-#include <usb/common/core/USBGenericDescriptor.h>
-#include <usb/common/core/USBDeviceDescriptor.h>
-#include <usb/common/core/USBConfigurationDescriptor.h>
-#include <usb/common/core/USBDeviceQualifierDescriptor.h>
-#include <usb/common/core/USBEndpointDescriptor.h>
-#include <usb/common/core/USBFeatureRequest.h>
-#include <usb/common/core/USBSetAddressRequest.h>
-#include <usb/common/core/USBGetDescriptorRequest.h>
-#include <usb/common/core/USBSetConfigurationRequest.h>
-#include <usb/common/core/USBInterfaceRequest.h>
+#include "USBD_HAL.h"
 
 #include <string.h>
 
-//------------------------------------------------------------------------------
-//      Local functions
-//------------------------------------------------------------------------------
-#if defined(CHIP_USB_OTGHS)
-static unsigned char otg_features_supported = 0;
-#endif
+/*------------------------------------------------------------------------------
+ *      Local variables
+ *------------------------------------------------------------------------------*/
 
-//------------------------------------------------------------------------------
-/// Send a NULL packet
-//------------------------------------------------------------------------------
+/** Default device driver instance, for all class drivers in USB Lib. */
+static USBDDriver usbdDriver;
+
+/*------------------------------------------------------------------------------
+ *      Local functions
+ *------------------------------------------------------------------------------*/
+
+/**
+ * Send a NULL packet
+ */
 static void TerminateCtrlInWithNull(void *pArg,
-                                    unsigned char status,
-                                    unsigned int transferred,
-                                    unsigned int remaining)
+                                    uint8_t status,
+                                    uint32_t transferred,
+                                    uint32_t remaining)
 {
-    USBD_Write(0, // Endpoint #0
-               0, // No data buffer
-               0, // No data buffer
+    USBD_Write(0, /* Endpoint #0 */
+               0, /* No data buffer */
+               0, /* No data buffer */
                (TransferCallback) 0,
                (void *)  0);
 }
 
-//------------------------------------------------------------------------------
-/// Configures the device by setting it into the Configured state and
-/// initializing all endpoints.
-/// \param pDriver  Pointer to a USBDDriver instance.
-/// \param cfgnum  Configuration number to set.
-//------------------------------------------------------------------------------
-static void SetConfiguration(USBDDriver *pDriver, unsigned char cfgnum)
+/**
+ * Configures the device by setting it into the Configured state and
+ * initializing all endpoints.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param cfgnum  Configuration number to set.
+ */
+static void SetConfiguration(USBDDriver *pDriver, uint8_t cfgnum)
 {
-    USBEndpointDescriptor *pEndpoints[CHIP_USB_NUMENDPOINTS+1];
+    USBEndpointDescriptor *pEndpoints[17];
     const USBConfigurationDescriptor *pConfiguration;
 
-    // Use different descriptor depending on device speed
+    /* Use different descriptor depending on device speed */
+
     if (USBD_IsHighSpeed()) {
 
         pConfiguration = pDriver->pDescriptors->pHsConfiguration;
@@ -92,55 +92,59 @@ static void SetConfiguration(USBDDriver *pDriver, unsigned char cfgnum)
         pConfiguration = pDriver->pDescriptors->pFsConfiguration;
     }
 
-    // Set & save the desired configuration
+    /* Set & save the desired configuration */
     USBD_SetConfiguration(cfgnum);
-    pDriver->cfgnum = cfgnum;
 
-    // If the configuration is not 0, configure endpoints
+    pDriver->cfgnum = cfgnum;
+    pDriver->isRemoteWakeUpEnabled =
+        ((pConfiguration->bmAttributes & 0x20) > 0);
+
+    /* If the configuration is not 0, configure endpoints */
     if (cfgnum != 0) {
-    
-        // Parse configuration to get endpoint descriptors
+
+        /* Parse configuration to get endpoint descriptors */
         USBConfigurationDescriptor_Parse(pConfiguration, 0, pEndpoints, 0);
-    
-        // Configure endpoints
+
+        /* Configure endpoints */
         int i = 0;
         while (pEndpoints[i] != 0) {
-    
+
             USBD_ConfigureEndpoint(pEndpoints[i]);
             i++;
         }
     }
-    // Should be done before send the ZLP
+    /* Should be done before send the ZLP */
     USBDDriverCallbacks_ConfigurationChanged(cfgnum);
 
-    // Acknowledge the request
-    USBD_Write(0, // Endpoint #0
-               0, // No data buffer
-               0, // No data buffer
+    /* Acknowledge the request */
+    USBD_Write(0, /* Endpoint #0 */
+               0, /* No data buffer */
+               0, /* No data buffer */
                (TransferCallback) 0,
                (void *)  0);
 }
 
-//------------------------------------------------------------------------------
-/// Sends the current configuration number to the host.
-/// \param pDriver  Pointer to a USBDDriver instance.
-//------------------------------------------------------------------------------
+/**
+ * Sends the current configuration number to the host.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ */
 static void GetConfiguration(const USBDDriver *pDriver)
 {
     USBD_Write(0, &(pDriver->cfgnum), 1, 0, 0);
 }
 
-//------------------------------------------------------------------------------
-/// Sends the current status of the device to the host.
-/// \param pDriver  Pointer to a USBDDriver instance.
-//------------------------------------------------------------------------------
+/**
+ * Sends the current status of the device to the host.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ */
 static void GetDeviceStatus(const USBDDriver *pDriver)
 {
     static unsigned short data;
     const USBConfigurationDescriptor *pConfiguration;
 
     data = 0;
-    // Use different configuration depending on device speed
+    /* Use different configuration depending on device speed */
+
     if (USBD_IsHighSpeed()) {
 
         pConfiguration = pDriver->pDescriptors->pHsConfiguration;
@@ -150,7 +154,8 @@ static void GetDeviceStatus(const USBDDriver *pDriver)
         pConfiguration = pDriver->pDescriptors->pFsConfiguration;
     }
 
-    // Check current configuration for power mode (if device is configured)
+    /* Check current configuration for power mode (if device is configured) */
+
     if (pDriver->cfgnum != 0) {
 
         if (USBConfigurationDescriptor_IsSelfPowered(pConfiguration)) {
@@ -159,56 +164,56 @@ static void GetDeviceStatus(const USBDDriver *pDriver)
         }
     }
 
-    // Check if remote wake-up is enabled
+    /* Check if remote wake-up is enabled */
+
     if (pDriver->isRemoteWakeUpEnabled) {
 
         data |= 2;
     }
 
-    // Send the device status
+    /* Send the device status */
+
     USBD_Write(0, &data, 2, 0, 0);
 }
 
-//------------------------------------------------------------------------------
-/// Sends the current status of an endpoints to the USB host.
-/// \param bEndpoint  Endpoint number.
-//------------------------------------------------------------------------------
-static void GetEndpointStatus(unsigned char bEndpoint)
+/**
+ * Sends the current status of an endpoints to the USB host.
+ * \param bEndpoint  Endpoint number.
+ */
+static void GetEndpointStatus(uint8_t bEndpoint)
 {
     static unsigned short data;
 
     data = 0;
-    // Check if the endpoint exists
-    if (bEndpoint > CHIP_USB_NUMENDPOINTS) {
 
-        USBD_Stall(0);
-    }
-    else {
+    switch (USBD_HAL_Halt(bEndpoint, 0xFF)) {
 
-        // Check if the endpoint if currently halted
-        if (USBD_IsHalted(bEndpoint)) {
+        case USBD_STATUS_INVALID_PARAMETER: /* the endpoint not exists */
+            USBD_Stall(0);
+            break;
 
+        case 1:
             data = 1;
-        }
-        
-        // Send the endpoint status
-        USBD_Write(0, &data, 2, 0, 0);
+        case 0:
+            /* Send the endpoint status */
+            USBD_Write(0, &data, 2, 0, 0);
+            break;
     }
 }
 
-//------------------------------------------------------------------------------
-/// Sends the requested USB descriptor to the host if available, or STALLs  the
-/// request.
-/// \param pDriver  Pointer to a USBDDriver instance.
-/// \param type  Type of the requested descriptor
-/// \param index  Index of the requested descriptor.
-/// \param length  Maximum number of bytes to return.
-//------------------------------------------------------------------------------
+/**
+ * Sends the requested USB descriptor to the host if available, or STALLs  the
+ * request.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param type  Type of the requested descriptor
+ * \param index  Index of the requested descriptor.
+ * \param length  Maximum number of bytes to return.
+ */
 static void GetDescriptor(
     const USBDDriver *pDriver,
-    unsigned char type,
-    unsigned char indexRDesc,
-    unsigned int length)
+    uint8_t type,
+    uint8_t indexRDesc,
+    uint32_t length)
 {
     const USBDeviceDescriptor *pDevice;
     const USBConfigurationDescriptor *pConfiguration;
@@ -217,10 +222,11 @@ static void GetDescriptor(
     const USBGenericDescriptor **pStrings =
         (const USBGenericDescriptor **) pDriver->pDescriptors->pStrings;
     const USBGenericDescriptor *pString;
-    unsigned char numStrings = pDriver->pDescriptors->numStrings;
-    unsigned char terminateWithNull = 0;
+    uint8_t numStrings = pDriver->pDescriptors->numStrings;
+    uint8_t terminateWithNull = 0;
 
-    // Use different set of descriptors depending on device speed
+    /* Use different set of descriptors depending on device speed */
+
     if (USBD_IsHighSpeed()) {
 
         TRACE_DEBUG("HS ");
@@ -238,13 +244,15 @@ static void GetDescriptor(
         pOtherSpeed = pDriver->pDescriptors->pFsOtherSpeed;
     }
 
-    // Check the descriptor type
+    /* Check the descriptor type */
+
     switch (type) {
-        
+
         case USBGenericDescriptor_DEVICE:
             TRACE_INFO_WP("Dev ");
 
-            // Adjust length and send descriptor
+            /* Adjust length and send descriptor */
+
             if (length > USBGenericDescriptor_GetLength((USBGenericDescriptor *) pDevice)) {
 
                 length = USBGenericDescriptor_GetLength((USBGenericDescriptor *) pDevice);
@@ -255,7 +263,8 @@ static void GetDescriptor(
         case USBGenericDescriptor_CONFIGURATION:
             TRACE_INFO_WP("Cfg ");
 
-            // Adjust length and send descriptor
+            /* Adjust length and send descriptor */
+
             if (length > USBConfigurationDescriptor_GetTotalLength(pConfiguration)) {
 
                 length = USBConfigurationDescriptor_GetTotalLength(pConfiguration);
@@ -271,14 +280,16 @@ static void GetDescriptor(
         case USBGenericDescriptor_DEVICEQUALIFIER:
             TRACE_INFO_WP("Qua ");
 
-            // Check if descriptor exists
+            /* Check if descriptor exists */
+
             if (!pQualifier) {
 
                 USBD_Stall(0);
             }
             else {
 
-                // Adjust length and send descriptor
+                /* Adjust length and send descriptor */
+
                 if (length > USBGenericDescriptor_GetLength((USBGenericDescriptor *) pQualifier)) {
 
                     length = USBGenericDescriptor_GetLength((USBGenericDescriptor *) pQualifier);
@@ -290,14 +301,16 @@ static void GetDescriptor(
         case USBGenericDescriptor_OTHERSPEEDCONFIGURATION:
             TRACE_INFO_WP("OSC ");
 
-            // Check if descriptor exists
+            /* Check if descriptor exists */
+
             if (!pOtherSpeed) {
 
                 USBD_Stall(0);
             }
             else {
 
-                // Adjust length and send descriptor
+                /* Adjust length and send descriptor */
+
                 if (length > USBConfigurationDescriptor_GetTotalLength(pOtherSpeed)) {
 
                     length = USBConfigurationDescriptor_GetTotalLength(pOtherSpeed);
@@ -314,8 +327,9 @@ static void GetDescriptor(
         case USBGenericDescriptor_STRING:
             TRACE_INFO_WP("Str%d ", indexRDesc);
 
-            // Check if descriptor exists
-            if (indexRDesc > numStrings) {
+            /* Check if descriptor exists */
+
+            if (indexRDesc >= numStrings) {
 
                 USBD_Stall(0);
             }
@@ -323,7 +337,8 @@ static void GetDescriptor(
 
                 pString = pStrings[indexRDesc];
 
-                // Adjust length and send descriptor
+                /* Adjust length and send descriptor */
+
                 if (length > USBGenericDescriptor_GetLength(pString)) {
 
                     length = USBGenericDescriptor_GetLength(pString);
@@ -345,207 +360,152 @@ static void GetDescriptor(
     }
 }
 
-//------------------------------------------------------------------------------
-/// Sets the active setting of the given interface if the configuration supports
-/// it; otherwise, the control pipe is STALLed. If the setting of an interface
-/// changes.
-/// \parma pDriver  Pointer to a USBDDriver instance.
-/// \parma infnum  Interface number.
-/// \parma setting  New active setting for the interface.
-//------------------------------------------------------------------------------
+/**
+ * Sets the active setting of the given interface if the configuration supports
+ * it; otherwise, the control pipe is STALLed. If the setting of an interface
+ * changes.
+ * \parma pDriver  Pointer to a USBDDriver instance.
+ * \parma infnum  Interface number.
+ * \parma setting  New active setting for the interface.
+ */
 static void SetInterface(
     USBDDriver *pDriver,
-    unsigned char infnum,
-    unsigned char setting)
+    uint8_t infnum,
+    uint8_t setting)
 {
-    // Make sure alternate settings are supported
+    /* Make sure alternate settings are supported */
+
     if (!pDriver->pInterfaces) {
 
         USBD_Stall(0);
     }
     else {
 
-        // Change the current setting of the interface and trigger the callback 
-        // if necessary
+        /* Change the current setting of the interface and trigger the callback */
+        /* if necessary */
         if (pDriver->pInterfaces[infnum] != setting) {
 
             pDriver->pInterfaces[infnum] = setting;
             USBDDriverCallbacks_InterfaceSettingChanged(infnum, setting);
         }
 
-        // Acknowledge the request
+        /* Acknowledge the request */
+
         USBD_Write(0, 0, 0, 0, 0);
     }
 }
 
-//------------------------------------------------------------------------------
-/// Sends the currently active setting of the given interface to the USB
-/// host. If alternate settings are not supported, this function STALLs the
-/// control pipe.
-/// \param pDriver  Pointer to a USBDDriver instance.
-/// \param infnum  Interface number.
-//------------------------------------------------------------------------------
+/**
+ * Sends the currently active setting of the given interface to the USB
+ * host. If alternate settings are not supported, this function STALLs the
+ * control pipe.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param infnum  Interface number.
+ */
 static void GetInterface(
     const USBDDriver *pDriver,
-    unsigned char infnum)
+    uint8_t infnum)
 {
-    // Make sure alternate settings are supported, or STALL the control pipe
+    /* Make sure alternate settings are supported, or STALL the control pipe */
+
     if (!pDriver->pInterfaces) {
 
         USBD_Stall(0);
     }
     else {
 
-        // Sends the current interface setting to the host
+        /* Sends the current interface setting to the host */
+
         USBD_Write(0, &(pDriver->pInterfaces[infnum]), 1, 0, 0);
     }
 }
+/*------------------------------------------------------------------------------
+ *      Exported functions
+ *------------------------------------------------------------------------------*/
 
-#if defined(CHIP_USB_UDPHS) || defined(CHIP_USB_OTGHS)
-//------------------------------------------------------------------------------
-// Performs the selected test on the USB device (high-speed only).
-// \param test  Test selector value.
-//------------------------------------------------------------------------------
-static void USBDDriver_Test(unsigned char test)
+/**
+ * Return USBDDriver instance pointer for global usage.
+ */
+USBDDriver *USBD_GetDriver(void)
 {
-    TRACE_DEBUG("UDPHS_Test\n\r");
-
-    // the lower byte of wIndex must be zero
-    // the most significant byte of wIndex is used to specify the specific test mode
-    switch (test) {
-        case USBFeatureRequest_TESTPACKET:
-            //Test mode Test_Packet: 
-            //Upon command, a port must repetitively transmit the following test packet until
-            //the exit action is taken. This enables the testing of rise and fall times, eye 
-            //patterns, jitter, and any other dynamic waveform specifications.
-            //The test packet is made up by concatenating the following strings. 
-            //(Note: For J/K NRZI data, and for NRZ data, the bit on the left is the first one 
-            //transmitted. “S” indicates that a bit stuff occurs, which inserts an “extra” NRZI data bit. 
-            //“* N” is used to indicate N occurrences of a string of bits or symbols.)
-            //A port in Test_Packet mode must send this packet repetitively. The inter-packet timing 
-            //must be no less than the minimum allowable inter-packet gap as defined in Section 7.1.18 and 
-            //no greater than 125 us.
-            // Send ZLP
-            USBD_Test(USBFeatureRequest_TESTSENDZLP);
-            // Tst PACKET
-            USBD_Test(USBFeatureRequest_TESTPACKET);
-            while (1);
-            //break; not reached
-
-        case USBFeatureRequest_TESTJ:
-            //Test mode Test_J:
-            //Upon command, a port’s transceiver must enter the high-speed J state and remain in that
-            //state until the exit action is taken. This enables the testing of the high output drive
-            //level on the D+ line.
-            // Send ZLP
-            USBD_Test(USBFeatureRequest_TESTSENDZLP);
-            // Tst J
-            USBD_Test(USBFeatureRequest_TESTJ);
-            while (1);
-            //break; not reached
-
-        case USBFeatureRequest_TESTK:
-            //Test mode Test_K:
-            //Upon command, a port’s transceiver must enter the high-speed K state and remain in
-            //that state until the exit action is taken. This enables the testing of the high output drive
-            //level on the D- line.
-            // Send a ZLP
-            USBD_Test(USBFeatureRequest_TESTSENDZLP);
-            USBD_Test(USBFeatureRequest_TESTK);
-            while (1);
-            //break; not reached
-
-        case USBFeatureRequest_TESTSE0NAK:
-            //Test mode Test_SE0_NAK:
-            //Upon command, a port’s transceiver must enter the high-speed receive mode
-            //and remain in that mode until the exit action is taken. This enables the testing
-            //of output impedance, low level output voltage, and loading characteristics.
-            //In addition, while in this mode, upstream facing ports (and only upstream facing ports)
-            //must respond to any IN token packet with a NAK handshake (only if the packet CRC is
-            //determined to be correct) within the normal allowed device response time. This enables testing of
-            //the device squelch level circuitry and, additionally, provides a general purpose stimulus/response
-            //test for basic functional testing.
-            // Send a ZLP
-            USBD_Test(USBFeatureRequest_TESTSENDZLP);
-            // Test SE0_NAK
-            USBD_Test(USBFeatureRequest_TESTSE0NAK);
-            while (1);
-            //break; not reached
-
-        default:
-            USBD_Stall(0);
-            break;
-
-    }
-    // The exit action is to power cycle the device.
-    // The device must be disconnected from the host
+    return &usbdDriver;
 }
-#endif
 
-//------------------------------------------------------------------------------
-//      Exported functions
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-/// Initializes a USBDDriver instance with a list of descriptors. If
-/// interfaces can have multiple alternate settings, an array to store the
-/// current setting for each interface must be provided.
-/// \param pDriver  Pointer to a USBDDriver instance.
-/// \param pDescriptors  Pointer to a USBDDriverDescriptors instance.
-/// \param pInterfaces  Pointer to an array for storing the current alternate
-///                     setting of each interface (optional).
-//------------------------------------------------------------------------------
+/**
+ * Initializes a USBDDriver instance with a list of descriptors. If
+ * interfaces can have multiple alternate settings, an array to store the
+ * current setting for each interface must be provided.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param pDescriptors  Pointer to a USBDDriverDescriptors instance.
+ * \param pInterfaces  Pointer to an array for storing the current alternate
+ *                     setting of each interface (optional).
+ */
 void USBDDriver_Initialize(
     USBDDriver *pDriver,
     const USBDDriverDescriptors *pDescriptors,
-    unsigned char *pInterfaces)
+    uint8_t *pInterfaces)
 {
 
     pDriver->cfgnum = 0;
-#if (BOARD_USB_BMATTRIBUTES == USBConfigurationDescriptor_SELFPOWERED_RWAKEUP) \
-    || (BOARD_USB_BMATTRIBUTES == USBConfigurationDescriptor_BUSPOWERED_RWAKEUP)
-    pDriver->isRemoteWakeUpEnabled = 1;
-#else
     pDriver->isRemoteWakeUpEnabled = 0;
-#endif
 
     pDriver->pDescriptors = pDescriptors;
     pDriver->pInterfaces = pInterfaces;
 
-    // Initialize interfaces array if not null
+    /* Initialize interfaces array if not null */
+
     if (pInterfaces != 0) {
-    
+
         memset(pInterfaces, sizeof(pInterfaces), 0);
     }
 }
 
-//------------------------------------------------------------------------------
-/// Handles the given request if it is standard, otherwise STALLs it.
-/// \param pDriver  Pointer to a USBDDriver instance.
-/// \param pRequest  Pointer to a USBGenericRequest instance.
-//------------------------------------------------------------------------------
+/**
+ * Returns configuration descriptor list.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param cfgNum   Reserved.
+ */
+USBConfigurationDescriptor *USBDDriver_GetCfgDescriptors(
+    USBDDriver *pDriver, uint8_t cfgNum)
+{
+    USBDDriverDescriptors *pDescList = (USBDDriverDescriptors *)pDriver->pDescriptors;
+    USBConfigurationDescriptor *pCfg;
+
+    if (USBD_HAL_IsHighSpeed() && pDescList->pHsConfiguration)
+        pCfg = (USBConfigurationDescriptor *)pDescList->pHsConfiguration;
+    else
+        pCfg = (USBConfigurationDescriptor *)pDescList->pFsConfiguration;
+
+    return pCfg;
+}
+
+/**
+ * Handles the given request if it is standard, otherwise STALLs it.
+ * \param pDriver  Pointer to a USBDDriver instance.
+ * \param pRequest  Pointer to a USBGenericRequest instance.
+ */
 void USBDDriver_RequestHandler(
     USBDDriver *pDriver,
     const USBGenericRequest *pRequest)
 {
-    unsigned char cfgnum;
-    unsigned char infnum;
-    unsigned char eptnum;
-    unsigned char setting;
-    unsigned char type;
-    unsigned char indexDesc;
-    unsigned int length;
-    unsigned int address;
+    uint8_t cfgnum;
+    uint8_t infnum;
+    uint8_t eptnum;
+    uint8_t setting;
+    uint8_t type;
+    uint8_t indexDesc;
+    uint32_t length;
+    uint32_t address;
 
     TRACE_INFO_WP("Std ");
 
-    // Check request code
+    /* Check request code */
     switch (USBGenericRequest_GetRequest(pRequest)) {
 
         case USBGenericRequest_GETDESCRIPTOR:
             TRACE_INFO_WP("gDesc ");
 
-            // Send the requested descriptor
+            /* Send the requested descriptor */
             type = USBGetDescriptorRequest_GetDescriptorType(pRequest);
             indexDesc = USBGetDescriptorRequest_GetDescriptorIndex(pRequest);
             length = USBGenericRequest_GetLength(pRequest);
@@ -555,7 +515,7 @@ void USBDDriver_RequestHandler(
         case USBGenericRequest_SETADDRESS:
             TRACE_INFO_WP("sAddr ");
 
-            // Sends a zero-length packet and then set the device address
+            /* Sends a zero-length packet and then set the device address */
             address = USBSetAddressRequest_GetAddress(pRequest);
             USBD_Write(0, 0, 0, (TransferCallback) USBD_SetAddress, (void *) address);
             break;
@@ -563,7 +523,7 @@ void USBDDriver_RequestHandler(
         case USBGenericRequest_SETCONFIGURATION:
             TRACE_INFO_WP("sCfg ");
 
-            // Set the requested configuration
+            /* Set the requested configuration */
             cfgnum = USBSetConfigurationRequest_GetConfiguration(pRequest);
             SetConfiguration(pDriver, cfgnum);
             break;
@@ -571,31 +531,31 @@ void USBDDriver_RequestHandler(
         case USBGenericRequest_GETCONFIGURATION:
             TRACE_INFO_WP("gCfg ");
 
-            // Send the current configuration number
+            /* Send the current configuration number */
             GetConfiguration(pDriver);
             break;
 
         case USBGenericRequest_GETSTATUS:
             TRACE_INFO_WP("gSta ");
-    
-            // Check who is the recipient
+
+            /* Check who is the recipient */
             switch (USBGenericRequest_GetRecipient(pRequest)) {
-    
+
                 case USBGenericRequest_DEVICE:
                     TRACE_INFO_WP("Dev ");
-    
-                    // Send the device status
+
+                    /* Send the device status */
                     GetDeviceStatus(pDriver);
                     break;
-    
+
                 case USBGenericRequest_ENDPOINT:
                     TRACE_INFO_WP("Ept ");
-    
-                    // Send the endpoint status
+
+                    /* Send the endpoint status */
                     eptnum = USBGenericRequest_GetEndpointNumber(pRequest);
                     GetEndpointStatus(eptnum);
                     break;
-    
+
                 default:
                     TRACE_WARNING(
                               "USBDDriver_RequestHandler: Unknown recipient (%d)\n\r",
@@ -607,13 +567,13 @@ void USBDDriver_RequestHandler(
         case USBGenericRequest_CLEARFEATURE:
             TRACE_INFO_WP("cFeat ");
 
-            // Check which is the requested feature
+            /* Check which is the requested feature */
             switch (USBFeatureRequest_GetFeatureSelector(pRequest)) {
 
                 case USBFeatureRequest_ENDPOINTHALT:
                     TRACE_INFO_WP("Hlt ");
 
-                    // Unhalt endpoint and send a zero-length packet
+                    /* Unhalt endpoint and send a zero-length packet */
                     USBD_Unhalt(USBGenericRequest_GetEndpointNumber(pRequest));
                     USBD_Write(0, 0, 0, 0, 0);
                     break;
@@ -621,7 +581,7 @@ void USBDDriver_RequestHandler(
                 case USBFeatureRequest_DEVICEREMOTEWAKEUP:
                     TRACE_INFO_WP("RmWU ");
 
-                    // Disable remote wake-up and send a zero-length packet
+                    /* Disable remote wake-up and send a zero-length packet */
                     pDriver->isRemoteWakeUpEnabled = 0;
                     USBD_Write(0, 0, 0, 0, 0);
                     break;
@@ -637,57 +597,42 @@ void USBDDriver_RequestHandler(
     case USBGenericRequest_SETFEATURE:
         TRACE_INFO_WP("sFeat ");
 
-        // Check which is the selected feature
+        /* Check which is the selected feature */
         switch (USBFeatureRequest_GetFeatureSelector(pRequest)) {
 
             case USBFeatureRequest_DEVICEREMOTEWAKEUP:
                 TRACE_INFO_WP("RmWU ");
 
-                // Enable remote wake-up and send a ZLP
+                /* Enable remote wake-up and send a ZLP */
                 pDriver->isRemoteWakeUpEnabled = 1;
                 USBD_Write(0, 0, 0, 0, 0);
                 break;
 
             case USBFeatureRequest_ENDPOINTHALT:
                 TRACE_INFO_WP("Halt ");
-                // Halt endpoint
+                /* Halt endpoint */
                 USBD_Halt(USBGenericRequest_GetEndpointNumber(pRequest));
                 USBD_Write(0, 0, 0, 0, 0);
                 break;
-
-#if defined(CHIP_USB_UDPHS) || defined(CHIP_USB_OTGHS)
-
-            case USBFeatureRequest_TESTMODE:
-                // 7.1.20 Test Mode Support
-                if ((USBGenericRequest_GetType(pRequest) == USBGenericRequest_DEVICE)
-                    && ((USBGenericRequest_GetIndex(pRequest) & 0x000F) == 0)) {
-
-                    // Handle test request
-                    USBDDriver_Test(USBFeatureRequest_GetTestSelector(pRequest));
-                }
-                else {
-
-                    USBD_Stall(0);
-                }
-                break;
-#endif
-#if defined(CHIP_USB_OTGHS)
             case USBFeatureRequest_OTG_B_HNP_ENABLE:
                     TRACE_INFO_WP("OTG_B_HNP_ENABLE ");
-                    otg_features_supported |= 1<<USBFeatureRequest_OTG_B_HNP_ENABLE;
+                    pDriver->otg_features_supported |=
+                        1<<USBFeatureRequest_OTG_B_HNP_ENABLE;
                     USBD_Write(0, 0, 0, 0, 0);
                 break;
             case USBFeatureRequest_OTG_A_HNP_SUPPORT:
                     TRACE_INFO_WP("OTG_A_HNP_SUPPORT ");
-                    otg_features_supported |= 1<<USBFeatureRequest_OTG_A_HNP_SUPPORT;
+                    pDriver->otg_features_supported |=
+                        1<<USBFeatureRequest_OTG_A_HNP_SUPPORT;
                     USBD_Write(0, 0, 0, 0, 0);
                 break;
             case USBFeatureRequest_OTG_A_ALT_HNP_SUPPORT:
                     TRACE_INFO_WP("OTG_A_ALT_HNP_SUPPORT ");
-                    otg_features_supported |= 1<<USBFeatureRequest_OTG_A_ALT_HNP_SUPPORT;
+                    pDriver->otg_features_supported |=
+                        1<<USBFeatureRequest_OTG_A_ALT_HNP_SUPPORT;
                     USBD_Write(0, 0, 0, 0, 0);
                 break;
-#endif
+
             default:
                 TRACE_WARNING(
                           "USBDDriver_RequestHandler: Unknown feature selector (%d)\n\r",
@@ -720,34 +665,35 @@ void USBDDriver_RequestHandler(
 }
 
 
-//------------------------------------------------------------------------------
-/// Test if RemoteWakeUP feature is enabled
-/// \param pDriver  Pointer to an USBDDriver instance.
-/// \return 1 if remote wake up has been enabled by the host; otherwise, returns
-/// 0
-//------------------------------------------------------------------------------
-unsigned char USBDDriver_IsRemoteWakeUpEnabled(const USBDDriver *pDriver)
+/**
+ * Test if RemoteWakeUP feature is enabled
+ * \param pDriver  Pointer to an USBDDriver instance.
+ * \return 1 if remote wake up has been enabled by the host; otherwise, returns
+ * 0
+ */
+uint8_t USBDDriver_IsRemoteWakeUpEnabled(const USBDDriver *pDriver)
 {
     return pDriver->isRemoteWakeUpEnabled;
 }
 
-#if defined(CHIP_USB_OTGHS)
-//------------------------------------------------------------------------------
-/// Return OTG features supported
-/// \return the OTG features
-//------------------------------------------------------------------------------
-unsigned char USBDDriver_returnOTGFeatures(void)
+/**
+ * Return OTG features supported
+ * \param pDriver  Pointer to an USBDDriver instance.
+ * \return the OTG features
+ */
+uint8_t USBDDriver_returnOTGFeatures(const USBDDriver *pDriver)
 {
-    return otg_features_supported;
+    return pDriver->otg_features_supported;
 }
 
-//------------------------------------------------------------------------------
-/// Clear OTG features supported
-/// \return none
-//------------------------------------------------------------------------------
-void USBDDriver_clearOTGFeatures(void)
+/**
+ * Clear OTG features supported
+ * \param pDriver  Pointer to an USBDDriver instance.
+ * \return none
+ */
+void USBDDriver_clearOTGFeatures(USBDDriver *pDriver)
 {
-    otg_features_supported = 0;
+    pDriver->otg_features_supported = 0;
 }
-#endif
 
+/**@}*/

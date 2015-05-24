@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -27,45 +27,47 @@
  * ----------------------------------------------------------------------------
  */
 
-/** \file
-    Implementation of the CDCLineCoding class.
- */
-/** \addtogroup usb_cdc
+/**\file
+    Title: HIDReportRequest implementation
+
+    About: Purpose
+        Implementation of the HIDReportRequest methods.
+*/
+
+/**\addtogroup usb_hid
  *@{
  */
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "HIDRequests.h"
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Exported functions
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * Indicates the type of report targetted by a SET_REPORT or GET_REPORT
+ * request.
+ * \param request Pointer to a USBGenericRequest instance.
+ * \return Requested report type (see "HID Report Types").
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+uint8_t HIDReportRequest_GetReportType(const USBGenericRequest *request)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    return ((USBGenericRequest_GetValue(request) >> 8) & 0xFF);
+}
+
+/**
+ * Indicates the ID of the report targetted by a SET_REPORT or GET_REPORT
+ * request. This value should be 0 if report IDs are not used.
+ * \param request Pointer to a USBGenericRequest instance.
+ * \return Requested report ID.
+ */
+uint8_t HIDReportRequest_GetReportId(const USBGenericRequest *request)
+{
+    return (USBGenericRequest_GetValue(request) & 0xFF);
 }
 
 /**@}*/
-

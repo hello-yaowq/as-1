@@ -28,44 +28,52 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
- */
-/** \addtogroup usb_cdc
+ *
+ * \section Purpose
+ *
+ *    Definition of several callbacks which are triggered by the USB software
+ *    driver after receiving specific requests.
+ *
+ * \section Usage
+ *
+ *    -# Re-implement the USBDDriverCallbacks_ConfigurationChanged
+ *        callback to know when the hosts changes the active configuration of
+ *        the device.
+ *    -# Re-implement the USBDDriverCallbacks_InterfaceSettingChanged
+ *        callback to get notified whenever the active setting of an interface
+ *        is changed by the host.
+ *
+ * \addtogroup usbd_interface
  *@{
  */
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
-
-#include <CDCRequests.h>
-
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
+#include "board.h"
+#include "USBDDriver.h"
+/*------------------------------------------------------------------------------
+ *         Global functions
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * Indicates that the current configuration of the device has changed.
+ * \param cfgnum  New device configuration index.
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+WEAK void USBDDriverCallbacks_ConfigurationChanged(uint8_t cfgnum)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    TRACE_INFO_WP("cfgChanged%d ", cfgnum);
 }
 
+/**
+ * Notifies of a change in the currently active setting of an interface.
+ * \param interface  Number of the interface whose setting has changed.
+ * \param setting  New interface setting.
+ */
+WEAK void USBDDriverCallbacks_InterfaceSettingChanged(
+    uint8_t interface,
+    uint8_t setting)
+{
+    TRACE_INFO_WP("ifSettingChanged%d.%d ", interface, setting);
+}
 /**@}*/
-

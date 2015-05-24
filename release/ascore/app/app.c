@@ -16,7 +16,6 @@
 #include "Os.h"
 #ifdef CHIP_AT91SAM3S
 #include "board.h"
-#include "CDCDSerialDriver.h"
 #else
 #include "Lcd.h"
 #include "Sg.h"
@@ -25,13 +24,14 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void usb_serial_init(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
 #ifdef CHIP_AT91SAM3S
-	CDCDSerialDriver_Initialize();
+	usb_serial_init();
 #else
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
@@ -57,7 +57,10 @@ TASK(TaskSg)
 
 TASK(TaskIdle)
 {
-	for(;;);
+	for(;;)
+	{
+		usb_serial_task();
+	}
 }
 ALARM(Alarm5ms)
 {

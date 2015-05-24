@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------
  *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
- * Copyright (c) 2008, Atmel Corporation
+ * Copyright (c) 2010, Atmel Corporation
  *
  * All rights reserved.
  *
@@ -27,61 +27,41 @@
  * ----------------------------------------------------------------------------
  */
 
-/** \file
- *
- * Implementation of the CDCSetControlLineStateRequest class.
- */
+/*---------------------------------------------------------------------------
+ *      Headers
+ *---------------------------------------------------------------------------*/
 
-/** \addtogroup usb_cdc
- *@{
- */
+/* These headers were introduced in C99
+   by working group ISO/IEC JTC1/SC22/WG14. */
+#include <stdint.h>
 
-/*----------------------------------------------------------------------------
- *         Headers
- *----------------------------------------------------------------------------*/
+#include "CDCDSerialDriver.h"
 
-#include <CDCRequests.h>
-
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ *         Default callback functions
+ *---------------------------------------------------------------------------*/
 
 /**
- *  Notifies if the given request indicates that the DTE signal is present.
- *  \param request Pointer to a USBGenericRequest instance.
- *  \return 1 if the DTE signal is present, otherwise 0.
+ * Invoked when the CDC LineCoding is requested to changed
+ * \param port          Port number.
+ * \param pLineCoding   Pointer to new LineCoding settings.
  */
-uint8_t CDCSetControlLineStateRequest_IsDtePresent(
-    const USBGenericRequest *request)
+extern WEAK uint8_t CDCDSerialDriver_LineCodingIsToChange(
+    CDCLineCoding * pLineCoding)
 {
-    if ((USBGenericRequest_GetValue(request) & 0x0001) != 0) {
-
-        return 1;
-    }
-    else {
-
-        return 0;
-    }
+    /* Accept any of linecoding settings */
+    return USBD_STATUS_SUCCESS;
 }
 
 /**
- *  Notifies if the given request indicates that the device carrier should
- *  be activated.
- *  \param request Pointer to a USBGenericRequest instance.
- *  \return 1 is the device should activate its carrier, 0 otherwise.
+ * Invoked when the CDC ControlLineState is changed
+ * \param port  Port number.
+ * \param DTR   New DTR value.
+ * \param RTS   New RTS value.
  */
-uint8_t CDCSetControlLineStateRequest_ActivateCarrier(
-    const USBGenericRequest *request)
+extern WEAK void CDCDSerialDriver_ControlLineStateChanged(uint8_t DTR,
+                                                          uint8_t RTS)
 {
-    if ((USBGenericRequest_GetValue(request) & 0x0002) != 0) {
-
-        return 1;
-    }
-    else {
-
-        return 0;
-    }
+    /* Do nothing */
 }
-
-/**@}*/
 

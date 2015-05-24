@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -28,44 +28,47 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
+ *  Mass storage function driver definitions.
  */
-/** \addtogroup usb_cdc
+
+#ifndef MSDFUNCTION_H
+#define MSDFUNCTION_H
+
+/** \addtogroup usbd_msd 
  *@{
  */
-
-/*----------------------------------------------------------------------------
+ 
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include <stdint.h>
 
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+#include <MSDLun.h>
+#include <MSD.h>
+#include <MSDDStateMachine.h>
 
-/**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
- */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
-{
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
-}
+/*------------------------------------------------------------------------------
+ *         Types
+ *------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------
+ *      Global functions
+ *------------------------------------------------------------------------------*/
+
+extern void MSDFunction_Initialize(
+    USBDDriver * pUsbd, uint8_t bInterfaceNb,
+    MSDLun * pLuns, uint8_t numLuns);
+
+extern uint32_t MSDFunction_RequestHandler(
+    const USBGenericRequest *request);
+
+extern void MSDFunction_Configure(
+    USBGenericDescriptor * pDescriptors, uint16_t wLength);
+
+extern void MSDFunction_StateMachine(void);
 
 /**@}*/
+
+#endif /* #ifndef MSDDRIVER_H */
 

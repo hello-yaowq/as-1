@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -28,9 +28,11 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
+ *
+ * This file implements functions for USB AUDIO class feature unit requests.
  */
-/** \addtogroup usb_cdc
+
+/** \addtogroup usb_audio
  *@{
  */
 
@@ -38,34 +40,31 @@
  *         Headers
  *----------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "AUDRequests.h"
 
 /*----------------------------------------------------------------------------
  *         Exported functions
  *----------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ *  Returns the control selector value indicating the target of a Feature Unit
+ *  request.
+ *  \param request  Pointer to a USBGenericRequest instance.
+ *  \sa usb_audio_ctrl_sel USB Audio Control selector values
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+uint8_t AUDFeatureUnitRequest_GetControl(const USBGenericRequest *request)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    return ((USBGenericRequest_GetValue(request) >> 8) & 0xFF);
+}
+
+/**
+ *  Returns the channel number of a Feature unit which should be altered by the
+ *  given request.
+ *  \param request  Pointer to a USBGenericRequest instance.
+ */
+uint8_t AUDFeatureUnitRequest_GetChannel(const USBGenericRequest *request)
+{
+    return (USBGenericRequest_GetValue(request) & 0xFF);
 }
 
 /**@}*/
-

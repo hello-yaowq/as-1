@@ -27,12 +27,14 @@
  * ----------------------------------------------------------------------------
  */
 
-/**\file
- *   Title: CDCDSerialDriver implementation
+/**
+ * \file
  *
- *   About: Purpose
- *       Implementation of the CDCDSerialDriver class methods.
+ * Single CDC Serial Port Function for USB device & composite driver.
  */
+
+#ifndef CDCDSERIAL_H
+#define CDCDSERIAL_H
 
 /** \addtogroup usbd_cdc
  *@{
@@ -42,75 +44,63 @@
  *         Headers
  *------------------------------------------------------------------------------*/
 
-#include "CDCDSerialDriver.h"
+/* These headers were introduced in C99
+   by working group ISO/IEC JTC1/SC22/WG14. */
+#include <stdint.h>
 
-#include <USBLib_Trace.h>
+#include <USBRequests.h>
+
 #include <USBDDriver.h>
-#include <USBD_HAL.h>
+#include <CDCDSerialPort.h>
+
+/*------------------------------------------------------------------------------
+ *         Definitions
+ *------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
  *         Types
  *------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
- *         Internal variables
+ *      Exported functions
  *------------------------------------------------------------------------------*/
 
-/*------------------------------------------------------------------------------
- *         Internal functions
- *------------------------------------------------------------------------------*/
+extern void CDCDSerial_Initialize(
+    USBDDriver * pUsbd, uint8_t bInterfaceNb);
 
-/*------------------------------------------------------------------------------
- *         Exported functions
- *------------------------------------------------------------------------------*/
+extern uint32_t CDCDSerial_RequestHandler(
+    const USBGenericRequest *request);
 
-/**
- *  Initializes the USB Device CDC serial driver & USBD Driver.
- *  \param  pDescriptors Pointer to Descriptors list for CDC Serial Device.
- */
-void CDCDSerialDriver_Initialize(const USBDDriverDescriptors *pDescriptors)
-{
-    USBDDriver *pUsbd = USBD_GetDriver();
+extern void CDCDSerial_ConfigureFunction(
+    USBGenericDescriptor * pDescriptors, uint16_t wLength);
 
-    /* Initialize the standard driver */
-    USBDDriver_Initialize(pUsbd,
-                          pDescriptors,
-                          0); /* Multiple settings for interfaces not supported */
+extern uint32_t CDCDSerial_Write(
+    void *data,
+    uint32_t size,
+    TransferCallback callback,
+    void *argument);
 
-    CDCDSerial_Initialize(pUsbd, CDCDSerialDriver_CC_INTERFACE);
+extern uint32_t CDCDSerial_Read(
+    void *data,
+    uint32_t size,
+    TransferCallback callback,
+    void *argument);
 
-    /* Initialize the USB driver */
-    USBD_Init();
-}
+extern void CDCDSerial_GetLineCoding(CDCLineCoding * pLineCoding);
 
-/**
- * Invoked whenever the active configuration of device is changed by the
- * host.
- * \param cfgnum Configuration number.
- */
-void CDCDSerialDriver_ConfigurationChangedHandler(uint8_t cfgnum)
-{
-    USBDDriver *pUsbd = USBD_GetDriver();
-    USBConfigurationDescriptor *pDesc;
-    if (cfgnum) {
-        pDesc = USBDDriver_GetCfgDescriptors(pUsbd, cfgnum);
-        CDCDSerial_ConfigureFunction((USBGenericDescriptor *)pDesc,
-                                      pDesc->wTotalLength);
-    }
-}
+extern uint8_t CDCDSerial_GetControlLineState(void);
 
-/**
- * Handles CDC-specific SETUP requests. Should be called from a
- * re-implementation of USBDCallbacks_RequestReceived() method.
- * \param request Pointer to a USBGenericRequest instance.
- */
-void CDCDSerialDriver_RequestHandler(const USBGenericRequest *request)
-{
-    USBDDriver *pUsbd = USBD_GetDriver();
-    TRACE_INFO_WP("NewReq ");
-    if (CDCDSerial_RequestHandler(request))
-        USBDDriver_RequestHandler(pUsbd, request);
-}
+extern uint16_t CDCDSerial_GetSerialState(void);
+
+extern void CDCDSerial_SetSerialState(uint16_t serialState);
+
+extern uint8_t CDCDSerial_LineCodingIsToChange(
+    CDCLineCoding * pLineCoding);
+
+extern void CDCDSerial_ControlLineStateChanged(
+    uint8_t DTR,uint8_t RTS);
 
 /**@}*/
+
+#endif /*#ifndef CDCSERIAL_H*/
 

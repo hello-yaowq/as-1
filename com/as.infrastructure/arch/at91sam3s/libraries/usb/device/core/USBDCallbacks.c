@@ -28,44 +28,62 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
- */
-/** \addtogroup usb_cdc
+ *    Definitions of callbacks used by the USBD API to notify the user
+ *    application of incoming events. These functions are declared as 'weak',
+ *    so they can be re-implemented elsewhere in the application in a
+ *    transparent way.
+ *
+ * \addtogroup usbd_interface
  *@{
  */
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "USBD.h"
+#include "USBDDriver.h"
 
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------
+ *         Exported function
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * Invoked after the USB driver has been initialized. By default, do nothing.
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+WEAK void USBDCallbacks_Initialized(void)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    /* Does nothing */
+}
+
+/**
+ * Invoked when the USB driver is reset. Does nothing by default.
+ */
+WEAK void USBDCallbacks_Reset(void)
+{
+    /* Does nothing*/
+}
+
+/**
+ * Invoked when the USB device gets suspended. By default, do nothing.
+ */
+WEAK void USBDCallbacks_Suspended(void) {}
+
+/**
+ * Invoked when the USB device leaves the Suspended state. By default,
+ * Do nothing.
+ */
+WEAK void USBDCallbacks_Resumed(void) {}
+
+/**
+ * USBDCallbacks_RequestReceived - Invoked when a new SETUP request is
+ * received. Does nothing by default.
+ * \param request Pointer to the request to handle.
+ */
+WEAK void USBDCallbacks_RequestReceived(const USBGenericRequest *request)
+{
+    /* Does basic enumeration */
+    USBDDriver_RequestHandler(USBD_GetDriver(), request);
 }
 
 /**@}*/
-

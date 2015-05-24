@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -28,9 +28,11 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
+ *
+ * This file implements functions for USB AUDIO class requests.
  */
-/** \addtogroup usb_cdc
+
+/** \addtogroup usb_audio
  *@{
  */
 
@@ -38,34 +40,28 @@
  *         Headers
  *----------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "AUDRequests.h"
 
 /*----------------------------------------------------------------------------
  *         Exported functions
  *----------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * Returns the ID of the unit or terminal targetted by an USB audio request.
+ * \param request  Pointer to a USBGenericRequest instance.
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+uint8_t AUDGenericRequest_GetEntity(const USBGenericRequest *request)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    return ((USBGenericRequest_GetIndex(request) >> 8) & 0xFF);
+}
+
+/**
+ * Returns the ID of the interface targetted by an USB audio request.
+ * \param request  Pointer to a USBGenericRequest instance.
+ */
+uint8_t AUDGenericRequest_GetInterface(const USBGenericRequest *request)
+{
+    return (USBGenericRequest_GetIndex(request) & 0xFF);
 }
 
 /**@}*/
-

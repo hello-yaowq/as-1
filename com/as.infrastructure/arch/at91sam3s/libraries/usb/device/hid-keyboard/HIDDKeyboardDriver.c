@@ -27,29 +27,33 @@
  * ----------------------------------------------------------------------------
  */
 
-/**\file
- *   Title: CDCDSerialDriver implementation
- *
- *   About: Purpose
- *       Implementation of the CDCDSerialDriver class methods.
- */
-
-/** \addtogroup usbd_cdc
+/** \file
+ * \addtogroup usbd_hid_key
  *@{
+ * Implement a USB device that only have HID Keyboard Function.
  */
 
 /*------------------------------------------------------------------------------
  *         Headers
  *------------------------------------------------------------------------------*/
 
-#include "CDCDSerialDriver.h"
+#include <HIDDKeyboardDriver.h>
+#include <HIDDFunction.h>
 
 #include <USBLib_Trace.h>
-#include <USBDDriver.h>
+
+#include <USBRequests.h>
+#include <HIDDescriptors.h>
+#include <HIDRequests.h>
+#include <HIDReports.h>
+#include <HIDUsages.h>
+
+#include <USBD.h>
 #include <USBD_HAL.h>
+#include <USBDDriver.h>
 
 /*------------------------------------------------------------------------------
- *         Types
+ *         Internal types
  *------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
@@ -61,55 +65,58 @@
  *------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
- *         Exported functions
+ *      Exported functions
  *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the USB Device CDC serial driver & USBD Driver.
- *  \param  pDescriptors Pointer to Descriptors list for CDC Serial Device.
+ * Initializes the HID keyboard device driver.
  */
-void CDCDSerialDriver_Initialize(const USBDDriverDescriptors *pDescriptors)
+void HIDDKeyboardDriver_Initialize(const USBDDriverDescriptors *pDescriptors)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
-
-    /* Initialize the standard driver */
-    USBDDriver_Initialize(pUsbd,
-                          pDescriptors,
-                          0); /* Multiple settings for interfaces not supported */
-
-    CDCDSerial_Initialize(pUsbd, CDCDSerialDriver_CC_INTERFACE);
-
-    /* Initialize the USB driver */
+    USBDDriver_Initialize(pUsbd, pDescriptors, 0);
+    HIDDKeyboard_Initialize(pUsbd, 0);
     USBD_Init();
 }
 
 /**
- * Invoked whenever the active configuration of device is changed by the
- * host.
- * \param cfgnum Configuration number.
+ * Handles configureation changed event.
+ * \param cfgnum New configuration number
  */
-void CDCDSerialDriver_ConfigurationChangedHandler(uint8_t cfgnum)
+void HIDDKeyboardDriver_ConfigurationChangedHandler(uint8_t cfgnum)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
+    const USBDDriverDescriptors * pDescriptors = pUsbd->pDescriptors;
     USBConfigurationDescriptor *pDesc;
-    if (cfgnum) {
-        pDesc = USBDDriver_GetCfgDescriptors(pUsbd, cfgnum);
-        CDCDSerial_ConfigureFunction((USBGenericDescriptor *)pDesc,
-                                      pDesc->wTotalLength);
+
+    if (cfgnum > 0) {
+        if (USBD_HAL_IsHighSpeed() && pDescriptors->pHsConfiguration)
+            pDesc = (USBConfigurationDescriptor*)pDescriptors->pHsConfiguration;
+        else
+            pDesc = (USBConfigurationDescriptor*)pDescriptors->pFsConfiguration;
+        HIDDKeyboard_ConfigureFunction((USBGenericDescriptor*)pDesc,
+                                       pDesc->wTotalLength);
     }
 }
 
 /**
- * Handles CDC-specific SETUP requests. Should be called from a
- * re-implementation of USBDCallbacks_RequestReceived() method.
+ * Handles HID-specific SETUP request sent by the host.
  * \param request Pointer to a USBGenericRequest instance.
  */
-void CDCDSerialDriver_RequestHandler(const USBGenericRequest *request)
+void HIDDKeyboardDriver_RequestHandler(const USBGenericRequest *request)
 {
     USBDDriver *pUsbd = USBD_GetDriver();
+
     TRACE_INFO_WP("NewReq ");
-    if (CDCDSerial_RequestHandler(request))
+
+    /* Process HID requests */
+    if (USBRC_SUCCESS == HIDDKeyboard_RequestHandler(request)) {
+        return;
+    }
+    /* Process STD requests */
+    else {
         USBDDriver_RequestHandler(pUsbd, request);
+    }
 }
 
 /**@}*/

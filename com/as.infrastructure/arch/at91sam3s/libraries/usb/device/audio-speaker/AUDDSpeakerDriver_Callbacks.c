@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
- * Copyright (c) 2008, Atmel Corporation
+ * Copyright (c) 2010, Atmel Corporation
  *
  * All rights reserved.
  *
@@ -28,43 +28,46 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
+ *  Default callbacks implement for Audio Speaker Driver.
  */
-/** \addtogroup usb_cdc
+
+/** \addtogroup usbd_audio_speaker
  *@{
  */
 
-/*----------------------------------------------------------------------------
- *         Headers
- *----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+ *      Headers
+ *---------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+/* These headers were introduced in C99
+   by working group ISO/IEC JTC1/SC22/WG14. */
+#include <stdint.h>
 
-/*----------------------------------------------------------------------------
- *         Exported functions
- *----------------------------------------------------------------------------*/
+#include "AUDDSpeakerDriver.h"
+
+/*------------------------------------------------------------------------------
+ *         Default WEAK Callbacks
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ *  Invoked when an audio channel get muted or unmuted. Mutes/unmutes the
+ *  channel at the DAC level.
+ *  \param channel  Channel number that changed.
+ *  \param muted    Indicates the new mute status of the channel.
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+WEAK void AUDDSpeakerDriver_MuteChanged(uint8_t channel,uint8_t muted)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    /* Do nothing */
+}
+
+/**
+ *  Invoked when an audio streaming interface setting changed. Actually control
+ *  streaming rate.
+ *  \param newSetting  New stream (interface) setting.
+ */
+WEAK void AUDDSpeakerDriver_StreamSettingChanged(uint8_t newSetting)
+{
+    /* Do nothing */
 }
 
 /**@}*/

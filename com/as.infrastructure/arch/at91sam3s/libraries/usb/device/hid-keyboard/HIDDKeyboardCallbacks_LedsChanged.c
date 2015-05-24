@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- *         ATMEL Microcontroller Software Support
+ *         ATMEL Microcontroller Software Support 
  * ----------------------------------------------------------------------------
  * Copyright (c) 2008, Atmel Corporation
  *
@@ -28,44 +28,39 @@
  */
 
 /** \file
-    Implementation of the CDCLineCoding class.
- */
-/** \addtogroup usb_cdc
+ * \addtogroup usbd_hid_key
  *@{
  */
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Headers
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
-#include <CDCRequests.h>
+#include "HIDDKeyboardDriver.h"
+#include <USBLib_Trace.h>
 
-/*----------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  *         Exported functions
- *----------------------------------------------------------------------------*/
+ *------------------------------------------------------------------------------*/
 
 /**
- *  Initializes the bitrate, number of stop bits, parity checking and
- *  number of data bits of a CDCLineCoding object.
- *  \param lineCoding Pointer to a CDCLineCoding instance.
- *  \param bitrate Bitrate of the virtual COM connection.
- *  \param stopbits Number of stop bits
- *                  (\ref usb_cdc_stop CDC LineCoding StopBits).
- *  \param parity Parity check type
- *                  (\ref usb_cdc_parity CDC LineCoding ParityChecking).
- *  \param databits Number of data bits.
+ * For HID Keyboard Function.
+ * Indicates that the status of one or more LEDs has been changed by the
+ * host.
+ * \param numLockStatus  Indicates the current status of the num. lock key.
+ * \param capsLockStatus  Indicates the current status of the caps lock key.
+ * \param scrollLockStatus  Indicates the current status of the scroll lock key.
  */
-void CDCLineCoding_Initialize(CDCLineCoding *lineCoding,
-                              uint32_t bitrate,
-                              uint8_t stopbits,
-                              uint8_t parity,
-                              uint8_t databits)
+WEAK void HIDDKeyboardCallbacks_LedsChanged(
+    uint8_t numLockStatus,
+    uint8_t capsLockStatus,
+    uint8_t scrollLockStatus)
 {
-    lineCoding->dwDTERate = bitrate;
-    lineCoding->bCharFormat = stopbits;
-    lineCoding->bParityType = parity;
-    lineCoding->bDataBits = databits;
+    TRACE_INFO(
+              "LEDs status: %d, %d, %d\n\r",
+              numLockStatus,
+              capsLockStatus,
+              scrollLockStatus);
 }
 
 /**@}*/
-
