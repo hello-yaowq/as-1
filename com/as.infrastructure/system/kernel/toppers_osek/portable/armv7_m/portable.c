@@ -25,6 +25,7 @@ uint32 knl_taskindp;
 
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
+extern const FP tisr_pc[255];
 
 extern const uint32 __vector_table[];
 
@@ -89,6 +90,7 @@ void cpu_initialize(void)
 		/* Capture error */
 		while (1);
 	}
+
 }
 
 void knl_system_tick_handler(void)
@@ -100,6 +102,19 @@ void knl_system_tick_handler(void)
 
 	TimeTick_Increment();
 }
+
+void knl_isr_handler(uint32 intno)
+{
+	if( (intno>15) &&  (intno<51) && (tisr_pc[intno-16]!=NULL))
+	{
+		tisr_pc[intno-16]();
+	}
+	else
+	{
+		ShutdownOS(0xFF);
+	}
+}
+
 void sys_initialize(void)
 {
 

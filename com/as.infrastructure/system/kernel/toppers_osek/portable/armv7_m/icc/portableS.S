@@ -147,4 +147,14 @@ knl_system_tick:
     bl knl_system_tick_handler
     b  ExitISR
 
+    PUBLIC knl_isr_process
+    EXTERN knl_isr_handler
+knl_isr_process:
+
+    push {lr}
+    bl EnterISR
+    mrs     r0, ipsr                             /* r0 = dintno */
+    bl knl_isr_handler
+    b  ExitISR
+
     END
