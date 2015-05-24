@@ -35,14 +35,14 @@
 #include "USBDCallbacks.h"
 #include "USBDDriver.h"
 #include <board.h>
-#include <pio/pio.h>
+#include <pio_it.h>
 #include <utility/trace.h>
 #include <utility/led.h>
 #include <usb/common/core/USBConfigurationOTG.h>
 #include <usb/common/core/USBEndpointDescriptor.h>
 #include <usb/common/core/USBGenericRequest.h>
 #include <usb/common/core/USBFeatureRequest.h>
-#include <pmc/pmc.h>
+#include <pmc.h>
 
 //------------------------------------------------------------------------------
 //         Definitions

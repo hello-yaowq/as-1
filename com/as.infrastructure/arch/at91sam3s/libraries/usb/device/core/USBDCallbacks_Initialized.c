@@ -34,7 +34,7 @@
 #include "USBDCallbacks.h"
 #include "USBD.h"
 #include <board.h>
-#include <cmsis/core_cm3.h>
+#include <core_cm3.h>
 
 //------------------------------------------------------------------------------
 //         Exported function

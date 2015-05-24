@@ -52,6 +52,8 @@ VPATH += ./src/libraries/libchip_sam3s/source
 VPATH += ./src/libraries/libboard_sam3s-ek/source
 inc-y += -I./src/libraries
 dir-y += ./src/libraries/usb/common/core
+dir-y += ./src/libraries/usb/common/cdc
+dir-y += ./src/libraries/usb/device/core
 dir-y += ./src/libraries/usb/device/cdc-serial
 obj-y +=$(obj-dir)/portableS.o $(obj-dir)/startup.o 
 obj-y +=$(obj-dir)/ads7843.o \
@@ -129,6 +131,7 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility
 ifeq ($(board),at91sam3s)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries)
 	@(cd $(inc-dir)/utility;$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/libchip_sam3s/include/trace.h trace.h)
+	@(cd $(inc-dir)/utility;$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/libboard_sam3s-ek/include/led.h led.h)
 	@(cd $(inc-dir)/utility;cp -fv $(IAR_DIR)/arm/inc/c/assert.h assert.h)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.c Lcd.c)
