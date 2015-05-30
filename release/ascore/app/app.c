@@ -33,7 +33,7 @@ static uint8 ledFlash;
 void StartupHook(void)
 {
 #ifdef CHIP_AT91SAM3S
-	usb_serial_init();
+	//usb_serial_init();
 	LED_Configure(LED_RED);
 	LED_Set(LED_RED);
 	ledFlash = 0;
@@ -70,7 +70,7 @@ TASK(TaskIdle)
 {
 	for(;;)
 	{
-		usb_serial_task();
+		//usb_serial_task();
 	}
 }
 ALARM(Alarm5ms)

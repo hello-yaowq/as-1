@@ -18,6 +18,7 @@
 
     EXTERN runtsk, schedtsk, knl_taskindp
     EXTERN callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
+    EXTERN knl_system_stack
     SECTION .text:CODE
     THUMB
     PUBLIC enaint
@@ -61,6 +62,7 @@ dispatch_task:
     bx      r3
 
     PUBLIC knl_start_dispatch
+knl_dispatch_ret_int:
 knl_start_dispatch:
     ldr     r0, =schedtsk
     ldrb    r0, [r0]
@@ -72,7 +74,6 @@ knl_start_dispatch:
     b       dispatch_task
 
     PUBLIC knl_dispatch_entry
-knl_dispatch_ret_int:
 knl_dispatch_entry:
     push    {r4-r11}
 
@@ -93,14 +94,42 @@ knl_dispatch_entry:
 EnterISR:    
     ldr     r1, =knl_taskindp
     ldr     r2, [r1]
+    cmp     r2, #0      // knl_taskindp==0
+    bne     l_nosave
+
+    ldr     r0, = knl_dispatch_started
+    ldr     r0, [r0]
+    cmp     r0, #0
+    beq     l_nosave    // system not startd
+
+    pop     {r0}    // r0 = lr
+
+    // save context on fisrt ISR enter
+    push    {r4-r11}
+
+    ldr     r3, =runtsk
+    ldrb    r4, [r3]
+
+    ldr     r3, =tcxb_sp
+    str     sp, [r3,r4, LSL #2]
+
+    ldr     r3, =tcxb_pc
+
+    ldr     r12, =knl_dispatch_r
+    str     r12, [r3,r4, LSL #2]
+    // and then load isr system stack
+    ldr     sp, =(knl_system_stack + SYSTEM_STACK_SIZE)  /* Set system stack */
+
+l_nosave:
+    push    {r0}    // push {lr}
     add     r3, r2, #1
     str     r3, [r1]
     push    {r1, r2}
     ldr     r1, = callevel
     ldrb    r3, [r1]
     push    {r3}
-    mov     r2, #2    /* callevel = TCL_ISR2 */
-    strb    r2,[r1]
+    mov     r3, #2    /* callevel = TCL_ISR2 */
+    strb    r3,[r1]
     cpsie   i
     bx      lr
 
@@ -118,21 +147,14 @@ ExitISR:
     ldr     r0, =knl_taskindp
     ldr     r0, [r0]
     cmp     r0, #0
-    
     bne     l_nodispatch
 
     ldr     r0, = knl_dispatch_started
     ldr     r0, [r0]
     cmp     r0, #0
-
     beq     l_nodispatch
 
-    ldr     r0, =runtsk
-    ldr     r1, =schedtsk
-    ldrb    r0, [r0]
-    ldrb    r1, [r1]
-    cmp     r0, r1
-    bne     knl_dispatch_ret_int                 /* To dispatch processing */
+    b     knl_dispatch_ret_int                 /* To dispatch processing */
 
 l_nodispatch:
     cpsie   i
@@ -142,6 +164,8 @@ l_nodispatch:
     PUBLIC knl_system_tick
 knl_system_tick:
 
+    push {lr}   // Yes, this code is very strange
+    pop  {r0}   // When I debug, I don't know why sometimes, the fisrt push {lr} push 0 to the stack
     push {lr}
     bl EnterISR
     bl knl_system_tick_handler
@@ -151,6 +175,8 @@ knl_system_tick:
     EXTERN knl_isr_handler
 knl_isr_process:
 
+    push {lr}
+    pop  {r0}
     push {lr}
     bl EnterISR
     mrs     r0, ipsr                             /* r0 = dintno */
