@@ -94,15 +94,16 @@ knl_dispatch_entry:
 EnterISR:    
     ldr     r1, =knl_taskindp
     ldr     r2, [r1]
+
+    pop     {r0}    // r0 = lr
+
     cmp     r2, #0      // knl_taskindp==0
     bne     l_nosave
 
-    ldr     r0, = knl_dispatch_started
-    ldr     r0, [r0]
-    cmp     r0, #0
+    ldr     r3, = knl_dispatch_started
+    ldr     r3, [r3]
+    cmp     r3, #0
     beq     l_nosave    // system not startd
-
-    pop     {r0}    // r0 = lr
 
     // save context on fisrt ISR enter
     push    {r4-r11}

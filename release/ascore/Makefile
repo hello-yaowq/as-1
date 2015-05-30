@@ -121,7 +121,7 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
 sg:
 	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
 	
-all: exe
+all: dep exe
 
 clean: clean-obj
 	@(echo "  >> clean done ")
