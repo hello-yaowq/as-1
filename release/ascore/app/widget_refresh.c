@@ -1,4 +1,4 @@
-#ifndef CHIP_AT91SAM3S
+
 #include "SgRes.h"
 #include <time.h>
 void* RefreshPointerHour(SgWidget* w)
@@ -91,4 +91,4 @@ void* RefreshDate(SgWidget* w)
 
 	return Text;
 }
-#endif
+

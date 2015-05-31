@@ -6,19 +6,29 @@ src-dir = ./src
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
-INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure/
+INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
+APPLICATION = $(prj-dir)/com/as.application
+ASCORE = $(prj-dir)/release/ascore
 
 LNFS  = python $(prj-dir)/release/make/lnfs.py
+KSM   = python $(prj-dir)/com/as.tool/config.infrastructure.system/KsmGen.py
 
-dir-y += ./app
-dir-y += ./app/config
+PY34 = D:/Python34/python.exe
+ifeq ($(PY34), $(wildcard $(PY34)))
+SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+else
+$(error fix your python34 path)
+endif
+
+# on C disk do the following command:
+## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
+IAR_DIR = C:/IAR
 inc-y += -I./include
-inc-y += -I./app/config
 inc-dir = ./include
 		 
 ifeq ($(board),mingw)	
 # slect GUI openVG/GTK
-gui-used = GTK	 
+gui = GTK	 
 ldflags-y += -lm -lwinmm 
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
@@ -26,15 +36,14 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++	
 
-ifeq ($(gui-used),GTK)			 
+ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 
 def-y += -DGUI_USE_OPENVG	
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 endif
 inc-y += -I./include/EGL
-inc-y += -I./include/VG
-dir-y += ./SgDesign/SgRes		
+inc-y += -I./include/VG		
 endif	# MINGW end
 
 ifeq ($(board),at91sam3s)
@@ -64,9 +73,15 @@ ifeq ($(board),mingw)
 #cflags-y += -Werror
 include ../make/mingw.mk
 else
-$(warning   >> fix your IAR compiler directory.)
-IAR_DIR = "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
+ifeq ($(board),at91sam3s)
 include ../make/cortexm3.mk
+ifeq ($(CC), $(wildcard $(CC)))
+else
+$(error fix your IAR compiler path $(CC) $(wildcard $(CC)))
+endif
+else
+# not supported board
+endif
 endif
 
 $(inc-dir)/utility:
@@ -76,8 +91,19 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
+
+$(ASCORE)/SgDesign/SgRes/SgRes.h:
+	@(cd SgDesign;$(SG) Sg.xml)	
+
+KSM:
+	@(cd $(src-dir);$(KSM))	
+
+$(src-dir)/ksm_cfg.h:KSM
 	
-dep-mingw:
+dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h Std_Types.h)
@@ -90,13 +116,18 @@ dep-mingw:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
+ifeq ($(gui),openVG)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
+endif
 	@(echo "  >> prepare link for MINGW done")
 	
 dep-at91sam3s:
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
+	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h Std_Types.h)
@@ -110,21 +141,19 @@ dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/usb/device/cdc-serial TRUE)
 	@(cd $(inc-dir)/utility;$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/libchip_sam3s/include/trace.h trace.h)
 	@(cd $(inc-dir)/utility;$(LNFS) $(INFRASTRUCTURE)/arch/at91sam3s/libraries/libboard_sam3s-ek/include/led.h led.h)
-	@(cd $(inc-dir)/utility;cp -fv $(IAR_DIR)/arm/inc/c/assert.h assert.h)
+	@(cd $(inc-dir)/utility;$(LNFS) $(IAR_DIR)/arm/inc/c/assert.h assert.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
 	@(echo "  >> prepare link for AT91SAM3S done")
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) $(src-dir)/ksm_cfg.h
 	
-sg:
-	@(cd SgDesign;python ../../../com/python/Sg/Sg.py Sg.xml)	
-	
-all: dep exe
+all: exe
 
-clean: clean-obj
-	@(echo "  >> clean done ")
+clean: 
+	@rm -fv $(obj-dir)/*
+	@rm -fv $(exe-dir)/*
 	
 clean-dist:clean
 	@rm -fv $(src-dir)/*

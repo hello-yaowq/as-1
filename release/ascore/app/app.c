@@ -14,43 +14,22 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#ifdef CHIP_AT91SAM3S
-#include "board.h"
-#else
-#include "Lcd.h"
-#include "Sg.h"
-#endif
+
 
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void usb_serial_init(void);
-extern void usb_serial_task(void);
+
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-static uint8 ledFlash;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-#ifdef CHIP_AT91SAM3S
-	usb_serial_init();
-	LED_Configure(LED_RED);
-	LED_Set(LED_RED);
-	ledFlash = 0;
-#else
-	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
-	Sg_Init();
-#endif
+	KsmInit();
 }
 
 TASK(TaskApp)
 {
-	ledFlash ++;
-	if(ledFlash > 25)
-	{
-		LED_Toggle(LED_RED);
-		ledFlash = 0;
-	}
 	OsTerminateTask(TaskApp);
 }
 TASK(TaskCom)
@@ -70,7 +49,7 @@ TASK(TaskIdle)
 {
 	for(;;)
 	{
-		usb_serial_task();
+		KsmExecute();
 	}
 }
 ALARM(Alarm5ms)

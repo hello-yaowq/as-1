@@ -63,6 +63,8 @@
 #include "check.h"
 #include "alarm.h"
 
+TickType				OsTickCounter;
+
 /*
  *  Local Alarm APIs
  */
@@ -212,6 +214,8 @@ alarm_initialize(void)
 {
 	CounterType	cntid;
 	AlarmType	almid;
+
+	OsTickCounter = 1;	/* 0 used for stopped*/
 
 	for (cntid = 0; cntid < tnum_counter; cntid++) {
 		cntcb_curval[cntid] = 0u;
@@ -458,6 +462,13 @@ SignalCounter(CounterType cntid)
 	CHECK_CNTID(cntid);
 
 	lock_cpu();
+
+	OsTickCounter ++;
+
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
 
 	/*
 	 *  calculate the counter next value

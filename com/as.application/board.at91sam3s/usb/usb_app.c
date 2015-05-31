@@ -12,52 +12,33 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_OS_H_
-#define COM_CLANG_INCLUDE_OS_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Os_Cfg.h"
-#include "ksm_cfg.h"
+#include "board.h"
+#include "Os.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef AS_OS_BASED_ON_TOPPERS_OSEK
-#define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
-#define OsTerminateTask(x)	TerminateTask()
-#endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
-
-#define KSM_INIT                  0
-#define KSM_START                 1
-#define KSM_STOP                  2
-#define KSM_INVALID               0xFF
-
-#define TICK_MAX 					0xFFFFFFFF
-
 /* ============================ [ TYPES     ] ====================================================== */
-#if(KSM_NUM < 0xFF)
-typedef uint8 KsmID_Type;
-#elif(KSM_NUM < 0xFFFF)
-typedef uint16 KsmID_Type;
-#else
-typedef uint32 KsmID_Type;
-#endif
-/* Kernel Timer.
- * If Tick is 1ms per Tick,
- * then counter max time is (0xFFFFFFFF)ms = 49.71 days.
- */
-typedef TickType TimerType;
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void usb_serial_init(void);
+extern void usb_serial_task(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void StartOS( AppModeType app_mode );
-extern void StartupHook( void );
-extern void KsmInit(void);
-extern void KsmStart(void);
-extern void KsmStop(void);
-extern void KsmExecute(void);
-extern void KsmSetState(KsmID_Type Ksm,KSMState_Type state);
-extern KSMState_Type KsmGetState(KsmID_Type Ksm);
+void KsmUSB2Serial_Init                 (void)
+{
+	usb_serial_init();
 
-extern void StartTimer(TimerType* timer);
-extern void StopTimer(TimerType* timer);
-extern TimerType GetTimer(TimerType* timer);
-#endif /* COM_CLANG_INCLUDE_OS_H_ */
+	KsmSetState(KSM_ID_USB2Serial,KSM_USB2Serial_Running);
+}
+
+void KsmUSB2Serial_Start                (void)
+{
+
+}
+void KsmUSB2Serial_Stop                 (void)
+{
+
+}
+void KsmUSB2Serial_Running              (void)
+{
+	usb_serial_task();
+}
