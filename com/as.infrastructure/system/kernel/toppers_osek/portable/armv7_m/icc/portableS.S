@@ -95,8 +95,6 @@ EnterISR:
     ldr     r1, =knl_taskindp
     ldr     r2, [r1]
 
-    pop     {r0}    // r0 = lr
-
     cmp     r2, #0      // knl_taskindp==0
     bne     l_nosave
 
@@ -164,10 +162,7 @@ l_nodispatch:
     EXTERN knl_system_tick_handler
     PUBLIC knl_system_tick
 knl_system_tick:
-
-    push {lr}   // Yes, this code is very strange
-    pop  {r0}   // When I debug, I don't know why sometimes, the fisrt push {lr} push 0 to the stack
-    push {lr}
+    mov r0,lr
     bl EnterISR
     bl knl_system_tick_handler
     b  ExitISR
@@ -175,10 +170,7 @@ knl_system_tick:
     PUBLIC knl_isr_process
     EXTERN knl_isr_handler
 knl_isr_process:
-
-    push {lr}
-    pop  {r0}
-    push {lr}
+    mov r0,lr
     bl EnterISR
     mrs     r0, ipsr                             /* r0 = dintno */
     bl knl_isr_handler
