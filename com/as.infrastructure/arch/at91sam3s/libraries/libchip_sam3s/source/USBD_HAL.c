@@ -45,7 +45,7 @@
  *      Headers
  *---------------------------------------------------------------------------*/
 
-#include "chip.h"
+#include "board.h"
 #include "USBD_HAL.h"
 
 #include <stdbool.h>
@@ -1090,7 +1090,7 @@ void USBD_IrqHandler(void)
     /* Toggle USB LED if the device is active */
     if (USBD_GetState() >= USBD_STATE_POWERED) {
 
-        //LED_Set(USBD_LEDUSB);
+        LED_Set(USBD_LEDUSB);
     }
 
     /* Service interrupts */
@@ -1170,7 +1170,7 @@ void USBD_IrqHandler(void)
     TRACE_INFO_WP("\n\r");
     if (USBD_GetState() >= USBD_STATE_POWERED) {
 
-        //LED_Clear(USBD_LEDUSB);
+        LED_Clear(USBD_LEDUSB);
     }
 }
 

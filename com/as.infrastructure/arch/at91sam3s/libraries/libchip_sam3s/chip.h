@@ -64,7 +64,8 @@
 #include "include/twi.h"
 #include "include/twid.h"
 #include "include/usart.h"
-//#include "include/USBD_Config.h"
+#include "include/led.h"
+#include "include/USBD_Config.h"
 
 #include "include/trace.h"
 #include "include/wdt.h"

@@ -46,8 +46,8 @@ void KsmLEDsAPP_Running                 (void)
 {
 	if(GetTimer(&ledTimer) > 500)
 	{
-		LED_Toggle(LED_BLUE);
-		LED_Toggle(LED_RED);
+		//LED_Toggle(LED_BLUE);
+		//LED_Toggle(LED_RED);
 		LED_Toggle(LED_GREEN);
 		StartTimer(&ledTimer);
 	}

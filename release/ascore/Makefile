@@ -52,7 +52,7 @@ link-script = $(IAR_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-sram.ic
 else
 link-script = $(IAR_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-flash.icf
 endif
-def-y += -DCHIP_AT91SAM3S -Dsam3s4
+def-y += -DCHIP_AT91SAM3S -Dsam3s4 -DUSBD_LEDUSB=LED_RED
 inc-y += -I./include/libraries/libchip_sam3s
 inc-y += -I./include/libraries/libchip_sam3s/include
 inc-y += -I./include/libraries/libboard_sam3s-ek
