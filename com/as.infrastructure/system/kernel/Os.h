@@ -24,12 +24,18 @@
 #define OsTerminateTask(x)	TerminateTask()
 #endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
 
-#define KSM_INIT                  0
-#define KSM_START                 1
-#define KSM_STOP                  2
+
 #define KSM_INVALID               0xFF
 
 #define TICK_MAX 					0xFFFFFFFF
+
+#if(KSM_NUM > 0)
+#define KSM_INIT() 		KsmInit()
+#define KSM_EXECUTE() 	KsmExecute()
+#else
+#define KSM_INIT()
+#define KSM_EXECUTE()
+#endif
 
 /* ============================ [ TYPES     ] ====================================================== */
 #if(KSM_NUM < 0xFF)

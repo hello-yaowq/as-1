@@ -16,20 +16,23 @@
 #define COM_CLANG_C_TOPPERS_OSEK_PORTABLE_ARMV7_M_PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifndef _MACRO_ONLY
-#if  defined(CHIP_STM32F1)
+#if  defined(CHIP_STM32F10X)
 #include "stm32f10x.h"
 #elif defined(CHIP_AT91SAM3S)
 #include "SAM3S.h"
+#include "board.h"
+#else
+#error "CHIP is not known, please select the CHIP_STM32F10X or CHIP_AT91SAM3S"
 #endif
 #endif
+#include <core_cm3.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define Inline static inline
 
 #define SYSTEM_STACK_SIZE 1024
 
-#define disable_int() __asm("cpsid   i")
-#define enable_int()  __asm("cpsie   i")
-
+#define disable_int() 		__asm("cpsid   i")
+#define enable_int()  		__asm("cpsie   i")
 #define dispatch()	  		{ __asm("cpsie   i");SCB->ICSR = SCB_ICSR_PENDSVSET_Msk; }
 #define start_dispatch()	{ knl_dispatch_started=TRUE;__asm("cpsie   i"); __asm("svc 0"); }
 #define exit_and_dispatch() { PostTaskHook(); start_dispatch();   }

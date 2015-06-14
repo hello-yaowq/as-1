@@ -24,7 +24,7 @@ class AsSerial(QThread):
             self.serial.flushInput()
             self.serial.flushOutput()
         except Exception, msg:
-            return (False, msg.message.decode('gbk'))
+            return (False, msg.message.decode('gb2312'))
         
         self.start()
         return (True, 'success')
@@ -89,7 +89,7 @@ class UISerial(QWidget):
         self.cmdPorts = QtGui.QComboBox()
         self.cmdPorts.addItems(QStringList(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']))
         grid.addWidget(self.cmdPorts, 0, 1)
-        self.cmdPorts.setCurrentIndex(5)
+        self.cmdPorts.setCurrentIndex(6)
         self.cmdPorts.setEditable(True)
         
         grid.addWidget(QLabel('Baudrate:'), 0, 2)
@@ -175,7 +175,7 @@ class UISerial(QWidget):
         if(self.rbHex.isChecked()):
             data = ''.join(data.split())
             if len(data) % 2 != 0:
-                errch, msg = True, u'HEX mode, data length should be odd'
+                errch, msg = True, 'HEX mode, data length should be odd'
             else:
                 for ch in data.upper():
                     if not ('0' <= ch <= '9' or 'A' <= ch <= 'F'):
@@ -203,7 +203,7 @@ class UISerial(QWidget):
         data = self.teInput.toPlainText().toUtf8().data()
         ret, msg = self.checkData(data)
         if not ret:
-            QtGui.QMessageBox.critical(self, 'Error', '%s' % msg)
+            QtGui.QMessageBox.critical(self, 'Error', msg)
             return
         
         self.onSendData(data)
@@ -232,6 +232,7 @@ class UISerial(QWidget):
             self.serial.recv_msg.connect(self.on_message_received)
             ret, msg = self.serial.open(settings)
             if(ret==False): # open failed
+                print(msg)
                 QMessageBox.critical(self, 'Error', msg)
             else:
                 self.btnOpenClose.setText('Close')

@@ -66,23 +66,28 @@ inc-y += -I./include/libraries/usb/device/cdc-serial
 obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o 
 endif	# AT91SAM3S end
 
+ifeq ($(board),stm32f107vc)
+link-script = $(IAR_DIR)/arm/config/linker/ST/stm32f107xC.icf
+def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
+obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o 
+endif	# stm32f107vc end
+
 def-y += -D__AS_BY_PARAI__	 
 
 
 ifeq ($(board),mingw)
 #cflags-y += -Werror
 include ../make/mingw.mk
-else
+endif
+
 ifeq ($(board),at91sam3s)
 include ../make/cortexm3.mk
-ifeq ($(CC), $(wildcard $(CC)))
-else
-$(error fix your IAR compiler path $(CC) $(wildcard $(CC)))
 endif
-else
-# not supported board
+
+ifeq ($(board),stm32f107vc)
+include ../make/cortexm3.mk
 endif
-endif
+
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -123,7 +128,21 @@ ifeq ($(gui),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
 	@(echo "  >> prepare link for MINGW done")
-	
+
+dep-stm32f107vc:
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
+	@(cd $(src-dir);rm -f widget_refresh.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h Std_Types.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
+	@(echo "  >> prepare link for STM32F107VC done")
+		
 dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)

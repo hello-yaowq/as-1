@@ -25,7 +25,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-	KsmInit();
+	KSM_INIT();
 }
 
 TASK(TaskApp)
@@ -38,10 +38,6 @@ TASK(TaskCom)
 }
 TASK(TaskSg)
 {
-#ifdef CHIP_AT91SAM3S
-#else  
-	Sg_ManagerTask();
-#endif
 	OsTerminateTask(TaskSg);
 }
 
@@ -49,7 +45,7 @@ TASK(TaskIdle)
 {
 	for(;;)
 	{
-		KsmExecute();
+		KSM_EXECUTE();
 	}
 }
 ALARM(Alarm5ms)
