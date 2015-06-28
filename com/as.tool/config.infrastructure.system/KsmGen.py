@@ -23,17 +23,14 @@ typedef struct
     const KsmFunction_Type* Ksm;
 }KSM_Type;    /* Kernel State Machine */
 '''
-import sys,os,glob
-import xml.etree.ElementTree as ET
+import sys,os
+from util import *
 
-def GenerateKSM():
-    ksm_list = []
-    for xml in glob.glob('*.xml'):
-        root = ET.parse(xml).getroot();
-        if(root.tag=='KSM'):
-            for ksm in root:
-                ksm_list.append(ksm)
-    fp = open('ksm_cfg.h','w')
+__all__ = ['GenerateKSM']
+
+def GenerateKSM(gendir):
+    ksm_list = ScanPart(gendir,'KSM')
+    fp = open('%s/ksm_cfg.h'%(gendir),'w')
     fp.write(__header)
     fp.write('#ifndef KSM_CFG_H\n#define KSM_CFG_H\n\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
@@ -61,7 +58,7 @@ def GenerateKSM():
     
     if(len(ksm_list)==0):
         return
-    fp = open('ksm_cfg.c','w')
+    fp = open('%s/ksm_cfg.c'%(gendir),'w')
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Os.h"\n')
@@ -95,4 +92,4 @@ def GenerateKSM():
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')  
    
 if(__name__ == '__main__'):
-    GenerateKSM()
+    GenerateKSM(sys.argv[1])

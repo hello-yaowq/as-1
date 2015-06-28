@@ -9,17 +9,23 @@ prj-dir = $(subst release/ascore,,$(CURDIR))
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 APPLICATION = $(prj-dir)/com/as.application
 ASCORE = $(prj-dir)/release/ascore
+ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 
-LNFS  = python $(prj-dir)/release/make/lnfs.py
-KSM   = python $(prj-dir)/com/as.tool/config.infrastructure.system/KsmGen.py
+PY27 = C:/Python27/python.exe
+ifeq ($(PY27), $(wildcard $(PY27)))
+else
+$(error fix your python27 path)
+endif
 
-PY34 = D:/Python34/python.exe
+PY34 = C:/Python34/python.exe
 ifeq ($(PY34), $(wildcard $(PY34)))
-SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 else
 $(error fix your python34 path)
 endif
 
+LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
+XCC   = $(PY34) xcc.py
+SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
 IAR_DIR = C:/IAR
@@ -100,13 +106,14 @@ $(src-dir):
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
 	@(cd SgDesign;$(SG) Sg.xml)	
 
-KSM:
-	@(cd $(src-dir);$(KSM))	
+XCC:
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) ..)	
 
-$(src-dir)/ksm_cfg.h:KSM
+$(src-dir)/Os_Cfg.h:XCC
 	
 dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
@@ -130,7 +137,8 @@ endif
 	@(echo "  >> prepare link for MINGW done")
 
 dep-stm32f107vc:
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
@@ -144,7 +152,8 @@ dep-stm32f107vc:
 	@(echo "  >> prepare link for STM32F107VC done")
 		
 dep-at91sam3s:
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/app TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
@@ -166,7 +175,7 @@ dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
 	@(echo "  >> prepare link for AT91SAM3S done")
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) $(src-dir)/ksm_cfg.h
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) $(src-dir)/Os_Cfg.h
 	
 all: exe
 
