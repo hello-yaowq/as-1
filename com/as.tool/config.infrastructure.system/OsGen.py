@@ -102,6 +102,14 @@ def genForToppersOSEK_H(gendir,os_list):
                 mask = ev.attrib['mask']
             fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(task.attrib['name'],ev.attrib['name']),mask))
     fp.write('\n')
+    
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['vector'],10)+1
+    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
+    
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(counter.attrib['name'],id))
@@ -110,13 +118,8 @@ def genForToppersOSEK_H(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
+    
     fp.write('%s\n'%(__for_toppers_osek_macro))
-    isr_list = ScanFrom(os_list,'ISR')
-    isr_num = len(isr_list)
-    for isr in isr_list:
-        if((int(isr.attrib['vector'],10)+1)>isr_num):
-            isr_num = int(isr.attrib['vector'],10)+1
-    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')

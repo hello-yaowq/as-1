@@ -168,7 +168,7 @@ void knl_system_tick_handler(void)
 
 void knl_isr_handler(uint32 intno)
 {
-	if( (intno>15) &&  (intno<51) && (tisr_pc[intno-16]!=NULL))
+	if( (intno>15) &&  (intno<(16+ISR_NUM)) && (tisr_pc[intno-16]!=NULL))
 	{
 		tisr_pc[intno-16]();
 	}
