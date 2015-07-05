@@ -111,6 +111,12 @@ def genForToppersOSEK_H(gendir,os_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('%s\n'%(__for_toppers_osek_macro))
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['vector'],10)+1
+    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
@@ -135,8 +141,9 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('typedef void (*void_function_void_t)(void);\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
-    #  TODO ISR process
-    # -------- END ------
+    isr_list = ScanFrom(os_list,'ISR')
+    for isr in isr_list:
+        fp.write('extern void %s (void);\n'%(isr.attrib['name']))
     fp.write('extern void task_initialize(void);\n')
     fp.write('extern void alarm_initialize(void);\n')
     fp.write('extern void resource_initialize(void);\n')
@@ -269,7 +276,19 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('    0\n')
     fp.write('};\n')
     fp.write('ResourceType        isrcb_lastres[1];\n\n')
-    
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['vector'],10)+1
+    fp.write('const FP tisr_pc[ 35 ] = {\n')
+    for iid in range(isr_num):
+        iname = 'NULL'
+        for isr in isr_list:
+            if(iid == int(isr.attrib['vector'])):
+                iname = isr.attrib['name']
+                break
+        fp.write('\t%s, /* %s */\n'%(iname,iid))
+    fp.write('};\n\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('void object_initialize(void)\n')

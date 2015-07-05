@@ -24,7 +24,7 @@ uint32 knl_taskindp;
 uint32 knl_system_stack[SYSTEM_STACK_SIZE/sizeof(uint32)];
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
-extern const FP tisr_pc[255];
+extern const FP tisr_pc[];
 #if defined(CHIP_AT91SAM3S)
 extern const uint32 __vector_table[];
 #endif

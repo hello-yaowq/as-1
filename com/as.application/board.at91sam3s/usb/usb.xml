@@ -7,5 +7,10 @@
 		<!-- Stop -->
 		<USB2Serial><Running/></USB2Serial>
 	</KSM>
+	<Os>
+	    <ISR name='USART1_IrqHandler' vector='15'/>
+	    <ISR name='TC0_IrqHandler'    vector='23'/>   
+	    <ISR name='USBD_IrqHandler'   vector='34'/>  
+	</Os>
 </AS>
 
