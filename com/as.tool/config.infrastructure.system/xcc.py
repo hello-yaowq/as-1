@@ -15,8 +15,9 @@ __header = '''/**
 '''
 import os,sys
 from KsmGen import *
+from OsGen import *
 
-__gen__ = [GenerateKSM]
+__gen__ = [KsmGen,OsGen]
 def XCC(gendir):
     if(not os.path.exists(gendir)):os.mkdir(gendir)
     for g in __gen__:

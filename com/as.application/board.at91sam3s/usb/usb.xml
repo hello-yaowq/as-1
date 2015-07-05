@@ -1,8 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<KSM>
-	<!-- A KSM will automatically has the sate: -->
-	<!-- Init -->
-	<!-- Start -->
-	<!-- Stop -->
-	<USB2Serial><Running/></USB2Serial>
-</KSM>
+<AS>
+	<KSM>
+		<!-- A KSM will automatically has the sate: -->
+		<!-- Init -->
+		<!-- Start -->
+		<!-- Stop -->
+		<USB2Serial><Running/></USB2Serial>
+	</KSM>
+</AS>
+

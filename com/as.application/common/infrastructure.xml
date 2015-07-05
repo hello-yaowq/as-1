@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AS>
+	<Os>
+	    <!-- OsRef: toppers_osek freertos -->
+	    <OsRef name='toppers_osek'/>
+		<Task name='TaskApp' priority='5' exe-priority='5' max-activation='1'
+		      app-mode='OSDEFAULTAPPMODE' stack-size='512' >
+		    <!-- put auot mask event firstly and then those non auto mask event -->
+		    <!-- note: the auto mask start from 0x00000001,0x00000002, (1<<index) ... -->
+    		<Event name='Event1' mask='auto'/>
+    		<Event name='Event2' mask='auto'/>
+		</Task>
+		<Task name='TaskCom' priority='7' exe-priority='7' max-activation='1'
+		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
+		<Task name='TaskSg' priority='8'  exe-priority='8' max-activation='5'
+		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
+		<Task name='TaskIdle' priority='1' exe-priority='1' max-activation='1'
+		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
+		
+	    <Counter name='OsClock' max-value='65535' ticks-per-base='1' min-value='1'/>	
+	        
+        <Alarm name='Alarm5ms' counter='OsClock' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
+        <Alarm name='Alarm10ms' counter='OsClock' app-mode='OSDEFAULTAPPMODE' offset='6' period='10' />
+        <Alarm name='Alarm20ms' counter='OsClock' app-mode='OSDEFAULTAPPMODE' offset='7' period='20' />  
+        <Alarm name='Alarm50ms' counter='OsClock' app-mode='OSDEFAULTAPPMODE' offset='8' period='50' />  
+        <Alarm name='Alarm100ms' counter='OsClock' app-mode='OSDEFAULTAPPMODE' offset='9' period='100' />        
+	</Os>
+</AS>

@@ -26,10 +26,10 @@ typedef struct
 import sys,os
 from util import *
 
-__all__ = ['GenerateKSM']
+__all__ = ['KsmGen']
 
-def GenerateKSM(gendir):
-    ksm_list = ScanPart(gendir,'KSM')
+def KsmGen(gendir):
+    ksm_list = ScanXML(gendir,'KSM')
     fp = open('%s/ksm_cfg.h'%(gendir),'w')
     fp.write(__header)
     fp.write('#ifndef KSM_CFG_H\n#define KSM_CFG_H\n\n')

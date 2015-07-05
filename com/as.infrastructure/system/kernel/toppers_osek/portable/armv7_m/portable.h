@@ -16,7 +16,6 @@
 #define COM_CLANG_C_TOPPERS_OSEK_PORTABLE_ARMV7_M_PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifndef _MACRO_ONLY
-#include <core_cm3.h>
 #if  defined(CHIP_STM32F10X)
 #include "stm32f10x.h"
 #elif defined(CHIP_AT91SAM3S)
@@ -25,7 +24,9 @@
 #else
 #error "CHIP is not known, please select the CHIP_STM32F10X or CHIP_AT91SAM3S"
 #endif
+#include <core_cm3.h>
 #endif
+
 
 /* ============================ [ MACROS    ] ====================================================== */
 #define Inline static inline

@@ -15,13 +15,22 @@ __header = '''/**
 '''
 import glob
 import xml.etree.ElementTree as ET
-__all__ = ['ScanPart']
+__all__ = ['ScanXML','ScanFrom']
 
-def ScanPart(gendir,tag):
+def ScanFrom(root,tag):
+    a_list = []
+    for each in root:
+        if(each.tag==tag):
+            a_list.append(each)
+    return a_list
+
+def ScanXML(gendir,tag):
     a_list = []
     for xml in glob.glob('%s/*.xml'%(gendir)):
         root = ET.parse(xml).getroot();
-        if(root.tag==tag):
-            for sub in root:
-                a_list.append(sub)
+        if(root.tag=='AS'):
+            for each in root:
+                if(each.tag==tag):
+                    for sub in each:
+                        a_list.append(sub)
     return a_list

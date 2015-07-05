@@ -33,8 +33,8 @@ void KsmInit(void)
 	KsmID_Type i;
 	for(i=0;i<KSM_NUM;i++)
 	{
-		ksm_state[i] = KSM_INVALID;
-		KSM_Config[i].Ksm[KSM_INIT]();
+		ksm_state[i] = KSM_S_INVALID;
+		KSM_Config[i].Ksm[KSM_S_INIT]();
 	}
 }
 void KsmStart(void)
@@ -42,7 +42,7 @@ void KsmStart(void)
 	KsmID_Type i;
 	for(i=0;i<KSM_NUM;i++)
 	{
-		KSM_Config[i].Ksm[KSM_START]();
+		KSM_Config[i].Ksm[KSM_S_START]();
 	}
 }
 void KsmStop(void)
@@ -50,7 +50,7 @@ void KsmStop(void)
 	KsmID_Type i;
 	for(i=0;i<KSM_NUM;i++)
 	{
-		KSM_Config[i].Ksm[KSM_STOP]();
+		KSM_Config[i].Ksm[KSM_S_STOP]();
 	}
 }
 void KsmExecute(void)
@@ -84,7 +84,7 @@ KSMState_Type KsmGetState(KsmID_Type Ksm)
 	}
 	else
 	{
-		state = KSM_INVALID;
+		state = KSM_S_INVALID;
 		assert(0);
 	}
 	return state;

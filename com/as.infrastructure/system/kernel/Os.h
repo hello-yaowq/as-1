@@ -15,8 +15,8 @@
 #ifndef COM_CLANG_INCLUDE_OS_H_
 #define COM_CLANG_INCLUDE_OS_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
 #include "Os_Cfg.h"
+#include "Std_Types.h"
 #include "ksm_cfg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #ifdef AS_OS_BASED_ON_TOPPERS_OSEK
@@ -24,8 +24,11 @@
 #define OsTerminateTask(x)	TerminateTask()
 #endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
 
-
-#define KSM_INVALID               0xFF
+/* KSM states */
+#define KSM_S_INIT                0x00
+#define KSM_S_START               0x01
+#define KSM_S_STOP                0x02
+#define KSM_S_INVALID             0xFF
 
 #define TICK_MAX 					0xFFFFFFFF
 
