@@ -59,6 +59,7 @@ typedef TickType TimerType;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void StartOS( AppModeType app_mode );
 extern void StartupHook( void );
+extern void ShutdownOS(StatusType ercd);
 extern void KsmInit(void);
 extern void KsmStart(void);
 extern void KsmStop(void);

@@ -219,6 +219,11 @@ void StartOS( AppModeType app_mode )
     vTaskStartScheduler();
 }
 
+void ShutdownOS(StatusType ercd)
+{
+    assert(0);
+}
+
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 {
     _assert(__FUNCTION__, pcFileName, ulLine);

@@ -346,13 +346,16 @@ static uint32_t prvProcessYieldInterrupt( void )
 	return pdTRUE;
 }
 /*-----------------------------------------------------------*/
-
+TickType_t				OsTickCounter;
 static uint32_t prvProcessTickInterrupt( void )
 {
 uint32_t ulSwitchRequired;
 
 	/* Process the tick itself. */
 	configASSERT( xPortRunning );
+
+	OsTickCounter ++;
+
 	ulSwitchRequired = ( uint32_t ) xTaskIncrementTick();
 
 	return ulSwitchRequired;

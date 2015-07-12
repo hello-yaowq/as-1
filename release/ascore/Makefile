@@ -33,8 +33,7 @@ inc-y += -I./include
 inc-dir = ./include
 		 
 ifeq ($(board),mingw)	
-# slect GUI openVG/GTK
-gui = GTK	 
+# slect GUI openVG/GTK 
 ldflags-y += -lm -lwinmm 
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
@@ -47,9 +46,9 @@ def-y += -DGUI_USE_GTK
 else	 
 def-y += -DGUI_USE_OPENVG	
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
-endif
 inc-y += -I./include/EGL
-inc-y += -I./include/VG		
+inc-y += -I./include/VG	
+endif
 endif	# MINGW end
 
 ifeq ($(board),at91sam3s)
@@ -113,6 +112,8 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);sed -e "5c <OsRef name='freertos'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
@@ -126,7 +127,7 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
-	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c main.c)
+	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
 ifeq ($(gui),openVG)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg/win32 FALSE)
@@ -139,6 +140,8 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir); rm infrastructure.xml)	
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
@@ -155,6 +158,8 @@ dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir); rm infrastructure.xml)		
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
