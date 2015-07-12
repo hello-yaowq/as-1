@@ -20,6 +20,9 @@
 
     SECTION .intvec:CODE:NOROOT(2)
     EXTERN __iar_program_start
+    #ifdef CHIP_STM32F10X
+    EXTERN SystemInit
+    #endif
     EXTERN  knl_dispatch_entry,knl_start_dispatch
     EXTERN  knl_system_tick,knl_isr_process
     PUBLIC __vector_table
@@ -292,6 +295,10 @@ __vector_table:
     THUMB
     PUBLIC reset_handler
 reset_handler:
+        #ifdef CHIP_STM32F10X
+        LDR     R0, =SystemInit
+        BLX     R0
+        #endif
         LDR     R0, =__iar_program_start
         BX      R0
        
