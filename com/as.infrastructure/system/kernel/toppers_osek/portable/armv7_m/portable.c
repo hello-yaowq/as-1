@@ -24,7 +24,9 @@ uint32 knl_taskindp;
 uint32 knl_system_stack[SYSTEM_STACK_SIZE/sizeof(uint32)];
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
-extern const FP tisr_pc[];
+#if (ISR_NUM > 0)
+extern const FP tisr_pc[ISR_NUM];
+#endif
 #if defined(CHIP_AT91SAM3S)
 extern const uint32 __vector_table[];
 #endif
@@ -168,11 +170,13 @@ void knl_system_tick_handler(void)
 
 void knl_isr_handler(uint32 intno)
 {
+#if (ISR_NUM > 0)
 	if( (intno>15) &&  (intno<(16+ISR_NUM)) && (tisr_pc[intno-16]!=NULL))
 	{
 		tisr_pc[intno-16]();
 	}
 	else
+#endif
 	{
 		ShutdownOS(0xFF);
 	}

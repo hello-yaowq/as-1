@@ -108,8 +108,6 @@ $(ASCORE)/SgDesign/SgRes/SgRes.h:
 
 XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) ..)	
-
-$(src-dir)/Os_Cfg.h:XCC
 	
 dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -180,7 +178,7 @@ dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
 	@(echo "  >> prepare link for AT91SAM3S done")
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) $(src-dir)/Os_Cfg.h
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
 all: exe
 
