@@ -13,42 +13,11 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Os.h"
-#include "board.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
+
 /* ============================ [ TYPES     ] ====================================================== */
-/* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static TimerType ledTimer;
+/* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void KsmLEDsAPP_Init                    (void)
-{
-	LED_Configure(LED_BLUE);
-	LED_Configure(LED_RED);
-	LED_Configure(LED_GREEN);
-	LED_Set(LED_RED);
-
-	StartTimer(&ledTimer);
-
-	KsmGotoState(LEDsAPP,Running);
-}
-void KsmLEDsAPP_Start                   (void)
-{
-
-}
-void KsmLEDsAPP_Stop                    (void)
-{
-
-}
-void KsmLEDsAPP_Running                 (void)
-{
-	if(GetTimer(&ledTimer) > 500)
-	{
-		//LED_Toggle(LED_BLUE);
-		//LED_Toggle(LED_RED);
-		LED_Toggle(LED_GREEN);
-		StartTimer(&ledTimer);
-	}
-}

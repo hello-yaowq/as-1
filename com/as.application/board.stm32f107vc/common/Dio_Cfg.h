@@ -12,33 +12,15 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifndef COM_AS_APPLICATION_BOARD_STM32F107VC_COMMON_DIO_CFG_H_
+#define COM_AS_APPLICATION_BOARD_STM32F107VC_COMMON_DIO_CFG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "board.h"
-#include "Os.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
+
 /* ============================ [ TYPES     ] ====================================================== */
-/* ============================ [ DECLARES  ] ====================================================== */
-extern void usb_serial_init(void);
-extern void usb_serial_task(void);
 /* ============================ [ DATAS     ] ====================================================== */
+/* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void KsmUSB2Serial_Init                 (void)
-{
-	usb_serial_init();
-
-	KsmSetState(KSM_ID_USB2Serial,KSM_USB2Serial_Running);
-}
-
-void KsmUSB2Serial_Start                (void)
-{
-
-}
-void KsmUSB2Serial_Stop                 (void)
-{
-
-}
-void KsmUSB2Serial_Running              (void)
-{
-	usb_serial_task();
-}
+#endif /* COM_AS_APPLICATION_BOARD_STM32F107VC_COMMON_DIO_CFG_H_ */

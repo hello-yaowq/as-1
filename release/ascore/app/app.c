@@ -30,14 +30,17 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+	printf("TaskApp is running\r\n");
 	OsTerminateTask(TaskApp);
 }
 TASK(TaskCom)
 {
+	printf("TaskCom is running\r\n");
 	OsTerminateTask(TaskCom);
 }
 TASK(TaskSg)
 {
+	printf("TaskSg is running\r\n");
 	OsTerminateTask(TaskSg);
 }
 

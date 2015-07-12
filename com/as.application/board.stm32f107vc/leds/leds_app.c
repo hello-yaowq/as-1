@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#include "board.h"
+#include "stm32f10x.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -25,10 +25,6 @@ static TimerType ledTimer;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void KsmLEDsAPP_Init                    (void)
 {
-	LED_Configure(LED_BLUE);
-	LED_Configure(LED_RED);
-	LED_Configure(LED_GREEN);
-	LED_Set(LED_RED);
 
 	StartTimer(&ledTimer);
 
@@ -46,9 +42,6 @@ void KsmLEDsAPP_Running                 (void)
 {
 	if(GetTimer(&ledTimer) > 500)
 	{
-		//LED_Toggle(LED_BLUE);
-		//LED_Toggle(LED_RED);
-		LED_Toggle(LED_GREEN);
 		StartTimer(&ledTimer);
 	}
 }
