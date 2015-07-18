@@ -39,6 +39,12 @@
 								<option id="gnu.cpp.compiler.option.preprocessor.def.348262577" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
 									<listOptionValue builtIn="false" value="CHIP_STM32F10X"/>
+									<listOptionValue builtIn="false" value="USE_KERNEL"/>
+									<listOptionValue builtIn="false" value="USE_PORT"/>
+									<listOptionValue builtIn="false" value="USE_MCU"/>
+									<listOptionValue builtIn="false" value="USE_DIO"/>
+									<listOptionValue builtIn="false" value="USE_SCHM"/>
+									<listOptionValue builtIn="false" value="USE_ECUM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.851466793" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -52,6 +58,12 @@
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.906918185" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
 									<listOptionValue builtIn="false" value="CHIP_STM32F10X"/>
+									<listOptionValue builtIn="false" value="USE_KERNEL"/>
+									<listOptionValue builtIn="false" value="USE_PORT"/>
+									<listOptionValue builtIn="false" value="USE_MCU"/>
+									<listOptionValue builtIn="false" value="USE_DIO"/>
+									<listOptionValue builtIn="false" value="USE_SCHM"/>
+									<listOptionValue builtIn="false" value="USE_ECUM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1403200940" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

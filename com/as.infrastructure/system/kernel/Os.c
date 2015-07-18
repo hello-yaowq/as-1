@@ -122,3 +122,12 @@ TimerType GetTimer(TimerType* timer)
 	}
 	return time;
 }
+
+
+TASK(TaskIdle)
+{
+	for(;;)
+	{
+		KSM_EXECUTE();
+	}
+}

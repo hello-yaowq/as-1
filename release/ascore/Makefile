@@ -74,6 +74,7 @@ endif	# AT91SAM3S end
 ifeq ($(board),stm32f107vc)
 link-script = $(IAR_DIR)/arm/config/linker/ST/stm32f107xC.icf
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
 obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o 
 endif	# stm32f107vc end
 
@@ -139,6 +140,7 @@ endif
 dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)	
@@ -146,6 +148,9 @@ dep-stm32f107vc:
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/ecum TRUE)
+	@(cd $(src-dir);rm -f EcuM_Flexible.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/schm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
@@ -186,7 +191,7 @@ dep-at91sam3s:
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
-all: clean exe
+all: exe
 
 clean: 
 	@rm -fv $(obj-dir)/*

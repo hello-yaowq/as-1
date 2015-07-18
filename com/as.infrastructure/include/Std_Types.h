@@ -72,6 +72,21 @@ typedef double                      float64;
 
 typedef uint8                       Std_ReturnType;
 
+typedef struct {
+	// TODO: not done!!
+	uint16 vendorID;
+	uint16 moduleID;
+	uint8  instanceID;
+
+	uint8 sw_major_version;    /**< Vendor numbers */
+	uint8 sw_minor_version;    /**< Vendor numbers */
+	uint8 sw_patch_version;    /**< Vendor numbers */
+
+	uint8 ar_major_version;    /**< Autosar spec. numbers */
+	uint8 ar_minor_version;    /**< Autosar spec. numbers */
+	uint8 ar_patch_version;    /**< Autosar spec. numbers */
+} Std_VersionInfoType;
+
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

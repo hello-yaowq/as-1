@@ -11,10 +11,10 @@
     		<Event name='Event1' mask='auto'/>
     		<Event name='Event2' mask='auto'/>
 		</Task>
-		<Task name='TaskCom' priority='7' exe-priority='7' max-activation='1'
+		<Task name='SchM_Startup' priority='7' exe-priority='7' max-activation='1'
               auto-start='true'   		
 		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
-		<Task name='TaskSg' priority='8'  exe-priority='8' max-activation='5'
+		<Task name='SchM_BswService' priority='8'  exe-priority='8' max-activation='5'
               auto-start='true'   		
 		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
 		<Task name='TaskIdle' priority='1' exe-priority='1' max-activation='1'
@@ -23,7 +23,7 @@
 		
 	    <Counter name='OsClock' max-value='65535' ticks-per-base='1' min-value='1'/>	
 	        
-        <Alarm name='Alarm5ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
+        <Alarm name='Alarm_BswService' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
         <Alarm name='Alarm10ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='6' period='10' />
         <Alarm name='Alarm20ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='7' period='20' />  
         <Alarm name='Alarm50ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='8' period='50' />  

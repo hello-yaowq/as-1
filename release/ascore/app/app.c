@@ -14,9 +14,6 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#if defined(CHIP_STM32F10X)
-#include "Port.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -26,40 +23,15 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-#if defined(CHIP_STM32F10X)
-	Port_Init(&PortConfigData);
-#endif
 	KSM_INIT();
 }
 
 TASK(TaskApp)
 {
-	printf("TaskApp is running\r\n");
+	//printf("TaskApp is running\r\n");
 	OsTerminateTask(TaskApp);
 }
-TASK(TaskCom)
-{
-	printf("TaskCom is running\r\n");
-	OsTerminateTask(TaskCom);
-}
-TASK(TaskSg)
-{
-	printf("TaskSg is running\r\n");
-	OsTerminateTask(TaskSg);
-}
 
-TASK(TaskIdle)
-{
-	for(;;)
-	{
-		KSM_EXECUTE();
-	}
-}
-ALARM(Alarm5ms)
-{
-	OsActivateTask(TaskSg);
-	OsActivateTask(TaskCom);
-}
 ALARM(Alarm10ms)
 {
 }
