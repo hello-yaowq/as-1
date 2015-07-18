@@ -186,7 +186,7 @@ dep-at91sam3s:
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
-all: exe
+all: clean exe
 
 clean: 
 	@rm -fv $(obj-dir)/*

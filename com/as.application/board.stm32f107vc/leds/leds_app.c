@@ -15,18 +15,24 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
 #include "stm32f10x.h"
-
+#include "Dio.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static TimerType ledTimer;
+static Dio_LevelType ioStsLed1;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void KsmLEDsAPP_Init                    (void)
 {
 
+	ioStsLed1 = STD_HIGH;
 	StartTimer(&ledTimer);
+
+	/* turn off led2 and led3 */
+	Dio_WriteChannel(DIO_CHL_LED2,STD_LOW);
+	Dio_WriteChannel(DIO_CHL_LED3,STD_LOW);
 
 	KsmGotoState(LEDsAPP,Running);
 }
@@ -42,6 +48,9 @@ void KsmLEDsAPP_Running                 (void)
 {
 	if(GetTimer(&ledTimer) > 500)
 	{
+		/* indicate the CPU is working */
+		Dio_WriteChannel(DIO_CHL_LED1,ioStsLed1);
+		ioStsLed1 = (STD_HIGH == ioStsLed1)? STD_LOW: STD_HIGH;
 		StartTimer(&ledTimer);
 	}
 }
