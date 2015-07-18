@@ -7,7 +7,7 @@ src-dir = ./Source
 
 dir-y += ./Config
 
-obj-y += $(obj-dir)/port.o		\
+obj-y += $(obj-dir)/portable.o		\
 		 $(obj-dir)/heap_3.o
 
 VPATH += ./Source/portable/MemMang	\

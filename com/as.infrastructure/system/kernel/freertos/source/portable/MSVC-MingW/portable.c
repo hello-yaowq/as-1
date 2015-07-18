@@ -356,6 +356,11 @@ uint32_t ulSwitchRequired;
 
 	OsTickCounter ++;
 
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
+
 	ulSwitchRequired = ( uint32_t ) xTaskIncrementTick();
 
 	return ulSwitchRequired;
