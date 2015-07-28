@@ -79,7 +79,10 @@ __for_toppers_osek_macro =  \
 #define LOG_GETTST_LEAVE(ercd,  p_state)'''
 
 __for_freertos_macros = \
-"""#define OSDEFAULTAPPMODE (0x00000001u)
+"""
+#define AS_OS_BASED_ON_FREERTOS
+
+#define OSDEFAULTAPPMODE (0x00000001u)
 
 #define  E_OS_ACCESS  (StatusType)1
 #define  E_OS_CALLEVEL   (StatusType)2
@@ -152,6 +155,12 @@ __for_freertos_macros = \
 
 #define OsSetRelAlarm(AlarmName,Increment,Cycle)     OsSetRelAlarm_impl(ALARM_ID_##AlarmName,Increment,Cycle)
 #define OsCancelAlarm(AlarmName)                     OsCancelAlarm_impl(ALARM_ID_##AlarmName)
+
+#define SetRelAlarm OsSetRelAlarm_impl
+#define CancelAlarm OsCancelAlarm_impl
+
+#define GetResource(r)
+#define ReleaseResource(r)
 """
 
 __for_freertos_functions = \

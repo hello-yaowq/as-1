@@ -41,6 +41,8 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++	
 
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
+
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 
@@ -112,6 +114,7 @@ XCC:
 dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='freertos'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)
@@ -120,8 +123,10 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.c Lcd.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal/Lcd.h Lcd.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/ecum TRUE)
+	@(cd $(src-dir);rm -f EcuM_Flexible.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/schm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.c Sg.c)
