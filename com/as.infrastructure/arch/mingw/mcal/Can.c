@@ -1,0 +1,509 @@
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
+
+#include "Can.h"
+
+#ifndef USE_CAN_STUB
+#include "Mcu.h"
+#include "CanIf_Cbk.h"
+#if defined(USE_DET)
+#include "Det.h"
+#endif
+#if defined(USE_DEM)
+#include "Dem.h"
+#endif
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include "Os.h"
+
+#define USE_CAN_STATISTICS      STD_OFF
+
+/* CONFIGURATION NOTES
+ * ------------------------------------------------------------------
+ * - CanHandleType must be CAN_ARC_HANDLE_TYPE_BASIC
+ *   i.e. CanHandleType=CAN_ARC_HANDLE_TYPE_FULL NOT supported
+ *   i.e CanIdValue is NOT supported
+ * - All CanXXXProcessing must be CAN_ARC_PROCESS_TYPE_INTERRUPT
+ *   ie CAN_ARC_PROCESS_TYPE_POLLED not supported
+ * - HOH's for Tx are global and Rx are for each controller
+ */
+
+/* IMPLEMENTATION NOTES
+ * -----------------------------------------------
+ * - A HOH us unique for a controller( not a config-set )
+ * - Hrh's are numbered for each controller from 0
+ * - Only one transmit mailbox is used because otherwise
+ *   we cannot use tx_confirmation since there is no way to know
+ *   which mailbox caused the tx interrupt. TP will need this feature.
+ * - Sleep,wakeup not fully implemented since other modules lack functionality
+ */
+
+/* ABBREVATIONS
+ *  -----------------------------------------------
+ * - Can Hardware unit - One or multiple Can controllers of the same type.
+ * - Hrh - HOH with receive definitions
+ * - Hth - HOH with transmit definitions
+ *
+ */
+
+//-------------------------------------------------------------------
+
+#define GET_CONTROLLER_CONFIG(_controller)	\
+        					&Can_Global.config->CanConfigSet->CanController[(_controller)]
+
+#define GET_CALLBACKS() \
+							(Can_Global.config->CanConfigSet->CanCallbacks)
+
+#define GET_PRIVATE_DATA(_controller) \
+									&CanUnit[_controller]
+
+#define GET_CONTROLLER_CNT() (CAN_CONTROLLER_CNT)
+
+//-------------------------------------------------------------------
+
+#if ( CAN_DEV_ERROR_DETECT == STD_ON )
+#define VALIDATE(_exp,_api,_err ) \
+        if( !(_exp) ) { \
+          Det_ReportError(MODULE_ID_CAN,0,_api,_err); \
+          return CAN_NOT_OK; \
+        }
+
+#define VALIDATE_NO_RV(_exp,_api,_err ) \
+        if( !(_exp) ) { \
+          Det_ReportError(MODULE_ID_CAN,0,_api,_err); \
+          return; \
+        }
+
+#define DET_REPORTERROR(_x,_y,_z,_q) Det_ReportError(_x, _y, _z, _q)
+#else
+#define VALIDATE(_exp,_api,_err )
+#define VALIDATE_NO_RV(_exp,_api,_err )
+#define DET_REPORTERROR(_x,_y,_z,_q)
+#endif
+
+#if defined(USE_DEM)
+#define VALIDATE_DEM_NO_RV(_exp,_err ) \
+        if( !(_exp) ) { \
+          Dem_ReportErrorStatus(_err, DEM_EVENT_STATUS_FAILED); \
+          return; \
+        }
+#else
+#define VALIDATE_DEM_NO_RV(_exp,_err )
+#endif
+
+//-------------------------------------------------------------------
+
+typedef enum
+{
+  CAN_UNINIT = 0,
+  CAN_READY
+} Can_DriverStateType;
+
+// Mapping between HRH and Controller//HOH
+typedef struct Can_Arc_ObjectHOHMapStruct
+{
+  CanControllerIdType CanControllerRef;    // Reference to controller
+  const Can_HardwareObjectType* CanHOHRef;       // Reference to HOH.
+} Can_Arc_ObjectHOHMapType;
+
+/* Type for holding global information used by the driver */
+typedef struct {
+  Can_DriverStateType initRun;
+
+  // Our config
+  const Can_ConfigType *config;
+
+  // One bit for each channel that is configured.
+  // Used to determine if validity of a channel
+  // 1 - configured
+  // 0 - NOT configured
+  uint32  configured;
+  // Maps the a channel id to a configured channel id
+  uint8   channelMap[CAN_CONTROLLER_CNT];
+
+  // This is a map that maps the HTH:s with the controller and Hoh. It is built
+  // during Can_Init and is used to make things faster during a transmit.
+  Can_Arc_ObjectHOHMapType CanHTHMap[NUM_OF_HTHS];
+} Can_GlobalType;
+
+// Global config
+Can_GlobalType Can_Global =
+{
+  .initRun = CAN_UNINIT,
+};
+
+/* Type for holding information about each controller */
+typedef struct {
+  CanIf_ControllerModeType state;
+  uint8		lock_cnt;
+
+  // Statistics
+#if (USE_CAN_STATISTICS == STD_ON)
+    Can_Arc_StatisticsType stats;
+#endif
+
+  // Data stored for Txconfirmation callbacks to CanIf
+  PduIdType swPduHandle; //
+} Can_UnitType;
+
+Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
+{
+  {
+    .state = CANIF_CS_UNINIT,
+  },{
+    .state = CANIF_CS_UNINIT,
+  },{
+    .state = CANIF_CS_UNINIT,
+  },{
+    .state = CANIF_CS_UNINIT,
+  },{
+    .state = CANIF_CS_UNINIT,
+  },
+};
+
+
+//-------------------------------------------------------------------
+
+// This initiates ALL can controllers
+void Can_Init( const Can_ConfigType *config ) {
+  Can_UnitType *canUnit;
+  const Can_ControllerConfigType *canHwConfig;
+  uint8 ctlrId;
+
+  VALIDATE_NO_RV( (Can_Global.initRun == CAN_UNINIT), 0x0, CAN_E_TRANSITION );
+  VALIDATE_NO_RV( (config != NULL ), 0x0, CAN_E_PARAM_POINTER );
+
+  // Save config
+  Can_Global.config = config;
+  Can_Global.initRun = CAN_READY;
+
+
+  for (int configId=0; configId < CAN_ARC_CTRL_CONFIG_CNT; configId++) {
+    canHwConfig = GET_CONTROLLER_CONFIG(configId);
+    ctlrId = canHwConfig->CanControllerId;
+
+    // Assign the configuration channel used later..
+    Can_Global.channelMap[canHwConfig->CanControllerId] = configId;
+    Can_Global.configured |= (1<<ctlrId);
+
+    canUnit = GET_PRIVATE_DATA(ctlrId);
+    canUnit->state = CANIF_CS_STOPPED;
+
+    canUnit->lock_cnt = 0;
+
+    // Clear stats
+#if (USE_CAN_STATISTICS == STD_ON)
+    memset(&canUnit->stats, 0, sizeof(Can_Arc_StatisticsType));
+#endif
+
+
+    Can_InitController(ctlrId, canHwConfig);
+
+    // Loop through all Hoh:s and map them into the HTHMap
+    const Can_HardwareObjectType* hoh;
+    hoh = canHwConfig->Can_Arc_Hoh;
+    hoh--;
+    do
+    {
+      hoh++;
+
+      if (hoh->CanObjectType == CAN_OBJECT_TYPE_TRANSMIT)
+      {
+        Can_Global.CanHTHMap[hoh->CanObjectId].CanControllerRef = canHwConfig->CanControllerId;
+        Can_Global.CanHTHMap[hoh->CanObjectId].CanHOHRef = hoh;
+      }
+    } while (!hoh->Can_Arc_EOL);
+  }
+  return;
+}
+
+// Unitialize the module
+void Can_DeInit()
+{
+  Can_UnitType *canUnit;
+  const Can_ControllerConfigType *canHwConfig;
+  uint32 ctlrId;
+
+  for (int configId=0; configId < CAN_ARC_CTRL_CONFIG_CNT; configId++) {
+    canHwConfig = GET_CONTROLLER_CONFIG(configId);
+    ctlrId = canHwConfig->CanControllerId;
+
+    canUnit = GET_PRIVATE_DATA(ctlrId);
+    canUnit->state = CANIF_CS_UNINIT;
+
+    Can_DisableControllerInterrupts(ctlrId);
+
+    canUnit->lock_cnt = 0;
+
+    // Clear stats
+#if (USE_CAN_STATISTICS == STD_ON)
+    memset(&canUnit->stats, 0, sizeof(Can_Arc_StatisticsType));
+#endif
+  }
+
+  Can_Global.config = NULL;
+  Can_Global.initRun = CAN_UNINIT;
+
+  return;
+}
+
+void Can_InitController( uint8 controller, const Can_ControllerConfigType *config)
+{
+  Can_UnitType *canUnit;
+  uint8 cId = controller;
+  const Can_ControllerConfigType *canHwConfig;
+  const Can_HardwareObjectType *hohObj;
+
+  VALIDATE_NO_RV( (Can_Global.initRun == CAN_READY), 0x2, CAN_E_UNINIT );
+  VALIDATE_NO_RV( (config != NULL ), 0x2,CAN_E_PARAM_POINTER);
+  VALIDATE_NO_RV( (controller < GET_CONTROLLER_CNT()), 0x2, CAN_E_PARAM_CONTROLLER );
+
+  canUnit = GET_PRIVATE_DATA(controller);
+
+  VALIDATE_NO_RV( (canUnit->state==CANIF_CS_STOPPED), 0x2, CAN_E_TRANSITION );
+
+  canHwConfig = GET_CONTROLLER_CONFIG(Can_Global.channelMap[cId]);
+
+  // Start this baby up
+  // set CAN enable bit, deactivate listen-only mode,
+  // use Bus Clock as clock source and select loop back mode on/off
+  // acceptance filters
+   hohObj = canHwConfig->Can_Arc_Hoh;
+   --hohObj;
+   do {
+     ++hohObj;
+     if (hohObj->CanObjectType == CAN_OBJECT_TYPE_RECEIVE)
+     {
+
+     }
+   }while( !hohObj->Can_Arc_EOL );
+
+  canUnit->state = CANIF_CS_STOPPED;
+  Can_EnableControllerInterrupts(cId);
+
+  return;
+}
+
+
+Can_ReturnType Can_SetControllerMode( uint8 controller, Can_StateTransitionType transition ) {
+
+  Can_ReturnType rv = CAN_OK;
+  VALIDATE( (controller < GET_CONTROLLER_CNT()), 0x3, CAN_E_PARAM_CONTROLLER );
+
+  Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
+
+  VALIDATE( (canUnit->state!=CANIF_CS_UNINIT), 0x3, CAN_E_UNINIT );
+  switch(transition )
+  {
+  case CAN_T_START:
+    canUnit->state = CANIF_CS_STARTED;
+    if (canUnit->lock_cnt == 0){   // REQ CAN196
+      Can_EnableControllerInterrupts(controller);
+    }
+    break;
+  case CAN_T_WAKEUP:
+	VALIDATE(canUnit->state == CANIF_CS_SLEEP, 0x3, CAN_E_TRANSITION);
+	canUnit->state = CANIF_CS_STOPPED;
+	break;
+  case CAN_T_SLEEP:  //CAN258, CAN290
+    // Should be reported to DEM but DET is the next best
+    VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+	canUnit->state = CANIF_CS_SLEEP;
+	break;
+  case CAN_T_STOP:
+    // Stop
+    canUnit->state = CANIF_CS_STOPPED;
+    break;
+  default:
+    // Should be reported to DEM but DET is the next best
+    VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+    break;
+  }
+  return rv;
+}
+
+void Can_DisableControllerInterrupts( uint8 controller )
+{
+  Can_UnitType *canUnit;
+
+  VALIDATE_NO_RV( (controller < GET_CONTROLLER_CNT()), 0x4, CAN_E_PARAM_CONTROLLER );
+
+  canUnit = GET_PRIVATE_DATA(controller);
+
+  VALIDATE_NO_RV( (canUnit->state!=CANIF_CS_UNINIT), 0x4, CAN_E_UNINIT );
+
+  if(canUnit->lock_cnt > 0 )
+  {
+    // Interrupts already disabled
+    canUnit->lock_cnt++;
+    return;
+  }
+  canUnit->lock_cnt++;
+
+ }
+
+void Can_EnableControllerInterrupts( uint8 controller ) {
+  Can_UnitType *canUnit;
+  VALIDATE_NO_RV( (controller < GET_CONTROLLER_CNT()), 0x5, CAN_E_PARAM_CONTROLLER );
+
+  canUnit = GET_PRIVATE_DATA(controller);
+
+  VALIDATE_NO_RV( (canUnit->state!=CANIF_CS_UNINIT), 0x5, CAN_E_UNINIT );
+
+  if( canUnit->lock_cnt > 1 )
+  {
+    // IRQ should still be disabled so just decrement counter
+    canUnit->lock_cnt--;
+    return;
+  } else if (canUnit->lock_cnt == 1)
+  {
+    canUnit->lock_cnt = 0;
+  }
+
+  return;
+}
+
+Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
+  Can_ReturnType rv = CAN_OK;
+
+  VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
+  VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
+  VALIDATE( (pduInfo->length <= 8), 0x6, CAN_E_PARAM_DLC );
+  VALIDATE( (hth < NUM_OF_HTHS ), 0x6, CAN_E_PARAM_HANDLE );
+
+  // check for any free box
+  if(TRUE) {
+
+    // Increment statistics
+#if (USE_CAN_STATISTICS == STD_ON)
+    canUnit->stats.txSuccessCnt++;
+#endif
+
+  } else {
+    rv = CAN_BUSY;
+  }
+
+  return rv;
+}
+
+void Can_MainFunction_Read( void ) {
+
+	/* NOT SUPPORTED */
+}
+
+void Can_MainFunction_BusOff( void ) {
+  /* Bus-off polling events */
+
+	/* NOT SUPPORTED */
+}
+
+void Can_MainFunction_Wakeup( void ) {
+  /* Wakeup polling events */
+
+	/* NOT SUPPORTED */
+}
+
+
+void Can_MainFunction_Write( void ) {
+    /* NOT SUPPORTED */
+}
+
+void Can_MainFunction_Error( void ) {
+    /* NOT SUPPORTED */
+}
+
+
+/**
+ * Get send/receive/error statistics for a controller
+ *
+ * @param controller The controller
+ * @param stats Pointer to data to copy statistics to
+ */
+
+#if (USE_CAN_STATISTICS == STD_ON)
+void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
+{
+  Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
+  *stats = canUnit->stats;
+}
+#endif
+
+#else // Stub all functions for use in simulator environment
+
+#include "debug.h"
+
+void Can_Init( const Can_ConfigType *Config )
+{
+  // Do initial configuration of layer here
+}
+
+void Can_InitController( uint8 controller, const Can_ControllerConfigType *config)
+{
+	// Do initialisation of controller here.
+}
+
+Can_ReturnType Can_SetControllerMode( uint8 Controller, Can_StateTransitionType transition )
+{
+	// Turn on off controller here depending on transition
+	return E_OK;
+}
+
+Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
+{
+	// Write to mailbox on controller here.
+	DEBUG(DEBUG_MEDIUM, "Can_Write(stub): Received data ");
+	for (int i = 0; i < pduInfo->length; i++) {
+		DEBUG(DEBUG_MEDIUM, "%d ", pduInfo->sdu[i]);
+	}
+	DEBUG(DEBUG_MEDIUM, "\n");
+
+	return E_OK;
+}
+
+extern void CanIf_RxIndication(uint8 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8 *CanSduPtr);
+Can_ReturnType Can_ReceiveAFrame()
+{
+	// This function is not part of autosar but needed to feed the stack with data
+	// from the mailboxes. Normally this is an interrup but probably not in the PCAN case.
+	uint8 CanSduData[] = {1,2,1,0,0,0,0,0};
+	CanIf_RxIndication(CAN_HRH_0_1, 3, 8, CanSduData);
+
+	return E_OK;
+}
+
+void Can_DisableControllerInterrupts( uint8 controller )
+{
+}
+
+void Can_EnableControllerInterrupts( uint8 controller )
+{
+}
+
+
+// Hth - for Flexcan, the hardware message box number... .We don't care
+void Can_Cbk_CheckWakeup( uint8 controller ){}
+
+void Can_MainFunction_Write( void ){}
+void Can_MainFunction_Read( void ){}
+void Can_MainFunction_Error( void ){}
+void Can_MainFunction_BusOff( void ){}
+void Can_MainFunction_Wakeup( void ){}
+
+void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){}
+
+#endif
+
+

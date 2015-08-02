@@ -41,7 +41,8 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++	
 
-def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET -DUSE_GUI
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET -DUSE_GUI	\
+		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM
 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 

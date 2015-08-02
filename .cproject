@@ -45,6 +45,10 @@
 									<listOptionValue builtIn="false" value="USE_DIO"/>
 									<listOptionValue builtIn="false" value="USE_SCHM"/>
 									<listOptionValue builtIn="false" value="USE_ECUM"/>
+									<listOptionValue builtIn="false" value="USE_PDUR"/>
+									<listOptionValue builtIn="false" value="USE_DET"/>
+									<listOptionValue builtIn="false" value="USE_CANIF"/>
+									<listOptionValue builtIn="false" value="USE_COM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.851466793" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -64,6 +68,11 @@
 									<listOptionValue builtIn="false" value="USE_DIO"/>
 									<listOptionValue builtIn="false" value="USE_SCHM"/>
 									<listOptionValue builtIn="false" value="USE_ECUM"/>
+									<listOptionValue builtIn="false" value="USE_PDUR"/>
+									<listOptionValue builtIn="false" value="USE_CAN"/>
+									<listOptionValue builtIn="false" value="USE_DET"/>
+									<listOptionValue builtIn="false" value="USE_CANIF"/>
+									<listOptionValue builtIn="false" value="USE_COM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1403200940" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -137,7 +146,7 @@
 			<target name="91 debug-mingw-gtk" path="release/ascore" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
 				<buildArguments/>
-				<buildTarget>all -L DEBUG=TRUE board=mingw gui=GTK</buildTarget>
+				<buildTarget>all DEBUG=TRUE board=mingw gui=GTK</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
