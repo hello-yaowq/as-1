@@ -41,7 +41,7 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++	
 
-def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET -DUSE_GUI
 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
@@ -125,6 +125,7 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/ecum TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);rm -f EcuM_Flexible.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/schm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)

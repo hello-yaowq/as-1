@@ -15,7 +15,7 @@
               auto-start='true'   		
 		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
 		<Task name='SchM_BswService' priority='8'  exe-priority='8' max-activation='5'
-              auto-start='true'   		
+              auto-start='false'   		
 		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
 		<Task name='TaskIdle' priority='1' exe-priority='1' max-activation='1'
               auto-start='true'   		
@@ -23,7 +23,7 @@
 		
 	    <Counter name='OsClock' max-value='65535' ticks-per-base='1' min-value='1'/>	
 	        
-        <Alarm name='Alarm_BswService' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
+        <Alarm name='Alarm_BswService' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
         <Alarm name='Alarm10ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='6' period='10' />
         <Alarm name='Alarm20ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='7' period='20' />  
         <Alarm name='Alarm50ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='8' period='50' />  

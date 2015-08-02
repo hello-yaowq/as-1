@@ -384,11 +384,7 @@ TASK(SchM_Startup){
 	EcuM_RequestRUN(ECUM_USER_User_1);
 #endif
 
-#ifdef AS_OS_BASED_ON_FREERTOS
 	OsTerminateTask(SchM_Startup);
-#else
-	TerminateTask();
-#endif
 
 }
 
@@ -437,11 +433,7 @@ TASK(SchM_BswService) {
 		break;
 	}
 
-#ifdef AS_OS_BASED_ON_FREERTOS
 	OsTerminateTask(SchM_BswService);
-#else
-	TerminateTask();
-#endif
 }
 ALARM(Alarm_BswService)
 {

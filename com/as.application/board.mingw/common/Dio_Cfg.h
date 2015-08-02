@@ -10,7 +10,7 @@
 
 #define DIO_VERSION_INFO_API    STD_OFF
 #if defined(USE_DET)
-#define DIO_DEV_ERROR_DETECT    STD_OFF
+#define DIO_DEV_ERROR_DETECT    STD_ON
 #else
 #define DIO_DEV_ERROR_DETECT    STD_OFF
 #endif

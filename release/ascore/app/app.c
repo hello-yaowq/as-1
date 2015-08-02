@@ -14,6 +14,10 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#ifdef USE_GUI
+#include "Sg.h"
+#include "Lcd.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -24,11 +28,18 @@
 void StartupHook(void)
 {
 	KSM_INIT();
+#ifdef USE_GUI
+	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
+	Sg_Init();
+#endif
 }
 
 TASK(TaskApp)
 {
 	//printf("TaskApp is running\r\n");
+#ifdef USE_GUI
+	Sg_ManagerTask();
+#endif
 	OsTerminateTask(TaskApp);
 }
 
