@@ -33,7 +33,7 @@ SECTION_POSTBUILD_DATA const CanIf_HthConfigType CanIfHthConfigData_CanIfInitHoh
 	{ 
     	.CanIfHthType 				= CAN_ARC_HANDLE_TYPE_BASIC,
     	.CanIfCanControllerIdRef 	= CANIF_CanIfCtrlCfg,
-    	.CanIfHthIdSymRef 			= CAN_TX,
+    	.CanIfHthIdSymRef 			= Can0Hth,
     	.CanIf_Arc_EOL 				= TRUE,
 	},
 };
@@ -44,7 +44,7 @@ SECTION_POSTBUILD_DATA const CanIf_HrhConfigType CanIfHrhConfigData_CanIfInitHoh
     	.CanIfHrhType 				= CAN_ARC_HANDLE_TYPE_BASIC,
     	.CanIfSoftwareFilterHrh 	= TRUE,
     	.CanIfCanControllerHrhIdRef = CANIF_CanIfCtrlCfg,
-    	.CanIfHrhIdSymRef 			= CAN_RX,
+    	.CanIfHrhIdSymRef 			= Can0Hrh,
     	.CanIf_Arc_EOL				= TRUE,
   	},
 };
@@ -170,7 +170,7 @@ SECTION_POSTBUILD_DATA const CanIf_TxBufferConfigType *const CanIfCtrlCfg_Buffer
 SECTION_POSTBUILD_DATA const CanIf_Arc_ChannelConfigType CanIf_Arc_ChannelConfig[CANIF_CHANNEL_CNT] = { 
 	{
 		/* CanIfCtrlCfg */
-		.CanControllerId = CAN_CONTROLLER_CanController,
+		.CanControllerId = CAN_CTRL_0,
 		.NofTxBuffers = 1,
 		.TxBufferRefList = CanIfCtrlCfg_BufferList
 	},

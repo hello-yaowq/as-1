@@ -15,14 +15,14 @@
 
 static const Can_FilterMaskType vCanFilterMask0= 0xFFFFFFFF;
 
-static const Can_HardwareObjectType CAN_CTRL_1_HOHCfgData[]=
+static const Can_HardwareObjectType CAN_CTRL_0_HOHCfgData[]=
 {
 
     {    /* Can0Hrh */
         .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
         .CanIdType=CAN_ID_TYPE_STANDARD,
         .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=0,
+        .CanObjectId=Can0Hrh,
         .CanObjectType=CAN_OBJECT_TYPE_RECEIVE,
         .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
         .Can_Arc_MbMask=0x00000000,/*TODO*/
@@ -33,7 +33,7 @@ static const Can_HardwareObjectType CAN_CTRL_1_HOHCfgData[]=
         .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
         .CanIdType=CAN_ID_TYPE_STANDARD,
         .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=0,
+        .CanObjectId=Can0Hth,
         .CanObjectType=CAN_OBJECT_TYPE_TRANSMIT,
         .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
         .Can_Arc_MbMask=0x00000000,/*TODO*/
@@ -45,17 +45,56 @@ static const Can_HardwareObjectType CAN_CTRL_1_HOHCfgData[]=
     }
 };
 
-const Can_ControllerConfigType  Can_ControllerCfgData[]=
+static const Can_HardwareObjectType CAN_CTRL_2_HOHCfgData[]=
 {
 
+    {    /* Can2Hrh */
+        .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
+        .CanIdType=CAN_ID_TYPE_STANDARD,
+        .CanIdValue=0x00,/*TODO*/
+        .CanObjectId=Can2Hrh,
+        .CanObjectType=CAN_OBJECT_TYPE_RECEIVE,
+        .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
+        .Can_Arc_MbMask=0x00000000,/*TODO*/
+        .Can_Arc_EOL=FALSE
+    },
+
+    {    /* Can2Hth */
+        .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
+        .CanIdType=CAN_ID_TYPE_STANDARD,
+        .CanIdValue=0x00,/*TODO*/
+        .CanObjectId=Can2Hth,
+        .CanObjectType=CAN_OBJECT_TYPE_TRANSMIT,
+        .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
+        .Can_Arc_MbMask=0x00000000,/*TODO*/
+        .Can_Arc_EOL=FALSE
+    },
+
     {
-        .CanControllerId=CAN_CTRL_1,
+        .Can_Arc_EOL = TRUE,
+    }
+};
+const Can_ControllerConfigType  Can_ControllerCfgData[]=
+{
+    {
+        .CanControllerId=CAN_CTRL_0,
         .CanRxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanTxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanWakeupProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanBusOffProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanControllerBaudRate=500,
-        .Can_Arc_Hoh=CAN_CTRL_1_HOHCfgData,
+        .Can_Arc_Hoh=CAN_CTRL_0_HOHCfgData,
+        .Can_Arc_Loopback=FALSE
+    },
+
+    {
+        .CanControllerId=CAN_CTRL_2,
+        .CanRxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
+        .CanTxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
+        .CanWakeupProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
+        .CanBusOffProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
+        .CanControllerBaudRate=500,
+        .Can_Arc_Hoh=CAN_CTRL_2_HOHCfgData,
         .Can_Arc_Loopback=FALSE
     }
     
@@ -71,5 +110,5 @@ const Can_CallbackType CanCallbackConfigData = {
      NULL //CanIf_Arc_Error,
  };
 const Can_ConfigSetType Can_ConfigSetData ={Can_ControllerCfgData,&CanCallbackConfigData};
-const Can_ConfigType CanConfigData ={&Can_ConfigSetData};
+const Can_ConfigType CanConfigData ={&Can_ConfigSetData,NULL};
 

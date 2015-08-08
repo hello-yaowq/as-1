@@ -8,7 +8,7 @@
 #endif
 
 // Number of controller configs
-#define CAN_CTRL_CONFIG_CNT				1
+#define CAN_CTRL_CONFIG_CNT				2
 
 #define CAN_DEV_ERROR_DETECT			STD_ON
 #define CAN_VERSION_INFO_API			STD_OFF
@@ -20,15 +20,12 @@
 #define CAN_MESSAGE_TYPE_CNT			3
 
 typedef enum {
-	CAN_CTRL_1 = 0,
-	CAN_CONTROLLER_CNT = 1
+	CAN_CTRL_0 = 0,
+	CAN_CTRL_1,
+	CAN_CTRL_2,
+	CAN_CTRL_3,
+	CAN_CONTROLLER_CNT
 } CanControllerIdType;
-
-typedef enum {
-	VCU_CANID = 1,
-	SCU_CANID = 2,
-	TCU_CANID = 3
-} Can_ECUIdType;
 
  typedef enum {
      CAN_ID_TYPE_EXTENDED,
@@ -41,18 +38,30 @@ typedef enum {
 	CAN_OBJECT_TYPE_TRANSMIT
 } Can_ObjectTypeType;
 
- typedef enum {
-      CAN_ARC_HANDLE_TYPE_BASIC,
-      CAN_ARC_HANDLE_TYPE_FULL
-  } Can_Arc_HohType;
+typedef enum {
+	CAN_ARC_HANDLE_TYPE_BASIC,
+	CAN_ARC_HANDLE_TYPE_FULL
+} Can_Arc_HohType;
   
-#define CAN_CONTROLLER_CanController (CanControllerIdType)0
+typedef enum {
+	CAN_ECU_ID_HL,
+	CAN_ECU_ID_LL,
+	CAN_ECU_ID_CNT
+}Can_ECUIdType;
   
-#define CAN_TX (Can_HwHandleType)0
-#define NUM_OF_HTHS (Can_HwHandleType)1
+typedef enum {
+	Can0Hth                         ,/* CAN_CTRL_0                       */
+	Can2Hth                         ,/* CAN_CTRL_2                       */
 
-#define CAN_RX (Can_HwHandleType)0
-#define NUM_OF_HRHS (Can_HwHandleType)1
+	NUM_OF_HTHS
+} Can_Arc_HTHType;
+
+typedef enum {
+	Can0Hrh                         ,/* CAN_CTRL_0                       */
+	Can2Hrh                         ,/* CAN_CTRL_2                       */
+
+	NUM_OF_HRHS
+} Can_Arc_HRHType;
 
 typedef struct Can_Callback {
     void (*CancelTxConfirmation)( const Can_PduType *);

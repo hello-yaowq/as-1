@@ -49,6 +49,8 @@
 									<listOptionValue builtIn="false" value="USE_DET"/>
 									<listOptionValue builtIn="false" value="USE_CANIF"/>
 									<listOptionValue builtIn="false" value="USE_COM"/>
+									<listOptionValue builtIn="false" value="USE_CANTP"/>
+									<listOptionValue builtIn="false" value="USE_GUI"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.851466793" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -73,6 +75,8 @@
 									<listOptionValue builtIn="false" value="USE_DET"/>
 									<listOptionValue builtIn="false" value="USE_CANIF"/>
 									<listOptionValue builtIn="false" value="USE_COM"/>
+									<listOptionValue builtIn="false" value="USE_CANTP"/>
+									<listOptionValue builtIn="false" value="USE_GUI"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1403200940" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

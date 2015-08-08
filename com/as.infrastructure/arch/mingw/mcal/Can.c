@@ -29,7 +29,7 @@
 #include <string.h>
 #include "Os.h"
 
-#define USE_CAN_STATISTICS      STD_OFF
+#define USE_CAN_STATISTICS      STD_ON
 
 /* CONFIGURATION NOTES
  * ------------------------------------------------------------------
@@ -163,17 +163,53 @@ Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {
   {
     .state = CANIF_CS_UNINIT,
-  },{
+  },
+  {
     .state = CANIF_CS_UNINIT,
-  },{
+  },
+  {
     .state = CANIF_CS_UNINIT,
-  },{
+  },
+  {
     .state = CANIF_CS_UNINIT,
-  },{
+  },
+  {
     .state = CANIF_CS_UNINIT,
   },
 };
+//-------------------------------------------------------------------
+/**
+ * Function that finds the Hoh( HardwareObjectHandle ) from a Hth
+ * A HTH may connect to one or several HOH's. Just find the first one.
+ *
+ * @param hth The transmit handle
+ * @returns Ptr to the Hoh
+ */
+static const Can_HardwareObjectType * Can_FindHoh( Can_Arc_HTHType hth , uint32* controller)
+{
+  const Can_HardwareObjectType *hohObj;
+  const Can_Arc_ObjectHOHMapType *map;
 
+  map = &Can_Global.CanHTHMap[hth];
+
+  // Verify that this is the correct map
+  if (map->CanHOHRef->CanObjectId != hth)
+  {
+    DET_REPORTERROR(MODULE_ID_CAN, 0, 0x6, CAN_E_PARAM_HANDLE);
+  }
+  hohObj = map->CanHOHRef;
+
+  // Verify that this is the correct Hoh type
+  if ( hohObj->CanObjectType == CAN_OBJECT_TYPE_TRANSMIT)
+  {
+    *controller = map->CanControllerRef;
+    return hohObj;
+  }
+
+  DET_REPORTERROR(MODULE_ID_CAN, 0, 0x6, CAN_E_PARAM_HANDLE);
+
+  return NULL;
+}
 
 //-------------------------------------------------------------------
 
@@ -203,6 +239,7 @@ void Can_Init( const Can_ConfigType *config ) {
     canUnit->state = CANIF_CS_STOPPED;
 
     canUnit->lock_cnt = 0;
+    canUnit->swPduHandle = 0xFFFF;	/* 0xFFFF marked as Empty and invalid */
 
     // Clear stats
 #if (USE_CAN_STATISTICS == STD_ON)
@@ -308,29 +345,29 @@ Can_ReturnType Can_SetControllerMode( uint8 controller, Can_StateTransitionType 
   VALIDATE( (canUnit->state!=CANIF_CS_UNINIT), 0x3, CAN_E_UNINIT );
   switch(transition )
   {
-  case CAN_T_START:
-    canUnit->state = CANIF_CS_STARTED;
-    if (canUnit->lock_cnt == 0){   // REQ CAN196
-      Can_EnableControllerInterrupts(controller);
-    }
-    break;
-  case CAN_T_WAKEUP:
-	VALIDATE(canUnit->state == CANIF_CS_SLEEP, 0x3, CAN_E_TRANSITION);
-	canUnit->state = CANIF_CS_STOPPED;
-	break;
-  case CAN_T_SLEEP:  //CAN258, CAN290
-    // Should be reported to DEM but DET is the next best
-    VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
-	canUnit->state = CANIF_CS_SLEEP;
-	break;
-  case CAN_T_STOP:
-    // Stop
-    canUnit->state = CANIF_CS_STOPPED;
-    break;
-  default:
-    // Should be reported to DEM but DET is the next best
-    VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
-    break;
+	  case CAN_T_START:
+		canUnit->state = CANIF_CS_STARTED;
+		if (canUnit->lock_cnt == 0){   // REQ CAN196
+		  Can_EnableControllerInterrupts(controller);
+		}
+		break;
+	  case CAN_T_WAKEUP:
+		VALIDATE(canUnit->state == CANIF_CS_SLEEP, 0x3, CAN_E_TRANSITION);
+		canUnit->state = CANIF_CS_STOPPED;
+		break;
+	  case CAN_T_SLEEP:  //CAN258, CAN290
+		// Should be reported to DEM but DET is the next best
+		VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+		canUnit->state = CANIF_CS_SLEEP;
+		break;
+	  case CAN_T_STOP:
+		// Stop
+		canUnit->state = CANIF_CS_STOPPED;
+		break;
+	  default:
+		// Should be reported to DEM but DET is the next best
+		VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
+		break;
   }
   return rv;
 }
@@ -378,22 +415,46 @@ void Can_EnableControllerInterrupts( uint8 controller ) {
 
 Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
   Can_ReturnType rv = CAN_OK;
+  const Can_HardwareObjectType *hohObj;
+  const Can_ControllerConfigType *canHwConfig;
+  uint32 controller;
 
   VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
   VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
   VALIDATE( (pduInfo->length <= 8), 0x6, CAN_E_PARAM_DLC );
   VALIDATE( (hth < NUM_OF_HTHS ), 0x6, CAN_E_PARAM_HANDLE );
 
+  hohObj = Can_FindHoh(hth, &controller);
+  if (hohObj == NULL)
+  {
+    return CAN_NOT_OK;
+  }
+
+  Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
+
   // check for any free box
-  if(TRUE) {
-
-    // Increment statistics
-#if (USE_CAN_STATISTICS == STD_ON)
-    canUnit->stats.txSuccessCnt++;
-#endif
-
+  if(CANIF_CS_STARTED == canUnit->state)
+  {
+	  if(0xFFFF == canUnit->swPduHandle)	/* empty */
+	  {
+		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",pduInfo->id,pduInfo->length);
+		  for(int i=0;i<pduInfo->length;i++)
+		  {
+			  printf("%-2X,",pduInfo->sdu[i]);
+		  }
+		  printf("]\n");
+		  canUnit->swPduHandle = pduInfo->swPduHandle;
+		  // Increment statistics
+		  #if (USE_CAN_STATISTICS == STD_ON)
+		  canUnit->stats.txSuccessCnt++;
+		  #endif
+	  }
+	  else
+	  {
+		  rv = CAN_BUSY;
+	  }
   } else {
-    rv = CAN_BUSY;
+    rv = CAN_NOT_OK;
   }
 
   return rv;
@@ -505,5 +566,27 @@ void Can_MainFunction_Wakeup( void ){}
 void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){}
 
 #endif
+
+void Can_SimulatorRunning(void)
+{
+	Can_UnitType *canUnit;
+	const Can_ControllerConfigType *canHwConfig;
+	uint8 ctlrId;
+	if(Can_Global.initRun == CAN_READY)
+	{
+		/* Tx Confirmation Process*/
+		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
+			canHwConfig = GET_CONTROLLER_CONFIG(configId);
+			ctlrId = canHwConfig->CanControllerId;
+
+			canUnit = GET_PRIVATE_DATA(ctlrId);
+			if(0xFFFF != canUnit->swPduHandle)
+			{
+				Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
+				canUnit->swPduHandle = 0xFFFF;
+			}
+		}
+	}
+}
 
 
