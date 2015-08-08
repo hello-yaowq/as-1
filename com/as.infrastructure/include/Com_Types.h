@@ -132,16 +132,16 @@ typedef enum {
 #define M_SINT32 sint32
 
 #define SignalTypeToSize(type,length) \
-	(type == UINT8   ? sizeof(uint8) : \
-	type == UINT16  ? sizeof(uint16) : \
-	type == UINT32  ? sizeof(uint32) : \
-	type == UINT8_N  ? sizeof(uint8) * length : \
-	type == SINT8   ? sizeof(sint8) : \
-	type == SINT16  ? sizeof(sint16) : \
-	type == SINT32  ? sizeof(sint32) : sizeof(boolean)) \
+	(type == CST_UINT8   ? sizeof(uint8) : \
+	type == CST_UINT16  ? sizeof(uint16) : \
+	type == CST_UINT32  ? sizeof(uint32) : \
+	type == CST_UINT8_N  ? sizeof(uint8) * length : \
+	type == CST_SINT8   ? sizeof(sint8) : \
+	type == CST_SINT16  ? sizeof(sint16) : \
+	type == CST_SINT32  ? sizeof(sint32) : sizeof(boolean)) \
 
 #define SignalTypeSignedness(type) \
-		(( (type == SINT8) || (type == SINT16) || (type == SINT32) ) ? \
+		(( (type == CST_SINT8) || (type == CST_SINT16) || (type == CST_SINT32) ) ? \
 				COM_SIGNALTYPE_SIGNED : COM_SIGNALTYPE_UNSIGNED)
 
 /** Filter configuration type.

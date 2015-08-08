@@ -13,24 +13,19 @@
 */
 #include "Can.h"
 
-static const Can_FilterMaskType vCanFilterMask0=
-{
-    {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF},
-    {0,0,0,0,0,0,0,0},
-    CAN_IDAM_2_32BIT
-};
+static const Can_FilterMaskType vCanFilterMask0= 0xFFFFFFFF;
 
-static const Can_HardwareObjectType CAN_CTRL_0_HOHCfgData[]=
+static const Can_HardwareObjectType CAN_CTRL_1_HOHCfgData[]=
 {
 
     {    /* Can0Hrh */
         .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
         .CanIdType=CAN_ID_TYPE_STANDARD,
         .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=Can0Hrh,
+        .CanObjectId=0,
         .CanObjectType=CAN_OBJECT_TYPE_RECEIVE,
         .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
-        .Can_MbMask=0x00000000,/*TODO*/
+        .Can_Arc_MbMask=0x00000000,/*TODO*/
         .Can_Arc_EOL=FALSE
     },
 
@@ -38,40 +33,10 @@ static const Can_HardwareObjectType CAN_CTRL_0_HOHCfgData[]=
         .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
         .CanIdType=CAN_ID_TYPE_STANDARD,
         .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=Can0Hth,
+        .CanObjectId=0,
         .CanObjectType=CAN_OBJECT_TYPE_TRANSMIT,
         .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
-        .Can_MbMask=0x00000000,/*TODO*/
-        .Can_Arc_EOL=FALSE
-    },
-
-    {
-        .Can_Arc_EOL = TRUE,
-    }
-};
-
-static const Can_HardwareObjectType CAN_CTRL_2_HOHCfgData[]=
-{
-
-    {    /* Can2Hrh */
-        .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
-        .CanIdType=CAN_ID_TYPE_STANDARD,
-        .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=Can2Hrh,
-        .CanObjectType=CAN_OBJECT_TYPE_RECEIVE,
-        .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
-        .Can_MbMask=0x00000000,/*TODO*/
-        .Can_Arc_EOL=FALSE
-    },
-
-    {    /* Can2Hth */
-        .CanHandleType=CAN_ARC_HANDLE_TYPE_BASIC,
-        .CanIdType=CAN_ID_TYPE_STANDARD,
-        .CanIdValue=0x00,/*TODO*/
-        .CanObjectId=Can2Hth,
-        .CanObjectType=CAN_OBJECT_TYPE_TRANSMIT,
-        .CanFilterMaskRef=&vCanFilterMask0,/*TODO*/
-        .Can_MbMask=0x00000000,/*TODO*/
+        .Can_Arc_MbMask=0x00000000,/*TODO*/
         .Can_Arc_EOL=FALSE
     },
 
@@ -84,32 +49,15 @@ const Can_ControllerConfigType  Can_ControllerCfgData[]=
 {
 
     {
-        .CanControllerId=CAN_CTRL_0,
+        .CanControllerId=CAN_CTRL_1,
         .CanRxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanTxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanWakeupProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanBusOffProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
         .CanControllerBaudRate=500,
-        .CanControllerPropSeg=0,/* (SJW) */
-        .CanControllerSeg1=13,
-        .CanControllerSeg2=2,
-        .Can_Arc_Hoh=CAN_CTRL_0_HOHCfgData,
+        .Can_Arc_Hoh=CAN_CTRL_1_HOHCfgData,
         .Can_Arc_Loopback=FALSE
-    },
-
-    {
-        .CanControllerId=CAN_CTRL_2,
-        .CanRxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
-        .CanTxProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
-        .CanWakeupProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
-        .CanBusOffProcessing=CAN_ARC_PROCESS_TYPE_INTERRUPT,
-        .CanControllerBaudRate=500,
-        .CanControllerPropSeg=0,/* (SJW) */
-        .CanControllerSeg1=13,
-        .CanControllerSeg2=2,
-        .Can_Arc_Hoh=CAN_CTRL_2_HOHCfgData,
-        .Can_Arc_Loopback=FALSE
-    },
+    }
     
 };
 extern void CanIf_RxIndication(uint8 Hrh, Can_IdType CanId, uint8 CanDlc,const uint8 *CanSduPtr);

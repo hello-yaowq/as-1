@@ -191,7 +191,7 @@ void Can_Init( const Can_ConfigType *config ) {
   Can_Global.initRun = CAN_READY;
 
 
-  for (int configId=0; configId < CAN_ARC_CTRL_CONFIG_CNT; configId++) {
+  for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
     canHwConfig = GET_CONTROLLER_CONFIG(configId);
     ctlrId = canHwConfig->CanControllerId;
 
@@ -237,7 +237,7 @@ void Can_DeInit()
   const Can_ControllerConfigType *canHwConfig;
   uint32 ctlrId;
 
-  for (int configId=0; configId < CAN_ARC_CTRL_CONFIG_CNT; configId++) {
+  for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
     canHwConfig = GET_CONTROLLER_CONFIG(configId);
     ctlrId = canHwConfig->CanControllerId;
 

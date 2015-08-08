@@ -127,6 +127,7 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/ecum TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);rm -f EcuM_Flexible.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/schm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)

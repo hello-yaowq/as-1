@@ -36,6 +36,14 @@
 #define E_NOT_OK 				(Std_ReturnType)1
 #endif
 
+#ifndef NULL
+#define NULL 0
+#endif
+
+#ifndef NULL_PTR
+#define NULL_PTR (void*)0
+#endif
+
 #ifndef TRUE
 #define TRUE                    (boolean)1
 #endif
@@ -51,6 +59,13 @@
 
 #define STD_ON			0x01
 #define STD_OFF			0x00
+
+#ifndef imask_t
+#define imask_t uint32
+#endif
+
+#define Irq_Save(irq_state)  		irq_state = portGetIrqStateAndDisableIt()
+#define Irq_Restore(irq_state)		portRestroeIrqState(irq_state)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned char               boolean;
 typedef signed char         		sint8;
@@ -91,4 +106,6 @@ typedef struct {
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+extern imask_t portGetIrqStateAndDisableIt(void);
+extern void portRestroeIrqState(imask_t irq_state);
 #endif /* STD_TYPES_H */

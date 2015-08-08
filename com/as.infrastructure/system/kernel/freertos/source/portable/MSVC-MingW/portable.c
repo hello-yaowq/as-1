@@ -620,4 +620,14 @@ int32_t lMutexNeedsReleasing;
 	}
 }
 /*-----------------------------------------------------------*/
+#include "Std_Types.h"
+imask_t portGetIrqStateAndDisableIt(void)
+{
+	vPortEnterCritical();
+	return ulCriticalNesting;
+}
+void portRestroeIrqState(imask_t irq_state)
+{
+	vPortExitCritical();
+}
 
