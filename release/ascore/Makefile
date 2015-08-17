@@ -82,6 +82,7 @@ obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o
 endif	# stm32f107vc end
 
 def-y += -D__AS_BY_PARAI__	 
+def-y += -D$(board)_board
 
 
 ifeq ($(board),mingw)
@@ -201,6 +202,10 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
 all: clean exe
 
+$(board)-dll: clean dll
+
+$(board)-run: 
+	@($(PY27) Simulator.py)
 clean: 
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*

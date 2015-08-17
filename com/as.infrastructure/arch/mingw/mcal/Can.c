@@ -12,10 +12,9 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-
+/* ============================ [ INCLUDES  ] ====================================================== */
+#include "Os.h"
 #include "Can.h"
-
-#ifndef USE_CAN_STUB
 #include "Mcu.h"
 #include "CanIf_Cbk.h"
 #if defined(USE_DET)
@@ -25,10 +24,12 @@
 #include "Dem.h"
 #endif
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Os.h"
 
+
+/* ============================ [ MACROS    ] ====================================================== */
 #define USE_CAN_STATISTICS      STD_ON
 
 /* CONFIGURATION NOTES
@@ -59,7 +60,6 @@
  *
  */
 
-//-------------------------------------------------------------------
 
 #define GET_CONTROLLER_CONFIG(_controller)	\
         					&Can_Global.config->CanConfigSet->CanController[(_controller)]
@@ -72,7 +72,6 @@
 
 #define GET_CONTROLLER_CNT() (CAN_CONTROLLER_CNT)
 
-//-------------------------------------------------------------------
 
 #if ( CAN_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \
@@ -104,7 +103,12 @@
 #define VALIDATE_DEM_NO_RV(_exp,_err )
 #endif
 
-//-------------------------------------------------------------------
+#define CAN_EMPTY_MESSAGE_BOX 0xFFFF
+
+/* FILE: transmit message and receive message through file io simulation
+ * This RAM_DISK is a disk created from RAM memory by tool RAMDisk */
+#define CAN_RAM_DISK  "E:"
+/* ============================ [ TYPES     ] ====================================================== */
 
 typedef enum
 {
@@ -159,6 +163,7 @@ typedef struct {
   PduIdType swPduHandle; //
 } Can_UnitType;
 
+/* ============================ [ DATAS     ] ====================================================== */
 Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {
   {
@@ -177,8 +182,9 @@ Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
     .state = CANIF_CS_UNINIT,
   },
 };
-//-------------------------------------------------------------------
-/**
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== *//**
  * Function that finds the Hoh( HardwareObjectHandle ) from a Hth
  * A HTH may connect to one or several HOH's. Just find the first one.
  *
@@ -210,8 +216,6 @@ static const Can_HardwareObjectType * Can_FindHoh( Can_Arc_HTHType hth , uint32*
 
   return NULL;
 }
-
-//-------------------------------------------------------------------
 
 // This initiates ALL can controllers
 void Can_Init( const Can_ConfigType *config ) {
@@ -416,7 +420,6 @@ void Can_EnableControllerInterrupts( uint8 controller ) {
 Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
   Can_ReturnType rv = CAN_OK;
   const Can_HardwareObjectType *hohObj;
-  const Can_ControllerConfigType *canHwConfig;
   uint32 controller;
 
   VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
@@ -432,22 +435,34 @@ Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
 
   Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
 
-  // check for any free box
   if(CANIF_CS_STARTED == canUnit->state)
   {
-	  if(0xFFFF == canUnit->swPduHandle)	/* empty */
+	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
-		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",pduInfo->id,pduInfo->length);
-		  for(int i=0;i<pduInfo->length;i++)
+		  FILE* fp;
+		  char file_name[64];
+		  sprintf(file_name,"%s/autosar.can.tx.bus%d",CAN_RAM_DISK,(int)controller);
+		  fp = fopen(file_name,"w");
+		  if(fp!=NULL)
 		  {
-			  printf("%-2X,",pduInfo->sdu[i]);
+			  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
+			  for(int i=0;i<pduInfo->length;i++)
+			  {
+				  printf("%02X,",pduInfo->sdu[i]);
+			  }
+			  printf("]\n");
+			  canUnit->swPduHandle = pduInfo->swPduHandle;
+			  // Increment statistics
+			  #if (USE_CAN_STATISTICS == STD_ON)
+			  canUnit->stats.txSuccessCnt++;
+			  #endif
+
+			  fclose(fp);
 		  }
-		  printf("]\n");
-		  canUnit->swPduHandle = pduInfo->swPduHandle;
-		  // Increment statistics
-		  #if (USE_CAN_STATISTICS == STD_ON)
-		  canUnit->stats.txSuccessCnt++;
-		  #endif
+		  else
+		  {
+			  rv = CAN_NOT_OK;
+		  }
 	  }
 	  else
 	  {
@@ -501,72 +516,9 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
   *stats = canUnit->stats;
 }
 #endif
-
-#else // Stub all functions for use in simulator environment
-
-#include "debug.h"
-
-void Can_Init( const Can_ConfigType *Config )
-{
-  // Do initial configuration of layer here
-}
-
-void Can_InitController( uint8 controller, const Can_ControllerConfigType *config)
-{
-	// Do initialisation of controller here.
-}
-
-Can_ReturnType Can_SetControllerMode( uint8 Controller, Can_StateTransitionType transition )
-{
-	// Turn on off controller here depending on transition
-	return E_OK;
-}
-
-Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
-{
-	// Write to mailbox on controller here.
-	DEBUG(DEBUG_MEDIUM, "Can_Write(stub): Received data ");
-	for (int i = 0; i < pduInfo->length; i++) {
-		DEBUG(DEBUG_MEDIUM, "%d ", pduInfo->sdu[i]);
-	}
-	DEBUG(DEBUG_MEDIUM, "\n");
-
-	return E_OK;
-}
-
-extern void CanIf_RxIndication(uint8 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8 *CanSduPtr);
-Can_ReturnType Can_ReceiveAFrame()
-{
-	// This function is not part of autosar but needed to feed the stack with data
-	// from the mailboxes. Normally this is an interrup but probably not in the PCAN case.
-	uint8 CanSduData[] = {1,2,1,0,0,0,0,0};
-	CanIf_RxIndication(CAN_HRH_0_1, 3, 8, CanSduData);
-
-	return E_OK;
-}
-
-void Can_DisableControllerInterrupts( uint8 controller )
-{
-}
-
-void Can_EnableControllerInterrupts( uint8 controller )
-{
-}
-
-
-// Hth - for Flexcan, the hardware message box number... .We don't care
-void Can_Cbk_CheckWakeup( uint8 controller ){}
-
-void Can_MainFunction_Write( void ){}
-void Can_MainFunction_Read( void ){}
-void Can_MainFunction_Error( void ){}
-void Can_MainFunction_BusOff( void ){}
-void Can_MainFunction_Wakeup( void ){}
-
-void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){}
-
-#endif
-
+/*
+ * Called by KSM to simulate CAN TX ISR and RX ISR
+ */
 void Can_SimulatorRunning(void)
 {
 	Can_UnitType *canUnit;
@@ -575,17 +527,23 @@ void Can_SimulatorRunning(void)
 	if(Can_Global.initRun == CAN_READY)
 	{
 		/* Tx Confirmation Process*/
-		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
+		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++)
+		{
 			canHwConfig = GET_CONTROLLER_CONFIG(configId);
 			ctlrId = canHwConfig->CanControllerId;
 
 			canUnit = GET_PRIVATE_DATA(ctlrId);
 			if(0xFFFF != canUnit->swPduHandle)
 			{
-				Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
-				canUnit->swPduHandle = 0xFFFF;
+				if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
+				{
+					Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
+				}
+				canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 			}
 		}
+
+		/* Rx Process */
 	}
 }
 

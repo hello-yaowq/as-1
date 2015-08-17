@@ -57,7 +57,7 @@ exe:$(obj-dir) $(exe-dir) $(obj-y)
 	
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
-	@$(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
+	@$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
