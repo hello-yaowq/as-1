@@ -39,9 +39,18 @@
 #define __user
 #define __force
 
+#ifndef __packed
+# define __packed		__attribute__((__packed__))
+#endif
+
+#ifndef __weak
+# define __weak			__attribute__((weak))
+#endif
+
 #define kfree   free
 #define kmalloc malloc
 
+typedef uint8  __u8;
 typedef uint16 __u16;
 typedef uint32 __u32;
 typedef uint64 __u64;
@@ -53,9 +62,18 @@ typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 
+typedef uint8  u8;
 typedef uint16 u16;
 typedef uint32 u32;
 typedef uint64 u64;
+
+typedef struct {
+	int counter;
+} atomic_t;
+
+struct kref {
+	atomic_t refcount;
+};
 
 typedef unsigned __bitwise__ gfp_t;
 /*
