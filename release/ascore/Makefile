@@ -200,9 +200,9 @@ dep-at91sam3s:
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
-all: clean exe
+all: exe
 
-$(board)-dll: clean dll
+$(board)-dll: dll
 
 $(board)-run: 
 	@($(PY27) Simulator.py)
