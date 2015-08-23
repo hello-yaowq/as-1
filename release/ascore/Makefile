@@ -3,11 +3,13 @@ target-y = $(board)
 obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
+vir-src = ./virtual/src
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 APPLICATION = $(prj-dir)/com/as.application
+VIRTUAL = $(prj-dir)/com/as.virtual
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 
@@ -106,6 +108,8 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
+$(vir-src):
+	@mkdir -p $@
 
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
 	@(cd SgDesign;$(SG) Sg.xml)	
@@ -113,7 +117,12 @@ $(ASCORE)/SgDesign/SgRes/SgRes.h:
 XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) ..)	
 	
-dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h
+
+dep-as-virtual:$(vir-src)
+	@($(LNFS) $(VIRTUAL) virtual)
+	@(cd $(vir-src);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h)
+	
+dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
