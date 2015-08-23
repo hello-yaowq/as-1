@@ -21,6 +21,7 @@
 #include <QString>
 #include <assert.h>
 /* ============================ [ MACROS    ] ====================================================== */
+#define VIRTUAL_ECU1 "D:/repository/parai/as/release/ascore/out/mingw.dll"
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*PF_MAIN)(void);
 class vEcu: public QThread

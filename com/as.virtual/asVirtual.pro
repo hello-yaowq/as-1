@@ -16,11 +16,13 @@ DEFINES = USE_KERNEL3 USE_OPENCAN_DIRECTLY DYNAMIC_XLDRIVER_DLL
 
 SOURCES +=              \
     source/main.cpp \
-    source/vEcu.cpp
+    source/vEcu.cpp \
+    source/vmWindow.cpp
 
 HEADERS  +=             \
     src/Std_Types.h \ 
-    include/vEcu.h
+    include/vEcu.h \
+    include/vmWindow.h
 
 FORMS    +=
 
