@@ -47,8 +47,20 @@
 # define __weak			__attribute__((weak))
 #endif
 
-#define kfree   free
-#define kmalloc malloc
+#define kfree(ptr)   free(ptr)
+#define kmalloc(size,flag) malloc(size)
+#define kzalloc(size,flag) kzmalloc(size)
+
+#define dev_err(dev,fmt,...) 				\
+	do {									\
+		printf("dev %s ",(dev)->init_name);	\
+		printf(fmt,__VA_ARGS__);			\
+	}while(0)
+
+#define atomic_read(v)		((v)->counter)
+#define atomic_set(v,i)		((v)->counter = (i))
+
+#define dev_info dev_err
 
 typedef uint8  __u8;
 typedef uint16 __u16;
@@ -89,5 +101,20 @@ typedef __u64 __bitwise__ __virtio64;
 struct list_head {
 	struct list_head *next, *prev;
 };
+
+/**
+ * kzalloc - allocate memory. The memory is set to zero.
+ * @size: how many bytes of memory are required.
+ * @flags: the type of memory to allocate (see kmalloc).
+ */
+static inline void *kzmalloc(size_t size/*, gfp_t flags*/)
+{
+	void * p_mem = kmalloc(size, flags | __GFP_ZERO);
+	if(NULL != p_mem)
+	{
+		memset(p_mem,0,size);
+	}
+	return p_mem;
+}
 
 #endif /* _UAPI_LINUX_VIRTIO_TYPES_H */

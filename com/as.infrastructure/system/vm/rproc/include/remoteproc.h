@@ -410,7 +410,7 @@ struct rproc {
 	const struct rproc_ops *ops;
 	struct device dev;
 	const struct rproc_fw_ops *fw_ops;
-//	atomic_t power;
+	atomic_t power;
 	unsigned int state;
 //	struct mutex lock;
 	struct dentry *dbg_dir;
