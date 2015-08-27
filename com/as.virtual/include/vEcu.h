@@ -24,12 +24,21 @@
 #define VIRTUAL_ECU1 "D:/repository/parai/as/release/ascore/out/mingw.dll"
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*PF_MAIN)(void);
+typedef bool (*PF_RPROC_INIT)(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event);
 class vEcu: public QThread
 {
 Q_OBJECT
     private:
     HMODULE hxDll;
+    void* rsc_tbl_address;
+    size_t rsc_tbl_size;
+    HANDLE  r_lock;
+    HANDLE  w_lock;
+    HANDLE  r_event;
+    HANDLE  w_event;
+    HANDLE pvThread;
     PF_MAIN pfMain;
+    PF_RPROC_INIT pfRprocInit;
 public:
     explicit vEcu ( QString dll, QObject *parent = 0);
     ~vEcu ( );

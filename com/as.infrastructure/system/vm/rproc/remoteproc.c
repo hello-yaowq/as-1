@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "remoteproc.h"
+#include <windows.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -61,7 +62,12 @@ static struct device_type rproc_type = {
 	.name		= "remoteproc",
 	.release	= rproc_type_release,
 };
-
+static void*  l_rsc_tbl_address = NULL;
+static size_t l_rsc_tbl_size   = 0;
+static HANDLE l_r_lock = NULL;
+static HANDLE l_w_lock = NULL;
+static HANDLE l_r_event = NULL;
+static HANDLE l_w_event = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 /**
  * rproc_type_release() - release a remote processor instance
@@ -185,4 +191,23 @@ struct rproc *rproc_alloc(struct device *dev, const char *name,
 	rproc->state = RPROC_OFFLINE;
 
 	return rproc;
+}
+
+bool rproc_init(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event)
+{
+
+	bool bOK = false;
+	if(NULL == l_rsc_tbl_address)
+	{
+		l_rsc_tbl_address = address;
+		l_rsc_tbl_size    = size;
+		l_r_lock          = r_lock;
+		l_w_lock          = w_lock;
+		l_r_event         = r_event;
+		l_w_event         = w_event;
+		bOK = true;
+	}
+	printf("  >> rproc_init(0x%X,%d,0x%X,0x%X,0x%X,0x%X) = %s\n",
+			address,size,r_lock,w_lock,r_event,w_event,bOK?"true":"false");
+	return bOK;
 }
