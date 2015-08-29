@@ -197,7 +197,14 @@ static boolean ValidatePostBuildConfiguration(const EcuM_ConfigType* config) {
 #if !defined(USE_DET) && (ECUM_DEV_ERROR_DETECT == STD_ON)
 #error EcuM configuration error. DET is not enabled when ECUM_DEV_ERROR_DETECT is set
 #endif
+__weak void InitOS(void)
+{
 
+}
+__weak void Os_IsrInit(void)
+{
+
+}
 /* @req EcuM2411 */
 /**
  * Initialize EcuM.
@@ -215,10 +222,10 @@ void EcuM_Init(void) {
 		EcuM_AL_DriverInitZero();
 
 		// Initialize the OS
-		//InitOS();
+		InitOS();
 
 		// Setup interrupts
-		//Os_IsrInit();
+		Os_IsrInit();
 
 		// Determine PostBuild configuration
 		EcuM_World.config = EcuM_DeterminePbConfiguration();

@@ -60,6 +60,10 @@
 #define STD_ON			0x01
 #define STD_OFF			0x00
 
+#ifndef __weak
+# define __weak			__attribute__((weak))
+#endif
+
 #ifndef imask_t
 #define imask_t uint32
 #endif

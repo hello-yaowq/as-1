@@ -16,46 +16,37 @@
 #include "remoteproc.h"
 #include <windows.h>
 /* ============================ [ MACROS    ] ====================================================== */
-
 /* ============================ [ TYPES     ] ====================================================== */
-struct firmware {
-	size_t size;
-	const u8 *data;
-	struct page **pages;
-
-	/* firmware loader private fields */
-	void *priv;
-};
-/**
- * struct rproc_fw_ops - firmware format specific operations.
- * @find_rsc_table:	find the resource table inside the firmware image
- * @find_loaded_rsc_table: find the loaded resouce table
- * @load:		load firmeware to memory, where the remote processor
- *			expects to find it
- * @sanity_check:	sanity check the fw image
- * @get_boot_addr:	get boot address to entry point specified in firmware
- */
-struct rproc_fw_ops {
-	struct resource_table *(*find_rsc_table) (struct rproc *rproc,
-						const struct firmware *fw,
-						int *tablesz);
-	struct resource_table *(*find_loaded_rsc_table)(struct rproc *rproc,
-						const struct firmware *fw);
-	int (*load)(struct rproc *rproc, const struct firmware *fw);
-	int (*sanity_check)(struct rproc *rproc, const struct firmware *fw);
-	u32 (*get_boot_addr)(struct rproc *rproc, const struct firmware *fw);
-};
 /* ============================ [ DECLARES  ] ====================================================== */
-static void rproc_type_release(struct device *dev);
+static int start(struct rproc *rproc);
+static int stop(struct rproc *rproc);
+static void kick(struct rproc *rproc, int vqid);
 /* ============================ [ DATAS     ] ====================================================== */
-static void*  l_rsc_tbl_address = NULL;
-static size_t l_rsc_tbl_size   = 0;
-static HANDLE l_r_lock = NULL;
-static HANDLE l_w_lock = NULL;
-static HANDLE l_r_event = NULL;
-static HANDLE l_w_event = NULL;
+static struct device rpdev = {
+	.name = "remote processor AUTOSAR ECU",
+	.address = NULL,
+	.size    = 0
+};
+static struct rproc* rproc;
+const struct rproc_ops rproc_ops=
+{
+	.start = start,
+	.stop  = stop,
+	.kick  = kick
+};
 /* ============================ [ LOCALS    ] ====================================================== */
+static int start(struct rproc *rproc)
+{
+	return 0;
+}
+static int stop(struct rproc *rproc)
+{
+	return 0;
+}
+static void kick(struct rproc *rproc, int vqid)
+{
 
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /**
  * rproc_alloc() - allocate a remote processor handle
@@ -80,13 +71,11 @@ static HANDLE l_w_event = NULL;
  * Note: _never_ directly deallocate @rproc, even if it was not registered
  * yet. Instead, when you need to unroll rproc_alloc(), use rproc_put().
  */
-struct rproc *rproc_alloc(void *dev, const char *name,
+struct rproc *rproc_alloc(struct device* dev, const char *name,
 				const struct rproc_ops *ops,
 				const char *firmware, int len)
 {
 	struct rproc *rproc;
-	char *p, *template = "rproc-%s-fw";
-	int name_len = 0;
 
 	if (!dev || !name || !ops)
 		return NULL;
@@ -104,19 +93,24 @@ struct rproc *rproc_alloc(void *dev, const char *name,
 
 	return rproc;
 }
+void InitOS(void)
+{
+	printf(" >> start rproc up!\n");
+	rproc = rproc_alloc(&rpdev,"rproc",&rproc_ops,NULL,1024);
+}
 
 bool rproc_init(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event)
 {
 
 	bool bOK = false;
-	if(NULL == l_rsc_tbl_address)
+	if(NULL == rpdev.address)
 	{
-		l_rsc_tbl_address = address;
-		l_rsc_tbl_size    = size;
-		l_r_lock          = r_lock;
-		l_w_lock          = w_lock;
-		l_r_event         = r_event;
-		l_w_event         = w_event;
+		rpdev.address = address;
+		rpdev.size    = size;
+		rpdev.r_lock  = r_lock;
+		rpdev.w_lock  = w_lock;
+		rpdev.r_event = r_event;
+		rpdev.w_event = w_event;
 		bOK = true;
 	}
 	printf("  >> rproc_init(0x%X,%d,0x%X,0x%X,0x%X,0x%X) = %s\n",

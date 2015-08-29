@@ -25,6 +25,12 @@ else
 $(error fix your python34 path)
 endif
 
+QMAKE = C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/qmake.exe
+ifeq ($(QMAKE), $(wildcard $(QMAKE)))
+else
+$(error fix your Qt path)
+endif
+
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
@@ -225,6 +231,11 @@ clean:
 	
 clean-dist:clean
 	@rm -fv $(src-dir)/*
+	
+Qall: 
+	$(QMAKE) virtual/asVirtual.pro -r -spec win32-g++ "CONFIG+=debug" -o $(obj-dir)/makefile
+#@(make DEBUG=TRUE board=mingw gui=GTK)
+Qclean:
 	
 	
  

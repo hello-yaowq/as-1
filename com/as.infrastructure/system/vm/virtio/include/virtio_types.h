@@ -43,10 +43,6 @@
 # define __packed		__attribute__((__packed__))
 #endif
 
-#ifndef __weak
-# define __weak			__attribute__((weak))
-#endif
-
 #define kfree(ptr)   free(ptr)
 #define kmalloc(size,flag) malloc(size)
 #define kzalloc(size,flag) kzmalloc(size)
@@ -85,12 +81,12 @@ typedef u32 dma_addr_t;
 struct device
 {
 	char* name;
-	void* address;
-	size_t size;
-	void* r_lock;
-	void* w_lock;
-	void* r_event;
-	void* w_event;
+	void* address;	/* address of the hardware device */
+	size_t size;	/* size limit of the hardware device */
+	void* r_lock;	/* read access lock */
+	void* w_lock;	/* write access lock */
+	void* r_event;  /* data in-coming event */
+	void* w_event;  /* data out-going event */
 };
 typedef unsigned __bitwise__ gfp_t;
 /*
