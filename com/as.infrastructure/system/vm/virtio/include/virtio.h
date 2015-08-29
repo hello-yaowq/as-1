@@ -4,9 +4,6 @@
  * implementation. */
 #include "virtio_types.h"
 #include "vringh.h"
-#include "scatterlist.h"
-#include "spinlock.h"
-#include "device.h"
 /**
  * virtqueue - a queue to register buffers for sending or receiving.
  * @list: the chain of virtqueues for this device
@@ -22,7 +19,6 @@
  * sg element.
  */
 struct virtqueue {
-	struct list_head list;
 	void (*callback)(struct virtqueue *vq);
 	const char *name;
 	struct virtio_device *vdev;
@@ -30,23 +26,6 @@ struct virtqueue {
 	unsigned int num_free;
 	void *priv;
 };
-
-int virtqueue_add_outbuf(struct virtqueue *vq,
-			 struct scatterlist sg[], unsigned int num,
-			 void *data,
-			 gfp_t gfp);
-
-int virtqueue_add_inbuf(struct virtqueue *vq,
-			struct scatterlist sg[], unsigned int num,
-			void *data,
-			gfp_t gfp);
-
-int virtqueue_add_sgs(struct virtqueue *vq,
-		      struct scatterlist *sgs[],
-		      unsigned int out_sgs,
-		      unsigned int in_sgs,
-		      void *data,
-		      gfp_t gfp);
 
 bool virtqueue_kick(struct virtqueue *vq);
 
@@ -100,20 +79,13 @@ struct virtio_device {
 	bool failed;
 	bool config_enabled;
 	bool config_change_pending;
-	spinlock_t config_lock;
-	struct device dev;
+	void* config_lock;
 	struct virtio_device_id id;
 	const struct virtio_config_ops *config;
 	const struct vringh_config_ops *vringh_config;
-	struct list_head vqs;
 	u64 features;
 	void *priv;
 };
-
-static inline struct virtio_device *dev_to_virtio(struct device *_dev)
-{
-	return container_of(_dev, struct virtio_device, dev);
-}
 
 int register_virtio_device(struct virtio_device *dev);
 void unregister_virtio_device(struct virtio_device *dev);
@@ -140,7 +112,6 @@ int virtio_device_restore(struct virtio_device *dev);
  *    changes; may be called in interrupt context.
  */
 struct virtio_driver {
-	struct device_driver driver;
 	const struct virtio_device_id *id_table;
 	const unsigned int *feature_table;
 	unsigned int feature_table_size;
@@ -155,11 +126,6 @@ struct virtio_driver {
 	int (*restore)(struct virtio_device *dev);
 #endif
 };
-
-static inline struct virtio_driver *drv_to_virtio(struct device_driver *drv)
-{
-	return container_of(drv, struct virtio_driver, driver);
-}
 
 int register_virtio_driver(struct virtio_driver *drv);
 void unregister_virtio_driver(struct virtio_driver *drv);

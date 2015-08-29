@@ -111,7 +111,6 @@ struct rpmsg_device_id {
  */
 struct rpmsg_channel {
 	struct virtproc_info *vrp;
-	struct device dev;
 	struct rpmsg_device_id id;
 	u32 src;
 	u32 dst;
@@ -146,9 +145,8 @@ typedef void (*rpmsg_rx_cb_t)(struct rpmsg_channel *, void *, int, void *, u32);
  */
 struct rpmsg_endpoint {
 	struct rpmsg_channel *rpdev;
-	struct kref refcount;
 	rpmsg_rx_cb_t cb;
-	//struct mutex cb_lock;
+	void* cb_lock;
 	u32 addr;
 	void *priv;
 };
@@ -162,7 +160,6 @@ struct rpmsg_endpoint {
  * @callback: invoked when an inbound message is received on the channel
  */
 struct rpmsg_driver {
-	struct device_driver drv;
 	const struct rpmsg_device_id *id_table;
 	int (*probe)(struct rpmsg_channel *dev);
 	void (*remove)(struct rpmsg_channel *dev);

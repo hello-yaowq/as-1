@@ -104,10 +104,6 @@
 #endif
 
 #define CAN_EMPTY_MESSAGE_BOX 0xFFFF
-
-/* FILE: transmit message and receive message through file io simulation
- * This RAM_DISK is a disk created from RAM memory by tool RAMDisk */
-#define CAN_RAM_DISK  "E:"
 /* ============================ [ TYPES     ] ====================================================== */
 
 typedef enum
@@ -439,30 +435,17 @@ Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
   {
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
-		  FILE* fp;
-		  char file_name[64];
-		  sprintf(file_name,"%s/autosar.can.tx.bus%d",CAN_RAM_DISK,(int)controller);
-		  fp = fopen(file_name,"w");
-		  if(fp!=NULL)
+		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
+		  for(int i=0;i<pduInfo->length;i++)
 		  {
-			  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
-			  for(int i=0;i<pduInfo->length;i++)
-			  {
-				  printf("%02X,",pduInfo->sdu[i]);
-			  }
-			  printf("]\n");
-			  canUnit->swPduHandle = pduInfo->swPduHandle;
-			  // Increment statistics
-			  #if (USE_CAN_STATISTICS == STD_ON)
-			  canUnit->stats.txSuccessCnt++;
-			  #endif
-
-			  fclose(fp);
+			  printf("%02X,",pduInfo->sdu[i]);
 		  }
-		  else
-		  {
-			  rv = CAN_NOT_OK;
-		  }
+		  printf("]\n");
+		  canUnit->swPduHandle = pduInfo->swPduHandle;
+		  // Increment statistics
+		  #if (USE_CAN_STATISTICS == STD_ON)
+		  canUnit->stats.txSuccessCnt++;
+		  #endif
 	  }
 	  else
 	  {

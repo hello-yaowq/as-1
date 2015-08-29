@@ -51,17 +51,6 @@
 #define kmalloc(size,flag) malloc(size)
 #define kzalloc(size,flag) kzmalloc(size)
 
-#define dev_err(dev,fmt,...) 				\
-	do {									\
-		printf("dev %s ",(dev)->init_name);	\
-		printf(fmt,__VA_ARGS__);			\
-	}while(0)
-
-#define atomic_read(v)		((v)->counter)
-#define atomic_set(v,i)		((v)->counter = (i))
-
-#define dev_info dev_err
-
 typedef uint8  __u8;
 typedef uint16 __u16;
 typedef uint32 __u32;
@@ -78,15 +67,31 @@ typedef uint8  u8;
 typedef uint16 u16;
 typedef uint32 u32;
 typedef uint64 u64;
+/*
+ * A dma_addr_t can hold any valid DMA address, i.e., any address returned
+ * by the DMA API.
+ *
+ * If the DMA API only uses 32-bit addresses, dma_addr_t need only be 32
+ * bits wide.  Bus addresses, e.g., PCI BARs, may be wider than 32 bits,
+ * but drivers do memory-mapped I/O to ioremapped kernel virtual addresses,
+ * so they don't care about the size of the actual bus addresses.
+ */
+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+typedef u64 dma_addr_t;
+#else
+typedef u32 dma_addr_t;
+#endif
 
-typedef struct {
-	int counter;
-} atomic_t;
-
-struct kref {
-	atomic_t refcount;
+struct device
+{
+	char* name;
+	void* address;
+	size_t size;
+	void* r_lock;
+	void* w_lock;
+	void* r_event;
+	void* w_event;
 };
-
 typedef unsigned __bitwise__ gfp_t;
 /*
  * __virtio{16,32,64} have the following meaning:
@@ -97,10 +102,6 @@ typedef unsigned __bitwise__ gfp_t;
 typedef __u16 __bitwise__ __virtio16;
 typedef __u32 __bitwise__ __virtio32;
 typedef __u64 __bitwise__ __virtio64;
-
-struct list_head {
-	struct list_head *next, *prev;
-};
 
 /**
  * kzalloc - allocate memory. The memory is set to zero.

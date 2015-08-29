@@ -315,7 +315,6 @@ struct rproc_mem_entry {
 	int len;
 	u32 da;
 	void *priv;
-	struct list_head node;
 };
 
 struct rproc;
@@ -402,36 +401,15 @@ enum rproc_crash_type {
  * @has_iommu: flag to indicate if remote processor is behind an MMU
  */
 struct rproc {
-//	struct klist_node node;
-	struct iommu_domain *domain;
 	const char *name;
-	const char *firmware;
 	void *priv;
 	const struct rproc_ops *ops;
-	struct device dev;
-	const struct rproc_fw_ops *fw_ops;
-	atomic_t power;
 	unsigned int state;
-//	struct mutex lock;
-	struct dentry *dbg_dir;
-	struct list_head traces;
-	int num_traces;
-	struct list_head carveouts;
-	struct list_head mappings;
-//	struct completion firmware_loading_complete;
-	u32 bootaddr;
-	struct list_head rvdevs;
-//	struct idr notifyids;
+	void* lock;
 	int index;
-//	struct work_struct crash_handler;
-	unsigned crash_cnt;
-//	struct completion crash_comp;
 	bool recovery_disabled;
 	int max_notifyid;
 	struct resource_table *table_ptr;
-	struct resource_table *cached_table;
-	u32 table_csum;
-	bool has_iommu;
 };
 
 /* we currently support only two vrings per rvdev */
@@ -469,14 +447,13 @@ struct rproc_vring {
  * @rsc_offset: offset of the vdev's resource entry
  */
 struct rproc_vdev {
-	struct list_head node;
 	struct rproc *rproc;
 	struct virtio_device vdev;
 	struct rproc_vring vring[RVDEV_NUM_VRINGS];
 	u32 rsc_offset;
 };
 
-struct rproc *rproc_alloc(struct device *dev, const char *name,
+struct rproc *rproc_alloc(void *dev, const char *name,
 				const struct rproc_ops *ops,
 				const char *firmware, int len);
 void rproc_put(struct rproc *rproc);

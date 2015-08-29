@@ -47,21 +47,7 @@ struct rproc_fw_ops {
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static void rproc_type_release(struct device *dev);
-static int  rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw);
-static struct resource_table *
-rproc_elf_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
-			 int *tablesz);
-static struct resource_table *
-rproc_elf_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw);
-static int
-rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw);
-static
-u32 rproc_elf_get_boot_addr(struct rproc *rproc, const struct firmware *fw);
 /* ============================ [ DATAS     ] ====================================================== */
-static struct device_type rproc_type = {
-	.name		= "remoteproc",
-	.release	= rproc_type_release,
-};
 static void*  l_rsc_tbl_address = NULL;
 static size_t l_rsc_tbl_size   = 0;
 static HANDLE l_r_lock = NULL;
@@ -69,30 +55,7 @@ static HANDLE l_w_lock = NULL;
 static HANDLE l_r_event = NULL;
 static HANDLE l_w_event = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
-/**
- * rproc_type_release() - release a remote processor instance
- * @dev: the rproc's device
- *
- * This function should _never_ be called directly.
- *
- * It will be called by the driver core when no one holds a valid pointer
- * to @dev anymore.
- */
-static void rproc_type_release(struct device *dev)
-{
-	struct rproc *rproc = container_of(dev, struct rproc, dev);
 
-	dev_info(&rproc->dev, "releasing %s\n", rproc->name);
-
-	//rproc_delete_debug_dir(rproc);
-
-	//idr_destroy(&rproc->notifyids);
-
-//	if (rproc->index >= 0)
-//		ida_simple_remove(&rproc_dev_index, rproc->index);
-
-	kfree(rproc);
-}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /**
  * rproc_alloc() - allocate a remote processor handle
@@ -117,7 +80,7 @@ static void rproc_type_release(struct device *dev)
  * Note: _never_ directly deallocate @rproc, even if it was not registered
  * yet. Instead, when you need to unroll rproc_alloc(), use rproc_put().
  */
-struct rproc *rproc_alloc(struct device *dev, const char *name,
+struct rproc *rproc_alloc(void *dev, const char *name,
 				const struct rproc_ops *ops,
 				const char *firmware, int len)
 {
@@ -128,65 +91,14 @@ struct rproc *rproc_alloc(struct device *dev, const char *name,
 	if (!dev || !name || !ops)
 		return NULL;
 
-	if (!firmware)
-		/*
-		 * Make room for default firmware name (minus %s plus '\0').
-		 * If the caller didn't pass in a firmware name then
-		 * construct a default name.  We're already glomming 'len'
-		 * bytes onto the end of the struct rproc allocation, so do
-		 * a few more for the default firmware name (but only if
-		 * the caller doesn't pass one).
-		 */
-		name_len = strlen(name) + strlen(template) - 2 + 1;
-
-	rproc = kzalloc(sizeof(struct rproc) + len + name_len, GFP_KERNEL);
+	rproc = kzalloc(sizeof(struct rproc) + len, GFP_KERNEL);
 	if (!rproc) {
-		dev_err(dev, "%s: kzalloc failed\n", __func__);
 		return NULL;
 	}
 
-	if (!firmware) {
-		p = (char *)rproc + sizeof(struct rproc) + len;
-		snprintf(p, name_len, template, name);
-	} else {
-		p = (char *)firmware;
-	}
-
-	rproc->firmware = p;
 	rproc->name = name;
 	rproc->ops = ops;
 	rproc->priv = &rproc[1];
-
-//	device_initialize(&rproc->dev);
-	rproc->dev.parent = dev;
-	rproc->dev.type = &rproc_type;
-
-	/* Assign a unique device index and name */
-//	rproc->index = ida_simple_get(&rproc_dev_index, 0, 0, GFP_KERNEL);
-//	if (rproc->index < 0) {
-//		dev_err(dev, "ida_simple_get failed: %d\n", rproc->index);
-//		put_device(&rproc->dev);
-//		return NULL;
-//	}
-
-//	dev_set_name(&rproc->dev, "remoteproc%d", rproc->index);
-
-	atomic_set(&rproc->power, 0);
-
-	/* Set ELF as the default fw_ops handler */
-//	rproc->fw_ops = &rproc_elf_fw_ops;
-
-//	mutex_init(&rproc->lock);
-
-//	idr_init(&rproc->notifyids);
-
-//	INIT_LIST_HEAD(&rproc->carveouts);
-//	INIT_LIST_HEAD(&rproc->mappings);
-//	INIT_LIST_HEAD(&rproc->traces);
-//	INIT_LIST_HEAD(&rproc->rvdevs);
-
-//	INIT_WORK(&rproc->crash_handler, rproc_crash_handler_work);
-//	init_completion(&rproc->crash_comp);
 
 	rproc->state = RPROC_OFFLINE;
 

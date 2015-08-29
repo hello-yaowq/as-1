@@ -16,9 +16,10 @@ GUI or network connection, I think QT is perfect, even more, maybe I can integra
 it. Let's start.
 
 ## RPmsg
-   [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
-   [remoteproc](https://www.kernel.org/doc/Documentation/remoteproc.txt)
-   [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
+* [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
+* [remoteproc](https://www.kernel.org/doc/Documentation/remoteproc.txt)
+* [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
+* [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
    
     
 
