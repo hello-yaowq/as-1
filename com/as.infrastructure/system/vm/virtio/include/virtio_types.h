@@ -82,7 +82,8 @@ struct device
 {
 	char* name;
 	void* address;	/* address of the hardware device */
-	size_t size;	/* size limit of the hardware device */
+	size_t size;	/* size limit of the hardware device in byte */
+	size_t sz_fifo; /* size of the fifo for communication in u32 */
 	void* r_lock;	/* read access lock */
 	void* w_lock;	/* write access lock */
 	void* r_event;  /* data in-coming event */

@@ -14,39 +14,15 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "remoteproc.h"
-#include <windows.h>
+
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-static int start(struct rproc *rproc);
-static int stop(struct rproc *rproc);
-static void kick(struct rproc *rproc, int vqid);
-/* ============================ [ DATAS     ] ====================================================== */
-static struct device rpdev = {
-	.name = "remote processor AUTOSAR ECU",
-	.address = NULL,
-	.size    = 0
-};
-static struct rproc* rproc;
-const struct rproc_ops rproc_ops=
-{
-	.start = start,
-	.stop  = stop,
-	.kick  = kick
-};
-/* ============================ [ LOCALS    ] ====================================================== */
-static int start(struct rproc *rproc)
-{
-	return 0;
-}
-static int stop(struct rproc *rproc)
-{
-	return 0;
-}
-static void kick(struct rproc *rproc, int vqid)
-{
 
-}
+/* ============================ [ DATAS     ] ====================================================== */
+
+/* ============================ [ LOCALS    ] ====================================================== */
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /**
  * rproc_alloc() - allocate a remote processor handle
@@ -75,15 +51,44 @@ struct rproc *rproc_alloc(struct device* dev, const char *name,
 				const struct rproc_ops *ops,
 				const char *firmware, int len)
 {
-	struct rproc *rproc;
+	struct rproc *rproc = NULL;
+	struct fw_rsc_hdr* rsc_hdr;
+	int i;
+
+	size_t rsc_entry_size = 0;
 
 	if (!dev || !name || !ops)
+	{
 		return NULL;
+	}
 
 	rproc = kzalloc(sizeof(struct rproc) + len, GFP_KERNEL);
 	if (!rproc) {
 		return NULL;
 	}
+	/* RSC_CARVEOUT */
+	if(rsc_entry_size < (sizeof(struct fw_rsc_carveout)))
+	{
+		rsc_entry_size = sizeof(struct fw_rsc_carveout);
+	}
+	/* RSC_DEVMEM */
+	if(rsc_entry_size < (sizeof(struct fw_rsc_devmem)))
+	{
+		rsc_entry_size = sizeof(struct fw_rsc_devmem);
+	}
+	/* RSC_TRACE */
+	if(rsc_entry_size < (sizeof(struct fw_rsc_trace)))
+	{
+		rsc_entry_size = sizeof(struct fw_rsc_trace);
+	}
+	/* RSC_VDEV */
+	if(rsc_entry_size < (sizeof(struct fw_rsc_vdev) + RVDEV_NUM_VRINGS*sizeof(struct fw_rsc_vdev_vring)))
+	{
+		rsc_entry_size = sizeof(struct fw_rsc_vdev) + RVDEV_NUM_VRINGS*sizeof(struct fw_rsc_vdev_vring);
+	}
+
+	rproc->max_rsc_entry = (dev->size-2*dev->sz_fifo*sizeof(u32)-sizeof(struct resource_table))/rsc_entry_size;
+	rproc->max_rsc_entry = rproc->max_rsc_entry - (rproc->max_rsc_entry*4+rsc_entry_size-1)/rsc_entry_size;
 
 	rproc->name = name;
 	rproc->ops = ops;
@@ -91,29 +96,34 @@ struct rproc *rproc_alloc(struct device* dev, const char *name,
 
 	rproc->state = RPROC_OFFLINE;
 
+	rproc->table_ptr = (struct resource_table*)dev->address;
+	rproc->table_ptr->ver = 0x00000001;/* 00.01 */
+	rproc->table_ptr->num = 0;
+	rproc->table_ptr->reserved[0] = 0;
+	rproc->table_ptr->reserved[1] = 0;
+
+	rproc->r_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size - 2*dev->sz_fifo*sizeof(u32));
+	rproc->w_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size - 1*dev->sz_fifo*sizeof(u32));
+
+	rproc->r_fifo->count = 0;
+	rproc->r_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
+	rproc->r_fifo->r_pos = 0;
+	rproc->r_fifo->w_pos = 0;
+	memset(rproc->r_fifo->identifier,0,rproc->r_fifo->size*sizeof(u32));
+
+	rproc->w_fifo->count = 0;
+	rproc->w_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
+	rproc->w_fifo->r_pos = 0;
+	rproc->w_fifo->w_pos = 0;
+	memset(rproc->w_fifo->identifier,0,rproc->w_fifo->size*sizeof(u32));
+
+	for(i=0;i<rproc->max_rsc_entry;i++)
+	{
+		rproc->table_ptr->offset[i] = ((unsigned long)&(rproc->table_ptr->offset[rproc->max_rsc_entry]))+i*rsc_entry_size	-
+				(unsigned long)rproc->table_ptr;
+		rsc_hdr = (struct fw_rsc_hdr*) ((unsigned long)rproc->table_ptr + rproc->table_ptr->offset[i]);
+		rsc_hdr->type = RSC_LAST;
+	}
 	return rproc;
 }
-void InitOS(void)
-{
-	printf(" >> start rproc up!\n");
-	rproc = rproc_alloc(&rpdev,"rproc",&rproc_ops,NULL,1024);
-}
 
-bool rproc_init(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event)
-{
-
-	bool bOK = false;
-	if(NULL == rpdev.address)
-	{
-		rpdev.address = address;
-		rpdev.size    = size;
-		rpdev.r_lock  = r_lock;
-		rpdev.w_lock  = w_lock;
-		rpdev.r_event = r_event;
-		rpdev.w_event = w_event;
-		bOK = true;
-	}
-	printf("  >> rproc_init(0x%X,%d,0x%X,0x%X,0x%X,0x%X) = %s\n",
-			address,size,r_lock,w_lock,r_event,w_event,bOK?"true":"false");
-	return bOK;
-}

@@ -25,7 +25,8 @@ else
 $(error fix your python34 path)
 endif
 
-QMAKE = C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/qmake.exe
+QMAKE  = C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/qmake.exe
+QBUILD = C:/Qt/Qt5.5.0/Tools/mingw492_32/bin/make.exe
 ifeq ($(QMAKE), $(wildcard $(QMAKE)))
 else
 $(error fix your Qt path)
@@ -221,7 +222,7 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
 	
 all: exe
 
-$(board)-dll: dll
+$(board)-dll: clean dll
 
 $(board)-run: 
 	@($(PY27) Simulator.py)
@@ -233,7 +234,8 @@ clean-dist:clean
 	@rm -fv $(src-dir)/*
 	
 Qall: 
-	$(QMAKE) virtual/asVirtual.pro -r -spec win32-g++ "CONFIG+=debug" -o $(obj-dir)/makefile
+	@($(QMAKE) -o $(obj-dir)/makefile virtual/asVirtual.pro -r -spec win32-g++ "CONFIG+=debug") 
+	@(cd $(obj-dir);$(QBUILD))
 #@(make DEBUG=TRUE board=mingw gui=GTK)
 Qclean:
 	

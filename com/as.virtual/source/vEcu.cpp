@@ -27,7 +27,7 @@ vEcu::vEcu ( QString dll, QObject *parent )
     hxDll = LoadLibrary(dll.toStdString().c_str());
     assert(hxDll);
 
-    rsc_tbl_size = 1024*1024;
+    rsc_tbl_size = 16*1024;
     rsc_tbl_address = malloc(rsc_tbl_size);
     memset(rsc_tbl_address,0,rsc_tbl_size);
     r_lock = CreateMutex( NULL, FALSE, NULL );
@@ -37,9 +37,9 @@ vEcu::vEcu ( QString dll, QObject *parent )
 
     pfMain = (PF_MAIN)GetProcAddress(hxDll,"main");
     assert(pfMain);
-    pfRprocInit = (PF_RPROC_INIT)GetProcAddress(hxDll,"rproc_init");
+    pfRprocInit = (PF_RPROC_INIT)GetProcAddress(hxDll,"AsRproc_Init");
     assert(pfRprocInit);
-    bOK = pfRprocInit(rsc_tbl_address,rsc_tbl_size,w_lock,r_lock,w_event,r_event);
+    bOK = pfRprocInit(rsc_tbl_address,rsc_tbl_size,w_lock,r_lock,w_event,r_event,1024);
     assert(bOK);
 }
 
