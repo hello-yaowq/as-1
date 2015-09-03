@@ -87,7 +87,9 @@ struct rproc *rproc_alloc(struct device* dev, const char *name,
 		rsc_entry_size = sizeof(struct fw_rsc_vdev) + RVDEV_NUM_VRINGS*sizeof(struct fw_rsc_vdev_vring);
 	}
 
-	rproc->max_rsc_entry = (dev->size-2*dev->sz_fifo*sizeof(u32)-sizeof(struct resource_table))/rsc_entry_size;
+	rproc->dev = dev;
+
+	rproc->max_rsc_entry = dev->size/rsc_entry_size;
 	rproc->max_rsc_entry = rproc->max_rsc_entry - (rproc->max_rsc_entry*4+rsc_entry_size-1)/rsc_entry_size;
 
 	rproc->name = name;
@@ -102,21 +104,6 @@ struct rproc *rproc_alloc(struct device* dev, const char *name,
 	rproc->table_ptr->reserved[0] = 0;
 	rproc->table_ptr->reserved[1] = 0;
 
-	rproc->r_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size - 2*dev->sz_fifo*sizeof(u32));
-	rproc->w_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size - 1*dev->sz_fifo*sizeof(u32));
-
-	rproc->r_fifo->count = 0;
-	rproc->r_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
-	rproc->r_fifo->r_pos = 0;
-	rproc->r_fifo->w_pos = 0;
-	memset(rproc->r_fifo->identifier,0,rproc->r_fifo->size*sizeof(u32));
-
-	rproc->w_fifo->count = 0;
-	rproc->w_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
-	rproc->w_fifo->r_pos = 0;
-	rproc->w_fifo->w_pos = 0;
-	memset(rproc->w_fifo->identifier,0,rproc->w_fifo->size*sizeof(u32));
-
 	for(i=0;i<rproc->max_rsc_entry;i++)
 	{
 		rproc->table_ptr->offset[i] = ((unsigned long)&(rproc->table_ptr->offset[rproc->max_rsc_entry]))+i*rsc_entry_size	-
@@ -124,6 +111,8 @@ struct rproc *rproc_alloc(struct device* dev, const char *name,
 		rsc_hdr = (struct fw_rsc_hdr*) ((unsigned long)rproc->table_ptr + rproc->table_ptr->offset[i]);
 		rsc_hdr->type = RSC_LAST;
 	}
+
+	rproc->ops->start(rproc);
 	return rproc;
 }
 

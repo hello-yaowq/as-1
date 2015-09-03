@@ -36,15 +36,6 @@
 #define REMOTEPROC_H
 
 #include "virtio.h"
-
-struct rsc_fifo {
-	u32 count;
-	u32 size;	/* size of identifier in u32 */
-	u32 r_pos;
-	u32 w_pos;
-	u32 identifier[0];
-} __packed;
-
 /**
  * struct resource_table - firmware resource table header
  * @ver: version number
@@ -410,6 +401,7 @@ enum rproc_crash_type {
  */
 struct rproc {
 	const char *name;
+	struct device* dev;
 	void *priv;
 	const struct rproc_ops *ops;
 	unsigned int state;
@@ -419,8 +411,6 @@ struct rproc {
 	bool recovery_disabled;
 	int max_notifyid;
 	struct resource_table *table_ptr;
-	struct rsc_fifo* r_fifo;
-	struct rsc_fifo* w_fifo;
 };
 
 /* we currently support only two vrings per rvdev */

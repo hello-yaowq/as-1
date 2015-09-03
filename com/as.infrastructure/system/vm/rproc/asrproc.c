@@ -18,6 +18,22 @@
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
+enum rp_fifo_messages {
+	RP_FIFO_READY		= 0xFFFFFF00,
+	RP_FIFO_PENDING_MSG	= 0xFFFFFF01,
+	RP_FIFO_CRASH		= 0xFFFFFF02,
+	RP_FIFO_ECHO_REQUEST	= 0xFFFFFF03,
+	RP_FIFO_ECHO_REPLY	= 0xFFFFFF04,
+	RP_FIFO_ABORT_REQUEST	= 0xFFFFFF05,
+};
+
+struct rsc_fifo {
+	u32 count;
+	u32 size;	/* size of identifier in u32 */
+	u32 r_pos;
+	u32 w_pos;
+	u32 identifier[0];
+} __packed;
 /* ============================ [ DECLARES  ] ====================================================== */
 static int start(struct rproc *rproc);
 static int stop(struct rproc *rproc);
@@ -35,9 +51,53 @@ static const struct rproc_ops rproc_ops=
 	.stop  = stop,
 	.kick  = kick
 };
+
+struct rsc_fifo* r_fifo;
+struct rsc_fifo* w_fifo;
 /* ============================ [ LOCALS    ] ====================================================== */
+static bool fifo_write(u32 id)
+{
+	bool ercd;
+	WaitForSingleObject(rpdev.w_lock,INFINITE);
+	if(w_fifo->count < w_fifo->size)
+	{
+		w_fifo->identifier[w_fifo->w_pos] = id;
+		w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
+		w_fifo->count += 1;
+		ercd = true;
+	}
+	else
+	{
+		assert(0);
+		ercd = false;
+	}
+	ReleaseMutex(rpdev.w_lock);
+	SetEvent( rpdev.w_event );
+	return ercd;
+}
+static bool fifo_read(u32* id)
+{
+	bool ercd;
+	WaitForSingleObject(rpdev.r_lock,INFINITE);
+    if(r_fifo->count > 0)
+	{
+		*id = r_fifo->identifier[r_fifo->r_pos];
+		r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
+		r_fifo->count -= 1;
+		ercd = true;
+	}
+    else
+    {
+    	assert(0);
+    	ercd  = false;
+    }
+	ReleaseMutex(rpdev.r_lock);
+	return ercd;
+}
 static int start(struct rproc *rproc)
 {
+	/* refer omap_remoteproc.c code for linux, this rproc is gust */
+	fifo_write(RP_FIFO_READY);
 	return 0;
 }
 static int stop(struct rproc *rproc)
@@ -51,9 +111,29 @@ static void kick(struct rproc *rproc, int vqid)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void InitOS(void)
 {
+	struct device* dev;
 	if(NULL != rpdev.address)
 	{
-		printf(" >> start rproc up!\n");
+		printf("  >> start rproc up!\n");
+		dev = &rpdev;
+		/* init FIFO */
+		dev->size = dev->size - dev->sz_fifo*2*sizeof(u32);
+
+		r_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size + 0*dev->sz_fifo*sizeof(u32));
+		w_fifo = (struct rsc_fifo*)((unsigned long)dev->address + dev->size + 1*dev->sz_fifo*sizeof(u32));
+
+		r_fifo->count = 0;
+		r_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
+		r_fifo->r_pos = 0;
+		r_fifo->w_pos = 0;
+		memset(r_fifo->identifier,0,r_fifo->size*sizeof(u32));
+
+		w_fifo->count = 0;
+		w_fifo->size  = dev->sz_fifo - sizeof(struct rsc_fifo)/sizeof(u32);
+		w_fifo->r_pos = 0;
+		w_fifo->w_pos = 0;
+		memset(w_fifo->identifier,0,w_fifo->size*sizeof(u32));
+		/* inti remote processor */
 		rproc = rproc_alloc(&rpdev,"AsRproc",&rproc_ops,NULL,1024);
 	}
 	else
