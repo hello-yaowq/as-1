@@ -78,6 +78,7 @@ void vEcu::run(void)
             if(ercd)
             {
                 qDebug() << "  >> Incoming message: " << QString("0x%1").arg(id,8,16) << "\n";
+                fifo_write(0xdeadbeef);
             }
         }while(ercd);
         ReleaseMutex( r_lock );
@@ -98,5 +99,25 @@ bool vEcu::fifo_read(uint32* id)
     {
         ercd  = false;
     }
+    return ercd;
+}
+bool vEcu::fifo_write(uint32 id)
+{
+    bool ercd;
+    WaitForSingleObject(w_lock,INFINITE);
+    if(w_fifo->count < w_fifo->size)
+    {
+        w_fifo->identifier[w_fifo->w_pos] = id;
+        w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
+        w_fifo->count += 1;
+        ercd = true;
+    }
+    else
+    {
+        assert(0);
+        ercd = false;
+    }
+    ReleaseMutex(w_lock);
+    SetEvent( w_event );
     return ercd;
 }

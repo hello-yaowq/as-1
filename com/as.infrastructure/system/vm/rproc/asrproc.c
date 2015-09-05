@@ -52,8 +52,9 @@ static const struct rproc_ops rproc_ops=
 	.kick  = kick
 };
 
-struct rsc_fifo* r_fifo;
-struct rsc_fifo* w_fifo;
+static struct rsc_fifo* r_fifo;
+static struct rsc_fifo* w_fifo;
+static HANDLE* virtio;
 /* ============================ [ LOCALS    ] ====================================================== */
 static bool fifo_write(u32 id)
 {
@@ -77,25 +78,56 @@ static bool fifo_write(u32 id)
 }
 static bool fifo_read(u32* id)
 {
-	bool ercd;
-	WaitForSingleObject(rpdev.r_lock,INFINITE);
+    bool ercd;
     if(r_fifo->count > 0)
-	{
-		*id = r_fifo->identifier[r_fifo->r_pos];
-		r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
-		r_fifo->count -= 1;
-		ercd = true;
-	}
+    {
+        *id = r_fifo->identifier[r_fifo->r_pos];
+        r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
+        r_fifo->count -= 1;
+        ercd = true;
+    }
     else
     {
-    	assert(0);
-    	ercd  = false;
+        ercd  = false;
     }
-	ReleaseMutex(rpdev.r_lock);
-	return ercd;
+    return ercd;
+}
+static DWORD virtio_run(LPVOID lpParameter)
+{
+	HANDLE pvObjectList[ 2 ];
+	uint32 id;
+	bool ercd;
+
+	pvObjectList[ 0 ] = rpdev.r_lock;
+	pvObjectList[ 1 ] = rpdev.r_event;
+
+	while(true)
+	{
+		WaitForMultipleObjects( sizeof( pvObjectList ) / sizeof( HANDLE ), pvObjectList, TRUE, INFINITE );
+		do {
+			ercd = fifo_read(&id);
+			if(ercd)
+			{
+				printf("  >> Incoming message: 0x%X\n",id);
+			}
+		}while(ercd);
+		ReleaseMutex( rpdev.r_lock );
+	}
+	return 0;
 }
 static int start(struct rproc *rproc)
 {
+	virtio = CreateThread( NULL, 0, virtio_run, NULL, 0, NULL );
+	if( virtio != NULL )
+	{
+		SetThreadPriority( virtio, THREAD_PRIORITY_BELOW_NORMAL );
+		SetThreadPriorityBoost( virtio, TRUE );
+		SetThreadAffinityMask( virtio, 0x01 );
+	}
+	else
+	{
+		assert(0);
+	}
 	/* refer omap_remoteproc.c code for linux, this rproc is gust */
 	fifo_write(RP_FIFO_READY);
 	return 0;
@@ -115,6 +147,7 @@ void InitOS(void)
 	if(NULL != rpdev.address)
 	{
 		printf("  >> start rproc up!\n");
+
 		dev = &rpdev;
 		/* init FIFO */
 		dev->size = dev->size - dev->sz_fifo*2*sizeof(u32);

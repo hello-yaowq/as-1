@@ -67,6 +67,7 @@ public:
     void run(void);
 
     bool fifo_read(uint32* id);
+    bool fifo_write(uint32 id);
 signals:
 
 protected:
