@@ -1,47 +1,49 @@
 #common compilers
-AS  = $(IAR_DIR)/arm/bin/iasmarm.exe
-CC  = $(IAR_DIR)/arm/bin/iccarm.exe
-LD  = $(IAR_DIR)/arm/bin/ilinkarm.exe
+AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc.exe
+CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc.exe
+LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld.exe
 AR  = ar
 RM  = rm
 
-#common flags
-asflags-y += -s+ -M\<\> -w+ -r --cpu Cortex-M3 --fpu None
-cflags-y += --no_cse --no_unroll --no_inline --no_code_motion
-cflags-y += --no_tbaa --no_clustering --no_scheduling 
-cflags-y += --cpu=Cortex-M3 -e --fpu=None --endian=little
-cflags-y += --dlib_config $(IAR_DIR)/arm/INC/c/DLib_Config_Normal.h
-cflags-y += --diag_suppress=Pa050
-ifeq ($(DEBUG),TRUE)
-cflags-y += --debug -On
+ifeq ($(CC), $(wildcard $(CC)))
 else
-cflags-y += --debug -Oh 
+$(error fix your arm gcc compiler path)
 endif
 
-ldflags-y += --config $(link-script)
-ldflags-y += --semihosting --entry __iar_program_start --vfe
+#common flags
+asflags-y += -mcpu=cortex-m3  -mthumb
+cflags-y  += -mcpu=cortex-m3  -mthumb -std=gnu99
+cflags-y  += -mstructure-size-boundary=8 -ffreestanding
+cflags-y  += -pedantic -W -Wall
+ifeq ($(DEBUG),TRUE)
+cflags-y += -g -O2
+asflags-y += -g -O2
+else
+cflags-y += -O0
+asflags-y += -O0
+endif
 
-inc-y += -I $(IAR_DIR)/arm/CMSIS/Include
-
+ldflags-y += -static -T $(link-script)
 dir-y += $(src-dir)
 
 VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
 	
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
+obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))		
 
 #common rules	
 
-$(obj-dir)/%.o:%.s
+$(obj-dir)/%.o:%.S
 	@echo
 	@echo "  >> AS $(notdir $<)"
-	@$(AS) $(asflags-y) $(def-y) -o $@ $<
+	@$(AS) $(asflags-y) $(def-y) -o $@ -c $<
 	
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
 	
 include $(wildcard $(obj-dir)/*.d)
 	

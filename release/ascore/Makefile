@@ -12,6 +12,8 @@ APPLICATION = $(prj-dir)/com/as.application
 VIRTUAL = $(prj-dir)/com/as.virtual
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
+# --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
+DEBUG ?= TRUE
 
 PY27 = C:/Python27/python.exe
 ifeq ($(PY27), $(wildcard $(PY27)))
@@ -25,22 +27,30 @@ else
 $(error fix your python34 path)
 endif
 
-QMAKE  = C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/qmake.exe
-QBUILD = C:/Qt/Qt5.5.0/Tools/mingw492_32/bin/make.exe
-ifeq ($(QMAKE), $(wildcard $(QMAKE)))
-else
-$(error fix your Qt path)
-endif
-
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+# --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
-IAR_DIR = C:/IAR
-inc-y += -I./include
-inc-dir = ./include
-		 
+ifeq ($(compiler),mingw-gcc)
+#cflags-y += -Werror
+COMPILER_DIR = C:/MinGW
+include ../make/mingw.mk
+endif
+
+ifeq ($(compiler),arm-none-eabi-gcc)
+COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+inc-y += -I$(COMPILER_DIR)/CMSIS/Include
+include ../make/cortexm3.gcc.mk
+endif
+
+ifeq ($(compiler),iccarm)
+COMPILER_DIR = C:/IAR
+include ../make/cortexm3.iar.mk
+endif
+
+# --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),mingw)	
 # slect GUI openVG/GTK 
 ldflags-y += -lm -lwinmm 
@@ -65,9 +75,9 @@ endif	# MINGW end
 
 ifeq ($(board),at91sam3s)
 ifeq ($(DEBUG),TRUE)
-link-script = $(IAR_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-sram.icf
+link-script = $(COMPILER_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-sram.icf
 else
-link-script = $(IAR_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-flash.icf
+link-script = $(COMPILER_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-flash.icf
 endif
 def-y += -DCHIP_AT91SAM3S -Dsam3s4 -DUSBD_LEDUSB=LED_RED
 inc-y += -I./include/libraries/libchip_sam3s
@@ -80,33 +90,19 @@ inc-y += -I./include/libraries/usb/common/core
 inc-y += -I./include/libraries/usb/common/cdc
 inc-y += -I./include/libraries/usb/device/core
 inc-y += -I./include/libraries/usb/device/cdc-serial
-obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o 
 endif	# AT91SAM3S end
 
 ifeq ($(board),stm32f107vc)
-link-script = $(IAR_DIR)/arm/config/linker/ST/stm32f107xC.icf
+link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
-obj-y += $(obj-dir)/startup.o $(obj-dir)/portableS.o 
 endif	# stm32f107vc end
+
+inc-y += -I./include
+inc-dir = ./include
 
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
-
-
-ifeq ($(board),mingw)
-#cflags-y += -Werror
-include ../make/mingw.mk
-endif
-
-ifeq ($(board),at91sam3s)
-include ../make/cortexm3.mk
-endif
-
-ifeq ($(board),stm32f107vc)
-include ../make/cortexm3.mk
-endif
-
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -164,6 +160,7 @@ ifeq ($(gui),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
+	@(cd $(src-dir);rm -f remoteproc_virtio.c)
 	@(echo "  >> prepare link for MINGW done")
 
 dep-stm32f107vc:
@@ -187,6 +184,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
+	@(cd $(src-dir);rm -fv Can_* CanIf_* Com_* CanTp_* PduR_*)
 	@(echo "  >> prepare link for STM32F107VC done")
 		
 dep-at91sam3s:
@@ -233,12 +231,27 @@ clean:
 clean-dist:clean
 	@rm -fv $(src-dir)/*
 	
-Qall: 
-	@($(QMAKE) -o $(obj-dir)/makefile virtual/asVirtual.pro -r -spec win32-g++ "CONFIG+=debug") 
-	@(cd $(obj-dir);$(QBUILD))
-#@(make DEBUG=TRUE board=mingw gui=GTK)
-Qclean:
-	
-	
+
+# ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #
+01:
+	make dep board=at91sam3s compiler=iccarm
+02:
+	make all board=at91sam3s compiler=iccarm DEBUG=TRUE
+03:
+	make all board=at91sam3s compiler=iccarm DEBUG=FALSE	
+# ---------------------------------- [ STM32F107VC ] ---------------------------------- #
+11:
+	make dep board=stm32f107vc compiler=iccarm
+12:
+	make all board=stm32f107vc compiler=iccarm DEBUG=TRUE
+13:
+	make all board=stm32f107vc compiler=iccarm DEBUG=FALSE	
+# ---------------------------------- [ MINGW       ] ---------------------------------- #
+91:
+	make dep board=mingw compiler=mingw-gcc gui=GTK
+92:
+	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=TRUE
+93:
+	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=FALSE	
  
 
