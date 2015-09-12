@@ -39,6 +39,8 @@
 #define __user
 #define __force
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 #ifndef __packed
 # define __packed		__attribute__((__packed__))
 #endif

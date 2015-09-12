@@ -16,11 +16,11 @@ cflags-y  += -mcpu=cortex-m3  -mthumb -std=gnu99
 cflags-y  += -mstructure-size-boundary=8 -ffreestanding
 cflags-y  += -pedantic -W -Wall
 ifeq ($(DEBUG),TRUE)
-cflags-y += -g -O2
-asflags-y += -g -O2
+cflags-y += -g -O0
+asflags-y += -g -O0
 else
-cflags-y += -O0
-asflags-y += -O0
+cflags-y += -O2
+asflags-y += -O2
 endif
 
 ldflags-y += -static -T $(link-script)

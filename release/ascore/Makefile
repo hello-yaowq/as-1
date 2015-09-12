@@ -160,7 +160,6 @@ ifeq ($(gui),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
-	@(cd $(src-dir);rm -f remoteproc_virtio.c)
 	@(echo "  >> prepare link for MINGW done")
 
 dep-stm32f107vc:
@@ -231,7 +230,7 @@ clean:
 clean-dist:clean
 	@rm -fv $(src-dir)/*
 	
-
+00:clean-dist
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #
 01:
 	make dep board=at91sam3s compiler=iccarm
@@ -253,5 +252,7 @@ clean-dist:clean
 	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=TRUE
 93:
 	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=FALSE	
+94:
+	make dll board=mingw compiler=mingw-gcc gui=GTK DEBUG=TRUE	
  
 

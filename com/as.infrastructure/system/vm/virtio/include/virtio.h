@@ -26,7 +26,7 @@ struct virtqueue {
 	unsigned int num_free;
 	void *priv;
 };
-
+typedef void (*vq_callback_t)(struct virtqueue *vq);
 bool virtqueue_kick(struct virtqueue *vq);
 
 bool virtqueue_kick_prepare(struct virtqueue *vq);
