@@ -3,7 +3,7 @@ target-y = $(board)
 obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
-vir-src = ./virtual/src
+vir-inc = ./virtual/as.virtual/include
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
@@ -59,8 +59,8 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++ -lm	
 
-def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET -DUSE_GUI	\
-		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_CANTP
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET	\
+		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_CANTP -DUSE_GUI
 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
@@ -110,7 +110,7 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
-$(vir-src):
+$(vir-inc):
 	@mkdir -p $@
 
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
@@ -120,9 +120,9 @@ XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
 	
 
-dep-as-virtual:$(vir-src)
+dep-as-virtual:$(vir-inc)
 	@($(LNFS) $(VIRTUAL) virtual)
-	@(cd $(vir-src);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h)
+	@(cd $(vir-inc);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h)
 	
 dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -256,6 +256,6 @@ clean-dist:clean
 93:
 	make all board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE	
+	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
  
 

@@ -66,12 +66,15 @@ static bool fifo_write(u32 id)
 	bool ercd;
 #ifdef __WINDOWS__
 	WaitForSingleObject(rpdev.w_lock,INFINITE);
+#else
+	(void)pthread_mutex_lock((pthread_mutex_t *)rpdev.w_lock);
 #endif
 	if(w_fifo->count < w_fifo->size)
 	{
 		w_fifo->identifier[w_fifo->w_pos] = id;
 		w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
 		w_fifo->count += 1;
+		//printf("  >> fifo_write(%x) fifo=%x lock=%x event=%x\n",id, w_fifo, rpdev.w_lock, rpdev.w_event);
 		ercd = true;
 	}
 	else
@@ -82,6 +85,9 @@ static bool fifo_write(u32 id)
 #ifdef __WINDOWS__
 	ReleaseMutex(rpdev.w_lock);
 	SetEvent( rpdev.w_event );
+#else
+	(void)pthread_mutex_unlock( (pthread_mutex_t *)rpdev.w_lock );
+	(void)pthread_cond_signal ((pthread_cond_t *)rpdev.w_event);
 #endif
 	return ercd;
 }
@@ -93,6 +99,7 @@ static bool fifo_read(u32* id)
         *id = r_fifo->identifier[r_fifo->r_pos];
         r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
         r_fifo->count -= 1;
+        //printf("  >> fifo_read(%x) fifo=%x lock=%x event=%x\n",*id, r_fifo, rpdev.r_lock, rpdev.r_event);
         ercd = true;
     }
     else
@@ -116,10 +123,13 @@ static void* virtio_run(void* lpParameter)
 	pvObjectList[ 0 ] = rpdev.r_lock;
 	pvObjectList[ 1 ] = rpdev.r_event;
 #endif
+	//printf("  >> virtio_run daemon is on-line fifo=%x lock=%x event=%x\n",r_fifo, rpdev.r_lock, rpdev.r_event);
 	while(true)
 	{
 #ifdef __WINDOWS__
 		WaitForMultipleObjects( sizeof( pvObjectList ) / sizeof( HANDLE ), pvObjectList, TRUE, INFINITE );
+#else
+		(void)pthread_cond_wait ((pthread_cond_t *)rpdev.r_event,(pthread_mutex_t *)rpdev.r_lock);
 #endif
 		do {
 			ercd = fifo_read(&id);
@@ -127,9 +137,15 @@ static void* virtio_run(void* lpParameter)
 			{
 				printf("  >> Incoming message: 0x%X\n",id);
 			}
+			else
+			{
+				/* do nothing as empty */
+			}
 		}while(ercd);
 #ifdef __WINDOWS__
 		ReleaseMutex( rpdev.r_lock );
+#else
+		(void)pthread_mutex_unlock( (pthread_mutex_t *)rpdev.r_lock );
 #endif
 	}
 	return 0;
@@ -138,6 +154,9 @@ static int start(struct rproc *rproc)
 {
 #ifdef __WINDOWS__
 	virtio = CreateThread( NULL, 0, virtio_run, NULL, 0, NULL );
+#else
+	pthread_create((pthread_t*)&virtio,NULL,virtio_run,NULL);
+	usleep(1);/*make sure virtio_run daemon run firstly */
 #endif
 	if( virtio != NULL )
 	{
@@ -169,8 +188,6 @@ void InitOS(void)
 	struct device* dev;
 	if(NULL != rpdev.address)
 	{
-		printf("  >> start rproc up!\n");
-
 		dev = &rpdev;
 		/* init FIFO */
 		dev->size = dev->size - dev->sz_fifo*2*sizeof(u32);
@@ -194,7 +211,7 @@ void InitOS(void)
 	}
 	else
 	{
-		assert(0);
+		//assert(0);
 	}
 }
 
@@ -213,7 +230,5 @@ bool AsRproc_Init(void* address, size_t size,void* r_lock,void* w_lock,void* r_e
 		rpdev.w_event = w_event;
 		bOK = true;
 	}
-	printf("  >> AsRproc_Init(0x%X,%d,0x%X,0x%X,0x%X,0x%X) = %s\n",
-			address,size,r_lock,w_lock,r_event,w_event,bOK?"true":"false");
 	return bOK;
 }

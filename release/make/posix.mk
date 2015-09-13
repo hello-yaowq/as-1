@@ -5,12 +5,12 @@ LD  = gcc
 AR  = ar
 RM  = rm
 
-cflags-y  += -std=gnu99
-ldflags-y += -std=gnu99
+cflags-y  += -std=gnu99 -fPIC
+ldflags-y += -std=gnu99 -fPIC
 #common flags
 ifeq ($(DEBUG),FALSE)
-cflags-y   += -c -g  -O2 -Wall
-ldflags-y  += -g  -O2 -Wall	
+cflags-y   += -c -O2 -Wall
+ldflags-y  += -O2 -Wall	
 else
 cflags-y   += -c -g  -O0 -Wall
 ldflags-y  += -g  -O0 -Wall	

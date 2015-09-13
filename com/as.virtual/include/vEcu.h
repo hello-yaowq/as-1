@@ -16,12 +16,21 @@
 #define RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#ifdef __WINDOWS__
 #include <windows.h>
+#else
+#include <pthread.h>
+#include <dlfcn.h>
+#endif
 #include <QThread>
 #include <QString>
 #include <assert.h>
 /* ============================ [ MACROS    ] ====================================================== */
+#ifdef __WINDOWS__
 #define VIRTUAL_ECU1 "D:/repository/parai/as/release/ascore/out/mingw.dll"
+#else
+#define VIRTUAL_ECU1 "/home/parai/workspace/as/release/ascore/out/posix.dll"
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 enum rp_fifo_messages {
     RP_FIFO_READY		= 0xFFFFFF00,
@@ -40,26 +49,33 @@ struct rsc_fifo {
     uint32 identifier[0];
 } __attribute__((__packed__));
 
-typedef void (*PF_MAIN)(void);
-typedef bool (*PF_RPROC_INIT)(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event,size_t sz_fifo);
+typedef void* (*PF_MAIN)(void*);
+typedef bool (*PF_RPROC_INIT)(void* address, size_t size,void* r_lock,void* w_lock,void* r_event, void* w_event,size_t sz_fifo);
 class vEcu: public QThread
 {
 Q_OBJECT
     private:
-    HMODULE hxDll;
+    void* hxDll;
     void* rsc_tbl_address;
     size_t rsc_tbl_size;
     size_t sz_fifo;
-    HANDLE  r_lock;
-    HANDLE  w_lock;
-    HANDLE  r_event;
-    HANDLE  w_event;
-    HANDLE pvThread;
+    void*  r_lock;
+    void*  w_lock;
+    void*  r_event;
+    void*  w_event;
+    void*  pvThread;
     PF_MAIN pfMain;
     PF_RPROC_INIT pfRprocInit;
 
     struct rsc_fifo* r_fifo;
     struct rsc_fifo* w_fifo;
+
+#ifdef __LINUX__
+    pthread_mutex_t w_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t r_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t  w_cond  = PTHREAD_COND_INITIALIZER;
+    pthread_cond_t  r_cond  = PTHREAD_COND_INITIALIZER;
+#endif
 public:
     explicit vEcu ( QString dll, QObject *parent = 0);
     ~vEcu ( );

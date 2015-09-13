@@ -20,7 +20,7 @@
 							<option id="cdt.managedbuild.option.gnu.cross.prefix.1129736223" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix"/>
 							<option id="cdt.managedbuild.option.gnu.cross.path.1504825270" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.2046815504" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
-							<builder autoBuildTarget="all" buildPath="${workspace_loc:/as/release/ascore}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.builder.gnu.cross.1519836176" incrementalBuildTarget="92" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="false" superClass="cdt.managedbuild.builder.gnu.cross"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/as/release/ascore}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.builder.gnu.cross.1519836176" incrementalBuildTarget="94" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="false" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.1721395991" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
 								<option id="gnu.c.compiler.option.include.paths.266639263" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;D:\Python34\include&quot;"/>
@@ -30,6 +30,9 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtCore&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtGui&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtWidgets&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gdk-pixbuf-2.0"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.721171525" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -62,6 +65,9 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtCore&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtGui&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtWidgets&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gdk-pixbuf-2.0"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1621784308" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -99,6 +105,9 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtCore&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtGui&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Qt\Qt5.5.0\5.5\mingw492_32\include\QtWidgets&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
+									<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/gdk-pixbuf-2.0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1651600050" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>

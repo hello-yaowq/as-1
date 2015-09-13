@@ -51,6 +51,7 @@ TASK(TaskApp)
 //		init = TRUE;
 //	}
 //	Can_Write(Can2Hth,&pdu);
+//	printf("TaskApp is running\n");
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif
