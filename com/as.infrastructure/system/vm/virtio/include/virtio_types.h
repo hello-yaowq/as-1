@@ -32,7 +32,8 @@
  * Author: Michael S. Tsirkin <mst@redhat.com>
  */
 #include "Std_Types.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <errno.h>
 
 #define __bitwise__
 #define __bitwise

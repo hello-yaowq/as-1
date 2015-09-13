@@ -7,6 +7,8 @@ vir-src = ./virtual/src
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
+host = $(shell uname)
+
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 APPLICATION = $(prj-dir)/com/as.application
 VIRTUAL = $(prj-dir)/com/as.virtual
@@ -14,29 +16,24 @@ ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
 DEBUG ?= TRUE
-
-PY27 = C:/Python27/python.exe
-ifeq ($(PY27), $(wildcard $(PY27)))
-else
-$(error fix your python27 path)
-endif
-
-PY34 = C:/Python34/python.exe
-ifeq ($(PY34), $(wildcard $(PY34)))
-else
-$(error fix your python34 path)
-endif
-
+PY27 = python2
+PY34 = python3
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
+ifeq ($(host), Linux)
+def-y += -D__LINUX__
+endif
+ifeq ($(host), nt)
+def-y += -D__WINDOWS__
+endif
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
-ifeq ($(compiler),mingw-gcc)
+ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
-COMPILER_DIR = C:/MinGW
-include ../make/mingw.mk
+COMPILER_DIR = 
+include ../make/posix.mk
 endif
 
 ifeq ($(compiler),arm-none-eabi-gcc)
@@ -51,14 +48,16 @@ include ../make/cortexm3.iar.mk
 endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
-ifeq ($(board),mingw)	
+ifeq ($(board),posix)	
 # slect GUI openVG/GTK 
-ldflags-y += -lm -lwinmm 
+ifeq ($(host),nt)
+ldflags-y +=-lwinmm 
+endif
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
 			 -lpthread
-ldflags-y += -lstdc++	
+ldflags-y += -lstdc++ -lm	
 
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET -DUSE_GUI	\
 		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_CANTP
@@ -71,7 +70,7 @@ def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 inc-y += -I./include/EGL
 inc-y += -I./include/VG	
 endif
-endif	# MINGW end
+endif	# posix end
 
 ifeq ($(board),at91sam3s)
 ifeq ($(DEBUG),TRUE)
@@ -118,14 +117,14 @@ $(ASCORE)/SgDesign/SgRes/SgRes.h:
 	@(cd SgDesign;$(SG) Sg.xml)	
 
 XCC:
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) ..)	
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
 	
 
 dep-as-virtual:$(vir-src)
 	@($(LNFS) $(VIRTUAL) virtual)
 	@(cd $(vir-src);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h)
 	
-dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
+dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
@@ -137,12 +136,12 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/mcal TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/ecum TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
-	@(cd $(src-dir);rm -f EcuM_Flexible.c)
+	@(cd $(src-dir);rm -f EcuM_Flexible.c remoteproc_virtio.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/schm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)
@@ -151,7 +150,11 @@ dep-mingw: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/include FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MemMang FALSE)
+ifeq ($(host),Linux)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/GCC/Posix FALSE)
+else	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MSVC-MingW FALSE)
+endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
 ifeq ($(gui),openVG)	
@@ -160,7 +163,7 @@ ifeq ($(gui),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
-	@(echo "  >> prepare link for MINGW done")
+	@(echo "  >> prepare link for posix done")
 
 dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -245,14 +248,14 @@ clean-dist:clean
 	make all board=stm32f107vc compiler=iccarm DEBUG=TRUE
 13:
 	make all board=stm32f107vc compiler=iccarm DEBUG=FALSE	
-# ---------------------------------- [ MINGW       ] ---------------------------------- #
+# ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=mingw compiler=mingw-gcc gui=GTK
+	make dep board=posix compiler=posix-gcc gui=GTK
 92:
-	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=TRUE
+	make all board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE
 93:
-	make all board=mingw compiler=mingw-gcc gui=GTK DEBUG=FALSE	
+	make all board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
 94:
-	make dll board=mingw compiler=mingw-gcc gui=GTK DEBUG=TRUE	
+	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE	
  
 

@@ -110,9 +110,10 @@
 unsigned long ulGetRunTimeCounterValue( void ); /* Prototype of function that returns run time counter. */
 void vConfigureTimerForRunTimeStats( void );	/* Prototype of function that initialises the run time counter. */
 #define configGENERATE_RUN_TIME_STATS	1
+#ifdef __WINDOWS__
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
 #define portGET_RUN_TIME_COUNTER_VALUE() ulGetRunTimeCounterValue()
-
+#endif
 /* Co-routine related configuration options. */
 #define configUSE_CO_ROUTINES 		1
 #define configMAX_CO_ROUTINE_PRIORITIES ( 2 )

@@ -23,7 +23,12 @@
 #include "VG/vgu.h"
 #include "EGL/egl.h"
 #endif
+#ifdef __WINDOWS__
 #include <windows.h>
+#else /* __LINUX__ */
+#include <pthread.h>
+#endif
+
 #include <Sg.h>
 
 /* ============================ [ MACROS    ] ====================================================== */
@@ -44,7 +49,6 @@
 #define LCD_X1(x)	(x*lcdPixel + lcdPixel)
 #define LCD_Y1(y)	(y*lcdPixel + lcdPixel)
 /* ============================ [ TYPES     ] ====================================================== */
-
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef GUI_USE_GTK
 static GtkWidget*       pLcd        = NULL;
@@ -56,7 +60,9 @@ EGLConfig			eglconfig;
 EGLSurface			eglsurface;
 EGLContext			eglcontext;
 #endif
-static HANDLE 			lcdThread   = NULL;
+
+
+static void* 			lcdThread   = NULL;
 static uint32           pLcdBuffer[LCD_MAX_WIDTH*LCD_MAX_HEIGHT];
 static uint32           lcdWidth    = 0;
 static uint32           lcdHeight   = 0;
@@ -195,7 +201,11 @@ static void lcd_main_quit(void)
 
 	gtk_main_quit();
 }
+#ifdef __WINDOWS__
 static DWORD Lcd_Thread(LPVOID param)
+#else
+static void* Lcd_Thread(void* param)
+#endif
 {
 	GtkWidget* pWindow;
 	printf("# Lcd_Thread Enter\n");
@@ -216,6 +226,7 @@ static DWORD Lcd_Thread(LPVOID param)
 	return 0;
 }
 #else
+#ifdef __WINDOWS__
 static void init(NativeWindowType window)
 {
 	static const EGLint s_configAttribs[] =
@@ -369,14 +380,14 @@ static DWORD Lcd_Thread(LPVOID param)
 	DestroyWindow(window);
 	return 0;
 }
+#endif /* __WINDOWS__ */
 #endif /* GUI_USE_GTK */
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 {
 	if(NULL == lcdThread)
 	{
-		lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
-
 		lcdWidth  = width;
 		lcdHeight = height;
 		lcdPixel  = pixel;
@@ -384,9 +395,16 @@ void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 		assert(LCD_WIDTH  < LCD_MAX_WIDTH);
 		assert(LCD_HEIGHT < LCD_MAX_HEIGHT);
 
+#ifdef __WINDOWS__
+		lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
 		assert(lcdThread!=NULL);
 
 		ResumeThread( lcdThread );
+#else /* __LINUX__ */
+
+		pthread_create( (pthread_t*)&lcdThread, NULL, Lcd_Thread, (void *)NULL );
+#endif
+
 	}
 	else
 	{

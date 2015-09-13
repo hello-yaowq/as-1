@@ -395,11 +395,12 @@ portTickType xMicroSeconds = portTICK_RATE_MICROSECONDS;
 	}
 }
 /*-----------------------------------------------------------*/
-
+TickType_t				OsTickCounter;
 void vPortSystemTickHandler( int sig )
 {
 pthread_t xTaskToSuspend;
 pthread_t xTaskToResume;
+uint32_t ulSwitchRequired;
 
 	if ( ( pdTRUE == xInterruptsEnabled ) && ( pdTRUE != xServicingTick ) )
 	{
@@ -408,12 +409,23 @@ pthread_t xTaskToResume;
 			xServicingTick = pdTRUE;
 
 			xTaskToSuspend = prvGetThreadHandle( xTaskGetCurrentTaskHandle() );
+
+			OsTickCounter ++;
+
+			if(0 == OsTickCounter)
+			{
+				OsTickCounter = 1;
+			}
+
 			/* Tick Increment. */
-			vTaskIncrementTick();
+			ulSwitchRequired = ( uint32_t ) xTaskIncrementTick();
 
 			/* Select Next Task. */
 #if ( configUSE_PREEMPTION == 1 )
-			vTaskSwitchContext();
+			if( ulSwitchRequired != pdFALSE )
+			{
+				vTaskSwitchContext();
+			}
 #endif
 			xTaskToResume = prvGetThreadHandle( xTaskGetCurrentTaskHandle() );
 
@@ -772,3 +784,14 @@ struct tms xTimes;
 	(void)ulTotalTime;
 }
 /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+#include "Std_Types.h"
+imask_t portGetIrqStateAndDisableIt(void)
+{
+	vPortEnterCritical();
+	return uxCriticalNesting;
+}
+void portRestroeIrqState(imask_t irq_state)
+{
+	vPortExitCritical();
+}

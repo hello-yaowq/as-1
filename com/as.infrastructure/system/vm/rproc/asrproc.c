@@ -14,7 +14,12 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "remoteproc.h"
+#ifdef __WINDOWS__
 #include <windows.h>
+#endif
+#ifdef __LINUX__
+#include <pthread.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -54,12 +59,14 @@ static const struct rproc_ops rproc_ops=
 
 static struct rsc_fifo* r_fifo;
 static struct rsc_fifo* w_fifo;
-static HANDLE* virtio;
+static void* virtio;
 /* ============================ [ LOCALS    ] ====================================================== */
 static bool fifo_write(u32 id)
 {
 	bool ercd;
+#ifdef __WINDOWS__
 	WaitForSingleObject(rpdev.w_lock,INFINITE);
+#endif
 	if(w_fifo->count < w_fifo->size)
 	{
 		w_fifo->identifier[w_fifo->w_pos] = id;
@@ -72,8 +79,10 @@ static bool fifo_write(u32 id)
 		assert(0);
 		ercd = false;
 	}
+#ifdef __WINDOWS__
 	ReleaseMutex(rpdev.w_lock);
 	SetEvent( rpdev.w_event );
+#endif
 	return ercd;
 }
 static bool fifo_read(u32* id)
@@ -92,18 +101,26 @@ static bool fifo_read(u32* id)
     }
     return ercd;
 }
+#ifdef __WINDOWS__
 static DWORD virtio_run(LPVOID lpParameter)
+#else
+static void* virtio_run(void* lpParameter)
+#endif
 {
+#ifdef __WINDOWS__
 	HANDLE pvObjectList[ 2 ];
+#endif
 	uint32 id;
 	bool ercd;
-
+#ifdef __WINDOWS__
 	pvObjectList[ 0 ] = rpdev.r_lock;
 	pvObjectList[ 1 ] = rpdev.r_event;
-
+#endif
 	while(true)
 	{
+#ifdef __WINDOWS__
 		WaitForMultipleObjects( sizeof( pvObjectList ) / sizeof( HANDLE ), pvObjectList, TRUE, INFINITE );
+#endif
 		do {
 			ercd = fifo_read(&id);
 			if(ercd)
@@ -111,18 +128,24 @@ static DWORD virtio_run(LPVOID lpParameter)
 				printf("  >> Incoming message: 0x%X\n",id);
 			}
 		}while(ercd);
+#ifdef __WINDOWS__
 		ReleaseMutex( rpdev.r_lock );
+#endif
 	}
 	return 0;
 }
 static int start(struct rproc *rproc)
 {
+#ifdef __WINDOWS__
 	virtio = CreateThread( NULL, 0, virtio_run, NULL, 0, NULL );
+#endif
 	if( virtio != NULL )
 	{
+#ifdef __WINDOWS__
 		SetThreadPriority( virtio, THREAD_PRIORITY_BELOW_NORMAL );
 		SetThreadPriorityBoost( virtio, TRUE );
 		SetThreadAffinityMask( virtio, 0x01 );
+#endif
 	}
 	else
 	{
@@ -175,7 +198,7 @@ void InitOS(void)
 	}
 }
 
-bool AsRproc_Init(void* address, size_t size,HANDLE r_lock,HANDLE w_lock,HANDLE r_event, HANDLE w_event, size_t sz_fifo)
+bool AsRproc_Init(void* address, size_t size,void* r_lock,void* w_lock,void* r_event, void* w_event, size_t sz_fifo)
 {
 
 	bool bOK = false;

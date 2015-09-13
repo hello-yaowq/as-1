@@ -235,7 +235,11 @@ void ShutdownOS(StatusType ercd)
 
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 {
-    _assert(__FUNCTION__, pcFileName, ulLine);
+#ifdef __WINDOWS__
+    _assert(__func__, pcFileName, ulLine);
+#else
+	__assert(__func__, pcFileName, ulLine);
+#endif
 }
 
 unsigned long ulGetRunTimeCounterValue( void )

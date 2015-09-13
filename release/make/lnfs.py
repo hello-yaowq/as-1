@@ -4,6 +4,9 @@ import glob
 
 def LNFS(res,tgt):
     abs = os.path.abspath(res)
+    if(False == os.path.exists(abs)):
+        print("  >> error: lnfs %s %s"%(res,tgt))
+        return
     if(os.path.isdir(abs) and (tgt=='TRUE' or tgt=='FALSE')):
         for res2 in glob.glob('%s/*'%(abs)):
             # fork sub directory only if tgt is TRUE
@@ -18,7 +21,7 @@ def LNFS(res,tgt):
             else:
                 os.system('mklink %s %s'%(tgt,abs))
         else:
-            os.system('ln -fs %s %s'%(res,tgt))
+            os.system('ln -sv %s %s'%(res,tgt))
             
 
 def LNFS2(res):
@@ -29,11 +32,15 @@ def LNFS2(res):
             os.system('mklink /D %s %s'%(tgt,abs))
         elif(os.path.exists(res)):
             os.system('mklink %s %s'%(tgt,abs))
+        else:
+            print("  >> error: lnfs %s"%(res))
     else:
         if(os.path.isdir(abs)):
-            os.system('ln -fs %s %s'%(res,tgt))
+            os.system('ln -sv %s %s'%(res,tgt))
         elif(os.path.exists(res)):
-            os.system('ln -fs %s %s'%(res,tgt))
+            os.system('ln -sv %s %s'%(res,tgt))
+        else:
+            print(" >> error: lnfs %s"%(res))
             
 
 if(__name__ == '__main__'):
