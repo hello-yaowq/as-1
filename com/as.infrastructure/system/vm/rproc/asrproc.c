@@ -20,6 +20,7 @@
 #ifdef __LINUX__
 #include <pthread.h>
 #endif
+#include <stdarg.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -39,6 +40,8 @@ struct rsc_fifo {
 	u32 w_pos;
 	u32 identifier[0];
 } __packed;
+
+typedef void (*aslog_t)(char*);
 /* ============================ [ DECLARES  ] ====================================================== */
 static int start(struct rproc *rproc);
 static int stop(struct rproc *rproc);
@@ -60,6 +63,8 @@ static const struct rproc_ops rproc_ops=
 static struct rsc_fifo* r_fifo;
 static struct rsc_fifo* w_fifo;
 static void* virtio;
+
+static aslog_t __aslog = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static bool fifo_write(u32 id)
 {
@@ -74,7 +79,7 @@ static bool fifo_write(u32 id)
 		w_fifo->identifier[w_fifo->w_pos] = id;
 		w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
 		w_fifo->count += 1;
-		//printf("  >> fifo_write(%x) fifo=%x lock=%x event=%x\n",id, w_fifo, rpdev.w_lock, rpdev.w_event);
+		ASLOG(0,"  >> fifo_write(%x) fifo=%x lock=%x event=%x\n",id, w_fifo, rpdev.w_lock, rpdev.w_event);
 		ercd = true;
 	}
 	else
@@ -99,7 +104,7 @@ static bool fifo_read(u32* id)
         *id = r_fifo->identifier[r_fifo->r_pos];
         r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
         r_fifo->count -= 1;
-        //printf("  >> fifo_read(%x) fifo=%x lock=%x event=%x\n",*id, r_fifo, rpdev.r_lock, rpdev.r_event);
+        ASLOG(0,"  >> fifo_read(%x) fifo=%x lock=%x event=%x\n",*id, r_fifo, rpdev.r_lock, rpdev.r_event);
         ercd = true;
     }
     else
@@ -123,7 +128,7 @@ static void* virtio_run(void* lpParameter)
 	pvObjectList[ 0 ] = rpdev.r_lock;
 	pvObjectList[ 1 ] = rpdev.r_event;
 #endif
-	//printf("  >> virtio_run daemon is on-line fifo=%x lock=%x event=%x\n",r_fifo, rpdev.r_lock, rpdev.r_event);
+	ASLOG(0,"  >> virtio_run daemon is on-line fifo=%x lock=%x event=%x\n",r_fifo, rpdev.r_lock, rpdev.r_event);
 	while(true)
 	{
 #ifdef __WINDOWS__
@@ -135,7 +140,7 @@ static void* virtio_run(void* lpParameter)
 			ercd = fifo_read(&id);
 			if(ercd)
 			{
-				printf("  >> Incoming message: 0x%X\n",id);
+				ASLOG(AS_LOG_RPROC,"  >> Incoming message: 0x%X\n",id);
 			}
 			else
 			{
@@ -231,4 +236,32 @@ bool AsRproc_Init(void* address, size_t size,void* r_lock,void* w_lock,void* r_e
 		bOK = true;
 	}
 	return bOK;
+}
+void AsRproc_SetLog(aslog_t handler)
+{
+	__aslog = handler;
+}
+
+void aslog(char* format,...)
+{
+	static char* buf = NULL;
+	va_list args;
+
+	va_start(args , format);
+	if(NULL == buf)
+	{
+		buf = malloc(1024);
+		assert(buf);
+	}
+	vsprintf(buf,format,args);
+	if(NULL != __aslog)
+	{
+		__aslog(buf);
+	}
+	else
+	{
+		puts(buf);
+	}
+
+	va_end(args);
 }

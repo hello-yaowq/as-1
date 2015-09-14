@@ -17,14 +17,22 @@
 #include "QDebug"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+typedef void (*aslog_t)(char*);
+typedef void (*setlog_t)(aslog_t);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static void aslog(char* log)
+{
+    qDebug()<< "  ::" << log;
+}
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 vEcu::vEcu ( QString dll, QObject *parent )
     : QThread(parent)
 {
     bool bOK;
+    setlog_t p_setlog;
 #ifdef __WINDOWS__
     hxDll = LoadLibrary(dll.toStdString().c_str());
 #else
@@ -44,6 +52,7 @@ vEcu::vEcu ( QString dll, QObject *parent )
 
     pfMain = (PF_MAIN)GetProcAddress(hxDll,"main");
     pfRprocInit = (PF_RPROC_INIT)GetProcAddress(hxDll,"AsRproc_Init");
+    p_setlog  = (setlog_t)GetProcAddress(hxDll,"AsRproc_SetLog");
 #else
     r_lock = &r_mutex;
     w_lock = &w_mutex;
@@ -52,11 +61,13 @@ vEcu::vEcu ( QString dll, QObject *parent )
 
     pfMain = (PF_MAIN)dlsym(hxDll,"main");
     pfRprocInit = (PF_RPROC_INIT)dlsym(hxDll,"AsRproc_Init");
+    p_setlog  = (setlog_t)dlsym(hxDll,"AsRproc_SetLog");
 #endif
 
      assert(pfMain);
      assert(pfRprocInit);
-
+     assert(p_setlog);
+     p_setlog(aslog);
 
     bOK = pfRprocInit(rsc_tbl_address,rsc_tbl_size,w_lock,r_lock,w_event,r_event,sz_fifo);
     assert(bOK);

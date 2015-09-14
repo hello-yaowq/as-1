@@ -88,6 +88,24 @@
 #define container_of(ptr, type, member) ({			\
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
+
+/* levels for log output */
+#define AS_LOG_RPROC    1
+#define AS_LOG_CAN      2
+#define AS_LOG_CANIF    3
+/* and so on ... */
+#define AS_LOG_DEFAULT  1
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#define ASLOG(level,...) 					\
+	if((level) >= AS_LOG_DEFAULT) {			\
+		aslog(__VA_ARGS__);					\
+	}
+#else
+#define ASLOG(level,fmt,...) 			\
+	if((level) >= AS_DFT_LOG) {			\
+		printf(fmt,__VA_ARGS__);		\
+	}
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned char               boolean;
 typedef int8_t        				sint8;
@@ -131,4 +149,7 @@ typedef struct {
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern imask_t portGetIrqStateAndDisableIt(void);
 extern void portRestroeIrqState(imask_t irq_state);
+#if defined(__WINDOWS__) || defined(__LINUX__)
+extern void aslog(char* format,...);
+#endif
 #endif /* STD_TYPES_H */
