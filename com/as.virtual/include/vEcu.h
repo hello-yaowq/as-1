@@ -24,6 +24,7 @@
 #endif
 #include <QThread>
 #include <QString>
+#include <QDebug>
 #include <assert.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #ifdef __WINDOWS__
@@ -95,4 +96,6 @@ private slots:
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void aslog(const char* who,const char* log,...);
+
 #endif /* RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_ */

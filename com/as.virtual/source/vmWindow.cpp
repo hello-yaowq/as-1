@@ -15,12 +15,36 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "vmWindow.h"
 #include "vEcu.h"
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
+#include <dirent.h>
+#include <QDebug>
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+vmAction::vmAction(QString dll,QWidget* parent)
+    :QAction(dll,parent), dll_name(dll)
+{
+    connect(this,SIGNAL(triggered()),this,SLOT(start()));
+}
+
+void vmAction::start(void)
+{
+    aslog("vmAction","Start ECU<%s>\n",dll_name.toStdString().c_str());
+    ecu = new vEcu(dll_name);
+    ecu->start();
+    setDisabled(true);
+}
+
 vmWindow::vmWindow(QWidget* parent)
     : QMainWindow(parent)
 {
@@ -45,9 +69,25 @@ vmWindow::vmWindow(QWidget* parent)
     connect(action,SIGNAL(triggered()),this,SLOT(close()));
     menubar->addAction(action);
 
-    startEcu1Action = new QAction(tr("&Start Ecu1"),this);
-    connect(startEcu1Action,SIGNAL(triggered()),this,SLOT(start_ecu1()));
-    toolbar->addAction(startEcu1Action);
+    char* cwd = getcwd(NULL,0);
+    chdir("../../out");
+    char* workpath = getcwd(NULL,0);
+
+    free(cwd);
+    free(workpath);
+
+    DIR* d = opendir(".");
+    struct dirent *file;
+    while((file = readdir(d)) != NULL)
+    {
+        if(strstr(file->d_name,".dll"))
+        {
+            aslog("vmWindow","load %s\n",file->d_name);
+            action = new vmAction(QString(file->d_name),this);
+            toolbar->addAction(action);
+        }
+    }
+    closedir(d);
 
     setGeometry(25,30,600,20);
 }
@@ -63,12 +103,6 @@ void vmWindow::open ( void )
 
 void vmWindow::close( void )
 {
-}
-void vmWindow::start_ecu1(void)
-{
-    ecu1 = new vEcu(VIRTUAL_ECU1);
-    ecu1->start();
-    startEcu1Action->setDisabled(true);
 }
 
 vmWindow::~vmWindow()

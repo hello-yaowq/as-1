@@ -23,13 +23,24 @@
 #include "vEcu.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+class vmAction : public QAction
+{
+Q_OBJECT
+private:
+    QString dll_name;
+    vEcu* ecu;
+public:
+    explicit vmAction(QString dll,QWidget* parent = 0);
+private slots:
+    void start(void);
+
+};
 class vmWindow : public QMainWindow
 {
 Q_OBJECT
 private:
     QToolBar* toolbar;
-    QAction* startEcu1Action;
-    vEcu*    ecu1;
+    QAction* startEcuAction[];
 public:
     explicit vmWindow(QWidget* parent = 0);
     ~vmWindow();
@@ -37,7 +48,6 @@ private slots:
     void save ( void );
     void open ( void );
     void close( void );
-    void start_ecu1(void);
 };
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */

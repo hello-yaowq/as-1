@@ -15,18 +15,25 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "vEcu.h"
 #include "QDebug"
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
+#include <dirent.h>
+#include <stdarg.h>
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
-typedef void (*aslog_t)(char*);
-typedef void (*setlog_t)(aslog_t);
+typedef void (*aslog_t)(const char*,const char*,...);
+typedef void (*setlog_t)(const char*,aslog_t);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-/* ============================ [ LOCALS    ] ====================================================== */
-static void aslog(char* log)
-{
-    qDebug()<< "  ::" << log;
-}
 
+/* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 vEcu::vEcu ( QString dll, QObject *parent )
     : QThread(parent)
@@ -36,7 +43,9 @@ vEcu::vEcu ( QString dll, QObject *parent )
 #ifdef __WINDOWS__
     hxDll = LoadLibrary(dll.toStdString().c_str());
 #else
-    hxDll = dlopen(dll.toStdString().c_str(),RTLD_NOW);
+    char* full_path = realpath(dll.toStdString().c_str(),NULL);
+    hxDll = dlopen(full_path,RTLD_NOW);
+    free(full_path);
 #endif
     assert(hxDll);
 
@@ -67,7 +76,7 @@ vEcu::vEcu ( QString dll, QObject *parent )
      assert(pfMain);
      assert(pfRprocInit);
      assert(p_setlog);
-     p_setlog(aslog);
+     p_setlog(dll.toStdString().c_str(),(aslog_t)aslog);
 
     bOK = pfRprocInit(rsc_tbl_address,rsc_tbl_size,w_lock,r_lock,w_event,r_event,sz_fifo);
     assert(bOK);
@@ -143,7 +152,8 @@ bool vEcu::fifo_read(uint32* id)
         r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
         r_fifo->count -= 1;
         ercd = true;
-        qDebug() << "  >> Incoming message: " << QString("0x%1").arg(*id,8,16) << r_fifo << r_lock << r_event << "\n";
+        //aslog("vEcu","fifo_read(%x) fifo=%x lock=%x event=%x\n",*id, r_fifo, r_lock, r_event);
+        aslog("vEcu","Incoming message: 0x%X",*id);
     }
     else
     {
@@ -165,7 +175,8 @@ bool vEcu::fifo_write(uint32 id)
         w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
         w_fifo->count += 1;
         ercd = true;
-        qDebug() << "  >> Transmit message: " << QString("0x%1").arg(id,8,16) << w_fifo << w_lock << w_event << "\n";
+        //aslog("vEcu","fifo_write(%x) fifo=%x lock=%x event=%x\n",id, w_fifo, w_lock, w_event);
+        aslog("vEcu","Transmit message: 0x%X",id);
     }
     else
     {
@@ -180,4 +191,31 @@ bool vEcu::fifo_write(uint32 id)
     (void)pthread_cond_signal ((pthread_cond_t *)w_event);
 #endif
     return ercd;
+}
+
+void aslog(const char* who,const char* log,...)
+{
+    static char* buf = NULL;
+    static char* name = NULL;
+    va_list args;
+
+    va_start(args , log);
+    if(NULL == buf)
+    {
+        buf = (char*)malloc(1024);
+        name = (char*)malloc(256);
+        assert(buf);
+        assert(name);
+    }
+    vsprintf(buf,log,args);
+    sprintf(name,"%-16s",who);
+
+    int length = strlen(buf);
+    if('\n'==buf[length-1])
+    {
+        buf[length-1] = '\0';   /* drop end line */
+    }
+    qDebug() << name << "::" << buf;
+
+    va_end(args);
 }
