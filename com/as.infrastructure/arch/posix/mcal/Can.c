@@ -413,7 +413,7 @@ void Can_EnableControllerInterrupts( uint8 controller ) {
   return;
 }
 
-Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo ) {
+Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
   Can_ReturnType rv = CAN_OK;
   const Can_HardwareObjectType *hohObj;
   uint32 controller;

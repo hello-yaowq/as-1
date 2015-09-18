@@ -4,7 +4,7 @@
 * Created by:              
 * Copyright:               
 *
-* Configured for (MCU):    STM32_F107
+* Configured for (MCU):    MinGW
 *
 * Module vendor:           ArcCore
 * Generator version:       2.1.11
@@ -13,16 +13,22 @@
 */
 
 
-#if !(((ECUM_SW_MAJOR_VERSION == 1) && (ECUM_SW_MINOR_VERSION == 0)) )
-#error EcuM: Configuration file expected EcuMFixed module version to be 1.0.X*
+#if !(((ECUM_SW_MAJOR_VERSION == 2) && (ECUM_SW_MINOR_VERSION == 0)) )
+#error EcuM: Configuration file expected BSW module version to be 2.0.*
 #endif
+
 
 
 #ifndef ECUM_CFG_H_
 #define ECUM_CFG_H_
 
-#define ECUM_VERSION_INFO_API	STD_OFF
-#define ECUM_DEV_ERROR_DETECT	STD_OFF
+#define ECUM_VERSION_INFO_API	STD_ON
+
+#if defined(USE_DET)
+#define ECUM_DEV_ERROR_DETECT STD_ON
+#else
+#define ECUM_DEV_ERROR_DETECT STD_OFF
+#endif
 
 #define ECUM_MAIN_FUNCTION_PERIOD  (200)
 #define ECUM_NVRAM_READALL_TIMEOUT (10000)
@@ -32,7 +38,7 @@
 #define ECUM_VALIDATION_TIMEOUT	  0
 
 typedef enum {
-	ECUM_USER_User_1,
+	ECUM_USER_EcuMUserConfig,
 	ECUM_USER_ENDMARK	// Must be the last in list!
 } EcuM_UserList;
 

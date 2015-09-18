@@ -1,16 +1,17 @@
-/*-------------------------------- Arctic Core ------------------------------
- * Copyright (C) 2013, ArcCore AB, Sweden, www.arccore.com.
- * Contact: <contact@arccore.com>
- * 
- * You may ONLY use this file:
- * 1)if you have a valid commercial ArcCore license and then in accordance with  
- * the terms contained in the written license agreement between you and ArcCore, 
- * or alternatively
- * 2)if you follow the terms found in GNU General Public License version 2 as 
- * published by the Free Software Foundation and appearing in the file 
- * LICENSE.GPL included in the packaging of this file or here 
- * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
- *-------------------------------- Arctic Core -----------------------------*/
+/* -------------------------------- Arctic Core ------------------------------
+ * Arctic Core - the open source AUTOSAR platform http://arccore.com
+ *
+ * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ * -------------------------------- Arctic Core ------------------------------*/
 
 
 
@@ -29,29 +30,10 @@
 
 #include "ComStack_Types.h"
 
-typedef uint16 Com_IpduGroupIdType;
+typedef uint8 Com_PduGroupIdType;
 typedef uint16 Com_SignalIdType;
 typedef uint8 Com_SignalGroupIdType;
 typedef uint16 Com_BitPositionType;
-
-/* @req COM346 */
-typedef boolean (*ComRxIPduCalloutType)(PduIdType PduId, const uint8 *IPduData);
-
-/* @req COM700 */
-typedef boolean (*ComTxIPduCalloutType)(PduIdType PduId, uint8 *IPduData);
-
-/* @req COM555 COM554 COM491 COM556*/
-typedef void (*ComNotificationCalloutType) (void);
-
-#define COM_NO_FUNCTION_CALLOUT 0xFFFFFFFFu
-
-#define NO_PDU_REFERENCE 0xFFFFu
-
-typedef enum {
-	COM_UNINIT = 0,
-	COM_INIT
-}Com_StatusType;
-
 typedef enum {
 	IMMEDIATE,
 	DEFERRED
@@ -63,15 +45,15 @@ typedef enum {
 } Com_IPduDirection;
 
 typedef enum {
-	CST_BOOLEAN,
-	CST_UINT8,
-	CST_UINT16,
-	CST_UINT32,
-	CST_UINT8_N,
-	CST_UINT8_DYN,
-	CST_SINT8,
-	CST_SINT16,
-	CST_SINT32
+	BOOLEAN,
+	UINT8,
+	UINT16,
+	UINT32,
+	UINT8_N,
+	UINT8_DYN,
+	SINT8,
+	SINT16,
+	SINT32
 } Com_SignalType;
 
 #define COM_SIGNALTYPE_UNSIGNED  FALSE
@@ -79,10 +61,7 @@ typedef enum {
 
 typedef enum {
 	PENDING,
-	TRIGGERED,
-	TRIGGERED_WITHOUT_REPETITION,
-	TRIGGERED_ON_CHANGE_WITHOUT_REPETITION,
-	TRIGGERED_ON_CHANGE
+	TRIGGERED
 } ComTransferProperty_type;
 
 typedef enum {
@@ -132,16 +111,16 @@ typedef enum {
 #define M_SINT32 sint32
 
 #define SignalTypeToSize(type,length) \
-	(type == CST_UINT8   ? sizeof(uint8) : \
-	type == CST_UINT16  ? sizeof(uint16) : \
-	type == CST_UINT32  ? sizeof(uint32) : \
-	type == CST_UINT8_N  ? sizeof(uint8) * length : \
-	type == CST_SINT8   ? sizeof(sint8) : \
-	type == CST_SINT16  ? sizeof(sint16) : \
-	type == CST_SINT32  ? sizeof(sint32) : sizeof(boolean)) \
+	(type == UINT8   ? sizeof(uint8) : \
+	type == UINT16  ? sizeof(uint16) : \
+	type == UINT32  ? sizeof(uint32) : \
+	type == UINT8_N  ? sizeof(uint8) * length : \
+	type == SINT8   ? sizeof(sint8) : \
+	type == SINT16  ? sizeof(sint16) : \
+	type == SINT32  ? sizeof(sint32) : sizeof(boolean)) \
 
 #define SignalTypeSignedness(type) \
-		(( (type == CST_SINT8) || (type == CST_SINT16) || (type == CST_SINT32) ) ? \
+		(( (type == SINT8) || (type == SINT16) || (type == SINT32) ) ? \
 				COM_SIGNALTYPE_SIGNED : COM_SIGNALTYPE_UNSIGNED)
 
 /** Filter configuration type.
@@ -223,6 +202,9 @@ typedef struct {
 
 /** Configuration structure for signals and signal groups. */
 typedef struct {
+#if defined(__GTK__)
+	uint8 name[64];
+#endif
 
 	/** Starting position (bit) of the signal within the IPDU.
 	 * Range 0 to 2031.
@@ -231,11 +213,12 @@ typedef struct {
 
 	/** The size of the signal in bits.
 	 * Range 0 to 63.
+	 * Range 0 to 4095 for uint8_n signal types
 	 */
-	const uint8 ComBitSize;
+	const uint16 ComBitSize;
 
 	/** Notification function for error notification. */
-	const uint32 ComErrorNotification;
+	void (*ComErrorNotification) (void);
 
 	/** First timeout period for deadline monitoring. */
 	const uint32 ComFirstTimeoutFactor;
@@ -246,7 +229,7 @@ typedef struct {
 	const uint16 ComHandleId;
 
 	/** Tx and Rx notification function. */
-	const uint32 ComNotification;
+	void (*ComNotification) (void);
 
 	/** Action to be performed when a reception timeout occurs. */
 	const ComRxDataTimeoutAction_type ComRxDataTimeoutAction;
@@ -269,7 +252,7 @@ typedef struct {
 	const uint32 ComTimeoutFactor;
 
 	/** Timeout notification function. */
-	const uint32 ComTimeoutNotification;
+	void (*ComTimeoutNotification) (void);
 
 	const ComTransferProperty_type ComTransferProperty;
 
@@ -300,6 +283,7 @@ typedef struct {
 	const ComGroupSignal_type * const *ComGroupSignal;
 
 
+	const void *Com_Arc_ShadowBuffer;
 	const uint8 *Com_Arc_ShadowBuffer_Mask;
 	//void *Com_Arc_IPduDataPtr;
 
@@ -372,10 +356,14 @@ typedef struct {
 
 
 /** Configuration structure for I-PDU groups */
-typedef struct {
+typedef struct ComIPduGroup_type {
 	/** ID of this group.
+	 * Range 0 to 31.
 	 */
-	const Com_IpduGroupIdType ComIPduGroupHandleId;
+	const uint8 ComIPduGroupHandleId;
+
+	// reference to the group that this group possibly belongs to.
+	//struct ComIPduGroup_type *ComIPduGroupRef;
 
 	/** Marks the end of list for the I-PDU group configuration array. */
 	const uint8 Com_Arc_EOL;
@@ -384,14 +372,16 @@ typedef struct {
 
 /** Configuration structure for an I-PDU. */
 typedef struct {
-
+#if defined(__GTK__)
+	uint8 name[64];
+#endif
 	/** Callout function of this IPDU.
 	 * The callout function is an optional function used both on sender and receiver side.
 	 * If configured, it determines whether an IPdu is considered for further processing. If
 	 * the callout return false the IPdu will not be received/sent.
 	 */
-	uint32 ComRxIPduCallout;
-	uint32 ComTxIPduCallout;
+	boolean (*ComIPduCallout)(PduIdType PduId, const uint8 *IPduData);
+
 
 	/** The outgoing PDU id. For polite PDU id handling. */
 	const uint8 ArcIPduOutgoingId;
@@ -402,16 +392,20 @@ typedef struct {
 	/** Size of the IPDU in bytes.
 	 * Range 0-8 for CAN and LIN and 0-256 for FlexRay.
 	 */
-	const uint16 ComIPduSize;
+	const uint8 ComIPduSize;
 
 	/** The direction of the IPDU. Receive or Send. */
 	const Com_IPduDirection ComIPduDirection;
 
-	/** References to the IPDU groups that this IPDU belongs to. */
-	const ComIPduGroup_type *const ComIPduGroupRefs;
+	/** Reference to the IPDU group that this IPDU belongs to. */
+	const uint8 ComIPduGroupRef;
 
 	/** Container of transmission related parameters. */
 	const ComTxIPdu_type ComTxIPdu;
+
+	/** Reference to the actual pdu data storage */
+	void *const ComIPduDataPtr;
+	void *const ComIPduDeferredDataPtr;
 
 	/** References to all signals and signal groups contained in this IPDU.
 	 * It probably makes little sense not to define at least one signal or signal group for each IPDU.
@@ -443,15 +437,6 @@ typedef struct {
 	/** The ID of this configuration. This is returned by Com_GetConfigurationId(); */
 	const uint8 ComConfigurationId;
 
-	/* The number of IPdus */
-	const uint16 ComNofIPdus;
-
-	/* The number of signals */
-	const uint16 ComNofSignals;
-
-	/* The number of group signals */
-	const uint16 ComNofGroupSignals;
-
 	/*
 	 * Signal Gateway mappings.
 	 * Not Implemented yet.
@@ -459,21 +444,21 @@ typedef struct {
 	 */
 
 	/** IPDU definitions */
-	const ComIPdu_type * const ComIPdu;
+	const ComIPdu_type *ComIPdu;
 
 	//uint16 Com_Arc_NIPdu;
 
 	/** IPDU group definitions */
-	const ComIPduGroup_type * const ComIPduGroup;
+	const ComIPduGroup_type *ComIPduGroup;
 
 	/** Signal definitions */
-	const ComSignal_type *const  ComSignal;
+	const ComSignal_type *ComSignal;
 
 	// Signal group definitions
 	//ComSignalGroup_type *ComSignalGroup;
 
 	/** Group signal definitions */
-	const ComGroupSignal_type * const ComGroupSignal;
+	const ComGroupSignal_type *ComGroupSignal;
 
 } Com_ConfigType;
 

@@ -1,16 +1,17 @@
-/*-------------------------------- Arctic Core ------------------------------
- * Copyright (C) 2013, ArcCore AB, Sweden, www.arccore.com.
- * Contact: <contact@arccore.com>
- * 
- * You may ONLY use this file:
- * 1)if you have a valid commercial ArcCore license and then in accordance with  
- * the terms contained in the written license agreement between you and ArcCore, 
- * or alternatively
- * 2)if you follow the terms found in GNU General Public License version 2 as 
- * published by the Free Software Foundation and appearing in the file 
- * LICENSE.GPL included in the packaging of this file or here 
- * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
- *-------------------------------- Arctic Core -----------------------------*/
+/* -------------------------------- Arctic Core ------------------------------
+ * Arctic Core - the open source AUTOSAR platform http://arccore.com
+ *
+ * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ * -------------------------------- Arctic Core ------------------------------*/
 
 
 #ifndef CAN_H_
@@ -20,14 +21,13 @@
 
 #define CAN_VENDOR_ID			    VENDOR_ID_ARCCORE
 #define CAN_MODULE_ID			    MODULE_ID_CAN
+#define CAN_AR_MAJOR_VERSION	3
+#define CAN_AR_MINOR_VERSION	1
+#define CAN_AR_PATCH_VERSION	5
 
-#define CAN_AR_MAJOR_VERSION    4
-#define CAN_AR_MINOR_VERSION    0
-#define CAN_AR_PATCH_VERSION    3
-
-#define CAN_SW_MAJOR_VERSION    2
-#define CAN_SW_MINOR_VERSION    0
-#define CAN_SW_PATCH_VERSION    0
+#define CAN_SW_MAJOR_VERSION	1
+#define CAN_SW_MINOR_VERSION 	0
+#define CAN_SW_PATCH_VERSION	0
 
 #define CAN_E_PARAM_POINTER     0x01
 #define CAN_E_PARAM_HANDLE     0x02
@@ -37,9 +37,8 @@
 #define CAN_E_UNINIT           0x05
 // Init transition for current mode
 #define CAN_E_TRANSITION       0x06
-#define CAN_E_DATALOST         0x07     /** @req 4.0.3/CAN395 */
-#define CAN_E_PARAM_BAUDRATE   0x08
 
+#define CAN_E_DATALOST         0x07     /** @req 4.0.3/CAN395 */
 
 /** @name Service id's */
 //@{
@@ -55,10 +54,8 @@
 #define CAN_MAINFUNCTION_BUSOFF_SERVICE_ID          0x09
 #define CAN_MAINFUNCTION_WAKEUP_SERVICE_ID          0x0a
 #define CAN_CBK_CHECKWAKEUP_SERVICE_ID              0x0b
-#define CAN_MAIN_FUNCTION_MODE_SERVICE_ID           0x0c
-#define CAN_CHANGE_BAUD_RATE_SERVICE_ID             0x0d
-#define CAN_CHECK_BAUD_RATE_SERVICE_ID              0x0e
 //@}
+
 
 #if defined(CFG_PPC)
 
@@ -109,7 +106,6 @@ typedef struct {
 } Can_TestType;
 #endif
 
-/** @req 4.0.3/CAN416 */
 // uint16: if only Standard IDs are used
 // uint32: if also Extended IDs are used
 typedef uint32 Can_IdType;
@@ -120,20 +116,18 @@ typedef uint32 Can_IdType;
  *
  */
 
-/** @req 4.0.3/CAN415 */
 typedef struct Can_PduType_s {
-	// private data for CanIf,just save and use for callback
-	PduIdType   swPduHandle;
 	// the CAN ID, 29 or 11-bit
 	Can_IdType 	id;
 	// Length, max 8 bytes
 	uint8		length;
 	// data ptr
 	uint8 		*sdu;
+	// private data for CanIf,just save and use for callback
+	PduIdType   swPduHandle;
 } Can_PduType;
 
 
-/** @req 4.0.3/CAN417 */
 typedef enum {
 	CAN_T_START,
 	CAN_T_STOP,
@@ -141,11 +135,11 @@ typedef enum {
 	CAN_T_WAKEUP
 } Can_StateTransitionType;
 
-/** @req 4.0.3/CAN039 */
 typedef enum {
 	CAN_OK,
 	CAN_NOT_OK,
 	CAN_BUSY
+// 	CAN_WAKEUP,		// Removed in 3.0
 } Can_ReturnType;
 
 /* Error from  CAN controller */
@@ -164,19 +158,7 @@ typedef union {
      } B;
  } Can_Arc_ErrorType;
 
- /* @req CAN429 */
-typedef uint8 Can_HwHandleType;
 
-#if defined(CFG_ARM_V6)
-#include "Os.h"
-
-typedef struct {
-	Can_IdType 		msgId;
-	TaskType		taskId;
-	EventMaskType 	eventMask;
-} Can_IdTableType;
-
-#endif
 
 #if defined(CFG_PPC)
 
@@ -194,13 +176,12 @@ typedef struct {
 
 
  typedef struct Can_Callback {
-     void (*CancelTxConfirmation)( PduIdType, const PduInfoType *);
+     void (*CancelTxConfirmation)( const Can_PduType *);
      void (*RxIndication)( uint8 ,Can_IdType ,uint8 , const uint8 * );
      void (*ControllerBusOff)(uint8);
      void (*TxConfirmation)(PduIdType);
      void (*ControllerWakeup)(uint8);
      void (*Arc_Error)(uint8,Can_Arc_ErrorType);
-     void (*ControllerModeIndication)(uint8, CanIf_ControllerModeType);
  } Can_CallbackType;
 
 
@@ -243,9 +224,20 @@ typedef struct {
      uint64  ArcMailboxMask;
  } Can_HardwareObjectType;
 
- typedef struct {
+
+
+ typedef struct Can_ControllerConfig {
+
+     bool CanControllerActivation;
+
      // Specifies the buadrate of the controller in kbps.
      uint32 CanControllerBaudRate;
+
+     //  This parameter provides the controller ID which is unique in a given CAN
+     //  Driver. The value for this parameter starts with 0 and continue without any
+     //  gaps.
+
+     CanControllerIdType CanControllerId;
 
      // Specifies propagation delay in time quantas.
      uint8 CanControllerPropSeg;
@@ -256,29 +248,13 @@ typedef struct {
      // Specifies phase segment 2 in time quantas.
      uint8 CanControllerSeg2;
 
-     // Specifies the resynchronization jump width in time quantas.
-     uint8 CanControllerSyncJumpWidth;
- } CanBaudrateConfType;
+     // Specifies Reset Jump Width register value.
+     uint8 CanControllerRJW;
 
-
-typedef struct Can_ControllerConfig {
-
-     bool CanControllerActivation;
-
-     //  This parameter provides the controller ID which is unique in a given CAN
-     //  Driver. The value for this parameter starts with 0 and continue without any
-     //  gaps.
-
-     CanControllerIdType CanControllerId;
-
-     // Specifies the default baud rate in kbps (from the list CanControllerSupportedBaudrates)
-     uint32 CanControllerDefaultBaudrate;
-
-     // Specifies the supported baud rates
-     const CanBaudrateConfType * const CanControllerSupportedBaudrates;
-
-     // Specifices the length of the CanControllerSupportedBaudrates list
-     uint32 CanControllerSupportedBaudratesCount;
+     //  Specifies the time quanta for the controller. The calculation of the resulting
+     //  prescaler value depending on module clocking and time quanta shall be
+     //  done offline Hardware specific.
+//     uint32 CanControllerTimeQuanta;
 
      //  Reference to the CPU clock configuration, which is set in the MCU driver
      //  configuration
@@ -342,25 +318,20 @@ void Can_DeInit(void);
 #endif
 
 void Can_InitController( uint8 controller, const Can_ControllerConfigType *config);
-Std_ReturnType Can_ChangeBaudrate(uint8 controller, const uint16 baudrate);
-Std_ReturnType Can_CheckBaudrate(uint8 controller, const uint16 baudrate);
 Can_ReturnType Can_SetControllerMode( uint8 Controller, Can_StateTransitionType transition );
 void Can_DisableControllerInterrupts( uint8 controller );
 void Can_EnableControllerInterrupts( uint8 controller );
 // Hth - for Flexcan, the hardware message box number... .We don't care
 
 
-Can_ReturnType Can_Write( Can_HwHandleType hth, Can_PduType *pduInfo );
+Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo );
 
-Can_ReturnType Can_CheckWakeup( uint8 controller );
+void Can_Cbk_CheckWakeup( uint8 controller );
 void Can_MainFunction_Write( void );
 void Can_MainFunction_Read( void );
 void Can_MainFunction_BusOff( void );
 void Can_MainFunction_Error( void );
 void Can_MainFunction_Wakeup( void );
-void Can_MainFunction_Mode( void );
-
-Std_ReturnType Can_SetBaudrate(uint8 Controller, const uint16 BaudRateConfigID);
 
 void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat);
 #if defined(CFG_CAN_TEST)

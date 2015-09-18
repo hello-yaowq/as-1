@@ -4,7 +4,7 @@
 * Created by:              
 * Copyright:               
 *
-* Configured for (MCU):    STM32_F107
+* Configured for (MCU):    MinGW
 *
 * Module vendor:           ArcCore
 * Generator version:       2.1.11
@@ -19,51 +19,22 @@
 #if defined(USE_CANSM)
 extern const CanSM_ConfigType CanSM_Config;
 #endif
-
-#if defined(USE_LIN)
-extern const Lin_ConfigType Lin_Config;
-#endif
-
-#if defined(USE_LINIF)
-extern const LinIf_ConfigType LinIf_Config;
-#endif
-
-#if defined(USE_LINSM)
-extern const LinSM_ConfigType LinSM_Config;
-#endif
-
 #if defined(USE_NM)
 extern const Nm_ConfigType Nm_Config;
 #endif
-
+#if defined(USE_CANNM)
+extern const CanNm_ConfigType CanNm_Config;
+#endif
 #if defined(USE_UDPNM)
 extern const UdpNm_ConfigType UdpNm_Config;
 #endif
-
 #if defined(USE_COMM)
 extern const ComM_ConfigType ComM_Config;
-#endif
-
-#if defined(USE_BSWM)
-extern const BswM_ConfigType  BswM_Config;
 #endif
 
 #if defined(USE_J1939TP)
 extern const J1939Tp_ConfigType J1939Tp_Config;
 #endif
-
-#if defined(USE_PDUR) || defined(USE_COM) || defined(USE_CANIF) || defined(USE_CANTP) || defined (USE_CANNM)
-extern const PostbuildConfigType Postbuild_Config;
-#endif
-
-#if defined(USE_DCM)
-extern const Dcm_ConfigType DCM_Config;
-#endif
-
-#if defined(USE_DEM)
-extern const Dem_ConfigType DEM_Config;
-#endif
-
 
 
 const EcuM_SleepModeType EcuM_SleepModeConfig[] = {
@@ -103,61 +74,53 @@ EcuM_ConfigType EcuMConfig =
   	.EcuMSleepModeConfig = EcuM_SleepModeConfig,
   	.EcuMWakeupSourceConfig = EcuM_WakeupSourceConfig,
 
-#if defined(USE_DEM)
-	.EcuMDemInconsistencyEventId	= DEM_EVENT_ID_NULL,
-	.EcuMDemRamCheckFailedEventId	= DEM_EVENT_ID_NULL,
-	.EcuMDemAllRunRequestsKilledEventId	= DEM_EVENT_ID_NULL,
-#endif
-#if defined(USE_COMM)
-    .EcuMComMConfig = EcuM_ComMConfig,
-#endif
 #if defined(USE_MCU)
-    .McuConfig = McuConfigData,
+	.McuConfig = McuConfigData,
 #endif
 #if defined(USE_PORT)
-    .PortConfig = &PortConfigData,
+	.PortConfig = &PortConfigData,
 #endif
 #if defined(USE_CAN)
-    .CanConfig = &CanConfigData,
+	.CanConfig = &Can_ConfigData,
+#endif
+#if defined(USE_CANIF)
+	.CanIfConfig = &CanIf_Config,
 #endif
 #if defined(USE_CANSM)
-    .CanSMConfig = &CanSM_Config,
+	.CanSMConfig = &CanSM_Cfg,
 #endif
-#if defined(USE_LIN)
-    .LinConfig = &Lin_Config,
-#endif
-#if defined(USE_LINIF)
-    .LinIfConfig = &LinIf_Config,
-#endif
-#if defined(USE_LINSM)
-    .LinSMConfig = &LinSM_Config,
+#if defined(USE_CANNM)
+	.CanNmConfig = &CanNm_Cfg,
 #endif
 #if defined(USE_UDPNM)
-    .UdpNmConfig = &UdpNm_Config,
+	.UdpNmConfig = &UdpNm_Config,
+#endif
+#if defined(USE_COM)
+	.ComConfig = &ComConfiguration,
 #endif
 #if defined(USE_COMM)
-    .ComMConfig = &ComM_Config,
-#endif
-#if defined(USE_BSWM)
-    .BswMConfig = &BswM_Config,
+	.ComMConfig = &ComM_Cfg,
 #endif
 #if defined(USE_J1939TP)
-    .J1939TpConfig = &J1939Tp_Config,
+	.J1939TpConfig = &J1939Tp_Config,
 #endif
 #if defined(USE_NM)
-    .NmConfig = &Nm_Config,
+	.NmConfig = &Nm_Config,
+#endif
+#if defined(USE_PDUR)
+	.PduRConfig = &PduR_Config,
 #endif
 #if defined(USE_J1939TP)
-    .J1939TpConfig = &J1939Tp_Config,
+	.J1939TpConfig = &J1939Tp_Config,
 #endif
 #if defined(USE_DMA)
-    .DmaConfig = DmaConfig,
+	.DmaConfig = DmaConfig,
 #endif
 #if defined(USE_ADC)
-    .AdcConfig = AdcConfig,
+	.AdcConfig = AdcConfig,
 #endif
 #if defined(USE_PWM)
-    .PwmConfig = &PwmConfig,
+	.PwmConfig = &PwmConfig,
 #endif
 #if defined(USE_WDG)
     .WdgConfig = &WdgConfig,
@@ -169,24 +132,15 @@ EcuM_ConfigType EcuMConfig =
     .WdgIfConfig = &WdgIfConfig,
 #endif
 #if defined(USE_GPT)
-   .GptConfig = GptConfigData,
+	.GptConfig = GptConfigData,
 #endif
 #if defined(USE_FLS)
-   .FlashConfig = FlsConfigSet,
+	.FlashConfig = FlsConfigSet,
 #endif
 #if defined(USE_EEP)
-   .EepConfig = EepConfigData,
+	.EepConfig = EepConfigData,
 #endif
 #if defined(USE_SPI)
-   .SpiConfig = &SpiConfigData,
-#endif
-#if defined(USE_DCM)
-   .DcmConfig = &DCM_Config,
-#endif
-#if defined(USE_DEM)
-   .DemConfig = &DEM_Config,
-#endif
-#if defined(USE_PDUR) || defined(USE_COM) || defined(USE_CANIF) || defined(USE_CANTP) || defined(USE_CANNM)
-   .PostBuildConfig = &Postbuild_Config
+	.SpiConfig = &SpiConfigData,
 #endif
 };
