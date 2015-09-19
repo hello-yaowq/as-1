@@ -477,4 +477,6 @@ static inline struct rproc *vdev_to_rproc(struct virtio_device *vdev)
 	return rvdev->rproc;
 }
 
+int rproc_add_virtio_dev(struct rproc_vdev *rvdev, int id);
+
 #endif /* REMOTEPROC_H */

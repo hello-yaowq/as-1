@@ -142,7 +142,6 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
-	@(cd $(src-dir);rm -f EcuM_Flexible.c remoteproc_virtio.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)

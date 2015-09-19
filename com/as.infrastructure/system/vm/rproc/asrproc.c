@@ -22,18 +22,10 @@
 #include <unistd.h>
 #endif
 #include <stdarg.h>
+#include <virtio_can.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
-enum rp_fifo_messages {
-	RP_FIFO_READY		= 0xFFFFFF00,
-	RP_FIFO_PENDING_MSG	= 0xFFFFFF01,
-	RP_FIFO_CRASH		= 0xFFFFFF02,
-	RP_FIFO_ECHO_REQUEST	= 0xFFFFFF03,
-	RP_FIFO_ECHO_REPLY	= 0xFFFFFF04,
-	RP_FIFO_ABORT_REQUEST	= 0xFFFFFF05,
-};
-
 struct rsc_fifo {
 	u32 count;
 	u32 size;	/* size of identifier in u32 */
@@ -116,6 +108,10 @@ static bool fifo_read(u32* id)
     }
     return ercd;
 }
+static void virtio_add_devices(void)
+{
+	virtio_add_can(rproc);
+}
 #ifdef __WINDOWS__
 static DWORD virtio_run(LPVOID lpParameter)
 #else
@@ -132,6 +128,7 @@ static void* virtio_run(void* lpParameter)
 	pvObjectList[ 1 ] = rpdev.r_event;
 #endif
 	ASLOG(0,"virtio_run daemon is on-line fifo=%x lock=%x event=%x\n",r_fifo, rpdev.r_lock, rpdev.r_event);
+	virtio_add_devices();
 	while(true)
 	{
 #ifdef __WINDOWS__
@@ -178,8 +175,6 @@ static int start(struct rproc *rproc)
 	{
 		assert(0);
 	}
-	/* refer omap_remoteproc.c code for linux, this rproc is gust */
-	fifo_write(RP_FIFO_READY);
 	return 0;
 }
 static int stop(struct rproc *rproc)
