@@ -387,7 +387,7 @@ TASK(SchM_Startup){
 	ComM_RequestComMode(COMM_HS_USER,COMM_FULL_COMMUNICATION);
 #endif
 
-	TerminateTask();
+	OsTerminateTask(SchM_Startup);
 
 }
 
@@ -433,11 +433,16 @@ TASK(SchM_BswService) {
 		SCHM_MAINFUNCTION_WDGM_ALIVESUPERVISION();
 		break;
 	}
-	TerminateTask();
+	OsTerminateTask(SchM_BswService);
 }
 
 void SchM_MainFunction( void ) {
 
+}
+
+ALARM(Alarm_BswService)
+{
+	OsActivateTask(SchM_BswService);
 }
 
 

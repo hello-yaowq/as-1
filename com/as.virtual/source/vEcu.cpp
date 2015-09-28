@@ -30,6 +30,8 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*aslog_t)(const char*,const char*,...);
 typedef void (*setlog_t)(const char*,aslog_t);
+typedef void (*qt_set_param_t)(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event);
+typedef void (*qt_get_fifo_t)(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 
@@ -38,8 +40,9 @@ typedef void (*setlog_t)(const char*,aslog_t);
 vEcu::vEcu ( QString dll, QObject *parent )
     : QThread(parent)
 {
-    bool bOK;
     setlog_t p_setlog;
+    qt_set_param_t p_set_param;
+    qt_get_fifo_t p_get_fifo;
 #ifdef __WINDOWS__
     hxDll = LoadLibrary(dll.toStdString().c_str());
 #else
@@ -49,10 +52,8 @@ vEcu::vEcu ( QString dll, QObject *parent )
 #endif
     assert(hxDll);
 
-    rsc_tbl_size = 16*1024;
-    sz_fifo = 1024;
-    rsc_tbl_address = malloc(rsc_tbl_size);
-    memset(rsc_tbl_address,0,rsc_tbl_size);
+    sz_fifo = IPC_FIFO_SIZE;
+
 #ifdef __WINDOWS__
     r_lock = CreateMutex( NULL, FALSE, NULL );
     w_lock = CreateMutex( NULL, FALSE, NULL );
@@ -60,8 +61,9 @@ vEcu::vEcu ( QString dll, QObject *parent )
     w_event = CreateEvent( NULL, FALSE, FALSE, NULL );
 
     pfMain = (PF_MAIN)GetProcAddress(hxDll,"main");
-    pfRprocInit = (PF_RPROC_INIT)GetProcAddress(hxDll,"AsRproc_Init");
-    p_setlog  = (setlog_t)GetProcAddress(hxDll,"AsRproc_SetLog");
+    p_setlog  = (setlog_t)GetProcAddress(hxDll,"aslog_init");
+    p_set_param = (qt_set_param_t)GetProcAddress(hxDll,"Qt_SetParam");
+    p_get_fifo = (qt_get_fifo_t)GetProcAddress(hxDll,"Qt_GetFifo");
 #else
     r_lock = &r_mutex;
     w_lock = &w_mutex;
@@ -69,20 +71,19 @@ vEcu::vEcu ( QString dll, QObject *parent )
     w_event = &w_cond;
 
     pfMain = (PF_MAIN)dlsym(hxDll,"main");
-    pfRprocInit = (PF_RPROC_INIT)dlsym(hxDll,"AsRproc_Init");
-    p_setlog  = (setlog_t)dlsym(hxDll,"AsRproc_SetLog");
+    p_setlog  = (setlog_t)dlsym(hxDll,"aslog_init");
+    p_set_param = (qt_set_param_t)dlsym(hxDll,"Qt_SetParam");
+    p_get_fifo = (qt_get_fifo_t)dlsym(hxDll,"Qt_GetFifo");
 #endif
 
      assert(pfMain);
-     assert(pfRprocInit);
      assert(p_setlog);
+     assert(p_set_param);
+     assert(p_get_fifo);
      p_setlog(dll.toStdString().c_str(),(aslog_t)aslog);
 
-    bOK = pfRprocInit(rsc_tbl_address,rsc_tbl_size,w_lock,r_lock,w_event,r_event,sz_fifo);
-    assert(bOK);
-
-    w_fifo = (struct rsc_fifo*)((unsigned long)rsc_tbl_address + rsc_tbl_size - 2*sz_fifo*sizeof(uint32));
-    r_fifo = (struct rsc_fifo*)((unsigned long)rsc_tbl_address + rsc_tbl_size - 1*sz_fifo*sizeof(uint32));
+     p_set_param(0,r_lock,r_event,w_lock,w_event);
+     p_get_fifo(0,&r_fifo,&w_fifo);
 }
 
 vEcu::~vEcu ( )
@@ -104,7 +105,7 @@ vEcu::~vEcu ( )
 void vEcu::run(void)
 {
 
-    uint32 id;
+    VirtQ_IdxType id;
     bool ercd;
 
 #ifdef __WINDOWS__
@@ -127,7 +128,7 @@ void vEcu::run(void)
             ercd = fifo_read(&id);
             if(ercd)
             {
-                fifo_write(0xdeadbeef);
+                fifo_write(0x1234);
             }
             else
             {
@@ -143,13 +144,13 @@ void vEcu::run(void)
     }
 }
 
-bool vEcu::fifo_read(uint32* id)
+bool vEcu::fifo_read(VirtQ_IdxType* id)
 {
     bool ercd;
     if(r_fifo->count > 0)
     {
-        *id = r_fifo->identifier[r_fifo->r_pos];
-        r_fifo->r_pos = (r_fifo->r_pos + 1)%(r_fifo->size);
+        *id = r_fifo->idx[r_pos];
+        r_pos = (r_pos + 1)%(sz_fifo);
         r_fifo->count -= 1;
         ercd = true;
         //aslog("vEcu","fifo_read(%x) fifo=%x lock=%x event=%x\n",*id, r_fifo, r_lock, r_event);
@@ -161,7 +162,7 @@ bool vEcu::fifo_read(uint32* id)
     }
     return ercd;
 }
-bool vEcu::fifo_write(uint32 id)
+bool vEcu::fifo_write(VirtQ_IdxType id)
 {
     bool ercd;
 #ifdef __WINDOWS__
@@ -169,10 +170,10 @@ bool vEcu::fifo_write(uint32 id)
 #else
     (void)pthread_mutex_lock((pthread_mutex_t *)w_lock);
 #endif
-    if(w_fifo->count < w_fifo->size)
+    if(w_fifo->count < sz_fifo)
     {
-        w_fifo->identifier[w_fifo->w_pos] = id;
-        w_fifo->w_pos = (w_fifo->w_pos + 1)%(w_fifo->size);
+        w_fifo->idx[w_pos] = id;
+        w_pos = (w_pos + 1)%(sz_fifo);
         w_fifo->count += 1;
         ercd = true;
         //aslog("vEcu","fifo_write(%x) fifo=%x lock=%x event=%x\n",id, w_fifo, w_lock, w_event);

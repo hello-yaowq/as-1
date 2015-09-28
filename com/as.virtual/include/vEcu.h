@@ -15,7 +15,7 @@
 #ifndef RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_
 #define RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
+#include <stdint.h>
 #ifdef __WINDOWS__
 #include <windows.h>
 #else
@@ -27,31 +27,19 @@
 #include <QDebug>
 #include <assert.h>
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef __WINDOWS__
-#define VIRTUAL_ECU1 "D:/repository/parai/as/release/ascore/out/mingw.dll"
-#else
-#define VIRTUAL_ECU1 "/home/parai/workspace/as/release/ascore/out/posix.dll"
-#endif
+#define IPC_FIFO_SIZE 1024
 /* ============================ [ TYPES     ] ====================================================== */
-enum rp_fifo_messages {
-    RP_FIFO_READY		= 0xFFFFFF00,
-    RP_FIFO_PENDING_MSG	= 0xFFFFFF01,
-    RP_FIFO_CRASH		= 0xFFFFFF02,
-    RP_FIFO_ECHO_REQUEST	= 0xFFFFFF03,
-    RP_FIFO_ECHO_REPLY	= 0xFFFFFF04,
-    RP_FIFO_ABORT_REQUEST	= 0xFFFFFF05,
-};
-
-struct rsc_fifo {
-    uint32 count;
-    uint32 size;	/* size of identifier in u32 */
-    uint32 r_pos;
-    uint32 w_pos;
-    uint32 identifier[0];
-} __attribute__((__packed__));
+typedef uint8_t Ipc_ChannelType;
+typedef uint16_t VirtQ_IdxType;
+typedef uint16_t VirtQ_IdxSizeType;
+typedef struct
+{
+    VirtQ_IdxSizeType count;
+    VirtQ_IdxType     idx[IPC_FIFO_SIZE];
+}Ipc_FifoType;
 
 typedef void* (*PF_MAIN)(void*);
-typedef bool (*PF_RPROC_INIT)(void* address, size_t size,void* r_lock,void* w_lock,void* r_event, void* w_event,size_t sz_fifo);
+
 class vEcu: public QThread
 {
 Q_OBJECT
@@ -66,10 +54,11 @@ Q_OBJECT
     void*  w_event;
     void*  pvThread;
     PF_MAIN pfMain;
-    PF_RPROC_INIT pfRprocInit;
 
-    struct rsc_fifo* r_fifo;
-    struct rsc_fifo* w_fifo;
+    Ipc_FifoType* r_fifo;
+    Ipc_FifoType* w_fifo;
+    uint32_t r_pos;
+    uint32_t w_pos;
 
 #ifdef __LINUX__
     pthread_mutex_t w_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -83,8 +72,8 @@ public:
 
     void run(void);
 
-    bool fifo_read(uint32* id);
-    bool fifo_write(uint32 id);
+    bool fifo_read(VirtQ_IdxType* id);
+    bool fifo_write(VirtQ_IdxType id);
 signals:
 
 protected:

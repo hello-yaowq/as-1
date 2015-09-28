@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = AsVitrual
 TEMPLATE = app
 
-DEFINES += __LINUX__
+DEFINES += __LINUX__ __QT__
 
 LIBS += -L/lib64 -l:libdl.so.2
 
@@ -23,8 +23,7 @@ SOURCES +=              \
 
 HEADERS  +=             \
     include/vEcu.h \
-    include/vmWindow.h \
-    include/Std_Types.h
+    include/vmWindow.h
 
 FORMS    +=
 

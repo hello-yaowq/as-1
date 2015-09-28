@@ -60,7 +60,7 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 ldflags-y += -lstdc++ -lm	
 
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET	\
-		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_CANTP -DUSE_GUI -DUSE_CANNM	\
+		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_GUI -DUSE_CANNM	\
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR
 
 ifeq ($(gui),GTK)			 
@@ -117,13 +117,16 @@ $(vir-inc):
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
 	@(cd SgDesign;$(SG) Sg.xml)	
 
+SG:
+	@(cd SgDesign;$(SG) Sg.xml)
+	
+
 XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
 	
 
 dep-as-virtual:$(vir-inc)
 	@($(LNFS) $(VIRTUAL) virtual)
-	@(cd $(vir-inc);$(LNFS) $(INFRASTRUCTURE)/include/Std_Types.h)
 	
 dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -141,7 +144,7 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
+#	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)

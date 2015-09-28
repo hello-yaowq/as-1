@@ -21,7 +21,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
+#include <errno.h>
+#include "Compiler.h"
+#ifndef __QT__
+#include "asdebug.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef MIN
 #define MIN(_x,_y) (((_x) < (_y)) ? (_x) : (_y))
@@ -78,56 +82,18 @@
 #define STD_ON			0x01
 #define STD_OFF			0x00
 
-#define INLINE inline
-
-#ifndef __weak
-# define __weak			__attribute__((weak))
-#endif
-
+/*
+ * code for ArcCore 3.1 AUTOSAR stack
+ */
 #ifndef imask_t
 #define imask_t uint32
 #endif
 
-#define Irq_Save(irq_state)  		irq_state = portGetIrqStateAndDisableIt()
-#define Irq_Restore(irq_state)		portRestroeIrqState(irq_state)
+#define Irq_Save(irq_state)  		{extern imask_t portGetIrqStateAndDisableIt(void);irq_state = portGetIrqStateAndDisableIt();}
+#define Irq_Restore(irq_state)		{extern void portRestroeIrqState(imask_t irq_state);portRestroeIrqState(irq_state);}
 
-#undef offsetof
-#ifdef __compiler_offsetof
-#define offsetof(TYPE,MEMBER) __compiler_offsetof(TYPE,MEMBER)
-#else
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-#endif
-
-/**
- * container_of - cast a member of a structure out to the containing structure
- * @ptr:	the pointer to the member.
- * @type:	the type of the container struct this is embedded in.
- * @member:	the name of the member within the struct.
- *
- */
-#define container_of(ptr, type, member) ({			\
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-	(type *)( (char *)__mptr - offsetof(type,member) );})
-
-/* levels for log output */
-#define AS_LOG_RPROC    1
-#define AS_LOG_CAN      2
-#define AS_LOG_CANIF    3
-/* and so on ... */
-#define AS_LOG_DEFAULT  1
-#if defined(__WINDOWS__) || defined(__LINUX__)
-#define ASLOG(level,...) 					\
-	if((level) >= AS_LOG_DEFAULT) {			\
-		aslog(__VA_ARGS__);					\
-	}
-#else
-#define ASLOG(level,fmt,...) 			\
-	if((level) >= AS_DFT_LOG) {			\
-		printf(fmt,__VA_ARGS__);		\
-	}
-#endif
 /* ============================ [ TYPES     ] ====================================================== */
-typedef unsigned char               boolean;
+typedef bool		                boolean;
 typedef int8_t        				sint8;
 typedef uint8_t			       		uint8;
 typedef int16_t		        		sint16;
@@ -167,9 +133,4 @@ typedef struct {
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern imask_t portGetIrqStateAndDisableIt(void);
-extern void portRestroeIrqState(imask_t irq_state);
-#if defined(__WINDOWS__) || defined(__LINUX__)
-extern void aslog(char* format,...);
-#endif
 #endif /* STD_TYPES_H */

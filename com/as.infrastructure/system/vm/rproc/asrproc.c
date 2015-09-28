@@ -21,7 +21,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #endif
-#include <stdarg.h>
+
 #include <virtio_can.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -34,7 +34,6 @@ struct rsc_fifo {
 	u32 identifier[0];
 } __packed;
 
-typedef void (*aslog_t)(char*,char*);
 /* ============================ [ DECLARES  ] ====================================================== */
 static int start(struct rproc *rproc);
 static int stop(struct rproc *rproc);
@@ -56,8 +55,6 @@ static const struct rproc_ops rproc_ops=
 static struct rsc_fifo* r_fifo;
 static struct rsc_fifo* w_fifo;
 static void* virtio;
-static char* __aswho  = NULL;
-static aslog_t __aslog  = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static bool fifo_write(u32 id)
 {
@@ -235,32 +232,4 @@ bool AsRproc_Init(void* address, size_t size,void* r_lock,void* w_lock,void* r_e
 	}
 	return bOK;
 }
-void AsRproc_SetLog(char* who, aslog_t handler)
-{
-	__aswho = strdup(who);
-	__aslog = handler;
-}
 
-void aslog(char* format,...)
-{
-	static char* buf = NULL;
-	va_list args;
-
-	va_start(args , format);
-	if(NULL == buf)
-	{
-		buf = malloc(1024);
-		assert(buf);
-	}
-	vsprintf(buf,format,args);
-	if(NULL != __aslog)
-	{
-		__aslog(__aswho,buf);
-	}
-	else
-	{
-		puts(buf);
-	}
-
-	va_end(args);
-}

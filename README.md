@@ -22,6 +22,36 @@ it. Let's start.
 * [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
 * [README](./com/as.infrastructure/system/vm/readme.md)
+
+
+## Clone
+> git clone https://github.com/sics-sse/moped.git
+
+> git clone https://github.com/openxc/bitfield-c.git
+
+> git clone git://git.omapzoom.org/repo/sysbios-rpmsg.git
+
+> git clone https://github.com/parai/freertos-multicore.git
+
+> git clone https://github.com/parai/isotp-c.git
+
+> git clone https://github.com/parai/GainOS.git
+
+> git clone https://github.com/parai/GainOS_Studio.git
+
+> git clone https://github.com/parai/OpenOSEK.git
+
+> git clone https://github.com/parai/OpenSAR.git
+
+> git clone https://github.com/parai/WhatsApp.git
+
+> git clone https://github.com/parai/as.git
+
+> git clone https://github.com/parai/GaInOS_Based_On_uTenux-tkernel.git
+
+> git clone https://github.com/parai/gainos-tk.git
+
+
    
     
 

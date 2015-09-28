@@ -107,8 +107,8 @@ EcuM_GlobalType EcuM_World;
 #if !defined(USE_DET) && (ECUM_DEV_ERROR_DETECT == STD_ON)
 #error EcuM configuration error. DET is not enabled when ECUM_DEV_ERROR_DETECT is set
 #endif
-
-
+DECLARE_WEAK void InitOS(void){}
+DECLARE_WEAK void Os_IsrInit(void){}
 /**
  * Initialize EcuM.
  */
