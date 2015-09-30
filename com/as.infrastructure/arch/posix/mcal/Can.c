@@ -441,6 +441,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 			  printf("%02X,",pduInfo->sdu[i]);
 		  }
 		  printf("]\n");
+		  fflush(stdout);
 		  canUnit->swPduHandle = pduInfo->swPduHandle;
 		  // Increment statistics
 		  #if (USE_CAN_STATISTICS == STD_ON)

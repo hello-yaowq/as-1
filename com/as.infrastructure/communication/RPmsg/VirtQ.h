@@ -19,32 +19,35 @@
 #define COM_AS_INFRASTRUCTURE_COMMUNICATION_RPMSG_VIRTQ_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "virtio_ring.h"
+#include "Rproc.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
+typedef uint8 Ipc_ChannelType;
 typedef uint8 VirtQ_ChannerlType;
 typedef void (*VirtQ_NotificationType)(VirtQ_ChannerlType channel);
-typedef uint16 VirtQ_IdxType;
-typedef uint16 VirtQ_IdxSizeType;
+typedef uint32 VirtQ_IdxType;
+typedef uint32 VirtQ_IdxSizeType;
 typedef struct virtqueue
 {
     /* Shared state */
     Vring_Type            		vring;
 
-    /* Last available index; updated by VirtQueue_getAvailBuf */
+    /* Last available index */
     VirtQ_IdxType           last_avail_idx;
 
-    /* Last available index; updated by VirtQueue_addUsedBuf */
-    VirtQ_IdxType           last_used_idx;
 }VirtQ_QueueType;
 
 typedef struct
 {
+	Ipc_ChannelType             chl;
     /* Id for this VirtQueue_Object */
 	VirtQ_IdxType               idx;
 
     /* The function to call when buffers are consumed (can be NULL) */
 	VirtQ_NotificationType      rxNotification;
+
+	Rproc_ReseouceVdevVringType* vring;
 
 }VirtQ_QueueConfigType;
 
@@ -58,10 +61,11 @@ typedef struct
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void virtqueue_kick(VirtQ_QueueType *vq);
-void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType* idx, uint32 *len);
-void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint32 len);
-
+void VirtQ_Init(const VirtQ_ConfigType *config);
 void VirtQ_RxNotificatin(VirtQ_ChannerlType chl);
 void VirtQ_TxConfirmation(VirtQ_ChannerlType chl);
+void VirtQ_InitVq(VirtQ_ChannerlType chl);
+Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* idx,void** buf,uint16* len);
+void VirtQ_AddUsedBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType idx,uint16 len);
+void VirtQ_Kick(VirtQ_ChannerlType chl);
 #endif /* COM_AS_INFRASTRUCTURE_COMMUNICATION_RPMSG_VIRTQ_H_ */

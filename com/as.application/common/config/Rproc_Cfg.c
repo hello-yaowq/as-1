@@ -12,19 +12,59 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
-#define COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
 #include "VirtQ.h"
+#include "Rproc.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(addr))
+
 /* ============================ [ TYPES     ] ====================================================== */
-#include "Ipc_Cfg.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+/*
+ * only 1 instance of resource table was configured, if 2, configured another 1 as:
+ * VAR(Rproc_ResourceTable2Type, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable2.
+ * and configure 2 IPC channels
+ */
+VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable = {
+	.version = 1,
+	.num     = RPROC_RSC_NUM,
+	.reserved = { 0, 0 },
+	.offset = {
+		[0]=offsetof(Rproc_ResourceTableType, rpmsg_vdev),
+	},
+	.rpmsg_vdev =  {
+		.type = RSC_VDEV,
+		.id = VIRTIO_ID_RPMSG,
+		.notifyid = 0,	/* This is not supported, as feature will never dynamic changed */
+		.dfeatures = RPROC_RPMSG_FEATURES,
+		.gfeatures = 0,
+		.config_len = RPROC_RPMSG_CFG_SIZE,
+		.status  = 0,
+		.num_of_vrings = RPROC_NUM_OF_VRINGS,
+		.reserved = {0,0},
+		.vring[0] = {
+			.da = 0,
+			.align = 4096,
+			.num   = 256,
+			.notifyid = VIRTQ_IDX_RPMSG_RX,
+			.reserved = 0
+		},
+		.vring[1] = {
+			.da = 0,
+			.align = 4096,
+			.num   = 256,
+			.notifyid = VIRTQ_IDX_RPMSG_TX,
+			.reserved = 0
+		},
+	},
+#if RPROC_RPMSG_CFG_SIZE > 0
+	.rpmsg_cfg = { 0, }
+#endif
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Ipc_Init(const Ipc_ConfigType* config);
-void Ipc_WriteIdx(Ipc_ChannelType chl,uint16 idx);
-#endif /* COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_ */
+Rproc_ResourceTableType* Qt_GetRprocResourceTable(void)
+{
+	return &Rproc_ResourceTable;
+}

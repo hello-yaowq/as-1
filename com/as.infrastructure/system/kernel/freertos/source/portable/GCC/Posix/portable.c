@@ -53,7 +53,7 @@
 /*-----------------------------------------------------------
  * Implementation of functions defined in portable.h for the Posix port.
  *----------------------------------------------------------*/
-
+#include "Std_Types.h"
 #include <pthread.h>
 #include <sched.h>
 #include <signal.h>
@@ -234,11 +234,11 @@ portLONG lIndex;
 	{
 		if ( 0 != sigwait( &xSignals, &iSignal ) )
 		{
-			printf( "Main thread spurious signal: %d\n", iSignal );
+			PRINTF( "Main thread spurious signal: %d\n", iSignal );
 		}
 	}
 
-	printf( "Cleaning Up, Exiting.\n" );
+	PRINTF( "Cleaning Up, Exiting.\n" );
 	/* Cleanup the mutexes */
 	xResult = pthread_mutex_destroy( &xSuspendResumeThreadMutex );
 	xResult = pthread_mutex_destroy( &xSingleThreadMutex );
@@ -386,12 +386,12 @@ portTickType xMicroSeconds = portTICK_RATE_MICROSECONDS;
 		/* Set-up the timer interrupt. */
 		if ( 0 != setitimer( TIMER_TYPE, &itimer, &oitimer ) )
 		{
-			printf( "Set Timer problem.\n" );
+			PRINTF( "Set Timer problem.\n" );
 		}
 	}
 	else
 	{
-		printf( "Get Timer problem.\n" );
+		PRINTF( "Get Timer problem.\n" );
 	}
 }
 /*-----------------------------------------------------------*/
@@ -539,13 +539,13 @@ sigset_t xSignals;
 	/* Unlock the Single thread mutex to allow the resumed task to continue. */
 	if ( 0 != pthread_mutex_unlock( &xSingleThreadMutex ) )
 	{
-		printf( "Releasing someone else's lock.\n" );
+		PRINTF( "Releasing someone else's lock.\n" );
 	}
 
 	/* Wait on the resume signal. */
 	if ( 0 != sigwait( &xSignals, &sig ) )
 	{
-		printf( "SSH: Sw %d\n", sig );
+		PRINTF( "SSH: Sw %d\n", sig );
 	}
 
 	/* Will resume here when the SIG_RESUME signal is received. */
@@ -639,17 +639,17 @@ portLONG lIndex;
 
 	if ( 0 != sigaction( SIG_SUSPEND, &sigsuspendself, NULL ) )
 	{
-		printf( "Problem installing SIG_SUSPEND_SELF\n" );
+		PRINTF( "Problem installing SIG_SUSPEND_SELF\n" );
 	}
 	if ( 0 != sigaction( SIG_RESUME, &sigresume, NULL ) )
 	{
-		printf( "Problem installing SIG_RESUME\n" );
+		PRINTF( "Problem installing SIG_RESUME\n" );
 	}
 	if ( 0 != sigaction( SIG_TICK, &sigtick, NULL ) )
 	{
-		printf( "Problem installing SIG_TICK\n" );
+		PRINTF( "Problem installing SIG_TICK\n" );
 	}
-	printf( "Running as PID: %d\n", getpid() );
+	PRINTF( "Running as PID: %d\n", getpid() );
 }
 /*-----------------------------------------------------------*/
 
@@ -682,7 +682,7 @@ portLONG lIndex;
 
 	if ( MAX_NUMBER_OF_TASKS == lIndex )
 	{
-		printf( "No more free threads, please increase the maximum.\n" );
+		PRINTF( "No more free threads, please increase the maximum.\n" );
 		lIndex = 0;
 		vPortEndScheduler();
 	}
@@ -766,7 +766,7 @@ void vPortFindTicksPerSecond( void )
 {
 	/* Needs to be reasonably high for accuracy. */
 	unsigned long ulTicksPerSecond = sysconf(_SC_CLK_TCK);
-	printf( "Timer Resolution for Run TimeStats is %ld ticks per second.\n", ulTicksPerSecond );
+	PRINTF( "Timer Resolution for Run TimeStats is %ld ticks per second.\n", ulTicksPerSecond );
 }
 /*-----------------------------------------------------------*/
 

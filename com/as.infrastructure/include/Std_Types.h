@@ -23,9 +23,7 @@
 #include <assert.h>
 #include <errno.h>
 #include "Compiler.h"
-#ifndef __QT__
 #include "asdebug.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef MIN
 #define MIN(_x,_y) (((_x) < (_y)) ? (_x) : (_y))

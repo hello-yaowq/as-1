@@ -18,25 +18,23 @@
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
+typedef struct
+{
+	const VirtQ_ConfigType* config;
+	VirtQ_QueueType vq[VIRTQ_CHL_NUM];
+	boolean initialized;
+}virtq_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-/* ============================ [ LOCALS    ] ====================================================== */
-/* ============================ [ FUNCTIONS ] ====================================================== */
-void virtqueue_kick(VirtQ_QueueType *vq)
+static virtq_t virtq =
 {
-	/* For now, simply interrupt remote processor */
-	if (vq->vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
-		/* do nothing */
-	}
-	else
-	{
-		/* trigger IPC interrupt TODO */
-		//Ipc_IsrTrigger(vq->id);
-	}
-}
-void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint32 *len)
+	.initialized = FALSE
+};
+/* ============================ [ LOCALS    ] ====================================================== */
+static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint16 *len)
 {
 	void* buf;
+	ASLOG(VIRTQ,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
     /* There's nothing available? */
     if (vq->last_avail_idx == vq->vring.avail->idx) {
         /* We need to know about added buffers */
@@ -53,13 +51,13 @@ void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint32 *l
     	*idx = vq->vring.avail->ring[vq->last_avail_idx++ % vq->vring.num];
 
 		buf = IPC_MAP_PA_TO_VA(vq->vring.desc[*idx].addr);
-		*len = vq->vring.desc[*idx].len;
+		*len = (uint16)vq->vring.desc[*idx].len;
     }
 
     return buf;
 }
 
-void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint32 len)
+static void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint32 len)
 {
    Vring_UsedElemType *used;
 
@@ -79,10 +77,75 @@ void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint32 len)
 	   vq->vring.used->idx++;
    }
 }
+/* ============================ [ FUNCTIONS ] ====================================================== */
+void VirtQ_InitVq(VirtQ_ChannerlType chl)
+{
+	vring_init(	&virtq.vq[chl].vring,
+				virtq.config->queueConfig[chl].vring->num,
+				IPC_MAP_PA_TO_VA(virtq.config->queueConfig[chl].vring->da),
+				virtq.config->queueConfig[chl].vring->align
+			);
 
+	ASLOG(VIRTQ,"vring[%d]: num=%d, desc=%Xh, avail=%Xh, used=%Xh,",chl,
+			virtq.vq[chl].vring.num,virtq.vq[chl].vring.desc,
+			virtq.vq[chl].vring.avail,virtq.vq[chl].vring.used);
+}
+Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* idx,void** buf,uint16* len)
+{
+	Std_ReturnType ercd;
+
+	ASLOG(VIRTQ,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
+
+	assert(chl < VIRTQ_CHL_NUM);
+	assert(virtq.initialized);
+
+	*buf = virtqueue_get_avail_buf(&virtq.vq[chl],idx,len);
+
+	if(*buf)
+	{
+		ercd = E_OK;
+	}
+	else
+	{
+		ercd = E_NOT_OK;
+	}
+
+	return ercd;
+}
+void VirtQ_AddUsedBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType idx,uint16 len)
+{
+	virtqueue_set_used_buf(&virtq.vq[chl],idx,len);
+}
+void VirtQ_Kick(VirtQ_ChannerlType chl)
+{
+	if (virtq.vq[chl].vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
+		/* do nothing */
+	}
+	else
+	{
+		/* trigger IPC interrupt */
+		Ipc_WriteIdx(virtq.config->queueConfig[chl].chl,virtq.config->queueConfig[chl].idx);
+	}
+}
+void VirtQ_Init(const VirtQ_ConfigType *config)
+{
+	if(FALSE == virtq.initialized)
+	{
+		virtq.config = config;
+		virtq.initialized = TRUE;
+	}
+	else
+	{
+		assert(0);
+	}
+}
 void VirtQ_RxNotificatin(VirtQ_ChannerlType chl)
 {
-
+	assert(virtq.initialized);
+	if(virtq.config->queueConfig[chl].rxNotification)
+	{
+		virtq.config->queueConfig[chl].rxNotification(chl);
+	}
 }
 void VirtQ_TxConfirmation(VirtQ_ChannerlType chl)
 {

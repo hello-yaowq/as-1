@@ -22,6 +22,8 @@
 
 #define IPC_FIFO_SIZE 1024
 /* ============================ [ TYPES     ] ====================================================== */
+typedef void (*Ipc_RxNotificationType)(VirtQ_ChannerlType chl);
+typedef void (*Ipc_TxConfirmationType)(VirtQ_ChannerlType chl);
 typedef struct
 {
 	VirtQ_IdxSizeType count;

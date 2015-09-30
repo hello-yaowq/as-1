@@ -104,6 +104,18 @@
 #include "shell.h"
 #endif
 
+#if defined(USE_IPC)
+#include "Ipc.h"
+#endif
+
+#if defined(USE_VIRTQ)
+#include "VirtQ.h"
+#endif
+
+#if defined(USE_RPMSG)
+#include "RPmsg.h"
+#endif
+
 /* ----------------------------[private define]------------------------------*/
 
 /* Does not run functions that are not drivers */
@@ -244,6 +256,19 @@ void EcuM_AL_DriverInitOne(const EcuM_ConfigType *ConfigPtr)
 #if defined(USE_PWM)
 	// Setup PWM
 	Pwm_Init(ConfigPtr->PwmConfig);
+#endif
+
+#if defined(USE_IPC)
+	// Setup PWM
+	Ipc_Init(&Ipc_Config);
+#endif
+
+#if defined(USE_VIRTQ)
+	NO_DRIVER(VirtQ_Init(&VirtQ_Config));
+#endif
+
+#if defined(USE_RPMSG)
+	NO_DRIVER(RPmsg_Init(&RPmsg_Config));
 #endif
 
 #if defined(CFG_SHELL)
@@ -568,7 +593,7 @@ void EcuM_AL_DriverRestart(void) {
 	/* Setup the systick interrupt */
 #if defined(USE_MCU)
 	{
-		uint32_t sys_freq = McuE_GetSystemClock();
+//		uint32_t sys_freq = McuE_GetSystemClock();
 //		Os_SysTickInit();
 //		Os_SysTickStart(sys_freq / OsTickFreq);
 	}

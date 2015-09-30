@@ -12,19 +12,29 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
-#define COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "VirtQ.h"
+#include "RPmsg.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(addr))
+
 /* ============================ [ TYPES     ] ====================================================== */
-#include "Ipc_Cfg.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
+{
+	{
+		.src = 0xdead,
+		.dst = 0xbeef,
+		.rxNotification = NULL,
+		.txConfirmation = NULL
+	}
+};
+const RPmsg_ConfigType RPmsg_Config =
+{
+	.name = "RPMSG-SAMPLE",
+	.port = 0x257,
+	.rxChl = VIRTQ_CHL_RPMSG_RX,
+	.txChl = VIRTQ_CHL_RPMSG_TX,
+	.chlConfig = chlConfig
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Ipc_Init(const Ipc_ConfigType* config);
-void Ipc_WriteIdx(Ipc_ChannelType chl,uint16 idx);
-#endif /* COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_ */

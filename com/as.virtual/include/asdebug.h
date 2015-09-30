@@ -12,19 +12,46 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
-#define COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
+#ifndef COM_AS_VIRTUAL_INCLUDE_ASDEBUG_H_
+#define COM_AS_VIRTUAL_INCLUDE_ASDEBUG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "VirtQ.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <QString>
 /* ============================ [ MACROS    ] ====================================================== */
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(addr))
+/* levels for log output */
+#define AS_LOG_VECU   	1
+#define AS_LOG_VIRTIO   2
+#define AS_LOG_VRING    3
+#define AS_LOG_VDEV     4
+#define AS_LOG_RPMSG    5
+
+#define AS_LOG_VMACTION    6
+#define AS_LOG_VMWINDOW    7
+/* and so on ... */
+#define AS_LOG_DEFAULT  1
+#define AS_LOG_STDOUT  	AS_LOG_DEFAULT
+#define AS_LOG_OFF      0
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#define ASLOG(level,fmt,...) 					\
+	if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
+        aslog("QT."#level,fmt,##__VA_ARGS__);					\
+	}
+#else
+#define ASLOG(level,fmt,...) 			\
+	if((level) >= AS_LOG_DEFAULT) {			\
+		printf(fmt,##__VA_ARGS__);		\
+		fflush(stdout);					\
+	}
+#endif
+
+#define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
 /* ============================ [ TYPES     ] ====================================================== */
-#include "Ipc_Cfg.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Ipc_Init(const Ipc_ConfigType* config);
-void Ipc_WriteIdx(Ipc_ChannelType chl,uint16 idx);
-#endif /* COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_ */
+extern void aslog(const char* who,const char* format,...);
+extern void asmem(void* address,size_t size);
+
+#endif /* COM_AS_VIRTUAL_INCLUDE_ASDEBUG_H_ */

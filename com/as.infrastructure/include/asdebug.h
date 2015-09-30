@@ -18,30 +18,35 @@
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
-#define AS_LOG_RPROC    1
-#define AS_LOG_CAN      2
-#define AS_LOG_CANIF    3
+#define AS_LOG_IPC   	1
+#define AS_LOG_VIRTQ    2
+#define AS_LOG_RPMSG    3
+#define AS_LOG_CAN      4
+#define AS_LOG_CANIF    5
 /* and so on ... */
 #define AS_LOG_DEFAULT  1
+#define AS_LOG_STDOUT  	AS_LOG_DEFAULT
+#define AS_LOG_OFF      0
 #if defined(__WINDOWS__) || defined(__LINUX__)
-#define ASLOG(level,fmt,...) 					\
-	if((level) >= AS_LOG_DEFAULT) {			\
-		aslog(fmt,##__VA_ARGS__);					\
+#define ASLOG(level,fmt,...) 							\
+	if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
+		aslog(#level,fmt,##__VA_ARGS__);				\
 	}
 #else
 #define ASLOG(level,fmt,...) 			\
-	if((level) >= AS_DFT_LOG) {			\
+	if((level) >= AS_LOG_DEFAULT) {		\
 		printf(fmt,##__VA_ARGS__);		\
 	}
 #endif
 
-#define PRINTF(fmt,...) ASLOG(AS_LOG_DEFAULT,fmt,##__VA_ARGS__)
+#define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void aslog(char* format,...);
+extern void aslog(char* module,char* format,...);
+extern void asmem(void* address,size_t size);
 char* aswho(void);
 
 #endif /* COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_ */

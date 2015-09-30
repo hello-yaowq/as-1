@@ -47,7 +47,7 @@ const Ipc_ConfigType Ipc_Config =
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Qt_SetParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event)
+void Qt_SetIpcParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event)
 {
 	assert(chl < IPC_CHL_NUM);
 	Ipc_ChlConfig[chl].r_lock = w_lock;
@@ -55,7 +55,7 @@ void Qt_SetParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock,
 	Ipc_ChlConfig[chl].r_event = w_event;
 	Ipc_ChlConfig[chl].w_event = r_event;
 }
-void Qt_GetFifo(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo)
+void Qt_GetIpcFifo(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo)
 {
 	assert(chl < IPC_CHL_NUM);
 	*r_fifo = Ipc_ChlConfig[chl].w_fifo;

@@ -53,7 +53,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
-typedef struct vring_desc {
+typedef struct {
 	/* Address (guest-physical). */
 	uint32 addr;
 	/* Length. */
@@ -71,27 +71,27 @@ typedef struct vring_avail {
 }Vring_AvailType;
 
 /* u32 is used here for ids for padding reasons. */
-typedef struct vring_used_elem {
+typedef struct {
 	/* Index of start of used descriptor chain. */
 	uint32 id;
 	/* Total length of the descriptor chain which was used (written to) */
 	uint32 len;
 }Vring_UsedElemType;
 
-typedef struct vring_used {
+typedef struct {
 	uint16 flags;
 	uint16 idx;
-	struct vring_used_elem ring[];
+	Vring_UsedElemType ring[];
 }Vring_UsedType;
 
-typedef struct vring {
+typedef struct {
 	uint32 num;	/* must be 2^n */
 
-	struct vring_desc *desc;
+	Vring_DescType *desc;
 
-	struct vring_avail *avail;
+	Vring_AvailType *avail;
 
-	struct vring_used *used;
+	Vring_UsedType *used;
 }Vring_Type;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

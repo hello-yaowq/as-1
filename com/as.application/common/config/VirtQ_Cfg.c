@@ -14,19 +14,31 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "VirtQ.h"
+#include "Rproc.h"
 #include "Ipc.h"
+#include "RPmsg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-DECLARE_WEAK void RPmsg_RxNotification(VirtQ_ChannerlType channel){}
-DECLARE_WEAK void RPmsg_TxConfirmation(VirtQ_ChannerlType channel){}
+
 /* ============================ [ DATAS     ] ====================================================== */
 static const VirtQ_QueueConfigType queueConfig[VIRTQ_CHL_NUM] =
 {
-	{ .idx = VIRTQ_CHL_RPMSG_RX, .rxNotification = RPmsg_RxNotification },
-	{ .idx = VIRTQ_CHL_RPMSG_TX, .rxNotification = RPmsg_TxConfirmation }
+	{
+		.chl = IPC_CHL_0,
+		.idx = VIRTQ_IDX_RPMSG_RX,
+		.rxNotification = RPmsg_RxNotification ,
+		.vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[0])
+	},
+	{
+		.chl = IPC_CHL_0,
+		.idx = VIRTQ_IDX_RPMSG_TX,
+		.rxNotification = RPmsg_TxConfirmation ,
+		.vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[1])
+	}
 };
+
 const VirtQ_ConfigType VirtQ_Config =
 {
 	.queueConfig = queueConfig

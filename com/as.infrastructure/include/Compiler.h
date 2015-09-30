@@ -81,6 +81,10 @@
 # define __weak			__attribute__((weak))
 #endif
 
+#ifndef __packed
+# define __packed		__attribute__((__packed__))
+#endif
+
 #define ilog2(_x)			__builtin_ffs(_x)
 
 /* Does this really work on all compilers.... */

@@ -39,7 +39,7 @@ vmAction::vmAction(QString dll,QWidget* parent)
 
 void vmAction::start(void)
 {
-    aslog("vmAction","Start ECU<%s>\n",dll_name.toStdString().c_str());
+    ASLOG(VMACTION,"Start ECU<%s>\n",dll_name.toStdString().c_str());
     ecu = new vEcu(dll_name);
     ecu->start();
     setDisabled(true);
@@ -82,7 +82,7 @@ vmWindow::vmWindow(QWidget* parent)
     {
         if(strstr(file->d_name,".dll"))
         {
-            aslog("vmWindow","load %s\n",file->d_name);
+            ASLOG(VMWINDOW,"load %s\n",file->d_name);
             action = new vmAction(QString(file->d_name),this);
             toolbar->addAction(action);
         }

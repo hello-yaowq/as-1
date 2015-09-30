@@ -29,6 +29,7 @@ typedef struct
 	uint32 r_pos;
 	uint32 w_pos;
 	void* thread;
+	boolean ready;
 }Ipc_ChannelRuntimeType;
 
 typedef struct
@@ -49,10 +50,11 @@ static boolean fifo_read(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType*
     boolean ercd;
     if(config->r_fifo->count > 0)
     {
+    	//asmem(config->r_fifo,512);
         *idx = config->r_fifo->idx[runtime->r_pos];
-        runtime->r_pos = (runtime->r_pos + 1)%(IPC_FIFO_SIZE);
+        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d\n",*idx,runtime->r_pos,config->r_fifo->count);
         config->r_fifo->count -= 1;
-        ASLOG(AS_LOG_RPROC,"Incoming message: 0x%X\n",*idx);
+        runtime->r_pos = (runtime->r_pos + 1)%(IPC_FIFO_SIZE);
         ercd = TRUE;
     }
     else
@@ -72,9 +74,9 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 	if(config->w_fifo->count < IPC_FIFO_SIZE)
 	{
 		config->w_fifo->idx[runtime->w_pos] = idx;
-		runtime->w_pos = (runtime->w_pos + 1)%(IPC_FIFO_SIZE);
 		config->w_fifo->count += 1;
-		ASLOG(AS_LOG_RPROC,"Transmit message: 0x%X\n",idx);
+		ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d\n",idx,runtime->w_pos,config->w_fifo->count);
+		runtime->w_pos = (runtime->w_pos + 1)%(IPC_FIFO_SIZE);
 		ercd = true;
 	}
 	else
@@ -114,7 +116,9 @@ static void* Ipc_Daemon(void* lpParameter)
 	pvObjectList[ 0 ] = config->r_lock;
 	pvObjectList[ 1 ] = config->r_event;
 #endif
-	ASLOG(0,"virtio_run daemon is on-line fifo=%x lock=%x event=%x\n",config->r_fifo, config->r_lock, config->r_event);
+    ASLOG(IPC,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
+          config->r_lock,config->w_lock,config->r_event,config->w_event,config->r_fifo,config->w_fifo);
+	runtime->ready = TRUE;
 	while(true)
 	{
 #ifdef __WINDOWS__
@@ -150,6 +154,19 @@ static void* Ipc_Daemon(void* lpParameter)
 	}
 	return 0;
 }
+boolean Ipc_IsReady(Ipc_ChannelType chl)
+{
+	boolean status = FALSE;
+	if(chl<IPC_CHL_NUM)
+	{
+		status = ipc.runtime[chl].ready;
+	}
+	else
+	{
+		assert(0);
+	}
+	return status;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Ipc_Init(const Ipc_ConfigType* config)
 {
@@ -169,6 +186,7 @@ void Ipc_Init(const Ipc_ConfigType* config)
 			#endif
 			ipc.runtime[i].r_pos = 0;
 			ipc.runtime[i].w_pos = 0;
+			ipc.runtime[i].ready = FALSE;
 		}
 	}
 	else

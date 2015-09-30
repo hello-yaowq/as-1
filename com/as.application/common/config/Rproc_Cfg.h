@@ -12,19 +12,31 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
-#define COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
+#ifndef COM_AS_APPLICATION_COMMON_CONFIG_RPROC_CFG_H_
+#define COM_AS_APPLICATION_COMMON_CONFIG_RPROC_CFG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "VirtQ.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(addr))
+#define RPROC_RSC_NUM  1
+#define RPROC_RPMSG_CFG_SIZE  16
+
+#define RPROC_RPMSG_FEATURES (1 << 0)
 /* ============================ [ TYPES     ] ====================================================== */
-#include "Ipc_Cfg.h"
+typedef struct
+{
+	uint32 version;
+	uint32 num;
+	uint32 reserved[2];
+	uint32 offset[RPROC_RSC_NUM];  /* Should match 'num' in actual definition */
+	Rproc_ResourceVdevType rpmsg_vdev;
+#if RPROC_RPMSG_CFG_SIZE > 0 /* @config_len of Rproc_ResourceVdevType */
+	uint8                 rpmsg_cfg[RPROC_RPMSG_CFG_SIZE];
+#endif
+}Rproc_ResourceTableType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Ipc_Init(const Ipc_ConfigType* config);
-void Ipc_WriteIdx(Ipc_ChannelType chl,uint16 idx);
-#endif /* COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_ */
+
+#endif /* COM_AS_APPLICATION_COMMON_CONFIG_RPROC_CFG_H_ */

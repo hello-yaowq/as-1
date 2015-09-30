@@ -208,7 +208,7 @@ static void* Lcd_Thread(void* param)
 #endif
 {
 	GtkWidget* pWindow;
-	printf("# Lcd_Thread Enter\n");
+	PRINTF("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
 	pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(pWindow),"LCD");
@@ -221,7 +221,7 @@ static void* Lcd_Thread(void* param)
 
 	gtk_main ();
 
-	printf("# Lcd_Thread Exit\n");
+	PRINTF("# Lcd_Thread Exit\n");
 
 	return 0;
 }

@@ -24,7 +24,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int main()
 {
-	ASLOG(AS_LOG_DEFAULT,"^_^ ---> AS start...\n");
+	PRINTF("^_^ ---> AS start...\n");
 	EcuM_Init();
 	return 0;
 }

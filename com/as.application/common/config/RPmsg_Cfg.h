@@ -12,19 +12,18 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
-#define COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_
+#ifndef COM_AS_APPLICATION_COMMON_CONFIG_RPMSG_CFG_H_
+#define COM_AS_APPLICATION_COMMON_CONFIG_RPMSG_CFG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "VirtQ.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(addr))
+#define RPMSG_CHL_		0
+#define RPMSG_CHL_NUM 	1
 /* ============================ [ TYPES     ] ====================================================== */
-#include "Ipc_Cfg.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern const RPmsg_ConfigType RPmsg_Config;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Ipc_Init(const Ipc_ConfigType* config);
-void Ipc_WriteIdx(Ipc_ChannelType chl,uint16 idx);
-#endif /* COM_AS_INFRASTRUCTURE_ARCH_POSIX_MCAL_IPC_H_ */
+
+#endif /* COM_AS_APPLICATION_COMMON_CONFIG_RPMSG_CFG_H_ */
