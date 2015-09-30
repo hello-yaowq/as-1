@@ -64,7 +64,7 @@ typedef struct {
 	uint16 next;
 }Vring_DescType;
 
-typedef struct vring_avail {
+typedef struct {
 	uint16 flags;
 	uint16 idx;
 	uint16 ring[];

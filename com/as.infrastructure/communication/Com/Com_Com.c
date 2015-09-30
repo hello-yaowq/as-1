@@ -103,7 +103,7 @@ uint8 Com_ReceiveDynSignal(Com_SignalIdType SignalId, void* SignalDataPtr, uint1
     uint16 iLength;
 
 	Com_SignalType signalType = Signal->ComSignalType;
-	if (signalType != UINT8_DYN) {
+	if (signalType != COM_SIGNAL_TYPE_UINT8_DYN) {
 		return COM_SERVICE_NOT_AVAILABLE;
 	}
 
@@ -142,7 +142,7 @@ uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, ui
     imask_t state;
 
 	Com_SignalType signalType = Signal->ComSignalType;
-	if (signalType != UINT8_DYN) {
+	if (signalType != COM_SIGNAL_TYPE_UINT8_DYN) {
 		return COM_SERVICE_NOT_AVAILABLE;
 	}
 	if (isPduBufferLocked(getPduId(IPdu))) {

@@ -53,6 +53,7 @@ void aslog(const char* who,const char* log,...)
     qDebug() << name << "::" << buf;
 
     va_end(args);
+    fflush(stderr);
 }
 void asmem(void* address,size_t size)
 {

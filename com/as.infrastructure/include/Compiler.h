@@ -103,7 +103,7 @@
 
 #define P2FUNC(rettype,ptrclass,fctname) rettype (*fctname)
 
-#ifndef CONST // for WIN32
+#ifndef __WINDOWS__
 #define CONST(consttype,memclass) const consttype
 #endif
 

@@ -91,7 +91,7 @@
 #define Irq_Restore(irq_state)		{extern void portRestroeIrqState(imask_t irq_state);portRestroeIrqState(irq_state);}
 
 /* ============================ [ TYPES     ] ====================================================== */
-typedef bool		                boolean;
+typedef unsigned char		       	boolean;
 typedef int8_t        				sint8;
 typedef uint8_t			       		uint8;
 typedef int16_t		        		sint16;

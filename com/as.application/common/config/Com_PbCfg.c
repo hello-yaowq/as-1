@@ -41,7 +41,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &year_InitValue,
-        .ComSignalType= UINT16,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT16,
         .Com_Arc_EOL= FALSE
     },
     
@@ -51,7 +51,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &month_InitValue,
-        .ComSignalType= UINT8,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT8,
         .Com_Arc_EOL= FALSE
     },
     
@@ -61,7 +61,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &day_InitValue,
-        .ComSignalType= UINT8,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT8,
         .Com_Arc_EOL= FALSE
     },
     
@@ -71,7 +71,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &hour_InitValue,
-        .ComSignalType= UINT8,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT8,
         .Com_Arc_EOL= FALSE
     },
     
@@ -81,7 +81,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &minute_InitValue,
-        .ComSignalType= UINT8,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT8,
         .Com_Arc_EOL= FALSE
     },
     
@@ -91,7 +91,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComHandleId= COM_ID_TxMsgTime,
         .ComSignalEndianess= COM_LITTLE_ENDIAN,
         .ComSignalInitValue= &second_InitValue,
-        .ComSignalType= UINT8,
+        .ComSignalType= COM_SIGNAL_TYPE_UINT8,
         .Com_Arc_EOL= FALSE
     },
 
@@ -130,7 +130,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  NULL,
-        .ComSignalType =  UINT8, // For group signal, this means nothing
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT8, // For group signal, this means nothing
         .ComTimeoutFactor =  0xDB,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    
@@ -157,7 +157,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  &VehicleSpeed_InitValue,
-        .ComSignalType =  UINT16,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT16,
         .ComTimeoutFactor =  100,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    
@@ -184,7 +184,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  &TachoSpeed_InitValue,
-        .ComSignalType =  UINT16,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT16,
         .ComTimeoutFactor =  100,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    
@@ -211,7 +211,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  &Led1Sts_InitValue,
-        .ComSignalType =  UINT8,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT8,
         .ComTimeoutFactor =  500,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    
@@ -238,7 +238,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  &Led2Sts_InitValue,
-        .ComSignalType =  UINT8,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT8,
         .ComTimeoutFactor =  500,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    
@@ -265,7 +265,7 @@ static const ComSignal_type ComSignal[] = {
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_NONE,
         .ComSignalEndianess =  COM_LITTLE_ENDIAN, 
         .ComSignalInitValue =  &Led3Sts_InitValue,
-        .ComSignalType =  UINT8,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT8,
         .ComTimeoutFactor =  500,
         .ComTimeoutNotification =  NULL,
         .ComTransferProperty =  PENDING,    

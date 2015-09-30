@@ -115,7 +115,7 @@ void Com_ReadSignalDataFromPduBuffer(
 	imask_t state;
 	Irq_Save(state);
 
-	if (signalEndianess == COM_OPAQUE || signalType == UINT8_N) {
+	if (signalEndianess == COM_OPAQUE || signalType == COM_SIGNAL_TYPE_UINT8_N) {
 		// Aligned opaque data -> straight copy
 		memcpy(signalDataBytes, pduBufferBytes, destSize);
 
@@ -220,7 +220,7 @@ void Com_WriteSignalDataToPduBuffer(
 	imask_t irq_state;
 
 	Irq_Save(irq_state);
-	if (endian == COM_OPAQUE || signalType == UINT8_N) {
+	if (endian == COM_OPAQUE || signalType == COM_SIGNAL_TYPE_UINT8_N) {
 		//assert(bitPosition % 8 == 0);
 		//assert(bitSize % 8 == 0);
 		uint8 *pduBufferBytes = (uint8 *)pduBuffer;

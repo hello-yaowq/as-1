@@ -16,16 +16,20 @@ ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
 DEBUG ?= TRUE
+ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
+else
+PY27 = C:Python27/python
+PY34 = C:Python34/python
+endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
-ifeq ($(host), Linux)
+ifeq ($(host),Linux)
 def-y += -D__LINUX__
-endif
-ifeq ($(host), nt)
+else
 def-y += -D__WINDOWS__
 endif
 # on C disk do the following command:
@@ -50,7 +54,8 @@ endif
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),posix)	
 # slect GUI openVG/GTK 
-ifeq ($(host),nt)
+ifeq ($(host),Linux)
+else
 ldflags-y +=-lwinmm 
 endif
 cflags-y  += `pkg-config --cflags gtk+-3.0`

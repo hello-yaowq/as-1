@@ -45,15 +45,15 @@ typedef enum {
 } Com_IPduDirection;
 
 typedef enum {
-	BOOLEAN,
-	UINT8,
-	UINT16,
-	UINT32,
-	UINT8_N,
-	UINT8_DYN,
-	SINT8,
-	SINT16,
-	SINT32
+	COM_SIGNAL_TYPE_BOOLEAN,
+	COM_SIGNAL_TYPE_UINT8,
+	COM_SIGNAL_TYPE_UINT16,
+	COM_SIGNAL_TYPE_UINT32,
+	COM_SIGNAL_TYPE_UINT8_N,
+	COM_SIGNAL_TYPE_UINT8_DYN,
+	COM_SIGNAL_TYPE_SINT8,
+	COM_SIGNAL_TYPE_SINT16,
+	COM_SIGNAL_TYPE_SINT32
 } Com_SignalType;
 
 #define COM_SIGNALTYPE_UNSIGNED  FALSE
@@ -111,16 +111,16 @@ typedef enum {
 #define M_SINT32 sint32
 
 #define SignalTypeToSize(type,length) \
-	(type == UINT8   ? sizeof(uint8) : \
-	type == UINT16  ? sizeof(uint16) : \
-	type == UINT32  ? sizeof(uint32) : \
-	type == UINT8_N  ? sizeof(uint8) * length : \
-	type == SINT8   ? sizeof(sint8) : \
-	type == SINT16  ? sizeof(sint16) : \
-	type == SINT32  ? sizeof(sint32) : sizeof(boolean)) \
+	(type == COM_SIGNAL_TYPE_UINT8   ? sizeof(uint8) : \
+	type == COM_SIGNAL_TYPE_UINT16  ? sizeof(uint16) : \
+	type == COM_SIGNAL_TYPE_UINT32  ? sizeof(uint32) : \
+	type == COM_SIGNAL_TYPE_UINT8_N  ? sizeof(uint8) * length : \
+	type == COM_SIGNAL_TYPE_SINT8   ? sizeof(sint8) : \
+	type == COM_SIGNAL_TYPE_SINT16  ? sizeof(sint16) : \
+	type == COM_SIGNAL_TYPE_SINT32  ? sizeof(sint32) : sizeof(boolean)) \
 
 #define SignalTypeSignedness(type) \
-		(( (type == SINT8) || (type == SINT16) || (type == SINT32) ) ? \
+		(( (type == COM_SIGNAL_TYPE_SINT8) || (type == COM_SIGNAL_TYPE_SINT16) || (type == COM_SIGNAL_TYPE_SINT32) ) ? \
 				COM_SIGNALTYPE_SIGNED : COM_SIGNALTYPE_UNSIGNED)
 
 /** Filter configuration type.

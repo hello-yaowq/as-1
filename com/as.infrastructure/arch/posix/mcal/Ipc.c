@@ -85,8 +85,8 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 		ercd = false;
 	}
 #ifdef __WINDOWS__
-	ReleaseMutex(rpdev.w_lock);
-	SetEvent( rpdev.w_event );
+	ReleaseMutex(config->w_lock);
+	SetEvent( config->w_event );
 #else
 	(void)pthread_mutex_unlock( (pthread_mutex_t *)config->w_lock );
 	(void)pthread_cond_signal ((pthread_cond_t *)config->w_event);
@@ -94,7 +94,7 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 	return ercd;
 }
 #ifdef __WINDOWS__
-static DWORD Ipc_Daemon(LPVOID lpParameter)
+static DWORD Ipc_Daemon(PVOID lpParameter)
 #else
 static void* Ipc_Daemon(void* lpParameter)
 #endif
