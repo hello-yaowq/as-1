@@ -16,16 +16,21 @@
 #include "vEcu.h"
 #include "asdebug.h"
 #include <QDebug>
-#include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __WINDOWS__
+#include <windows.h>
+#else
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
 #include <stdarg.h>
+#include <dlfcn.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*aslog_t)(const char*,const char*,...);
@@ -40,7 +45,11 @@ vEcu::vEcu ( QString dll, QObject *parent )
 {
     setlog_t p_setlog;
 #ifdef __WINDOWS__
-    hxDll = LoadLibrary(dll.toStdString().c_str());
+    char full_path[128];
+    char* cwd = getcwd(NULL,0);
+    sprintf(full_path,"%s\\%s",cwd,dll.toStdString().c_str());
+    hxDll = LoadLibraryA(full_path);
+    free(cwd);
 #else
     char* full_path = realpath(dll.toStdString().c_str(),NULL);
     hxDll = dlopen(full_path,RTLD_NOW);
@@ -49,8 +58,8 @@ vEcu::vEcu ( QString dll, QObject *parent )
     assert(hxDll);
 
 #ifdef __WINDOWS__
-    pfMain = (PF_MAIN)GetProcAddress(hxDll,"main");
-    p_setlog  = (setlog_t)GetProcAddress(hxDll,"aslog_init");
+    pfMain = (PF_MAIN)GetProcAddress((HMODULE)hxDll,"main");
+    p_setlog  = (setlog_t)GetProcAddress((HMODULE)hxDll,"aslog_init");
 #else
 
     pfMain = (PF_MAIN)dlsym(hxDll,"main");
@@ -67,9 +76,7 @@ vEcu::vEcu ( QString dll, QObject *parent )
 vEcu::~vEcu ( )
 {
 #ifdef __WINDOWS__
-    FreeLibrary( hxDll );
-    TerminateThread(pvThread,0);
-    CloseHandle(pvThread);
+    FreeLibrary( (HMODULE)hxDll );
 #else
     dlclose(hxDll);
 #endif

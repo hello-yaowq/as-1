@@ -70,7 +70,8 @@ vmWindow::vmWindow(QWidget* parent)
     menubar->addAction(action);
 
     char* cwd = getcwd(NULL,0);
-    chdir("../../out");
+    ASLOG(VMWINDOW,cwd);
+    chdir("../out");
     char* workpath = getcwd(NULL,0);
 
     free(cwd);

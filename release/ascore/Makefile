@@ -3,7 +3,6 @@ target-y = $(board)
 obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
-vir-inc = ./virtual/as.virtual/include
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
@@ -111,12 +110,9 @@ def-y += -D$(board)_board
 
 $(inc-dir)/utility:
 	@mkdir -p $@
-	
 $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
-	@mkdir -p $@
-$(vir-inc):
 	@mkdir -p $@
 
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
@@ -130,7 +126,7 @@ XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
 	
 
-dep-as-virtual:$(vir-inc)
+dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
 	
 dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
