@@ -147,7 +147,7 @@ bool Virtio::fifo_read(VirtQ_IdxType* id)
     if(r_fifo->count > 0)
     {
         *id = r_fifo->idx[r_pos];
-        ASLOG(VIRTIO,"Incoming message: 0x%X,pos=%d,count=%d\n",id,r_pos,r_fifo->count);
+        ASLOG(VIRTIO,"Incoming message: 0x%X,pos=%d,count=%d\n",*id,r_pos,r_fifo->count);
         r_pos = (r_pos + 1)%(sz_fifo);
         r_fifo->count -= 1;
         ercd = true;

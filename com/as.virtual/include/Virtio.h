@@ -205,13 +205,13 @@ public:
     {
         return ring->notifyid;
     }
-    void* get_avail_buf(VirtQ_IdxType* idx,uint32_t *len)
+    void* get_used_buf(VirtQ_IdxType* idx,uint32_t *len)
     {
         void* buf;
         /* There's nothing available? */
-        if (last_avail_idx == vr.avail->idx) {
+        if (last_used_idx == vr.used->idx) {
             /* We need to know about added buffers */
-            vr.used->flags &= ~VRING_USED_F_NO_NOTIFY;
+            vr.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
 
             buf = NULL;
         }
@@ -221,32 +221,22 @@ public:
              * Grab the next descriptor number they're advertising, and increment
              * the index we've seen.
              */
-            *idx = vr.avail->ring[last_avail_idx++ % vr.num];
+            *idx = vr.used->ring[last_used_idx].id;
 
             buf = (void*)(unsigned long)vr.desc[*idx].addr;
-            *len = vr.desc[*idx].len;
+            *len = vr.used->ring[last_used_idx++ % vr.num].len;
         }
 
         return buf;
     }
-    void set_used_buf(VirtQ_IdxType idx, uint32_t len)
+    void put_used_buf_back(VirtQ_IdxType idx)
     {
-       Vring_UsedElemType *used;
-
        if (idx > vr.num) {
            assert(0);
        }
        else
        {
-           /*
-           * The virtqueue contains a ring of used buffers.  Get a pointer to the
-           * next entry in that used ring.
-           */
-           used = &vr.used->ring[vr.used->idx % vr.num];
-           used->id = idx;
-           used->len = len;
-
-           vr.used->idx++;
+           vr.avail->ring[vr.avail->idx++ % vr.num] = idx;
        }
     }
     bool add_buf(void* data, uint32_t len)
@@ -259,6 +249,7 @@ public:
             vr.desc[free_head].flags = VRING_DESC_F_NEXT;
             free_head = vr.desc[free_head].next;
             vr.avail->idx ++;
+            vr.avail->ring[free_head] = free_head;
             num_added ++;
             added = true;
         }
@@ -287,6 +278,9 @@ private:
 
         free_head = 0;
         num_added = 0;
+
+        last_avail_idx = 0;
+        last_used_idx  = 0;
 
         ASLOG(VRING,"vring[?]: num=%d, desc=%Xh, avail=%Xh, used=%Xh,",
                 vr.num,(uint32_t)(unsigned long)vr.desc,
@@ -346,8 +340,23 @@ public:
     }
 
 public:
-    virtual void rx_noificaton(void){}
-    virtual void tx_confirmation(void){}
+    virtual void rx_noificaton(void){
+        VirtQ_IdxSizeType idx;
+        uint32_t len;
+        void* buf;
+        ASLOG(VDEV,"rx_notification(idx=%Xh)\n",r_ring->get_notifyid());
+        buf = r_ring->get_used_buf(&idx,&len);
+
+        assert(buf);
+        ASLOG(VDEV,"Message(idx=%d,len=%d)\n",idx,len);
+        asmem(buf,len);
+
+        r_ring->put_used_buf_back(idx);
+
+    }
+    virtual void tx_confirmation(void){
+        ASLOG(VDEV,"tx_confirmation(idx=%Xh)\n",w_ring->get_notifyid());
+    }
 
 signals:
     void kick(unsigned int idx);
@@ -375,6 +384,8 @@ public:
         /* the last one must be added failed */
         free(data);
     }
+public:
+
 };
 
 class Virtio: public QThread

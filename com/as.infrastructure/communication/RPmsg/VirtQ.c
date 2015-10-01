@@ -34,8 +34,8 @@ static virtq_t virtq =
 static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint16 *len)
 {
 	void* buf;
-	asmem(&vq->vring,sizeof(Vring_Type));
-	asmem(vq->vring.avail,sizeof(Vring_AvailType)+vq->vring.num*sizeof(uint16));
+//	asmem(&vq->vring,sizeof(Vring_Type));
+//	asmem(vq->vring.avail,sizeof(Vring_AvailType)+vq->vring.num*sizeof(uint16));
 
 	ASLOG(VIRTQ,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
     /* There's nothing available? */

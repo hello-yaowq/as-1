@@ -82,7 +82,7 @@ void asmem(void* address,size_t size)
         {
             if(((i*16+j)<size) && isprint(src[i*16+j]))
             {
-                printf("%c:",src[i*16+j]);
+                printf("%c",src[i*16+j]);
             }
             else
             {
