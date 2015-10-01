@@ -60,12 +60,13 @@ void asmem(void* address,size_t size)
     uint32_t i,j;
     uint8_t *src;
     src = (uint8_t*)address;
-    printf("Qt:\n");
+    printf("@Qt:\n");
     printf(" address: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
 
     for(i=0; i<(size+15)/16; i++)
     {
         printf("%08X:",(uint32_t)(unsigned long)src+i*16);
+        fflush(stdout);
         for(j=0;j<16;j++)
         {
             if((i*16+j)<size)

@@ -71,7 +71,7 @@ vmWindow::vmWindow(QWidget* parent)
 
     char* cwd = getcwd(NULL,0);
     ASLOG(VMWINDOW,cwd);
-    chdir("../out");
+    chdir("../../out");
     char* workpath = getcwd(NULL,0);
 
     free(cwd);

@@ -11,10 +11,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = AsVitrual
 TEMPLATE = app
 
-#DEFINES += __LINUX__
-#LIBS += -L/lib64 -l:libdl.so.2
+DEFINES += __LINUX__
+LIBS += -L/lib64 -l:libdl.so.2
 
-DEFINES += __WINDOWS__
+#DEFINES += __WINDOWS__
 
 
 

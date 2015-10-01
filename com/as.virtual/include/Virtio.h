@@ -196,6 +196,7 @@ private:
     uint32_t free_head;
     /* Number we've added since last sync. */
     uint32_t num_added;
+    uint32_t heap[1024*1024/4];
 public:
     explicit Vring ( Rproc_ReseouceVdevVringType* ring ) : ring(ring)
     {
@@ -282,12 +283,19 @@ private:
         last_avail_idx = 0;
         last_used_idx  = 0;
 
-        ASLOG(VRING,"vring[?]: num=%d, desc=%Xh, avail=%Xh, used=%Xh,",
-                vr.num,(uint32_t)(unsigned long)vr.desc,
-                (uint32_t)(unsigned long)vr.avail,(uint32_t)(unsigned long)vr.used);
+        ASLOG(VRING,"vring[idx=%Xh,size=%d]: num=%d, desc=%Xh, avail=%Xh, used=%Xh, da=%Xh\n",
+                ring->notifyid,
+                size(),vr.num,(uint32_t)(unsigned long)vr.desc,
+                (uint32_t)(unsigned long)vr.avail,(uint32_t)(unsigned long)vr.used,ring->da);
+       asmem(vr.avail,(vr.num+3)*sizeof(uint16_t));
     }
     uint32_t size(void)
     {
+        /*
+         * ((12*256+2*(3+256)+4096-1)&~(4096-1))+2*3+8*256 = 6150
+         */
+        ASLOG(OFF,"sizeof(Vring_DescType)=%d,sizeof(Vring_UsedElemType)=%d,sizeof(uint16_t)=%d,num=%d,align=%d\n",
+              sizeof(Vring_DescType),sizeof(Vring_UsedElemType),sizeof(uint16_t),ring->num,ring->align);
         return ((sizeof(Vring_DescType) * ring->num + sizeof(uint16_t) * (3 + ring->num)
              + ring->align - 1) & ~(ring->align - 1))
             + sizeof(uint16_t) * 3 + sizeof(Vring_UsedElemType) * ring->num;
