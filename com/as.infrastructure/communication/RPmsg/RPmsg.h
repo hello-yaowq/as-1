@@ -105,5 +105,6 @@ typedef struct
 void RPmsg_Init(const RPmsg_ConfigType* config);
 void RPmsg_RxNotification(VirtQ_ChannerlType channel);
 void RPmsg_TxConfirmation(VirtQ_ChannerlType channel);
+boolean RPmsg_IsOnline(void);
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len);
 #endif /* COM_AS_INFRASTRUCTURE_COMMUNICATION_RPMSG_RPMSG_H_ */

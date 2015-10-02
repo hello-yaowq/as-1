@@ -16,7 +16,7 @@
 
 /* ################ Can General ################ */
 
-#define CAN_DEV_ERROR_DETECT STD_OFF
+#define CAN_DEV_ERROR_DETECT STD_ON
 #define CAN_VERSION_INFO_API STD_ON
 #define CAN_TIMEOUT_DURATION 10 /* ms */
 

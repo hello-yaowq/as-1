@@ -18,14 +18,16 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
+void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
 /* ============================ [ DATAS     ] ====================================================== */
 static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
 {
 	{
 		.src = 0xdead,
 		.dst = 0xbeef,
-		.rxNotification = NULL,
-		.txConfirmation = NULL
+		.rxNotification = Can_RPmsg_RxNotitication,
+		.txConfirmation = Can_RPmsg_TxConfirmation
 	}
 };
 const RPmsg_ConfigType RPmsg_Config =

@@ -111,6 +111,11 @@ void RPmsg_RxNotification(VirtQ_ChannerlType channel)
 		rpmsg.online = TRUE;
 	}
 }
+
+boolean RPmsg_IsOnline(void)
+{
+	return rpmsg.online;
+}
 void RPmsg_TxConfirmation(VirtQ_ChannerlType channel)
 {
 
@@ -118,6 +123,11 @@ void RPmsg_TxConfirmation(VirtQ_ChannerlType channel)
 
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
 {
-
-	return E_OK;
+	Std_ReturnType ercd;
+	const RPmsg_ChannelConfigType* chlConfig;
+	assert(rpmsg.initialized);
+	assert(chl<RPMSG_CHL_NUM);
+	chlConfig = &rpmsg.config->chlConfig[chl];
+	ercd = sendMessage(chlConfig->dst,chlConfig->src,data,len);
+	return ercd;
 }

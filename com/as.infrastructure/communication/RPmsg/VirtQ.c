@@ -34,7 +34,6 @@ static virtq_t virtq =
 static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint16 *len)
 {
 	void* buf;
-	asmem(vq->vring.avail,512);
 
 	ASLOG(VIRTQ,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
     /* There's nothing available? */
@@ -62,6 +61,8 @@ static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, ui
 static void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint32 len)
 {
    Vring_UsedElemType *used;
+
+   ASLOG(VIRTQ,"VirtQ set used buf idx=%d vq->vring.used->idx=%d\n",idx, vq->vring.used->idx);
 
    if (idx > vq->vring.num) {
        assert(0);
@@ -108,7 +109,7 @@ Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* i
 	assert(chl < VIRTQ_CHL_NUM);
 	assert(virtq.initialized);
 
-	ASLOG(VIRTQ,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
+	ASLOG(OFF,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
 
 	*buf = virtqueue_get_avail_buf(&virtq.vq[chl],idx,len);
 
@@ -123,10 +124,12 @@ Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* i
 
 	return ercd;
 }
+
 void VirtQ_AddUsedBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType idx,uint16 len)
 {
 	virtqueue_set_used_buf(&virtq.vq[chl],idx,len);
 }
+
 void VirtQ_Kick(VirtQ_ChannerlType chl)
 {
 	if (virtq.vq[chl].vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {

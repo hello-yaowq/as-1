@@ -226,6 +226,7 @@ public:
 
             buf = (void*)(unsigned long)vr.desc[*idx].addr;
             *len = vr.used->ring[last_used_idx++ % vr.num].len;
+            num_added --;
         }
 
         return buf;
@@ -238,6 +239,7 @@ public:
        else
        {
            vr.avail->ring[vr.avail->idx++ % vr.num] = idx;
+           num_added ++;
        }
     }
     bool add_buf(void* data, uint32_t len)
@@ -287,7 +289,6 @@ private:
                 ring->notifyid,
                 size(),vr.num,(uint32_t)(unsigned long)vr.desc,
                 (uint32_t)(unsigned long)vr.avail,(uint32_t)(unsigned long)vr.used,ring->da);
-       asmem(vr.avail,(vr.num+3)*sizeof(uint16_t));
     }
     uint32_t size(void)
     {
@@ -337,14 +338,38 @@ public:
           return notifed;
     }
 public:
-    bool provide_a_read_buffer(void* data,uint32_t len)
+    bool provide_a_r_buffer(void* data,uint32_t len)
     {   /* thus the remote proc can send a messsage via this buffer */
         return r_ring->add_buf(data,len);
     }
+    void* get_used_r_buf(VirtQ_IdxType* idx,uint32_t *len)
+    {
+        return r_ring->get_used_buf(idx,len);
+    }
+    void put_used_r_buf_back(VirtQ_IdxType idx)
+    {
+        r_ring->put_used_buf_back(idx);
+    }
+    VirtQ_IdxType get_r_notifyid(void)
+    {
+        return r_ring->get_notifyid();
+    }
 
-    bool provide_a_write_buffer(void* data,uint32_t len)
+    bool provide_a_w_buffer(void* data,uint32_t len)
     {  /* thus a message in data was transimited to the retome proc */
         return w_ring->add_buf(data,len);
+    }
+    void* get_used_w_buf(VirtQ_IdxType* idx,uint32_t *len)
+    {
+        return w_ring->get_used_buf(idx,len);
+    }
+    void put_used_w_buf_back(VirtQ_IdxType idx)
+    {
+        w_ring->put_used_buf_back(idx);
+    }
+    VirtQ_IdxType get_w_notifyid(void)
+    {
+        return w_ring->get_notifyid();
     }
 
 public:
@@ -387,13 +412,27 @@ public:
             data = malloc(len);
             assert(data);
             memset(data,0,len);
-            added = provide_a_read_buffer(data,len);
+            added = provide_a_r_buffer(data,len);
         } while(added);
         /* the last one must be added failed */
         free(data);
     }
 public:
+    void rx_noificaton(void){
+        VirtQ_IdxSizeType idx;
+        uint32_t len;
+        RPmsg_HandlerType* buf;
+        ASLOG(RPMSG,"rx_notification(idx=%Xh)\n",get_r_notifyid());
+        buf = (RPmsg_HandlerType*)get_used_r_buf(&idx,&len);
 
+        assert(buf);
+        ASLOG(RPMSG,"Message(idx=%d,len=%d)\n",idx,len);
+        ASLOG(RPMSG,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
+        asmem(buf->data,buf->len);
+
+        put_used_r_buf_back(idx);
+
+    }
 };
 
 class Virtio: public QThread

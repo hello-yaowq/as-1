@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "RPmsg.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 #define USE_CAN_STATISTICS      STD_ON
@@ -139,12 +139,6 @@ typedef struct {
   Can_Arc_ObjectHOHMapType CanHTHMap[NUM_OF_HTHS];
 } Can_GlobalType;
 
-// Global config
-Can_GlobalType Can_Global =
-{
-  .initRun = CAN_UNINIT,
-};
-
 /* Type for holding information about each controller */
 typedef struct {
   CanIf_ControllerModeType state;
@@ -158,6 +152,15 @@ typedef struct {
   // Data stored for Txconfirmation callbacks to CanIf
   PduIdType swPduHandle; //
 } Can_UnitType;
+
+typedef struct {
+	// the CAN ID, 29 or 11-bit
+	Can_IdType 	id;
+	// Length, max 8 bytes
+	uint8		length;
+	// data ptr
+	uint8 		sdu[8];
+} Can_RPmsgPduType;
 
 /* ============================ [ DATAS     ] ====================================================== */
 Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
@@ -177,6 +180,11 @@ Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
   {
     .state = CANIF_CS_UNINIT,
   },
+};
+// Global config
+Can_GlobalType Can_Global =
+{
+  .initRun = CAN_UNINIT,
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -435,13 +443,24 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
   {
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
-		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
-		  for(int i=0;i<pduInfo->length;i++)
+		  Can_RPmsgPduType rpmsg;
+		  rpmsg.id = pduInfo->id;
+		  rpmsg.length = pduInfo->length;
+		  memcpy(rpmsg.sdu,pduInfo->sdu,pduInfo->length);
+//		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
+//		  for(int i=0;i<pduInfo->length;i++)
+//		  {
+//			  printf("%02X,",pduInfo->sdu[i]);
+//		  }
+//		  printf("]\n");
+//		  fflush(stdout);
+		  while(FALSE == RPmsg_IsOnline())
 		  {
-			  printf("%02X,",pduInfo->sdu[i]);
+			  usleep(1000);	/* make sure rpmsg is online */
 		  }
-		  printf("]\n");
-		  fflush(stdout);
+
+		  RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
+
 		  canUnit->swPduHandle = pduInfo->swPduHandle;
 		  // Increment statistics
 		  #if (USE_CAN_STATISTICS == STD_ON)
@@ -529,6 +548,14 @@ void Can_SimulatorRunning(void)
 
 		/* Rx Process */
 	}
+}
+void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
+{
+
+}
+void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
+{
+
 }
 
 
