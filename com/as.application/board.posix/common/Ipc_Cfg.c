@@ -45,6 +45,7 @@ const Ipc_ConfigType Ipc_Config =
 {
 	.channelConfig = Ipc_ChlConfig
 };
+unsigned long Ipc_BaseAddress = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Qt_SetIpcParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event)
@@ -60,4 +61,17 @@ void Qt_GetIpcFifo(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_
 	assert(chl < IPC_CHL_NUM);
 	*r_fifo = Ipc_ChlConfig[chl].w_fifo;
 	*w_fifo = Ipc_ChlConfig[chl].r_fifo;
+}
+
+void Qt_SetIpcBaseAddress(unsigned long base)
+{
+	if(0==Ipc_BaseAddress)
+	{
+		Ipc_BaseAddress = base;
+		ASLOG(IPC,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+	}
+	else
+	{
+		assert(Ipc_BaseAddress == base);
+	}
 }

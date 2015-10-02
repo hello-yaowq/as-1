@@ -107,4 +107,21 @@ void asmem(void* address,size_t size)
     fflush(stdout);
 }
 
+char* ashex(unsigned long a)
+{
+	char *buf = (char*)malloc(20);
+	assert(buf);
+
+	if( 8 == sizeof(unsigned long))
+	{
+		sprintf(buf,"%X%Xh",(uint32_t)(a>>32),(uint32_t)a);
+	}
+	else
+	{
+		sprintf(buf,"%Xh",(uint32_t)a);
+	}
+
+	return buf;
+}
+
 

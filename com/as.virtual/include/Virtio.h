@@ -71,11 +71,14 @@
 
 #define RPMSG_NAME_SIZE			32
 #define RPMSG_DATA_SIZE         512
+
+extern unsigned long Ipc_BaseAddress;
+#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(Ipc_BaseAddress+addr))
 /* ============================ [ TYPES     ] ====================================================== */
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
 typedef struct {
     /* Address (guest-physical). */
-    uint32_t addr;
+	uint32_t addr;
     /* Length. */
     uint32_t len;
     /* The flags as indicated above. */
@@ -132,7 +135,8 @@ typedef enum {
 }Rproc_ReourceType;
 
 typedef struct {
-    uint32_t da;
+    /* For 64 bit ECU, address is 64 bit */
+	uint32_t da;
     uint32_t align;
     uint32_t num;
     uint32_t notifyid;
@@ -180,7 +184,7 @@ typedef struct rpmsg_ns_msg {
 } RPmsg_NsMsgType;
 
 typedef bool (*PF_IPC_IS_READY)(Ipc_ChannelType chl);
-
+extern void Virtio_SetIpcBaseAddress(unsigned long base);
 /* ============================ [ CLASS     ] ====================================================== */
 class Vring{
 private:
@@ -224,7 +228,7 @@ public:
              */
             *idx = vr.used->ring[last_used_idx].id;
 
-            buf = (void*)(unsigned long)vr.desc[*idx].addr;
+            buf = IPC_MAP_PA_TO_VA(vr.desc[*idx].addr);
             *len = vr.used->ring[last_used_idx++ % vr.num].len;
             num_added --;
         }
@@ -247,6 +251,10 @@ public:
         bool added;
         if(num_added<vr.num)
         {
+            if(8 == sizeof(void*))
+            {
+                Virtio_SetIpcBaseAddress(((unsigned long)data)&0xFFFFFFFF00000000UL);
+            }
             vr.desc[free_head].addr = (uint32_t)(unsigned long) data;
             vr.desc[free_head].len  = len;
             vr.desc[free_head].flags = VRING_DESC_F_NEXT;
@@ -272,8 +280,8 @@ private:
         vr.num = ring->num;
         vr.desc = (Vring_DescType*)p;
         vr.avail = (Vring_AvailType*)((unsigned long)p + ring->num*sizeof(Vring_DescType));
-        vr.used = (Vring_UsedType*)(((uint32_t)(unsigned long)(&vr.avail->ring[ring->num]) + sizeof(uint16_t)
-            + ring->align-1) & ~(ring->align - 1));
+        vr.used = (Vring_UsedType*)(((unsigned long)(&vr.avail->ring[ring->num]) + sizeof(uint16_t)
+            + ring->align-1) & ~((unsigned long)ring->align - 1));
         for(uint32_t i=0;i<(vr.num-1);i++)
         {
             vr.desc[i].next = i+1;
@@ -285,10 +293,14 @@ private:
         last_avail_idx = 0;
         last_used_idx  = 0;
 
-        ASLOG(VRING,"vring[idx=%Xh,size=%d]: num=%d, desc=%Xh, avail=%Xh, used=%Xh, da=%Xh\n",
+        if(8 == sizeof(void*))
+        {
+            Virtio_SetIpcBaseAddress(((unsigned long)p)&0xFFFFFFFF00000000UL);
+        }
+        ASLOG(VRING,"vring[idx=%Xh,size=%d]: num=%d, desc=%s, avail=%s, used=%s, da=%Xh\n",
                 ring->notifyid,
-                size(),vr.num,(uint32_t)(unsigned long)vr.desc,
-                (uint32_t)(unsigned long)vr.avail,(uint32_t)(unsigned long)vr.used,ring->da);
+                size(),vr.num,ASHEX(vr.desc),
+                ASHEX(vr.avail),ASHEX(vr.used),ring->da);
     }
     uint32_t size(void)
     {

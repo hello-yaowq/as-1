@@ -102,8 +102,8 @@ static inline void vring_init(Vring_Type *vr, uint32 num, void *p,
 	vr->num = num;
 	vr->desc = p;
 	vr->avail = p + num*sizeof(Vring_DescType);
-	vr->used = (void *)(((uint32)(unsigned long)(&vr->avail->ring[num]) + sizeof(uint16)
-		+ align-1) & ~(align - 1));
+	vr->used = (void *)(((unsigned long)(&vr->avail->ring[num]) + sizeof(uint16)
+		+ align-1) & ~((unsigned long)align - 1));
 }
 
 static inline uint32 vring_size(uint32 num, uint32 align)

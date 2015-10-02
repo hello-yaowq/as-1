@@ -46,6 +46,7 @@
 #endif
 
 #define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
+#define ASHEX(a)	ashex((unsigned long)(a))
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -53,5 +54,6 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void aslog(const char* who,const char* format,...);
 extern void asmem(void* address,size_t size);
+extern char* ashex(unsigned long a);
 
 #endif /* COM_AS_VIRTUAL_INCLUDE_ASDEBUG_H_ */

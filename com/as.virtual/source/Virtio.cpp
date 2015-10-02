@@ -22,8 +22,11 @@
 typedef void (*qt_set_param_t)(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event);
 typedef void (*qt_get_fifo_t)(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo);
 typedef Rproc_ResourceTableType* (*qt_get_rproc_resource_table_t)(void);
+typedef void (*Qt_SetIpcBaseAddressType)(unsigned long base);
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+static Qt_SetIpcBaseAddressType Qt_SetIpcBaseAddress;
+unsigned long Ipc_BaseAddress = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
@@ -58,11 +61,14 @@ Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
     p_get_fifo = (qt_get_fifo_t)dlsym(hxDll,"Qt_GetIpcFifo");
     p_get_rsc_tbl = (qt_get_rproc_resource_table_t)dlsym(hxDll,"Qt_GetRprocResourceTable");
     pfIsIpcReady = (PF_IPC_IS_READY)dlsym(hxDll,"Ipc_IsReady");
+    Qt_SetIpcBaseAddress = (Qt_SetIpcBaseAddressType)dlsym(hxDll,"Qt_SetIpcBaseAddress");
 #endif
 
      assert(p_set_param);
      assert(p_get_fifo);
      assert(p_get_rsc_tbl);
+     assert(pfIsIpcReady);
+     assert(Qt_SetIpcBaseAddress);
 
      p_set_param(0,r_lock,r_event,w_lock,w_event);
      p_get_fifo(0,&r_fifo,&w_fifo);
@@ -170,7 +176,7 @@ bool Virtio::fifo_write(VirtQ_IdxType id)
     {
         w_fifo->idx[w_pos] = id;
         w_fifo->count += 1;
-         ASLOG(VIRTIO,"Transmit message: 0x%X,pos=%d,count=%d\n",id,w_pos,w_fifo->count);
+        ASLOG(VIRTIO,"Transmit message: 0x%X,pos=%d,count=%d\n",id,w_pos,w_fifo->count);
         w_pos = (w_pos + 1)%(sz_fifo);
         ercd = true;
     }
@@ -187,4 +193,18 @@ bool Virtio::fifo_write(VirtQ_IdxType id)
     (void)pthread_cond_signal ((pthread_cond_t *)w_event);
 #endif
     return ercd;
+}
+
+void Virtio_SetIpcBaseAddress(unsigned long base)
+{
+    if(0==Ipc_BaseAddress)
+    {
+        Ipc_BaseAddress = base;
+        Qt_SetIpcBaseAddress(base);
+        ASLOG(VIRTIO,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+    }
+    else
+    {
+        assert(Ipc_BaseAddress == base);
+    }
 }

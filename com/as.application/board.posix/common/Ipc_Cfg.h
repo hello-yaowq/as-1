@@ -21,6 +21,8 @@
 #define IPC_CHL_NUM   ((Ipc_ChannelType)1)
 
 #define IPC_FIFO_SIZE 1024
+
+#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(Ipc_BaseAddress+addr))
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*Ipc_RxNotificationType)(VirtQ_ChannerlType chl);
 typedef void (*Ipc_TxConfirmationType)(VirtQ_ChannerlType chl);
@@ -59,6 +61,7 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern const Ipc_ConfigType Ipc_Config;
+extern unsigned long Ipc_BaseAddress;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
