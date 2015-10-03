@@ -14,8 +14,9 @@ __header = '''/**
  */
 '''
 import os,sys
-from KsmGen import *
-from OsGen import *
+from argen.KsmGen import *
+from argen.OsGen import *
+from argen.ArGen import *
 
 __gen__ = [KsmGen,OsGen]
 def XCC(gendir):
@@ -28,4 +29,5 @@ if(__name__ == '__main__'):
     gendir = os.path.abspath(sys.argv[1])
     XCC(gendir)
     print('  >> XCC %s/*.xml done.'%(gendir))
+    ArGenMain('%s/AutosarConfig.arxml'%(gendir),gendir)
     

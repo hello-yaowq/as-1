@@ -1,0 +1,614 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AUTOSAR>
+<OS>
+	<General
+		StartupHook="Text Default=StartupHook Comment=(if NULL,no StartupHook) PosGUI=0"
+		ProtectionHook="Text Default=ProtectionHook Comment=(if NULL,no ProtectionHook) PosGUI=1"
+		ShutdownHook="Text Default=ShutdownHook Comment=(if NULL,no ShutdownHook) PosGUI=2"
+		ErrorHook="Text Default=ErrorHook Comment=(if NULL,no ErrorHook) PosGUI=3"
+		PreTaskHook="Text Default=PreTaskHook Comment=(if NULL,no PreTaskHook) PosGUI=4"
+		PostTaskHook="Text Default=PostTaskHook Comment=(if NULL,no PostTaskHook) PosGUI=5"
+		Comment="TextArea Default=* PosGUI=6"
+	/>
+	<TaskList Max="255">
+		<Task  
+			Name="Text Comment=(Task Name) PosGUI=0" 
+			Priority="Integer Default=32 Range=0~255 PosGUI=1" 
+			Schedule="Enum=(FULL,NON,MIXED) Default=FULL PosGUI=2" 
+			StackSize="Integer Range=0~65535 Default=512 PosGUI=3" 
+			Activation="Integer Range=1~255 Default=1 PosGUI=4" 
+			Autostart="Boolean Default=True PosGUI=5" 
+			Comment="TextArea Default=* PosGUI=6"
+			>
+		<EventList Max="32">
+		<Event 
+			Name="Text PosGUI=0" 
+			Mask="Text Comment=(if TBD, then a unique mask will be calculated out when generate OS) PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			>
+		</Event>
+		</EventList>
+		</Task>
+	</TaskList>
+	<AlarmList Max="255">
+		<Alarm 
+			Name="Text PosGUI=0" 
+			Counter="EnumRef=OS.CounterList PosGUI=1"
+			Action="Enum=(ActivateTask,SetEvent,Callback) Default=ActivateTask PosGUI=2"
+			Task="EnumRef=OS.TaskList Enabled=(Self.Action==ActivateTask || Self.Action==SetEvent) PosGUI=3"
+			Event="EnumRef=OS.TaskList.(Self.Task).EventList Enabled=(Self.Action==SetEvent) PosGUI=4"
+			Callback="Text Enabled=(Self.Action==Callback) PosGUI=5"
+			Autostart="Enum=(False,Absolute,Relative) Default=False PosGUI=6"
+			StartTime="Integer Range=0~65525 Enabled=(Self.Autostart!=False) Default=0 PosGUI=7"
+			Period="Integer Range=0~65535 Enabled=(Self.Autostart!=False) Default=100 PosGUI=8"
+			Comment="TextArea Default=* PosGUI=9"
+			>
+		</Alarm>
+	</AlarmList>
+	<CounterList Max="255">
+		<Counter 
+			Name="Text Comment=(The first counter is treated as system tick counter) PosGUI=0" 
+			MaxAllowed="Integer Range=0~0xFFFFFFFF Default=0xFFFF PosGUI=1"
+			TicksPerBase="Integer Range=0~0xFFFF Default=1 Enabled=(False) PosGUI=2"
+			MinCycle="Integer Range=0~0xFFFF Default=1 PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+		</Counter>
+	</CounterList>
+	<ResourceList Max="255">
+		<Resource 
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1"
+			>
+		</Resource>
+	</ResourceList>
+</OS>
+<EcuC>
+	<PduList Max="65535">
+		<Pdu
+			Name="Text PosGUI=0"
+			Size="Integer Default=64 Range=1~64 PosGUI=1 Unit=Bit"
+			Comment="TextArea Default=* PosGUI=2"
+		/>
+	</PduList>
+</EcuC>
+<Can>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		Comment="TextArea Default=* PosGUI=2"
+		>
+	</General>
+	<ControllerList Max="5">
+		<Controller
+			Name="Enum=(CAN_CTRL_0,CAN_CTRL_1,CAN_CTRL_2,CAN_CTRL_3,CAN_CTRL_4) PosGUI=0"
+			Baudrate="Integer Range=1~12000000 Default=500 Unit=kbps PosGUI=1"
+			Seg1="Integer Range=1~16 Default=13 PosGUI=2"
+			Seg2="Integer Range=1~8 Default=2 PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+			<HohList Max="65535">
+				<Hoh
+					Name="Text Comment=(Name must be unique) PosGUI=0"
+					HohType="Enum=(BASIC,FULL) Default=BASIC PosGUI=1"
+					IdentifierType="Enum=(STANDARD,EXTENDED) Default=STANDARD PosGUI=2"
+					ObjectType="Enum=(TRANSMIT,RECEIVE) PosGUI=3"
+					Comment="TextArea Default=* PosGUI=4"
+					/>
+			</HohList>
+		</Controller>
+	</ControllerList>
+</Can>
+<CanIf>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		BusOffNotification="Text Default=CanIf_User_BusoffNotification PosGUI=2"
+		ErrorNotification="Text Default=CanIf_User_ErrorNotification PosGUI=3"
+		DataLengthCodeCheck="Enum=(ON,OFF) Default=ON PosGUI=4"
+		Comment="TextArea Default=* PosGUI=5"
+		>
+	</General>	
+	<ChannelList Max="65535">
+		<Channel
+			Name="Text PosGUI=0"
+			ControllerRef="EnumRef=Can.ControllerList PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			>
+		<HthList Max="65535">
+			<Hth
+				Name="Text Comment=(Name must be unique) PosGUI=0"
+				HthRef="EnumRef=Can.ControllerList.(Self.Parent.Parent.ControllerRef).HohList Filter=(ObjectType==TRANSMIT) PosGUI=1"
+				Comment="TextArea Default=* PosGUI=2"
+				>
+				<PduList Max="65535">
+					<Pdu
+						Name="Text Comment=(Name must be unique) PosGUI=0"
+						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
+						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
+						TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,User) Default=PduR PosGUI=3"
+						UserNotification="Text Default=CanIf_UserTxConfirmation PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
+						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
+						Comment="TextArea Default=* PosGUI=6"
+						>
+					</Pdu>
+				</PduList>
+			</Hth>
+		</HthList>
+		<HrhList Max="65535">
+			<Hrh
+				Name="Text Comment=(Name must be unique) PosGUI=0"
+				HrhRef="EnumRef=Can.ControllerList.(Self.Parent.Parent.ControllerRef).HohList Filter=(ObjectType==RECEIVE) PosGUI=1"
+				SoftwareFilterUsed="Boolean Default=True PosGUI=2"
+				Comment="TextArea Default=* PosGUI=3"
+				>
+				<PduList Max="65535">
+					<Pdu
+						Name="Text Comment=(Name must be unique) PosGUI=0"
+						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
+						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
+						FilterMask="Integer Range=0~0x1FFFFFFFF PosGUI=3 \n Enabled=(Self.Parent.Parent.SoftwareFilterUsed==True) \n Comment=(If $FilterMask and `Identifier==$Identifier, then valid)"
+						ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,User) Default=PduR PosGUI=4"
+						UserNotification="Text Default=CanIf_UserRxIndication PosGUI=5 Enabled=(Self.ReceivedNotifier==User)"
+						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=6"
+						Comment="TextArea Default=* PosGUI=7"
+						>
+					</Pdu>
+				</PduList>
+			</Hrh>
+		</HrhList>		
+		</Channel>
+	</ChannelList>
+</CanIf>
+<CanTp>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		Comment="TextArea Default=* PosGUI=2"
+		>
+	</General>	
+	<RxSduList Max="65535">
+		<Sdu
+			Name="Text PosGUI=0"
+			RxPduRef="EnumRef=EcuC.PduList PosGUI=1"
+			TxFcPduRef="EnumRef=EcuC.PduList PosGUI=2"
+			Padding="Enum=(ON,OFF) Default=ON Comment=(If ON,Padding value is 0x55) PosGUI=3"
+			CommunicationType="Enum=(PHYSICAL,FUNCTION) Default=PHYSICAL Enabled=(False) \n Comment=(Only Physical is supported) PosGUI=4"
+			BS="Integer Range=0~255 Default=8 PosGUI=5 \n Comment=(MaxReceiveBlockSize:If BS=0, no restrict.) "
+			STmin="Integer Range=0~255 Default=1 Unit=ms PosGUI=6 Comment=(minimum transmission delay)"
+			MaxBusyTransmission="Integer Range=0~255 Comment=(? ~_~ ?) PosGUI=7"
+			Nar="Integer Range=0~255 Default=1 PosGUI=8 \n Unit=ms \n Comment=(transmission time)"
+			Nbr="Integer Range=0~255 Default=100 PosGUI=9 \n Unit=ms \n Comment=(transmission time untill flow control)"
+			Ncr="Integer Range=0~255 Default=1 PosGUI=10 \n Unit=ms \n Comment=(transmission request delay)"
+			Comment="TextArea Default=* PosGUI=11"
+			>
+		</Sdu>
+	</RxSduList>
+	<TxSduList Max="65535">
+		<Sdu
+			Name="Text PosGUI=0"
+			TxPduRef="EnumRef=EcuC.PduList PosGUI=1"
+			RxFcPduRef="EnumRef=EcuC.PduList PosGUI=2"
+			Padding="Enum=(ON,OFF) Default=ON Comment=(If ON,Padding value is 0x55) PosGUI=3"
+			CommunicationType="Enum=(PHYSICAL,FUNCTION) Default=PHYSICAL Enabled=(False) \n Comment=(Only Physical is supported) PosGUI=4"
+			Nas="Integer Range=0~255 Default=1 PosGUI=5 \n Unit=ms \n Comment=(transmission time)"
+			Nbs="Integer Range=0~255 Default=100 PosGUI=6 \n Unit=ms \n Comment=(transmission time untill flow control)"
+			Ncs="Integer Range=0~255 Default=1 PosGUI=7 \n Unit=ms \n Comment=(transmission request delay)"
+			Comment="TextArea Default=* PosGUI=8"
+			>
+		</Sdu>
+	</TxSduList>
+</CanTp>
+<PduR>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		ZeroCostOperationMode="Enum=(ON,OFF) Default=OFF PosGUI=2"
+		ZeroCostIf="Enum=(CanIf,LinIf) Default=CanIf Enabled=(Self.ZeroCostOperationMode==ON) PosGUI=3"
+		ZeroCostTp="Enum=(CanTp,LinTp,J1939Tp) Default=CanTp Enabled=(Self.ZeroCostOperationMode==ON) PosGUI=4"
+		CanIfUsed="Boolean Default=True PosGUI=5"
+		CanTpUsed="Boolean Default=True PosGUI=6"
+		LinIfUsed="Boolean Default=False PosGUI=7"
+		LinTpUsed="Boolean Default=False PosGUI=8"
+		ComUsed="Boolean Default=True PosGUI=9"
+		DcmUsed="Boolean Default=True PosGUI=10"
+		J1939TpUsed="Boolean Default=False PosGUI=11"
+		Comment="TextArea Default=* PosGUI=12"
+		>
+	</General>	
+	<RoutineList Max="65535">
+		<Source 
+			Name="Text PosGUI=0"
+			Module="Enum=(Com,Dcm,CanTp,CanIf,LinTp,LinIf,J1939Tp) Default=Com PosGUI=1"
+			PduRef="EnumRef=EcuC.PduList PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3"
+			>
+			<DestinationList Max="65535">
+				<Destination
+					Name="Text PosGUI=0 Comment=(If ZeroCost, then only 1 Destination is allowed)"
+					Module="Enum=(Com,Dcm,CanTp,CanIf,LinTp,LinIf,J1939Tp) Default=Com PosGUI=1"
+					PduRef="EnumRef=EcuC.PduList PosGUI=2"
+					Comment="TextArea Default=* PosGUI=3"
+					>
+				</Destination>
+			</DestinationList>
+		</Source>
+	</RoutineList>
+</PduR>
+<Com>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		Comment="TextArea Default=* PosGUI=2"
+		>
+	</General>
+	<PduGroupList Max="255">
+		<PduGroup 
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1"
+			>
+		</PduGroup>
+	</PduGroupList>
+	<IPduList Max="255">
+		<IPdu 
+			Name="Text PosGUI=0" 
+			PduRef="EnumRef=EcuC.PduList PosGUI=1"
+			Direction="Enum=(SEND,RECEIVE) Default=SEND PosGUI=2"
+			PduGroupRef="EnumRef=Com.PduGroupList PosGUI=3"
+			Callout="Text Default=NULL Comment=(Ask application permission) PosGUI=4" 
+			RxSignalProcessing="Enum=(DEFERRED,IMMEDIATE) Default=DEFERRED Enabled=(Self.Direction==RECEIVE) PosGUI=5"
+			TxMinimumDelayFactor="Integer Range=0~255 Default=1 Enabled=(Self.Direction==SEND) PosGUI=6"
+			DefaultValueForUnusedArea="Integer Range=0~255 Default=0x5A Enabled=(Self.Direction==SEND) PosGUI=7"
+			TxMode="Enum=(NONE,DIRECT,PERIODIC,MIXED) Default=PERIODIC Enabled=(Self.Direction==SEND) PosGUI=8"
+			NumberOfRepetions="Integer Range=0~255 Default=0 \n Enabled=(Self.TxMode==DIRECT || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=9"
+			RepetionsPeriodFactor="Integer Range=0~255 Default=10 \n Enabled=(Self.TxMode==DIRECT || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=10 \n Unit=ms"
+			TimeOffsetFactor="Integer Range=0~255 Default=0 \n Enabled=(Self.TxMode==PERIODIC || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=11 \n Unit=ms"
+			TimePeriodFactor="Integer Range=0~255 Default=10 \n Enabled=(Self.TxMode==PERIODIC || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=12 \n Unit=ms"
+			Comment="TextArea Default=* PosGUI=13"
+			>
+			<GroupSignalList Max="1">
+				<GroupSignal
+					Name="Text PosGUI=0"
+					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
+					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
+					StartBit="Integer Range=0~63 PosGUI=3"
+					Size="Integer Range=1~64 Default=8 PosGUI=4"
+					UpdateBitUsed="Boolean Default=False PosGUI=5"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+					TimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=7"
+					FirstTimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Direction==RECEIVE) PosGUI=8"
+					TimeoutAction="Enum=(RESET,NONE) Default=NONE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
+					TimeoutNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
+					ReceivedNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
+					Comment="TextArea Default=* PosGUI=12"
+					>
+					<SignalList Max="64">
+						<Signal 
+							Name="Text PosGUI=0"
+							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
+							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
+							StartBit="Integer Range=0~63 PosGUI=3"
+							Size="Integer Range=1~64 Default=8 PosGUI=4"
+							UpdateBitUsed="Boolean Default=False PosGUI=5"
+							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+							InitialValue="Text Default=0 PosGUI=7"
+							Comment="TextArea Default=* PosGUI=8"
+							>
+						</Signal>
+				</SignalList>
+				</GroupSignal>
+			</GroupSignalList>
+			<SignalList Max="64">
+				<Signal 
+					Name="Text PosGUI=0"
+					Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
+					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
+					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
+					StartBit="Integer Range=0~63 PosGUI=4"
+					Size="Integer Range=1~64 Default=8 PosGUI=5"
+					InitialValue="Text Default=0 PosGUI=6"
+					UpdateBitUsed="Boolean Default=False PosGUI=7"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8"
+					TimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
+					FirstTimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
+					TimeoutAction="Enum=(RESET,NONE) Default=NONE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
+					TimeoutNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=12"
+					ReceivedNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=13"
+					Comment="TextArea Default=* PosGUI=14"
+					>
+				</Signal>
+			</SignalList>
+		</IPdu>
+	</IPduList>
+</Com>
+<Dcm>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		MaxPeriodDIDNumber="Integer Range=0~255 Default=8 PosGUI=2"
+		PeriodicDIDFastModeTime="Integer Default=50 Unit=ms PosGUI=3"
+		PeriodicDIDMediumModeTime="Integer Default=100 Unit=ms PosGUI=4"
+		PeriodicDIDSlowModeTime="Integer Default=200 Unit=ms PosGUI=5"
+		Comment="TextArea Default=* PosGUI=6"
+		>
+	</General>
+	<BufferList Max="255">
+		<Buffer
+			Name="Text PosGUI=0"
+			Size="Integer Range=64~65535 PosGUI=1 Default=512"
+			Comment="TextArea Default=* PosGUI=2"
+			>
+		</Buffer>
+	</BufferList>
+	<SessionList Max="255">
+		<Session
+			Name="Text PosGUI=0"
+			Identifier="Integer PosGUI=1 Range=0~65535"
+			P2ServerMaxTimeMs="Integer PosGUI=2 Range=1~65535 Default=5000"
+			P2StartServerMaxTimeMs="Integer Range=1~65535 PosGUI=3 Default=500"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+		</Session>
+	</SessionList>	
+	<SecurityList Max="255">
+		<Security
+			Name="Text PosGUI=0"
+			Identifier="Integer PosGUI=1 Range=1~65535"
+			SeedSize="Integer PosGUI=2 Range=1~65535 Default=4"
+			KeySize="Integer Range=1~65535 PosGUI=3 Default=4"
+			GetSeedCallback="Text Default=Diag_GetSeed PosGUI=4"
+			CompareKeyCallback="Text Default=Diag_CompareSeed PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6"
+			>
+		</Security>
+	</SecurityList>
+	<DIDControlRecordList Max="65535">
+		<DIDControlRecord
+			Name="Text PosGUI=0"
+			EnableMaskSize="Integer Range=0~65535 PosGUI=1 Default=0"
+			OptionSize="Integer Range=0~65535 PosGUI=2 Default=0"
+			StatusSize="Integer Range=0~65535 PosGUI=3 Default=0"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+		</DIDControlRecord>
+	</DIDControlRecordList>
+	<DIDInfoList Max="65535">
+		<DIDInfo
+			Name="Text PosGUI=0"
+			FixedLength="Boolean PosGUI=1 Default=True"
+			DynamicDefined="Boolean PosGUI=2 Default=False"
+			ScalingInfoSize="Integer Range=0~65535 PosGUI=3 Default=0 \n Comment=(If Zero, disabled)"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+			<ControlAccess
+				Name="Text PosGUI=0 Enabled=(False) Default=ControlAccess"
+				EnableFreezeCurrentState="Boolean PosGUI=1 Default=False"
+				FreezeCurrentStateControlRef="EnumRef=Dcm.DIDControlRecordList PosGUI=2 Enabled=(Self.EnableFreezeCurrentState==True)"
+				EnableResetToDefault="Boolean PosGUI=3 Default=False"
+				ResetToDefaultRef="EnumRef=Dcm.DIDControlRecordList PosGUI=4 Enabled=(Self.EnableResetToDefault==True)"
+				EnableReturnControlToEcu="Boolean PosGUI=5 Default=False"
+				ReturnControlToEcuRef="EnumRef=Dcm.DIDControlRecordList PosGUI=6 Enabled=(Self.EnableReturnControlToEcu==True)"
+				EnableShortTermAdjustment="Boolean PosGUI=7 Default=False"
+				ShortTermAdjustmentRef="EnumRef=Dcm.DIDControlRecordList PosGUI=8 Enabled=(Self.EnableShortTermAdjustment==True)"
+				Comment="TextArea Default=* PosGUI=9"
+				>
+				<SessionList Max="65535">
+					<Session 
+						Name="EnumRef=Dcm.SessionList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SessionList>
+				<SecurityList Max="65535">
+					<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SecurityList>
+			</ControlAccess>
+			<ReadAccess 
+				Name="Text PosGUI=0 Enabled=(False) Default=ReadAccess"
+				>
+				<SessionList Max="65535">
+					<Session 
+						Name="EnumRef=Dcm.SessionList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SessionList>
+				<SecurityList Max="65535">
+					<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SecurityList>
+			</ReadAccess>
+			<WriteAccess 
+				Name="Text PosGUI=0 Enabled=(False) Default=WriteAccess"
+				>
+				<SessionList Max="65535">
+					<Session 
+						Name="EnumRef=Dcm.SessionList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SessionList>
+				<SecurityList Max="65535">
+					<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SecurityList>
+			</WriteAccess>			
+		</DIDInfo>
+	</DIDInfoList>
+	<DIDList Max="65535">
+		<DID
+			Name="Text PosGUI=0"
+			Identifier="Integer Range=0~65535 PosGUI=1 \n Comment=(Identifier is 16 bits long for Normal DataIdentifier. \n For PeriodDataIdentifier,Identifier is 8bits long, the high byte is fixed to 0xF2. \n P.S: For DDD, request Identifier is either 0xF2** or 0xF3**, so normally, Identifier shouldn\'t be 0xF3**.)"
+			DIDInfoRef="EnumRef=Dcm.DIDInfoList PosGUI=2"
+			Size="Integer Range=0~65535 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ReadAccess!=None || Dcm.DIDInfoList.(Self.DIDInfoRef).WriteAccess!=None) PosGUI=3"
+			GetScalingInfoCbk="Text Default=NULL PosGUI=4 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ScalingInfoSize!=0)"
+			WriteConditionCheckCbk="Text Default=NULL PosGUI=5 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).WriteAccess!=None)"
+			WriteCbk="Text Default=NULL PosGUI=6 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).WriteAccess!=None)"
+			ReadConditionCheckCbk="Text Default=NULL PosGUI=7 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ReadAccess!=None)"
+			ReadCbk="Text Default=NULL PosGUI=8 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ReadAccess!=None)"
+			ReadDataLengthCbk="Text Default=NULL PosGUI=9 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).FixedLength==False)"
+			FreezeCurrentStateCbk="Text Default=NULL PosGUI=10 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ControlAccess.EnableFreezeCurrentState==True)"
+			ResetToDefaultCbk="Text Default=NULL PosGUI=11 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ControlAccess.EnableResetToDefault==True)"
+			ReturnControlToEcu="Text Default=NULL PosGUI=12 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ControlAccess.EnableReturnControlToEcu==True)"
+			ShortTermAdjustment="Text Default=NULL PosGUI=13 Enabled=(Dcm.DIDInfoList.(Self.DIDInfoRef).ControlAccess.EnableShortTermAdjustment==True)"
+			Comment="TextArea Default=* PosGUI=14"
+			>
+		</DID>
+	</DIDList>
+	<RoutineInfoList Max="65535">
+		<RoutineInfo
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1"
+			>
+			<SecurityList Max="65535">
+				<Security 
+					Name="EnumRef=Dcm.SecurityList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</SecurityList>
+			<Start
+				RecordSizeOfRequest="Integer Range=0~255 PosGUI=0"
+				RecordSizeOfResponse="Integer Range=0~255 PosGUI=1"
+				Comment="TextArea Default=* PosGUI=2"
+				/>
+			<Stop
+				RecordSizeOfRequest="Integer Range=0~255 PosGUI=0"
+				RecordSizeOfResponse="Integer Range=0~255 PosGUI=1"
+				Comment="TextArea Default=* PosGUI=2"
+				/>
+			<Result
+				RecordSizeOfResponse="Integer Range=0~255 PosGUI=1"
+				Comment="TextArea Default=* PosGUI=2"
+				/>
+		</RoutineInfo>
+	</RoutineInfoList>
+	<RoutineList Max="65535">
+		<Routine
+			Name="Text PosGUI=0"
+			Identifier="Integer Range=0~65535 PosGUI=1 \n Comment=(Identifier is 16 bits long for Normal DataIdentifier. \n For PeriodDataIdentifier,Identifier is 8bits long, the high byte is fixed to 0xF2. \n P.S: For DDD, request Identifier is either 0xF2** or 0xF3**, so normally, Identifier shouldn\'t be 0xF3**.)"
+			RoutineInfoRef="EnumRef=Dcm.RoutineInfoList PosGUI=2"
+			StartRoutineCbk="Text Default=NULL PosGUI=3 Enabled=(Dcm.RoutineInfoList.(Self.RoutineInfoRef).Start!=None)"
+			StopRoutineCbk="Text Default=NULL PosGUI=4 Enabled=(Dcm.RoutineInfoList.(Self.RoutineInfoRef).Stop!=None)"
+			RoutineResultCbk="Text Default=NULL PosGUI=5 Enabled=(Dcm.RoutineInfoList.(Self.RoutineInfoRef).Result!=None)"
+			Comment="TextArea Default=* PosGUI=6"
+			>
+		</Routine>
+	</RoutineList>
+	<MemoryList Max="65535">
+		<Memory
+			Name="Text PosGUI=0"
+			Identifier="Integer Range=0~255 PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			>
+		<MemoryInfoList Max="65535">
+			<MemoryInfo 
+				Name="Text PosGUI=0"
+				AddressHigh="Integer PosGUI=1"
+				AddressLow="Integer PosGUI=2"
+				Attribute="Enum=(ReadOnly,WriteOnly,ReadWrite) Default=ReadOnly PosGUI=3"
+				Comment="TextArea Default=* PosGUI=4"
+				>
+				<SecurityList Max="65535">
+					<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SecurityList>
+			</MemoryInfo>
+		</MemoryInfoList>
+		</Memory>
+	</MemoryList>
+	<ProtocolList Max="65535">
+		<Protocol
+			Name="Text PosGUI=0"
+			ProtocolID="Enum=(UDS_ON_CAN,OBD_ON_CAN,UDS_ON_FLEAXRAY,ROE_ON_CAN,ROE_ON_FLEXRAY,PERIODICTRANS_ON_CAN,PERIODICTRANS_ON_FLEXRAY) PosGUI=1 Default=UDS_ON_CAN"
+			TransmissionType="Enum=(TYPE_1,TYPE_2) PosGUI=2 Default=TYPE1"
+			RxBufferRef="EnumRef=Dcm.BufferList PosGUI=3"
+			TxBufferRef="EnumRef=Dcm.BufferList PosGUI=4"
+			TimingLimitRef="EnumRef=Dcm.TimingList PosGUI=5"
+			ServiceTableRef="EnumRef=Dcm.ServiceTableList PosGUI=6"
+			Comment="TextArea Default=* PosGUI=7"
+			>
+		<ConnectionList Max="65535">
+			<Connection
+				Name="Text PosGUI=0"
+				Comment="TextArea Default=* PosGUI=1"
+				>
+				<RxChannelList Max="65535">
+					<RxChannel
+						Name="Text PosGUI=0"
+						AddressingType="Enum=(PHYSICAL,FUNCTIONAL) Default=PHYSICAL PosGUI=1"
+						PduRef="EnumRef=EcuC.PduList PosGUI=2"
+						Comment="TextArea Default=* PosGUI=3"
+						>
+					</RxChannel>
+				</RxChannelList>
+				<TxChannel
+					Name="Text PosGUI=0"
+					PduRef="EnumRef=EcuC.PduList PosGUI=1"
+					Comment="TextArea Default=* PosGUI=2"
+					>
+				</TxChannel>
+			</Connection>
+		</ConnectionList>
+		</Protocol>
+	</ProtocolList>
+	<RequestServiceList Max="65535">
+		<RequestService
+			Name="Text PosGUI=0"
+			StartProtocolCbk="Text Default=Diag_StartProtocolCbk PosGUI=1"
+			StopProtocolCbk="Text Default=Diag_StopProtocolCbk PosGUI=2"
+			ProtocolIndicationCbk="Text Default=Diag_ProtocolIndicationCbk PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+		</RequestService>
+	</RequestServiceList>
+	<ServiceTableList Max="65535">
+		<ServiceTable 
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1"
+			>
+			<ServiceList Max="65535">
+				<Service
+					Name="Enum=(DIAGNOSTIC_SESSION_CONTROL,SECURITY_ACCESS,ECU_RESET,CLEAR_DIAGNOSTIC_INFORMATION,READ_DTC_INFORMATION,READ_DATA_BY_IDENTIFIER,READ_MEMORY_BY_ADDRESS,READ_SCALING_DATA_BY_IDENTIFIER,COMMUNICATION_CONTROL,READ_DATA_BY_PERIODIC_IDENTIFIER,DYNAMICALLY_DEFINE_DATA_IDENTIFIER,WRITE_DATA_BY_IDENTIFIER,INPUT_OUTPUT_CONTROL_BY_IDENTIFIER,ROUTINE_CONTROL,REQUEST_DOWNLOAD,REQUEST_UPLOAD,TRANSFER_DATA,REQUEST_TRANSFER_EXIT,WRITE_MEMORY_BY_ADDRESS,TESTER_PRESENT,CONTROL_DTC_SETTING,REQUEST_CURRENT_POWERTRAIN_DIAGNOSTIC_DATA,REQUEST_POWERTRAIN_FREEZE_FRAME_DATA,CLEAR_EMISSION_RELATED_DIAGNOSTIC_INFORMATION,REQUEST_EMISSION_RELATED_DIAGNOSTIC_TROUBLE_CODES,REQUEST_EMISSION_RELATED_DIAGNOSTIC_TROUBLE_CODES_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE,REQUEST_VEHICLE_INFORMATION) \n Default=TESTER_PRESENT PosGUI=0"
+					SubFunctionSupported="Boolean Default=False PosGUI=1 \n Comment=(Note: 0x80, supress positive response if sub function is supported)"
+					Comment="TextArea Default=* PosGUI=2"
+					>
+					<SecurityList Max="65535">
+						<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+					</SecurityList>
+					<SessionList Max="65535">
+						<Session 
+						Name="EnumRef=Dcm.SessionList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+					</SessionList>
+				</Service>
+			</ServiceList>
+		</ServiceTable>
+	</ServiceTableList>
+	<SessionControlList Max="65535">
+		<SessionControl
+			Name="Text PosGUI=0"
+			GetSessionChangePermissionCbk="Text Default=Diag_GetSesChgPer PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			/>
+	</SessionControlList>
+	<TimingList Max="65535">
+		<Timing
+			Name="Text PosGUI=0"
+			P2ServerMaxTimeMs="Integer Default=5000 PosGUI=1"
+			P2ServerMinTimeMs="Integer Default=3000 PosGUI=2"
+			S3ServerTimeMs="Integer Default=10000 PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			/>
+	</TimingList>
+</Dcm>
+</AUTOSAR>

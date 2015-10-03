@@ -24,7 +24,7 @@ typedef struct
 }KSM_Type;    /* Kernel State Machine */
 '''
 import sys,os
-from util import *
+from .util import *
 
 __all__ = ['KsmGen']
 

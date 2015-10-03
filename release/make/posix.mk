@@ -74,7 +74,7 @@ endif
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
-dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y)
+dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
 	@echo "  >> LD $(target-y).DLL"
 ifeq ($(gen-mk),yes)	
 	@echo "echo \"  >> LD $(target-y).DLL\"" >> build.bat

@@ -15,7 +15,7 @@ __header = '''/**
 '''
 
 import sys,os
-from util import *
+from .util import *
 
 __all__ = ['OsGen']
 
