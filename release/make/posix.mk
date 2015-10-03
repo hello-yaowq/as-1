@@ -30,20 +30,25 @@ ldflags-y += -Wl,-Map,$(exe-dir)/$(target-y).map
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))	
 obj-y += $(patsubst %.cpp,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.cpp)))))	
 
-
 #common rules
 $(obj-dir)/%.o:%.cpp
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
-#	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
+ifeq ($(gen-mk),yes)
+	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
+	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
+endif
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<
 	
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
-#	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
+ifeq ($(gen-mk),yes)	
+	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
+	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
+endif
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
 .PHONY:all clean
@@ -55,16 +60,26 @@ $(exe-dir):
 	@mkdir -p $(exe-dir)	
 
 include $(wildcard $(obj-dir)/*.d)
+gen_mk_start:
+ifeq ($(gen-mk),yes)
+	@echo "@echo off" > build.bat
+endif	
 
-exe:$(obj-dir) $(exe-dir) $(obj-y)
+exe: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).EXE"
-#	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
+ifeq ($(gen-mk),yes)	
+	@echo "echo \"  >> LD $(target-y).EXE\"" >> build.bat
+	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
+endif
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
-dll:$(obj-dir) $(exe-dir) $(obj-y)
+dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
-#	@echo "$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
+ifeq ($(gen-mk),yes)	
+	@echo "echo \"  >> LD $(target-y).DLL\"" >> build.bat
+	@echo "$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
+endif
 	@$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 

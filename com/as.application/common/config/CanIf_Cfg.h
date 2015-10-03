@@ -18,7 +18,7 @@
 #include "Can.h"
 
 #define CANIF_VERSION_INFO_API   STD_OFF
-#define CANIF_DEV_ERROR_DETECT   STD_OFF
+#define CANIF_DEV_ERROR_DETECT   STD_ON
 #define CANIF_DLC_CHECK          STD_ON
 
 #define CANIF_MULITPLE_DRIVER_SUPPORT       STD_OFF   // Not supported

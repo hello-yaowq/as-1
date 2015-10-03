@@ -32,7 +32,7 @@
 #define COM_E_TOO_MANY_SIGNAL 107
 #define COM_E_TOO_MANY_GROUPSIGNAL 108
 
-#define COM_DEV_ERROR_DETECT STD_OFF
+#define COM_DEV_ERROR_DETECT STD_ON
 
 #define COM_N_IPDUS          2
 #define COM_N_SIGNALS        6

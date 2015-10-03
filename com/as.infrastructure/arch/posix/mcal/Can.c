@@ -248,7 +248,7 @@ void Can_Init( const Can_ConfigType *config ) {
     canUnit->state = CANIF_CS_STOPPED;
 
     canUnit->lock_cnt = 0;
-    canUnit->swPduHandle = 0xFFFF;	/* 0xFFFF marked as Empty and invalid */
+    canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;	/* 0xFFFF marked as Empty and invalid */
 
     // Clear stats
 #if (USE_CAN_STATISTICS == STD_ON)
@@ -537,7 +537,7 @@ void Can_SimulatorRunning(void)
 			ctlrId = canHwConfig->CanControllerId;
 
 			canUnit = GET_PRIVATE_DATA(ctlrId);
-			if(0xFFFF != canUnit->swPduHandle)
+			if(CAN_EMPTY_MESSAGE_BOX != canUnit->swPduHandle)
 			{
 				if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
 				{

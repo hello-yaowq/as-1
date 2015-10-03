@@ -32,7 +32,7 @@
 #define PDUR_J1939TP_SUPPORT STD_OFF
 #define PDUR_SOAD_SUPPORT STD_OFF  /* Not supported */
 
-#define PDUR_DEV_ERROR_DETECT         STD_OFF
+#define PDUR_DEV_ERROR_DETECT         STD_ON
 #define PDUR_VERSION_INFO_API         STD_OFF
 
 // Zero cost operation mode

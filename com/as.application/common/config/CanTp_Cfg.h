@@ -25,7 +25,7 @@
 
 #define FRTP_CANCEL_TRANSMIT_REQUEST     STD_OFF
 #define CANTP_VERSION_INFO_API STD_OFF   /**< Build version info API */
-#define CANTP_DEV_ERROR_DETECT STD_OFF
+#define CANTP_DEV_ERROR_DETECT STD_ON
 
 /* CanTp Rx NSdu Id */
 #define CANTP_ID_RxDiagP2P                        0
