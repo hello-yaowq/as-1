@@ -24,6 +24,7 @@ PY34 = C:Python34/python
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
+STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(host),Linux)
@@ -124,6 +125,9 @@ SG:
 
 XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
+
+studio:
+	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/ascore/src)	
 	
 
 dep-as-virtual:
