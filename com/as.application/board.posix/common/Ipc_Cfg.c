@@ -68,7 +68,7 @@ void Qt_SetIpcBaseAddress(unsigned long base)
 	if(0==Ipc_BaseAddress)
 	{
 		Ipc_BaseAddress = base;
-		ASLOG(IPC,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+		ASLOG(OFF,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
 	}
 	else
 	{

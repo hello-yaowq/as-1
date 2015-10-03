@@ -78,7 +78,7 @@ Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
      rsc_tbl = p_get_rsc_tbl();
 
      rsc_tbl->rpmsg_vdev.gfeatures = rsc_tbl->rpmsg_vdev.dfeatures;
-     ASLOG(VIRTIO,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
+     ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
            r_lock,w_lock,r_event,w_event,r_fifo,w_fifo);
 }
 
@@ -134,7 +134,6 @@ void Virtio::run ( void )
             {
             }
         }while(ercd);
-
 #ifdef __WINDOWS__
         ReleaseMutex( r_lock );
 #else
@@ -153,7 +152,7 @@ bool Virtio::fifo_read(VirtQ_IdxType* id)
     if(r_fifo->count > 0)
     {
         *id = r_fifo->idx[r_pos];
-        ASLOG(VIRTIO,"Incoming message: 0x%X,pos=%d,count=%d\n",*id,r_pos,r_fifo->count);
+        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d from thread=%08X\n",*id,r_pos,r_fifo->count,pthread_self());
         r_pos = (r_pos + 1)%(sz_fifo);
         r_fifo->count -= 1;
         ercd = true;
@@ -176,7 +175,7 @@ bool Virtio::fifo_write(VirtQ_IdxType id)
     {
         w_fifo->idx[w_pos] = id;
         w_fifo->count += 1;
-        ASLOG(VIRTIO,"Transmit message: 0x%X,pos=%d,count=%d\n",id,w_pos,w_fifo->count);
+        ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d from thread=%08X\n",id,w_pos,w_fifo->count,pthread_self());
         w_pos = (w_pos + 1)%(sz_fifo);
         ercd = true;
     }
@@ -201,7 +200,7 @@ void Virtio_SetIpcBaseAddress(unsigned long base)
     {
         Ipc_BaseAddress = base;
         Qt_SetIpcBaseAddress(base);
-        ASLOG(VIRTIO,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+        ASLOG(OFF,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
     }
     else
     {

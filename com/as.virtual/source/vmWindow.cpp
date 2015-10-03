@@ -39,7 +39,7 @@ vmAction::vmAction(QString dll,QWidget* parent)
 
 void vmAction::start(void)
 {
-    ASLOG(VMACTION,"Start ECU<%s>\n",dll_name.toStdString().c_str());
+    ASLOG(OFF,"Start ECU<%s>\n",dll_name.toStdString().c_str());
     ecu = new vEcu(dll_name);
     ecu->start();
     setDisabled(true);
@@ -70,7 +70,7 @@ vmWindow::vmWindow(QWidget* parent)
     menubar->addAction(action);
 
     char* cwd = getcwd(NULL,0);
-    ASLOG(VMWINDOW,cwd);
+    ASLOG(OFF,cwd);
     chdir("../../out");
     char* workpath = getcwd(NULL,0);
 
@@ -83,7 +83,7 @@ vmWindow::vmWindow(QWidget* parent)
     {
         if(strstr(file->d_name,".dll"))
         {
-            ASLOG(VMWINDOW,"load %s\n",file->d_name);
+            ASLOG(OFF,"load %s\n",file->d_name);
             action = new vmAction(QString(file->d_name),this);
             toolbar->addAction(action);
         }

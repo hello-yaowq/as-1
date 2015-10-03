@@ -426,6 +426,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
   Can_ReturnType rv = CAN_OK;
   const Can_HardwareObjectType *hohObj;
   uint32 controller;
+  imask_t irq_state;
 
   VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
   VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
@@ -440,25 +441,23 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 
   Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
 
+  while(FALSE == RPmsg_IsOnline())
+  {
+	  usleep(1);	/* make sure rpmsg is online */
+  }
+
   if(CANIF_CS_STARTED == canUnit->state)
   {
+	  Irq_Save(irq_state);
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
 		  Can_RPmsgPduType rpmsg;
 		  rpmsg.id = pduInfo->id;
 		  rpmsg.length = pduInfo->length;
 		  memcpy(rpmsg.sdu,pduInfo->sdu,pduInfo->length);
-//		  printf("  >> CAN%d TX ID=0x%-3X,DLC=%d,DATA=[",controller,pduInfo->id,pduInfo->length);
-//		  for(int i=0;i<pduInfo->length;i++)
-//		  {
-//			  printf("%02X,",pduInfo->sdu[i]);
-//		  }
-//		  printf("]\n");
-//		  fflush(stdout);
-		  while(FALSE == RPmsg_IsOnline())
-		  {
-			  usleep(1000);	/* make sure rpmsg is online */
-		  }
+		  ASLOG(CAN,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+				  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
+				  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
 
 		  RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
 
@@ -472,6 +471,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 	  {
 		  rv = CAN_BUSY;
 	  }
+	  Irq_Restore(irq_state);
   } else {
     rv = CAN_NOT_OK;
   }

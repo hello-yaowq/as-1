@@ -21,10 +21,11 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
 #define AS_LOG_VECU   	1
-#define AS_LOG_VIRTIO   2
-#define AS_LOG_VRING    3
-#define AS_LOG_VDEV     4
-#define AS_LOG_RPMSG    5
+#define AS_LOG_IPC   	2
+#define AS_LOG_VIRTIO   3
+#define AS_LOG_VRING    4
+#define AS_LOG_VDEV     5
+#define AS_LOG_RPMSG    6
 
 #define AS_LOG_VMACTION    6
 #define AS_LOG_VMWINDOW    7

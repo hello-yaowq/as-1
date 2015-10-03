@@ -37,21 +37,14 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
-//	static boolean init = FALSE;
-//	Can_PduType pdu;
-//	uint8 data[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-//	pdu.id = 0x517;
-//	pdu.length = 8;
-//	pdu.swPduHandle = 9;
-//	pdu.sdu = data;
-//
-//	if(FALSE == init)
-//	{
-//		Can_SetControllerMode(CAN_CTRL_2,CAN_T_START);
-//		init = TRUE;
-//	}
-//	Can_Write(Can2Hth,&pdu);
-//	printf("TaskApp is running\n");
+	Can_PduType pdu;
+	uint8 data[8] = "RPmsgCAN";
+	pdu.id = 0x517;
+	pdu.length = 8;
+	pdu.swPduHandle = 9;
+	pdu.sdu = data;
+
+	Can_Write(Can2Hth,&pdu);
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif
@@ -63,10 +56,11 @@ ALARM(Alarm10ms)
 }
 ALARM(Alarm20ms)
 {
-	OsActivateTask(TaskApp);
+
 }
 ALARM(Alarm50ms)
 {
+	OsActivateTask(TaskApp);
 }
 ALARM(Alarm100ms)
 {

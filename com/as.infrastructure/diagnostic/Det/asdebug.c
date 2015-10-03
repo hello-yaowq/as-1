@@ -72,11 +72,27 @@ void asmem(void* address,size_t size)
 	uint8 *src;
 	src = (uint8*)address;
 	printf("@%s:\n",__aswho);
-	printf(" address: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+	if(8 == sizeof(unsigned long))
+	{
+		printf("     address    :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+	}
+	else
+	{
+		printf(" address :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+	}
 
 	for(i=0; i<(size+15)/16; i++)
 	{
-		printf("%08X:",(uint32)(unsigned long)src+i*16);
+		unsigned long a = (unsigned long)src+i*16;
+		if( 8 == sizeof(unsigned long))
+		{
+			printf("%08X%08X ::",(uint32_t)(a>>32),(uint32_t)a);
+		}
+		else
+		{
+			printf("%08X ::",(uint32_t)a);
+		}
+
 		fflush(stdout);
 		for(j=0;j<16;j++)
 		{
@@ -114,11 +130,11 @@ char* ashex(unsigned long a)
 
 	if( 8 == sizeof(unsigned long))
 	{
-		sprintf(buf,"%X%Xh",(uint32_t)(a>>32),(uint32_t)a);
+		sprintf(buf,"%08X%08Xh",(uint32_t)(a>>32),(uint32_t)a);
 	}
 	else
 	{
-		sprintf(buf,"%Xh",(uint32_t)a);
+		sprintf(buf,"%08Xh",(uint32_t)a);
 	}
 
 	return buf;

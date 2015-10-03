@@ -52,7 +52,7 @@ static boolean fifo_read(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType*
     {
     	//asmem(config->r_fifo,512);
         *idx = config->r_fifo->idx[runtime->r_pos];
-        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d\n",*idx,runtime->r_pos,config->r_fifo->count);
+        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d from thread=%08X\n",*idx,runtime->r_pos,config->r_fifo->count,pthread_self());
         config->r_fifo->count -= 1;
         runtime->r_pos = (runtime->r_pos + 1)%(IPC_FIFO_SIZE);
         ercd = TRUE;
@@ -75,7 +75,7 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 	{
 		config->w_fifo->idx[runtime->w_pos] = idx;
 		config->w_fifo->count += 1;
-		ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d\n",idx,runtime->w_pos,config->w_fifo->count);
+		ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d from thread=%08X\n",idx,runtime->w_pos,config->w_fifo->count,pthread_self());
 		runtime->w_pos = (runtime->w_pos + 1)%(IPC_FIFO_SIZE);
 		ercd = true;
 	}
@@ -90,6 +90,7 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 #else
 	(void)pthread_mutex_unlock( (pthread_mutex_t *)config->w_lock );
 	(void)pthread_cond_signal ((pthread_cond_t *)config->w_event);
+	usleep(1);
 #endif
 	return ercd;
 }
@@ -116,7 +117,7 @@ static void* Ipc_Daemon(void* lpParameter)
 	pvObjectList[ 0 ] = config->r_lock;
 	pvObjectList[ 1 ] = config->r_event;
 #endif
-    ASLOG(IPC,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
+    ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
           config->r_lock,config->w_lock,config->r_event,config->w_event,config->r_fifo,config->w_fifo);
 	runtime->ready = TRUE;
 	while(true)

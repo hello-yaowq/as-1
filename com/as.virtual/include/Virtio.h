@@ -183,6 +183,15 @@ typedef struct rpmsg_ns_msg {
     uint32_t flags;
 } RPmsg_NsMsgType;
 
+typedef struct {
+    // the CAN ID, 29 or 11-bit
+    uint32_t 	id;
+    // Length, max 8 bytes
+    uint8_t		length;
+    // data ptr
+    uint8_t 		sdu[8];
+} Can_RPmsgPduType;
+
 typedef bool (*PF_IPC_IS_READY)(Ipc_ChannelType chl);
 extern void Virtio_SetIpcBaseAddress(unsigned long base);
 /* ============================ [ CLASS     ] ====================================================== */
@@ -213,6 +222,7 @@ public:
     void* get_used_buf(VirtQ_IdxType* idx,uint32_t *len)
     {
         void* buf;
+        Vring_UsedElemType* used;
         /* There's nothing available? */
         if (last_used_idx == vr.used->idx) {
             /* We need to know about added buffers */
@@ -226,11 +236,12 @@ public:
              * Grab the next descriptor number they're advertising, and increment
              * the index we've seen.
              */
-            *idx = vr.used->ring[last_used_idx].id;
-
+            used = &(vr.used->ring[last_used_idx++ % vr.num]);
+            *idx = used->id;
+            *len = used->len;
             buf = IPC_MAP_PA_TO_VA(vr.desc[*idx].addr);
-            *len = vr.used->ring[last_used_idx++ % vr.num].len;
-            num_added --;
+
+            num_added--;
         }
 
         return buf;
@@ -242,6 +253,7 @@ public:
        }
        else
        {
+           ASLOG(OFF,"put_used_buf_back(idx=%d),vr.avail->idx=%d\n",idx,vr.avail->idx);
            vr.avail->ring[vr.avail->idx++ % vr.num] = idx;
            num_added ++;
        }
@@ -297,7 +309,7 @@ private:
         {
             Virtio_SetIpcBaseAddress(((unsigned long)p)&0xFFFFFFFF00000000UL);
         }
-        ASLOG(VRING,"vring[idx=%Xh,size=%d]: num=%d, desc=%s, avail=%s, used=%s, da=%Xh\n",
+        ASLOG(OFF,"vring[idx=%Xh,size=%d]: num=%d, desc=%s, avail=%s, used=%s, da=%Xh\n",
                 ring->notifyid,
                 size(),vr.num,ASHEX(vr.desc),
                 ASHEX(vr.avail),ASHEX(vr.used),ring->da);
@@ -434,13 +446,24 @@ public:
         VirtQ_IdxSizeType idx;
         uint32_t len;
         RPmsg_HandlerType* buf;
-        ASLOG(RPMSG,"rx_notification(idx=%Xh)\n",get_r_notifyid());
+        ASLOG(OFF,"rx_notification(idx=%Xh)\n",get_r_notifyid());
         buf = (RPmsg_HandlerType*)get_used_r_buf(&idx,&len);
 
         assert(buf);
-        ASLOG(RPMSG,"Message(idx=%d,len=%d)\n",idx,len);
-        ASLOG(RPMSG,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
-        asmem(buf->data,buf->len);
+        ASLOG(OFF,"Message(idx=%d,len=%d)\n",idx,len);
+        ASLOG(OFF,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
+
+        if((buf->src == 0xDEAD) && (buf->dst == 0xBEEF))
+        {
+            Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
+            ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+                  msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
+                    msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
+        }
+        else
+        {
+            asmem(buf,len);
+        }
 
         put_used_r_buf_back(idx);
 

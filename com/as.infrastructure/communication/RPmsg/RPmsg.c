@@ -36,12 +36,13 @@ static Std_ReturnType sendMessage(uint32 dstEndpt, uint32 srcEndpt, void* data, 
 	VirtQ_IdxType idx;
 	RPmsg_HandlerType* msg;
 	uint16 length;
-	ASLOG(RPMSG,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
+	ASLOG(OFF,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
 	ercd = VirtQ_GetAvailiableBuffer(rpmsg.config->txChl,&idx,(void**)&msg,&length);
 	if(E_OK == ercd)
 	{
 		if(len > length){
 			len = length;
+			ASLOG(RPMSG,"warning transmit message length=%d > buffer length=%d, truncate.\n",len,length);
 		}
 		/* Copy the payload and set message header: */
 		memcpy(msg->data, data, len);
@@ -65,7 +66,7 @@ static void sendNamseServiceMessage(char * name, uint32 port, RPmsg_NameServiceF
     nsMsg.addr = port;
     nsMsg.flags = flags;
 
-    ASLOG(RPMSG,"RPmsg create <%s> on port=0x%X\n",name,port);
+    ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",name,port);
     ercd = sendMessage(RPMSG_NAME_SERVICE_PORT, port, &nsMsg, sizeof(nsMsg));
     assert(E_OK == ercd);
 }

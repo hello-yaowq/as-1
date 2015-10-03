@@ -330,9 +330,9 @@ static const ComIPdu_type ComIPdu[] = {
             .ComTxModeTrue ={
                 .ComTxModeMode =   PERIODIC,
                 .ComTxModeNumberOfRepetitions =   0,
-                .ComTxModeRepetitionPeriodFactor =   10,
+                .ComTxModeRepetitionPeriodFactor =   5,
                 .ComTxModeTimeOffsetFactor =   0,
-                .ComTxModeTimePeriodFactor =   100,
+                .ComTxModeTimePeriodFactor =   5,
             },
         },
         .ComIPduDataPtr =  TxMsgTime_IPduBuffer,

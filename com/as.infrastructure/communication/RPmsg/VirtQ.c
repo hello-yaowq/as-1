@@ -61,7 +61,7 @@ static void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint3
 {
    Vring_UsedElemType *used;
 
-   ASLOG(VIRTQ,"VirtQ set used buf idx=%d vq->vring.used->idx=%d\n",idx, vq->vring.used->idx);
+   ASLOG(OFF,"VirtQ set used buf idx=%d vq->vring.used->idx=%d\n",idx, vq->vring.used->idx);
 
    if (idx > vq->vring.num) {
        assert(0);
@@ -94,7 +94,7 @@ void VirtQ_InitVq(VirtQ_ChannerlType chl)
           sizeof(Vring_DescType),sizeof(Vring_UsedElemType),sizeof(uint16_t),
 		  virtq.config->queueConfig[chl].vring->num,virtq.config->queueConfig[chl].vring->align);
 
-	ASLOG(VIRTQ,"vring[idx=%Xh,size=%d]: num=%d, desc=%s, avail=%s, used=%s, da=%Xh\n",
+	ASLOG(OFF,"vring[idx=%Xh,size=%d]: num=%d, desc=%s, avail=%s, used=%s, da=%Xh\n",
 			virtq.config->queueConfig[chl].vring->notifyid,
 			vring_size(virtq.config->queueConfig[chl].vring->num,virtq.config->queueConfig[chl].vring->align),
 			virtq.vq[chl].vring.num,ASHEX(virtq.vq[chl].vring.desc),
@@ -108,7 +108,7 @@ Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* i
 	assert(chl < VIRTQ_CHL_NUM);
 	assert(virtq.initialized);
 
-	ASLOG(VIRTQ,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
+	ASLOG(OFF,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
 
 	*buf = virtqueue_get_avail_buf(&virtq.vq[chl],idx,len);
 
