@@ -248,12 +248,12 @@ public:
     }
     void put_used_buf_back(VirtQ_IdxType idx)
     {
+       ASLOG(OFF,"put_used_buf_back(idx=%d),vr.avail->idx=%d\n",idx,vr.avail->idx);
        if (idx > vr.num) {
            assert(0);
        }
        else
        {
-           ASLOG(OFF,"put_used_buf_back(idx=%d),vr.avail->idx=%d\n",idx,vr.avail->idx);
            vr.avail->ring[vr.avail->idx++ % vr.num] = idx;
            num_added ++;
        }

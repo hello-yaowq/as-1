@@ -51,6 +51,7 @@ Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
     p_get_fifo = (qt_get_fifo_t)GetProcAddress((HMODULE)hxDll,"Qt_GetIpcFifo");
     p_get_rsc_tbl = (qt_get_rproc_resource_table_t)GetProcAddress((HMODULE)hxDll,"Qt_GetRprocResourceTable");
     pfIsIpcReady = (PF_IPC_IS_READY)GetProcAddress((HMODULE)hxDll,"Ipc_IsReady");
+    Qt_SetIpcBaseAddress = (Qt_SetIpcBaseAddressType)GetProcAddress((HMODULE)hxDll,"Qt_SetIpcBaseAddress");
 #else
     r_lock = &r_mutex;
     w_lock = &w_mutex;

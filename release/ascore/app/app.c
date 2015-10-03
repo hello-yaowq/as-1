@@ -37,14 +37,14 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
-	Can_PduType pdu;
-	uint8 data[8] = "RPmsgCAN";
-	pdu.id = 0x517;
-	pdu.length = 8;
-	pdu.swPduHandle = 9;
-	pdu.sdu = data;
-
-	Can_Write(Can2Hth,&pdu);
+//	Can_PduType pdu;
+//	uint8 data[8] = "RPmsgCAN";
+//	pdu.id = 0x517;
+//	pdu.length = 8;
+//	pdu.swPduHandle = 9;
+//	pdu.sdu = data;
+//
+//	Can_Write(Can2Hth,&pdu);
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif

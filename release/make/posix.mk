@@ -36,12 +36,14 @@ $(obj-dir)/%.o:%.cpp
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
+#	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<
 	
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
+#	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
 .PHONY:all clean
@@ -56,11 +58,13 @@ include $(wildcard $(obj-dir)/*.d)
 
 exe:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).EXE"
+#	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
+#	@echo "$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
 	@$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
