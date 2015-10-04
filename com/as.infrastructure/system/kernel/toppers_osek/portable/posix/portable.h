@@ -12,44 +12,33 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_
-#define COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_
+#ifndef COM_AS_INFRASTRUCTURE_SYSTEM_KERNEL_TOPPERS_OSEK_PORTABLE_POSIX_PORTABLE_H_
+#define COM_AS_INFRASTRUCTURE_SYSTEM_KERNEL_TOPPERS_OSEK_PORTABLE_POSIX_PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-/* ============================ [ MACROS    ] ====================================================== */
-/* levels for log output */
-#define AS_LOG_IPC   	1
-#define AS_LOG_VIRTQ    2
-#define AS_LOG_RPMSG    3
-#define AS_LOG_CAN      4
-#define AS_LOG_CANIF    5
-#define AS_LOG_OS       99
-/* and so on ... */
-#define AS_LOG_DEFAULT  AS_LOG_OS
-#define AS_LOG_STDOUT  	AS_LOG_DEFAULT
-#define AS_LOG_OFF      0
-#if defined(__WINDOWS__) || defined(__LINUX__)
-#define ASLOG(level,fmt,...) 							\
-	if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
-		aslog(#level,fmt,##__VA_ARGS__);				\
-	}
-#else
-#define ASLOG(level,fmt,...) 			\
-	if((level) >= AS_LOG_DEFAULT) {		\
-		printf(fmt,##__VA_ARGS__);		\
-	}
-#endif
 
-#define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
-#define ASHEX(a)	ashex((unsigned long)(a))
+/* ============================ [ MACROS    ] ====================================================== */
+#define Inline static __inline__
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void aslog(char* module,char* format,...);
-extern void asmem(void* address,size_t size);
-extern char* ashex(unsigned long a);
-char* aswho(void);
+extern void disable_int(void);
+extern void enable_int(void);
 
-#endif /* COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_ */
+extern void dispatch(void);
+extern void set_ipl(IPL ipl);
+extern IPL  current_ipl(void);
+extern void start_dispatch(void);
+extern void exit_and_dispatch(void);
+extern void activate_context(TaskType TaskID);
+
+extern void cpu_terminate(void);
+extern void sys_exit(void);
+
+extern void cpu_initialize(void);
+extern void sys_initialize(void);
+extern void tool_initialize(void);
+
+#endif /* COM_AS_INFRASTRUCTURE_SYSTEM_KERNEL_TOPPERS_OSEK_PORTABLE_POSIX_PORTABLE_H_ */
