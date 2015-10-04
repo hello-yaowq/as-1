@@ -159,5 +159,8 @@ def easySAR():
     qtApp.exec_()
     
 
-if __name__ == '__main__':
+if(__name__ == '__main__'):
+    global gDefault_GEN
+    if(len(sys.argv)==2):
+        gDefault_GEN = sys.argv[1]
     easySAR()

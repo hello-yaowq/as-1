@@ -38,7 +38,7 @@ def IsArxmlList(arxml):
         except:
             return False
     else:
-        print 'Arxml: IsArxmlList(%s) type Error'%(arxml)
+        print('Arxml: IsArxmlList(%s) type Error'%(arxml))
     
 class Arxml():
     """
@@ -117,7 +117,7 @@ class Arxml():
             if(self.tag=='General'):
                 pass # General Info, no sub, no name attribute
             elif(IsArxmlList(self)==False):
-                print 'Arxml: Error (key,value)=(%s,%s) for %s'%(key,value,self.descriptor.tag)
+                print('Arxml: Error (key,value)=(%s,%s) for %s'%(key,value,self.descriptor.tag))
             if(value==None):
                 return ''
     

@@ -25,7 +25,7 @@ from PyQt4.QtCore import *
 import sys,os,re
 import xml.etree.ElementTree as ET
 import traceback
-from Arxml import *
+from .Arxml import *
 
 __all__ = ['ArgModule','ArgAction']
 
@@ -358,7 +358,7 @@ class ArgObject(QTreeWidgetItem):
                     if(max > self.childCount()):
                         self.addChildArobj(ArgObject(Arxml(Descriptor),self.root,self))
                     else:
-                        print 'Error:Maximum %s for %s is %s!'%(what,self.arxml.tag,max)  
+                        print('Error:Maximum %s for %s is %s!'%(what,self.arxml.tag,max))
                 else:
                     # ok, by default this is list things or its parent is not a list
                     already = False
@@ -370,7 +370,7 @@ class ArgObject(QTreeWidgetItem):
                     if(already == False):
                         self.addChildArobj(ArgObject(Arxml(Descriptor),self.root,self))
                     else:
-                        print 'Info: Only 1 %s is allowed for %s.'%(Descriptor.tag,self.arxml.tag)
+                        print('Info: Only 1 %s is allowed for %s.'%(Descriptor.tag,self.arxml.tag))
                 self.setExpanded(True)        
 
 class ArgObjectTree(QTreeWidget):
