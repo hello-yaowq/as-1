@@ -113,6 +113,14 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
+#ifdef AS_OS_BASED_ON_FREERTOS
+void PreTaskHook(void)
+{
+}
+void PostTaskHook(void)
+{
+}
+#else
 extern TaskType	runtsk;
 void PreTaskHook(void)
 {
@@ -122,6 +130,7 @@ void PostTaskHook(void)
 {
 	ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
 }
+#endif
 void ShutdownHook(StatusType ercd)
 {
 }
