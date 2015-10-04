@@ -222,9 +222,9 @@ portTickType xMicroSeconds = portTICK_RATE_MICROSECONDS;
 		PRINTF( "Get Timer problem.\n" );
 	}
 }
-static uint32_t prvProcessTickInterrupt( void )
+
+static void prvProcessTickInterrupt( void )
 {
-	uint32_t ulSwitchRequired;
 
 	UINT8 saved_callevel = callevel;
 
@@ -232,60 +232,54 @@ static uint32_t prvProcessTickInterrupt( void )
 	SignalCounter(0);
 	callevel = saved_callevel;
 
-	if(schedtsk != runtsk)
-	{
-		ulSwitchRequired = TRUE;
-	}
-	else
-	{
-		ulSwitchRequired = FALSE;
-	}
-
-	return ulSwitchRequired;
 }
 /*-----------------------------------------------------------*/
 void vPortSystemTickHandler( int sig )
 {
-uint32_t ulSwitchRequired;
-ASLOG(OFF,"xInterruptsEnabled=%d,xServicingTick=%d\n",xInterruptsEnabled,xServicingTick);
+	ASLOG(OFF,"xInterruptsEnabled=%d,xServicingTick=%d\n",xInterruptsEnabled,xServicingTick);
 	if ( ( pdTRUE == xInterruptsEnabled ) && ( pdTRUE != xServicingTick ) )
 	{
 		if ( 0 == pthread_mutex_trylock( &xSingleThreadMutex ) )
 		{
 			xServicingTick = pdTRUE;
 
-			/* Tick Increment. */
-			ulSwitchRequired = ( uint32_t ) prvProcessTickInterrupt();
+			prvProcessTickInterrupt();
 
-			if( ulSwitchRequired != pdFALSE )
+			/* If the task selected to enter the running state is not the task
+			that is already in the running state. */
+			if( runtsk != schedtsk )
 			{
 				ASLOG(OS,"isr switch from task %d to task %d\n",runtsk,schedtsk);
-				/* If the task selected to enter the running state is not the task
-				that is already in the running state. */
-				if( runtsk != schedtsk )
+
+				TaskType saved_runtsk = runtsk;
+				runtsk = schedtsk;
+
+				if(runtsk!=INVALID_TASK)
 				{
-					TaskType saved_runtsk = runtsk;
-					runtsk = schedtsk;
+					callevel = TCL_TASK;
+					prvResumeThread( pxThreads[runtsk].hThread );
+				}
+				else
+				{
+					callevel = TCL_NULL;
+				}
 
-					if(runtsk!=INVALID_TASK)
-					{
-						callevel = TCL_TASK;
-						prvResumeThread( pxThreads[runtsk].hThread );
-					}
-					else
-					{
-						callevel = TCL_NULL;
-					}
-
-					if(saved_runtsk!=INVALID_TASK)
-					{
-						/* Suspend the old thread. */
-						prvSuspendThread( pxThreads[saved_runtsk].hThread );
-					}
+				if(saved_runtsk!=INVALID_TASK)
+				{
+					/* Suspend the old thread. */
+					prvSuspendThread( pxThreads[saved_runtsk].hThread );
+				}
+				else
+				{
+					(void)pthread_mutex_unlock( &xSingleThreadMutex );
 				}
 			}
+			else
+			{
+				(void)pthread_mutex_unlock( &xSingleThreadMutex );
+			}
 
-			(void)pthread_mutex_unlock( &xSingleThreadMutex );
+
 			xServicingTick = pdFALSE;
 		}
 	}
@@ -446,14 +440,15 @@ void portRestroeIrqState(imask_t irq_state)
 static void* prvToppersOSEK_TaskProcess(void * param)
 {
 	TaskType taskId= (TaskType)(unsigned long)param;
+
+	if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
+	{
+		prvSuspendThread( pthread_self() );
+	}
+
 	for(;;)
 	{
 		int rv;
-
-		if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
-		{
-			prvSuspendThread( pthread_self() );
-		}
 
 		rv = setjmp(pxThreads[taskId].jmp);
 		if(0 == rv)
@@ -574,9 +569,9 @@ void activate_context(TaskType TaskID)
 	lock_cpu();
 
 	/* Create the new pThread. */
-	if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
+	if(0 == pxThreads[TaskID].hThread)
 	{
-		if(0 == pxThreads[TaskID].hThread)
+		if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
 		{
 			xSentinel = 0;
 			int ercd = pthread_create( &( pxThreads[ TaskID ].hThread ), &xThreadAttributes, prvToppersOSEK_TaskProcess, (void*)(unsigned long)TaskID );
@@ -587,9 +582,9 @@ void activate_context(TaskType TaskID)
 			(void)pthread_mutex_unlock( &xSingleThreadMutex );
 			while ( xSentinel == 0 );
 		}
-		unlock_cpu();
 	}
 
+	unlock_cpu();
 }
 
 void cpu_initialize(void)
