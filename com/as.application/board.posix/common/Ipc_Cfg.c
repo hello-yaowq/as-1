@@ -39,6 +39,8 @@ static Ipc_ChannelConfigType Ipc_ChlConfig[IPC_CHL_NUM] =
 		.rxNotification = VirtQ_RxNotificatin,
 		.txConfirmation = VirtQ_TxConfirmation,
 
+		.r_lock = NULL
+
 	}
 };
 const Ipc_ConfigType Ipc_Config =

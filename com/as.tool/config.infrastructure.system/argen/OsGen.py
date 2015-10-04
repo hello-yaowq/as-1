@@ -24,18 +24,18 @@ __for_toppers_osek_macro =  \
 
 /* OSEK OS Debugh helper */
 #define LOG_STAOS_ENTER(mode)      ASLOG(OS,"StartOS enter, Appmode=%d\\n",mode)
-#define LOG_STAOS_LEAVE()          ASLOG(OS,"StartOS leave, Appmode=%d\\n")
+#define LOG_STAOS_LEAVE()          ASLOG(OS,"StartOS leave\\n")
 #define LOG_TERTSK_ENTER()         ASLOG(OS,"TerminateTask enter, runtsk=%d\\n",runtsk)
-#define LOG_TERTSK_LEAVE(ercd)     ASLOG(OS,"TerminateTask leave\\n")
+#define LOG_TERTSK_LEAVE(ercd)     ASLOG(OS,"TerminateTask leave,ercd=%d\\n",ercd)
 #define LOG_STUTOS_ENTER(ercd)     ASLOG(OS,"ShutdownOS enter, ercd = %d\\n",ercd)
 #define LOG_STUTOS_LEAVE()         ASLOG(OS,"ShutdownOS leave\\n")
 #define LOG_ACTTSK_ENTER(tskid)    ASLOG(OS,"ActivateTask enter, tskid=%d\\n",tskid)   
 #define LOG_ACTTSK_LEAVE(ercd)     ASLOG(OS,"ActivateTask leave, ercd = %d\\n",ercd)
-#define LOG_SIGCNT_ENTER(cntid)    ASLOG(OS,"SignalCounter enter, cntid=%d\\n",cntid) 
-#define LOG_SIGCNT_LEAVE(ercd)     ASLOG(OS,"SignalCounter leave, ercd = %d\\n",ercd)
-#define LOG_SETREL_ENTER(almid, incr, cycle)    ASLOG(OS,"SetRelAlarm enter, almid=%d, incr=%d, cycle\\n",almid,incr,cycle) 
+#define LOG_SIGCNT_ENTER(cntid)    ASLOG(OFF,"SignalCounter enter, cntid=%d\\n",cntid) 
+#define LOG_SIGCNT_LEAVE(ercd)     ASLOG(OFF,"SignalCounter leave, ercd = %d\\n",ercd)
+#define LOG_SETREL_ENTER(almid, incr, cycle)    ASLOG(OS,"SetRelAlarm enter, almid=%d, incr=%d, cycle=%d\\n",almid,incr,cycle) 
 #define LOG_SETREL_LEAVE(ercd)                  ASLOG(OS,"SetRelAlarm leave, ercd=%d\\n",ercd)
-#define LOG_SETABS_ENTER(almid, incr, cycle)    ASLOG(OS,"SetAbsAlarm enter, almid=%d, incr=%d, cycle\\n",almid,incr,cycle)
+#define LOG_SETABS_ENTER(almid, incr, cycle)    ASLOG(OS,"SetAbsAlarm enter, almid=%d, incr=%d, cycle=%d\\n",almid,incr,cycle)
 #define LOG_SETABS_LEAVE(ercd)                  ASLOG(OS,"SetAbsAlarm leave, ercd=%d\\n",ercd)
 #define LOG_SETEVT_ENTER(tskid, mask)           ASLOG(OS,"SetEvent enter, tskid=%d, mask=%08Xh\\n",tskid,mask)
 #define LOG_SETEVT_LEAVE(ercd)                  ASLOG(OS,"SetEvent leave, ercd=%d\\n",ercd)
@@ -418,7 +418,10 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('};\n\n')
     fp.write('const AppModeType alminib_autosta[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\t%s, /* %s */\n'%(alarm.attrib['app-mode'],alarm.attrib['name']))
+        if(alarm.attrib['auto-start']=='true'):
+            fp.write('\t%s, /* %s */\n'%(alarm.attrib['app-mode'],alarm.attrib['name']))
+        else:
+            fp.write('\t0, /* %s */\n'%(alarm.attrib['name']))
     fp.write('};\n\n')
     fp.write('const TickType   alminib_almval[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):

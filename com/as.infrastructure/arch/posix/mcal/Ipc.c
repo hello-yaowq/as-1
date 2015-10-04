@@ -117,6 +117,10 @@ static void* Ipc_Daemon(void* lpParameter)
 	pvObjectList[ 0 ] = config->r_lock;
 	pvObjectList[ 1 ] = config->r_event;
 #endif
+	while(NULL == config->r_lock)
+	{
+		usleep(1);
+	}
     ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
           config->r_lock,config->w_lock,config->r_event,config->w_event,config->r_fifo,config->w_fifo);
 	runtime->ready = TRUE;

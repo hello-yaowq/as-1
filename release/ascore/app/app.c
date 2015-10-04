@@ -47,7 +47,7 @@ TASK(TaskApp)
 	pdu.swPduHandle = 0xFFFF;
 	pdu.sdu = data;
 
-	Can_Write(Can2Hth,&pdu);
+//	Can_Write(Can2Hth,&pdu);
 #endif
 #ifdef USE_GUI
 	Sg_ManagerTask();

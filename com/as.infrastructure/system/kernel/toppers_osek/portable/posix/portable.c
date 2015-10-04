@@ -74,9 +74,6 @@ typedef struct
 {
 	/* Handle of the thread that executes the task. */
 	pthread_t hThread;
-	/* Handle of the thread that task has been activated */
-	pthread_cond_t hEvent;
-	pthread_mutex_t hMutex;
 	jmp_buf jmp;
 } xThreadState;
 
@@ -86,8 +83,6 @@ typedef TickType TickType_t;
 typedef uint8    StackType_t;
 typedef void (*TaskFunction_t)( void * );
 /* ============================ [ DECLARES  ] ====================================================== */
-void vPortEnterCritical( void );
-void vPortExitCritical( void );
 void vPortEnableInterrupts( void );
 void vPortDisableInterrupts( void );
 /* ============================ [ DATAS     ] ====================================================== */
@@ -98,13 +93,10 @@ static pthread_mutex_t xSuspendResumeThreadMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t xSingleThreadMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t hMainThread = ( pthread_t )NULL;
 /*-----------------------------------------------------------*/
-
 static volatile portBASE_TYPE xSentinel = 0;
 static volatile portBASE_TYPE xSchedulerEnd = pdFALSE;
 static volatile portBASE_TYPE xInterruptsEnabled = pdTRUE;
 static volatile portBASE_TYPE xServicingTick = pdFALSE;
-static volatile portBASE_TYPE xPendYield = pdFALSE;
-static volatile unsigned portBASE_TYPE uxCriticalNesting;
 
 /* ============================ [ LOCALS    ] ====================================================== */
 
@@ -135,72 +127,34 @@ void vPortStartFirstTask( void );
 /*-----------------------------------------------------------*/
 void vPortStartFirstTask( void )
 {
-	/* Initialise the critical nesting count ready for the first task. */
-	uxCriticalNesting = 0;
-
 	/* Start the first task. */
-	vPortEnableInterrupts();
+	unlock_cpu();
+
+	callevel = TCL_TASK;
+
+	runtsk = schedtsk;
+
+	ASLOG(OS,"switch to task %d\n",runtsk);
 
 	/* Start the first task. */
 	prvResumeThread( pxThreads[runtsk].hThread  );
 }
 /*-----------------------------------------------------------*/
 
-void vPortYieldFromISR( void )
-{
-	/* Calling Yield from a Interrupt/Signal handler often doesn't work because the
-	 * xSingleThreadMutex is already owned by an original call to Yield. Therefore,
-	 * simply indicate that a yield is required soon.
-	 */
-	xPendYield = pdTRUE;
-}
-/*-----------------------------------------------------------*/
-
-void vPortEnterCritical( void )
-{
-	vPortDisableInterrupts();
-	uxCriticalNesting++;
-}
-/*-----------------------------------------------------------*/
-
-void vPortExitCritical( void )
-{
-	/* Check for unmatched exits. */
-	if ( uxCriticalNesting > 0 )
-	{
-		uxCriticalNesting--;
-	}
-
-	/* If we have reached 0 then re-enable the interrupts. */
-	if( uxCriticalNesting == 0 )
-	{
-		/* Have we missed ticks? This is the equivalent of pending an interrupt. */
-		if ( pdTRUE == xPendYield )
-		{
-			xPendYield = pdFALSE;
-			vPortYield();
-		}
-		vPortEnableInterrupts();
-	}
-}
-/*-----------------------------------------------------------*/
-
 void vPortYield( void )
 {
-pthread_t xTaskToSuspend;
-pthread_t xTaskToResume;
-
 	if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
 	{
-		xTaskToSuspend = pxThreads[runtsk].hThread;
-
-
-		xTaskToResume = pxThreads[schedtsk].hThread;
-		if ( xTaskToSuspend != xTaskToResume )
+		if ( runtsk != schedtsk )
 		{
+			TaskType saved_runtsk = runtsk;
 			/* Switch tasks. */
-			prvResumeThread( xTaskToResume );
-			prvSuspendThread( xTaskToSuspend );
+			ASLOG(OS,"switch from task %d to task %d\n",runtsk,schedtsk);
+			runtsk = schedtsk;
+
+			prvResumeThread( pxThreads[runtsk].hThread );
+
+			prvSuspendThread( pxThreads[saved_runtsk].hThread );
 		}
 		else
 		{
@@ -272,10 +226,11 @@ static uint32_t prvProcessTickInterrupt( void )
 {
 	uint32_t ulSwitchRequired;
 
+	UINT8 saved_callevel = callevel;
 
 	callevel = TCL_ISR2;
 	SignalCounter(0);
-	callevel = TCL_TASK;
+	callevel = saved_callevel;
 
 	if(schedtsk != runtsk)
 	{
@@ -291,59 +246,48 @@ static uint32_t prvProcessTickInterrupt( void )
 /*-----------------------------------------------------------*/
 void vPortSystemTickHandler( int sig )
 {
-pthread_t xTaskToSuspend;
-pthread_t xTaskToResume;
 uint32_t ulSwitchRequired;
-
+ASLOG(OFF,"xInterruptsEnabled=%d,xServicingTick=%d\n",xInterruptsEnabled,xServicingTick);
 	if ( ( pdTRUE == xInterruptsEnabled ) && ( pdTRUE != xServicingTick ) )
 	{
 		if ( 0 == pthread_mutex_trylock( &xSingleThreadMutex ) )
 		{
 			xServicingTick = pdTRUE;
 
-			xTaskToSuspend = pxThreads[runtsk].hThread;
-
 			/* Tick Increment. */
 			ulSwitchRequired = ( uint32_t ) prvProcessTickInterrupt();
 
-			xTaskToResume = pxThreads[schedtsk].hThread;
-
 			if( ulSwitchRequired != pdFALSE )
 			{
+				ASLOG(OS,"isr switch from task %d to task %d\n",runtsk,schedtsk);
 				/* If the task selected to enter the running state is not the task
 				that is already in the running state. */
 				if( runtsk != schedtsk )
 				{
-					if(runtsk!=INVALID_TASK)
-					{
-						/* Suspend the old thread. */
-						prvSuspendThread( xTaskToSuspend );
-					}
-
+					TaskType saved_runtsk = runtsk;
 					runtsk = schedtsk;
 
 					if(runtsk!=INVALID_TASK)
 					{
 						callevel = TCL_TASK;
-						/* Obtain the state of the task now selected to enter the
-						Running state. */
-						prvResumeThread( xTaskToResume );
+						prvResumeThread( pxThreads[runtsk].hThread );
 					}
 					else
 					{
 						callevel = TCL_NULL;
 					}
+
+					if(saved_runtsk!=INVALID_TASK)
+					{
+						/* Suspend the old thread. */
+						prvSuspendThread( pxThreads[saved_runtsk].hThread );
+					}
 				}
 			}
+
+			(void)pthread_mutex_unlock( &xSingleThreadMutex );
+			xServicingTick = pdFALSE;
 		}
-		else
-		{
-			xPendYield = pdTRUE;
-		}
-	}
-	else
-	{
-		xPendYield = pdTRUE;
 	}
 }
 /*-----------------------------------------------------------*/
@@ -352,6 +296,7 @@ void prvSuspendSignalHandler(int sig)
 {
 sigset_t xSignals;
 
+	ASLOG(OFF, "prvSuspendSignalHandler\n" );
 	/* Only interested in the resume signal. */
 	sigemptyset( &xSignals );
 	sigaddset( &xSignals, SIG_RESUME );
@@ -360,30 +305,24 @@ sigset_t xSignals;
 	/* Unlock the Single thread mutex to allow the resumed task to continue. */
 	if ( 0 != pthread_mutex_unlock( &xSingleThreadMutex ) )
 	{
-		PRINTF( "Releasing someone else's lock.\n" );
+		ASLOG(OS, "Releasing someone else's lock.\n" );
 	}
 
 	/* Wait on the resume signal. */
 	if ( 0 != sigwait( &xSignals, &sig ) )
 	{
-		PRINTF( "SSH: Sw %d\n", sig );
+		ASLOG(OS, "SSH: Sw %d\n", sig );
 	}
 
 	/* Will resume here when the SIG_RESUME signal is received. */
-	/* Need to set the interrupts based on the task's critical nesting. */
-	if ( uxCriticalNesting == 0 )
-	{
-		vPortEnableInterrupts();
-	}
-	else
-	{
-		vPortDisableInterrupts();
-	}
+	vPortEnableInterrupts();
+
 }
 /*-----------------------------------------------------------*/
 
 void prvSuspendThread( pthread_t xThreadId )
 {
+	ASLOG(OFF, "prvSuspendThread(%Xh)\n", xThreadId);
 portBASE_TYPE xResult = pthread_mutex_lock( &xSuspendResumeThreadMutex );
 	if ( 0 == xResult )
 	{
@@ -401,6 +340,7 @@ portBASE_TYPE xResult = pthread_mutex_lock( &xSuspendResumeThreadMutex );
 
 void prvResumeSignalHandler(int sig)
 {
+	ASLOG(OFF, "prvResumeSignalHandler\n" );
 	/* Yield the Scheduler to ensure that the yielding thread completes. */
 	if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
 	{
@@ -412,6 +352,8 @@ void prvResumeSignalHandler(int sig)
 void prvResumeThread( pthread_t xThreadId )
 {
 portBASE_TYPE xResult;
+
+	ASLOG(OFF, "prvResumeThread(%Xh)\n", xThreadId);
 	if ( 0 == pthread_mutex_lock( &xSuspendResumeThreadMutex ) )
 	{
 		if ( pthread_self() != xThreadId )
@@ -453,17 +395,17 @@ struct sigaction sigsuspendself, sigresume, sigtick;
 
 	if ( 0 != sigaction( SIG_SUSPEND, &sigsuspendself, NULL ) )
 	{
-		PRINTF( "Problem installing SIG_SUSPEND_SELF\n" );
+		ASLOG(OS, "Problem installing SIG_SUSPEND_SELF\n" );
 	}
 	if ( 0 != sigaction( SIG_RESUME, &sigresume, NULL ) )
 	{
-		PRINTF( "Problem installing SIG_RESUME\n" );
+		ASLOG(OS, "Problem installing SIG_RESUME\n" );
 	}
 	if ( 0 != sigaction( SIG_TICK, &sigtick, NULL ) )
 	{
-		PRINTF( "Problem installing SIG_TICK\n" );
+		ASLOG(OS, "Problem installing SIG_TICK\n" );
 	}
-	PRINTF( "Running as PID: %d\n", getpid() );
+	ASLOG(OS,"Running as PID: %d\n", getpid() );
 }
 
 /*-----------------------------------------------------------*/
@@ -472,7 +414,7 @@ void vPortFindTicksPerSecond( void )
 {
 	/* Needs to be reasonably high for accuracy. */
 	unsigned long ulTicksPerSecond = sysconf(_SC_CLK_TCK);
-	PRINTF( "Timer Resolution for Run TimeStats is %ld ticks per second.\n", ulTicksPerSecond );
+	ASLOG(OS, "Timer Resolution for Run TimeStats is %ld ticks per second.\n", ulTicksPerSecond );
 }
 /*-----------------------------------------------------------*/
 
@@ -491,15 +433,15 @@ struct tms xTimes;
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
-#include "Std_Types.h"
 imask_t portGetIrqStateAndDisableIt(void)
 {
-	vPortEnterCritical();
-	return uxCriticalNesting;
+	imask_t irq_state = xInterruptsEnabled;
+	vPortDisableInterrupts();
+	return irq_state;
 }
 void portRestroeIrqState(imask_t irq_state)
 {
-	vPortExitCritical();
+	xInterruptsEnabled = irq_state;
 }
 static void* prvToppersOSEK_TaskProcess(void * param)
 {
@@ -507,8 +449,11 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 	for(;;)
 	{
 		int rv;
-		(void)pthread_cond_wait(&(pxThreads[taskId].hEvent),&(pxThreads[taskId].hMutex));
-		(void)pthread_mutex_unlock( &(pxThreads[taskId].hMutex) );
+
+		if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
+		{
+			prvSuspendThread( pthread_self() );
+		}
 
 		rv = setjmp(pxThreads[taskId].jmp);
 		if(0 == rv)
@@ -519,11 +464,14 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 			unlock_cpu();
 			callevel = TCL_TASK;
 			tcb_curpri[runtsk] = tinib_exepri[runtsk];
+			ASLOG(OS,"start task %d\n",taskId);
 			tinib_task[taskId]();
 		}
 		else
 		{
 			/* terminate */
+			ASLOG(OS,"exit Task %d\n",taskId);
+			vPortYield();
 		}
 
 	}
@@ -535,15 +483,11 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 
 void disable_int(void)
 {
-	assert(uxCriticalNesting==0);
-	vPortEnterCritical();
-	assert(uxCriticalNesting==1);
+	vPortDisableInterrupts();
 }
 void enable_int(void)
 {
-	assert(uxCriticalNesting==1);
-	vPortExitCritical();
-	assert(uxCriticalNesting==0);
+	vPortEnableInterrupts();
 }
 
 void dispatch(void)
@@ -590,11 +534,11 @@ void start_dispatch(void)
 	{
 		if ( 0 != sigwait( &xSignals, &iSignal ) )
 		{
-			PRINTF( "Main thread spurious signal: %d\n", iSignal );
+			ASLOG(OS, "Main thread spurious signal: %d\n", iSignal );
 		}
 	}
 
-	PRINTF( "Cleaning Up, Exiting.\n" );
+	ASLOG(OS, "Cleaning Up, Exiting.\n" );
 	/* Cleanup the mutexes */
 	xResult = pthread_mutex_destroy( &xSuspendResumeThreadMutex );
 	xResult = pthread_mutex_destroy( &xSingleThreadMutex );
@@ -612,8 +556,6 @@ void exit_and_dispatch(void)
 
 	unlock_cpu();
 
-	vPortYield();
-
 	longjmp(pxThreads[save_runtsk].jmp,1);
 }
 void activate_context(TaskType TaskID)
@@ -629,29 +571,24 @@ void activate_context(TaskType TaskID)
 	pthread_attr_init( &xThreadAttributes );
 	pthread_attr_setdetachstate( &xThreadAttributes, PTHREAD_CREATE_DETACHED );
 
-	vPortEnterCritical();
+	lock_cpu();
 
 	/* Create the new pThread. */
 	if ( 0 == pthread_mutex_lock( &xSingleThreadMutex ) )
 	{
-		xSentinel = 0;
 		if(0 == pxThreads[TaskID].hThread)
 		{
+			xSentinel = 0;
 			int ercd = pthread_create( &( pxThreads[ TaskID ].hThread ), &xThreadAttributes, prvToppersOSEK_TaskProcess, (void*)(unsigned long)TaskID );
 			/* Create the thread itself. */
 			assert( (0==ercd) && pxThreads[TaskID].hThread );
+
+			/* Wait until the task suspends. */
+			(void)pthread_mutex_unlock( &xSingleThreadMutex );
+			while ( xSentinel == 0 );
 		}
-
-		/* Wait until the task suspends. */
-		(void)pthread_mutex_unlock( &xSingleThreadMutex );
-		while ( xSentinel == 0 );
-		vPortExitCritical();
+		unlock_cpu();
 	}
-
-	/* each time when do activate, make event ready */
-	(void)pthread_mutex_lock( &(pxThreads[TaskID].hMutex) );
-	(void)pthread_cond_signal(&(pxThreads[TaskID].hEvent));
-	(void)pthread_mutex_unlock( &(pxThreads[TaskID].hMutex) );
 
 }
 

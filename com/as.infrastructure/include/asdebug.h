@@ -25,7 +25,7 @@
 #define AS_LOG_CANIF    5
 #define AS_LOG_OS       99
 /* and so on ... */
-#define AS_LOG_DEFAULT  AS_LOG_OS
+#define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 #if defined(__WINDOWS__) || defined(__LINUX__)

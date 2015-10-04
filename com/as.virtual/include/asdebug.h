@@ -30,7 +30,7 @@
 #define AS_LOG_VMACTION    6
 #define AS_LOG_VMWINDOW    7
 /* and so on ... */
-#define AS_LOG_DEFAULT  99
+#define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 #if defined(__WINDOWS__) || defined(__LINUX__)

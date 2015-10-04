@@ -285,6 +285,6 @@ clean-dist:clean
 93:
 	make all board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
+	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE	
  
 
