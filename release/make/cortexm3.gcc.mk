@@ -1,14 +1,18 @@
 #common compilers
-AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc.exe
-CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc.exe
-LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld.exe
-AR  = ar
-RM  = rm
+ifeq ($(host),Linux)
+AS  = arm-linux-gnueabi-gcc
+CC  = arm-linux-gnueabi-gcc
+LD  = arm-linux-gnueabi-ld
+AR  = arm-linux-gnueabi-ar
 
-ifeq ($(CC), $(wildcard $(CC)))
 else
-$(error fix your arm gcc compiler path)
+AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
+CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
+LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld
+AR  = $(COMPILER_DIR)/bin/arm-none-eabi-ar
 endif
+
+RM  = rm
 
 #common flags
 asflags-y += -mcpu=cortex-m3  -mthumb

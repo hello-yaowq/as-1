@@ -305,6 +305,6 @@ extern _ErrorHook_Par	_errorhook_par1, _errorhook_par2, _errorhook_par3;
 #define OSError_CancelAlarm_AlarmID()		(_errorhook_par1.almid)
 #define OSError_SignalCounter_CounterID()	(_errorhook_par1.cntid)
 
-#include "os_cfg.h"
+#include "Os_Cfg.h"
 
 #endif /* _KERNEL_H_ */

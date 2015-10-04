@@ -41,8 +41,14 @@ include ../make/posix.mk
 endif
 
 ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(host), Linux)
+COMPILER_DIR = /usr
+CMSIS = /media/parai/OS/gcc-arm-none-eabi-4_8-2014q1-20140314-win32/CMSIS
+else
 COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
-inc-y += -I$(COMPILER_DIR)/CMSIS/Include
+CMSIS = $(COMPILER_DIR)/CMSIS
+endif
+inc-y += -I$(inc-dir)/CMSIS/Include
 include ../make/cortexm3.gcc.mk
 endif
 
@@ -124,8 +130,11 @@ SG:
 	
 
 XCC:
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src)	
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src false)	
 
+BSW:
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src true)
+	
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/ascore/src)	
 	
@@ -172,6 +181,7 @@ ifeq ($(gui),openVG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
 endif
 	@(cd $(src-dir);rm -f Dem.c J1939Tp* Lin*)
+	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
 dep-stm32f107vc:
@@ -195,7 +205,8 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
-	@(cd $(src-dir);rm -fv Can_* CanIf_* Com_* CanTp_* PduR_*)
+	@(cd $(inc-dir);$(LNFS) $(CMSIS))
+	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
 	@(echo "  >> prepare link for STM32F107VC done")
 		
 dep-at91sam3s:
@@ -225,6 +236,7 @@ dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
+	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(echo "  >> prepare link for AT91SAM3S done")
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
@@ -252,11 +264,11 @@ clean-dist:clean
 	make all board=at91sam3s compiler=iccarm DEBUG=FALSE	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=iccarm
+	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
 12:
-	make all board=stm32f107vc compiler=iccarm DEBUG=TRUE
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=TRUE
 13:
-	make all board=stm32f107vc compiler=iccarm DEBUG=FALSE	
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=FALSE	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK

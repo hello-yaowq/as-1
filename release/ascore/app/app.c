@@ -18,7 +18,9 @@
 #include "Sg.h"
 #include "Lcd.h"
 #endif
+#ifdef USE_CAN
 #include "Can.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -37,6 +39,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+#ifdef USE_CAN
 	Can_PduType pdu;
 	uint8 data[8] = "RPmsgCAN";
 	pdu.id = 0x517;
@@ -45,6 +48,7 @@ TASK(TaskApp)
 	pdu.sdu = data;
 
 	Can_Write(Can2Hth,&pdu);
+#endif
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif
