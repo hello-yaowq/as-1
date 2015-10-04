@@ -152,6 +152,7 @@ void vPortYield( void )
 			ASLOG(OS,"switch from task %d to task %d\n",runtsk,schedtsk);
 			runtsk = schedtsk;
 
+			callevel = TCL_TASK;
 			prvResumeThread( pxThreads[runtsk].hThread );
 
 			prvSuspendThread( pxThreads[saved_runtsk].hThread );
@@ -214,20 +215,18 @@ portTickType xMicroSeconds = portTICK_RATE_MICROSECONDS;
 		/* Set-up the timer interrupt. */
 		if ( 0 != setitimer( TIMER_TYPE, &itimer, &oitimer ) )
 		{
-			PRINTF( "Set Timer problem.\n" );
+			ASLOG(OS, "Set Timer problem.\n" );
 		}
 	}
 	else
 	{
-		PRINTF( "Get Timer problem.\n" );
+		ASLOG(OS, "Get Timer problem.\n" );
 	}
 }
 
 static void prvProcessTickInterrupt( void )
 {
-
 	UINT8 saved_callevel = callevel;
-
 	callevel = TCL_ISR2;
 	SignalCounter(0);
 	callevel = saved_callevel;
@@ -243,15 +242,17 @@ void vPortSystemTickHandler( int sig )
 		{
 			xServicingTick = pdTRUE;
 
+			// TODO: when this function start running, should make sure all thread suspened
 			prvProcessTickInterrupt();
 
 			/* If the task selected to enter the running state is not the task
 			that is already in the running state. */
 			if( runtsk != schedtsk )
 			{
+				TaskType saved_runtsk = runtsk;
+
 				ASLOG(OS,"isr switch from task %d to task %d\n",runtsk,schedtsk);
 
-				TaskType saved_runtsk = runtsk;
 				runtsk = schedtsk;
 
 				if(runtsk!=INVALID_TASK)
@@ -279,7 +280,6 @@ void vPortSystemTickHandler( int sig )
 				(void)pthread_mutex_unlock( &xSingleThreadMutex );
 			}
 
-
 			xServicingTick = pdFALSE;
 		}
 	}
@@ -291,6 +291,7 @@ void prvSuspendSignalHandler(int sig)
 sigset_t xSignals;
 
 	ASLOG(OFF, "prvSuspendSignalHandler\n" );
+
 	/* Only interested in the resume signal. */
 	sigemptyset( &xSignals );
 	sigaddset( &xSignals, SIG_RESUME );
@@ -307,17 +308,15 @@ sigset_t xSignals;
 	{
 		ASLOG(OS, "SSH: Sw %d\n", sig );
 	}
-
 	/* Will resume here when the SIG_RESUME signal is received. */
-	vPortEnableInterrupts();
-
+	unlock_cpu();
 }
 /*-----------------------------------------------------------*/
 
 void prvSuspendThread( pthread_t xThreadId )
 {
 	ASLOG(OFF, "prvSuspendThread(%Xh)\n", xThreadId);
-portBASE_TYPE xResult = pthread_mutex_lock( &xSuspendResumeThreadMutex );
+	portBASE_TYPE xResult = pthread_mutex_lock( &xSuspendResumeThreadMutex );
 	if ( 0 == xResult )
 	{
 		/* Set-up for the Suspend Signal handler? */
@@ -453,19 +452,15 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 		rv = setjmp(pxThreads[taskId].jmp);
 		if(0 == rv)
 		{
-			lock_cpu();
-			callevel = TCL_PREPOST;
-			PreTaskHook();
-			unlock_cpu();
-			callevel = TCL_TASK;
+			call_pretaskhook();
 			tcb_curpri[runtsk] = tinib_exepri[runtsk];
-			ASLOG(OS,"start task %d\n",taskId);
+			unlock_cpu();
 			tinib_task[taskId]();
 		}
 		else
 		{
 			/* terminate */
-			ASLOG(OS,"exit Task %d\n",taskId);
+			call_posttaskhook();
 			vPortYield();
 		}
 
@@ -487,7 +482,6 @@ void enable_int(void)
 
 void dispatch(void)
 {
-	unlock_cpu();
 	vPortYield();
 }
 
@@ -544,14 +538,7 @@ void start_dispatch(void)
 }
 void exit_and_dispatch(void)
 {
-	TaskType save_runtsk = runtsk;
-
-	callevel = TCL_PREPOST;
-	PostTaskHook();
-
-	unlock_cpu();
-
-	longjmp(pxThreads[save_runtsk].jmp,1);
+	longjmp(pxThreads[runtsk].jmp,1);
 }
 void activate_context(TaskType TaskID)
 {
@@ -565,8 +552,6 @@ void activate_context(TaskType TaskID)
 	/* No need to join the threads. */
 	pthread_attr_init( &xThreadAttributes );
 	pthread_attr_setdetachstate( &xThreadAttributes, PTHREAD_CREATE_DETACHED );
-
-	lock_cpu();
 
 	/* Create the new pThread. */
 	if(0 == pxThreads[TaskID].hThread)
@@ -583,8 +568,6 @@ void activate_context(TaskType TaskID)
 			while ( xSentinel == 0 );
 		}
 	}
-
-	unlock_cpu();
 }
 
 void cpu_initialize(void)
@@ -606,5 +589,6 @@ void cpu_terminate(void)
 }
 void sys_exit(void)
 {
+	exit(-1);
 }
 

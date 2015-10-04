@@ -138,11 +138,6 @@ void Det_ReportError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 Error
 {
     if (detState == DET_STARTED) // No action is taken if the module is not started
     {
-#if defined(AUTOSAR_SIMULATOR)
-    	printf("ModuleId=%-4d, InstanceId=%-3d, ApiId=%-3d, ErrorId=%-3d\n",
-    			(uint32_t)ModuleId,(uint32_t)InstanceId,(uint32_t)ApiId,(uint32_t)ErrorId);
-#endif
-
 #if ( DET_ENABLE_CALLBACKS == STD_ON )
         uint32 old1; // 586 PC-Lint OK: fattar inte att den anv�nds i macrot.
         Irq_Save(old1);
@@ -178,7 +173,7 @@ void Det_ReportError(uint16 ModuleId, uint8 InstanceId, uint8 ApiId, uint8 Error
 #endif
 
 #if ( DET_USE_STDERR == STD_ON )
-        printf("Det Error: ModuleId=%d, InstanceId=%d, ApiId=%d, ErrorId=%d\n", ModuleId, InstanceId, ApiId, ErrorId);        //fprintf(stderr, "Det Error: ModuleId=%d, InstanceId=%d, ApiId=%d, ErrorId=%d\n", ModuleId, InstanceId, ApiId, ErrorId);
+        ASLOG(STDOUT,"Det Error: ModuleId=%d, InstanceId=%d, ApiId=%d, ErrorId=%d\n", ModuleId, InstanceId, ApiId, ErrorId);        //fprintf(stderr, "Det Error: ModuleId=%d, InstanceId=%d, ApiId=%d, ErrorId=%d\n", ModuleId, InstanceId, ApiId, ErrorId);
 #endif
     }
 }

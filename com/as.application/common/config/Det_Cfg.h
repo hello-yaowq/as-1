@@ -33,7 +33,7 @@
 #define DET_ENABLE_CALLBACKS STD_OFF  // Enable to use callback on errors
 #define DET_USE_RAMLOG       STD_OFF // Enable to log DET errors to ramlog
 #define DET_WRAP_RAMLOG      STD_ON  // The ramlog wraps around when reaching the end
-#define DET_USE_STDERR       STD_OFF // Enable to get DET errors on stderr
+#define DET_USE_STDERR       STD_ON  // Enable to get DET errors on stderr
 
 #define DET_DEINIT_API       STD_ON // Enable/Disable the Det_DeInit function
 

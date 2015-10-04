@@ -23,7 +23,7 @@
 #define AS_LOG_RPMSG    3
 #define AS_LOG_CAN      4
 #define AS_LOG_CANIF    5
-#define AS_LOG_OS       0
+#define AS_LOG_OS       99
 /* and so on ... */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT

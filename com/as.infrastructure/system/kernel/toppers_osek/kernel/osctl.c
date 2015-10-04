@@ -86,7 +86,7 @@ call_errorhook(StatusType ercd, OSServiceIdType svcid)
 	volatile FP	errorhook_adr;
 	
 	errorhook_adr = (FP)ErrorHook;
-	
+	ASLOG(OS,"svcid=%d,callevel=%d\n",svcid,callevel);
 	if (sus_all_cnt > 0) {
 		if ((errorhook_adr != NULL) && (callevel != TCL_ERROR)) {
 			_errorhook_svcid = svcid;

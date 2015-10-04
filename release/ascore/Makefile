@@ -74,8 +74,8 @@ def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE
 		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 		 
-rtos=freertos
-#rtos=toppers_osek
+#rtos?=freertos
+rtos=toppers_osek
 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
@@ -293,5 +293,5 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
 94:
 	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE	
- 
+
 

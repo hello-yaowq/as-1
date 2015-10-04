@@ -76,31 +76,31 @@ void ErrorHook(StatusType ercd)
 	switch(ercd)
 	{
 		case E_OS_ACCESS:
-			printf("ercd = %d E_OS_ACCESS!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_ACCESS!\r\n",ercd);
 			break;
 		case E_OS_CALLEVEL:
-			printf("ercd = %d E_OS_CALLEVEL!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_CALLEVEL!\r\n",ercd);
 			break;
 		case E_OS_ID:
-			printf("ercd = %d E_OS_ID!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_ID!\r\n",ercd);
 			break;
 		case E_OS_LIMIT:
-			printf("ercd = %d E_OS_LIMIT!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_LIMIT!\r\n",ercd);
 			break;
 		case E_OS_NOFUNC:
-			printf("ercd = %d E_OS_NOFUNC!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_NOFUNC!\r\n",ercd);
 			break;
 		case E_OS_RESOURCE:
-			printf("ercd = %d E_OS_RESOURCE!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_RESOURCE!\r\n",ercd);
 			break;
 		case E_OS_STATE:
-			printf("ercd = %d E_OS_STATE!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_STATE!\r\n",ercd);
 			break;
 		case E_OS_VALUE	:
-			printf("ercd = %d E_OS_VALUE!\r\n",ercd);
+			ASLOG(OS,"ercd = %d E_OS_VALUE!\r\n",ercd);
 			break;
 		default:
-			printf("ercd = %d unknown error!\r\n",ercd);
+			ASLOG(OS,"ercd = %d unknown error!\r\n",ercd);
 			break;
 	}
 
@@ -113,15 +113,15 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
+extern TaskType	runtsk;
 void PreTaskHook(void)
 {
-
+	ASLOG(OS,"PreTaskHook(%d)\n",runtsk);
 }
 void PostTaskHook(void)
 {
-
+	ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
 }
 void ShutdownHook(StatusType ercd)
 {
-	for(;;);
 }
