@@ -128,7 +128,6 @@ void vPortStartFirstTask( void );
 void vPortStartFirstTask( void )
 {
 	/* Start the first task. */
-	unlock_cpu();
 
 	callevel = TCL_TASK;
 
@@ -168,12 +167,14 @@ void vPortYield( void )
 
 void vPortDisableInterrupts( void )
 {
+	asAssert(TRUE==xInterruptsEnabled);
 	xInterruptsEnabled = pdFALSE;
 }
 /*-----------------------------------------------------------*/
 
 void vPortEnableInterrupts( void )
 {
+	asAssert(FALSE==xInterruptsEnabled);
 	xInterruptsEnabled = pdTRUE;
 }
 /*-----------------------------------------------------------*/
@@ -309,7 +310,6 @@ sigset_t xSignals;
 		ASLOG(OS, "SSH: Sw %d\n", sig );
 	}
 	/* Will resume here when the SIG_RESUME signal is received. */
-	unlock_cpu();
 }
 /*-----------------------------------------------------------*/
 
@@ -429,7 +429,7 @@ struct tms xTimes;
 imask_t portGetIrqStateAndDisableIt(void)
 {
 	imask_t irq_state = xInterruptsEnabled;
-	vPortDisableInterrupts();
+	xInterruptsEnabled = pdFALSE;
 	return irq_state;
 }
 void portRestroeIrqState(imask_t irq_state)
@@ -452,6 +452,7 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 		rv = setjmp(pxThreads[taskId].jmp);
 		if(0 == rv)
 		{
+			lock_cpu();
 			call_pretaskhook();
 			tcb_curpri[runtsk] = tinib_exepri[runtsk];
 			unlock_cpu();
@@ -460,7 +461,9 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 		else
 		{
 			/* terminate */
+			lock_cpu();
 			call_posttaskhook();
+			unlock_cpu();
 			vPortYield();
 		}
 
@@ -482,7 +485,9 @@ void enable_int(void)
 
 void dispatch(void)
 {
+	unlock_cpu();
 	vPortYield();
+	lock_cpu();
 }
 
 /*-----------------------------------------------------------*/
@@ -538,6 +543,7 @@ void start_dispatch(void)
 }
 void exit_and_dispatch(void)
 {
+	unlock_cpu();
 	longjmp(pxThreads[runtsk].jmp,1);
 }
 void activate_context(TaskType TaskID)
