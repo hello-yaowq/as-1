@@ -28,18 +28,12 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void aslog(const char* who,const char* log,...)
 {
-    static char* buf = NULL;
-    static char* name = NULL;
+    static char buf[1024*2];
+    static char name[256];
     va_list args;
 
     va_start(args , log);
-    if(NULL == buf)
-    {
-        buf = (char*)malloc(1024);
-        name = (char*)malloc(256);
-        assert(buf);
-        assert(name);
-    }
+
     vsprintf(buf,log,args);
     sprintf(name,"%-16s",who);
 

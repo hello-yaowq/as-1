@@ -12,11 +12,11 @@ TARGET = AsVitrual
 TEMPLATE = app
 
 ##@Linux Flags
-DEFINES += __LINUX__
-LIBS += -L/lib64 -l:libdl.so.2
+#DEFINES += __LINUX__
+#LIBS += -L/lib64 -l:libdl.so.2
 
 ##@Windows Flags
-#DEFINES += __WINDOWS__
+DEFINES += __WINDOWS__
 
 
 

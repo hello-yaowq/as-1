@@ -79,6 +79,7 @@ dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
 ifeq ($(gen-mk),yes)	
 	@echo "echo \"  >> LD $(target-y).DLL\"" >> build.bat
 	@echo "$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
+	@echo "pause" >> build.bat
 endif
 	@$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"

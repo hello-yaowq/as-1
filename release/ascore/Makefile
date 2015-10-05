@@ -70,12 +70,19 @@ ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 -lpthread
 ldflags-y += -lstdc++ -lm	
 
-def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET	\
-		 -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
-		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
-		 
+# basic
+def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET
+# network of CAN
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR 
+# inter processor communication		 
+def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+
+ifeq ($(host),Linux)		 
 rtos?=freertos
-#rtos=toppers_osek
+else
+rtos?=toppers_osek
+endif
 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 

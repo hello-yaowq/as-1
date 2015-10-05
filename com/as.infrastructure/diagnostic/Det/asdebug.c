@@ -37,21 +37,11 @@ char* aswho(void)
 }
 void aslog(char* module,char* format,...)
 {
-	static char* buf = NULL;
-	static char* name = NULL;
+	static char buf[1024*2];
+	static char name[256];
 	va_list args;
 
 	va_start(args , format);
-	if(NULL == buf)
-	{
-		buf = malloc(1024);
-		assert(buf);
-	}
-	if(NULL == name)
-	{
-		name = malloc(64);
-		assert(name);
-	}
 	sprintf(name,"%s.%s",__aswho,module);
 	vsprintf(buf,format,args);
 	if(NULL != __aslog)
@@ -60,7 +50,7 @@ void aslog(char* module,char* format,...)
 	}
 	else
 	{
-		puts(buf);
+		printf("%-16s :: %s",name,buf);
 	}
 
 	va_end(args);
@@ -138,6 +128,15 @@ char* ashex(unsigned long a)
 	}
 
 	return buf;
+}
+
+void asAssertErrorHook(void)
+{
+#if defined(__WINDOWS__) || defined(__LINUX__)
+	exit(-1);
+#else
+	while(1);
+#endif
 }
 
 

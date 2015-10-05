@@ -74,13 +74,24 @@
 		goto d_error_exit;				\
 	}									\
 } while (0)
-
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#define CHECK_CALLEVEL(clmask) do {		\
+	lock_cpu();							\
+	if ((callevel & (clmask)) == 0) {	\
+		ercd = E_OS_CALLEVEL;			\
+		unlock_cpu();					\
+		goto error_exit;				\
+	}									\
+	unlock_cpu();						\
+} while (0)
+#else
 #define CHECK_CALLEVEL(clmask) do {		\
 	if ((callevel & (clmask)) == 0) {	\
 		ercd = E_OS_CALLEVEL;			\
 		goto error_exit;				\
 	}									\
 } while (0)
+#endif
 
 #define CHECK_TSKID(tskid) do {			\
 	if (!(tskid < tnum_task)) {			\
