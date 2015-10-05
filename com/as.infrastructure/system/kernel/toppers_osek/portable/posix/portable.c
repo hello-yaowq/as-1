@@ -83,8 +83,7 @@ typedef TickType TickType_t;
 typedef uint8    StackType_t;
 typedef void (*TaskFunction_t)( void * );
 /* ============================ [ DECLARES  ] ====================================================== */
-void vPortEnableInterrupts( void );
-void vPortDisableInterrupts( void );
+
 /* ============================ [ DATAS     ] ====================================================== */
 static xThreadState pxThreads[TASK_NUM];
 static pthread_once_t hSigSetupThread = PTHREAD_ONCE_INIT;
@@ -162,34 +161,6 @@ void vPortYield( void )
 			(void)pthread_mutex_unlock( &xSingleThreadMutex );
 		}
 	}
-}
-/*-----------------------------------------------------------*/
-
-void vPortDisableInterrupts( void )
-{
-	asAssert(TRUE==xInterruptsEnabled);
-	xInterruptsEnabled = pdFALSE;
-}
-/*-----------------------------------------------------------*/
-
-void vPortEnableInterrupts( void )
-{
-	asAssert(FALSE==xInterruptsEnabled);
-	xInterruptsEnabled = pdTRUE;
-}
-/*-----------------------------------------------------------*/
-
-portBASE_TYPE xPortSetInterruptMask( void )
-{
-portBASE_TYPE xReturn = xInterruptsEnabled;
-	xInterruptsEnabled = pdFALSE;
-	return xReturn;
-}
-/*-----------------------------------------------------------*/
-
-void vPortClearInterruptMask( portBASE_TYPE xMask )
-{
-	xInterruptsEnabled = xMask;
 }
 /*-----------------------------------------------------------*/
 
@@ -474,13 +445,16 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
+/*-----------------------------------------------------------*/
 void disable_int(void)
 {
-	vPortDisableInterrupts();
+	asAssert(TRUE==xInterruptsEnabled);
+	xInterruptsEnabled = pdFALSE;
 }
 void enable_int(void)
 {
-	vPortEnableInterrupts();
+	asAssert(FALSE==xInterruptsEnabled);
+	xInterruptsEnabled = pdTRUE;
 }
 
 void dispatch(void)
