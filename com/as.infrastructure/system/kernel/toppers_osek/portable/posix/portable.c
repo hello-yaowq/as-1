@@ -397,16 +397,6 @@ struct tms xTimes;
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
-imask_t portGetIrqStateAndDisableIt(void)
-{
-	imask_t irq_state = xInterruptsEnabled;
-	xInterruptsEnabled = pdFALSE;
-	return irq_state;
-}
-void portRestroeIrqState(imask_t irq_state)
-{
-	xInterruptsEnabled = irq_state;
-}
 static void* prvToppersOSEK_TaskProcess(void * param)
 {
 	TaskType taskId= (TaskType)(unsigned long)param;
@@ -449,14 +439,42 @@ static void* prvToppersOSEK_TaskProcess(void * param)
 void disable_int(void)
 {
 	asAssert(TRUE==xInterruptsEnabled);
+	if(callevel!=TCL_ISR2)
+	{
+		(void)pthread_mutex_lock( &xSingleThreadMutex );
+	}
 	xInterruptsEnabled = pdFALSE;
 }
 void enable_int(void)
 {
 	asAssert(FALSE==xInterruptsEnabled);
+	if(callevel!=TCL_ISR2)
+	{
+		(void)pthread_mutex_unlock( &xSingleThreadMutex );
+	}
 	xInterruptsEnabled = pdTRUE;
 }
-
+#if 0
+imask_t portGetIrqStateAndDisableIt(void)
+{
+	imask_t ret = xInterruptsEnabled;
+	xInterruptsEnabled = FALSE;
+	return ret;
+}
+void portRestroeIrqState(imask_t irq_state)
+{
+	xInterruptsEnabled = irq_state;
+}
+#else
+imask_t portGetIrqStateAndDisableIt(void)
+{
+	return 0;
+}
+void portRestroeIrqState(imask_t irq_state)
+{
+	(void)irq_state;
+}
+#endif
 void dispatch(void)
 {
 	unlock_cpu();
