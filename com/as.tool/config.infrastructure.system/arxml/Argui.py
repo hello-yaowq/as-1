@@ -548,15 +548,4 @@ class ArgModule(QMainWindow):
     
     def getURL(self,ref):
         return self.main.getURL(ref)
-
-if __name__ == '__main__':
-    qtApp = QtGui.QApplication(sys.argv)
-    if(os.name == 'nt'):
-        qtApp.setFont(QFont('Consolas', 12)) 
-    elif(os.name == 'posix'):
-        qtApp.setFont(QFont('Monospace', 12))
-    else:
-        print('unKnown platform.')
-    qtGui = ArgModule(Arxml(ET.parse('./easySAR.arxml').getroot().find('OS')))
-    qtGui.show()
-    qtApp.exec_()  
+ 
