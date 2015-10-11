@@ -19,10 +19,14 @@
 #include "Std_Types.h"
 #include "ksm_cfg.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef AS_OS_BASED_ON_TOPPERS_OSEK
+#if defined(__TOPPERS_OSEK__) || defined(__FREEOSEK__)
 #define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
 #define OsTerminateTask(x)	TerminateTask()
 #endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
+
+#if defined(__FREEOSEK__)
+#define ALARM(AlarmName)  ALARMCALLBACK(AlarmName)
+#endif
 
 /* KSM states */
 #define KSM_S_INIT                0x00

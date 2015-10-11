@@ -64,6 +64,7 @@
 
 /*==================[inclusions]=============================================*/
 #include "Osek_Internal.h"
+#include "Os.h"
 
 /*==================[macros and definitions]=================================*/
 
@@ -99,9 +100,16 @@ uint32 OsekStack;
 /*==================[internal functions definition]==========================*/
 
 /*==================[external functions definition]==========================*/
+TickType				OsTickCounter;
 void OSEK_ISR_HWTimer0(void)
 {
-#if (defined HWCOUNTER0)
+	OsTickCounter ++;
+
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
+#if defined (HWCOUNTER0)
 #if (ALARMS_COUNT != 0)
 	IncrementCounter(HWCOUNTER0, 1);
 #endif /* #if (ALARMS_COUNT != 0) */
@@ -205,6 +213,17 @@ void OsekKillSigHandler(int status)
 	PostCallService();
 }
 
+#include "Std_Types.h"
+imask_t portGetIrqStateAndDisableIt(void)
+{
+	IntSecure_Start();
+	return 0;
+}
+void portRestroeIrqState(imask_t irq_state)
+{
+	IntSecure_End();
+	(void)irq_state;
+}
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /*==================[end of file]============================================*/

@@ -61,6 +61,7 @@ endif
 ifeq ($(board),posix)	
 # slect GUI openVG/GTK 
 ifeq ($(host),Linux)
+ldflags-y +=-lrt
 else
 ldflags-y +=-lwinmm 
 endif

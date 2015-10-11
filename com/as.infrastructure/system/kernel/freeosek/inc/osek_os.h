@@ -109,10 +109,11 @@
 #define WAITING 3U
 /** \brief INVALID Task State */
 #define INVALID_STATE 4U
-
+#ifndef E_OK
 /** \brief Definition return value E_OK */
 /* \req OSEK_SYS_1.1.1 */
 #define E_OK					((StatusType)0U)
+#endif
 /** \brief Definition return value E_OS_ACCESS */
 /* \req OSEK_SYS_1.1.1 */
 #define E_OS_ACCESS			((StatusType)1U)

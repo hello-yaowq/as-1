@@ -40,6 +40,13 @@
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
 
+#if 0
+#define SEC_ACTUAL "SEC_INVALID"
+#define ATTRIBUTES(attr) __attribute__ ((section(SEC_ACTUAL)))
+#else
+#define ATTRIBUTES(attr)
+#endif
+
 /**
  * container_of - cast a member of a structure out to the containing structure
  * @ptr:	the pointer to the member.

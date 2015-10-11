@@ -113,7 +113,7 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
-#ifdef AS_OS_BASED_ON_FREERTOS
+#if defined(__FREERTOS__) || defined(__FREEOSEK__)
 void PreTaskHook(void)
 {
 }

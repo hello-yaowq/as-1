@@ -126,7 +126,7 @@ foreach ($counters as $counter)
 	{
 		if ($counter == $config->getValue("/OSEK/" . $alarm,"COUNTER"))
 		{
-			print "	$alarm, /* this alarm has to be incremented with this counter */\n";
+			print "	ALARM_ID_" . $alarm . ", /* this alarm has to be incremented with this counter */\n";
 		}
 	}
 	print "};\n\n";
@@ -248,7 +248,7 @@ foreach ($appmodes as $appmode)
 		foreach($tasksinmode as $task)
 		{
 			if ($count++ != 0) print ",\n";
-			print "	$task";
+			print "	TASK_ID_" . $task . "";
 		}
 		print "\n};\n";
 	}
@@ -412,7 +412,7 @@ foreach ($alarms as $alarm)
 
 		print "		" . $config->getValue("/OSEK/" . $alarm, "APPMODE") . ", /* Application Mode */\n";
 		// print "		OSEK_COUNTER_" . $config->getValue("/OSEK/" . $alarm, "COUNTER") . ", /* Counter */\n";
-		print "		$alarm, /* Alarms */\n";
+		print "		ALARM_ID_" . $alarm . ", /* Alarms */\n";
 		print "		" . $config->getValue("/OSEK/" . $alarm, "ALARMTIME") . ", /* Alarm Time */\n";
 		print "		" . $config->getValue("/OSEK/" . $alarm, "CYCLETIME") . " /* Alarm Time */\n";
 		print "	}";

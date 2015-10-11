@@ -91,7 +91,7 @@ $count = 0;
 foreach ($tasks as $task)
 {
 	print "/** \brief Task Definition */\n";
-	print "#define $task $count\n";
+	print "#define TASK_ID_". $task . " " . $count ."\n";
 	$count++;
 }
 print "\n";
@@ -132,7 +132,7 @@ $count = 0;
 foreach ($alarms as $alarm)
 {
    print "/** \brief Definition of the Alarm $alarm */\n";
-   print "#define " . $alarm . " " . $count++ . "\n";
+   print "#define ALARM_ID_" . $alarm . " " . $count++ . "\n";
 }
 print "\n";
 

@@ -81,7 +81,7 @@ __for_toppers_osek_macro =  \
 
 __for_freertos_macros = \
 """
-#define AS_OS_BASED_ON_FREERTOS
+#define __FREERTOS__
 
 #define OSDEFAULTAPPMODE (0x00000001u)
 
@@ -262,7 +262,7 @@ def genForToppersOSEK_H(gendir,os_list):
     fp.write('#include "Std_Types.h"\n')
     fp.write('#include "kernel.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
-    fp.write('#define AS_OS_BASED_ON_TOPPERS_OSEK\n\n')
+    fp.write('#define __TOPPERS_OSEK__\n\n')
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
@@ -613,7 +613,7 @@ def toFreeOSEK_OIL(os_list,file):
     fp.write('\tERRORHOOK = FALSE;\n')
     fp.write('\tSHUTDOWNHOOK = FALSE;\n')
     fp.write('\tMEMMAP = FALSE;\n')
-    fp.write('\tUSERESSCHEDULER = FALSE;\n')
+    fp.write('\tUSERESSCHEDULER = TRUE;\n')
     fp.write('};\n\n')
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
@@ -660,16 +660,16 @@ def toFreeOSEK_OIL(os_list,file):
         else:
             fp.write('\tAUTOSTART = FALSE;\n')
         fp.write('\tACTION = ALARMCALLBACK {\n')
-        fp.write('\t\tALARMCALLBACKNAME = OSEK_CALLBACK_%s;\n'%(alarm.attrib['name']))
+        fp.write('\t\tCALLBACK = %s;\n'%(alarm.attrib['name']))
         fp.write('\t};\n')
         fp.write('};\n\n')
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(task):
             fp.write('EVENT %s;\n\n'%(ev.attrib['name']))
+    fp.write('APPMODE OSDEFAULTAPPMODE;\n\n')
     fp.write('};\n\n')
     fp.close()
-    
-    
+  
 def genForFreeOSEK(gendir,os_list):
     toFreeOSEK_OIL(os_list,'%s/freeosek.oil'%(gendir))
     php_list=''
@@ -678,6 +678,29 @@ def genForFreeOSEK(gendir,os_list):
     cmd = 'php %s/OpenGEN/gen/generator.php  -v -c %s/freeosek.oil -f %s -o %s'%(gendir,gendir,php_list,gendir)
     print('  >> %s'%(cmd))
     os.system(cmd)
+    fp = open('%s/Os_Cfg.h'%(gendir),'w')
+    fp.write(__header)
+    fp.write('#ifndef OS_CFG_H\n#define OS_CFG_H\n')
+    fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
+    fp.write('#include "osek_os.h"\n')
+    fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
+    fp.write('#define __FREEOSEK__\n')
+    fp.write('#define HWCOUNTER0 0\n')
+    fp.write('/* #define HWCOUNTER1 1 */\n\n')
+#     task_list = ScanFrom(os_list,'Task')
+#     for id,task in enumerate(task_list):
+#         fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],task.attrib['name']))
+#     fp.write('\n\n')
+#     alarm_list = ScanFrom(os_list,'Alarm')
+#     for id,alarm in enumerate(alarm_list):
+#         fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],alarm.attrib['name']))
+    fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
+    fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
+    fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    fp.write('#endif /*OS_CFG_H*/\n\n')
+    fp.close()
 
 def getOsRef(os_list):
     for each in os_list:
