@@ -27,8 +27,9 @@ def XCC(gendir):
     
 if(__name__ == '__main__'):
     gendir = os.path.abspath(sys.argv[1])
-    XCC(gendir)
-    print('  >> XCC %s/*.xml done.'%(gendir))
     if(sys.argv[2]=='true'): # generate bsw
         ArGenMain('%s/AutosarConfig.arxml'%(gendir),gendir)
+    else:
+        XCC(gendir)
+        print('  >> XCC %s/*.xml done.'%(gendir))
     

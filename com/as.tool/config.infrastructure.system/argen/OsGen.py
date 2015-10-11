@@ -16,6 +16,7 @@ __header = '''/**
 
 import sys,os
 from .util import *
+import glob
 
 __all__ = ['OsGen']
 
@@ -600,6 +601,84 @@ def genForFreeRTOS(gendir,os_list):
     genForFreeRTOS_H(gendir,os_list)
     genForFreeRTOS_C(gendir,os_list)
     
+
+def toFreeOSEK_OIL(os_list,file):
+    fp = open(file,'w')
+    fp.write('OSEK OSEK {\n')
+    fp.write('OS    ExampleOS {\n')
+    fp.write('\tSTATUS = EXTENDED;\n')
+    fp.write('\tPRETASKHOOK = FALSE;\n')
+    fp.write('\tPOSTTASKHOOK = FALSE;\n')
+    fp.write('\tSTARTUPHOOK = FALSE;\n')
+    fp.write('\tERRORHOOK = FALSE;\n')
+    fp.write('\tSHUTDOWNHOOK = FALSE;\n')
+    fp.write('\tMEMMAP = FALSE;\n')
+    fp.write('\tUSERESSCHEDULER = FALSE;\n')
+    fp.write('};\n\n')
+    task_list = ScanFrom(os_list,'Task')
+    for id,task in enumerate(task_list):
+        fp.write('TASK %s {\n'%(task.attrib['name']))
+        fp.write('\tPRIORITY = %s;\n'%(task.attrib['priority']))
+        fp.write('\tSCHEDULE = FULL;\n')
+        fp.write('\tACTIVATION = %s;\n'%(task.attrib['max-activation']))
+        if(task.attrib['auto-start']=='true'):
+            fp.write('\tAUTOSTART = TRUE {\n')
+            fp.write('\t\tAPPMODE = %s;\n'%(task.attrib['app-mode']))
+            fp.write('\t};\n')
+        else:
+            fp.write('\tAUTOSTART = FALSE;\n')
+        fp.write('\tSTACK = %s;\n'%(task.attrib['stack-size']))
+        basic = True
+        for mask,ev in enumerate(task):
+            basic = False            
+        if(basic): 
+            fp.write('\tTYPE = BASIC;\n')
+        else:
+            fp.write('\tTYPE = EXTENDED;\n')
+        for mask,ev in enumerate(task):
+            fp.write('\tEVENT = %s;\n'%(ev.attrib['name']))
+        fp.write('};\n\n')
+    counter_list = ScanFrom(os_list,'Counter')
+    for id,counter in enumerate(counter_list):
+        fp.write('COUNTER %s {\n'%(counter.attrib['name']))
+        fp.write('\tMAXALLOWEDVALUE = %s;\n'%(counter.attrib['max-value']))
+        fp.write('\tTICKSPERBASE = %s;\n'%(counter.attrib['ticks-per-base']))
+        fp.write('\tMINCYCLE = %s;\n'%(counter.attrib['min-value']))
+        fp.write('\tTYPE = HARDWARE;\n')
+        fp.write('\tCOUNTER = HWCOUNTER0;\n')
+        fp.write('};\n\n')
+    alarm_list = ScanFrom(os_list,'Alarm')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('ALARM %s {\n'%(alarm.attrib['name']))
+        fp.write('\tCOUNTER = %s;\n'%(alarm.attrib['counter']))
+        if(alarm.attrib['auto-start']=='true'):
+            fp.write('\tAUTOSTART = TRUE {\n')
+            fp.write('\t\tAPPMODE = %s;\n'%(alarm.attrib['app-mode']))
+            fp.write('\t\tALARMTIME = %s;\n'%(alarm.attrib['offset']))
+            fp.write('\t\tCYCLETIME = %s;\n'%(alarm.attrib['period']))
+            fp.write('\t};\n')
+        else:
+            fp.write('\tAUTOSTART = FALSE;\n')
+        fp.write('\tACTION = ALARMCALLBACK {\n')
+        fp.write('\t\tALARMCALLBACKNAME = OSEK_CALLBACK_%s;\n'%(alarm.attrib['name']))
+        fp.write('\t};\n')
+        fp.write('};\n\n')
+    for id,task in enumerate(task_list):
+        for mask,ev in enumerate(task):
+            fp.write('EVENT %s;\n\n'%(ev.attrib['name']))
+    fp.write('};\n\n')
+    fp.close()
+    
+    
+def genForFreeOSEK(gendir,os_list):
+    toFreeOSEK_OIL(os_list,'%s/freeosek.oil'%(gendir))
+    php_list=''
+    for php in glob.glob('%s/*.php'%(gendir)):
+        php_list += ' %s'%(php)
+    cmd = 'php %s/OpenGEN/gen/generator.php  -v -c %s/freeosek.oil -f %s -o %s'%(gendir,gendir,php_list,gendir)
+    print('  >> %s'%(cmd))
+    os.system(cmd)
+
 def getOsRef(os_list):
     for each in os_list:
         if(each.tag == 'OsRef'):
@@ -614,5 +693,7 @@ def OsGen(gendir):
         genForToppersOSEK(gendir,os_list)
     elif(os_ref=='freertos'):
         genForFreeRTOS(gendir,os_list)
+    elif(os_ref=='freeosek'):
+        genForFreeOSEK(gendir,os_list)
     else:
         assert(0)
