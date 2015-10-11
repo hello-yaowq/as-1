@@ -115,7 +115,7 @@ void StartOs_Arch(void)
 		switch (errno)
 		{
 			case EINVAL:
-				printf ("Error: Invalid argument\n");
+				ASLOG(OS,"Error: Invalid argument\n");
 				break;
 			default:
 				break;
@@ -131,7 +131,7 @@ void StartOs_Arch(void)
 	}
 	else
 	{
-		//printf("Maxmsg: %d, Msgsize: %d, Curmsg: %d, Flags: %d\n", MessageQueueAttr.mq_maxmsg, MessageQueueAttr.mq_msgsize, MessageQueueAttr.mq_curmsgs, MessageQueueAttr.mq_flags);
+		//ASLOG(OS,"Maxmsg: %d, Msgsize: %d, Curmsg: %d, Flags: %d\n", MessageQueueAttr.mq_maxmsg, MessageQueueAttr.mq_msgsize, MessageQueueAttr.mq_curmsgs, MessageQueueAttr.mq_flags);
 		//sleep(2);
 	}
 

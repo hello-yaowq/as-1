@@ -153,27 +153,27 @@ void PosixInterruptHandler(int status)
 		switch(errno)
 		{
 			case EAGAIN:
-				printf("Queue Empty\n");
+				ASLOG(OS,"Queue Empty\n");
 				break;
 			case EBADF:
-				printf("Not valued queue descriptor\n");
+				ASLOG(OS,"Not valued queue descriptor\n");
 				break;
 			case EMSGSIZE:
-				printf("Message buffer to small\n");
+				ASLOG(OS,"Message buffer to small\n");
 				break;
 			case EINTR:
-				printf("Reception interrupted by a signal\n");
+				ASLOG(OS,"Reception interrupted by a signal\n");
 				break;
 			default:
-				printf("other error\n");
+				ASLOG(OS,"other error\n");
 				break;
 		}
-		printf("Error by reading the Message Queue, returned value: %d, error number: %d\n",mq_ret,errno);
+		ASLOG(OS,"Error by reading the Message Queue, returned value: %d, error number: %d\n",mq_ret,errno);
 	}
 
 	if (mq_notify(MessageQueue, &SignalEvent) == -1)
 	{
-		printf("Error: Message Notification can not be activated, error: %d.\n",errno);
+		ASLOG(OS,"Error: Message Notification can not be activated, error: %d.\n",errno);
 		sleep(3);
 	}
 }
