@@ -108,7 +108,7 @@ void StartOS
 	StartOs_Arch();
 
 	/* init every task */
-   for( loopi = 0; loopi < TASKS_COUNT; loopi++)
+	for( loopi = 0; loopi < TASKS_COUNT; loopi++)
 	{
 		/* \req OSEK_SYS_3.1.2-2/3 The operating system shall ensure that the task
 		 ** code is being executed from the first statement. */

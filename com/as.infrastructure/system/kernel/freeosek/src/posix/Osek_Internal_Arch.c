@@ -76,7 +76,7 @@
 
 /*==================[external data definition]===============================*/
 uint8	InterruptState;
-
+#ifdef __SIMULATION_BY_MQ__
 mqd_t MessageQueue;
 
 struct mq_attr MessageQueueAttr;
@@ -85,9 +85,11 @@ struct sigaction MessageSignal;
 
 struct sigaction KillSignal;
 
+struct sigevent SignalEvent;
+#endif
+
 pid_t OsekProcessID;
 
-struct sigevent SignalEvent;
 
 uint32 OsekHWTimer0;
 
@@ -124,11 +126,13 @@ void OSEK_ISR_HWTimer1(void)
 #endif /* #if (ALARMS_COUNT != 0) */
 #endif /* #if (defined HWCOUNTER1) */
 }
-
+#ifdef __SIMULATION_BY_MQ__
 void PosixInterruptHandler(int status)
 {
 	uint8 msg[10];
 	ssize_t mq_ret;
+
+	ASLOG(OS,"PosixInterruptHandler(%d)\n",(int)status);
 
 	mq_ret = mq_receive(MessageQueue, (char*)msg, sizeof(msg), NULL);
 	if (mq_ret > 0)
@@ -139,6 +143,7 @@ void PosixInterruptHandler(int status)
 			if ( (InterruptState) &&
 				  ( (InterruptMask & (1 << msg[0] ) )  == 0 ) )
 			{
+				ASLOG(OS,"SignalIsr(%d)\n",(int)msg[0]);
 				InterruptTable[msg[0]]();
 			}
 			else
@@ -184,19 +189,22 @@ void HWTimerFork(uint8 timer)
 	char msg;
 	struct timespec rqtp;
 
+	ASLOG(OS,"HWTimerFork(%d) is online\n",(int)timer);
+
 	if (timer <= 2)
 	{
 		msg = timer + 4;
 
 		rqtp.tv_sec=0;
-   	rqtp.tv_nsec=1000000;
+		rqtp.tv_nsec=1000000;
 
 		while(1)
 		{
 			mq_ret = mq_send(MessageQueue, &msg, sizeof(msg), 0);
 			if (mq_ret < 0)
 			{
-				/* printf("Error HW Timer can not generate an interrupt\n"); */
+				ASLOG(OS,"Error HW Timer can not generate an interrupt returned value: %d, error number: %d %s\n",mq_ret,errno,strerror(errno));
+				exit(-1);
 			}
 			nanosleep(&rqtp,NULL);
 		}
@@ -212,6 +220,13 @@ void OsekKillSigHandler(int status)
 	exit(0);
 	PostCallService();
 }
+#else
+void OsekTickSigHandler(int status)
+{
+	OSEK_ISR_HWTimer0();
+	OSEK_ISR_HWTimer1();
+}
+#endif
 
 #include "Std_Types.h"
 imask_t portGetIrqStateAndDisableIt(void)

@@ -129,5 +129,8 @@ TASK(TaskIdle)
 	for(;;)
 	{
 		KSM_EXECUTE();
+#ifdef __FREEOSEK__
+		(void)Schedule();
+#endif
 	}
 }

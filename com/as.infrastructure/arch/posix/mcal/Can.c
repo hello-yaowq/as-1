@@ -443,7 +443,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 
   while(FALSE == RPmsg_IsOnline())
   {
-	  usleep(1);	/* make sure rpmsg is online */
+	  return CAN_NOT_OK;;	/* make sure rpmsg is online */
   }
 
   if(CANIF_CS_STARTED == canUnit->state)

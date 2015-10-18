@@ -74,8 +74,12 @@
 #include "unistd.h"		/* used to create a fork to poll the interrupts */
 #include "stdlib.h"		/* used to call exit to terminate the process */
 #include "time.h"			/* used to simulate the hardware timer */
+#include <sys/time.h>
+#include <time.h>
+#include <sys/times.h>
 
 /*==================[macros]=================================================*/
+#define __SIMULATION_BY_MQ__
 /** \brief Interrupt Secure Start Macro
  **
  ** This macro shall be used to disable the interrupts
@@ -120,6 +124,7 @@
 #define JmpTask(task)			\
 	{									\
 		PreCallService();			\
+		ASLOG(OS,"JmpTask(%d)\n",(task));		\
 		(void)setcontext(TasksConst[(task)].TaskContext);	\
 	}
 
@@ -127,6 +132,7 @@
 #define SaveContext(task) 		\
 	{									\
 		PreCallService();			\
+		ASLOG(OS,"SaveContext(%d)\n",(task));		\
 		(void)getcontext(TasksConst[(task)].TaskContext);	\
 		PostCallService();		\
 	}
@@ -136,6 +142,7 @@
 	{									\
 		PreCallService();			\
 		(void)makecontext(TasksConst[(task)].TaskContext, TasksConst[(task)].EntryPoint, 0);	\
+		ASLOG(OS,"SetEntryPoint(%d)\n",(task));		\
 		PostCallService();		\
 	}
 
@@ -266,6 +273,7 @@
  **/
 extern InterruptFlagsType InterruptFlag;
 
+#ifdef __SIMULATION_BY_MQ__
 /** \brief Message Queue
  **/
 extern mqd_t MessageQueue;
@@ -285,6 +293,7 @@ extern struct sigaction KillSignal;
 /** \brief Signal Event
  **/
 extern struct sigevent SignalEvent;
+#endif
 
 /** \brief Osek Hardware Timer 0
  **/
@@ -314,6 +323,8 @@ extern void PosixInterruptHandler(int status);
 extern void HWTimerFork(uint8 timer);
 
 extern void OsekKillSigHandler(int status);
+
+extern void OsekTickSigHandler(int status);
 
 extern void OSEK_ISR_HWTimer0(void);
 

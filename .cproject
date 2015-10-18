@@ -57,6 +57,7 @@
 									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 									<listOptionValue builtIn="false" value="__packed="/>
 									<listOptionValue builtIn="false" value="__LINUX__"/>
+									<listOptionValue builtIn="false" value="__X86_64__"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

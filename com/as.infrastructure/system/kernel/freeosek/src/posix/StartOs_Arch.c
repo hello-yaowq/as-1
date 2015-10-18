@@ -76,24 +76,9 @@
 /*==================[external data definition]===============================*/
 
 /*==================[internal functions definition]==========================*/
-
-/*==================[external functions definition]==========================*/
-void StartOs_Arch(void)
+#ifdef __SIMULATION_BY_MQ__
+static void setup_interrupt_simulation(void)
 {
-	uint8f loopi;
-
-	/* init every task */
-	for( loopi = 0; loopi < TASKS_COUNT; loopi++)
-	{
-		/* init stack */
-		TasksConst[loopi].TaskContext->uc_stack.ss_sp = TasksConst[loopi].StackPtr;		/* set stack pointer */
-		TasksConst[loopi].TaskContext->uc_stack.ss_size = TasksConst[loopi].StackSize;	/* set stack size */
-		TasksConst[loopi].TaskContext->uc_stack.ss_flags = 0;										/* clear stack flags */
-
-		/* create task context */
-		(void)getcontext(TasksConst[loopi].TaskContext);	/* get actual context as start point */
-	}
-
 	/* set message queue attributes */
 	
 	MessageQueueAttr.mq_flags = O_NONBLOCK;
@@ -117,22 +102,27 @@ void StartOs_Arch(void)
 			case EINVAL:
 				ASLOG(OS,"Error: Invalid argument\n");
 				break;
+			case EEXIST:
+				MessageQueue = mq_open("/FreeOSEK", O_RDWR | O_EXCL | O_NONBLOCK, 0666, &MessageQueueAttr);
+				break;
 			default:
 				break;
 		}
-		ASLOG(OS,"Error: Message Queue for interrupts can not be configured, error number: %d\n",errno);
-		sleep(2);
+		if (MessageQueue == (mqd_t)-1)
+		{
+			ASLOG(OS,"Error: Message Queue for interrupts can not be configured, error number: %d %s\n",errno, strerror( errno));
+			exit(-1);
+		}
 	}
 
 	if (mq_getattr(MessageQueue, &MessageQueueAttr) == -1)
 	{
-		ASLOG(OS,"Error: Get Attribte error, error number: %d\n",errno);
-      sleep(2);
+		ASLOG(OS,"Error: Get Attribte error, error number: %d %s\n",errno, strerror( errno));
+		exit(-1);
 	}
 	else
 	{
-		//ASLOG(OS,"Maxmsg: %d, Msgsize: %d, Curmsg: %d, Flags: %d\n", MessageQueueAttr.mq_maxmsg, MessageQueueAttr.mq_msgsize, MessageQueueAttr.mq_curmsgs, MessageQueueAttr.mq_flags);
-		//sleep(2);
+		ASLOG(OS,"Maxmsg: %d, Msgsize: %d, Curmsg: %d, Flags: %d\n", MessageQueueAttr.mq_maxmsg, MessageQueueAttr.mq_msgsize, MessageQueueAttr.mq_curmsgs, MessageQueueAttr.mq_flags);
 	}
 
 	KillSignal.sa_handler = OsekKillSigHandler;
@@ -141,7 +131,8 @@ void StartOs_Arch(void)
 
 	if (sigaction(SIGINT, &KillSignal, NULL) == -1)
 	{
-		ASLOG(OS,"Error: SIGKILL can not be configured, error number: %d\n",errno);
+		ASLOG(OS,"Error: SIGKILL can not be configured, error number: %d %s\n",errno, strerror( errno));
+		exit(-1);
 	}
 
 	MessageSignal.sa_handler = PosixInterruptHandler;
@@ -150,7 +141,8 @@ void StartOs_Arch(void)
 
 	if (sigaction(SIGUSR1, &MessageSignal, NULL) == -1)
 	{
-		ASLOG(OS,"Error: SIGUSR1 can not be configured, error number: %d\n", errno);
+		ASLOG(OS,"Error: SIGUSR1 can not be configured, error number: %d %s\n",errno, strerror( errno));
+		exit(-1);
 	}
 
 	SignalEvent.sigev_notify = SIGEV_SIGNAL;
@@ -161,9 +153,13 @@ void StartOs_Arch(void)
 
 	if (mq_notify(MessageQueue, &SignalEvent) == -1)
 	{
-		ASLOG(OS,"Error: Message Notification can not be activated, error: %d.\n",errno);
+		ASLOG(OS,"Error: Message Notification can not be activated, error: %d  %s\n",errno, strerror( errno));
+		exit(-1);
 	}
 
+	/* pgrep posix.exe | xargs -i kill -9 {}
+	 * pgrep vEcu | xargs -i kill -9 {}
+	 * */
 	if (fork() == 0)
 	{
 		HWTimerFork(0);
@@ -173,6 +169,73 @@ void StartOs_Arch(void)
 	{
 		HWTimerFork(1);
 	}
+}
+#else
+/*
+ * Setup the systick timer to generate the tick interrupts at the required
+ * frequency.
+ */
+static void prvSetupTimerInterrupt( void )
+{
+	struct itimerval itimer, oitimer;
+	uint32_t xMicroSeconds = 1000;
+
+	/* Initialise the structure with the current timer information. */
+	if ( 0 == getitimer( ITIMER_REAL, &itimer ) )
+	{
+		/* Set the interval between timer events. */
+		itimer.it_interval.tv_sec = 0;
+		itimer.it_interval.tv_usec = xMicroSeconds;
+
+		/* Set the current count-down. */
+		itimer.it_value.tv_sec = 0;
+		itimer.it_value.tv_usec = xMicroSeconds;
+
+		/* Set-up the timer interrupt. */
+		if ( 0 != setitimer( ITIMER_REAL, &itimer, &oitimer ) )
+		{
+			ASLOG(OS, "Set Timer problem.\n" );
+		}
+	}
+	else
+	{
+		ASLOG(OS, "Get Timer problem.\n" );
+	}
+}
+static void setup_interrupt_simulation(void)
+{
+	struct sigaction TickSignal;
+	TickSignal.sa_flags = 0;
+	TickSignal.sa_handler = OsekTickSigHandler;
+	sigfillset( &TickSignal.sa_mask );
+
+	if (sigaction(SIGALRM, &TickSignal, NULL) == -1)
+	{
+		ASLOG(OS,"Error: SIGALRM can not be configured, error number: %d %s\n",errno, strerror( errno));
+		exit(-1);
+	}
+
+	prvSetupTimerInterrupt();
+}
+#endif
+/*==================[external functions definition]==========================*/
+void StartOs_Arch(void)
+{
+	uint8f loopi;
+
+	/* init every task */
+	for( loopi = 0; loopi < TASKS_COUNT; loopi++)
+	{
+		/* init stack */
+		TasksConst[loopi].TaskContext->uc_stack.ss_sp = TasksConst[loopi].StackPtr;		/* set stack pointer */
+		TasksConst[loopi].TaskContext->uc_stack.ss_size = TasksConst[loopi].StackSize;	/* set stack size */
+		TasksConst[loopi].TaskContext->uc_stack.ss_flags = 0;										/* clear stack flags */
+
+		/* create task context */
+		(void)getcontext(TasksConst[loopi].TaskContext);	/* get actual context as start point */
+	}
+
+	setup_interrupt_simulation();
 
 	/* enable interrupts */
 	InterruptState = 1;
