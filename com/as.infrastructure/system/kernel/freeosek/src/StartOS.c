@@ -107,7 +107,6 @@ void StartOS
 	/* StartOs_Arch */
 	StartOs_Arch();
 
-
 	/* init every task */
    for( loopi = 0; loopi < TASKS_COUNT; loopi++)
 	{

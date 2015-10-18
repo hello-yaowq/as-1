@@ -351,7 +351,7 @@ static void runMemory( void ) {
 TASK(SchM_Startup){
 
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
-
+	ASLOG(OS,"%s is running\n",__func__);
 	/* Set events on TASK_ID_BswService_Mem */
 	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 2);
 
@@ -396,7 +396,7 @@ TASK(SchM_BswService) {
 	EcuM_StateType state;
 
 	EcuM_GetState(&state);
-
+	ASLOG(OS,"%s is running\n",__func__);
 	switch( state ) {
 	case ECUM_STATE_STARTUP_ONE:
 		/* Nothing to schedule */

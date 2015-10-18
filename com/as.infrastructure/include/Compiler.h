@@ -97,6 +97,8 @@
 /* Does this really work on all compilers.... */
 #define INLINE __inline__
 
+#define REGISTER static
+
 /* REQ:COMPILER005 */
 #define FUNC(rettype,memclass) rettype
 

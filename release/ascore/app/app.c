@@ -39,6 +39,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+	ASLOG(OS,"%s is running\n",__func__);
 #ifdef USE_CAN
 	Can_PduType pdu;
 	uint8 data[8] = "RPmsgCAN";

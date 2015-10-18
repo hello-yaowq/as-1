@@ -183,6 +183,10 @@
  **/
 #define PostIsr2_Arch(isr)
 
+#ifndef __X86_64__
+/* check http://blog.csdn.net/hu3167343/article/details/37660593
+ * __asm__("Instruction Part" : "Output" : "Input" : "Damage"
+ * AT&T movl from to */
 #define SavePosixStack() \
    {                                   \
       /* save actual win esp */        \
@@ -210,7 +214,37 @@
 		/* get windows stack */ \
 		__asm__ __volatile__ ("movl %0, %%esp;" : : "g" (OsekStack) ); \
 	}
+#else
+/* check http://blog.csdn.net/hu3167343/article/details/37660593
+ * __asm__("Instruction Part" : "Output" : "Input" : "Damage"
+ * AT&T movl from to */
+#define SavePosixStack() \
+   {                                   \
+      /* save actual win esp */        \
+      __asm__ __volatile__ ("movq %%rsp, %%rax; movq %%rax, %0;" : "=g" (PosixStack) : : "rax"); \
+   }
+/** \brief Pre Call Service
+ **
+ ** This macro shall be called before calling any posix system service
+ **/
+#define PreCallService() 		\
+	{									\
+		/* save osek stack */	\
+		__asm__ __volatile__ ("movq %%rsp, %%rax; movq %%rax, %0;" : "=g" (OsekStack) : : "rax"); \
+		/* get windows stack */	\
+		__asm__ __volatile__ ("movq %0, %%rsp;" : : "g" (PosixStack) ); \
+	}
 
+/** \brief Post Call Service
+ **
+ ** This macro shall be called after calling any posix system service
+ **/
+#define PostCallService()		\
+	{									\
+		/* get windows stack */ \
+		__asm__ __volatile__ ("movq %0, %%rsp;" : : "g" (OsekStack) ); \
+	}
+#endif
 /** \brief ShutdownOs Arch service
  **/
 #define	ShutdownOs_Arch()		\
@@ -261,14 +295,14 @@ extern uint32 OsekHWTimer0;
  ** This variable is used to save the posix stack used to call the system
  ** (linux) services from FreeOSEK
  **/
-extern uint32 PosixStack;
+extern unsigned long PosixStack;
 
 /** \brief Osek Stack
  **
  ** This variable is used to save the Osek stack while calling a posix
  ** service
  **/
-extern uint32 OsekStack;
+extern unsigned long OsekStack;
 
 /*==================[external functions declaration]=========================*/
 /** \brief Posix Interrupt Handler

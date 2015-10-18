@@ -93,9 +93,9 @@ uint32 OsekHWTimer0;
 
 InterruptFlagsType InterruptFlag;
 
-uint32 PosixStack;
+unsigned long PosixStack;
 
-uint32 OsekStack;
+unsigned long OsekStack;
 
 /*==================[internal functions definition]==========================*/
 

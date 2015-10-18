@@ -29,6 +29,8 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
+# my computer is 64 bit 
+def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
 endif
