@@ -21,24 +21,23 @@
 #define TM_PRINTF_PRECISION
 #define TM_PRINTF_SPECIAL
 #define TM_PRINTF_BUF_SIZE 512
+
 #define isdigit(c)  ((unsigned)((c) - '0') < 10)
+
+#define ZEROPAD     (1 << 0)	/* pad with zero */
+#define SIGN        (1 << 1)	/* unsigned/signed long */
+#define PLUS        (1 << 2)	/* show plus */
+#define SPACE       (1 << 3)	/* space if plus */
+#define LEFT        (1 << 4)	/* left justified */
+#define SPECIAL     (1 << 5)	/* 0x */
+#define LARGE       (1 << 6)	/* use 'ABCDEF' instead of 'abcdef' */
+
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-/* ============================ [ FUNCTIONS ] ====================================================== */
-unsigned long tm_strlen(const char *s)
-{
-	const char *sc;
-
-	for (sc = s; *sc != '\0'; ++sc) /* nothing */
-		;
-
-	return sc - s;
-}
-
-long divide(long *n, long base)
+static long divide(long *n, long base)
 {
 	long res;
 
@@ -57,7 +56,7 @@ long divide(long *n, long base)
 	return res;
 }
 
-int skip_atoi(const char **s)
+static int skip_atoi(const char **s)
 {
 	register int i=0;
 	while (isdigit(**s))
@@ -65,14 +64,6 @@ int skip_atoi(const char **s)
 
 	return i;
 }
-
-#define ZEROPAD     (1 << 0)	/* pad with zero */
-#define SIGN        (1 << 1)	/* unsigned/signed long */
-#define PLUS        (1 << 2)	/* show plus */
-#define SPACE       (1 << 3)	/* space if plus */
-#define LEFT        (1 << 4)	/* left justified */
-#define SPECIAL     (1 << 5)	/* 0x */
-#define LARGE       (1 << 6)	/* use 'ABCDEF' instead of 'abcdef' */
 
 #ifdef TM_PRINTF_PRECISION
 static char *print_number(char *buf, char *end, long num, int base, int s, int precision, int type)
@@ -218,6 +209,16 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 
 	return buf;
 }
+/* ============================ [ FUNCTIONS ] ====================================================== */
+size_t strlen (const char *s)
+{
+	const char *sc;
+
+	for (sc = s; *sc != '\0'; ++sc) /* nothing */
+		;
+
+	return sc - s;
+}
 
 int vsnprintf (char *__restrict buf, size_t size,
 		      const char *__restrict fmt, _G_va_list args)
@@ -277,7 +278,7 @@ int vsnprintf (char *__restrict buf, size_t size,
 
 		/* get field width */
 		field_width = -1;
-		if (isdigit(*fmt)) field_width = skip_atoi(&fmt);
+		if (isdigit(*fmt)) field_width = skip_atoi((const char **)&fmt);
 		else if (*fmt == '*')
 		{
 			++ fmt;
@@ -296,7 +297,7 @@ int vsnprintf (char *__restrict buf, size_t size,
 		if (*fmt == '.')
 		{
 			++ fmt;
-			if (isdigit(*fmt)) precision = skip_atoi(&fmt);
+			if (isdigit(*fmt)) precision = skip_atoi((const char **)&fmt);
 			else if (*fmt == '*')
 			{
 				++ fmt;
@@ -357,7 +358,7 @@ int vsnprintf (char *__restrict buf, size_t size,
 			s = va_arg(args, char *);
 			if (!s) s = "(NULL)";
 
-			len = tm_strlen(s);
+			len = strlen(s);
 #ifdef TM_PRINTF_PRECISION
 			if (precision > 0 && len > precision) len = precision;
 #endif
@@ -546,5 +547,7 @@ int printf (const char *__restrict fmt, ...)
 		putchar(tm_log_buf[i]);
 	}
 	va_end(args);
+
+	return length;
 }
 
