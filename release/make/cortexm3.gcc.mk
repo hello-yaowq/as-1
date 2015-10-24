@@ -4,11 +4,12 @@ AS  = arm-linux-gnueabi-gcc
 CC  = arm-linux-gnueabi-gcc
 LD  = arm-linux-gnueabi-ld
 AR  = arm-linux-gnueabi-ar
-
+CS  = arm-linux-gnueabi-objdump
 else
 AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
 CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
 LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld
+CS  = $(COMPILER_DIR)/bin/arm-none-eabi-objdump
 AR  = $(COMPILER_DIR)/bin/arm-none-eabi-ar
 endif
 
@@ -34,11 +35,11 @@ VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
 	
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
-obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))		
+obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))		
 
 #common rules	
 
-$(obj-dir)/%.o:%.S
+$(obj-dir)/%.o:%.s
 	@echo
 	@echo "  >> AS $(notdir $<)"
 	@$(AS) $(asflags-y) $(def-y) -o $@ -c $<
@@ -48,6 +49,7 @@ $(obj-dir)/%.o:%.c
 	@echo "  >> CC $(notdir $<)"
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
+	@$(CS) -D $@ > $@.s
 	
 include $(wildcard $(obj-dir)/*.d)
 	

@@ -57,20 +57,6 @@
 #define NULL_PTR (void*)0
 #endif
 
-#ifndef ENABLE
-/** \brief ENABLE macro with the value 1 */
-#define ENABLE 1
-#elif ENABLE != 1
-#error ENABLE defined somewhere else with a different value
-#endif
-
-#ifndef DISABLE
-/** \brief DISABLE macro 2 */
-#define DISABLE 2
-#elif DISABLE != 2
-#error DISABLE defined somewhere else with a different value
-#endif
-
 #ifndef TRUE
 #define TRUE                    (boolean)1
 #endif

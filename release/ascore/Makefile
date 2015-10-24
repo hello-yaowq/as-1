@@ -27,13 +27,6 @@ XCC   = $(PY34) xcc.py
 STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
-ifeq ($(host),Linux)
-def-y += -D__LINUX__
-# my computer is 64 bit 
-def-y += -D__X86_64__
-else
-def-y += -D__WINDOWS__
-endif
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
 ifeq ($(compiler),posix-gcc)
@@ -60,7 +53,15 @@ include ../make/cortexm3.iar.mk
 endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
-ifeq ($(board),posix)	
+ifeq ($(board),posix)
+
+ifeq ($(host),Linux)
+def-y += -D__LINUX__
+# my computer is 64 bit 
+def-y += -D__X86_64__
+else
+def-y += -D__WINDOWS__
+endif	
 # slect GUI openVG/GTK 
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
@@ -81,8 +82,8 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 
-rtos?=freeosek
-#rtos?=freertos
+#rtos?=freeosek
+rtos?=freertos
 #rtos?=toppers_osek
 
 ifeq ($(gui),GTK)			 
@@ -115,7 +116,12 @@ inc-y += -I./include/libraries/usb/device/cdc-serial
 endif	# AT91SAM3S end
 
 ifeq ($(board),stm32f107vc)
+ifeq ($(compiler),arm-none-eabi-gcc)
+link-script = $(src-dir)/linker.lds
+endif
+ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
+endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
 endif	# stm32f107vc end
@@ -142,9 +148,11 @@ SG:
 
 XCC:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src false)	
+ifeq ($(rtos),freeosek)
 # as the bug of FreeOSEK generator
 	@(mv -v srcme/parai/workspace/as/release/ascore/src/* $(src-dir))
 	@(rm -fvr srcme/parai/workspace/as/release/ascore/src)	
+endif
 
 BSW:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src true)
@@ -162,7 +170,6 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
-
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
@@ -247,7 +254,14 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m FALSE)
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
+endif
+ifeq ($(compiler),iccarm)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
+endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
 	@(echo "  >> prepare link for STM32F107VC done")

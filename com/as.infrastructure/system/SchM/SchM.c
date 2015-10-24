@@ -396,7 +396,7 @@ TASK(SchM_BswService) {
 	EcuM_StateType state;
 
 	EcuM_GetState(&state);
-	ASLOG(OS,"%s is running\n",__func__);
+
 	switch( state ) {
 	case ECUM_STATE_STARTUP_ONE:
 		/* Nothing to schedule */

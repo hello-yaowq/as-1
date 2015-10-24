@@ -84,6 +84,10 @@
 #define __simple
 #endif
 
+#ifndef __naked
+# define __naked			__attribute__((naked))
+#endif
+
 #ifndef __weak
 # define __weak			__attribute__((weak))
 #endif

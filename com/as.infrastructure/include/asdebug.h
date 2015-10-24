@@ -23,7 +23,7 @@
 #define AS_LOG_RPMSG    3
 #define AS_LOG_CAN      4
 #define AS_LOG_CANIF    5
-#define AS_LOG_OS       8
+#define AS_LOG_OS       0
 /* and so on ... */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
@@ -31,13 +31,22 @@
 #define AS_LOG_ON       AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 
+#if defined(__LINUX__) || defined(__WINDOWS__)
 #define ASLOG(level,fmt,...) 								\
 	do {													\
 		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
 			aslog(#level,fmt,##__VA_ARGS__);				\
 		} 													\
 	}while(0)
-
+#else
+#define ASLOG(level,fmt,...) 								\
+	do {													\
+		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
+			printf("%-16s:",#level);						\
+			printf(fmt,##__VA_ARGS__);						\
+		} 													\
+	}while(0)
+#endif
 
 #define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
 #define ASHEX(a)	ashex((unsigned long)(a))
