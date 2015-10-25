@@ -5,12 +5,16 @@ CC  = arm-linux-gnueabi-gcc
 LD  = arm-linux-gnueabi-ld
 AR  = arm-linux-gnueabi-ar
 CS  = arm-linux-gnueabi-objdump
+S19 = arm-linux-gnueabi-objcopy -O srec --srec-forceS3 --srec-len 32
+BIN = arm-linux-gnueabi-objcopy -O binary
 else
 AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
 CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
 LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld
-CS  = $(COMPILER_DIR)/bin/arm-none-eabi-objdump
 AR  = $(COMPILER_DIR)/bin/arm-none-eabi-ar
+CS  = $(COMPILER_DIR)/bin/arm-none-eabi-objdump
+S19 = $(COMPILER_DIR)/bin/arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32
+BIN = $(COMPILER_DIR)/bin/arm-none-eabi-objcopy -O binary
 endif
 
 RM  = rm
@@ -64,8 +68,10 @@ $(exe-dir):
 include $(wildcard $(obj-dir)/*.d)
 
 exe:$(obj-dir) $(exe-dir) $(obj-y)
-	@echo "  >> LD $(target-y).OUT"
-	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).out 
+	@echo "  >> LD $(target-y).exe"
+	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
+	@$(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19
+	@$(BIN) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).bin
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll:$(obj-dir) $(exe-dir) $(obj-y)

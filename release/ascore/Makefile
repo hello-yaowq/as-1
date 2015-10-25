@@ -326,6 +326,7 @@ clean-dist:clean
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=TRUE
 13:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=FALSE	
+	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK
