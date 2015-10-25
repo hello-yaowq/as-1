@@ -49,7 +49,7 @@
  */
 
 #include <stdio.h>
-
+#include <assert.h>
 #define DEBUG_LOW		1
 #define DEBUG_MEDIUM	2
 #define DEBUG_HIGH		3
@@ -81,6 +81,18 @@
 #else
 #define LDEBUG_PRINTF(format,...)
 #define LDEBUG_FPUTS(_str)
+#endif
+
+//*****************************************************************************
+//
+// The ASSERT macro, which does the actual assertion checking.  Typically, this
+// will be for procedure arguments.
+//
+//*****************************************************************************
+#ifdef DEBUG
+#define ASSERT(expr) assert(expr)
+#else
+#define ASSERT(expr)
 #endif
 
 

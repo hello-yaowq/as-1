@@ -21,6 +21,8 @@
 #elif defined(CHIP_AT91SAM3S)
 #include "SAM3S.h"
 #include "board.h"
+#elif defined(CHIP_LM3S6965)
+#include "hw_ints.h"
 #else
 #error "CHIP is not known, please select the CHIP_STM32F10X or CHIP_AT91SAM3S"
 #endif

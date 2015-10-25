@@ -26,7 +26,7 @@ LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
-# --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
+# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
 ifeq ($(compiler),posix-gcc)
@@ -126,6 +126,18 @@ def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
 endif	# stm32f107vc end
 
+ifeq ($(board),lm3s6965evb)
+ifeq ($(compiler),arm-none-eabi-gcc)
+link-script = $(src-dir)/linker.lds
+else
+$(error compiler arm gcc not supported for board lm3s6965evb)
+endif
+def-y += -DCHIP_LM3S6965
+def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
+inc-y += -I$(src-dir)/library -I$(src-dir)/library/src
+ldflags-y += -L$(src-dir)/library -llm3sdriver
+endif	# lm3s6965evb end
+
 inc-y += -I./include
 inc-dir = ./include
 
@@ -167,7 +179,6 @@ dep-as-virtual:
 dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)
@@ -237,7 +248,6 @@ endif
 dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/app/config.autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)	
@@ -265,6 +275,39 @@ endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
 	@(echo "  >> prepare link for STM32F107VC done")
+
+dep-lm3s6965evb-library:	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/lm3s/DriverLib library)
+	@(cd $(src-dir)/library; make all)
+	
+dep-lm3s6965evb:dep-lm3s6965evb-library
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir); rm infrastructure.xml)	
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
+	@(cd $(src-dir);rm -f widget_refresh.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
+	@(cd $(src-dir);rm -f EcuM_Flexible.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/lm3s/mcal TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m FALSE)
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
+endif
+ifeq ($(compiler),iccarm)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
+endif
+	@(cd $(inc-dir);$(LNFS) $(CMSIS))
+	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
+	@(echo "  >> prepare link for lm3s6965evb done")
 		
 dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -326,7 +369,13 @@ clean-dist:clean
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=TRUE
 13:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=FALSE	
-	
+# ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
+21:
+	make dep board=lm3s6965evb compiler=arm-none-eabi-gcc
+22:
+	make all board=lm3s6965evb compiler=arm-none-eabi-gcc DEBUG=TRUE
+23:
+	make all board=lm3s6965evb compiler=arm-none-eabi-gcc DEBUG=FALSE	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK

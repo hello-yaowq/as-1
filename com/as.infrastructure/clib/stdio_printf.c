@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <Os.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define TM_PRINTF_LONGLONG
 #define TM_PRINTF_PRECISION
@@ -540,6 +541,8 @@ int printf (const char *__restrict fmt, ...)
 
 	va_start(args, fmt);
 
+	DisableAllInterrupts();
+
 	length = vsnprintf(tm_log_buf, sizeof(tm_log_buf), fmt, args);
 
 	for(i=0;i<length;i++)
@@ -547,6 +550,8 @@ int printf (const char *__restrict fmt, ...)
 		putchar(tm_log_buf[i]);
 	}
 	va_end(args);
+
+	EnableAllInterrupts();
 
 	return length;
 }

@@ -21,6 +21,7 @@ def LNFS(res,tgt):
             else:
                 os.system('mklink %s %s'%(tgt,abs))
         else:
+            if(os.path.isdir(abs) and os.path.exists(tgt)):os.system('rm -rv %s'%(tgt))
             os.system('ln -sv %s %s'%(res,tgt))
             
 
@@ -36,6 +37,7 @@ def LNFS2(res):
             print("  >> error: lnfs %s"%(res))
     else:
         if(os.path.isdir(abs)):
+            if(os.path.exists(tgt)):os.system('rm -rv %s'%(tgt))
             os.system('ln -sv %s %s'%(res,tgt))
         elif(os.path.exists(res)):
             os.system('ln -sv %s %s'%(res,tgt))
