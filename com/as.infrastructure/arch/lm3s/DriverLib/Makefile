@@ -15,7 +15,7 @@ endif
 ifeq ($(host), Linux)
 include ../../../../../release/make/cortexm3.gcc.mk
 else
-include ../../make/cortexm3.gcc.mk
+include ../../../make/cortexm3.gcc.mk
 endif
 
 all:lib

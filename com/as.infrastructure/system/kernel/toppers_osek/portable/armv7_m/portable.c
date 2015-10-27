@@ -142,7 +142,6 @@ static void Usart_Init(void)
     printf("Hello world from lm3s\n");
 }
 
-
 int putchar( int ch )	/* for printf */
 {
 	UARTCharPut(UART0_BASE, ch);
@@ -253,7 +252,7 @@ void tool_initialize(void)
 {
 
 }
-
+#ifdef __GNUC__
 void __naked enaint( imask_t intsts )
 {
 __asm__ volatile(
@@ -433,6 +432,7 @@ __asm__ volatile(
     "b  ExitISR					\n"
 );
 }
+#endif /* __GNUC__ */
 
 void __assert_fail (const char *__assertion, const char *__file,
 			   unsigned int __line, const char *__function)

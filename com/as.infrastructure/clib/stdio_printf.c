@@ -33,6 +33,10 @@
 #define SPECIAL     (1 << 5)	/* 0x */
 #define LARGE       (1 << 6)	/* use 'ABCDEF' instead of 'abcdef' */
 
+#ifndef _G_va_list
+#define _G_va_list __gnuc_va_list
+#endif
+
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */

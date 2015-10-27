@@ -2,7 +2,7 @@
 AS  = $(COMPILER_DIR)/arm/bin/iasmarm.exe
 CC  = $(COMPILER_DIR)/arm/bin/iccarm.exe
 LD  = $(COMPILER_DIR)/arm/bin/ilinkarm.exe
-AR  = ar
+AR  = $(COMPILER_DIR)/arm/bin/iarchive.exe
 RM  = rm
 
 ifeq ($(CC), $(wildcard $(CC)))
@@ -17,7 +17,7 @@ cflags-y += --no_tbaa --no_clustering --no_scheduling
 cflags-y += --cpu=Cortex-M3 -e --fpu=None --endian=little
 cflags-y += --dlib_config $(COMPILER_DIR)/arm/INC/c/DLib_Config_Normal.h
 cflags-y += --diag_suppress=Pa050
-ifeq ($(DEBUG),TRUE)
+ifeq ($(debug),true)
 cflags-y += --debug -On
 else
 cflags-y += --debug -Oh 

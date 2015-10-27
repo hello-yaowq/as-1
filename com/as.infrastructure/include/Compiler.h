@@ -59,14 +59,13 @@
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 
 
-
 #if defined(__GNUC__)
 #define __balign(x)       __attribute__ ((aligned (x)))
 #elif defined(__CWCC__)
 #define __balign(x)       __attribute__ ((aligned (x)))
 #elif defined(__DCC__)
 #define __balign(x)       __attribute__ ((aligned (x)))
-#elif defined(__ICCHCS12__)
+#elif defined(__ICCHCS12__) || defined(__ICCARM__)
 #define Pragma(x) _Pragma(#x)
 #define __balign(x)       Pragma(data_alignment=x)
 #else
@@ -75,14 +74,13 @@
 
 #define SECTION_BALIGN(x)  __balign(x)
 
-#if defined(__ICCHCS12__)
+#if defined(__ICCHCS12__) || defined(__ICCARM__)
 #define restrict
 #define DECLARE_WEAK
 #define __simple __simple
 #else
 #define DECLARE_WEAK			__attribute__ ((weak))
 #define __simple
-#endif
 
 #ifndef __naked
 # define __naked			__attribute__((naked))
@@ -95,8 +93,26 @@
 #ifndef __packed
 # define __packed		__attribute__((__packed__))
 #endif
+#endif
 
+#if defined(__ICCHCS12__) || defined(__ICCARM__)
+static inline unsigned int ilog2(unsigned long _x)
+{
+	unsigned int i;
+	unsigned idx = 0;
+	for(i=0;i<32;i++)
+	{
+		if(_x&(1<i))
+		{
+			idx = i;
+			break;
+		}
+	}
+	return idx;
+}
+#else
 #define ilog2(_x)			__builtin_ffs(_x)
+#endif
 
 /* Does this really work on all compilers.... */
 #define INLINE __inline__

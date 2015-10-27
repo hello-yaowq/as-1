@@ -241,3 +241,5 @@ pip-log.txt
 *.exe
 *.d
 *.o
+*.a
+

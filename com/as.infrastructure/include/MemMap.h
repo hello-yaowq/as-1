@@ -129,6 +129,8 @@
 
 #elif defined(__ICCHCS12__)
    #define SECTION_RAMLOG   __no_init
+#elif defined(__ICCARM__)
+
 #else
 #error Compiler not set
 #endif

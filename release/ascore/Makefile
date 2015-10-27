@@ -359,31 +359,38 @@ clean-dist:clean
 01:
 	make dep board=at91sam3s compiler=iccarm
 02:
-	make all board=at91sam3s compiler=iccarm DEBUG=TRUE
+	make all board=at91sam3s compiler=iccarm debug=true
 03:
-	make all board=at91sam3s compiler=iccarm DEBUG=FALSE	
+	make all board=at91sam3s compiler=iccarm debug=false	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
 	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
 12:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=TRUE
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=true
 13:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc DEBUG=FALSE	
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=false	
+	
+15:
+	make dep board=stm32f107vc compiler=iccarm
+16:
+	make all board=stm32f107vc compiler=iccarm debug=true
+17:
+	make all board=stm32f107vc compiler=iccarm debug=false
 # ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
 21:
 	make dep board=lm3s6965evb compiler=arm-none-eabi-gcc
 22:
-	make all board=lm3s6965evb compiler=arm-none-eabi-gcc DEBUG=TRUE
+	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=true
 23:
-	make all board=lm3s6965evb compiler=arm-none-eabi-gcc DEBUG=FALSE	
+	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=false	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK
 92:
-	make all board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE
+	make all board=posix compiler=posix-gcc gui=GTK debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK DEBUG=FALSE	
+	make all board=posix compiler=posix-gcc gui=GTK debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK DEBUG=TRUE	
+	make dll board=posix compiler=posix-gcc gui=GTK debug=true	
 
 
