@@ -85,7 +85,7 @@
 	do { \
 		EcuM_StateType ecuMState;  \
 		EcuM_GetState(&ecuMState); \
-		assert(ecuMState == (_state) ); \
+		asAssert(ecuMState == (_state) ); \
 	} while(0)
 
 

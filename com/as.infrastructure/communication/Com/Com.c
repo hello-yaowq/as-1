@@ -17,10 +17,6 @@
 //lint -esym(960,8.7)	PC-Lint misunderstanding of Misra 8.7 for Com_SystenEndianness and endianess_test
 
 
-
-
-
-#include <assert.h>
 #include <stdlib.h>
 //#include <stdio.h>
 #include <string.h>
@@ -56,7 +52,7 @@ void Com_Init(const Com_ConfigType *config ) {
 	else {
 		// No other endianness supported
 		//lint --e(506)	PC-Lint exception Misra 13.7, 14.1, Allow boolean to always be false.
-		assert(0);
+		asAssert(0);
 	}
 
 	// Initialize each IPdu

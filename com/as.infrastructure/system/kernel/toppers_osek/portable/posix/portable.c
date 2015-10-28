@@ -27,11 +27,10 @@
 #include <limits.h>
 #include "osek_kernel.h"
 #include "task.h"
-#include <assert.h>
 #include <setjmp.h>
 
 /* ============================ [ MACROS    ] ====================================================== */
-#define configASSERT(x)	assert(x)
+#define configASSERT(x)	asAssert(x)
 
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )
 
@@ -559,7 +558,7 @@ void activate_context(TaskType TaskID)
 			xSentinel = 0;
 			int ercd = pthread_create( &( pxThreads[ TaskID ].hThread ), &xThreadAttributes, prvToppersOSEK_TaskProcess, (void*)(unsigned long)TaskID );
 			/* Create the thread itself. */
-			assert( (0==ercd) && pxThreads[TaskID].hThread );
+			asAssert( (0==ercd) && pxThreads[TaskID].hThread );
 
 			/* Wait until the task suspends. */
 			(void)pthread_mutex_unlock( &xSingleThreadMutex );

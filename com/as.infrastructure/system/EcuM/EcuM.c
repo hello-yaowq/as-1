@@ -147,7 +147,7 @@ void EcuM_Init(void) {
 		EcuM_SetWakeupEvent(ECUM_WKSOURCE_INTERNAL_WDG);
 		break;
 	default:
-		assert(0);
+		asAssert(0);
 		break;
 	}
 
@@ -312,7 +312,7 @@ Std_ReturnType EcuM_SelectBootTarget(EcuM_BootTargetType target) {
 
 	// TODO Do something great here
 	(void) target;
-	assert(0);
+	asAssert(0);
 
 	return E_NOT_OK;
 }
@@ -322,7 +322,7 @@ Std_ReturnType EcuM_GetBootTarget(EcuM_BootTargetType* target) {
 
 	// TODO Return selected boot target here
 	(void) target;
-	assert(0);
+	asAssert(0);
 
 	return E_NOT_OK;
 }
@@ -537,7 +537,7 @@ void EcuM_ClearWakeupEvent(EcuM_WakeupSourceType source) {
 		EcuM_World.validEvents = 0;
 		break;
 	case ECUM_WKSTATUS_EXPIRED:
-		assert(0);
+		asAssert(0);
 		// NO SUPPORT
 		break;
 	default:
@@ -567,7 +567,7 @@ EcuM_WakeupSourceType EcuM_GetValidatedWakeupEvents(void) {
 
 EcuM_WakeupStatusType EcuM_GetStatusOfWakeupSource(
 				EcuM_WakeupSourceType sources) {
-	assert(0);
+	asAssert(0);
 	// NO SUPPORT
 	return 0;
 }

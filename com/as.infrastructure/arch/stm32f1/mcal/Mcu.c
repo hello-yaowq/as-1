@@ -23,7 +23,6 @@
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif
-#include <assert.h>
 #include "stm32f10x.h"
 #include <string.h>
 //#include "Ramlog.h"

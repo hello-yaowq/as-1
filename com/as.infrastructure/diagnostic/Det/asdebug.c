@@ -22,10 +22,13 @@
 typedef void (*aslog_t)(char*,char*);
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#if defined(__WINDOWS__) || defined(__LINUX__)
 static char* __aswho  = "parai";
 static aslog_t __aslog  = NULL;
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#if defined(__WINDOWS__) || defined(__LINUX__)
 void aslog_init(char* who, aslog_t handler)
 {
 	__aswho = strdup(who);
@@ -116,7 +119,7 @@ void asmem(void* address,size_t size)
 char* ashex(unsigned long a)
 {
 	char *buf = (char*)malloc(20);
-	assert(buf);
+	asAssert(buf);
 
 	if( 8 == sizeof(unsigned long))
 	{
@@ -129,6 +132,7 @@ char* ashex(unsigned long a)
 
 	return buf;
 }
+#endif
 
 void asAssertErrorHook(void)
 {

@@ -210,7 +210,7 @@ static uint32_t prvProcessTickInterrupt( void )
 	uint8_t saved_callevel  = callevel;
 
 	/* Process the tick itself. */
-	assert( xPortRunning );
+	asAssert( xPortRunning );
 
 	callevel = TCL_ISR2;
 	SignalCounter(0);
@@ -645,13 +645,13 @@ void activate_context(TaskType TaskID)
 	{
 		/* Create the thread itself. */
 		portThreadState[TaskID].pvThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) prvToppersOSEK_TaskProcess, (void*)(uint32)TaskID, CREATE_SUSPENDED, NULL );
-		assert( portThreadState[TaskID].pvThread );
+		asAssert( portThreadState[TaskID].pvThread );
 		SetThreadAffinityMask( portThreadState[TaskID].pvThread, 0x01 );
 		SetThreadPriorityBoost( portThreadState[TaskID].pvThread, TRUE );
 		SetThreadPriority( portThreadState[TaskID].pvThread, THREAD_PRIORITY_IDLE );
 		/* Create the event for the thread */
 		portThreadState[TaskID].pvEvent = CreateEvent(NULL,TRUE,FALSE,NULL);
-		assert(portThreadState[TaskID].pvEvent != NULL);
+		asAssert(portThreadState[TaskID].pvEvent != NULL);
 	}
 	/* each time when do activate, make event ready */
 	SetEvent(portThreadState[TaskID].pvEvent);

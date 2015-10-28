@@ -72,7 +72,7 @@ void KsmSetState(KsmID_Type Ksm,KSMState_Type state)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 KSMState_Type KsmGetState(KsmID_Type Ksm)
@@ -85,25 +85,25 @@ KSMState_Type KsmGetState(KsmID_Type Ksm)
 	else
 	{
 		state = KSM_S_INVALID;
-		assert(0);
+		asAssert(0);
 	}
 	return state;
 }
 #endif /* KSM_NUM  */
 void StartTimer(TimerType* timer)
 {
-	assert(timer!=NULL);
+	asAssert(timer!=NULL);
 	*timer = OsTickCounter;
 }
 void StopTimer(TimerType* timer)
 {
-	assert(timer!=NULL);
+	asAssert(timer!=NULL);
 	*timer = 0;
 }
 TimerType GetTimer(TimerType* timer)
 {
 	TimerType time;
-	assert(timer!=NULL);
+	asAssert(timer!=NULL);
 
 	if(0 == *timer)
 	{

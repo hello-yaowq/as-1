@@ -68,7 +68,7 @@ static void sendNamseServiceMessage(char * name, uint32 port, RPmsg_NameServiceF
 
     ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",name,port);
     ercd = sendMessage(RPMSG_NAME_SERVICE_PORT, port, &nsMsg, sizeof(nsMsg));
-    assert(E_OK == ercd);
+    asAssert(E_OK == ercd);
 }
 
 static void NameSerivice_Create(char* name, uint32 port)
@@ -92,13 +92,13 @@ void RPmsg_Init(const RPmsg_ConfigType* config)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 void RPmsg_RxNotification(VirtQ_ChannerlType channel)
 {
-	assert(rpmsg.initialized);
-	assert(channel == rpmsg.config->rxChl);
+	asAssert(rpmsg.initialized);
+	asAssert(channel == rpmsg.config->rxChl);
 	if(rpmsg.online)
 	{
 
@@ -126,8 +126,8 @@ Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
 {
 	Std_ReturnType ercd;
 	const RPmsg_ChannelConfigType* chlConfig;
-	assert(rpmsg.initialized);
-	assert(chl<RPMSG_CHL_NUM);
+	asAssert(rpmsg.initialized);
+	asAssert(chl<RPMSG_CHL_NUM);
 	chlConfig = &rpmsg.config->chlConfig[chl];
 	ercd = sendMessage(chlConfig->dst,chlConfig->src,data,len);
 	return ercd;

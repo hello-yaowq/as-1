@@ -75,7 +75,7 @@ static bool fifo_write(u32 id)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		ercd = false;
 	}
 #ifdef __WINDOWS__
@@ -170,7 +170,7 @@ static int start(struct rproc *rproc)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 	return 0;
 }
@@ -211,7 +211,7 @@ void InitOS(void)
 	}
 	else
 	{
-		//assert(0);
+		//asAssert(0);
 	}
 }
 

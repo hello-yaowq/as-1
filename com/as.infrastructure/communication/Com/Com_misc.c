@@ -17,7 +17,6 @@
 //lint -esym(960,8.7)	PC-Lint misunderstanding of Misra 8.7 for Com_SystenEndianness and endianess_test
 
 #include <string.h>
-#include <assert.h>
 
 #include "Com_Arc_Types.h"
 #include "Com.h"
@@ -159,7 +158,7 @@ void Com_ReadSignalDataFromPduBuffer(
 			}
 		} else {
 			//lint --e(506)	PC-Lint exception Misra 13.7, 14.1, Allow boolean to always be false.
-			assert(0);
+			asAssert(0);
 		}
 	}
 	Irq_Restore(state);
@@ -221,8 +220,8 @@ void Com_WriteSignalDataToPduBuffer(
 
 	Irq_Save(irq_state);
 	if (endian == COM_OPAQUE || signalType == COM_SIGNAL_TYPE_UINT8_N) {
-		//assert(bitPosition % 8 == 0);
-		//assert(bitSize % 8 == 0);
+		//asAssert(bitPosition % 8 == 0);
+		//asAssert(bitSize % 8 == 0);
 		uint8 *pduBufferBytes = (uint8 *)pduBuffer;
 		uint8 startFromPduByte = bitPosition / 8;
 		memcpy(pduBufferBytes + startFromPduByte, signalDataBytes, signalLength);
@@ -242,7 +241,7 @@ void Com_WriteSignalDataToPduBuffer(
 			}
 		} else {
 			//lint --e(506)	PC-Lint exception Misra 13.7, 14.1, Allow boolean to always be false.
-			assert(0);
+			asAssert(0);
 		}
 
 		if (endian == COM_BIG_ENDIAN) {

@@ -152,7 +152,7 @@ void EcuM_ErrorHook(Std_ReturnType reason) {
 #if (MCU_PERFORM_RESET_API == STD_ON)
 	Mcu_PerformReset();
 #else
-	assert(0);
+	asAssert(0);
 #endif
 
 #if defined(USE_DET)

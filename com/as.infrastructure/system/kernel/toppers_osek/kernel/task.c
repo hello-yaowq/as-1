@@ -94,7 +94,7 @@ ready_insert_first(Priority pri, TaskType tskid)
 {
 	TaskType	first;
 
-	assert(pri <= TPRI_MAXTASK);
+	asAssert(pri <= TPRI_MAXTASK);
 	first = ready_queue_first[pri];
 	ready_queue_first[pri] = tskid;
 	tcb_next[tskid] = first;
@@ -109,7 +109,7 @@ ready_insert_first(Priority pri, TaskType tskid)
 Inline void
 ready_insert_last(Priority pri, TaskType tskid)
 {
-	assert(pri <= TPRI_MAXTASK);
+	asAssert(pri <= TPRI_MAXTASK);
 	if (ready_queue_first[pri] == TSKID_NULL) {
 		ready_queue_first[pri] = tskid;
 	}
@@ -129,7 +129,7 @@ ready_delete_first(Priority pri)
 	TaskType	first;
 
 	first = ready_queue_first[pri];
-	assert(first != TSKID_NULL);
+	asAssert(first != TSKID_NULL);
 	ready_queue_first[pri] = tcb_next[first];
 	return(first);
 }
@@ -168,7 +168,7 @@ bitmap_search(UINT16 bitmap)
 						3, 3, 3, 3, 3, 3, 3, 3 };
 	Priority	pri = 0;
 
-	assert((bitmap & ((UINT16) 0xffffu)) != 0);
+	asAssert((bitmap & ((UINT16) 0xffffu)) != 0);
 	if ((bitmap & ((UINT16) 0xff00u)) != 0) {
 		bitmap >>= 8;
 		pri += 8;
@@ -314,7 +314,7 @@ search_schedtsk(void)
 void
 preempt(void)
 {
-	assert(runtsk == schedtsk);
+	asAssert(runtsk == schedtsk);
 	ready_insert_first(tcb_curpri[schedtsk], schedtsk);
 	ready_primap |= PRIMAP_BIT(tcb_curpri[schedtsk]);
 	search_schedtsk();

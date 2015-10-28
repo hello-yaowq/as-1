@@ -105,7 +105,7 @@
  *  Write scheduling information in SchM_cfg.h....better (keeps information in one place)
  *
  *     #if defined(USE_SCHM)
- *     assert( SCHM_TIMER(x) == <period> )
+ *     asAssert( SCHM_TIMER(x) == <period> )
  *     #endif
  *
  *  It seems it's mandatory to include SchM_<mod>.h for each BSW module.

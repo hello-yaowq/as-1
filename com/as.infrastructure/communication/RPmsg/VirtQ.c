@@ -64,7 +64,7 @@ static void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint3
    ASLOG(OFF,"VirtQ set used buf idx=%d vq->vring.used->idx=%d\n",idx, vq->vring.used->idx);
 
    if (idx > vq->vring.num) {
-       assert(0);
+       asAssert(0);
    }
    else
    {
@@ -105,8 +105,8 @@ Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* i
 {
 	Std_ReturnType ercd;
 
-	assert(chl < VIRTQ_CHL_NUM);
-	assert(virtq.initialized);
+	asAssert(chl < VIRTQ_CHL_NUM);
+	asAssert(virtq.initialized);
 
 	ASLOG(OFF,"VirtQ_GetAvailiableBuffer(chl=%d)\n",chl);
 
@@ -149,12 +149,12 @@ void VirtQ_Init(const VirtQ_ConfigType *config)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 void VirtQ_RxNotificatin(VirtQ_ChannerlType chl)
 {
-	assert(virtq.initialized);
+	asAssert(virtq.initialized);
 	if(virtq.config->queueConfig[chl].rxNotification)
 	{
 		virtq.config->queueConfig[chl].rxNotification(chl);

@@ -112,7 +112,7 @@ char *GetMainStateAsString( EcuM_StateType state ) {
 		str = "ECUM_STATE_GO_OFF_ONE";
 		break;
 	default:
-		assert(0);
+		asAssert(0);
 	}
 	return str;
 }

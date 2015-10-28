@@ -140,7 +140,7 @@ __for_freertos_macros = \
          xResult = xTimerChangePeriod(os_alarm_handles[ID],offset,100);                          \\
          os_alarm_increment[ID]  =   offset;                                                     \\
          os_alarm_period[ID] =   Cycle;                                                          \\
-         assert(xResult == pdPASS);                                                              \\
+         asAssert(xResult == pdPASS);                                                              \\
  }while(0)
 
 #define OsCancelAlarm_impl(ID)      xTimerStop(os_alarm_handles[ID],100)
@@ -200,9 +200,9 @@ void OsTaskInit(void)
     for(i=0;i<TASK_NUM;i++)
     {
         os_task_events[i] = xEventGroupCreate();
-        assert(os_task_events[i]!=NULL);
+        asAssert(os_task_events[i]!=NULL);
         xTaskCreate( FreeRTOS_TaskProcess,os_task_names[i], os_task_stack_size[i], (void*)i, os_task_prioritys[i], &os_task_handles[i] );
-        assert(os_task_handles[i]!=NULL);
+        asAssert(os_task_handles[i]!=NULL);
     }
     /* Task Automatically activation */
 %s
@@ -214,7 +214,7 @@ void OsAlarmInit(void)
     for(i=0;i<ALARM_NUM;i++)
     {
         os_alarm_handles[i] = xTimerCreate(os_alarm_names[i],100,pdTRUE,(void*)i,FreeRTOS_AlarmProcess);
-        assert(os_alarm_handles[i]!=NULL);
+        asAssert(os_alarm_handles[i]!=NULL);
     }
 %s
 }
@@ -231,16 +231,7 @@ void StartOS( AppModeType app_mode )
 
 void ShutdownOS(StatusType ercd)
 {
-    assert(0);
-}
-
-void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
-{
-#ifdef __WINDOWS__
-    _assert(__func__, pcFileName, ulLine);
-#else
-	__assert(__func__, pcFileName, ulLine);
-#endif
+    asAssert(0);
 }
 
 unsigned long ulGetRunTimeCounterValue( void )
