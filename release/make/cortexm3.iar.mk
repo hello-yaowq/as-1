@@ -62,8 +62,8 @@ $(exe-dir):
 include $(wildcard $(obj-dir)/*.d)
 
 exe:$(obj-dir) $(exe-dir) $(obj-y)
-	@echo "  >> LD $(target-y).OUT"
-	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).out 
+	@echo "  >> LD $(target-y).exe"
+	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll:$(obj-dir) $(exe-dir) $(obj-y)

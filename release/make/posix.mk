@@ -66,9 +66,9 @@ ifeq ($(gen-mk),yes)
 endif	
 
 exe: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y)
-	@echo "  >> LD $(target-y).EXE"
+	@echo "  >> LD $(target-y).exe"
 ifeq ($(gen-mk),yes)	
-	@echo "echo \"  >> LD $(target-y).EXE\"" >> build.bat
+	@echo "echo \"  >> LD $(target-y).exe\"" >> build.bat
 	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
 endif
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
