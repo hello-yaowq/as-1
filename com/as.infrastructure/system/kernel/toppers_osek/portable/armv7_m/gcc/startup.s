@@ -23,6 +23,12 @@
 	.extern knl_dispatch_entry
 	.extern knl_system_tick
 	.extern knl_isr_process
+	.extern nmi_handler
+	.extern hard_fault_handler
+	.extern mpu_fault_handler
+	.extern bus_fault_handler
+	.extern usage_fault_handler
+	.extern debug_monitor_handler
 /******************************************************************************
 * Vector table for a Cortex M3. Vectors start at addr 0x0.
 ******************************************************************************/
@@ -32,17 +38,17 @@ __vector_table:
      /*    Internal Exceptions Vector Define                                        */
     .word     __stack                         	   /* 00: Top of Main Stack           */
     .word     reset_handler                        /* 01: Reset Handler               */
-    .word     default_handler                      /* 02: NMI Handler                 */
-    .word     default_handler                      /* 03: Hard Fault Handler          */
-    .word     default_handler                      /* 04: MPU Fault Handler           */
-    .word     default_handler                      /* 05: Bus Fault Handler           */
-    .word     default_handler                      /* 06: Usage Fault Handler         */
+    .word     nmi_handler                      	   /* 02: NMI Handler                 */
+    .word     hard_fault_handler                   /* 03: Hard Fault Handler          */
+    .word     mpu_fault_handler                    /* 04: MPU Fault Handler           */
+    .word     bus_fault_handler                    /* 05: Bus Fault Handler           */
+    .word     usage_fault_handler                  /* 06: Usage Fault Handler         */
     .word     0                                    /* 07: Reserved                    */
     .word     0                                    /* 08: Reserved                    */
     .word     0                                    /* 09: Reserved                    */
     .word     0                                    /* 10: Reserved                    */
     .word     knl_start_dispatch                   /* 11: SVCall Handler              */
-    .word     default_handler                      /* 12: Debug Monitor Handler       */
+    .word     debug_monitor_handler                /* 12: Debug Monitor Handler       */
     .word     0                                    /* 13: Reserved                    */
     .word     knl_dispatch_entry                   /* 14: PendSV Handler              */
     .word     knl_system_tick                      /* 15: Systick handler             */

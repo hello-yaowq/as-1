@@ -19,8 +19,8 @@ LM3S6965
 	Check http://mathslinux.org/?p=210 about -serial
 	It is also possible to attach gdb to qemu (you'll need two windows):
 
-    qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -gdb tcp::2345 -S -kernel main.elf
-    arm-none-eabi-gdb main.elf 
+    qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -gdb tcp::2345 -S -kernel lm3s6965evb.exe
+    arm-none-eabi-gdb lm3s6965evb.exe
 
 	"2345" is simply a tcp port number chosen randomly. Within gdb execute the following commands:
 

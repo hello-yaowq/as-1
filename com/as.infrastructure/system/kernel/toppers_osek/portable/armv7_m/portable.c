@@ -15,6 +15,15 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "osek_kernel.h"
 #include "task.h"
+#if defined(CHIP_LM3S6965)
+#include "hw_memmap.h"
+#include "hw_types.h"
+#include "gpio.h"
+#include "lm3sinterrupt.h"
+#include "sysctl.h"
+#include "uart.h"
+#include "systick.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -80,12 +89,6 @@ static void Usart_Init(void)
 #endif
 
 #if defined(CHIP_LM3S6965)
-#include "hw_memmap.h"
-#include "hw_types.h"
-#include "gpio.h"
-#include "lm3sinterrupt.h"
-#include "sysctl.h"
-#include "uart.h"
 static void Usart_Init(void)
 {
     /* Set the clocking to run directly from the crystal. */
@@ -117,9 +120,8 @@ static void Usart_Init(void)
 }
 #endif
 
-#ifdef __GNUC__
-#else
-int putchar( int ch )	/* for printf */
+
+void __putchar(char ch)
 {
 #if defined(CHIP_STM32F10X)
   /* Place your implementation of fputc here */
@@ -132,6 +134,12 @@ int putchar( int ch )	/* for printf */
 #elif defined(CHIP_LM3S6965)
   UARTCharPut(UART0_BASE, ch);
 #endif
+}
+
+#ifndef __GNUC__
+int putchar( int ch )	/* for printf */
+{
+	__putchar(ch);
   return ch;
 }
 #endif
@@ -195,13 +203,17 @@ void cpu_initialize(void)
 #if defined(CHIP_LM3S6965)
 	Usart_Init();
 #endif
+
 	knl_taskindp = 0;
 	knl_dispatch_started = FALSE;
-	if (SysTick_Config(64000000 / 1000))
-	{
-		/* Capture error */
-		while (1);
-	}
+
+#if defined(CHIP_LM3S6965)
+	SysTickPeriodSet(SysCtlClockGet()/1000);
+	SysTickEnable();
+	SysTickIntEnable();
+#else
+	if (SysTick_Config(64000000 / 1000)) { /* Capture error */ while (1); }
+#endif
 
 }
 
@@ -426,3 +438,11 @@ void __assert_fail (const char *__assertion, const char *__file,
 	printf("assert(%s) @ %s line %d of %s\n",__assertion,__file,__line,__function);
 	while(1);
 }
+
+
+void nmi_handler(void) 			{ printf("nmi_handler\n");while(1);}
+void hard_fault_handler(void)	{ printf("hard_fault_handler\n");while(1);}
+void mpu_fault_handler(void)	{ printf("mpu_fault_handler\n");while(1);}
+void bus_fault_handler(void)	{ printf("bus_fault_handler\n");while(1);}
+void usage_fault_handler(void)	{ printf("usage_fault_handler\n");while(1);}
+void debug_monitor_handler(void){ printf("debug_monitor_handler\n");while(1);}

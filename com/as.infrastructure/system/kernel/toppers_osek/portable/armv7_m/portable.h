@@ -31,8 +31,6 @@
 
 
 /* ============================ [ MACROS    ] ====================================================== */
-#define Inline static inline
-
 #define SYSTEM_STACK_SIZE 1024
 
 #define disable_int() 		__asm("cpsid   i")

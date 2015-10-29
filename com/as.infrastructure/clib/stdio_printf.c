@@ -40,6 +40,7 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void __putchar(char chr);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static long divide(long *n, long base)
@@ -551,12 +552,23 @@ int printf (const char *__restrict fmt, ...)
 
 	for(i=0;i<length;i++)
 	{
-		putchar(tm_log_buf[i]);
+		__putchar(tm_log_buf[i]);
 	}
-	va_end(args);
 
 	EnableAllInterrupts();
 
+	va_end(args);
+
 	return length;
+}
+
+int puts(const char* pstr)
+{
+	int len = 0;
+	while('\0' == pstr[len])
+	{
+		__putchar(pstr[len]);
+		len ++;
+	}
 }
 
