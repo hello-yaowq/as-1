@@ -19,8 +19,6 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static struct _reent impure_data = { 0, 0, "", 0, "C"};
-struct _reent * _impure_ptr = &impure_data;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void *memset (void *__s, int __c, size_t __n)
@@ -34,24 +32,4 @@ void *memset (void *__s, int __c, size_t __n)
 	}
 
 	return __s;
-}
-
-/*
- * Write the given character into the (probably full) buffer for
- * the given file.  Flush the buffer out if it is or becomes full,
- * or if c=='\n' and the file is line buffered.
- */
-
-int __swbuf_r (struct _reent *ptr, register int c, register FILE *fp)
-{
-	/*
-	 char i;
-
-	i = (char)c;
-	_write (fp->_file, &i, 1);
-	*/
-
-	putchar(c);
-
-	return 0;
 }
