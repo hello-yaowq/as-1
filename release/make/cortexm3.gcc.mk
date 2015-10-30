@@ -1,21 +1,11 @@
 #common compilers
-ifeq ($(host),Linux)
-AS  = arm-linux-gnueabi-gcc
-CC  = arm-linux-gnueabi-gcc
-LD  = arm-linux-gnueabi-ld
-AR  = arm-linux-gnueabi-ar
-CS  = arm-linux-gnueabi-objdump
-S19 = arm-linux-gnueabi-objcopy -O srec --srec-forceS3 --srec-len 32
-BIN = arm-linux-gnueabi-objcopy -O binary
-else
-AS  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
-CC  = $(COMPILER_DIR)/bin/arm-none-eabi-gcc
-LD  = $(COMPILER_DIR)/bin/arm-none-eabi-ld
-AR  = $(COMPILER_DIR)/bin/arm-none-eabi-ar
-CS  = $(COMPILER_DIR)/bin/arm-none-eabi-objdump
-S19 = $(COMPILER_DIR)/bin/arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32
-BIN = $(COMPILER_DIR)/bin/arm-none-eabi-objcopy -O binary
-endif
+AS  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
+CC  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
+LD  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)ld
+AR  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)ar
+CS  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)objdump
+S19 = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)objcopy -O srec --srec-forceS3 --srec-len 32
+BIN = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)objcopy -O binary
 
 RM  = rm
 

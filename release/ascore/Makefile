@@ -37,10 +37,15 @@ endif
 
 ifeq ($(compiler),arm-none-eabi-gcc)
 ifeq ($(host), Linux)
+COMPILER_PREFIX = arm-linux-gnueabi-
 COMPILER_DIR = /usr
 CMSIS = /media/parai/OS/gcc-arm-none-eabi-4_8-2014q1-20140314-win32/CMSIS
 else
-COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+#COMPILER_PREFIX = arm-none-eabi-
+#COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+
+COMPILER_PREFIX = arm-linux-gnueabihf-
+COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
 CMSIS = $(COMPILER_DIR)/CMSIS
 endif
 inc-y += -I$(inc-dir)/CMSIS/Include
