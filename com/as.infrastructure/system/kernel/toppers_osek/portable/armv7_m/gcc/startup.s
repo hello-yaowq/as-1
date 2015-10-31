@@ -17,6 +17,8 @@
 	.fpu softvfp
 	.thumb
 
+#include "portable.h"
+
 	.global __vector_table
 
 	.extern knl_start_dispatch
@@ -29,14 +31,15 @@
 	.extern bus_fault_handler
 	.extern usage_fault_handler
 	.extern debug_monitor_handler
+
 /******************************************************************************
 * Vector table for a Cortex M3. Vectors start at addr 0x0.
 ******************************************************************************/
  	.section	.isr_vector,"a",%progbits
  	.type	__vector_table, %object
 __vector_table:
-     /*    Internal Exceptions Vector Define                                        */
-    .word     __stack                         	   /* 00: Top of Main Stack           */
+     /*    Internal Exceptions Vector Define                                          */
+    .word     knl_system_stack   				   /* 00: Top of Main Stack           */
     .word     reset_handler                        /* 01: Reset Handler               */
     .word     nmi_handler                      	   /* 02: NMI Handler                 */
     .word     hard_fault_handler                   /* 03: Hard Fault Handler          */
@@ -338,7 +341,7 @@ LoopFillZerobss:
 	bcc	FillZerobss
 /* Call the application's entry point.*/
 	bl	main
-	bx	lr
+	b	.
 .size	reset_handler, .-reset_handler
 
     .section	.text,"ax",%progbits

@@ -116,7 +116,7 @@ static inline unsigned int ilog2(unsigned long _x)
 
 /* Does this really work on all compilers.... */
 #define INLINE __inline__
-#define Inline __inline__
+#define Inline static __inline__
 
 #define REGISTER static
 

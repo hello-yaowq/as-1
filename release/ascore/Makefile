@@ -37,7 +37,8 @@ endif
 
 ifeq ($(compiler),arm-none-eabi-gcc)
 ifeq ($(host), Linux)
-COMPILER_PREFIX = arm-linux-gnueabi-
+#COMPILER_PREFIX = arm-linux-gnueabi-
+COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = /usr
 CMSIS = /media/parai/OS/gcc-arm-none-eabi-4_8-2014q1-20140314-win32/CMSIS
 else
@@ -383,13 +384,37 @@ clean-dist:clean
 	make all board=stm32f107vc compiler=iccarm debug=true
 17:
 	make all board=stm32f107vc compiler=iccarm debug=false
+	
 # ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
 21:
 	make dep board=lm3s6965evb compiler=arm-none-eabi-gcc
 22:
 	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=true
 23:
-	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=false	
+	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=false
+		
+		
+29:
+	@echo "target remote:2345" > ~/.gdbinit
+	@echo "file out/lm3s6965evb.exe" >> ~/.gdbinit
+	@echo "b main" >> ~/.gdbinit
+	@echo "b usage_fault_handler" >> ~/.gdbinit
+	
+	@echo "#! /bin/sh" > gdbg.sh
+	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> gdbg.sh
+	@echo "qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -kernel out/lm3s6965evb.exe -gdb tcp::2345 -S &" >> gdbg.sh
+	@echo "echo target remote:2345 b main c s n" >> gdbg.sh
+	@echo "arm-none-eabi-gdb" >> gdbg.sh
+	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> gdbg.sh
+	@echo "echo end of debug" >> gdbg.sh
+	@chmod +x gdbg.sh
+	
+	@echo "#! /bin/sh" > run.sh
+	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> run.sh
+	@echo "qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -kernel out/lm3s6965evb.exe" >> run.sh
+	@echo "echo end of running" >> run.sh
+	@chmod +x run.sh
+	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK

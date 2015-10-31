@@ -13,14 +13,14 @@ RM  = rm
 asflags-y += -mcpu=cortex-m3  -mthumb
 cflags-y  += -mcpu=cortex-m3  -mthumb -std=gnu99
 cflags-y  += -mstructure-size-boundary=8 -ffreestanding
-cflags-y  += -pedantic -W -Wall
+cflags-y  += -W -Wall
 
 ifeq ($(debug),true)
-cflags-y += -O2
-asflags-y += -O2
-else
 cflags-y += -g -O0
 asflags-y += -g -O0
+else
+cflags-y += -O2
+asflags-y += -O2
 endif
 
 ldflags-y += -static -T $(link-script)

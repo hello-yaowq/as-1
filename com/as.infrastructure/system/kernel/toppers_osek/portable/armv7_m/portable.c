@@ -30,7 +30,9 @@
 extern void knl_activate_r(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 knl_taskindp;
+#ifndef __GNUC__
 uint32 knl_system_stack[SYSTEM_STACK_SIZE/sizeof(uint32)];
+#endif
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
 #if (ISR_NUM > 0)
@@ -115,8 +117,6 @@ static void Usart_Init(void)
      * IntEnable(INT_UART0);
      * UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
      */
-
-    printf("Hello world from lm3s\n");
 }
 #endif
 
@@ -208,9 +208,9 @@ void cpu_initialize(void)
 	knl_dispatch_started = FALSE;
 
 #if defined(CHIP_LM3S6965)
-	SysTickPeriodSet(SysCtlClockGet()/1000);
-	SysTickEnable();
-	SysTickIntEnable();
+//	SysTickPeriodSet(SysCtlClockGet()/1000);
+//	SysTickEnable();
+//	SysTickIntEnable();
 #else
 	if (SysTick_Config(64000000 / 1000)) { /* Capture error */ while (1); }
 #endif
@@ -251,7 +251,7 @@ void tool_initialize(void)
 
 }
 #ifdef __GNUC__
-void __naked enaint( imask_t intsts )
+void __naked portRestroeIrqState( imask_t intsts )
 {
 __asm__ volatile(
     "mrs     r1, primask	\n"
@@ -261,7 +261,7 @@ __asm__ volatile(
 );
 }
 
-imask_t __naked disint( void )
+imask_t __naked portGetIrqStateAndDisableIt( void )
 {
 __asm__ volatile(
     "mrs     r0, primask	\n"
@@ -363,7 +363,7 @@ __asm__ volatile(
     "ldr     r12, =knl_dispatch_r	\n"
     "str     r12, [r3,r4, LSL #2]	\n"
     // and then load isr system stack
-    "ldr     sp, =(knl_system_stack + 1024)	\n"  /* Set system stack SYSTEM_STACK_SIZE*/
+    "ldr     sp, =knl_system_stack  \n"  /* Set system stack*/
 
 "l_nosave: 							\n"
     "push    {r0}					\n"    /* push {lr} */

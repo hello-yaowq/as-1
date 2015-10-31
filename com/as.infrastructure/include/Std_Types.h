@@ -80,13 +80,6 @@
 #define STD_ON			0x01
 #define STD_OFF			0x00
 
-/*
- * code for ArcCore 3.1 AUTOSAR stack
- */
-#ifndef imask_t
-#define imask_t uint32
-#endif
-
 #define Irq_Save(irq_state)  		{extern imask_t portGetIrqStateAndDisableIt(void);irq_state = portGetIrqStateAndDisableIt();}
 #define Irq_Restore(irq_state)		{extern void portRestroeIrqState(imask_t irq_state);portRestroeIrqState(irq_state);}
 
@@ -118,6 +111,8 @@ typedef float                       float32;
 typedef double                      float64;
 
 typedef uint8                       Std_ReturnType;
+
+typedef uint32 imask_t;
 
 typedef struct {
 	// TODO: not done!!

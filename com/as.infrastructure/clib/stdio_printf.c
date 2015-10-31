@@ -546,7 +546,9 @@ int printf (const char *__restrict fmt, ...)
 
 	va_start(args, fmt);
 
-	DisableAllInterrupts();
+	imask_t imask;
+
+	Irq_Save(imask);
 
 	length = vsnprintf(tm_log_buf, sizeof(tm_log_buf), fmt, args);
 
@@ -555,7 +557,7 @@ int printf (const char *__restrict fmt, ...)
 		__putchar(tm_log_buf[i]);
 	}
 
-	EnableAllInterrupts();
+	Irq_Restore(imask);
 
 	va_end(args);
 
@@ -570,5 +572,8 @@ int puts(const char* pstr)
 		__putchar(pstr[len]);
 		len ++;
 	}
+
+	return len;
 }
+
 

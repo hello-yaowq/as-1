@@ -78,10 +78,16 @@
 #define ETH_BASE                0x40048000  // Ethernet
 #define FLASH_CTRL_BASE         0x400FD000  // FLASH Controller
 #define SYSCTL_BASE             0x400FE000  // System Control
+#ifndef ITM_BASE
 #define ITM_BASE                0xE0000000  // Instrumentation Trace Macrocell
+#endif
+#ifndef DWT_BASE
 #define DWT_BASE                0xE0001000  // Data Watchpoint and Trace
+#endif
 #define FPB_BASE                0xE0002000  // FLASH Patch and Breakpoint
+#ifndef NVIC_BASE
 #define NVIC_BASE               0xE000E000  // Nested Vectored Interrupt Ctrl
+#endif
 #define TPIU_BASE               0xE0040000  // Trace Port Interface Unit
 
 #endif // __HW_MEMMAP_H__
