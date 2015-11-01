@@ -3,6 +3,7 @@ target-y = $(board)
 obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
+inc-dir = ./include
 
 prj-dir = $(subst release/ascore,,$(CURDIR))
 
@@ -14,11 +15,10 @@ VIRTUAL = $(prj-dir)/com/as.virtual
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
-DEBUG ?= TRUE
+debug ?= TRUE
 ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
-HOME = ~
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
@@ -152,11 +152,9 @@ inc-y += -I$(src-dir)/library -I$(src-dir)/library/src
 ldflags-y += -L$(src-dir)/library -llm3sdriver
 endif	# lm3s6965evb end
 
-inc-y += -I./include
-inc-dir = ./include
-
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
+inc-y += -I./include
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -375,19 +373,16 @@ dep-at91sam3s:
 	@(echo "  >> prepare link for AT91SAM3S done")
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
-	
-all: exe
 
-$(board)-dll: clean dll
+all:exe
 
-$(board)-run: 
-	@($(PY27) Simulator.py)
 clean: 
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*
 	
 clean-dist:clean
-	@rm -fv $(src-dir)/*
+	@rm -frv $(src-dir)/*
+	@rm -frv $(inc-dir)/*
 	
 00:clean-dist
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #

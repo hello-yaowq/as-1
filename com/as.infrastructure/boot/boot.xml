@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AS>
+	<Os>
+	    <!-- OsRef: toppers_osek freertos -->
+	    <OsRef name='smallos'/>
+		<Task name='SchM_Startup' priority='7'
+              auto-start='true'   		
+		      app-mode='OSDEFAULTAPPMODE'  />
+		<Task name='SchM_BswService' priority='8'  
+              auto-start='false'   		
+		      app-mode='OSDEFAULTAPPMODE' />
+		<Task name='TaskIdle' priority='1'
+              auto-start='true'   		
+		      app-mode='OSDEFAULTAPPMODE' />
+		
+	    <Counter name='OsClock' max-value='65535' ticks-per-base='1' min-value='1'/>	
+	        
+        <Alarm name='Alarm_BswService' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />       
+	</Os>
+	
+	<KSM>
+		<IsrProcess><Process/></IsrProcess>
+	</KSM>
+</AS>
