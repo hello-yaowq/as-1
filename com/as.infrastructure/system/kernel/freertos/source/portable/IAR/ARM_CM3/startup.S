@@ -23,8 +23,10 @@
     #ifdef CHIP_STM32F10X
     EXTERN SystemInit
     #endif
-    EXTERN  knl_dispatch_entry,knl_start_dispatch
-    EXTERN  knl_system_tick,knl_isr_process
+    EXTERN xPortPendSVHandler
+    EXTERN vPortSVCHandler
+    EXTERN xPortSysTickHandler
+    EXTERN  knl_isr_process
     PUBLIC __vector_table
     DATA
 __vector_table:
@@ -40,11 +42,11 @@ __vector_table:
     DCD     0                                    /* 08: Reserved                    */
     DCD     0                                    /* 09: Reserved                    */
     DCD     0                                    /* 10: Reserved                    */
-    DCD     knl_start_dispatch                   /* 11: SVCall Handler              */
+    DCD     vPortSVCHandler                      /* 11: SVCall Handler              */
     DCD     default_handler                      /* 12: Debug Monitor Handler       */
     DCD     0                                    /* 13: Reserved                    */
-    DCD     knl_dispatch_entry                   /* 14: PendSV Handler              */
-    DCD     knl_system_tick                      /* 15: Systick handler             */
+    DCD     xPortPendSVHandler                   /* 14: PendSV Handler              */
+    DCD     xPortSysTickHandler                  /* 15: Systick handler             */
 
     /*    External Interrupts Vector Define                                         */
     DCD     knl_isr_process                      /* 16: */

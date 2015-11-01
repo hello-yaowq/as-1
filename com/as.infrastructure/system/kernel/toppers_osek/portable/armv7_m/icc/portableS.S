@@ -16,28 +16,38 @@
 #define _MACRO_ONLY
 #include "portable.h"
 
+    PUBLIC Irq_Restore
+    PUBLIC __Irq_Save
+    PUBLIC Irq_Enable
+    PUBLIC Irq_Disable
+
     EXTERN runtsk, schedtsk, knl_taskindp
     EXTERN callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
     EXTERN knl_system_stack
     SECTION .text:CODE
     THUMB
-    PUBLIC enaint
-//EXPORT void enaint( imask_t intsts );
-enaint:
+
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
     mrs     r1, primask
     msr     primask, r0
     mov     r0, r1
     bx      lr
 
-    SECTION .text:CODE
-    THUMB
-    PUBLIC disint
-//EXPORT imask_t disint( void );
-disint:
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
     mrs     r0, primask
-    ldr     r1, =TS_PMK_D
+    ldr     r1, = 0x1 /* TS_PMK_D */
     msr     primask, r1
     bx      lr
+
+Irq_Enable:
+    cpsie   i
+    bx lr
+
+Irq_Disable:
+    cpsid   i
+    bx lr
     
     SECTION .text:CODE
     THUMB

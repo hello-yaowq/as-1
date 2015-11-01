@@ -66,8 +66,8 @@
 
     1 tab == 4 spaces!
 */
-
-#include <FreeRTOSConfig.h>
+#define _MACROS_ONLY
+#include "FreeRTOSConfig.h"
 
 	RSEG    CODE:CODE(2)
 	thumb
@@ -80,8 +80,32 @@
 	PUBLIC vPortClearInterruptMask
 	PUBLIC vPortSVCHandler
 	PUBLIC vPortStartFirstTask
+	PUBLIC Irq_Restore
+	PUBLIC __Irq_Save
+	PUBLIC Irq_Enable
+	PUBLIC Irq_Disable
 
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
+    mrs     r1, primask
+    msr     primask, r0
+    mov     r0, r1
+    bx      lr
 
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
+    mrs     r0, primask
+    ldr     r1, = 0x1 /* TS_PMK_D */
+    msr     primask, r1
+    bx      lr
+
+Irq_Enable:
+    cpsie   i
+    bx lr
+
+Irq_Disable:
+    cpsid   i
+    bx lr
 
 /*-----------------------------------------------------------*/
 
@@ -155,5 +179,9 @@ vPortStartFirstTask
 	dsb
 	isb
 	svc 0
+
+    PUBLIC knl_isr_process
+knl_isr_process:
+    b       knl_isr_process
 
 	END

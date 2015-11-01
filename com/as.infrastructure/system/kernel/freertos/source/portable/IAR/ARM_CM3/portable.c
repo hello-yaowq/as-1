@@ -77,13 +77,13 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "Mcu.h"
 #if configMAX_SYSCALL_INTERRUPT_PRIORITY == 0
 	#error configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to 0.  See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html
 #endif
 
 #ifndef configSYSTICK_CLOCK_HZ
-	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+	#define configSYSTICK_CLOCK_HZ McuE_GetSystemClock()
 	/* Ensure the SysTick is clocked at the same frequency as the core. */
 	#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )
 #else
@@ -141,6 +141,8 @@ FreeRTOS.org versions prior to V4.3.0 did not include this definition. */
 /* Each task maintains its own interrupt status in the critical nesting
 variable. */
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
+
+static UBaseType_t uxSchedulerStarted = FALSE;
 
 /*
  * Setup the timer to generate the tick interrupts.  The implementation in this
@@ -297,6 +299,7 @@ BaseType_t xPortStartScheduler( void )
 	/* Initialise the critical nesting count ready for the first task. */
 	uxCriticalNesting = 0;
 
+	uxSchedulerStarted = TRUE;
 	/* Start the first task. */
 	vPortStartFirstTask();
 
@@ -354,9 +357,16 @@ void vPortExitCritical( void )
 	}
 }
 /*-----------------------------------------------------------*/
-
+TickType_t OsTickCounter;
 void xPortSysTickHandler( void )
 {
+  if(TRUE == uxSchedulerStarted)
+  {
+	OsTickCounter ++ ;
+	if( 0 == OsTickCounter )
+	{
+		OsTickCounter = 1;
+	}
 	/* The SysTick runs at the lowest interrupt priority, so when this interrupt
 	executes all interrupts must be unmasked.  There is therefore no need to
 	save and then restore the interrupt mask value as its value is already
@@ -372,6 +382,11 @@ void xPortSysTickHandler( void )
 		}
 	}
 	portCLEAR_INTERRUPT_MASK_FROM_ISR( 0 );
+  }
+#if defined(CHIP_AT91SAM3S)
+	extern void TimeTick_Increment(void);
+	TimeTick_Increment();
+#endif
 }
 /*-----------------------------------------------------------*/
 

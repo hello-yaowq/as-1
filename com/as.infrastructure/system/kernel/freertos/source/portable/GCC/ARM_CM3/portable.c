@@ -74,7 +74,7 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "Mcu.h"
 /* For backward compatibility, ensure configKERNEL_INTERRUPT_PRIORITY is
 defined.  The value should also ensure backward compatibility.
 FreeRTOS.org versions prior to V4.4.0 did not include this definition. */
@@ -83,7 +83,7 @@ FreeRTOS.org versions prior to V4.4.0 did not include this definition. */
 #endif
 
 #ifndef configSYSTICK_CLOCK_HZ
-	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+	#define configSYSTICK_CLOCK_HZ McuE_GetSystemClock()
 	/* Ensure the SysTick is clocked at the same frequency as the core. */
 	#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )
 #else
