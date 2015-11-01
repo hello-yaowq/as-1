@@ -93,6 +93,7 @@ typedef EventMaskType	*EventMaskRefType;
 typedef TickType		*TickRefType;
 typedef AlarmBaseType	*AlarmBaseRefType;
 
+#define TICK_MAX  (TickType)-1
 /*
  *  Macros for declare a object 
  */

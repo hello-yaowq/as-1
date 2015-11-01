@@ -19,14 +19,15 @@ debug ?= TRUE
 ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
+HOME = /home/parai
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
 HOME = C:/Users/parai.wang
+endif
 ifeq ($(HOME), $(wildcard $(HOME)))
 else
 $(error fix your home path)
-endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
@@ -305,7 +306,7 @@ ifeq ($(compiler),arm-none-eabi-gcc)
 endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
-	@(cp -v $(src-dir)/rom.gdbinit $(HOME)/.gdbinit)
+	@(cp -fv $(src-dir)/rom.gdbinit $(HOME)/.gdbinit)
 	@(echo "  >> prepare link for STM32F107VC done")
 
 dep-lm3s6965evb-library:	
