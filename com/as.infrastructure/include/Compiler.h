@@ -116,7 +116,11 @@ static inline unsigned int ilog2(unsigned long _x)
 
 /* Does this really work on all compilers.... */
 #define INLINE __inline__
+#if defined(__GNUC__)
 #define Inline static __inline__
+#else
+#define Inline static inline
+#endif
 
 #define REGISTER static
 

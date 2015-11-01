@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -85,10 +85,10 @@ extern "C" {
  * MACROS AND DEFINITIONS
  *----------------------------------------------------------*/
 
-#define tskKERNEL_VERSION_NUMBER "V8.2.0"
+#define tskKERNEL_VERSION_NUMBER "V8.2.3"
 #define tskKERNEL_VERSION_MAJOR 8
 #define tskKERNEL_VERSION_MINOR 2
-#define tskKERNEL_VERSION_BUILD 0
+#define tskKERNEL_VERSION_BUILD 3
 
 /**
  * task. h
@@ -214,6 +214,7 @@ typedef enum
  * \ingroup SchedulerControl
  */
 #define taskENTER_CRITICAL()		portENTER_CRITICAL()
+#define taskENTER_CRITICAL_FROM_ISR() portSET_INTERRUPT_MASK_FROM_ISR()
 
 /**
  * task. h
@@ -228,7 +229,7 @@ typedef enum
  * \ingroup SchedulerControl
  */
 #define taskEXIT_CRITICAL()			portEXIT_CRITICAL()
-
+#define taskEXIT_CRITICAL_FROM_ISR( x ) portCLEAR_INTERRUPT_MASK_FROM_ISR( x )
 /**
  * task. h
  *
@@ -1158,6 +1159,18 @@ constant. */
 	#endif /* configUSE_APPLICATION_TASK_TAG ==1 */
 #endif /* ifdef configUSE_APPLICATION_TASK_TAG */
 
+#if( configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0 )
+
+	/* Each task contains an array of pointers that is dimensioned by the
+	configNUM_THREAD_LOCAL_STORAGE_POINTERS setting in FreeRTOSConfig.h.  The
+	kernel does not use the pointers itself, so the application writer can use
+	the pointers for any purpose they wish.  The following two functions are
+	used to set and query a pointer respectively. */
+	void vTaskSetThreadLocalStoragePointer( TaskHandle_t xTaskToSet, BaseType_t xIndex, void *pvValue ) PRIVILEGED_FUNCTION;
+	void *pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery, BaseType_t xIndex ) PRIVILEGED_FUNCTION;
+
+#endif
+
 /**
  * task.h
  * <pre>BaseType_t xTaskCallApplicationTaskHook( TaskHandle_t xTask, void *pvParameter );</pre>
@@ -1178,7 +1191,7 @@ BaseType_t xTaskCallApplicationTaskHook( TaskHandle_t xTask, void *pvParameter )
  * Simply returns the handle of the idle task.  It is not valid to call
  * xTaskGetIdleTaskHandle() before the scheduler has been started.
  */
-TaskHandle_t xTaskGetIdleTaskHandle( void );
+TaskHandle_t xTaskGetIdleTaskHandle( void ) PRIVILEGED_FUNCTION;
 
 /**
  * configUSE_TRACE_FACILITY must be defined as 1 in FreeRTOSConfig.h for
@@ -1277,7 +1290,7 @@ TaskHandle_t xTaskGetIdleTaskHandle( void );
 	}
 	</pre>
  */
-UBaseType_t uxTaskGetSystemState( TaskStatus_t * const pxTaskStatusArray, const UBaseType_t uxArraySize, uint32_t * const pulTotalRunTime );
+UBaseType_t uxTaskGetSystemState( TaskStatus_t * const pxTaskStatusArray, const UBaseType_t uxArraySize, uint32_t * const pulTotalRunTime ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
@@ -1424,30 +1437,34 @@ void vTaskGetRunTimeStats( char *pcWriteBuffer ) PRIVILEGED_FUNCTION; /*lint !e9
  * @param eAction Specifies how the notification updates the task's notification
  * value, if at all.  Valid values for eAction are as follows:
  *
- *	eSetBits -
- *	The task's notification value is bitwise ORed with ulValue.  xTaskNofify()
- * 	always returns pdPASS in this case.
+ * eSetBits -
+ * The task's notification value is bitwise ORed with ulValue.  xTaskNofify()
+ * always returns pdPASS in this case.
  *
- *	eIncrement -
- *	The task's notification value is incremented.  ulValue is not used and
- *	xTaskNotify() always returns pdPASS in this case.
+ * eIncrement -
+ * The task's notification value is incremented.  ulValue is not used and
+ * xTaskNotify() always returns pdPASS in this case.
  *
- *	eSetValueWithOverwrite -
- *	The task's notification value is set to the value of ulValue, even if the
- *	task being notified had not yet processed the previous notification (the
- *	task already had a notification pending).  xTaskNotify() always returns
- *	pdPASS in this case.
+ * eSetValueWithOverwrite -
+ * The task's notification value is set to the value of ulValue, even if the
+ * task being notified had not yet processed the previous notification (the
+ * task already had a notification pending).  xTaskNotify() always returns
+ * pdPASS in this case.
  *
- *	eSetValueWithoutOverwrite -
- *	If the task being notified did not already have a notification pending then
- *	the task's notification value is set to ulValue and xTaskNotify() will
- *	return pdPASS.  If the task being notified already had a notification
- *	pending then no action is performed and pdFAIL is returned.
+ * eSetValueWithoutOverwrite -
+ * If the task being notified did not already have a notification pending then
+ * the task's notification value is set to ulValue and xTaskNotify() will
+ * return pdPASS.  If the task being notified already had a notification
+ * pending then no action is performed and pdFAIL is returned.
  *
- *	eNoAction -
- *	The task receives a notification without its notification value being
- *	updated.  ulValue is not used and xTaskNotify() always returns pdPASS in
- *	this case.
+ * eNoAction -
+ * The task receives a notification without its notification value being
+ * updated.  ulValue is not used and xTaskNotify() always returns pdPASS in
+ * this case.
+ *
+ *  pulPreviousNotificationValue -
+ *  Can be used to pass out the subject task's notification value before any
+ *  bits are modified by the notify function.
  *
  * @return Dependent on the value of eAction.  See the description of the
  * eAction parameter.
@@ -1455,7 +1472,9 @@ void vTaskGetRunTimeStats( char *pcWriteBuffer ) PRIVILEGED_FUNCTION; /*lint !e9
  * \defgroup xTaskNotify xTaskNotify
  * \ingroup TaskNotifications
  */
-BaseType_t xTaskNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction );
+BaseType_t xTaskGenericNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotificationValue ) PRIVILEGED_FUNCTION;
+#define xTaskNotify( xTaskToNotify, ulValue, eAction ) xTaskGenericNotify( ( xTaskToNotify ), ( ulValue ), ( eAction ), NULL )
+#define xTaskNotifyAndQuery( xTaskToNotify, ulValue, eAction, pulPreviousNotifyValue ) xTaskGenericNotify( ( xTaskToNotify ), ( ulValue ), ( eAction ), ( pulPreviousNotifyValue ) )
 
 /**
  * task. h
@@ -1504,30 +1523,30 @@ BaseType_t xTaskNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAct
  * @param eAction Specifies how the notification updates the task's notification
  * value, if at all.  Valid values for eAction are as follows:
  *
- *	eSetBits -
- *	The task's notification value is bitwise ORed with ulValue.  xTaskNofify()
- * 	always returns pdPASS in this case.
+ * eSetBits -
+ * The task's notification value is bitwise ORed with ulValue.  xTaskNofify()
+ * always returns pdPASS in this case.
  *
- *	eIncrement -
- *	The task's notification value is incremented.  ulValue is not used and
- *	xTaskNotify() always returns pdPASS in this case.
+ * eIncrement -
+ * The task's notification value is incremented.  ulValue is not used and
+ * xTaskNotify() always returns pdPASS in this case.
  *
- *	eSetValueWithOverwrite -
- *	The task's notification value is set to the value of ulValue, even if the
- *	task being notified had not yet processed the previous notification (the
- *	task already had a notification pending).  xTaskNotify() always returns
- *	pdPASS in this case.
+ * eSetValueWithOverwrite -
+ * The task's notification value is set to the value of ulValue, even if the
+ * task being notified had not yet processed the previous notification (the
+ * task already had a notification pending).  xTaskNotify() always returns
+ * pdPASS in this case.
  *
- *	eSetValueWithoutOverwrite -
- *	If the task being notified did not already have a notification pending then
- *	the task's notification value is set to ulValue and xTaskNotify() will
- *	return pdPASS.  If the task being notified already had a notification
- *	pending then no action is performed and pdFAIL is returned.
+ * eSetValueWithoutOverwrite -
+ * If the task being notified did not already have a notification pending then
+ * the task's notification value is set to ulValue and xTaskNotify() will
+ * return pdPASS.  If the task being notified already had a notification
+ * pending then no action is performed and pdFAIL is returned.
  *
- *	eNoAction -
- *	The task receives a notification without its notification value being
- *	updated.  ulValue is not used and xTaskNotify() always returns pdPASS in
- *	this case.
+ * eNoAction -
+ * The task receives a notification without its notification value being
+ * updated.  ulValue is not used and xTaskNotify() always returns pdPASS in
+ * this case.
  *
  * @param pxHigherPriorityTaskWoken  xTaskNotifyFromISR() will set
  * *pxHigherPriorityTaskWoken to pdTRUE if sending the notification caused the
@@ -1544,7 +1563,9 @@ BaseType_t xTaskNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAct
  * \defgroup xTaskNotify xTaskNotify
  * \ingroup TaskNotifications
  */
-BaseType_t xTaskNotifyFromISR( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, BaseType_t *pxHigherPriorityTaskWoken );
+BaseType_t xTaskGenericNotifyFromISR( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotificationValue, BaseType_t *pxHigherPriorityTaskWoken ) PRIVILEGED_FUNCTION;
+#define xTaskNotifyFromISR( xTaskToNotify, ulValue, eAction, pxHigherPriorityTaskWoken ) xTaskGenericNotifyFromISR( ( xTaskToNotify ), ( ulValue ), ( eAction ), NULL, ( pxHigherPriorityTaskWoken ) )
+#define xTaskNotifyAndQueryFromISR( xTaskToNotify, ulValue, eAction, pulPreviousNotificationValue, pxHigherPriorityTaskWoken ) xTaskGenericNotifyFromISR( ( xTaskToNotify ), ( ulValue ), ( eAction ), ( pulPreviousNotificationValue ), ( pxHigherPriorityTaskWoken ) )
 
 /**
  * task. h
@@ -1619,7 +1640,7 @@ BaseType_t xTaskNotifyFromISR( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNo
  * \defgroup xTaskNotifyWait xTaskNotifyWait
  * \ingroup TaskNotifications
  */
-BaseType_t xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit, uint32_t *pulNotificationValue, TickType_t xTicksToWait );
+BaseType_t xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit, uint32_t *pulNotificationValue, TickType_t xTicksToWait ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
@@ -1665,7 +1686,7 @@ BaseType_t xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClea
  * \defgroup xTaskNotifyGive xTaskNotifyGive
  * \ingroup TaskNotifications
  */
-#define xTaskNotifyGive( xTaskToNotify ) xTaskNotify( ( xTaskToNotify ), 0, eIncrement );
+#define xTaskNotifyGive( xTaskToNotify ) xTaskGenericNotify( ( xTaskToNotify ), ( 0 ), eIncrement, NULL )
 
 /**
  * task. h
@@ -1720,7 +1741,7 @@ BaseType_t xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClea
  * \defgroup xTaskNotifyWait xTaskNotifyWait
  * \ingroup TaskNotifications
  */
-void vTaskNotifyGiveFromISR( TaskHandle_t xTaskToNotify, BaseType_t *pxHigherPriorityTaskWoken );
+void vTaskNotifyGiveFromISR( TaskHandle_t xTaskToNotify, BaseType_t *pxHigherPriorityTaskWoken ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
@@ -1789,7 +1810,23 @@ void vTaskNotifyGiveFromISR( TaskHandle_t xTaskToNotify, BaseType_t *pxHigherPri
  * \defgroup ulTaskNotifyTake ulTaskNotifyTake
  * \ingroup TaskNotifications
  */
-uint32_t ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksToWait );
+uint32_t ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksToWait ) PRIVILEGED_FUNCTION;
+
+/**
+ * task. h
+ * <PRE>BaseType_t xTaskNotifyStateClear( TaskHandle_t xTask );</pre>
+ *
+ * If the notification state of the task referenced by the handle xTask is
+ * eNotified, then set the task's notification state to eNotWaitingNotification.
+ * The task's notification value is not altered.  Set xTask to NULL to clear the
+ * notification state of the calling task.
+ *
+ * @return pdTRUE if the task's notification state was set to
+ * eNotWaitingNotification, otherwise pdFALSE.
+ * \defgroup xTaskNotifyStateClear xTaskNotifyStateClear
+ * \ingroup TaskNotifications
+ */
+BaseType_t xTaskNotifyStateClear( TaskHandle_t xTask );
 
 /*-----------------------------------------------------------
  * SCHEDULER INTERNALS AVAILABLE FOR PORTING PURPOSES
@@ -1857,7 +1894,7 @@ void vTaskPlaceOnUnorderedEventList( List_t * pxEventList, const TickType_t xIte
  * indefinitely, whereas vTaskPlaceOnEventList() does.
  *
  */
-void vTaskPlaceOnEventListRestricted( List_t * const pxEventList, const TickType_t xTicksToWait ) PRIVILEGED_FUNCTION;
+void vTaskPlaceOnEventListRestricted( List_t * const pxEventList, const TickType_t xTicksToWait, const BaseType_t xWaitIndefinitely ) PRIVILEGED_FUNCTION;
 
 /*
  * THIS FUNCTION MUST NOT BE USED FROM APPLICATION CODE.  IT IS AN
@@ -1989,7 +2026,7 @@ eSleepModeStatus eTaskConfirmSleepModeStatus( void ) PRIVILEGED_FUNCTION;
  * For internal use only.  Increment the mutex held count when a mutex is
  * taken and return the handle of the task that has taken the mutex.
  */
-void *pvTaskIncrementMutexHeldCount( void );
+void *pvTaskIncrementMutexHeldCount( void ) PRIVILEGED_FUNCTION;
 
 #ifdef __cplusplus
 }

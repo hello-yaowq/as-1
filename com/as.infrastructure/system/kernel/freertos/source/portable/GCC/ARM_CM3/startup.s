@@ -17,13 +17,19 @@
 	.fpu softvfp
 	.thumb
 
-#include "portable.h"
+
+.macro DEFAULT_ISR_HANDLER name=
+  .thumb_func
+  .weak \name
+\name:
+1: b 1b /* endless loop */
+.endm
 
 	.global __vector_table
 
-	.extern knl_start_dispatch
-	.extern knl_dispatch_entry
-	.extern knl_system_tick
+    .extern xPortPendSVHandler
+    .extern xPortSysTickHandler
+    .extern vPortSVCHandler
 	.extern knl_isr_process
 	.extern nmi_handler
 	.extern hard_fault_handler
@@ -50,11 +56,11 @@ __vector_table:
     .word     0                                    /* 08: Reserved                    */
     .word     0                                    /* 09: Reserved                    */
     .word     0                                    /* 10: Reserved                    */
-    .word     knl_start_dispatch                   /* 11: SVCall Handler              */
+    .word     vPortSVCHandler                      /* 11: SVCall Handler              */
     .word     debug_monitor_handler                /* 12: Debug Monitor Handler       */
     .word     0                                    /* 13: Reserved                    */
-    .word     knl_dispatch_entry                   /* 14: PendSV Handler              */
-    .word     knl_system_tick                      /* 15: Systick handler             */
+    .word     xPortPendSVHandler                   /* 14: PendSV Handler              */
+    .word     xPortSysTickHandler                  /* 15: Systick handler             */
 
     /*    External Interrupts Vector Define                                         */
     .word     knl_isr_process                      /* 16: */
@@ -343,3 +349,12 @@ LoopFillZerobss:
 	bl	main
 	b	.
 .size	reset_handler, .-reset_handler
+
+
+DEFAULT_ISR_HANDLER knl_isr_process
+DEFAULT_ISR_HANDLER nmi_handler
+DEFAULT_ISR_HANDLER hard_fault_handler
+DEFAULT_ISR_HANDLER mpu_fault_handler
+DEFAULT_ISR_HANDLER bus_fault_handler
+DEFAULT_ISR_HANDLER usage_fault_handler
+DEFAULT_ISR_HANDLER debug_monitor_handler

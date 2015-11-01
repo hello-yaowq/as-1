@@ -80,9 +80,6 @@
 #define STD_ON			0x01
 #define STD_OFF			0x00
 
-#define Irq_Save(irq_state)  		{extern imask_t portGetIrqStateAndDisableIt(void);irq_state = portGetIrqStateAndDisableIt();}
-#define Irq_Restore(irq_state)		{extern void portRestroeIrqState(imask_t irq_state);portRestroeIrqState(irq_state);}
-
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned char		       	boolean;
 typedef int8_t        				sint8;
@@ -133,4 +130,9 @@ typedef struct {
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+extern void Irq_Enable(void);
+extern void Irq_Disable(void);
+#define Irq_Save(irq_state) irq_state=__Irq_Save()
+extern imask_t __Irq_Save(void);
+extern void Irq_Restore(imask_t irq_state);
 #endif /* STD_TYPES_H */

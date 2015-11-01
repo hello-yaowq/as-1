@@ -18,14 +18,24 @@ DEBUG ?= TRUE
 ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
+HOME = ~
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
+HOME = C:/Users/parai.wang
+ifeq ($(HOME), $(wildcard $(HOME)))
+else
+$(error fix your home path)
+endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+
+#rtos?=freeosek
+rtos?=freertos
+#rtos?=toppers_osek
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
@@ -88,10 +98,6 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 
-#rtos?=freeosek
-rtos?=freertos
-#rtos?=toppers_osek
-
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 
@@ -129,7 +135,9 @@ ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
+def-y += -DUSE_DET
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
+def-y += -DUSE_SIMULATOR
 endif	# stm32f107vc end
 
 ifeq ($(board),lm3s6965evb)
@@ -255,7 +263,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
-	@(cd $(src-dir);sed -e "5c <OsRef name='toppers_osek'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)	
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);rm -f widget_refresh.c)
@@ -269,18 +277,37 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
+ifeq ($(rtos),freertos)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/include FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MemMang FALSE)
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/GCC/ARM_CM3 FALSE)
+endif
+ifeq ($(compiler),iccarm)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/IAR/ARM_CM3 FALSE)
+endif
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
+	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_3.c heap_5.c)
+endif
+ifeq ($(rtos),toppers_osek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m FALSE)
 ifeq ($(compiler),arm-none-eabi-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 endif
 ifeq ($(compiler),iccarm)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
 endif
+endif
+
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
+endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
+	@(cp -v $(src-dir)/rom.gdbinit $(HOME)/.gdbinit)
 	@(echo "  >> prepare link for STM32F107VC done")
 
 dep-lm3s6965evb-library:	

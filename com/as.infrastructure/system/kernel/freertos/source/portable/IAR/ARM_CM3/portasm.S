@@ -67,108 +67,93 @@
     1 tab == 4 spaces!
 */
 
+#include <FreeRTOSConfig.h>
 
-/*
- * The simplest possible implementation of pvPortMalloc().  Note that this
- * implementation does NOT allow allocated memory to be freed again.
- *
- * See heap_2.c, heap_3.c and heap_4.c for alternative implementations, and the
- * memory management pages of http://www.FreeRTOS.org for more information.
- */
-#include <stdlib.h>
+	RSEG    CODE:CODE(2)
+	thumb
 
-/* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
-all the API functions to use the MPU wrappers.  That should only be done when
-task.h is included from an application file. */
-#define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+	EXTERN pxCurrentTCB
+	EXTERN vTaskSwitchContext
 
-#include "FreeRTOS.h"
-#include "task.h"
+	PUBLIC xPortPendSVHandler
+	PUBLIC ulPortSetInterruptMask
+	PUBLIC vPortClearInterruptMask
+	PUBLIC vPortSVCHandler
+	PUBLIC vPortStartFirstTask
 
-#undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
-/* A few bytes might be lost to byte aligning the heap start address. */
-#define configADJUSTED_HEAP_SIZE	( configTOTAL_HEAP_SIZE - portBYTE_ALIGNMENT )
-
-/* Allocate the memory for the heap. */
-static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
-static size_t xNextFreeByte = ( size_t ) 0;
 
 /*-----------------------------------------------------------*/
 
-void *pvPortMalloc( size_t xWantedSize )
-{
-void *pvReturn = NULL;
-static uint8_t *pucAlignedHeap = NULL;
+xPortPendSVHandler:
+	mrs r0, psp
+	isb
+	ldr	r3, =pxCurrentTCB			/* Get the location of the current TCB. */
+	ldr	r2, [r3]
 
-	/* Ensure that blocks are always aligned to the required number of bytes. */
-	#if portBYTE_ALIGNMENT != 1
-		if( xWantedSize & portBYTE_ALIGNMENT_MASK )
-		{
-			/* Byte alignment required. */
-			xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
-		}
-	#endif
+	stmdb r0!, {r4-r11}				/* Save the remaining registers. */
+	str r0, [r2]					/* Save the new top of stack into the first member of the TCB. */
 
-	vTaskSuspendAll();
-	{
-		if( pucAlignedHeap == NULL )
-		{
-			/* Ensure the heap starts on a correctly aligned boundary. */
-			pucAlignedHeap = ( uint8_t * ) ( ( ( portPOINTER_SIZE_TYPE ) &ucHeap[ portBYTE_ALIGNMENT ] ) & ( ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK ) ) );
-		}
+	stmdb sp!, {r3, r14}
+	mov r0, #configMAX_SYSCALL_INTERRUPT_PRIORITY
+	msr basepri, r0
+	bl vTaskSwitchContext
+	mov r0, #0
+	msr basepri, r0
+	ldmia sp!, {r3, r14}
 
-		/* Check there is enough room left for the allocation. */
-		if( ( ( xNextFreeByte + xWantedSize ) < configADJUSTED_HEAP_SIZE ) &&
-			( ( xNextFreeByte + xWantedSize ) > xNextFreeByte )	)/* Check for overflow. */
-		{
-			/* Return the next free byte then increment the index past this
-			block. */
-			pvReturn = pucAlignedHeap + xNextFreeByte;
-			xNextFreeByte += xWantedSize;
-		}
+	ldr r1, [r3]
+	ldr r0, [r1]					/* The first item in pxCurrentTCB is the task top of stack. */
+	ldmia r0!, {r4-r11}				/* Pop the registers. */
+	msr psp, r0
+	isb
+	bx r14
 
-		traceMALLOC( pvReturn, xWantedSize );
-	}
-	( void ) xTaskResumeAll();
 
-	#if( configUSE_MALLOC_FAILED_HOOK == 1 )
-	{
-		if( pvReturn == NULL )
-		{
-			extern void vApplicationMallocFailedHook( void );
-			vApplicationMallocFailedHook();
-		}
-	}
-	#endif
-
-	return pvReturn;
-}
 /*-----------------------------------------------------------*/
 
-void vPortFree( void *pv )
-{
-	/* Memory cannot be freed using this scheme.  See heap_2.c, heap_3.c and
-	heap_4.c for alternative implementations, and the memory management pages of
-	http://www.FreeRTOS.org for more information. */
-	( void ) pv;
+ulPortSetInterruptMask:
+	mrs r0, basepri
+	mov r1, #configMAX_SYSCALL_INTERRUPT_PRIORITY
+	msr basepri, r1
+	bx r14
 
-	/* Force an assert as it is invalid to call this function. */
-	configASSERT( pv == NULL );
-}
 /*-----------------------------------------------------------*/
 
-void vPortInitialiseBlocks( void )
-{
-	/* Only required when static memory is not cleared. */
-	xNextFreeByte = ( size_t ) 0;
-}
+vPortClearInterruptMask:
+	msr basepri, r0
+	bx r14
+
 /*-----------------------------------------------------------*/
 
-size_t xPortGetFreeHeapSize( void )
-{
-	return ( configADJUSTED_HEAP_SIZE - xNextFreeByte );
-}
+vPortSVCHandler:
+	/* Get the location of the current TCB. */
+	ldr	r3, =pxCurrentTCB
+	ldr r1, [r3]
+	ldr r0, [r1]
+	/* Pop the core registers. */
+	ldmia r0!, {r4-r11}
+	msr psp, r0
+	isb
+	mov r0, #0
+	msr	basepri, r0
+	orr r14, r14, #13
+	bx r14
 
+/*-----------------------------------------------------------*/
 
+vPortStartFirstTask
+	/* Use the NVIC offset register to locate the stack. */
+	ldr r0, =0xE000ED08
+	ldr r0, [r0]
+	ldr r0, [r0]
+	/* Set the msp back to the start of the stack. */
+	msr msp, r0
+	/* Call SVC to start the first task, ensuring interrupts are enabled. */
+	cpsie i
+	cpsie f
+	dsb
+	isb
+	svc 0
 
+	END

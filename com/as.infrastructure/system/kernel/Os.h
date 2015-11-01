@@ -46,7 +46,6 @@
 
 #define KsmGotoState(Ksm,State)	 KsmSetState(KSM_ID_##Ksm,KSM_##Ksm##_##State)
 
-#define Irq_Enable EnableAllInterrupts
 /* ============================ [ TYPES     ] ====================================================== */
 #if(KSM_NUM < 0xFF)
 typedef uint8 KsmID_Type;

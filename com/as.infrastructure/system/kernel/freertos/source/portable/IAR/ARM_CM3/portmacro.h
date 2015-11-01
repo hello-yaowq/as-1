@@ -67,72 +67,66 @@
     1 tab == 4 spaces!
 */
 
+
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 
-#include <Windows.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/******************************************************************************
-	Defines
-******************************************************************************/
+/*-----------------------------------------------------------
+ * Port specific definitions.
+ *
+ * The settings in this file configure FreeRTOS correctly for the
+ * given hardware and compiler.
+ *
+ * These settings should not be altered.
+ *-----------------------------------------------------------
+ */
+
 /* Type definitions. */
 #define portCHAR		char
 #define portFLOAT		float
 #define portDOUBLE		double
 #define portLONG		long
 #define portSHORT		short
-#define portSTACK_TYPE	size_t
+#define portSTACK_TYPE	uint32_t
 #define portBASE_TYPE	long
-#define portPOINTER_SIZE_TYPE size_t
 
 typedef portSTACK_TYPE StackType_t;
 typedef long BaseType_t;
 typedef unsigned long UBaseType_t;
 
-
 #if( configUSE_16_BIT_TICKS == 1 )
-    typedef uint16_t TickType_t;
-    #define portMAX_DELAY ( TickType_t ) 0xffff
+	typedef uint16_t TickType_t;
+	#define portMAX_DELAY 0xffff
 #else
-    typedef uint32_t TickType_t;
-    #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+	typedef uint32_t TickType_t;
+	#define portMAX_DELAY 0xffffffffUL
 
-	/* 32/64-bit tick type on a 32/64-bit architecture, so reads of the tick
-	count do not need to be guarded with a critical section. */
+	/* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+	not need to be guarded with a critical section. */
 	#define portTICK_TYPE_IS_ATOMIC 1
 #endif
+/*-----------------------------------------------------------*/
 
-/* Hardware specifics. */
+/* Architecture specifics. */
 #define portSTACK_GROWTH			( -1 )
 #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
-#define portINLINE __inline
+#define portBYTE_ALIGNMENT			8
+/*-----------------------------------------------------------*/
 
-#if defined( __x86_64__) || defined( _M_X64 )
-	#define portBYTE_ALIGNMENT		8
-#else
-	#define portBYTE_ALIGNMENT		4
-#endif
+/* Scheduler utilities. */
+extern void vPortYield( void );
+#define portNVIC_INT_CTRL_REG		( * ( ( volatile uint32_t * ) 0xe000ed04UL ) )
+#define portNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+#define portYIELD()					vPortYield()
+#define portEND_SWITCHING_ISR( xSwitchRequired ) if( xSwitchRequired ) portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT
+#define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
+/*-----------------------------------------------------------*/
 
-#define portYIELD()					vPortGenerateSimulatedInterrupt( portINTERRUPT_YIELD )
-
-/* Simulated interrupts return pdFALSE if no context switch should be performed,
-or a non-zero number if a context switch should be performed. */
-#define portYIELD_FROM_ISR( x ) return x
-
-void vPortCloseRunningThread( void *pvTaskToDelete, volatile BaseType_t *pxPendYield );
-void vPortDeleteThread( void *pvThreadToDelete );
-#define portCLEAN_UP_TCB( pxTCB )	vPortDeleteThread( pxTCB )
-#define portPRE_TASK_DELETE_HOOK( pvTaskToDelete, pxPendYield ) vPortCloseRunningThread( ( pvTaskToDelete ), ( pxPendYield ) )
-#define portDISABLE_INTERRUPTS() vPortEnterCritical()
-#define portENABLE_INTERRUPTS() vPortExitCritical()
-
-/* Critical section handling. */
-void vPortEnterCritical( void );
-void vPortExitCritical( void );
-
-#define portENTER_CRITICAL()		vPortEnterCritical()
-#define portEXIT_CRITICAL()			vPortExitCritical()
-
+/* Architecture specific optimisations. */
 #ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
 	#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #endif
@@ -145,53 +139,62 @@ void vPortExitCritical( void );
 	#endif
 
 	/* Store/clear the ready priorities in a bit map. */
-	#define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) |= ( 1UL << ( uxPriority ) )
-	#define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) &= ~( 1UL << ( uxPriority ) )
-
+	#define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( ( uxReadyPriorities ) |= ( 1UL << ( uxPriority ) ) )
+	#define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( ( uxReadyPriorities ) &= ~( 1UL << ( uxPriority ) ) )
 
 	/*-----------------------------------------------------------*/
 
-	#ifdef __GNUC__
-		#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities )	\
-			__asm volatile(	"bsr %1, %0\n\t" 									\
-							:"=r"(uxTopPriority) : "rm"(uxReadyPriorities) : "cc" )
-	#else
-		/* BitScanReverse returns the bit position of the most significant '1'
-		in the word. */
-		#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) _BitScanReverse( ( DWORD * ) &( uxTopPriority ), ( uxReadyPriorities ) )
-	#endif /* __GNUC__ */
+	#include <intrinsics.h>
+	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 
-#endif /* taskRECORD_READY_PRIORITY */
+#endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+/*-----------------------------------------------------------*/
 
-#ifndef __GNUC__
-	__pragma( warning( disable:4211 ) ) /* Nonstandard extension used, as extern is only nonstandard to MSVC. */
+/* Critical section management. */
+extern void vPortEnterCritical( void );
+extern void vPortExitCritical( void );
+extern uint32_t ulPortSetInterruptMask( void );
+extern void vPortClearInterruptMask( uint32_t ulNewMask );
+
+#define portDISABLE_INTERRUPTS()				ulPortSetInterruptMask()
+#define portENABLE_INTERRUPTS()					vPortClearInterruptMask( 0 )
+#define portENTER_CRITICAL()					vPortEnterCritical()
+#define portEXIT_CRITICAL()						vPortExitCritical()
+#define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortSetInterruptMask()
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortClearInterruptMask( x )
+/*-----------------------------------------------------------*/
+
+/* Tickless idle/low power functionality. */
+#ifndef portSUPPRESS_TICKS_AND_SLEEP
+	extern void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime );
+	#define portSUPPRESS_TICKS_AND_SLEEP( xExpectedIdleTime ) vPortSuppressTicksAndSleep( xExpectedIdleTime )
+#endif
+/*-----------------------------------------------------------*/
+
+/* Task function macros as described on the FreeRTOS.org WEB site.  These are
+not necessary for to use this port.  They are defined so the common demo files
+(which build with all the ports) will build. */
+#define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
+#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+/*-----------------------------------------------------------*/
+
+#ifdef configASSERT
+	void vPortValidateInterruptPriority( void );
+	#define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() 	vPortValidateInterruptPriority()
 #endif
 
+/* portNOP() is not required by this port. */
+#define portNOP()
 
-/* Task function macros as described on the FreeRTOS.org WEB site. */
-#define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void * pvParameters )
-#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void * pvParameters )
+/* Suppress warnings that are generated by the IAR tools, but cannot be fixed in
+the source code because to do so would cause other compilers to generate
+warnings. */
+#pragma diag_suppress=Pe191
+#pragma diag_suppress=Pa082
 
-#define portINTERRUPT_YIELD				( 0UL )
-#define portINTERRUPT_TICK				( 1UL )
-
-/*
- * Raise a simulated interrupt represented by the bit mask in ulInterruptMask.
- * Each bit can be used to represent an individual interrupt - with the first
- * two bits being used for the Yield and Tick interrupts respectively.
-*/
-void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber );
-
-/*
- * Install an interrupt handler to be called by the simulated interrupt handler
- * thread.  The interrupt number must be above any used by the kernel itself
- * (at the time of writing the kernel was using interrupt numbers 0, 1, and 2
- * as defined above).  The number must also be lower than 32.
- *
- * Interrupt handler functions must return a non-zero value if executing the
- * handler resulted in a task switch being required.
- */
-void vPortSetInterruptHandler( uint32_t ulInterruptNumber, uint32_t (*pvHandler)( void ) );
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* PORTMACRO_H */
 

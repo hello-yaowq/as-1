@@ -33,3 +33,32 @@ void *memset (void *__s, int __c, size_t __n)
 
 	return __s;
 }
+
+void *memcpy (void* __to, const void* __from, size_t __size)
+{
+	size_t i;
+	char* dst = (char*) __to;
+	const char* src = (const char*) __from;
+
+	for(i=0;i<__size;i++)
+	{
+		dst[i] = src[i];
+	}
+
+	return __to;
+}
+
+char* strcpy (char* __to, const char* __from)
+{
+	char* dst = (char*) __to;
+	const char* src = (const char*) __from;
+	while('\0' != *dst)
+	{
+		*dst = * src;
+		dst ++;
+		src ++;
+	}
+
+	*dst = '\0';
+	return __to;
+}

@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.0.1 - Copyright (C) 2014 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2014 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -81,6 +81,7 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	0
 #define configUSE_IDLE_HOOK						0
 #define configUSE_TICK_HOOK						0
+#define configCPU_CLOCK_HZ                      ( 64000000 )
 #define configTICK_RATE_HZ						( 1000 ) /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 50 ) /* In this simulated case, the stack only has to hold one small structure as the real stack is part of the win32 thread. */
 #define configTOTAL_HEAP_SIZE					( ( size_t ) ( 20 * 1024 ) )
@@ -109,7 +110,7 @@
 /* Run time stats gathering configuration options. */
 unsigned long ulGetRunTimeCounterValue( void ); /* Prototype of function that returns run time counter. */
 void vConfigureTimerForRunTimeStats( void );	/* Prototype of function that initialises the run time counter. */
-#define configGENERATE_RUN_TIME_STATS	1
+#define configGENERATE_RUN_TIME_STATS	0
 #ifdef __WINDOWS__
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
 #define portGET_RUN_TIME_COUNTER_VALUE() ulGetRunTimeCounterValue()
@@ -143,12 +144,40 @@ functions anyway. */
 #define INCLUDE_xSemaphoreGetMutexHolder		1
 #define INCLUDE_xTimerPendFunctionCall			1
 
-/* It is a good idea to define configASSERT() while developing.  configASSERT()
-uses the same semantics as the standard C assert() macro. */
-#include "asdebug.h"
-#define configASSERT( x ) asAssert(x)
+/* Cortex-M specific definitions. */
+#ifdef __NVIC_PRIO_BITS
+	/* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
+	#define configPRIO_BITS       		__NVIC_PRIO_BITS
+#else
+	#define configPRIO_BITS       		4        /* 15 priority levels */
+#endif
 
+/* The lowest interrupt priority that can be used in a call to a "set priority"
+function. */
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY			15
 
-/* Include the FreeRTOS+Trace FreeRTOS trace macro definitions. */
-//#include "trcKernelPort.h"
+/* The highest interrupt priority that can be used by any interrupt service
+routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
+INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY	4
+
+/* Interrupt priorities used by the kernel port layer itself.  These are generic
+to all Cortex-M ports, and do not rely on any particular library functions. */
+#define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+/* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
+See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
+
+/* Prevent the inclusion of items the assembler will not understand in assembly
+files. */
+#ifndef _MACROS_ONLY
+
+	/* It is a good idea to define configASSERT() while developing.  configASSERT()
+	uses the same semantics as the standard C assert() macro. */
+	#include "asdebug.h"
+	#define configASSERT( x ) asAssert(x)
+
+#endif
+
 #endif /* FREERTOS_CONFIG_H */

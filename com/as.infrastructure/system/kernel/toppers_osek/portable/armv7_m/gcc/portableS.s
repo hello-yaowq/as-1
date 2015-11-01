@@ -13,43 +13,45 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#define _MACRO_ONLY
-#include "portable.h"
+    .syntax unified
+    .cpu cortex-m3
+    .fpu softvfp
+    .thumb
 
-    EXTERN runtsk, schedtsk, knl_taskindp
-    EXTERN callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
-    EXTERN knl_system_stack
-    SECTION .text:CODE
-    THUMB
-    PUBLIC enaint
-//EXPORT void enaint( imask_t intsts );
-enaint:
+    .extern runtsk, schedtsk, knl_taskindp
+    .extern callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
+    .extern knl_system_stack
+
+    .section .text
+    .global Irq_Restore
+    .type   Irq_Restore, %function
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
     mrs     r1, primask
     msr     primask, r0
     mov     r0, r1
     bx      lr
 
-    SECTION .text:CODE
-    THUMB
-    PUBLIC disint
-//EXPORT imask_t disint( void );
-disint:
+    .global __Irq_Save
+    .type   __Irq_Save, %function
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
     mrs     r0, primask
-    ldr     r1, =TS_PMK_D
+    ldr     r1, = 0x1 /* TS_PMK_D */
     msr     primask, r1
     bx      lr
-    
-    SECTION .text:CODE
-    THUMB
-    PUBLIC knl_activate_r
+
+    .global knl_activate_r
+    .type   knl_activate_r, %function
 knl_activate_r:
-    mov r3, #TS_PSR_T
+    mov r3, #0x01000000 /* TS_PSR_T */
     ldr r2, =activate_r
     push {r2,r3}
     subs  sp,sp,#24
     bx lr
 
-    PUBLIC  knl_dispatch_r
+    .global  knl_dispatch_r
+    .type   knl_dispatch_r, %function
 knl_dispatch_r:
      /* start to restore task's context */
     pop     {r4-r11}
@@ -61,7 +63,8 @@ dispatch_task:
     ldr     r3,[r2,r0,LSL #2]
     bx      r3
 
-    PUBLIC knl_start_dispatch
+    .global knl_start_dispatch
+    .type   knl_start_dispatch, %function
 knl_dispatch_ret_int:
 knl_start_dispatch:
     ldr     r0, =schedtsk
@@ -70,10 +73,11 @@ knl_start_dispatch:
     strb    r0, [r1]
 
     ldr     r2, =tcxb_sp
-    ldr     sp, [r2,r0, LSL #2]
+    ldr     sp, [r2,r0, lsl #2]
     b       dispatch_task
 
-    PUBLIC knl_dispatch_entry
+    .global knl_dispatch_entry
+    .type   knl_dispatch_entry, %function
 knl_dispatch_entry:
     push    {r4-r11}
 
@@ -81,29 +85,30 @@ knl_dispatch_entry:
     ldrb    r0, [r1]
 
     ldr     r2, =tcxb_sp
-    str     sp, [r2,r0, LSL #2]
+    str     sp, [r2,r0, lsl #2]
 
     ldr     r2, =tcxb_pc
 
     ldr     r12, =knl_dispatch_r
-    str     r12, [r2,r0, LSL #2]
+    str     r12, [r2,r0, lsl #2]
 
     b       knl_start_dispatch
 
-    PUBLIC EnterISR
-EnterISR:    
+    .global EnterISR
+    .type   EnterISR, %function
+EnterISR:
     ldr     r1, =knl_taskindp
     ldr     r2, [r1]
 
-    cmp     r2, #0      // knl_taskindp==0
+    cmp     r2, #0      /* knl_taskindp==0 */
     bne     l_nosave
 
     ldr     r3, = knl_dispatch_started
     ldr     r3, [r3]
     cmp     r3, #0
-    beq     l_nosave    // system not startd
+    beq     l_nosave    /* system not startd */
 
-    // save context on fisrt ISR enter
+    /* save context on fisrt ISR enter */
     push    {r4-r11}
 
     ldr     r3, =runtsk
@@ -115,12 +120,12 @@ EnterISR:
     ldr     r3, =tcxb_pc
 
     ldr     r12, =knl_dispatch_r
-    str     r12, [r3,r4, LSL #2]
-    // and then load isr system stack
-    ldr     sp, =(knl_system_stack + SYSTEM_STACK_SIZE)  /* Set system stack */
+    str     r12, [r3,r4, lsl #2]
+    /* and then load isr system stack */
+    ldr     sp, =knl_system_stack  /* Set system stack */
 
 l_nosave:
-    push    {r0}    // push {lr}
+    push    {r0}    /* push {lr} */
     add     r3, r2, #1
     str     r3, [r1]
     push    {r1, r2}
@@ -133,7 +138,8 @@ l_nosave:
     bx      lr
 
 
-    PUBLIC ExitISR
+    .global ExitISR
+    .type   ExitISR, %function
 ExitISR:
     pop     {r3}
     ldr     r1, = callevel
@@ -159,16 +165,18 @@ l_nodispatch:
     cpsie   i
     bx      lr
 
-    EXTERN knl_system_tick_handler
-    PUBLIC knl_system_tick
+    .extern knl_system_tick_handler
+    .global knl_system_tick
+    .type   knl_system_tick, %function
 knl_system_tick:
     mov r0,lr
     bl EnterISR
     bl knl_system_tick_handler
     b  ExitISR
 
-    PUBLIC knl_isr_process
-    EXTERN knl_isr_handler
+    .global knl_isr_process
+    .extern knl_isr_handler
+    .type   knl_isr_process, %function
 knl_isr_process:
     mov r0,lr
     bl EnterISR
@@ -176,4 +184,3 @@ knl_isr_process:
     bl knl_isr_handler
     b  ExitISR
 
-    END

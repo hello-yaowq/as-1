@@ -24,6 +24,8 @@
 #include "uart.h"
 #include "systick.h"
 #endif
+
+#include "Mcu.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -43,52 +45,6 @@ extern const uint32 __vector_table[];
 #endif
 uint32 knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
-#if defined(CHIP_STM32F10X)
-static void Usart_Init(void)
-{
-    USART_InitTypeDef USART_InitStructure;
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    /* USARTx configured as follow:
-        - BaudRate = 115200 baud
-        - Word Length = 8 Bits
-        - One Stop Bit
-        - No parity
-        - Hardware flow control disabled (RTS and CTS signals)
-        - Receive and transmit enabled
-    */
-    USART_InitStructure.USART_BaudRate = 115200;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-    USART_InitStructure.USART_Parity = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-
-    /* Enable GPIO clock */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_AFIO, ENABLE);
-
-    /* Enable the USART2 Pins Software Remapping */
-    GPIO_PinRemapConfig(GPIO_Remap_USART2, ENABLE);
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-
-    /* Configure USART Tx as alternate function push-pull */
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    /* Configure USART Rx as input floating */
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    /* USART configuration */
-    USART_Init(USART2, &USART_InitStructure);
-
-    /* Enable USART */
-    USART_Cmd(USART2, ENABLE);
-}
-#endif
 
 #if defined(CHIP_LM3S6965)
 static void Usart_Init(void)
@@ -123,15 +79,7 @@ static void Usart_Init(void)
 
 void __putchar(char ch)
 {
-#if defined(CHIP_STM32F10X)
-  /* Place your implementation of fputc here */
-  /* e.g. write a character to the USART */
-  USART_SendData(USART2, (uint8_t) ch);
-
-  /* Loop until the end of transmission */
-  while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET)
-  {}
-#elif defined(CHIP_LM3S6965)
+#if defined(CHIP_LM3S6965)
   UARTCharPut(UART0_BASE, ch);
 #endif
 }
@@ -144,6 +92,14 @@ int putchar( int ch )	/* for printf */
 }
 #endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void Irq_Enable(void)
+{
+	enable_int();
+}
+void Irq_Disable(void)
+{
+	disable_int();
+}
 void set_ipl(IPL ipl)
 {
 	if(ipl > 0)
@@ -196,10 +152,6 @@ void cpu_initialize(void)
 	LowLevelInit() ;
 #endif
 
-#if defined(CHIP_STM32F10X)
-	Usart_Init();
-#endif
-
 #if defined(CHIP_LM3S6965)
 	Usart_Init();
 #endif
@@ -207,13 +159,7 @@ void cpu_initialize(void)
 	knl_taskindp = 0;
 	knl_dispatch_started = FALSE;
 
-#if defined(CHIP_LM3S6965)
-//	SysTickPeriodSet(SysCtlClockGet()/1000);
-//	SysTickEnable();
-//	SysTickIntEnable();
-#else
-	if (SysTick_Config(64000000 / 1000)) { /* Capture error */ while (1); }
-#endif
+	if (SysTick_Config(McuE_GetSystemClock() / 1000)) { /* Capture error */ while (1); }
 
 }
 
@@ -250,194 +196,168 @@ void tool_initialize(void)
 {
 
 }
-#ifdef __GNUC__
-void __naked portRestroeIrqState( imask_t intsts )
+
+#if 0 /* __GNUC__ */
+void __naked Irq_Restore( imask_t intsts )
 {
-__asm__ volatile(
-    "mrs     r1, primask	\n"
-    "msr     primask, r0	\n"
-    "mov     r0, r1			\n"
-    "bx      lr				\n"
-);
+	(void)intsts;
+	__asm__ volatile("mrs     r1, primask	");
+	__asm__ volatile("msr     primask, r0	");
+	__asm__ volatile("mov     r0, r1		");
+	__asm__ volatile("bx      lr			");
 }
 
-imask_t __naked portGetIrqStateAndDisableIt( void )
+imask_t __naked __Irq_Save( void )
 {
-__asm__ volatile(
-    "mrs     r0, primask	\n"
-    "ldr     r1, =0x01  	\n"	/* =TS_PMK_D*/
-    "msr     primask, r1	\n"
-    "bx      lr				\n"
-);
+	__asm__ volatile("mrs     r0, primask	");
+	__asm__ volatile("ldr     r1, =0x01  	");	/* =TS_PMK_D*/
+	__asm__ volatile("msr     primask, r1	");
+	__asm__ volatile("bx      lr			");
+	return 0;
 }
 
 void __naked knl_activate_r(void)
 {
-__asm__ volatile(
-	"mov 	r3, #0x01000000	\n" /* TS_PSR_T */
-	"ldr 	r2, =activate_r	\n"
-	"push 	{r2,r3}			\n"
-	"subs  	SP,SP,#24		\n"
-	"bx 	lr				\n"
-);
+	__asm__ volatile("mov 	r3, #0x01000000	"); /* TS_PSR_T */
+	__asm__ volatile("ldr 	r2, =activate_r ");
+	__asm__ volatile("push 	{r2,r3}			");
+	__asm__ volatile("subs  sp,sp,#0x18		"); /* sp = sp - 6*4 */
+	__asm__ volatile("bx 	lr				");
 }
 
-void __naked knl_dispatch_r(void)
+void __naked __balign(4) knl_dispatch_r(void)
 {
-__asm__ volatile(
      /* start to restore task's context */
-    "pop     {r4-r11}	\n"
-    "cpsie   i			\n"
-    "bx      lr			\n"
-);
+	__asm__ volatile("pop     {r4-r11}	");
+	__asm__ volatile("cpsie   i			");
+	__asm__ volatile("bx      lr		");
 }
 
 void __naked dispatch_task(void)
 {
-__asm__ volatile(
-    "ldr     r2, =tcxb_pc		\n"
-    "ldr     r3,[r2,r0,LSL #2]	\n"
-    "bx      r3					\n"
-);
+	__asm__ volatile("ldr     r2, =tcxb_pc		");
+	__asm__ volatile("ldr     r3,[r2,r0,LSL #2]	");
+	__asm__ volatile("bx      r3				");
 }
 #define knl_dispatch_ret_int knl_start_dispatch
 void __naked knl_start_dispatch(void)
 {
-__asm__ volatile(
-    "ldr     r0, =schedtsk			\n"
-    "ldrb    r0, [r0]				\n"
-    "ldr     r1, =runtsk			\n"
-    "strb    r0, [r1]				\n"
+	__asm__ volatile("ldr     r0, =schedtsk			");
+	__asm__ volatile("ldrb    r0, [r0]				");
+	__asm__ volatile("ldr     r1, =runtsk			");
+	__asm__ volatile("strb    r0, [r1]				");
 
-    "ldr     r2, =tcxb_sp			\n"
-    "ldr     sp, [r2,r0, LSL #2]	\n"
-    "b       dispatch_task			\n"
-);
+	__asm__ volatile("ldr     r2, =tcxb_sp			");
+	__asm__ volatile("ldr     sp, [r2,r0, LSL #2]	");
+	__asm__ volatile("b       dispatch_task			");
 }
 
 void __naked knl_dispatch_entry(void)
 {
-__asm__ volatile(
-    "push    {r4-r11}				\n"
+	__asm__ volatile("push    {r4-r11}				");
 
-    "ldr     r1, =runtsk			\n"
-    "ldrb    r0, [r1]				\n"
+	__asm__ volatile("ldr     r1, =runtsk			");
+	__asm__ volatile("ldrb    r0, [r1]				");
 
-    "ldr     r2, =tcxb_sp			\n"
-    "str     sp, [r2,r0, LSL #2]	\n"
+	__asm__ volatile("ldr     r2, =tcxb_sp			");
+	__asm__ volatile("str     sp, [r2,r0, LSL #2]	");
 
-    "ldr     r2, =tcxb_pc			\n"
+	__asm__ volatile("ldr     r2, =tcxb_pc			");
 
-    "ldr     r12, =knl_dispatch_r	\n"
-    "str     r12, [r2,r0, LSL #2]	\n"
+	__asm__ volatile("ldr     r12, =knl_dispatch_r	");
+	__asm__ volatile("str     r12, [r2,r0, LSL #2]	");
 
-    "b       knl_start_dispatch		\n"
-);
+	__asm__ volatile("b       knl_start_dispatch	");
 }
 
 void __naked EnterISR(void)
 {
-__asm__ volatile(
-	"ldr     r1, =knl_taskindp		\n"
-    "ldr     r2, [r1]				\n"
+	__asm__ volatile("ldr     r1, =knl_taskindp		");
+	__asm__ volatile("ldr     r2, [r1]				");
 
-    "cmp     r2, #0					\n"      /* knl_taskindp==0 */
-    "bne     l_nosave				\n"
+	__asm__ volatile("cmp     r2, #0				");      /* knl_taskindp==0 */
+	__asm__ volatile("bne     l_nosave				");
 
-    "ldr     r3, = knl_dispatch_started	\n"
-    "ldr     r3, [r3]				\n"
-    "cmp     r3, #0					\n"
-    "beq     l_nosave				\n"    /* system not startd */
+	__asm__ volatile("ldr     r3, = knl_dispatch_started ");
+	__asm__ volatile("ldr     r3, [r3]				");
+	__asm__ volatile("cmp     r3, #0				");
+	__asm__ volatile("beq     l_nosave				");    /* system not startd */
 
     /* save context on fisrt ISR enter */
-    "push    {r4-r11}				\n"
+	__asm__ volatile("push    {r4-r11}				");
 
-    "ldr     r3, =runtsk			\n"
-    "ldrb    r4, [r3]				\n"
+	__asm__ volatile("ldr     r3, =runtsk			");
+	__asm__ volatile("ldrb    r4, [r3]				");
 
-    "ldr     r3, =tcxb_sp			\n"
-    "str     sp, [r3,r4, LSL #2]	\n"
+	__asm__ volatile("ldr     r3, =tcxb_sp			");
+	__asm__ volatile("str     sp, [r3,r4, LSL #2]	");
 
-    "ldr     r3, =tcxb_pc			\n"
+	__asm__ volatile("ldr     r3, =tcxb_pc			");
 
-    "ldr     r12, =knl_dispatch_r	\n"
-    "str     r12, [r3,r4, LSL #2]	\n"
-    // and then load isr system stack
-    "ldr     sp, =knl_system_stack  \n"  /* Set system stack*/
+	__asm__ volatile("ldr     r12, =knl_dispatch_r	");
+	__asm__ volatile("str     r12, [r3,r4, LSL #2]	");
+    /* and then load isr system stack */
+	__asm__ volatile("ldr     sp, =knl_system_stack ");  /* Set system stack*/
 
-"l_nosave: 							\n"
-    "push    {r0}					\n"    /* push {lr} */
-    "add     r3, r2, #1				\n"
-    "str     r3, [r1]				\n"
-    "push    {r1, r2}				\n"
-    "ldr     r1, = callevel			\n"
-    "ldrb    r3, [r1]				\n"
-    "push    {r3}					\n"
-    "mov     r3, #2					\n"    /* callevel = TCL_ISR2 */
-    "strb    r3,[r1]				\n"
-    "cpsie   i						\n"
-    "bx      lr						\n"
-);
+	__asm__ volatile("l_nosave: 					");
+	__asm__ volatile("push    {r0}					");    /* push {lr} */
+	__asm__ volatile("add     r3, r2, #1			");
+	__asm__ volatile("str     r3, [r1]				");
+	__asm__ volatile("push    {r1, r2}				");
+	__asm__ volatile("ldr     r1, = callevel		");
+	__asm__ volatile("ldrb    r3, [r1]				");
+	__asm__ volatile("push    {r3}					");
+	__asm__ volatile("mov     r3, #2				");    /* callevel = TCL_ISR2 */
+	__asm__ volatile("strb    r3,[r1]				");
+	__asm__ volatile("cpsie   i						");
+	__asm__ volatile("bx      lr					");
 }
 
 
 void __naked ExitISR(void)
 {
-__asm__ volatile(
-	"pop     {r3}						\n"
-	"ldr     r1, = callevel				\n"
-	"strb    r3, [r1]					\n"
-	"pop     {r1,r2}					\n"
-	"str     r2, [r1]					\n"
-	"pop     {lr}						\n"
-	"cpsid   i							\n"
+	__asm__ volatile("pop     {r3}						");
+	__asm__ volatile("ldr     r1, = callevel			");
+	__asm__ volatile("strb    r3, [r1]					");
+	__asm__ volatile("pop     {r1,r2}					");
+	__asm__ volatile("str     r2, [r1]					");
+	__asm__ volatile("pop     {lr}						");
+	__asm__ volatile("cpsid   i							");
 
-	"ldr     r0, =knl_taskindp			\n"
-	"ldr     r0, [r0]					\n"
-	"cmp     r0, #0						\n"
-	"bne     l_nodispatch				\n"
+	__asm__ volatile("ldr     r0, =knl_taskindp			");
+	__asm__ volatile("ldr     r0, [r0]					");
+	__asm__ volatile("cmp     r0, #0					");
+	__asm__ volatile("bne     l_nodispatch				");
 
-	"ldr     r0, = knl_dispatch_started	\n"
-	"ldr     r0, [r0]					\n"
-	"cmp     r0, #0						\n"
-	"beq     l_nodispatch				\n"
+	__asm__ volatile("ldr     r0, = knl_dispatch_started");
+	__asm__ volatile("ldr     r0, [r0]					");
+	__asm__ volatile("cmp     r0, #0					");
+	__asm__ volatile("beq     l_nodispatch				");
 
-	"b      knl_dispatch_entry 			\n"  /* To dispatch processing  knl_dispatch_ret_int*/
+	__asm__ volatile("b      knl_dispatch_entry 		");  /* To dispatch processing  knl_dispatch_ret_int*/
 
-"l_nodispatch:							\n"
-	"cpsie   i							\n"
-	"bx      lr							\n"
-);
+	__asm__ volatile("l_nodispatch:						");
+	__asm__ volatile("cpsie   i							");
+	__asm__ volatile("bx      lr						");
 }
 
 void __naked knl_system_tick(void)
 {
-__asm__ volatile(
-    "mov r0,lr						\n"
-    "bl EnterISR					\n"
-    "bl knl_system_tick_handler		\n"
-    "b  ExitISR						\n"
-);
+	__asm__ volatile("mov r0,lr						");
+	__asm__ volatile("bl EnterISR					");
+	__asm__ volatile("bl knl_system_tick_handler	");
+	__asm__ volatile("b  ExitISR					");
 }
 
 void __naked knl_isr_process(void)
 {
-__asm__ volatile(
-    "mov r0,lr					\n"
-    "bl EnterISR				\n"
-    "mrs     r0, ipsr 			\n"   /* r0 = dintno */
-    "bl knl_isr_handler			\n"
-    "b  ExitISR					\n"
-);
+	__asm__ volatile("mov r0,lr					");
+	__asm__ volatile("bl EnterISR				");
+	__asm__ volatile("mrs     r0, ipsr 			");   /* r0 = dintno */
+	__asm__ volatile("bl knl_isr_handler		");
+	__asm__ volatile("b  ExitISR				");
 }
 #endif /* __GNUC__ */
-
-void __assert_fail (const char *__assertion, const char *__file,
-			   unsigned int __line, const char *__function)
-{
-	printf("assert(%s) @ %s line %d of %s\n",__assertion,__file,__line,__function);
-	while(1);
-}
 
 
 void nmi_handler(void) 			{ printf("nmi_handler\n");while(1);}

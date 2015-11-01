@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -129,10 +129,6 @@ extern "C" {
 	#error Missing definition:  configUSE_TICK_HOOK must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
 #endif
 
-#ifndef configUSE_CO_ROUTINES
-	#error  Missing definition:  configUSE_CO_ROUTINES must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
-#endif
-
 #ifndef INCLUDE_vTaskPrioritySet
 	#error Missing definition:  INCLUDE_vTaskPrioritySet must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
 #endif
@@ -161,14 +157,18 @@ extern "C" {
 	#error Missing definition:  configUSE_16_BIT_TICKS must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
 #endif
 
+#ifndef configMAX_PRIORITIES
+	#error configMAX_PRIORITIES must be defined to be greater than or equal to 1.
+#endif
+
+#ifndef configUSE_CO_ROUTINES
+	#define configUSE_CO_ROUTINES 0
+#endif
+
 #if configUSE_CO_ROUTINES != 0
 	#ifndef configMAX_CO_ROUTINE_PRIORITIES
 		#error configMAX_CO_ROUTINE_PRIORITIES must be greater than or equal to 1.
 	#endif
-#endif
-
-#ifndef configMAX_PRIORITIES
-	#error configMAX_PRIORITIES must be defined to be greater than or equal to 1.
 #endif
 
 #ifndef INCLUDE_xTaskGetIdleTaskHandle
@@ -193,6 +193,10 @@ extern "C" {
 
 #ifndef configUSE_APPLICATION_TASK_TAG
 	#define configUSE_APPLICATION_TASK_TAG 0
+#endif
+
+#ifndef configNUM_THREAD_LOCAL_STORAGE_POINTERS
+	#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0
 #endif
 
 #ifndef INCLUDE_uxTaskGetStackHighWaterMark
@@ -613,6 +617,34 @@ extern "C" {
 	#define traceQUEUE_REGISTRY_ADD(xQueue, pcQueueName)
 #endif
 
+#ifndef traceTASK_NOTIFY_TAKE_BLOCK
+	#define traceTASK_NOTIFY_TAKE_BLOCK()
+#endif
+
+#ifndef traceTASK_NOTIFY_TAKE
+	#define traceTASK_NOTIFY_TAKE()
+#endif
+
+#ifndef traceTASK_NOTIFY_WAIT_BLOCK
+	#define traceTASK_NOTIFY_WAIT_BLOCK()
+#endif
+
+#ifndef traceTASK_NOTIFY_WAIT
+	#define traceTASK_NOTIFY_WAIT()
+#endif
+
+#ifndef traceTASK_NOTIFY
+	#define traceTASK_NOTIFY()
+#endif
+
+#ifndef traceTASK_NOTIFY_FROM_ISR
+	#define traceTASK_NOTIFY_FROM_ISR()
+#endif
+
+#ifndef traceTASK_NOTIFY_GIVE_FROM_ISR
+	#define traceTASK_NOTIFY_GIVE_FROM_ISR()
+#endif
+
 #ifndef configGENERATE_RUN_TIME_STATS
 	#define configGENERATE_RUN_TIME_STATS 0
 #endif
@@ -715,6 +747,10 @@ extern "C" {
 	#define mtCOVERAGE_TEST_MARKER()
 #endif
 
+#ifndef mtCOVERAGE_TEST_DELAY
+	#define mtCOVERAGE_TEST_DELAY()
+#endif
+
 #ifndef portASSERT_IF_IN_ISR
 	#define portASSERT_IF_IN_ISR()
 #endif
@@ -773,9 +809,8 @@ V8 if desired. */
 	#define xTimerHandle TimerHandle_t
 	#define xCoRoutineHandle CoRoutineHandle_t
 	#define pdTASK_HOOK_CODE TaskHookFunction_t
-#ifdef __WINDOWS__
 	#define portTICK_RATE_MS portTICK_PERIOD_MS
-#endif
+
 	/* Backward compatibility within the scheduler code only - these definitions
 	are not really required but are included for completeness. */
 	#define tmrTIMER_CALLBACK TimerCallbackFunction_t
@@ -783,6 +818,14 @@ V8 if desired. */
 	#define xListItem ListItem_t
 	#define xList List_t
 #endif /* configENABLE_BACKWARD_COMPATIBILITY */
+
+/* Set configUSE_TASK_FPU_SUPPORT to 0 to omit floating point support even
+if floating point hardware is otherwise supported by the FreeRTOS port in use.
+This constant is not supported by all FreeRTOS ports that include floating 
+point support. */
+#ifndef configUSE_TASK_FPU_SUPPORT
+	#define configUSE_TASK_FPU_SUPPORT 1
+#endif
 
 #ifdef __cplusplus
 }
