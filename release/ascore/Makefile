@@ -34,8 +34,8 @@ STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 #rtos?=freeosek
-rtos?=freertos
-#rtos?=toppers_osek
+#rtos?=freertos
+rtos?=toppers_osek
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"

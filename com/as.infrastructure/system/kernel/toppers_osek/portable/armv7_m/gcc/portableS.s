@@ -56,6 +56,8 @@ knl_dispatch_r:
      /* start to restore task's context */
     pop     {r4-r11}
     cpsie   i
+    dsb
+    isb
     bx      lr
 
 dispatch_task:
@@ -67,6 +69,11 @@ dispatch_task:
     .type   knl_start_dispatch, %function
 knl_dispatch_ret_int:
 knl_start_dispatch:
+    /* lr must be 0xFFFFFFF9, if compiler is gcc, I don't know why fisrt times it is 0xFFFFFFF1,
+     * so that hard_fault.
+     * I want to say shit, why IAR is OK with the same code
+     */
+    ldr lr, =0xFFFFFFF9 /* force it to process mode and use MSP */
     ldr     r0, =schedtsk
     ldrb    r0, [r0]
     ldr     r1, =runtsk
