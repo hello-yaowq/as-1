@@ -410,6 +410,14 @@ void __putchar(char ch)
 	  timeout ++;
   }
 }
+
+#ifndef __GNUC__
+int putchar( int ch )	/* for printf */
+{
+	__putchar(ch);
+  return ch;
+}
+#endif
 static void Usart_Init(void)
 {
     USART_InitTypeDef USART_InitStructure;
