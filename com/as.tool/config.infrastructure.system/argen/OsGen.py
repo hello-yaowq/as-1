@@ -693,6 +693,26 @@ def genForFreeOSEK(gendir,os_list):
     fp.write('#endif /*OS_CFG_H*/\n\n')
     fp.close()
 
+def SmallOS_TaskList(os_list):
+    ret_list = []
+    task_list = ScanFrom(os_list,'Task')
+    for task in task_list:
+        length = len(ret_list)
+        if(length == 0):
+            ret_list.append(task)
+        else:
+            prio = int(task.attrib['priority'])
+            flag = False
+            for it in ret_list:
+                iprio = int(it.attrib['priority'])
+                if(prio < iprio):
+                    ret_list.insert(0, task)
+                    flag = True
+                    break
+            if(flag == False):
+                ret_list.append(task)
+    return ret_list
+    
 def genForSmallOS_H(gendir,os_list):
     fp = open('%s/Os_Cfg.h'%(gendir),'w')
     fp.write(__header)
@@ -702,9 +722,9 @@ def genForSmallOS_H(gendir,os_list):
     fp.write('#include "os_i.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __SMALL_OS__\n\n')
-    task_list = ScanFrom(os_list,'Task')
+    task_list = SmallOS_TaskList(os_list)
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
+        fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(task.attrib['name'],id,task.attrib['priority']))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(task):
@@ -753,7 +773,7 @@ def genForSmallOS_C(gendir,os_list):
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    task_list = ScanFrom(os_list,'Task')
+    task_list = SmallOS_TaskList(os_list)
     fp.write('CONST(task_declare_t,AUTOMATIC)  TaskList[TASK_NUM] = \n{\n')
     for id,task in enumerate(task_list):
         fp.write('\tDeclareTask(%-32s, %-5s, %s    ),\n'%(task.attrib['name'],task.attrib['auto-start'].upper(),task.attrib['app-mode']))

@@ -50,7 +50,7 @@ FUNC(void,MEM_OsTick) OsTick ( void )
 
 FUNC(StatusType,MEM_GetAlarmBase) GetAlarmBase ( AlarmType AlarmId, AlarmBaseRefType Info )
 {
-	assert(AlarmId<ALARM_NUM);
+	asAssert(AlarmId<ALARM_NUM);
 
     Info[0].maxallowedvalue = TICK_MAX;
     Info[0].ticksperbase     = 1u;
@@ -61,7 +61,7 @@ FUNC(StatusType,MEM_GetAlarmBase) GetAlarmBase ( AlarmType AlarmId, AlarmBaseRef
 
 FUNC(StatusType,MEM_GetAlarm) GetAlarm(AlarmType AlarmId, TickRefType Tick)
 {
-	assert(AlarmId<ALARM_NUM);
+	asAssert(AlarmId<ALARM_NUM);
 
 	Tick[0] = AlarmTick[AlarmId];
 
@@ -70,7 +70,7 @@ FUNC(StatusType,MEM_GetAlarm) GetAlarm(AlarmType AlarmId, TickRefType Tick)
 
 FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle )
 {
-	assert(AlarmId<ALARM_NUM);
+	asAssert(AlarmId<ALARM_NUM);
 
 	AlarmTick[AlarmId] = Increment;
 	AlarmPeriod[AlarmId] = Cycle;
@@ -80,7 +80,7 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 
 FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle )
 {
-	assert(AlarmId<ALARM_NUM);
+	asAssert(AlarmId<ALARM_NUM);
 
 	if (OsTickCounter < Start)
 	{
@@ -99,7 +99,7 @@ FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start
 
 FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 {
-	assert(AlarmId<ALARM_NUM);
+	asAssert(AlarmId<ALARM_NUM);
 
 	AlarmTick[AlarmId] = 0;
 	AlarmPeriod[AlarmId] = 0;

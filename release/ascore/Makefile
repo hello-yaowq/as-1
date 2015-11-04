@@ -382,8 +382,8 @@ clean:
 	@rm -fv $(exe-dir)/*
 	
 clean-dist:clean
-	@rm -frv $(src-dir)/*
-	@rm -frv $(inc-dir)/*
+	@rm -fv $(src-dir)/*
+	@rm -fv $(inc-dir)/*
 	
 00:clean-dist
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #

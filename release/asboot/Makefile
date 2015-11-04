@@ -120,6 +120,7 @@ dep-stm32f107vc:
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot TRUE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script/linker.lds linker.lds)
 	@(echo "  >> prepare link for STM32F107VC done")		
@@ -133,8 +134,8 @@ clean:
 	@rm -fv $(exe-dir)/*
 	
 clean-dist:clean
-	@rm -frv $(src-dir)/*
-	@rm -frv $(inc-dir)/*
+	@rm -fv $(src-dir)/*
+	@rm -fv $(inc-dir)/*
 	
 00:clean-dist
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
