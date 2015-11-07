@@ -679,12 +679,12 @@ void sys_exit(void)
 	exit(-1);
 }
 
-imask_t portGetIrqStateAndDisableIt(void)
+imask_t __Irq_Save(void)
 {
 	vPortEnterCritical();
 	return ulCriticalNesting;
 }
-void portRestroeIrqState(imask_t irq_state)
+void Irq_Restore(imask_t irq_state)
 {
 	vPortExitCritical();
 }

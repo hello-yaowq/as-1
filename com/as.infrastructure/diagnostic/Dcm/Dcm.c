@@ -12,7 +12,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
-
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ */
 
 // 904 PC-Lint: OK. Allow VALIDATE, VALIDATE_RV and VALIDATE_NO_RV to return value.
 //lint -emacro(904,VALIDATE_RV,VALIDATE_NO_RV,VALIDATE)

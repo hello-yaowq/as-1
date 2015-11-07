@@ -12,7 +12,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
-
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ */
 /*
  *  General requirements
  */

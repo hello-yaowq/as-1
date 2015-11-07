@@ -17,7 +17,7 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-STATIC	TickType				OsTickCounter;
+TickType				OsTickCounter;
 
 STATIC TickType			 	AlarmTick[ALARM_NUM];
 STATIC TickType			 	AlarmPeriod[ALARM_NUM];

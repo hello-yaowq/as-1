@@ -80,7 +80,7 @@ STATIC FUNC(void,MEM_TASK_INIT) Init ( void )
         for (task=0; task < TASK_NUM; task++)
         {
             P2CONST(task_declare_t, AUTOMATIC,LOCAL) declare = &TaskList[task];
-            assert(task == declare->priority);
+            asAssert(task == declare->priority);
             if ( (TRUE == declare->autostart) &&
                  (0u   != (declare->app_mode&AppMode)) )
             {
@@ -170,7 +170,7 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
     if ( E_OK == GetResource(RES_SCHEDULER) )
     {
         task = GetBit();
-        assert(task < TASK_NUM);
+        asAssert(task < TASK_NUM);
         declare = &TaskList[task];
 
         if (task > CurrentTask)

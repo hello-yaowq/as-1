@@ -12,6 +12,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ */
 
 //lint -esym(754, SID)	//Structure member SID not used in udsReadDtcInfoSub_0x01_0x07_0x11_0x12() and udsReadDtcInfoSub_0x02_0x0A_0x0F_0x13_0x15()
 
@@ -2037,7 +2042,7 @@ static Dcm_NegativeResponseCodeType readMemoryData( Dcm_OpStatusType *OpStatus,
 													uint8 memoryIdentifier,
 													uint32 MemoryAddress,
 													uint32 MemorySize,
-													uint8 *Data)
+													PduInfoType *pduTxData)
 {
 	Dcm_ReturnReadMemoryType ReadRet;
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVERESPONSE;
@@ -2045,7 +2050,7 @@ static Dcm_NegativeResponseCodeType readMemoryData( Dcm_OpStatusType *OpStatus,
 	ReadRet = Dcm_ReadMemory(*OpStatus,memoryIdentifier,
 									MemoryAddress,
 									MemorySize,
-									Data);
+									&pduTxData->SduDataPtr[1]);
 	if(DCM_READ_FAILED == ReadRet)
 	{
 		responseCode = DCM_E_GENERALPROGRAMMINGFAILURE;  /*@req Dcm644*/
@@ -2263,7 +2268,7 @@ void DspUdsReadMemoryByAddress(const PduInfoType *pduRxData, PduInfoType *pduTxD
 					diagResponseCode = checkAddressRange(DCM_READ_MEMORY, memoryIdentifier, memoryAddress, length);
 					if( DCM_E_POSITIVERESPONSE == diagResponseCode )
 					{
-						diagResponseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, &pduTxData->SduDataPtr[1]);
+						diagResponseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, pduTxData);
 					}
 				}
 				else {
