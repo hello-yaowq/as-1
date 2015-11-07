@@ -93,7 +93,9 @@ endif
 ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
-def-y += 
+def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
+def-y += -DUSE_DET -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM
 endif
 
 inc-y += -I$(inc-dir)
@@ -106,8 +108,11 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
-	
-XCC:
+
+BSW:	
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/asboot/src true)
+		
+OS:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/asboot/src false)	
 	
 
@@ -117,15 +122,38 @@ dep-posix:
 dep-stm32f107vc: 
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanIf TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanTp TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/PduR TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Dcm TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/EcuM_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/EcuM_PBcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/SchM_cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Det_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot TRUE)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script/linker.lds linker.lds)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Can.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Lcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Mcu.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_ConfigTypes.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script/linker.lds)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
+	@(cd $(inc-dir);$(LNFS) $(CMSIS))
+	@(make BSW)
 	@(echo "  >> prepare link for STM32F107VC done")		
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
 

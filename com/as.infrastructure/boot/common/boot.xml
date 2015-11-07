@@ -17,8 +17,4 @@
 	        
         <Alarm name='Alarm_BswService' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />       
 	</Os>
-	
-	<KSM>
-		<IsrProcess><Process/></IsrProcess>
-	</KSM>
 </AS>

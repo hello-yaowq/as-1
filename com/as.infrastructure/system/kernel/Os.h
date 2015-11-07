@@ -20,7 +20,7 @@
 #include "ksm_cfg.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-#if defined(__TOPPERS_OSEK__) || defined(__FREEOSEK__)
+#if defined(__TOPPERS_OSEK__) || defined(__FREEOSEK__) || defined(__SMALL_OS__)
 #define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
 #define OsTerminateTask(x)	TerminateTask()
 #endif /* AS_OS_BASED_ON_TOPPERS_OSEK */

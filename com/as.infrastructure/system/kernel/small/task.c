@@ -245,9 +245,10 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
     Init();
 }
 
-TASK(OsIdle)
+FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )
 {
-
+	(void)ercd;
+	while(1);
 }
 
 #ifdef __cplusplus

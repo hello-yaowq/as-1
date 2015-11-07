@@ -171,7 +171,7 @@ SG:
 	@(cd SgDesign;$(SG) Sg.xml)
 	
 
-XCC:
+OS:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src false)	
 ifeq ($(rtos),freeosek)
 # as the bug of FreeOSEK generator
@@ -270,7 +270,6 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
-	@(cd $(src-dir);rm -f EcuM_Flexible.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
@@ -373,7 +372,7 @@ dep-at91sam3s:
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(echo "  >> prepare link for AT91SAM3S done")
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) XCC
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
 

@@ -568,6 +568,7 @@ EcuM_WakeupSourceType EcuM_GetValidatedWakeupEvents(void) {
 EcuM_WakeupStatusType EcuM_GetStatusOfWakeupSource(
 				EcuM_WakeupSourceType sources) {
 	asAssert(0);
+	(void)sources;
 	// NO SUPPORT
 	return 0;
 }
