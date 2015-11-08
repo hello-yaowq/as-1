@@ -28,8 +28,12 @@
 #include <QList>
 #include <assert.h>
 #include "asdebug.h"
+#include "entry.h"
+#include "arcan.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define IPC_FIFO_SIZE 1024
+
+#define RPMSG_NAME_SERVICE_PORT 53
 
 #define RPROC_RSC_NUM  1
 #define RPROC_RPMSG_CFG_SIZE  16
@@ -181,7 +185,12 @@ typedef struct rpmsg_ns_msg {
     char name[RPMSG_NAME_SIZE];
     uint32_t addr;
     uint32_t flags;
-} RPmsg_NsMsgType;
+} RPmsg_NamseServiceMessageType;
+
+typedef enum{
+    RPMSG_NS_CREATE		= 0,
+    RPMSG_NS_DESTROY	= 1,
+} RPmsg_NameServiceFlagType;
 
 typedef struct {
     // the CAN ID, 29 or 11-bit
@@ -441,33 +450,10 @@ public:
         /* the last one must be added failed */
         free(data);
     }
+private slots:
+    void on_CanMessageReceived(OcMessage *);
 public:
-    void rx_noificaton(void){
-        VirtQ_IdxSizeType idx;
-        uint32_t len;
-        RPmsg_HandlerType* buf;
-        ASLOG(OFF,"rx_notification(idx=%Xh)\n",get_r_notifyid());
-        buf = (RPmsg_HandlerType*)get_used_r_buf(&idx,&len);
-
-        assert(buf);
-        ASLOG(OFF,"Message(idx=%d,len=%d)\n",idx,len);
-        ASLOG(OFF,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
-
-        if((buf->src == 0xDEAD) && (buf->dst == 0xBEEF))
-        {
-            Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
-            ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
-                  msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
-                    msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
-        }
-        else
-        {
-            asmem(buf,len);
-        }
-
-        put_used_r_buf_back(idx);
-
-    }
+    void rx_noificaton(void);
 };
 
 class Virtio: public QThread

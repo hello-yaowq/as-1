@@ -90,7 +90,7 @@ vmWindow::vmWindow(QWidget* parent)
     }
     closedir(d);
 
-    setGeometry(25,30,600,20);
+    setGeometry(50,50,600,20);
 }
 void vmWindow::save ( void )
 {

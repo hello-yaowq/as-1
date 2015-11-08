@@ -208,3 +208,43 @@ void Virtio_SetIpcBaseAddress(unsigned long base)
         assert(Ipc_BaseAddress == base);
     }
 }
+
+void RPmsg::rx_noificaton(void){
+    VirtQ_IdxSizeType idx;
+    uint32_t len;
+    RPmsg_HandlerType* buf;
+    ASLOG(OFF,"rx_notification(idx=%Xh)\n",get_r_notifyid());
+    buf = (RPmsg_HandlerType*)get_used_r_buf(&idx,&len);
+
+    assert(buf);
+    ASLOG(OFF,"Message(idx=%d,len=%d)\n",idx,len);
+    ASLOG(OFF,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
+
+    if((buf->src == 0xDEAD) && (buf->dst == 0xBEEF))
+    {
+        Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
+        ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+              msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
+                msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
+    }
+    else
+    {
+       if(RPMSG_NAME_SERVICE_PORT == buf->dst)
+       { /*naming service*/
+            RPmsg_NamseServiceMessageType* nsMsg = (RPmsg_NamseServiceMessageType*)buf->data;
+            if(0==strcmp(nsMsg->name,"RPMSG-SAMPLE"))
+            {
+                arCan* candev = (arCan*)Entry::Self()->getDevice(CAN_DEVICE_NAME);
+                connect(candev,SIGNAL(messageReceived(OcMessage*)),this,SLOT(on_CanMessageReceived(OcMessage*)));
+            }
+       }
+    }
+
+    put_used_r_buf_back(idx);
+
+}
+
+void RPmsg::on_CanMessageReceived(OcMessage * msg)
+{
+    qDebug()<<msg;
+}
