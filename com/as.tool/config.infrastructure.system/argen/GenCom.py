@@ -31,6 +31,7 @@ def GenCom(root,dir):
     global __dir
     GLInit(root)
     __dir = '%s'%(dir)
+    if(len(GLGet('IPduList')) == 0):return
     GenH()
     GenC()
     print('    >>> Gen Com DONE <<<')

@@ -31,6 +31,8 @@
 #define CAN_WAKEUP_SUPPORT				STD_OFF  // Not supported
 #define CAN_HW_TRANSMIT_CANCELLATION	STD_OFF  // Not supported
 
+#define INDEX_OF_CAN_CTRL_1 0
+
 typedef enum {
 	CAN_CTRL_1 = 0,
 	CAN_CTRL_2 = 1,
@@ -55,13 +57,13 @@ typedef enum {
 	CAN_ARC_HANDLE_TYPE_FULL
 } Can_Arc_HohType;
 
-
+#define Can1Hth HWObj_2
 typedef enum {
 	HWObj_2,
 	NUM_OF_HTHS
 } Can_Arc_HTHType;
 
-
+#define Can1Hrh HWObj_1
 typedef enum {
 	HWObj_1,
 	NUM_OF_HRHS
@@ -214,8 +216,8 @@ typedef struct {
 } Can_ConfigType;
 
 
-extern const Can_ConfigType CanConfigData;
-extern const Can_ControllerConfigType CanControllerConfigData[];
+extern const Can_ConfigType Can_ConfigData;
+extern const Can_ControllerConfigType Can_ControllerCfgData[];
 extern const Can_ConfigSetType Can_ConfigSet;
 
 #endif /*CAN_CFG_H_*/

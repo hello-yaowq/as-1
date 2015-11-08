@@ -113,6 +113,9 @@ BSW:
 		
 OS:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/asboot/src false)	
+
+studio:
+	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/asboot/src)	
 	
 
 dep-posix: 
@@ -148,9 +151,9 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
-	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c)
+	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
 	@(make BSW)
-	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c)
+	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Lcfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Cfg.h)
 	@(echo "  >> prepare link for STM32F107VC done")		

@@ -29,6 +29,7 @@ __dir = '.'
 def GenPduR(root,dir):
     global __dir,__root
     GLInit(root)
+    if(len(GLGet('RoutineList')) == 0):return
     __dir = '%s'%(dir)
     GenH()
     GenC()
@@ -202,11 +203,18 @@ def GenH():
 #if !(((PDUR_SW_MAJOR_VERSION == 2) && (PDUR_SW_MINOR_VERSION == 0)) )
 #error PduR: Configuration file expected BSW module version to be 2.0.*
 #endif
-
+#if defined(USE_DCM)
 #include "Dcm.h"
+#endif
+#if defined(USE_COM)
 #include "Com.h"
+#endif
+#if defined(USE_CANIF)
 #include "CanIf.h"
+#endif
+#if defined(USE_CANTP)
 #include "CanTp.h"
+#endif
 
 extern const PduR_PBConfigType PduR_Config;
 

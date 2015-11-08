@@ -30,6 +30,7 @@ def GenCan(root,dir):
     global __dir
     GLInit(root)
     __dir = '%s'%(dir)
+    if(len(GLGet('ControllerList')) == 0):return
     GenH()
     GenC()
     print('    >>> Gen Can DONE <<<')

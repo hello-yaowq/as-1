@@ -30,6 +30,7 @@ __dir = '.'
 def GenDcm(root,dir):
     global __dir,AlreadySecurityRef,AlreadySessionRef
     GLInit(root)
+    if(len(GLGet('ProtocolList')) == 0):return
     AlreadySecurityRef = []
     AlreadySessionRef = []
     __dir = '%s'%(dir)

@@ -33,6 +33,7 @@ def GenCanIf(root,dir):
     global __dir
     GLInit(root)
     __dir = '%s'%(dir)
+    if(len(GLGet('ChannelList')) == 0):return
     GenH()
     GenC()
     print('    >>> Gen CanIf DONE <<<')

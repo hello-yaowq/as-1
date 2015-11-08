@@ -30,6 +30,7 @@ def GenCanTp(root,dir):
     global __dir
     GLInit(root)
     __dir = '%s'%(dir)
+    if(len(GLGet('RxSduList')) == 0):return
     GenH()
     GenC()
     print('    >>> Gen CanTp DONE <<<')

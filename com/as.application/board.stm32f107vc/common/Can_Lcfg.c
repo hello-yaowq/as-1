@@ -46,7 +46,7 @@ const Can_HardwareObjectType CanHardwareObjectConfig_Controller_1[] = {
 };
 
 
-const Can_ControllerConfigType CanControllerConfigData[] =
+const Can_ControllerConfigType Can_ControllerCfgData[] =
 {
   {
     .CanControllerActivation =	TRUE,
@@ -75,13 +75,13 @@ const Can_CallbackType CanCallbackConfigData = {
     CanIf_Arc_Error,
 };
 
-const Can_ConfigSetType CanConfigSetData =
+const Can_ConfigSetType Can_ConfigSetData =
 {
-  .CanController =	CanControllerConfigData,
+  .CanController =	Can_ControllerCfgData,
   .CanCallbacks =	&CanCallbackConfigData,
 };
 
-const Can_ConfigType CanConfigData = {
-  .CanConfigSet =	&CanConfigSetData,
+const Can_ConfigType Can_ConfigData = {
+  .CanConfigSet =	&Can_ConfigSetData,
 };
 

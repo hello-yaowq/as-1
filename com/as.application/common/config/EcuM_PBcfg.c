@@ -107,7 +107,7 @@ EcuM_ConfigType EcuMConfig =
 #if defined(USE_NM)
 	.NmConfig = &Nm_Config,
 #endif
-#if defined(USE_PDUR)
+#if defined(USE_PDUR) &&(STD_OFF == PDUR_ZERO_COST_OPERATION)
 	.PduRConfig = &PduR_Config,
 #endif
 #if defined(USE_J1939TP)

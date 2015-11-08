@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Os.h"
+#include "asdebug.h"
 
 
 /* CONFIGURATION NOTES
@@ -389,13 +390,16 @@ static void Can_TxIsr(int unit) {
 }
 
 //-------------------------------------------------------------------
-
+#if 0
 #define INSTALL_HANDLERS(_can_name,_sce,_rx,_tx) \
   do { \
     ISR_INSTALL_ISR2( "Can_Err", _can_name ## _ErrIsr, _sce, 2, 0 ); \
 	ISR_INSTALL_ISR2( "Can_Rx",  _can_name ## _RxIsr,  _rx,  2, 0 ); \
 	ISR_INSTALL_ISR2( "Can_Tx",  _can_name ## _TxIsr,  _tx,  2, 0 ); \
   } while(0);
+#else
+#define INSTALL_HANDLERS(_can_name,_sce,_rx,_tx)
+#endif
 
 // This initiates ALL can controllers
 void Can_Init( const Can_ConfigType *config ) {
@@ -440,7 +444,8 @@ void Can_Init( const Can_ConfigType *config ) {
         INSTALL_HANDLERS(Can_2, CAN2_SCE_IRQn, CAN2_RX0_IRQn, CAN2_TX_IRQn);	break;
 #endif
         default:
-        assert(0);
+        asAssert(0);
+        break;
     }
 
     Can_InitController(ctlrId, canHwConfig);
@@ -793,7 +798,14 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 
   return rv;
 }
+void Can_MainFunction_Write ( void )
+{
 
+}
+void Can_MainFunction_Error ( void )
+{
+
+}
 void Can_MainFunction_Read( void ) {
 
 	/* NOT SUPPORTED */
