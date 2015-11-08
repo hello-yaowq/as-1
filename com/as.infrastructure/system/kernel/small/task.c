@@ -243,6 +243,11 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	AppMode = Mode;
 
     Init();
+
+    for(;;)
+    {
+    	(void)Schedule();
+    }
 }
 
 FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )

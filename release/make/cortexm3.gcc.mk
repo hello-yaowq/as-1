@@ -22,6 +22,9 @@ else
 cflags-y += -O2
 asflags-y += -O2
 endif
+#remove unused code and data to save ROM/RAM usage
+cflags-y += -ffunction-sections -fdata-sections
+ldflags-y += --gc-sections
 
 ldflags-y += -static -T $(link-script)
 dir-y += $(src-dir)

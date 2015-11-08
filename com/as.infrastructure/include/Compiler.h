@@ -137,9 +137,10 @@ static inline unsigned int ilog2(unsigned long _x)
 
 #define P2FUNC(rettype,ptrclass,fctname) rettype (*fctname)
 
-#ifndef __WINDOWS__
-#define CONST(consttype,memclass) const consttype
+#ifdef CONST
+#undef CONST
 #endif
+#define CONST(consttype,memclass) const consttype
 
 #define VAR(vartype,memclass) vartype
 /* ============================ [ TYPES     ] ====================================================== */

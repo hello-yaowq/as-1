@@ -751,7 +751,7 @@ def genForSmallOS_H(gendir,os_list):
     if(len(task_list) > 0):
         fp.write('extern CONST(task_declare_t,AUTOMATIC)  TaskList[TASK_NUM];\n')
     if(len(alarm_list) > 0):
-        fp.write('extern CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM];')
+        fp.write('extern CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM];\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     for id,task in enumerate(task_list):

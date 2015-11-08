@@ -126,11 +126,25 @@ TimerType GetTimer(TimerType* timer)
 
 TASK(TaskIdle)
 {
+#if !defined(__SMALL_OS__)
 	for(;;)
 	{
+#endif
 		KSM_EXECUTE();
 #ifdef __FREEOSEK__
 		(void)Schedule();
 #endif
+
+#if (defined(__WINDOWS__) || defined(__LINUX__)) && defined(__SMALL_OS__)
+#include <sys/time.h>
+		static clock_t previous = 0;
+		if(clock() != previous)
+		{
+			previous = clock();
+			OsTick();
+		}
+#endif
+#if !defined(__SMALL_OS__)
 	}
+#endif
 }

@@ -82,7 +82,11 @@ ldflags-y +=-lrt
 else
 ldflags-y +=-lwinmm 
 endif
-ldflags-y += -lstdc++ -lm	
+ldflags-y += -lstdc++ -lm -lpthread
+def-y += -DUSE_DET -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM	
+# inter processor communication		 
+def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 endif	# posix end
 
 ifeq ($(board),stm32f107vc)
@@ -117,8 +121,45 @@ OS:
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/asboot/src)	
 	
-
-dep-posix: 
+dep-as-virtual:
+	@($(LNFS) $(VIRTUAL) virtual)
+	
+dep-posix: dep-as-virtual
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanIf TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanTp TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/PduR TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Dcm TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/EcuM_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/EcuM_PBcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/SchM_cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Det_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Can.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Mcu.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_ConfigTypes.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
+	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
 dep-stm32f107vc: 
