@@ -246,7 +246,7 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
 {
     this->channelNumber = channelNumber;
     this->createGui();
-    this->setGeometry(25,120,1200,500);
+    this->setGeometry(50,120,1200,500);
 
     /* for simulation */
     for(unsigned long i=0;i<channelNumber;i++)
@@ -276,8 +276,6 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
     setVisible(true);
 
     self = this;
-
-    startTimer(1);
 }
 
 arCan::~arCan()

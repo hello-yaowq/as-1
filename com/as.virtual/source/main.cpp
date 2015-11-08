@@ -25,8 +25,6 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    vmWindow vm;
-    vm.show();
     Entry w;
     w.show();
     return a.exec();

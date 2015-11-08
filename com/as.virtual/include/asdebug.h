@@ -26,6 +26,7 @@
 #define AS_LOG_VRING    4
 #define AS_LOG_VDEV     5
 #define AS_LOG_RPMSG    6
+#define AS_LOG_CAN      7
 
 #define AS_LOG_VMACTION    6
 #define AS_LOG_VMWINDOW    7

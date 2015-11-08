@@ -236,6 +236,7 @@ void RPmsg::rx_noificaton(void){
             {
                 arCan* candev = (arCan*)Entry::Self()->getDevice(CAN_DEVICE_NAME);
                 connect(candev,SIGNAL(messageReceived(OcMessage*)),this,SLOT(on_CanMessageReceived(OcMessage*)));
+                ASLOG(CAN,"bind can rx\n");
             }
        }
     }
@@ -246,5 +247,7 @@ void RPmsg::rx_noificaton(void){
 
 void RPmsg::on_CanMessageReceived(OcMessage * msg)
 {
-    qDebug()<<msg;
+    ASLOG(CAN,"on_CanMessageReceived(%X = [%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x]",msg->id(),
+          msg->byte1(),msg->byte2(),msg->byte3(),msg->byte4(),
+          msg->byte5(),msg->byte6(),msg->byte7(),msg->byte8());
 }

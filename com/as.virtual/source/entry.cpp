@@ -14,6 +14,16 @@
  */
 #include "entry.h"
 #include "arcan.h"
+#include "vmWindow.h"
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
+#include <dirent.h>
 static class Entry* self = NULL;
 
 Entry::Entry ( QWidget *parent )
@@ -22,9 +32,8 @@ Entry::Entry ( QWidget *parent )
 	self = this;
 	this->setWindowTitle(tr("WhatsApp ( parai@foxmail.com )"));
 	this->createMenuAndToolbar();
-	this->startTimer(1);
 
-    this->setGeometry(50,160,600,20);
+    this->setGeometry(50,50,600,20);
 
     registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM));
 }
@@ -89,10 +98,6 @@ arDevice* Entry::getDevice ( QString name )
 }
 
 // ==================== [ SIGNALS       ] =====================================
-void Entry::timerEvent ( QTimerEvent *Event )
-{
-
-}
 
 // ==================== [ PRIVATE SLOTS ] ======================================
 void Entry::open ( void )
@@ -108,28 +113,30 @@ void Entry::save ( void )
 // ==================== [ PRIVATE FUNCTIONS ] ==================================
 void Entry::createMenuAndToolbar ( void )
 {
-    //QAction * action = NULL;
-    //QToolBar* toolbar = this->addToolBar("Console");
-    QMenu* menubar;
-#if 0
-    menubar = this->menuBar()->addMenu(tr("File"));
+    QAction * action = NULL;
+    QToolBar* toolbar = this->addToolBar("virtual machine");
 
-	action = new QAction(tr("&Open"),this);
-	action->setShortcut(tr("Ctrl+O"));
-	this->connect(action,SIGNAL(triggered()),this,SLOT(open()));
-	menubar->addAction(action);
+    char* cwd = getcwd(NULL,0);
+    ASLOG(OFF,cwd);
+    chdir("../../out");
+    char* workpath = getcwd(NULL,0);
 
-    action = new QAction(QIcon(ICON_SAVE),tr("&Save"),this);
-	action->setShortcut(tr("Ctrl+S"));
-	this->connect(action,SIGNAL(triggered()),this,SLOT(save()));
-	toolbar->addAction(action);
-	menubar->addAction(action);
+    free(cwd);
+    free(workpath);
 
-	action = new QAction(tr("&Exit"),this);
-	action->setShortcut(tr("Ctrl+Q"));
-	this->connect(action,SIGNAL(triggered()),this,SLOT(close()));
-	menubar->addAction(action);
-#endif
+    DIR* d = opendir(".");
+    struct dirent *file;
+    while((file = readdir(d)) != NULL)
+    {
+        if(strstr(file->d_name,".dll"))
+        {
+            ASLOG(OFF,"load %s\n",file->d_name);
+            action = new vmAction(QString(file->d_name),this);
+            toolbar->addAction(action);
+        }
+    }
+    closedir(d);
+
 	this->menuBSW = this->menuBar()->addMenu(tr("BSW"));
 
 	this->menuVD = menuBSW->addMenu(tr("Device"));

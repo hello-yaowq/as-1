@@ -46,7 +46,7 @@ public:
 signals:
 
 protected:
-	void timerEvent ( QTimerEvent *Event );
+
 private slots:
 	void save ( void );
 	void open ( void );

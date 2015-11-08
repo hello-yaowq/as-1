@@ -35,20 +35,6 @@ private slots:
     void start(void);
 
 };
-class vmWindow : public QMainWindow
-{
-Q_OBJECT
-private:
-    QToolBar* toolbar;
-    QAction* startEcuAction[];
-public:
-    explicit vmWindow(QWidget* parent = 0);
-    ~vmWindow();
-private slots:
-    void save ( void );
-    void open ( void );
-    void close( void );
-};
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
