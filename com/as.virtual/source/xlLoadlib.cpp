@@ -14,7 +14,7 @@
 |-----------------------------------------------------------------------------
 | Copyright (c) 2014 by Vector Informatik GmbH.  All rights reserved.
  ----------------------------------------------------------------------------*/
-
+#ifdef __WINDOWS__
 #include <windows.h>
 #ifndef _MFC_VER
 # include <stdio.h>
@@ -508,3 +508,4 @@ XLstatus xlCloseDriver(void){
   return xlUnloadLibrary();
 }
 
+#endif /* __WINDOWS__ */

@@ -21,7 +21,9 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef __WINDOWS__
 static bool IsXLReady = false;
+#endif
 static class arCan* self=NULL;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -46,7 +48,7 @@ arCanBus::arCanBus(unsigned long id):
 {
     this->canCardId = id;
     setAutonomous(true);
-
+#ifdef __WINDOWS__
     if(IsXLReady)
     {
     	char userName[32];
@@ -66,7 +68,7 @@ arCanBus::arCanBus(unsigned long id):
     {
     	/* do nothing */
     }
-
+#endif
 }
 void arCanBus::clear(void)
 {
@@ -128,7 +130,7 @@ OcStatus arCanBus::startup()
     {
         retval = OcFail;
     }
-
+#ifdef __WINDOWS__
     if(IsXLReady)
     {
     	XLstatus status = xlActivateChannel(xlPortHandle,xlAccess,XL_BUS_TYPE_CAN,XL_ACTIVATE_RESET_CLOCK);
@@ -137,6 +139,7 @@ OcStatus arCanBus::startup()
     		qDebug() << xlGetErrorString(status);
     	}
     }
+#endif
     return retval;
 }
 
@@ -152,7 +155,7 @@ OcStatus arCanBus::shutdown()
     {
         retval = OcFail;
     }
-
+#ifdef __WINDOWS__
     if(IsXLReady)
 	{
 		XLstatus status = xlDeactivateChannel(xlPortHandle,xlAccess);
@@ -161,6 +164,7 @@ OcStatus arCanBus::shutdown()
 			qDebug() << xlGetErrorString(status);
 		}
 	}
+#endif
     return retval;
 }
 
@@ -192,7 +196,7 @@ OcStatus arCanBus::receivedMessage()
         retv = OcFail; // over flow
     }
 
-    // 2
+#ifdef __WINDOWS__
     if(IsXLReady)
     {
         unsigned int event_count=1;
@@ -208,6 +212,7 @@ OcStatus arCanBus::receivedMessage()
 
 		}
     }
+#endif
 
     return retv;
 }
@@ -238,7 +243,9 @@ int arCanBus::getBaudRate()
 
 OcStatus arCanBus::setBaudRate(int baud)
 {
+#ifdef __WINDOWS__
 	XLstatus status = xlCanSetChannelBitrate(xlPortHandle,xlAccess,baud);
+#endif
     return OcSuccess;
 }
 
@@ -260,7 +267,7 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
     {
         canBusList[i]->startup();
     }
-
+#ifdef __WINDOWS__
     XLstatus status = xlOpenDriver();
 
     if(XL_SUCCESS == status)
@@ -272,7 +279,7 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
     	IsXLReady = false;
     	qDebug() << "arCan::start CAN XL device failed.";
     }
-
+#endif
     setVisible(true);
 
     self = this;
@@ -285,11 +292,12 @@ arCan::~arCan()
         delete canBusList.at(canBusList.size() - 1);
         canBusList.removeLast();
     }
-
+#ifdef __WINDOWS__
     if(IsXLReady)
     {
     	xlCloseDriver();
     }
+#endif
 }
 
 void arCan::on_btnPlayPause_clicked(void)

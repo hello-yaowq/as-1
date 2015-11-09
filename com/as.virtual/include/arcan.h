@@ -17,9 +17,11 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "ardevice.h"
 #include "ocdevice.h"
+#ifdef __WINDOWS__
 typedef void* HANDLE;
 #define POINTER_32
 #include "vxlapi.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define TICK_MAX (TickType)-1
 #define CAN_DEVICE_NAME   "Can"
@@ -34,9 +36,10 @@ private:
     unsigned long canCardId;
     QList<OcMessage*> rxMsgList;
     QList<OcMessage*> txMsgList;
-
+#ifdef __WINDOWS__
     XLportHandle xlPortHandle;
     XLaccess     xlAccess;
+#endif
     TickType      osTick;
     TickType      prevMsgTimeStamp;
 public:
