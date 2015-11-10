@@ -459,6 +459,7 @@ static void sendFlowControlFrame(const CanTp_RxNSduType *rxConfig, CanTp_Channel
 		sduData[indexCount++] = computedBs; // 734 PC-lint: Okej att casta till uint8?
 		sduData[indexCount++] = (uint8) rxConfig->CanTpSTmin;
 		rxRuntime->iso15765.nextFlowControlCount = computedBs;
+		rxRuntime->iso15765.BS = computedBs; /* by parai, bug fix, check handleConsecutiveFrame */
 		pduInfo.SduLength = indexCount;
 		break;
 	}
@@ -722,7 +723,7 @@ static void handleFlowControlFrame(const CanTp_TxNSduType *txConfig,
 	} else {
 		DEBUG( DEBUG_MEDIUM, "Ignoring flow control, we do not expect it!");
 	}
-} // 438, 550 PC-lint: extendAdress används inte. EN BUG? Behöver fixas
+} // 438, 550 PC-lint: extendAdress anvÃ¤nds inte. EN BUG? BehÃ¶ver fixas
 
 
 // - - - - - - - - - - - - - -
@@ -742,7 +743,7 @@ static void handleSingleFrame(const CanTp_RxNSduType *rxConfig,
 	(void) initRx15765RuntimeData(rxConfig, rxRuntime); /** @req CANTP124 */
 	pduLength = getPduLength(&rxConfig->CanTpAddressingFormant, SINGLE_FRAME, rxPduData);
 
-	if (rxRuntime->pdurBuffer != NULL) { // vad är detta? initieras ju till null
+	if (rxRuntime->pdurBuffer != NULL) { // vad Ã¤r detta? initieras ju till null
 		VALIDATE_NO_RV( rxRuntime->pdurBuffer->SduDataPtr != NULL,
 				SERVICE_ID_CANTP_RX_INDICATION, CANTP_E_INVALID_RX_LENGTH );
 	}
