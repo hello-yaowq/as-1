@@ -14,7 +14,6 @@
  */
 #include "entry.h"
 #include "arcan.h"
-#include "vmWindow.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -97,6 +96,67 @@ arDevice* Entry::getDevice ( QString name )
 	}
 }
 
+void Entry::registerEcu ( vEcu* ecu )
+{
+    if ( map_ecu.contains(ecu->Name()) )
+    {
+        qDebug() << "System error: ECU " << ecu->Name() << " re-registeration!\n";
+        delete ecu;
+    }
+    else
+    {
+        map_ecu[ecu->Name()] = ecu;
+        QAction * action = new QAction(ecu->Name(),this);
+        this->connect(action,SIGNAL(triggered()),ecu,SLOT(start()));
+        toolbar->addAction(action);
+    }
+}
+
+void Entry::deleteEcu ( QString name )
+{
+    if ( map_device.contains(name) )
+    {
+        vEcu* ecu = map_ecu.take(name);
+        delete ecu;
+        /* menu virtual device re-build */
+        toolbar->clear();
+        QList<vEcu*> ecus = 	map_ecu.values();
+        for(int i=0;i<ecus.size();i++)
+        {
+            ecu = ecus[i];
+            QAction * action = new QAction(ecu->Name(),this);
+            this->connect(action,SIGNAL(triggered()),ecu,SLOT(start()));
+            toolbar->addAction(action);
+        }
+    }
+    else
+    {
+        qDebug() << "System error: Virtual ECU " << name  << " delete!\n";
+    }
+}
+
+vEcu* Entry::getEcu ( QString name )
+{
+    if ( map_ecu.contains(name) )
+    {
+        return map_ecu[name];
+    }
+    else
+    {
+        return NULL;
+    }
+}
+void Entry::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+{
+    vEcu* ecu;
+    QList<vEcu*> ecus = 	map_ecu.values();
+    for(int i=0;i<ecus.size();i++)
+    {
+        ecu = ecus[i];
+        ecu->Can_Write(busid,canid,dlc,data);
+    }
+}
+
 // ==================== [ SIGNALS       ] =====================================
 
 // ==================== [ PRIVATE SLOTS ] ======================================
@@ -113,8 +173,7 @@ void Entry::save ( void )
 // ==================== [ PRIVATE FUNCTIONS ] ==================================
 void Entry::createMenuAndToolbar ( void )
 {
-    QAction * action = NULL;
-    QToolBar* toolbar = this->addToolBar("virtual machine");
+    toolbar = this->addToolBar("virtual machine");
 
     char* cwd = getcwd(NULL,0);
     ASLOG(OFF,cwd);
@@ -131,8 +190,7 @@ void Entry::createMenuAndToolbar ( void )
         if(strstr(file->d_name,".dll"))
         {
             ASLOG(OFF,"load %s\n",file->d_name);
-            action = new vmAction(QString(file->d_name),this);
-            toolbar->addAction(action);
+            registerEcu(new vEcu(file->d_name));
         }
     }
     closedir(d);

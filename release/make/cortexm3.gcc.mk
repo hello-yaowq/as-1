@@ -25,6 +25,8 @@ endif
 #remove unused code and data to save ROM/RAM usage
 cflags-y += -ffunction-sections -fdata-sections
 ldflags-y += --gc-sections
+# supress printf_chk memcpy_chk and so on
+cflags-y += -U_FORTIFY_SOURCE
 
 ldflags-y += -static -T $(link-script)
 dir-y += $(src-dir)

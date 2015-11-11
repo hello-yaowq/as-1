@@ -39,6 +39,10 @@ private:
 public:
     explicit vEcu ( QString dll, QObject *parent = 0);
     ~vEcu ( );
+    QString Name(void) { return name; }
+
+    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+
 private:
     void run(void);
 signals:

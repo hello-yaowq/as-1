@@ -15,7 +15,9 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "vEcu.h"
 #include "Virtio.h"
-
+#include "entry.h"
+#include "arcan.h"
+#include <string.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -81,6 +83,15 @@ Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
      rsc_tbl->rpmsg_vdev.gfeatures = rsc_tbl->rpmsg_vdev.dfeatures;
      ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
            r_lock,w_lock,r_event,w_event,r_fifo,w_fifo);
+}
+void Virtio::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+{
+    Vdev* dev;
+    for(int i=0;i<vdev_list.size();i++)
+    {
+        dev = vdev_list[i];
+        dev->Can_Write(busid,canid,dlc,data);
+    }
 }
 
 Virtio::~Virtio ( )
@@ -208,6 +219,49 @@ void Virtio_SetIpcBaseAddress(unsigned long base)
         assert(Ipc_BaseAddress == base);
     }
 }
+RPmsg::RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
+{
+    void* data;
+    bool added;
+    uint32_t len = sizeof(RPmsg_HandlerType);
+    /* add read buffer to full */
+    do
+    {
+        data = malloc(len);
+        assert(data);
+        memset(data,0,len);
+        added = provide_a_r_buffer(data,len);
+    } while(added);
+    /* add write buffer to full */
+    w_buffer.append(data);
+    do
+    {
+        data = malloc(len);
+        assert(data);
+        memset(data,0,len);
+        w_buffer.append(data);
+    } while((uint32_t)w_buffer.size()<w_ring_num());
+}
+void RPmsg::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+{
+    RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
+    assert(NULL != rpmsg);
+    Can_RPmsgPduType* pdu = (Can_RPmsgPduType*)rpmsg->data;
+    pdu->id  = canid;
+    pdu->bus = busid;
+    pdu->length = dlc;
+    assert(dlc<=8);
+    memcpy(pdu->sdu,data,dlc);
+
+    rpmsg->dst = 0xdead;
+    rpmsg->src = 0xbeef;
+    rpmsg->len = sizeof(Can_RPmsgPduType);
+
+    provide_a_w_buffer(rpmsg,sizeof(rpmsg));
+
+    kick_w();
+
+}
 
 void RPmsg::rx_noificaton(void){
     VirtQ_IdxSizeType idx;
@@ -234,20 +288,11 @@ void RPmsg::rx_noificaton(void){
             RPmsg_NamseServiceMessageType* nsMsg = (RPmsg_NamseServiceMessageType*)buf->data;
             if(0==strcmp(nsMsg->name,"RPMSG-SAMPLE"))
             {
-                arCan* candev = (arCan*)Entry::Self()->getDevice(CAN_DEVICE_NAME);
-                connect(candev,SIGNAL(messageReceived(OcMessage*)),this,SLOT(on_CanMessageReceived(OcMessage*)));
-                ASLOG(CAN,"bind can rx\n");
+                ASLOG(RPMSG,"RPMSG-SAMPLE on-line\n");
             }
        }
     }
 
     put_used_r_buf_back(idx);
 
-}
-
-void RPmsg::on_CanMessageReceived(OcMessage * msg)
-{
-    ASLOG(CAN,"on_CanMessageReceived(%X = [%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x,%0-2x]",msg->id(),
-          msg->byte1(),msg->byte2(),msg->byte3(),msg->byte4(),
-          msg->byte5(),msg->byte6(),msg->byte7(),msg->byte8());
 }

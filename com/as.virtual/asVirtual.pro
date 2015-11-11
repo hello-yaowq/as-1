@@ -26,7 +26,6 @@ DEFINES += USE_OPENCAN_DIRECTLY DYNAMIC_XLDRIVER_DLL
 SOURCES +=              \
     source/main.cpp \
     source/vEcu.cpp \
-    source/vmWindow.cpp \
     source/Virtio.cpp \
     source/asdebug.cpp \
     source/vCan.cpp \
@@ -40,7 +39,6 @@ SOURCES +=              \
 
 HEADERS  +=             \
     include/vEcu.h \
-    include/vmWindow.h \
     include/Virtio.h \
     include/asdebug.h \
     include/vCan.h \

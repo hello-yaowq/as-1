@@ -72,6 +72,10 @@ vEcu::vEcu ( QString dll, QObject *parent )
 
      virtio = new Virtio(hxDll,this);
 }
+void vEcu::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+{
+    virtio->Can_Write(busid,canid,dlc,data);
+}
 
 vEcu::~vEcu ( )
 {

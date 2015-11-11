@@ -18,6 +18,7 @@
 #include <QRegularExpressionMatch>
 #include <sys/time.h>
 #include <assert.h>
+#include <entry.h>
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -458,7 +459,7 @@ void arCan::on_messageReceived(OcMessage *msg, const QTime &time)
 
     emit messageReceived(msg);
 
-    delete msg;
+    Entry::Self()->Can_Write(msg->busid(),msg->id(),msg->length(),msg->data());
 }
 
 void arCan::on_btnTriggerTx_clicked(void)

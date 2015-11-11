@@ -28,8 +28,6 @@
 #include <QList>
 #include <assert.h>
 #include "asdebug.h"
-#include "entry.h"
-#include "arcan.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define IPC_FIFO_SIZE 1024
 
@@ -195,6 +193,7 @@ typedef enum{
 typedef struct {
     // the CAN ID, 29 or 11-bit
     uint32_t 	id;
+    uint8_t     bus;
     // Length, max 8 bytes
     uint8_t		length;
     // data ptr
@@ -224,6 +223,7 @@ public:
     {
         init();
     }
+    uint32_t ring_num(void){ return vr.num; }
     VirtQ_IdxType get_notifyid(void)
     {
         return ring->notifyid;
@@ -350,7 +350,16 @@ public:
     }
     void start(void)
     {
+        kick_w();
+    }
+    void kick_w(void)
+    {
         emit kick(w_ring->get_notifyid());
+    }
+
+    void kick_r(void)
+    {
+        emit kick(r_ring->get_notifyid());
     }
 
     bool notify(VirtQ_IdxType idx)
@@ -371,6 +380,8 @@ public:
           return notifed;
     }
 public:
+    uint32_t r_ring_num(void) {return r_ring->ring_num();}
+    uint32_t w_ring_num(void) {return w_ring->ring_num();}
     bool provide_a_r_buffer(void* data,uint32_t len)
     {   /* thus the remote proc can send a messsage via this buffer */
         return r_ring->add_buf(data,len);
@@ -423,6 +434,9 @@ public:
     virtual void tx_confirmation(void){
         ASLOG(VDEV,"tx_confirmation(idx=%Xh)\n",w_ring->get_notifyid());
     }
+    virtual void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data){
+        (void)busid;(void)canid;(void)dlc;(void)busid;(void)data;
+    }
 
 signals:
     void kick(unsigned int idx);
@@ -432,26 +446,12 @@ class RPmsg: public Vdev
 {
 Q_OBJECT
 private:
-
+    QList<void*> w_buffer;
 public:
-    explicit RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
-    {
-        void* data;
-        bool added;
-        uint32_t len = sizeof(RPmsg_HandlerType);
-        /* add read buffer to full */
-        do
-        {
-            data = malloc(len);
-            assert(data);
-            memset(data,0,len);
-            added = provide_a_r_buffer(data,len);
-        } while(added);
-        /* the last one must be added failed */
-        free(data);
-    }
+    explicit RPmsg ( Rproc_ResourceVdevType* rpmsg );
+    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
 private slots:
-    void on_CanMessageReceived(OcMessage *);
+
 public:
     void rx_noificaton(void);
 };
@@ -491,6 +491,7 @@ private:
 public:
     explicit Virtio ( void* dll, QObject *parent = 0);
     ~Virtio ( );
+    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
 private:
     void run(void);
     bool fifo_read(VirtQ_IdxType* id);
