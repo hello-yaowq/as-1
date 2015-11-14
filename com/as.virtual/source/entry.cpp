@@ -34,7 +34,7 @@ Entry::Entry ( QWidget *parent )
 
     this->setGeometry(50,50,600,20);
 
-    registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM));
+    registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
 }
 
 class Entry* Entry::Self ( void )
@@ -109,6 +109,9 @@ void Entry::registerEcu ( vEcu* ecu )
         QAction * action = new QAction(ecu->Name(),this);
         this->connect(action,SIGNAL(triggered()),ecu,SLOT(start()));
         toolbar->addAction(action);
+
+        connect(ecu,SIGNAL(Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)),this,
+                SLOT(On_Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)));
     }
 }
 
@@ -146,7 +149,7 @@ vEcu* Entry::getEcu ( QString name )
         return NULL;
     }
 }
-void Entry::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+void Entry::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     vEcu* ecu;
     QList<vEcu*> ecus = 	map_ecu.values();
@@ -157,11 +160,26 @@ void Entry::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
     }
 }
 
-void Entry::Can_RxIndication(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
-    OcMessage *msg = new OcMessage(canid,data,dlc,false,GetOsTick());
-    msg->setBusId(busid);
-    arCan::Self()->ReceiveMessage(msg);
+    arCan* can = (arCan*)getDevice(CAN_DEVICE_NAME);
+    assert(can);
+    can->RxIndication(busid,canid,dlc,data);
+    /* broadcast this message to others */
+    vEcu* ecu;
+    QList<vEcu*> ecus = 	map_ecu.values();
+    for(int i=0;i<ecus.size();i++)
+    {
+        if(ecu != fromEcu)
+        {
+            ecu = ecus[i];
+            ecu->Can_Write(busid,canid,dlc,data);
+        }
+        else
+        {
+            /* skip self */
+        }
+    }
 }
 
 // ==================== [ SIGNALS       ] =====================================

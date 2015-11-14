@@ -374,6 +374,7 @@ TASK(SchM_Startup){
 	// Start CAN it
 	Com_IpduGroupStart(COM_DEFAULT_IPDU_GROUP,True);
 #else
+	CanIf_SetControllerMode(CANIF_CHL_LS,CANIF_CS_STARTED);
 	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
 #endif
 

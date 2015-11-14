@@ -71,10 +71,18 @@ vEcu::vEcu ( QString dll, QObject *parent )
      p_setlog(dll.toStdString().c_str(),(aslog_t)aslog);
 
      virtio = new Virtio(hxDll,this);
+
+     connect(virtio,SIGNAL(Can_RxIndication(quint8,quint32,quint8,quint8*)),this,
+             SLOT(On_Can_RxIndication(quint8,quint32,quint8,quint8*)));
 }
-void vEcu::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+void vEcu::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     virtio->Can_Write(busid,canid,dlc,data);
+}
+
+void vEcu::On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
+{
+    emit Can_RxIndication(this,busid,canid,dlc,data);
 }
 
 vEcu::~vEcu ( )

@@ -28,29 +28,18 @@ SOURCES +=              \
     source/vEcu.cpp \
     source/Virtio.cpp \
     source/asdebug.cpp \
-    source/vCan.cpp \
     source/arcan.cpp \
     source/ardevice.cpp \
     source/entry.cpp \
-    source/ocdevice.cpp \
-    source/ocdevicemanager.cpp \
-    source/ocmessage.cpp \
     source/xlLoadlib.cpp
 
 HEADERS  +=             \
     include/vEcu.h \
     include/Virtio.h \
     include/asdebug.h \
-    include/vCan.h \
     include/arcan.h \
     include/ardevice.h \
     include/entry.h \
-    include/occore.h \
-    include/ocdevice.h \
-    include/ocdeviceinterface.h \
-    include/ocdevicemanager.h \
-    include/ocmessage.h \
-    include/ocplugininfo.h \
     include/vxlapi.h
 
 FORMS    +=

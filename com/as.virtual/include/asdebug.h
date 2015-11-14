@@ -21,8 +21,8 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
 #define AS_LOG_VECU   	0
-#define AS_LOG_IPC   	0
-#define AS_LOG_VIRTIO   0
+#define AS_LOG_IPC   	1
+#define AS_LOG_VIRTIO   1
 #define AS_LOG_VRING    0
 #define AS_LOG_VDEV     0
 #define AS_LOG_RPMSG    0

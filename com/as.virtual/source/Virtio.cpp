@@ -15,8 +15,6 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "vEcu.h"
 #include "Virtio.h"
-#include "entry.h"
-#include "arcan.h"
 #include <string.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -84,7 +82,7 @@ Virtio::Virtio ( void* dll, QObject *parent)  : QThread(parent)
      ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
            r_lock,w_lock,r_event,w_event,r_fifo,w_fifo);
 }
-void Virtio::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+void Virtio::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     Vdev* dev;
     for(int i=0;i<vdev_list.size();i++)
@@ -92,6 +90,10 @@ void Virtio::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
         dev = vdev_list[i];
         dev->Can_Write(busid,canid,dlc,data);
     }
+}
+void Virtio::On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
+{
+    emit Can_RxIndication(busid,canid,dlc,data);
 }
 
 Virtio::~Virtio ( )
@@ -119,6 +121,8 @@ void Virtio::run ( void )
     }
     RPmsg* rpmsg = new  RPmsg(&rsc_tbl->rpmsg_vdev);
     connect(rpmsg,SIGNAL(kick(unsigned int)),this,SLOT(kick(unsigned int)));
+    connect(rpmsg,SIGNAL(Can_RxIndication(quint8,quint32,quint8,quint8*)),this,
+            SLOT(On_Can_RxIndication(quint8,quint32,quint8,quint8*)));
     vdev_list.append(rpmsg);
     rpmsg->start();
 
@@ -212,7 +216,7 @@ void Virtio_SetIpcBaseAddress(unsigned long base)
     {
         Ipc_BaseAddress = base;
         Qt_SetIpcBaseAddress(base);
-        ASLOG(OFF,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+        ASLOG(OFF,"Virtual Address Base = %X00000000h\n",(quint32)(base>>32));
     }
     else
     {
@@ -223,7 +227,7 @@ RPmsg::RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
 {
     void* data;
     bool added;
-    uint32_t len = sizeof(RPmsg_HandlerType);
+    quint32 len = sizeof(RPmsg_HandlerType);
     /* add read buffer to full */
     do
     {
@@ -240,9 +244,9 @@ RPmsg::RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
         assert(data);
         memset(data,0,len);
         w_buffer.append(data);
-    } while((uint32_t)w_buffer.size()<w_ring_num());
+    } while((quint32)w_buffer.size()<w_ring_num());
 }
-void RPmsg::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
     assert(NULL != rpmsg);
@@ -265,7 +269,7 @@ void RPmsg::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
 
 void RPmsg::rx_noificaton(void){
     VirtQ_IdxSizeType idx;
-    uint32_t len;
+    quint32 len;
     RPmsg_HandlerType* buf;
     ASLOG(OFF,"rx_notification(idx=%Xh)\n",get_r_notifyid());
     buf = (RPmsg_HandlerType*)get_used_r_buf(&idx,&len);
@@ -280,7 +284,7 @@ void RPmsg::rx_noificaton(void){
         ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
               msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
                 msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
-        Entry::Self()->Can_RxIndication(msg->bus,msg->id,msg->length,msg->sdu);
+        emit Can_RxIndication(msg->bus,msg->id,msg->length,msg->sdu);
     }
     else
     {
@@ -310,7 +314,7 @@ void RPmsg::rx_noificaton(void){
 
 void RPmsg::tx_confirmation(void){
     VirtQ_IdxSizeType idx;
-    uint32_t len;
+    quint32 len;
     RPmsg_HandlerType* buf;
     ASLOG(OFF,"tx_confirmation(idx=%Xh)\n",get_w_notifyid());
     buf = (RPmsg_HandlerType*)get_used_w_buf(&idx,&len);

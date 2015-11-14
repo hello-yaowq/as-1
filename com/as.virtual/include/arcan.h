@@ -16,12 +16,6 @@
 #define ARCAN_H
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "ardevice.h"
-#include "ocdevice.h"
-#ifdef __WINDOWS__
-typedef void* HANDLE;
-#define POINTER_32
-#include "vxlapi.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define TICK_MAX (TickType)-1
 #define CAN_DEVICE_NAME   "Can"
@@ -29,44 +23,11 @@ typedef void* HANDLE;
 /* ============================ [ TYPES     ] ====================================================== */
 typedef quint32 TickType;
 /* ============================ [ CLASS     ] ====================================================== */
-class arCanBus : public OcDevice
-{
-    Q_OBJECT
-private:
-    unsigned long canCardId;
-    QList<OcMessage*> rxMsgList;
-    QList<OcMessage*> txMsgList;
-#ifdef __WINDOWS__
-    XLportHandle xlPortHandle;
-    XLaccess     xlAccess;
-#endif
-    TickType      osTick;
-    TickType      prevMsgTimeStamp;
-public:
-    explicit arCanBus(unsigned long canCardId);
-    ~arCanBus();
-    void clear(void);
-private:
-
-public:
-    OcStatus startup();
-    OcStatus shutdown();
-    OcStatus sendMessage(const OcMessage &msg);
-    OcStatus receivedMessage();
-    OcStatus internalGetMessage(OcMessage *msg);
-    int getBaudRate();
-    OcStatus setBaudRate(int baud);
-    /* if atFirst true, means execute it as soon as possible */
-    void registerRxMsg(OcMessage *msg,bool atFirst=false);
-    void registerTxMsg(OcMessage *msg,bool atFirst=false);
-};
-
 class arCan : public arDevice
 {
     Q_OBJECT
 private:
     unsigned long channelNumber;
-    QList<arCanBus*> canBusList;
     QPushButton* btnPlayPause;
     QPushButton* btnHexlDeci;
     QPushButton* btnAbsRelTime;
@@ -76,30 +37,24 @@ private:
     QLineEdit*   leId;
     QLineEdit*   leData;
     QTableWidget* tableTrace;
-    QList<OcMessage*> swMsg;
 public:
     explicit arCan(QString name,unsigned long channelNumber,QWidget *parent=0);
     ~arCan();
     static class arCan* Self ( void );
-    void WriteMessage(OcMessage *msg);
-    void ReceiveMessage(OcMessage *msg);
+    void RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+    void Transmit(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private slots:
-    void on_btnPlayPause_clicked(void);
-    void on_btnStop_clicked(void);
     void on_btnClearTrace_clicked(void);
     void on_btnSaveTrace_clicked(void);
-    void on_btnLoadTrace_clicked(void);
     void on_btnHexlDeci_clicked(void);
     void on_btnAbsRelTime_clicked(void);
-    void on_messageReceived(OcMessage *, const QTime &);
     void on_btnTriggerTx_clicked(void);
 private:
     void createGui(void);
-    OcMessage* entry2msg(QRegularExpressionMatch match);
-    void putMsg(OcMessage*,bool isRx=true);
+    void putMsg(quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx=true);
     void clear(void);
 signals:
-    void messageReceived(OcMessage *);
+
 };
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */

@@ -41,12 +41,14 @@ public:
     ~vEcu ( );
     QString Name(void) { return name; }
 
-    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+    void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+private slots:
+    void On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 
 private:
     void run(void);
 signals:
-
+    void Can_RxIndication(vEcu* ecu, quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 protected:
 
 private slots:

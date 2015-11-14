@@ -428,6 +428,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
   const Can_HardwareObjectType *hohObj;
   uint32 controller;
   imask_t irq_state;
+  uint8_t busid;
 
   VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
   VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
@@ -447,13 +448,24 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 	  return CAN_NOT_OK;;	/* make sure rpmsg is online */
   }
 
+  for (busid=0; busid < CAN_CTRL_CONFIG_CNT; busid++)
+  {
+	  if(controller==Can_Global.config->CanConfigSet->CanController->CanControllerId)
+	  {
+		  break;
+	  }
+  }
+  if(busid >= CAN_CTRL_CONFIG_CNT)
+  {
+	  return CAN_NOT_OK;
+  }
   if(CANIF_CS_STARTED == canUnit->state)
   {
 	  Irq_Save(irq_state);
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
 		  Can_RPmsgPduType rpmsg;
-		  rpmsg.bus = controller;
+		  rpmsg.bus = busid;
 		  rpmsg.id = pduInfo->id;
 		  rpmsg.length = pduInfo->length;
 		  memcpy(rpmsg.sdu,pduInfo->sdu,pduInfo->length);

@@ -51,8 +51,7 @@ public:
     void deleteEcu ( QString name );
     vEcu* getEcu ( QString name );
 
-    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
-    void Can_RxIndication(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+    void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 signals:
 
 protected:
@@ -60,6 +59,7 @@ protected:
 private slots:
 	void save ( void );
 	void open ( void );
+    void On_Can_RxIndication(vEcu*,quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private:
 	void createMenuAndToolbar ( void );
 

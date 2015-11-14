@@ -80,37 +80,37 @@ extern unsigned long Ipc_BaseAddress;
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
 typedef struct {
     /* Address (guest-physical). */
-	uint32_t addr;
+    quint32 addr;
     /* Length. */
-    uint32_t len;
+    quint32 len;
     /* The flags as indicated above. */
-    uint16_t flags;
+    quint16 flags;
     /* We chain unused descriptors via this, too */
-    uint16_t next;
+    quint16 next;
 }Vring_DescType;
 
 typedef struct {
-    uint16_t flags;
-    uint16_t idx;
-    uint16_t ring[];
+    quint16 flags;
+    quint16 idx;
+    quint16 ring[];
 }Vring_AvailType;
 
 /* u32 is used here for ids for padding reasons. */
 typedef struct {
     /* Index of start of used descriptor chain. */
-    uint32_t id;
+    quint32 id;
     /* Total length of the descriptor chain which was used (written to) */
-    uint32_t len;
+    quint32 len;
 }Vring_UsedElemType;
 
 typedef struct {
-    uint16_t flags;
-    uint16_t idx;
+    quint16 flags;
+    quint16 idx;
     Vring_UsedElemType ring[];
 }Vring_UsedType;
 
 typedef struct {
-    uint32_t num;	/* must be 2^n */
+    quint32 num;	/* must be 2^n */
 
     Vring_DescType *desc;
 
@@ -119,9 +119,9 @@ typedef struct {
     Vring_UsedType *used;
 }Vring_Type;
 
-typedef uint8_t Ipc_ChannelType;
-typedef uint32_t VirtQ_IdxType;
-typedef uint32_t VirtQ_IdxSizeType;
+typedef quint8 Ipc_ChannelType;
+typedef quint32 VirtQ_IdxType;
+typedef quint32 VirtQ_IdxSizeType;
 typedef struct
 {
     VirtQ_IdxSizeType count;
@@ -138,51 +138,51 @@ typedef enum {
 
 typedef struct {
     /* For 64 bit ECU, address is 64 bit */
-	uint32_t da;
-    uint32_t align;
-    uint32_t num;
-    uint32_t notifyid;
-    uint32_t reserved;
+    quint32 da;
+    quint32 align;
+    quint32 num;
+    quint32 notifyid;
+    quint32 reserved;
 }Rproc_ReseouceVdevVringType;
 
 typedef struct {
-    uint32_t type;
-    uint32_t id;
-    uint32_t notifyid;
-    uint32_t dfeatures;
-    uint32_t gfeatures;
-    uint32_t config_len;
-    uint8_t status;
-    uint8_t num_of_vrings;
-    uint8_t reserved[2];
+    quint32 type;
+    quint32 id;
+    quint32 notifyid;
+    quint32 dfeatures;
+    quint32 gfeatures;
+    quint32 config_len;
+    quint8 status;
+    quint8 num_of_vrings;
+    quint8 reserved[2];
     Rproc_ReseouceVdevVringType vring[RPROC_NUM_OF_VRINGS];
 }Rproc_ResourceVdevType;
 
 typedef struct
 {
-    uint32_t version;
-    uint32_t num;
-    uint32_t reserved[2];
-    uint32_t offset[RPROC_RSC_NUM];  /* Should match 'num' in actual definition */
+    quint32 version;
+    quint32 num;
+    quint32 reserved[2];
+    quint32 offset[RPROC_RSC_NUM];  /* Should match 'num' in actual definition */
     Rproc_ResourceVdevType rpmsg_vdev;
 #if RPROC_RPMSG_CFG_SIZE > 0 /* @config_len of Rproc_ResourceVdevType */
-    uint8_t                 rpmsg_cfg[RPROC_RPMSG_CFG_SIZE];
+    quint8                 rpmsg_cfg[RPROC_RPMSG_CFG_SIZE];
 #endif
 }Rproc_ResourceTableType;
 
 typedef struct{
-    uint32_t src;
-    uint32_t dst;
-    uint32_t reserved;
-    uint16_t len;
-    uint16_t flags;
-    uint8_t data[RPMSG_DATA_SIZE];
+    quint32 src;
+    quint32 dst;
+    quint32 reserved;
+    quint16 len;
+    quint16 flags;
+    quint8 data[RPMSG_DATA_SIZE];
 } RPmsg_HandlerType;
 
 typedef struct rpmsg_ns_msg {
     char name[RPMSG_NAME_SIZE];
-    uint32_t addr;
-    uint32_t flags;
+    quint32 addr;
+    quint32 flags;
 } RPmsg_NamseServiceMessageType;
 
 typedef enum{
@@ -192,12 +192,12 @@ typedef enum{
 
 typedef struct {
     // the CAN ID, 29 or 11-bit
-    uint32_t 	id;
-    uint8_t     bus;
+    quint32 	id;
+    quint8     bus;
     // Length, max 8 bytes
-    uint8_t		length;
+    quint8		length;
     // data ptr
-    uint8_t 		sdu[8];
+    quint8 		sdu[8];
 } Can_RPmsgPduType;
 
 typedef bool (*PF_IPC_IS_READY)(Ipc_ChannelType chl);
@@ -214,21 +214,21 @@ private:
     VirtQ_IdxType           last_used_idx;
 
     /* Head of free buffer list. */
-    uint32_t free_head;
+    quint32 free_head;
     /* Number we've added since last sync. */
-    uint32_t num_added;
-    uint32_t heap[1024*1024/4];
+    quint32 num_added;
+    quint32 heap[1024*1024/4];
 public:
     explicit Vring ( Rproc_ReseouceVdevVringType* ring ) : ring(ring)
     {
         init();
     }
-    uint32_t ring_num(void){ return vr.num; }
+    quint32 ring_num(void){ return vr.num; }
     VirtQ_IdxType get_notifyid(void)
     {
         return ring->notifyid;
     }
-    void* get_used_buf(VirtQ_IdxType* idx,uint32_t *len)
+    void* get_used_buf(VirtQ_IdxType* idx,quint32 *len)
     {
         void* buf;
         Vring_UsedElemType* used;
@@ -267,7 +267,7 @@ public:
            num_added ++;
        }
     }
-    bool add_buf(void* data, uint32_t len)
+    bool add_buf(void* data, quint32 len)
     {
         bool added;
         if(num_added<vr.num)
@@ -276,7 +276,7 @@ public:
             {
                 Virtio_SetIpcBaseAddress(((unsigned long)data)&0xFFFFFFFF00000000UL);
             }
-            vr.desc[free_head].addr = (uint32_t)(unsigned long) data;
+            vr.desc[free_head].addr = (quint32)(unsigned long) data;
             vr.desc[free_head].len  = len;
             vr.desc[free_head].flags = VRING_DESC_F_NEXT;
             free_head = vr.desc[free_head].next;
@@ -297,13 +297,13 @@ private:
     {
         void *p = malloc(size());
         memset(p,0,size());
-        ring->da = (uint32_t)(unsigned long)p;
+        ring->da = (quint32)(unsigned long)p;
         vr.num = ring->num;
         vr.desc = (Vring_DescType*)p;
         vr.avail = (Vring_AvailType*)((unsigned long)p + ring->num*sizeof(Vring_DescType));
-        vr.used = (Vring_UsedType*)(((unsigned long)(&vr.avail->ring[ring->num]) + sizeof(uint16_t)
+        vr.used = (Vring_UsedType*)(((unsigned long)(&vr.avail->ring[ring->num]) + sizeof(quint16)
             + ring->align-1) & ~((unsigned long)ring->align - 1));
-        for(uint32_t i=0;i<(vr.num-1);i++)
+        for(quint32 i=0;i<(vr.num-1);i++)
         {
             vr.desc[i].next = i+1;
         }
@@ -323,16 +323,16 @@ private:
                 size(),vr.num,ASHEX(vr.desc),
                 ASHEX(vr.avail),ASHEX(vr.used),ring->da);
     }
-    uint32_t size(void)
+    quint32 size(void)
     {
         /*
          * ((12*256+2*(3+256)+4096-1)&~(4096-1))+2*3+8*256 = 6150
          */
-        ASLOG(OFF,"sizeof(Vring_DescType)=%d,sizeof(Vring_UsedElemType)=%d,sizeof(uint16_t)=%d,num=%d,align=%d\n",
-              sizeof(Vring_DescType),sizeof(Vring_UsedElemType),sizeof(uint16_t),ring->num,ring->align);
-        return ((sizeof(Vring_DescType) * ring->num + sizeof(uint16_t) * (3 + ring->num)
+        ASLOG(OFF,"sizeof(Vring_DescType)=%d,sizeof(Vring_UsedElemType)=%d,sizeof(quint16)=%d,num=%d,align=%d\n",
+              sizeof(Vring_DescType),sizeof(Vring_UsedElemType),sizeof(quint16),ring->num,ring->align);
+        return ((sizeof(Vring_DescType) * ring->num + sizeof(quint16) * (3 + ring->num)
              + ring->align - 1) & ~(ring->align - 1))
-            + sizeof(uint16_t) * 3 + sizeof(Vring_UsedElemType) * ring->num;
+            + sizeof(quint16) * 3 + sizeof(Vring_UsedElemType) * ring->num;
     }
 };
 class Vdev: public QObject
@@ -380,13 +380,13 @@ public:
           return notifed;
     }
 public:
-    uint32_t r_ring_num(void) {return r_ring->ring_num();}
-    uint32_t w_ring_num(void) {return w_ring->ring_num();}
-    bool provide_a_r_buffer(void* data,uint32_t len)
+    quint32 r_ring_num(void) {return r_ring->ring_num();}
+    quint32 w_ring_num(void) {return w_ring->ring_num();}
+    bool provide_a_r_buffer(void* data,quint32 len)
     {   /* thus the remote proc can send a messsage via this buffer */
         return r_ring->add_buf(data,len);
     }
-    void* get_used_r_buf(VirtQ_IdxType* idx,uint32_t *len)
+    void* get_used_r_buf(VirtQ_IdxType* idx,quint32 *len)
     {
         return r_ring->get_used_buf(idx,len);
     }
@@ -399,11 +399,11 @@ public:
         return r_ring->get_notifyid();
     }
 
-    bool provide_a_w_buffer(void* data,uint32_t len)
+    bool provide_a_w_buffer(void* data,quint32 len)
     {  /* thus a message in data was transimited to the retome proc */
         return w_ring->add_buf(data,len);
     }
-    void* get_used_w_buf(VirtQ_IdxType* idx,uint32_t *len)
+    void* get_used_w_buf(VirtQ_IdxType* idx,quint32 *len)
     {
         return w_ring->get_used_buf(idx,len);
     }
@@ -419,7 +419,7 @@ public:
 public:
     virtual void rx_noificaton(void){
         VirtQ_IdxSizeType idx;
-        uint32_t len;
+        quint32 len;
         void* buf;
         ASLOG(VDEV,"rx_notification(idx=%Xh)\n",r_ring->get_notifyid());
         buf = r_ring->get_used_buf(&idx,&len);
@@ -434,7 +434,7 @@ public:
     virtual void tx_confirmation(void){
         ASLOG(VDEV,"tx_confirmation(idx=%Xh)\n",w_ring->get_notifyid());
     }
-    virtual void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data){
+    virtual void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data){
         (void)busid;(void)canid;(void)dlc;(void)busid;(void)data;
     }
 
@@ -447,16 +447,18 @@ class RPmsg: public Vdev
 Q_OBJECT
 private:
     QList<void*> w_buffer;
-    uint32_t sample_src_ept;
-    uint32_t sample_can_ept = 0xCAB;
+    quint32 sample_src_ept;
+    quint32 sample_can_ept;
 public:
     explicit RPmsg ( Rproc_ResourceVdevType* rpmsg );
-    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+    void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private slots:
 
 public:
     void rx_noificaton(void);
     void tx_confirmation(void);
+signals:
+    void Can_RxIndication(quint8,quint32,quint8,quint8*);
 };
 
 class Virtio: public QThread
@@ -475,8 +477,8 @@ private:
 
     Ipc_FifoType* r_fifo;
     Ipc_FifoType* w_fifo;
-    uint32_t r_pos;
-    uint32_t w_pos;
+    quint32 r_pos;
+    quint32 w_pos;
 
     PF_IPC_IS_READY pfIsIpcReady;
 
@@ -494,13 +496,15 @@ private:
 public:
     explicit Virtio ( void* dll, QObject *parent = 0);
     ~Virtio ( );
-    void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+    void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+private slots:
+    void On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private:
     void run(void);
     bool fifo_read(VirtQ_IdxType* id);
     bool fifo_write(VirtQ_IdxType id);
 signals:
-
+    void Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 protected:
 
 private slots:
