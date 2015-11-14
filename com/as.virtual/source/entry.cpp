@@ -157,6 +157,13 @@ void Entry::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
     }
 }
 
+void Entry::Can_RxIndication(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
+{
+    OcMessage *msg = new OcMessage(canid,data,dlc,false,GetOsTick());
+    msg->setBusId(busid);
+    arCan::Self()->ReceiveMessage(msg);
+}
+
 // ==================== [ SIGNALS       ] =====================================
 
 // ==================== [ PRIVATE SLOTS ] ======================================

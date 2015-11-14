@@ -64,8 +64,8 @@ def GenH():
 #define CANIF_ARC_RUNTIME_PDU_CONFIGURATION STD_OFF   // Not supported
 #define CANIF_CANPDUID_READDATA_API         STD_OFF   // Not supported
 #define CANIF_READRXPDU_NOTIF_STATUS_API    STD_OFF   // Not supported
-\n"""%(GAGet(General,'DevelopmentErrorDetection'),
-         GAGet(General,'VersionInfoApi'),
+\n"""%(GAGet(General,'VersionInfoApi'),
+         GAGet(General,'DevelopmentErrorDetection'),
          GAGet(General,'DataLengthCodeCheck')))
     cstr1=cstr2=''
     startId = 0 

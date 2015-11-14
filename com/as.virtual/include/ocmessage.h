@@ -43,6 +43,7 @@ public:
 	/// Copy constructor
 	OcMessage(const OcMessage &msg)
 	{
+        busId = msg.msgId;
 		msgId = msg.msgId;
 		canExt = msg.canExt;
 		dataLen = msg.dataLen;

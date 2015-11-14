@@ -447,6 +447,8 @@ class RPmsg: public Vdev
 Q_OBJECT
 private:
     QList<void*> w_buffer;
+    uint32_t sample_src_ept;
+    uint32_t sample_can_ept = 0xCAB;
 public:
     explicit RPmsg ( Rproc_ResourceVdevType* rpmsg );
     void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
@@ -454,6 +456,7 @@ private slots:
 
 public:
     void rx_noificaton(void);
+    void tx_confirmation(void);
 };
 
 class Virtio: public QThread

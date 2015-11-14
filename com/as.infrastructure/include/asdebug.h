@@ -18,9 +18,9 @@
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
-#define AS_LOG_IPC   	1
-#define AS_LOG_VIRTQ    2
-#define AS_LOG_RPMSG    3
+#define AS_LOG_IPC   	0
+#define AS_LOG_VIRTQ    0
+#define AS_LOG_RPMSG    0
 #define AS_LOG_CAN      4
 #define AS_LOG_CANIF    5
 #define AS_LOG_OS       6

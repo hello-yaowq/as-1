@@ -52,6 +52,7 @@ public:
     vEcu* getEcu ( QString name );
 
     void Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
+    void Can_RxIndication(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data);
 signals:
 
 protected:

@@ -761,7 +761,7 @@ void CanIf_TxConfirmation(PduIdType canTxPduId)
       return;
 }
 
-void CanIf_RxIndication(uint8 Hrh, Can_IdType CanId, uint8 CanDlc,
+void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
               const uint8 *CanSduPtr)
 {
   VALIDATE_NO_RV(CanIf_Global.initRun, CANIF_RXINDICATION_ID, CANIF_E_UNINIT);

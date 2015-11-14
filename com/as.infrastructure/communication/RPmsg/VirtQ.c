@@ -34,7 +34,7 @@ static virtq_t virtq =
 static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint16 *len)
 {
 	void* buf;
-	ASLOG(VIRTQ,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
+	ASLOG(OFF,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
     /* There's nothing available? */
     if (vq->last_avail_idx == vq->vring.avail->idx) {
         /* We need to know about added buffers */
@@ -157,7 +157,7 @@ void VirtQ_RxNotificatin(VirtQ_ChannerlType chl)
 	asAssert(virtq.initialized);
 	if(virtq.config->queueConfig[chl].rxNotification)
 	{
-		virtq.config->queueConfig[chl].rxNotification(chl);
+		virtq.config->queueConfig[chl].rxNotification(virtq.config->queueConfig[chl].handler);
 	}
 }
 void VirtQ_TxConfirmation(VirtQ_ChannerlType chl)

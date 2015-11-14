@@ -27,12 +27,14 @@ static const VirtQ_QueueConfigType queueConfig[VIRTQ_CHL_NUM] =
 {
 	{
 		.chl = IPC_CHL_0,
+		.handler = RPMSG_PORT_DEFAULT,
 		.idx = VIRTQ_IDX_RPMSG_RX,
 		.rxNotification = RPmsg_RxNotification ,
 		.vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[0])
 	},
 	{
 		.chl = IPC_CHL_0,
+		.handler = RPMSG_PORT_DEFAULT,
 		.idx = VIRTQ_IDX_RPMSG_TX,
 		.rxNotification = RPmsg_TxConfirmation ,
 		.vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[1])

@@ -253,11 +253,11 @@ void RPmsg::Can_Write(uint8_t busid,uint32_t canid,uint8_t dlc,uint8_t* data)
     assert(dlc<=8);
     memcpy(pdu->sdu,data,dlc);
 
-    rpmsg->dst = 0xdead;
-    rpmsg->src = 0xbeef;
+    rpmsg->dst = sample_can_ept;
+    rpmsg->src = sample_src_ept;
     rpmsg->len = sizeof(Can_RPmsgPduType);
 
-    provide_a_w_buffer(rpmsg,sizeof(rpmsg));
+    provide_a_w_buffer(rpmsg,sizeof(RPmsg_HandlerType));
 
     kick_w();
 
@@ -272,14 +272,15 @@ void RPmsg::rx_noificaton(void){
 
     assert(buf);
     ASLOG(OFF,"Message(idx=%d,len=%d)\n",idx,len);
-    ASLOG(OFF,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
+    ASLOG(VIRTIO,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
 
-    if((buf->src == 0xDEAD) && (buf->dst == 0xBEEF))
+    if((buf->src == sample_src_ept) && (buf->dst == sample_can_ept))
     {
         Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
         ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
               msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
                 msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
+        Entry::Self()->Can_RxIndication(msg->bus,msg->id,msg->length,msg->sdu);
     }
     else
     {
@@ -289,10 +290,30 @@ void RPmsg::rx_noificaton(void){
             if(0==strcmp(nsMsg->name,"RPMSG-SAMPLE"))
             {
                 ASLOG(RPMSG,"RPMSG-SAMPLE on-line\n");
+                sample_src_ept = buf->src;
+                sample_can_ept = 0xCAB;
             }
+            else
+            {
+                assert(0);
+            }
+       }
+       else
+       {
+           assert(0);
        }
     }
 
     put_used_r_buf_back(idx);
 
+}
+
+void RPmsg::tx_confirmation(void){
+    VirtQ_IdxSizeType idx;
+    uint32_t len;
+    RPmsg_HandlerType* buf;
+    ASLOG(OFF,"tx_confirmation(idx=%Xh)\n",get_w_notifyid());
+    buf = (RPmsg_HandlerType*)get_used_w_buf(&idx,&len);
+    assert(buf);
+    w_buffer.append((void*)buf);
 }

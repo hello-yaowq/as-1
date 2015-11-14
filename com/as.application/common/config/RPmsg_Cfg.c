@@ -21,21 +21,28 @@
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
 void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
 /* ============================ [ DATAS     ] ====================================================== */
+
+static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
+{
+	{
+		.name = "RPMSG-SAMPLE",
+		.port = 0x257,
+		.rxChl = VIRTQ_CHL_RPMSG_RX,
+		.txChl = VIRTQ_CHL_RPMSG_TX,
+	}
+};
 static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
 {
 	{
-		.src = 0xdead,
-		.dst = 0xbeef,
+		.dst = 0xCAB,
 		.rxNotification = Can_RPmsg_RxNotitication,
-		.txConfirmation = Can_RPmsg_TxConfirmation
+		.txConfirmation = Can_RPmsg_TxConfirmation,
+		.portConfig = &portConfig[RPMSG_CHL_CAN]
 	}
 };
 const RPmsg_ConfigType RPmsg_Config =
 {
-	.name = "RPMSG-SAMPLE",
-	.port = 0x257,
-	.rxChl = VIRTQ_CHL_RPMSG_RX,
-	.txChl = VIRTQ_CHL_RPMSG_TX,
+	.portConfig = portConfig,
 	.chlConfig = chlConfig
 };
 /* ============================ [ LOCALS    ] ====================================================== */

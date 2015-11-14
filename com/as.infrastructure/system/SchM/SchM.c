@@ -351,7 +351,6 @@ static void runMemory( void ) {
 TASK(SchM_Startup){
 
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
-	ASLOG(OS,"%s is running\n",__func__);
 	/* Set events on TASK_ID_BswService_Mem */
 	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 2);
 
@@ -374,6 +373,8 @@ TASK(SchM_Startup){
 #if defined(USE_COM)
 	// Start CAN it
 	Com_IpduGroupStart(COM_DEFAULT_IPDU_GROUP,True);
+#else
+	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
 #endif
 
 #if defined(USE_NM)

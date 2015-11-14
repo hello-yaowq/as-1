@@ -155,12 +155,13 @@ typedef struct {
 } Can_UnitType;
 
 typedef struct {
-	// the CAN ID, 29 or 11-bit
-	Can_IdType 	id;
-	// Length, max 8 bytes
-	uint8		length;
-	// data ptr
-	uint8 		sdu[8];
+    // the CAN ID, 29 or 11-bit
+    uint32_t 	id;
+    uint8_t     bus;
+    // Length, max 8 bytes
+    uint8_t		length;
+    // data ptr
+    uint8_t 		sdu[8];
 } Can_RPmsgPduType;
 
 /* ============================ [ DATAS     ] ====================================================== */
@@ -452,6 +453,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
 		  Can_RPmsgPduType rpmsg;
+		  rpmsg.bus = controller;
 		  rpmsg.id = pduInfo->id;
 		  rpmsg.length = pduInfo->length;
 		  memcpy(rpmsg.sdu,pduInfo->sdu,pduInfo->length);
@@ -552,6 +554,27 @@ void Can_SimulatorRunning(void)
 }
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
+	Can_RPmsgPduType* rpmsg = data;
+	asAssert(len==sizeof(Can_RPmsgPduType));
+	asAssert(chl == RPMSG_CHL_CAN);
+
+	uint16 Hrh = 0xFFFF;
+	if(Can_Global.initRun == CAN_READY)
+	{
+		const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[rpmsg->bus].Can_Arc_Hoh;
+		hoh --;
+		do{
+			hoh ++;
+			if(CAN_OBJECT_TYPE_RECEIVE == hoh->CanObjectType)
+			{
+				Hrh = hoh->CanObjectId;
+				break;
+			}
+		}while(FALSE == hoh->Can_Arc_EOL);
+		asAssert(0xFFFF != Hrh);
+		asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
+		Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(0,rpmsg->id,rpmsg->length,rpmsg->sdu);
+	}
 
 }
 void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)

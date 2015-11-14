@@ -41,6 +41,7 @@ typedef struct virtqueue
 typedef struct
 {
 	Ipc_ChannelType             chl;
+	uint8                       handler;	/* upper layer handler */
     /* Id for this VirtQueue_Object */
 	VirtQ_IdxType               idx;
 

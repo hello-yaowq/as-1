@@ -30,14 +30,14 @@ static rpmsg_t rpmsg =
 	.initialized = FALSE
 };
 /* ============================ [ LOCALS    ] ====================================================== */
-static Std_ReturnType sendMessage(uint32 dstEndpt, uint32 srcEndpt, void* data, uint16 len)
+static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32 dstEndpt, uint32 srcEndpt, void* data, uint16 len)
 {
 	Std_ReturnType ercd;
 	VirtQ_IdxType idx;
 	RPmsg_HandlerType* msg;
 	uint16 length;
 	ASLOG(OFF,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
-	ercd = VirtQ_GetAvailiableBuffer(rpmsg.config->txChl,&idx,(void**)&msg,&length);
+	ercd = VirtQ_GetAvailiableBuffer(portConfig->txChl,&idx,(void**)&msg,&length);
 	if(E_OK == ercd)
 	{
 		if(len > length){
@@ -52,35 +52,35 @@ static Std_ReturnType sendMessage(uint32 dstEndpt, uint32 srcEndpt, void* data, 
 		msg->flags = 0;
 		msg->reserved = 0;
 
-		VirtQ_AddUsedBuffer(rpmsg.config->txChl, idx, len);
-		VirtQ_Kick(rpmsg.config->txChl);
+		VirtQ_AddUsedBuffer(portConfig->txChl, idx, len);
+		VirtQ_Kick(portConfig->txChl);
 	}
 	return ercd;
 }
-static void sendNamseServiceMessage(char * name, uint32 port, RPmsg_NameServiceFlagType flags)
+static void sendNamseServiceMessage(const RPmsg_PortConfigType* portConfig, RPmsg_NameServiceFlagType flags)
 {
 	RPmsg_NamseServiceMessageType nsMsg;
     Std_ReturnType ercd;
 
-    strncpy(nsMsg.name, name, RPMSG_NAME_SIZE);
-    nsMsg.addr = port;
+    strncpy(nsMsg.name, portConfig->name, RPMSG_NAME_SIZE);
+    nsMsg.addr = portConfig->port;
     nsMsg.flags = flags;
 
-    ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",name,port);
-    ercd = sendMessage(RPMSG_NAME_SERVICE_PORT, port, &nsMsg, sizeof(nsMsg));
+    ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",portConfig->name,portConfig->port);
+    ercd = sendMessage(portConfig,RPMSG_NAME_SERVICE_PORT, portConfig->port, &nsMsg, sizeof(nsMsg));
     asAssert(E_OK == ercd);
 }
 
-static void NameSerivice_Create(char* name, uint32 port)
+static void NameSerivice_Create(const RPmsg_PortConfigType* portConfig)
 {
-	sendNamseServiceMessage(name, port, RPMSG_NS_CREATE);
+	sendNamseServiceMessage(portConfig, RPMSG_NS_CREATE);
 }
-
+#if 0
 static void NameSerivice_Destroy(char * name, uint32 port)
 {
 	sendNamseServiceMessage(name, port, RPMSG_NS_DESTROY);
 }
-
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void RPmsg_Init(const RPmsg_ConfigType* config)
 {
@@ -95,20 +95,57 @@ void RPmsg_Init(const RPmsg_ConfigType* config)
 		asAssert(0);
 	}
 }
-void RPmsg_RxNotification(VirtQ_ChannerlType channel)
+void RPmsg_RxNotification(RPmsg_PortType port)
 {
+	VirtQ_IdxType idx;
+	uint16_t length;
+	RPmsg_HandlerType* msg;
+	Std_ReturnType ercd;
+	RPmsg_ChannelType chl;
+	const RPmsg_PortConfigType* portConfig;
 	asAssert(rpmsg.initialized);
-	asAssert(channel == rpmsg.config->rxChl);
+	asAssert(port < RPMSG_PORT_NUM);
+
+	portConfig = &(rpmsg.config->portConfig[port]);
 	if(rpmsg.online)
 	{
+		ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
+		if(E_OK == ercd)
+		{
+			ASLOG(OFF,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,msg->data,msg->len,length);
+			for(chl=0;chl<RPMSG_CHL_NUM;chl++)
+			{
+				if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&
+					(msg->dst==rpmsg.config->chlConfig[chl].dst) )
+				{
+					break;
+				}
+			}
 
+			if(chl<RPMSG_CHL_NUM)
+			{
+				rpmsg.config->chlConfig[chl].rxNotification(chl,msg->data,msg->len);
+			}
+			else
+			{
+				asAssert(0);
+			}
+
+			VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
+			VirtQ_Kick(portConfig->rxChl);
+		}
+		else
+		{
+			asAssert(0);
+			ASLOG(OFF,"invalid RPmsg_RxNotification\n");
+		}
 	}
 	else
 	{
 		ASLOG(RPMSG,"RPmsg_RxNotification(offline-->online)\n");
-		VirtQ_InitVq(rpmsg.config->rxChl);
-		VirtQ_InitVq(rpmsg.config->txChl);
-		NameSerivice_Create(rpmsg.config->name,rpmsg.config->port);
+		VirtQ_InitVq(portConfig->rxChl);
+		VirtQ_InitVq(portConfig->txChl);
+		NameSerivice_Create(portConfig);
 		rpmsg.online = TRUE;
 	}
 }
@@ -117,7 +154,7 @@ boolean RPmsg_IsOnline(void)
 {
 	return rpmsg.online;
 }
-void RPmsg_TxConfirmation(VirtQ_ChannerlType channel)
+void RPmsg_TxConfirmation(RPmsg_PortType channel)
 {
 
 }
@@ -128,7 +165,7 @@ Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
 	const RPmsg_ChannelConfigType* chlConfig;
 	asAssert(rpmsg.initialized);
 	asAssert(chl<RPMSG_CHL_NUM);
-	chlConfig = &rpmsg.config->chlConfig[chl];
-	ercd = sendMessage(chlConfig->dst,chlConfig->src,data,len);
+	chlConfig=&(rpmsg.config->chlConfig[chl]);
+	ercd = sendMessage(chlConfig->portConfig,chlConfig->dst,chlConfig->portConfig->port,data,len);
 	return ercd;
 }

@@ -77,34 +77,43 @@ typedef enum{
 	RPMSG_NS_DESTROY	= 1,
 } RPmsg_NameServiceFlagType;
 
+typedef uint8 RPmsg_PortType;
 typedef uint8 RPmsg_ChannelType;
 typedef void (*RPmsg_RxNotiticationType)(RPmsg_ChannelType chl,void* data, uint16 len);
 typedef void (*RPmsg_TxConfirmationType)(RPmsg_ChannelType chl);
-typedef struct
-{
-	uint32_t src;
-	uint32_t dst;
-	uint16_t flags;
-	RPmsg_RxNotiticationType rxNotification;
-	RPmsg_TxConfirmationType txConfirmation;
-}RPmsg_ChannelConfigType;
 
 typedef struct
 {
 	char*  name;
-	uint32 port;
+	uint32 port;	/* src for each dst end point */
 	VirtQ_ChannerlType rxChl;
 	VirtQ_ChannerlType txChl;
+}RPmsg_PortConfigType;
+
+typedef struct
+{
+	uint32_t dst;
+	uint16_t flags;
+	RPmsg_RxNotiticationType rxNotification;
+	RPmsg_TxConfirmationType txConfirmation;
+	const RPmsg_PortConfigType* portConfig;
+}RPmsg_ChannelConfigType;
+
+
+typedef struct
+{
+	const RPmsg_PortConfigType* portConfig;
 	const RPmsg_ChannelConfigType* chlConfig;
 }RPmsg_ConfigType;
+
 #include "RPmsg_Cfg.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void RPmsg_Init(const RPmsg_ConfigType* config);
-void RPmsg_RxNotification(VirtQ_ChannerlType channel);
-void RPmsg_TxConfirmation(VirtQ_ChannerlType channel);
+void RPmsg_RxNotification(RPmsg_ChannelType channel);
+void RPmsg_TxConfirmation(RPmsg_ChannelType channel);
 boolean RPmsg_IsOnline(void);
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len);
 #endif /* COM_AS_INFRASTRUCTURE_COMMUNICATION_RPMSG_RPMSG_H_ */
