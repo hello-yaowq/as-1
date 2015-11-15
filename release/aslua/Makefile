@@ -66,6 +66,7 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 cflags-y +=-Wextra 
 def-y    += -DLUA_COMPAT_5_2
 ldflags-y += -Wl,-E
+dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
 inc-y += -I$(inc-dir)
@@ -82,6 +83,7 @@ $(src-dir):
 dep-posix:
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
+	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/shell TRUE)

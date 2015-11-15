@@ -26,6 +26,9 @@ VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))
 
 ldflags-y += -Wl,-Map,$(exe-dir)/$(target-y).map	
+
+dllflags-y += -shared
+#dllflags-y += --share
 	
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))	
 obj-y += $(patsubst %.cpp,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.cpp)))))	
@@ -78,10 +81,10 @@ dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
 	@echo "  >> LD $(target-y).DLL"
 ifeq ($(gen-mk),yes)	
 	@echo "echo \"  >> LD $(target-y).DLL\"" >> build.bat
-	@echo "$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
+	@echo "$(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
 	@echo "pause" >> build.bat
 endif
-	@$(CC) --share $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
+	@$(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)

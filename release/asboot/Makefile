@@ -88,6 +88,7 @@ def-y += -DUSE_DET -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM	
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
 ifeq ($(board),stm32f107vc)
@@ -127,6 +128,7 @@ dep-as-virtual:
 	
 dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)

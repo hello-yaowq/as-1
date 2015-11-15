@@ -97,7 +97,7 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR 
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
-
+dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 
@@ -190,6 +190,7 @@ dep-as-virtual:
 	
 dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
