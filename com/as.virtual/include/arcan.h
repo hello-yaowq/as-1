@@ -40,7 +40,6 @@ private:
 public:
     explicit arCan(QString name,unsigned long channelNumber,QWidget *parent=0);
     ~arCan();
-    static class arCan* Self ( void );
     void RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
     void Transmit(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private slots:

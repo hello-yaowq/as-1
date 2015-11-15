@@ -121,11 +121,9 @@ static char *trim(char *s)
  */
 static char *strtokAndTrim(char *s1, const char *s2, char **s3)
 {
-#if defined (WIN32)
-  char *str = strtok_s(s1, s2, s3);
-#else
+
   char *str = strtok_r(s1, s2, s3);
-#endif
+
   return str;
   //return trim(str);
 }

@@ -46,6 +46,7 @@ endif
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),posix)
 ifeq ($(host),Linux)
+def-y += -DLUA_USE_LINUX
 def-y += -D__LINUX__
 # my computer is 64 bit 
 def-y += -D__X86_64__
@@ -54,6 +55,7 @@ def-y += -D__WINDOWS__
 endif	
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
+ldflags-y +=  -ldl -lreadline
 else
 ldflags-y +=-lwinmm 
 endif
@@ -62,8 +64,8 @@ ldflags-y += -lstdc++ -lm -lpthread
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
-def-y    += -DLUA_COMPAT_5_2 -DLUA_USE_LINUX
-ldflags-y += -lm -Wl,-E -ldl -lreadline
+def-y    += -DLUA_COMPAT_5_2
+ldflags-y += -Wl,-E
 endif	# posix end
 
 inc-y += -I$(inc-dir)
@@ -83,6 +85,10 @@ dep-posix:
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/shell TRUE)
+ifeq ($(host),Linux)
+else
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
+endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.c)

@@ -22,10 +22,6 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-#ifdef __WINDOWS__
-static bool IsXLReady = false;
-#endif
-static class arCan* self=NULL;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -51,8 +47,6 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
     this->setGeometry(50,150,1200,500);
 
     setVisible(true);
-
-    self = this;
 }
 
 arCan::~arCan()
@@ -129,13 +123,6 @@ void arCan::putMsg(quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
         tableTrace->setItem(index,4+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
     }
     tableTrace->setCurrentCell(index,0);
-}
-
-class arCan* arCan::Self ( void )
-{
-	assert(self!=NULL);
-
-	return self;
 }
 
 void arCan::RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
