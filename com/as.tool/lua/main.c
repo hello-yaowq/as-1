@@ -13,49 +13,75 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include "Std_Types.h"
+#if defined(USE_IPC)
+#include "Ipc.h"
+#endif
+
+#if defined(USE_VIRTQ)
+#include "VirtQ.h"
+#endif
+
+#if defined(USE_RPMSG)
 #include "RPmsg.h"
+#endif
+
+#include "shell.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
-void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
-#ifdef USE_SHELL
-void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
-void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
-#endif
+extern int lua_main(int argc, char *argv[]);
 /* ============================ [ DATAS     ] ====================================================== */
-
-static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
+static ShellCmdT luacmd =
 {
-	{
-		.name = "RPMSG-SAMPLE",
-		.port = 0x257,
-		.rxChl = VIRTQ_CHL_RPMSG_RX,
-		.txChl = VIRTQ_CHL_RPMSG_TX,
-	}
-};
-static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
-{
-#ifdef USE_SHELL
-	{
-		.dst = 0xCAD,
-		.rxNotification = Shell_RPmsg_RxNotitication,
-		.txConfirmation = Shell_RPmsg_TxConfirmation,
-		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]
-	},
-#endif
-	{
-		.dst = 0xCAB,
-		.rxNotification = Can_RPmsg_RxNotitication,
-		.txConfirmation = Can_RPmsg_TxConfirmation,
-		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]
-	}
-};
-const RPmsg_ConfigType RPmsg_Config =
-{
-	.portConfig = portConfig,
-	.chlConfig = chlConfig
+	.func = lua_main,
+	.argMin = 0,
+	.argMax = 0,
+	.cmd = "lua",
+	.shortDesc = "lua <script>",
+	.longDesc ="lua script executor",
 };
 /* ============================ [ LOCALS    ] ====================================================== */
+static void StartupHook(void)
+{
+#if defined(USE_IPC)
+	Ipc_Init(&Ipc_Config);
+#endif
+
+#if defined(USE_VIRTQ)
+	VirtQ_Init(&VirtQ_Config);
+#endif
+
+#if defined(USE_RPMSG)
+	RPmsg_Init(&RPmsg_Config);
+#endif
+
+	SHELL_Init();
+	SHELL_AddCmd(&luacmd);
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
+{
+	asAssert(chl == RPMSG_CHL_CAN);
+}
+void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
+{
+	asAssert(chl == RPMSG_CHL_CAN);
+}
+void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
+{
+	asAssert(chl == RPMSG_CHL_SHELL);
+}
+void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
+{
+	asAssert(chl == RPMSG_CHL_SHELL);
+}
+int main(int argc,char* argv[])
+{
+	StartupHook();
+
+	SHELL_Mainloop();
+	return 0;
+}

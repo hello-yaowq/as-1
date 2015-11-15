@@ -48,7 +48,7 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
 {
     this->channelNumber = channelNumber;
     this->createGui();
-    this->setGeometry(50,120,1200,500);
+    this->setGeometry(50,150,1200,500);
 
     setVisible(true);
 

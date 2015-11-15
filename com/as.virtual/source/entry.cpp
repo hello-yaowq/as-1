@@ -170,9 +170,9 @@ void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 
     QList<vEcu*> ecus = 	map_ecu.values();
     for(int i=0;i<ecus.size();i++)
     {
+        ecu = ecus[i];
         if(ecu != fromEcu)
         {
-            ecu = ecus[i];
             ecu->Can_Write(busid,canid,dlc,data);
         }
         else

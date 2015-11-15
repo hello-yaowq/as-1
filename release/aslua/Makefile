@@ -1,0 +1,126 @@
+target-y = $(board)
+
+obj-dir = ./obj
+exe-dir = ./out
+src-dir = ./src
+inc-dir = ./include
+
+prj-dir = $(subst release/aslua,,$(CURDIR))
+
+host = $(shell uname)
+
+INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
+APPLICATION = $(prj-dir)/com/as.application
+VIRTUAL = $(prj-dir)/com/as.virtual
+LUA   = $(prj-dir)/com/as.tool/lua
+ASCORE = $(prj-dir)/release/ascore
+ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
+# --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
+debug ?= TRUE
+ifeq ($(host), Linux)
+PY27 = python2
+PY34 = python3
+else
+PY27 = C:Python27/python
+PY34 = C:Python34/python
+HOME = C:/Users/parai.wang
+ifeq ($(HOME), $(wildcard $(HOME)))
+else
+$(error fix your home path)
+endif
+endif
+LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
+XCC   = $(PY34) xcc.py
+STUDIO = $(PY27) studio.py
+SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+
+# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
+# on C disk do the following command:
+## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
+ifeq ($(compiler),posix-gcc)
+#cflags-y += -Werror
+COMPILER_DIR = 
+include ../make/posix.mk
+endif
+
+# --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
+ifeq ($(board),posix)
+ifeq ($(host),Linux)
+def-y += -D__LINUX__
+# my computer is 64 bit 
+def-y += -D__X86_64__
+else
+def-y += -D__WINDOWS__
+endif	
+ifeq ($(host),Linux)
+ldflags-y +=-lrt
+else
+ldflags-y +=-lwinmm 
+endif
+ldflags-y += -lstdc++ -lm -lpthread
+# inter processor communication		 
+def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
+
+cflags-y +=-Wextra 
+def-y    += -DLUA_COMPAT_5_2 -DLUA_USE_LINUX
+ldflags-y += -lm -Wl,-E -ldl -lreadline
+endif	# posix end
+
+inc-y += -I$(inc-dir)
+def-y += -D__AS_BY_PARAI__	 
+def-y += -D$(board)_board
+
+$(inc-dir)/utility:
+	@mkdir -p $@
+$(inc-dir):
+	@mkdir -p $@
+$(src-dir):
+	@mkdir -p $@
+	
+dep-posix:
+	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/shell TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
+	@(echo "  >> prepare link for posix done")
+
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
+
+all:exe
+
+clean: 
+	@rm -fv $(obj-dir)/*
+	@rm -fv $(exe-dir)/*
+	
+clean-dist:clean
+	@rm -fv $(src-dir)/*
+	@rm -fv $(inc-dir)/*
+	
+00:clean-dist
+# ---------------------------------- [ posix       ] ---------------------------------- #
+91:
+	make dep board=posix compiler=posix-gcc
+92:
+	make all board=posix compiler=posix-gcc debug=true
+93:
+	make all board=posix compiler=posix-gcc debug=false	
+94:
+	make dll board=posix compiler=posix-gcc debug=true	
+	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
+	
+	
+
+

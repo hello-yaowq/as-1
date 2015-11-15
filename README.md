@@ -51,6 +51,7 @@ it. Let's start.
 
 > git clone https://github.com/parai/gainos-tk.git
 
+> git clone https://github.com/lua/lua.git
 
    
     

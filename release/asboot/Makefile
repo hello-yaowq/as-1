@@ -12,6 +12,7 @@ host = $(shell uname)
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 APPLICATION = $(prj-dir)/com/as.application
 VIRTUAL = $(prj-dir)/com/as.virtual
+LUA   = $(prj-dir)/com/as.tool/lua
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
@@ -120,13 +121,14 @@ OS:
 
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/asboot/src)	
-	
+
 dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
 	
 dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
@@ -159,12 +161,14 @@ dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/simulator TRUE)
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
 dep-stm32f107vc: 
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include TRUE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)

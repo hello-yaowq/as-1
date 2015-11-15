@@ -20,8 +20,15 @@
 #define RPMSG_PORT_DEFAULT	0
 #define RPMSG_PORT_NUM 	1
 
+
+#ifdef USE_SHELL
+#define RPMSG_CHL_SHELL	0
+#define RPMSG_CHL_CAN	1
+#define RPMSG_CHL_NUM 	2
+#else
 #define RPMSG_CHL_CAN	0
 #define RPMSG_CHL_NUM 	1
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

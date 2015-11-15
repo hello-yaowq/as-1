@@ -91,6 +91,8 @@ STATIC FUNC(void,MEM_TASK_INIT) Init ( void )
 
     OsAlarmInit();
     OsResourceInit();
+
+    KSM_INIT();
 }
 STATIC FUNC(TaskType,MEM_TASK_GETBIT) GetBit ( void  )
 {

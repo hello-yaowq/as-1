@@ -591,7 +591,7 @@ void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 }
 void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 {
-
+	(void)chl;
 }
 
 
