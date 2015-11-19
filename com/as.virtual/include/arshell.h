@@ -12,51 +12,35 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_
-#define RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_
+#ifndef ARSHELL_H_
+#define ARSHELL_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <stdint.h>
-#include <QThread>
-#include <QString>
-#include <QDebug>
-#include <assert.h>
-#include "Virtio.h"
+#include "ardevice.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define SHELL_DEVICE_NAME   "Shell"
 /* ============================ [ TYPES     ] ====================================================== */
-typedef void (*PF_MAIN)(void);
-
 /* ============================ [ CLASS     ] ====================================================== */
-class vEcu: public QThread
+class arShell : public arDevice
 {
-Q_OBJECT
+    Q_OBJECT
 private:
-    void* hxDll;
-    PF_MAIN pfMain;
-    QString name;
-    Virtio* virtio;
-
+    QComboBox* cbEcu;
+    QLineEdit* leCmd;
 public:
-    explicit vEcu ( QString dll, QObject *parent = 0);
-    ~vEcu ( );
-    QString Name(void) { return name; }
+    explicit arShell(QString name,QWidget *parent=0);
 
-    void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
-    void Shell_Write(QString cmd);
+    void addEcu(QString name);
+    void removeEcu(QString name);
+    ~arShell();
 private slots:
-    void On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
-
+	void on_btnSendCommand_clicked(void);
 private:
-    void run(void);
+	void createGui(void);
 signals:
-    void Can_RxIndication(vEcu* ecu, quint8 busid,quint32 canid,quint8 dlc,quint8* data);
-protected:
-
-private slots:
-
 };
-/* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#endif /* RELEASE_ASCORE_VIRTUAL_INCLUDE_VECU_H_ */
+
+#endif /* ARSHELL_H_ */

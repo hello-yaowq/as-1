@@ -80,6 +80,11 @@ void vEcu::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
     virtio->Can_Write(busid,canid,dlc,data);
 }
 
+void vEcu::Shell_Write(QString cmd)
+{
+    virtio->Shell_Write(cmd);
+}
+
 void vEcu::On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     emit Can_RxIndication(this,busid,canid,dlc,data);

@@ -12,11 +12,11 @@ TARGET = AsVitrual
 TEMPLATE = app
 
 ##@Linux Flags
-DEFINES += __LINUX__
-LIBS += -L/lib64 -l:libdl.so.2
+#DEFINES += __LINUX__
+#LIBS += -L/lib64 -l:libdl.so.2
 
 ##@Windows Flags
-#DEFINES += __WINDOWS__
+DEFINES += __WINDOWS__
 
 DEFINES += USE_OPENCAN_DIRECTLY DYNAMIC_XLDRIVER_DLL
 
@@ -31,7 +31,8 @@ SOURCES +=              \
     source/arcan.cpp \
     source/ardevice.cpp \
     source/entry.cpp \
-    source/xlLoadlib.cpp
+    source/xlLoadlib.cpp \
+    source/arshell.cpp
 
 HEADERS  +=             \
     include/vEcu.h \
@@ -40,7 +41,8 @@ HEADERS  +=             \
     include/arcan.h \
     include/ardevice.h \
     include/entry.h \
-    include/vxlapi.h
+    include/vxlapi.h \
+    include/arshell.h
 
 FORMS    +=
 

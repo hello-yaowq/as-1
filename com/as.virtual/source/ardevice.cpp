@@ -10,5 +10,5 @@ arDevice::arDevice(QString name,QWidget *parent) :
 
 arDevice::~arDevice()
 {
-    qDebug() << "~arDevice(" << name << ")";
+    /* qDebug() << "~arDevice(" << name << ")"; */
 }

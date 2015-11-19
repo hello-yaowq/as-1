@@ -49,7 +49,11 @@ $(obj-dir)/%.o:%.c
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
+ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
+else
+-include $(obj-dir)/as.dep
+endif
 	
 .PHONY:all clean
 

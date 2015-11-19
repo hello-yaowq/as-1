@@ -52,6 +52,7 @@ public:
     vEcu* getEcu ( QString name );
 
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+    void Shell_Write(QString ecu_name,QString cmd);
 signals:
 
 protected:
@@ -62,6 +63,7 @@ private slots:
     void On_Can_RxIndication(vEcu*,quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private:
 	void createMenuAndToolbar ( void );
+    void loadEcu(void);
 
 };
 

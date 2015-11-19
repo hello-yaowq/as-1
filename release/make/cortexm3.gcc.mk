@@ -51,7 +51,11 @@ $(obj-dir)/%.o:%.c
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
 	@$(CS) -D $@ > $@.s
 	
+ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
+else
+-include $(obj-dir)/as.dep
+endif
 	
 .PHONY:all clean
 

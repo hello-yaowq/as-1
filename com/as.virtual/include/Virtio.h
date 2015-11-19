@@ -416,7 +416,7 @@ public:
         return w_ring->get_notifyid();
     }
 
-public:
+public: 
     virtual void rx_noificaton(void){
         VirtQ_IdxSizeType idx;
         quint32 len;
@@ -437,6 +437,7 @@ public:
     virtual void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data){
         (void)busid;(void)canid;(void)dlc;(void)busid;(void)data;
     }
+    virtual void Shell_Write(QString cmd){ (void)cmd;}
 
 signals:
     void kick(unsigned int idx);
@@ -449,9 +450,11 @@ private:
     QList<void*> w_buffer;
     quint32 sample_src_ept;
     quint32 sample_can_ept;
+    quint32 sample_shell_ept;
 public:
     explicit RPmsg ( Rproc_ResourceVdevType* rpmsg );
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+    void Shell_Write(QString cmd);
 private slots:
 
 public:
@@ -497,6 +500,7 @@ public:
     explicit Virtio ( void* dll, QObject *parent = 0);
     ~Virtio ( );
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+    void Shell_Write(QString cmd);
 private slots:
     void On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private:

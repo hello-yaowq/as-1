@@ -14,6 +14,7 @@
  */
 #include "entry.h"
 #include "arcan.h"
+#include "arshell.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -35,6 +36,9 @@ Entry::Entry ( QWidget *parent )
     this->setGeometry(50,50,600,20);
 
     registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
+    registerDevice(new arShell(SHELL_DEVICE_NAME,this));
+
+    loadEcu();
 }
 
 class Entry* Entry::Self ( void )
@@ -112,6 +116,12 @@ void Entry::registerEcu ( vEcu* ecu )
 
         connect(ecu,SIGNAL(Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)),this,
                 SLOT(On_Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)));
+
+        arShell* sh = (arShell*)getDevice(SHELL_DEVICE_NAME);
+        if(sh != NULL)
+        {
+            sh->addEcu(ecu->Name());
+        }
     }
 }
 
@@ -130,6 +140,12 @@ void Entry::deleteEcu ( QString name )
             QAction * action = new QAction(ecu->Name(),this);
             this->connect(action,SIGNAL(triggered()),ecu,SLOT(start()));
             toolbar->addAction(action);
+        }
+
+        arShell* sh = (arShell*)getDevice(SHELL_DEVICE_NAME);
+        if(sh != NULL)
+        {
+            sh->addEcu(name);
         }
     }
     else
@@ -181,6 +197,13 @@ void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 
         }
     }
 }
+void Entry::Shell_Write(QString ecu_name,QString cmd)
+{
+    qDebug()<<ecu_name<<cmd;
+    vEcu* ecu = getEcu(ecu_name);
+    assert(ecu);
+    ecu->Shell_Write(cmd);
+}
 
 // ==================== [ SIGNALS       ] =====================================
 
@@ -200,6 +223,13 @@ void Entry::createMenuAndToolbar ( void )
 {
     toolbar = this->addToolBar("virtual machine");
 
+	this->menuBSW = this->menuBar()->addMenu(tr("BSW"));
+
+	this->menuVD = menuBSW->addMenu(tr("Device"));
+}
+
+void Entry::loadEcu(void)
+{
     char* cwd = getcwd(NULL,0);
     ASLOG(OFF,cwd);
     chdir("../../out");
@@ -219,8 +249,4 @@ void Entry::createMenuAndToolbar ( void )
         }
     }
     closedir(d);
-
-	this->menuBSW = this->menuBar()->addMenu(tr("BSW"));
-
-	this->menuVD = menuBSW->addMenu(tr("Device"));
 }

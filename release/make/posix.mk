@@ -60,9 +60,14 @@ $(obj-dir):
 	@mkdir -p $(obj-dir)
 	
 $(exe-dir):
-	@mkdir -p $(exe-dir)	
-
+	@mkdir -p $(exe-dir)
+		
+ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
+else
+-include $(obj-dir)/as.dep
+endif
+
 gen_mk_start:
 ifeq ($(gen-mk),yes)
 	@echo "@echo off" > build.bat

@@ -14,7 +14,9 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-
+#if (defined(__WINDOWS__) || defined(__LINUX__)) && defined(__SMALL_OS__)
+#include <sys/time.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -136,7 +138,6 @@ TASK(TaskIdle)
 #endif
 
 #if (defined(__WINDOWS__) || defined(__LINUX__)) && defined(__SMALL_OS__)
-#include <sys/time.h>
 		static clock_t previous = 0;
 		if(clock() != previous)
 		{

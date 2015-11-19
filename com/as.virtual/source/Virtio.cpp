@@ -91,6 +91,17 @@ void Virtio::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
         dev->Can_Write(busid,canid,dlc,data);
     }
 }
+
+void Virtio::Shell_Write(QString cmd)
+{
+    Vdev* dev;
+    for(int i=0;i<vdev_list.size();i++)
+    {
+        dev = vdev_list[i];
+        dev->Shell_Write(cmd);
+    }
+}
+
 void Virtio::On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     emit Can_RxIndication(busid,canid,dlc,data);
@@ -266,6 +277,21 @@ void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
     kick_w();
 
 }
+void RPmsg::Shell_Write(QString cmd)
+{
+    RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
+    assert(NULL != rpmsg);
+    const char* scmd = cmd.toStdString().c_str();
+    strcpy((char*)(rpmsg->data),scmd);
+
+    rpmsg->dst = sample_shell_ept;
+    rpmsg->src = sample_src_ept;
+    rpmsg->len = strlen(scmd);
+
+    provide_a_w_buffer(rpmsg,sizeof(RPmsg_HandlerType));
+
+    kick_w();
+}
 
 void RPmsg::rx_noificaton(void){
     VirtQ_IdxSizeType idx;
@@ -296,6 +322,7 @@ void RPmsg::rx_noificaton(void){
                 ASLOG(RPMSG,"RPMSG-SAMPLE on-line\n");
                 sample_src_ept = buf->src;
                 sample_can_ept = 0xCAB;
+                sample_shell_ept = 0xCAD;
             }
             else
             {
