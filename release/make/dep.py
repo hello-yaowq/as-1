@@ -10,7 +10,9 @@ def get_abs(file):
     if(os.name == 'nt'):
         os.system('dir %s > .deps'%(file.replace('/','\\')))
         fp = open('.deps','r')
-        cstr = fp.readlines()[5]
+        cstr = ''
+        for el in fp.readlines():
+            cstr += el
         fp.close()
         grp = reAbs.search(cstr)
         if(grp):
@@ -26,8 +28,7 @@ def get_abs(file):
     return cstr.replace('\\','/')
 
 def abs_dep(dep):
-    dep = dep.replace('\n','') 
-    dep = dep.replace('\r','') 
+    dep = dep.replace('\n','')  
     dep = dep.replace('\\','') 
     grp = dep.split(':')
     cstr = '%s :'%(grp[0])
@@ -43,7 +44,7 @@ def Dep(obj_dir,dep):
     for d in glob.glob('%s/*.d'%(obj_dir)):
         fp = open(d,'r')
         cstr = ''
-        for el in fp.readline():
+        for el in fp.readlines():
             cstr += el
         fd.write('%s\n\n'%(abs_dep(cstr)))
         fp.close()
