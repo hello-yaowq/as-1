@@ -46,14 +46,14 @@ VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable = {
 		.vring[0] = {
 			.da = 0,
 			.align = 4096,
-			.num   = 256,
+			.num   = 512,
 			.notifyid = VIRTQ_IDX_RPMSG_RX,
 			.reserved = 0
 		},
 		.vring[1] = {
 			.da = 0,
 			.align = 4096,
-			.num   = 256,
+			.num   = 512,
 			.notifyid = VIRTQ_IDX_RPMSG_TX,
 			.reserved = 0
 		},

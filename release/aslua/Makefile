@@ -1,3 +1,17 @@
+#/**
+# * AS - the open source Automotive Software on https://github.com/parai
+# *
+# * Copyright (C) 2015  AS <parai@foxmail.com>
+# *
+# * This source code is free software; you can redistribute it and/or modify it
+# * under the terms of the GNU General Public License version 2 as published by the
+# * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+# *
+# * This program is distributed in the hope that it will be useful, but
+# * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# * for more details.
+# */
 target-y = $(board)
 
 obj-dir = ./obj
@@ -131,8 +145,6 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc debug=false	
 94:
 	make dll board=posix compiler=posix-gcc debug=true	
-	@cp -v $(exe-dir)/posix.dll ../asboot/out/lua.dll
+	@(cp -v $(LUA)/script/test.lua d:/)
+	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
 	
-	
-
-
