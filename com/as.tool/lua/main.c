@@ -38,15 +38,6 @@
 #define SHELL_CMD_CACHE_SIZE  4096
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct {
-    /* the CAN ID, 29 or 11-bit */
-    uint32_t 	id;
-    uint8_t     bus;
-    /* Length, max 8 bytes */
-    uint8_t		length;
-    /* data ptr */
-    uint8_t 		sdu[8];
-} Can_RPmsgPduType;
-typedef struct {
 	uint32_t r_pos;
 	uint32_t w_pos;
 	volatile uint32_t counter;
@@ -85,20 +76,6 @@ static void StartupHook(void)
 	SHELL_AddCmd(&luacmd);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
-{
-	Can_RPmsgPduType* pduInfo = (Can_RPmsgPduType*)data;
-	asAssert(len==sizeof(Can_RPmsgPduType));
-	asAssert(chl == RPMSG_CHL_CAN);
-
-    ASLOG(CAN,"RPMAG RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
-		  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
-		  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
-}
-void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
-{
-	asAssert(chl == RPMSG_CHL_CAN);
-}
 void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
 	uint32_t i;

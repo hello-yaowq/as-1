@@ -16,6 +16,7 @@
 #include "vEcu.h"
 #include "Virtio.h"
 #include <string.h>
+#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -262,6 +263,10 @@ RPmsg::RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
 void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     if(false == online) { return; }
+    while(0 == w_buffer.size())
+    {
+        usleep(1);
+    }
     RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
     assert(NULL != rpmsg);
     Can_RPmsgPduType* pdu = (Can_RPmsgPduType*)rpmsg->data;
@@ -283,6 +288,10 @@ void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 void RPmsg::Shell_Write(QString cmd)
 {
     if(false == online) { return; }
+    while(0 == w_buffer.size())
+    {
+        usleep(1);
+    }
     RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
     assert(NULL != rpmsg);
     const char* scmd = cmd.toStdString().c_str();
@@ -310,13 +319,20 @@ void RPmsg::rx_noificaton(void){
     ASLOG(OFF,"Message(idx=%d,len=%d)\n",idx,len);
     ASLOG(VIRTIO,"src=%Xh,dst=%Xh,flags=%Xh\n",buf->src,buf->dst,buf->flags);
 
-    if((buf->src == sample_src_ept) && (buf->dst == sample_can_ept))
+    if(online)
     {
-        Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
-        ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
-              msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
-                msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
-        emit Can_RxIndication(msg->bus,msg->id,msg->length,msg->sdu);
+        if((buf->src == sample_src_ept) && (buf->dst == sample_can_ept))
+        {
+            Can_RPmsgPduType * msg = (Can_RPmsgPduType *)buf->data;
+            ASLOG(VIRTIO,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+                  msg->id,msg->length,msg->sdu[0],msg->sdu[1],msg->sdu[2],msg->sdu[3],
+                    msg->sdu[4],msg->sdu[5],msg->sdu[6],msg->sdu[7]);
+            emit Can_RxIndication(msg->bus,msg->id,msg->length,msg->sdu);
+        }
+        else
+        {
+            assert(0);
+        }
     }
     else
     {

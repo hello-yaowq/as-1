@@ -165,7 +165,11 @@ static int os_getenv (lua_State *L) {
 
 
 static int os_clock (lua_State *L) {
+#ifdef __AS_BY_PARAI__
+  lua_pushnumber(L, ((lua_Number)clock()));
+#else
   lua_pushnumber(L, ((lua_Number)clock())/(lua_Number)CLOCKS_PER_SEC);
+#endif
   return 1;
 }
 

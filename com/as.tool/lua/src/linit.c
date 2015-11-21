@@ -34,7 +34,10 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
-
+#ifdef __AS_BY_PARAI__
+#define LUA_ASLIBNAME	"as"
+LUAMOD_API int (luaopen_as) (lua_State *L);
+#endif
 /*
 ** these libs are loaded by lua.c and are readily available to any Lua
 ** program
@@ -52,6 +55,9 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_DBLIBNAME, luaopen_debug},
 #if defined(LUA_COMPAT_BITLIB)
   {LUA_BITLIBNAME, luaopen_bit32},
+#endif
+#ifdef __AS_BY_PARAI__
+  {LUA_ASLIBNAME, luaopen_as},
 #endif
   {NULL, NULL}
 };
