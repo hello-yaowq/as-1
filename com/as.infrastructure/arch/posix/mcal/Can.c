@@ -465,6 +465,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
 		  Can_RPmsgPduType rpmsg;
+		  Std_ReturnType ercd;
 		  rpmsg.bus = busid;
 		  rpmsg.id = pduInfo->id;
 		  rpmsg.length = pduInfo->length;
@@ -473,7 +474,9 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 				  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
 				  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
 
-		  RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
+			do {
+				ercd = RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
+			} while(ercd != E_OK);
 
 		  canUnit->swPduHandle = pduInfo->swPduHandle;
 		  // Increment statistics

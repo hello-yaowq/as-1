@@ -55,6 +55,10 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 		VirtQ_AddUsedBuffer(portConfig->txChl, idx, len);
 		VirtQ_Kick(portConfig->txChl);
 	}
+	else
+	{
+		ASLOG(RPMSG,"transmit message failed as buffer not availiable.\n");
+	}
 	return ercd;
 }
 static void sendNamseServiceMessage(const RPmsg_PortConfigType* portConfig, RPmsg_NameServiceFlagType flags)

@@ -21,7 +21,10 @@
 #if defined(USE_RPMSG)
 #include "RPmsg.h"
 #endif
+
+#include <sys/queue.h>
 /* ============================ [ MACROS    ] ====================================================== */
+#define CAN_RPMSG_BUS_NUM   4
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct {
     /* the CAN ID, 29 or 11-bit */
@@ -32,6 +35,16 @@ typedef struct {
     /* data ptr */
     uint8_t 		sdu[8];
 } Can_RPmsgPduType;
+
+struct Can_RPmsgPud_s {
+	Can_RPmsgPduType msg;
+	STAILQ_ENTRY(Can_RPmsgPud_s) pduEntry;
+};
+
+struct Can_RPmsgPduQueue_s {
+	int initialized;
+	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 static int luai_can_write (lua_State *L);
 static int luai_can_read  (lua_State *L);
@@ -41,6 +54,8 @@ static const luaL_Reg aslib[] = {
 		{"can_read", luai_can_read},
 		{NULL,NULL}
 };
+
+static struct Can_RPmsgPduQueue_s canQ[CAN_RPMSG_BUS_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 static int luai_can_write (lua_State *L)
 {
@@ -108,6 +123,7 @@ static int luai_can_write (lua_State *L)
 			if(RPmsg_IsOnline())
 			{
 				Can_RPmsgPduType pduInfo;
+				Std_ReturnType ercd;
 				pduInfo.bus = busid;
 				pduInfo.id = canid;
 				pduInfo.length = dlc;
@@ -116,12 +132,14 @@ static int luai_can_write (lua_State *L)
 					  pduInfo.id,pduInfo.length,pduInfo.sdu[0],pduInfo.sdu[1],pduInfo.sdu[2],pduInfo.sdu[3],
 					  pduInfo.sdu[4],pduInfo.sdu[5],pduInfo.sdu[6],pduInfo.sdu[7]);
 
-				RPmsg_Send(RPMSG_CHL_CAN,&pduInfo,sizeof(pduInfo));
+				do {
+					ercd = RPmsg_Send(RPMSG_CHL_CAN,&pduInfo,sizeof(pduInfo));
+				} while(ercd != E_OK);
 			}
 			#endif
 		}
 
-		lua_pushnumber(L, 0);        /* result OK */
+		lua_pushboolean(L, TRUE);        /* result OK */
 		return 1;
 	}
 	else
@@ -143,9 +161,38 @@ static int luai_can_read  (lua_State *L)
 		{
 			 return luaL_error(L,"incorrect argument busid to function 'can_read'");
 		}
+		if( busid >= CAN_RPMSG_BUS_NUM)
+		{
+			return luaL_error(L,"busid out of range(%d > %d) to function 'can_read'",busid,CAN_RPMSG_BUS_NUM);
+		}
 
-		lua_pushnumber(L, busid);        /* result OK */
-		return 1;
+		if(STAILQ_EMPTY(&canQ[busid].pduHead))
+		{
+			lua_pushboolean(L, FALSE);
+			lua_pushnil(L);
+			lua_pushnil(L);
+		}
+		else
+		{
+			struct Can_RPmsgPud_s* pdu;
+			int table_index,i;
+			pdu = STAILQ_FIRST(&canQ[busid].pduHead);
+			lua_pushboolean(L, TRUE);
+
+			lua_pushinteger(L,pdu->msg.id);
+
+			lua_newtable(L);
+			table_index = lua_gettop(L);
+
+			for(i=0; i<pdu->msg.length;i++)
+			{
+				lua_pushinteger(L, pdu->msg.sdu[i]);
+				lua_seti(L, table_index, i);
+			}
+			free(pdu);
+			STAILQ_REMOVE_HEAD(&canQ[busid].pduHead,pduEntry);
+		}
+		return 3;
 	}
 	else
 	{
@@ -156,6 +203,21 @@ static int luai_can_read  (lua_State *L)
 
 LUAMOD_API int (luaopen_as) (lua_State *L)
 {
+	int i;
+	struct Can_RPmsgPud_s* pdu;
+
+	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
+	{
+		if(canQ[i].initialized)
+		{	/* free previous receive message */
+			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
+				free(pdu);
+			}
+		}
+
+		STAILQ_INIT(&canQ[i].pduHead);
+		canQ[i].initialized = TRUE;
+	}
 	luaL_newlib(L, aslib);
 	return 1;
 }
@@ -163,11 +225,30 @@ LUAMOD_API int (luaopen_as) (lua_State *L)
 #if defined(USE_RPMSG)
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
+	struct Can_RPmsgPud_s* pdu;
 	Can_RPmsgPduType* pduInfo = (Can_RPmsgPduType*)data;
 	asAssert(len==sizeof(Can_RPmsgPduType));
 	asAssert(chl == RPMSG_CHL_CAN);
 
-    ASLOG(CAN,"RPMAG RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+	if(pduInfo->bus < CAN_RPMSG_BUS_NUM)
+	{
+		pdu = malloc(sizeof(struct Can_RPmsgPud_s));
+		if(pdu)
+		{
+			memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
+			STAILQ_INSERT_TAIL(&canQ[pduInfo->bus].pduHead,pdu,pduEntry);
+		}
+		else
+		{
+			ASWARNING("LUA CAN RX malloc failed\n");
+		}
+	}
+	else
+	{
+		ASWARNING("LUA CAN RX bus <%d> out of range, busid < %d is support only\n",pduInfo->bus,CAN_RPMSG_BUS_NUM);
+	}
+
+    ASLOG(LUA,"RPMAG RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
 		  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
 		  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
 }
