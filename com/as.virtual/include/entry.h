@@ -27,7 +27,6 @@
 
 typedef QMap<QString, arDevice*> map_device_t;
 typedef QMap<QString, vEcu*> map_ecu_t;
-// ====================== [ ICON RESOURCES ] =======================
 class Entry: public QMainWindow
 {
 Q_OBJECT
@@ -36,7 +35,7 @@ private:
     map_ecu_t map_ecu;
 	QMenu* menuBSW /* Basic Software Modules*/;
 	QMenu* menuVD /* Virtual Device */;
-
+    QAction* startAllEcu;
     QToolBar* toolbar;
 public:
 	explicit Entry ( QWidget *parent = 0 );

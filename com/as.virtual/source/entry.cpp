@@ -110,8 +110,8 @@ void Entry::registerEcu ( vEcu* ecu )
     else
     {
         map_ecu[ecu->Name()] = ecu;
-        QAction * action = new QAction(ecu->Name(),this);
-        this->connect(action,SIGNAL(triggered()),ecu,SLOT(start()));
+        vmEcu * action = new vmEcu(ecu,this);
+        connect(startAllEcu,SIGNAL(triggered()),action,SLOT(start()));
         toolbar->addAction(action);
 
         connect(ecu,SIGNAL(Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)),this,
@@ -230,6 +230,9 @@ void Entry::createMenuAndToolbar ( void )
 
 void Entry::loadEcu(void)
 {
+    startAllEcu = new QAction("Start All",this);
+    toolbar->addAction(startAllEcu);
+
     char* cwd = getcwd(NULL,0);
     ASLOG(OFF,cwd);
     chdir("../../out");

@@ -19,6 +19,7 @@
 #include <QThread>
 #include <QString>
 #include <QDebug>
+#include <QAction>
 #include <assert.h>
 #include "Virtio.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -53,6 +54,18 @@ signals:
 protected:
 
 private slots:
+
+};
+
+class vmEcu : public QAction
+{
+Q_OBJECT
+private:
+    vEcu* ecu;
+public:
+    explicit vmEcu(vEcu* ecu,QWidget* parent = 0);
+private slots:
+    void start(void);
 
 };
 /* ============================ [ DATAS     ] ====================================================== */

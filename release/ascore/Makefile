@@ -30,6 +30,7 @@ else
 $(error fix your home path)
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
+DEPC  = $(PY27) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY27) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
@@ -379,6 +380,9 @@ dep-at91sam3s:
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
+
+depc:
+	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
 clean: 
 	@rm -fv $(obj-dir)/*

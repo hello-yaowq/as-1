@@ -107,3 +107,16 @@ void vEcu::run(void)
     virtio->start();
     pfMain();
 }
+
+vmEcu::vmEcu(vEcu* ecu,QWidget* parent)
+    :QAction(ecu->Name(),parent), ecu(ecu)
+{
+    connect(this,SIGNAL(triggered()),this,SLOT(start()));
+}
+
+void vmEcu::start(void)
+{
+    ASLOG(OFF,"Start ECU<%s>\n",ecu->Name().toStdString().c_str());
+    ecu->start();
+    setDisabled(true);
+}
