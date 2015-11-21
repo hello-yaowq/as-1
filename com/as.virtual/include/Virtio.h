@@ -451,6 +451,7 @@ private:
     quint32 sample_src_ept;
     quint32 sample_can_ept;
     quint32 sample_shell_ept;
+    bool    online;
 public:
     explicit RPmsg ( Rproc_ResourceVdevType* rpmsg );
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);

@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <sys/queue.h>
+#include "asdebug.h"
 
 typedef int (*ShellFuncT)(int argc, char *argv[]);
 
@@ -31,7 +32,17 @@ int SHELL_Mainloop( void );
 #define SHELL_E_CMD_TOO_LONG	1
 #define SHELL_E_CMD_IS_NULL		2
 #define SHELL_E_NO_SUCH_CMD		3
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define SHELL_printf  PRINTF
+#define SHELL_puts    PRINTF
+#define SHELL_putc(c)
+#else
+#define SHELL_printf  printf
+#define SHELL_puts    puts
+#define SHELL_putc(c) putchar(c)
+#endif
 
+char SHELL_getc(void);
 
 #ifdef __cplusplus
 }

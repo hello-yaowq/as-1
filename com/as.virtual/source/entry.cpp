@@ -199,7 +199,6 @@ void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 
 }
 void Entry::Shell_Write(QString ecu_name,QString cmd)
 {
-    qDebug()<<ecu_name<<cmd;
     vEcu* ecu = getEcu(ecu_name);
     assert(ecu);
     ecu->Shell_Write(cmd);

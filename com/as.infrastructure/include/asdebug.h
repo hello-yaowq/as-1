@@ -18,13 +18,14 @@
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
-#define AS_LOG_IPC   	1
+#define AS_LOG_IPC   	0
 #define AS_LOG_VIRTQ    0
 #define AS_LOG_RPMSG    0
-#define AS_LOG_CAN      4
+#define AS_LOG_CAN      0
 #define AS_LOG_CANIF    5
 #define AS_LOG_CANTP    6
-#define AS_LOG_OS       7
+#define AS_LOG_OS       0
+#define AS_LOG_SHELL    0
 /* and so on ... */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
@@ -39,6 +40,11 @@
 			aslog(#level,fmt,##__VA_ARGS__);				\
 		} 													\
 	}while(0)
+
+#define ASWARNING(fmt,...) 									\
+	do {													\
+			aslog("WARING",fmt,##__VA_ARGS__);				\
+	}while(0)
 #else
 #define ASLOG(level,fmt,...) 								\
 	do {													\
@@ -46,6 +52,12 @@
 			printf("%-16s:",#level);						\
 			printf(fmt,##__VA_ARGS__);						\
 		} 													\
+	}while(0)
+
+#define ASWARNING(fmt,...) 									\
+	do {													\
+			printf("%-16s:","WARNING");						\
+			printf(fmt,##__VA_ARGS__);						\
 	}while(0)
 #endif
 

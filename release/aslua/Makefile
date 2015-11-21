@@ -66,7 +66,6 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
 def-y    += -DLUA_COMPAT_5_2
-ldflags-y += -Wl,-E
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
@@ -131,7 +130,7 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc debug=false	
 94:
 	make dll board=posix compiler=posix-gcc debug=true	
-	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
+	@cp -v $(exe-dir)/posix.dll ../asboot/out/lua.dll
 	
 	
 

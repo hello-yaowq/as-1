@@ -246,5 +246,5 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc debug=false	
 94:
 	make dll board=posix compiler=posix-gcc debug=true	
-	@mv -v $(exe-dir)/posix.dll $(exe-dir)/asboot.dll
+	@mv -v $(exe-dir)/posix.dll $(exe-dir)/boot.dll
 

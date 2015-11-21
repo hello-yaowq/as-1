@@ -31,9 +31,13 @@
 /* ----------------------------[Private define]------------------------------*/
 
 /* The maximum number of arguments when calling a shell function */
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define MAX_ARGS		128
+#define CMDLINE_MAX		4096
+#else
 #define MAX_ARGS		10
-
 #define CMDLINE_MAX		40
+#endif
 
 
 /* ----------------------------[Private macro]-------------------------------*/
@@ -125,7 +129,6 @@ static char *strtokAndTrim(char *s1, const char *s2, char **s3)
   char *str = strtok_r(s1, s2, s3);
 
   return str;
-  //return trim(str);
 }
 
 /**
@@ -144,18 +147,18 @@ static int shellHelp(int argc, char *argv[] ) {
 
 	if(argc == 1 ) {
 		/* display "help" */
-		printf("List of commands:\n");
+		SHELL_puts("List of commands:\n");
 		TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
-			printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
+			SHELL_printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
 		}
 	} else {
 		cmd = argv[1];
 		/* display "help <cmd>" */
 		TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
 			if( strcmp(cmd,iCmd->cmd) == 0 ) {
-				printf("%s\n",iCmd->longDesc);
+				SHELL_printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
+				SHELL_printf("%s\n",iCmd->longDesc);
 			}
-//			printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
 		}
 
 	}
@@ -214,6 +217,8 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 
 	*cmdRv = 1;
 
+	ASLOG(SHELL,"run cmd '%s'\n",cmdArgs);
+
 	/* Remove backspace */
 //	cmdArgs = fix((char *)cmdArgs, (char *)cmdArgs);
 
@@ -253,14 +258,14 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 		*cmdRv = runCmd->func(argc, argv);
 
 	} else {
-		printf("No such command:\"%s\",strlen=%d\n",cmdStr,(int)strlen(cmdStr));
+		SHELL_printf("No such command:\"%s\",strlen=%d\n",cmdStr,(int)strlen(cmdStr));
 		return SHELL_E_NO_SUCH_CMD;
 	}
 	return SHELL_E_OK;
 }
 
 static void doPrompt( void ) {
-	puts("[ArcCore] $ ");
+	SHELL_puts("[AS] $ ");
 }
 
 
@@ -270,31 +275,28 @@ int SHELL_Mainloop( void ) {
 	int lineIndex = 0;
 	int cmdRv;
 
-	puts("ArcCore Shell version 0.1\n");
+	SHELL_puts("AS Shell version 0.1\n");
 	doPrompt();
 
 	for(;;) {
-		c = fgetc(stdin);
-		//printf("Got %c\n",(char)rv);
+		c = SHELL_getc();
 		if( lineIndex >= CMDLINE_MAX ) {
 			lineIndex = 0;
 		}
 
 		if( c == '\b') {
 			lineIndex--;
-			fputc(c,stdout);
-			// fputs("\e\x50",stdout);
+			SHELL_putc(c);
 		} else if( c == '\n' || c == '\r' ) {
-			puts("\n");
+			SHELL_putc('\n');
 			cmdLine[lineIndex++] = '\n';
 			cmdLine[lineIndex] = '\0';
-			//printf("Got Cmd:%s\n",cmdLine);
 			SHELL_RunCmd(cmdLine,&cmdRv);
 			lineIndex = 0;
 			doPrompt();
 		} else {
 			cmdLine[lineIndex++] = c;
-			fputc(c,stdout);
+			SHELL_putc(c);
 		}
 
 	}

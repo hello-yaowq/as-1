@@ -13,7 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include <unistd.h>
 #include "Std_Types.h"
+
 #if defined(USE_IPC)
 #include "Ipc.h"
 #endif
@@ -29,11 +31,31 @@
 #include "shell.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
+#ifndef USE_SHELL
+#error "macro USE_SHELL is not defined"
+#endif
 
+#define SHELL_CMD_CACHE_SIZE  4096
 /* ============================ [ TYPES     ] ====================================================== */
+typedef struct {
+    /* the CAN ID, 29 or 11-bit */
+    uint32_t 	id;
+    uint8_t     bus;
+    /* Length, max 8 bytes */
+    uint8_t		length;
+    /* data ptr */
+    uint8_t 		sdu[8];
+} Can_RPmsgPduType;
+typedef struct {
+	uint32_t r_pos;
+	uint32_t w_pos;
+	volatile uint32_t counter;
+	char     cmd[SHELL_CMD_CACHE_SIZE];
+}Shel_CmdInputCacheType;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern int lua_main(int argc, char *argv[]);
 /* ============================ [ DATAS     ] ====================================================== */
+static Shel_CmdInputCacheType shCmdCache;
 static ShellCmdT luacmd =
 {
 	.func = lua_main,
@@ -58,13 +80,20 @@ static void StartupHook(void)
 	RPmsg_Init(&RPmsg_Config);
 #endif
 
+	memset(&shCmdCache,0,sizeof(shCmdCache));
 	SHELL_Init();
 	SHELL_AddCmd(&luacmd);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
+	Can_RPmsgPduType* pduInfo = (Can_RPmsgPduType*)data;
+	asAssert(len==sizeof(Can_RPmsgPduType));
 	asAssert(chl == RPMSG_CHL_CAN);
+
+    ASLOG(CAN,"RPMAG RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+		  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
+		  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
 }
 void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 {
@@ -72,7 +101,43 @@ void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 }
 void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
+	uint32_t i;
+	char* cmd = (char*)data;
 	asAssert(chl == RPMSG_CHL_SHELL);
+	ASLOG(SHELL,"receive cmd \"%s\"\n",cmd);
+	if( (shCmdCache.counter+len) < SHELL_CMD_CACHE_SIZE)
+	{
+		for(i=0;i<len;i++)
+		{
+			shCmdCache.cmd[shCmdCache.w_pos] = cmd[i];
+			shCmdCache.w_pos ++;
+			if(shCmdCache.w_pos >= SHELL_CMD_CACHE_SIZE)
+			{
+				shCmdCache.w_pos = 0;
+			}
+			shCmdCache.counter++;
+		}
+	}
+	else
+	{
+		ASLOG(SHELL,"command buffer full, ignore cmd \"%s\"\n",cmd);
+	}
+}
+char SHELL_getc(void)
+{
+	char chr;
+	while(0 == shCmdCache.counter)
+	{
+		usleep(1);
+	}
+	chr = shCmdCache.cmd[shCmdCache.r_pos];
+	shCmdCache.r_pos++;
+	if(shCmdCache.r_pos >= SHELL_CMD_CACHE_SIZE)
+	{
+		shCmdCache.r_pos = 0;
+	}
+	shCmdCache.counter--;
+	return chr;
 }
 void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 {
@@ -80,6 +145,7 @@ void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 }
 int main(int argc,char* argv[])
 {
+	(void)argc;(void)argv;
 	StartupHook();
 
 	SHELL_Mainloop();

@@ -256,9 +256,12 @@ RPmsg::RPmsg ( Rproc_ResourceVdevType* rpmsg ) : Vdev(rpmsg)
         memset(data,0,len);
         w_buffer.append(data);
     } while((quint32)w_buffer.size()<w_ring_num());
+
+    online = false;
 }
 void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
+    if(false == online) { return; }
     RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
     assert(NULL != rpmsg);
     Can_RPmsgPduType* pdu = (Can_RPmsgPduType*)rpmsg->data;
@@ -279,6 +282,7 @@ void RPmsg::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 }
 void RPmsg::Shell_Write(QString cmd)
 {
+    if(false == online) { return; }
     RPmsg_HandlerType* rpmsg = (RPmsg_HandlerType*)w_buffer.takeFirst();
     assert(NULL != rpmsg);
     const char* scmd = cmd.toStdString().c_str();
@@ -287,6 +291,8 @@ void RPmsg::Shell_Write(QString cmd)
     rpmsg->dst = sample_shell_ept;
     rpmsg->src = sample_src_ept;
     rpmsg->len = strlen(scmd);
+    rpmsg->data[rpmsg->len] = '\n';
+    rpmsg->len += 1;
 
     provide_a_w_buffer(rpmsg,sizeof(RPmsg_HandlerType));
 
@@ -323,6 +329,7 @@ void RPmsg::rx_noificaton(void){
                 sample_src_ept = buf->src;
                 sample_can_ept = 0xCAB;
                 sample_shell_ept = 0xCAD;
+                online = true;
             }
             else
             {

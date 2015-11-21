@@ -128,7 +128,8 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 			}
 			else
 			{
-				asAssert(0);
+				/* ignore invalid message */
+				ASWARNING("RPMSG: invalid message, ignore it\n");
 			}
 
 			VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
@@ -156,7 +157,7 @@ boolean RPmsg_IsOnline(void)
 }
 void RPmsg_TxConfirmation(RPmsg_PortType channel)
 {
-
+	(void)channel;
 }
 
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)

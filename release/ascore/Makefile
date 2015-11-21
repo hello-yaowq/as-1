@@ -454,5 +454,6 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc gui=GTK debug=false	
 94:
 	make dll board=posix compiler=posix-gcc gui=GTK debug=true	
+	@cp -v $(exe-dir)/posix.dll ../asboot/out/core.dll
 
 

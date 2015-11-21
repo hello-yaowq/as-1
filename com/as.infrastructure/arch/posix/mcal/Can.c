@@ -155,12 +155,12 @@ typedef struct {
 } Can_UnitType;
 
 typedef struct {
-    // the CAN ID, 29 or 11-bit
+    /* the CAN ID, 29 or 11-bit */
     uint32_t 	id;
     uint8_t     bus;
-    // Length, max 8 bytes
+    /* Length, max 8 bytes */
     uint8_t		length;
-    // data ptr
+    /* data ptr */
     uint8_t 		sdu[8];
 } Can_RPmsgPduType;
 
