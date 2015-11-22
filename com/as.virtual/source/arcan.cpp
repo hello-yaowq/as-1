@@ -102,38 +102,39 @@ void arCan::on_btnAbsRelTime_clicked(void)
         btnAbsRelTime->setText("Real Time");
     }
 }
-void arCan::putMsg(quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
+void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
 {
     quint32 index = tableTrace->rowCount();
     (void)dlc;
     tableTrace->setRowCount(index+1);
-    tableTrace->setItem(index,0,new QTableWidgetItem(QString("%1").arg(busid)));
-    tableTrace->setItem(index,1,new QTableWidgetItem(QString("%1").arg(GetOsTick())));
+    tableTrace->setItem(index,0,new QTableWidgetItem(from));
+    tableTrace->setItem(index,1,new QTableWidgetItem(QString("%1").arg(busid)));
+    tableTrace->setItem(index,2,new QTableWidgetItem(QString("%1").arg(GetOsTick())));
     if(isRx)
     {
-    	tableTrace->setItem(index,2,new QTableWidgetItem(QString("RX")));
+        tableTrace->setItem(index,3,new QTableWidgetItem(QString("RX")));
     }
     else
     {
-    	tableTrace->setItem(index,2,new QTableWidgetItem(QString("TX")));
+        tableTrace->setItem(index,3,new QTableWidgetItem(QString("TX")));
     }
-    tableTrace->setItem(index,3,new QTableWidgetItem(QString("%1").arg(canid,0,16)));
+    tableTrace->setItem(index,4,new QTableWidgetItem(QString("%1").arg(canid,0,16)));
     for(int i=0;i<8;i++)
     {
-        tableTrace->setItem(index,4+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
+        tableTrace->setItem(index,5+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
     }
     tableTrace->setCurrentCell(index,0);
 }
 
-void arCan::RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
+void arCan::RxIndication(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
-    putMsg(busid,canid,dlc,data);
+    putMsg(from,busid,canid,dlc,data);
 }
 
 void arCan::Transmit(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     (void)time;
-    putMsg(busid,canid,dlc,data,false);
+    putMsg("Qt",busid,canid,dlc,data,false);
 
     Entry::Self()->Can_Write(busid,canid,dlc,data);
 }
@@ -193,8 +194,8 @@ void arCan::createGui(void)
     {   // create trace
         tableTrace = new QTableWidget();
         QStringList  list;
-        list<<"Bus"<<"Time(ms)"<<"Direction"<<"Id"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
-        tableTrace->setColumnCount(12);
+        list<<"from"<<"Bus"<<"Time(ms)"<<"Direction"<<"Id"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
+        tableTrace->setColumnCount(list.size());
         tableTrace->setRowCount(0);
         tableTrace->setHorizontalHeaderLabels(list);
         vbox->addWidget(tableTrace);

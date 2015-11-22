@@ -67,7 +67,7 @@ static ShellCmdT helpInfo  = {
 		{NULL,NULL}
 };
 
-static char cmdBuf[40];
+static char cmdBuf[CMDLINE_MAX];
 
 
 /* ----------------------------[Private functions]---------------------------*/
@@ -236,6 +236,12 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 	memcpy(cmdBuf, cmdArgs, len);
 	cmdStr = strtokAndTrim(cmdBuf, delim, &token_r);
 
+	if(NULL == cmdStr)
+	{
+		ASLOG(SHELL,"error when parse cmdStr\n");
+		return SHELL_E_CMD_IS_NULL;
+	}
+
 	/* Search for the command */
 	TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
 		if( strcmp(cmdStr,iCmd->cmd) == 0 ) {
@@ -252,6 +258,13 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 
 		while( (arg = strtokAndTrim(NULL, delim, &token_r)) != NULL ) {
 			assert(argc<MAX_ARGS);
+
+			if(NULL == arg)
+			{
+				ASLOG(SHELL,"error when parse arg\n");
+				return SHELL_E_CMD_IS_NULL;
+			}
+
 			argv[argc++] = arg;
 		}
 

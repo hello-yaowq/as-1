@@ -26,16 +26,6 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_RPMSG_BUS_NUM   4
 /* ============================ [ TYPES     ] ====================================================== */
-typedef struct {
-    /* the CAN ID, 29 or 11-bit */
-    uint32_t 	id;
-    uint8_t     bus;
-    /* Length, max 8 bytes */
-    uint8_t		length;
-    /* data ptr */
-    uint8_t 		sdu[8];
-} Can_RPmsgPduType;
-
 struct Can_RPmsgPud_s {
 	Can_RPmsgPduType msg;
 	STAILQ_ENTRY(Can_RPmsgPud_s) pduEntry;
@@ -200,7 +190,6 @@ static int luai_can_read  (lua_State *L)
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
 LUAMOD_API int (luaopen_as) (lua_State *L)
 {
 	int i;
@@ -222,6 +211,25 @@ LUAMOD_API int (luaopen_as) (lua_State *L)
 	return 1;
 }
 
+void luaclose_as(void)
+{
+	int i;
+	struct Can_RPmsgPud_s* pdu;
+
+	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
+	{
+		if(canQ[i].initialized)
+		{	/* free previous receive message */
+			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
+				free(pdu);
+			}
+		}
+
+		STAILQ_INIT(&canQ[i].pduHead);
+		canQ[i].initialized = FALSE;
+	}
+}
+
 #if defined(USE_RPMSG)
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
@@ -232,15 +240,23 @@ void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 
 	if(pduInfo->bus < CAN_RPMSG_BUS_NUM)
 	{
-		pdu = malloc(sizeof(struct Can_RPmsgPud_s));
-		if(pdu)
+		if(canQ[pduInfo->bus].initialized)
 		{
-			memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
-			STAILQ_INSERT_TAIL(&canQ[pduInfo->bus].pduHead,pdu,pduEntry);
+			pdu = malloc(sizeof(struct Can_RPmsgPud_s));
+			if(pdu)
+			{
+				memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
+				STAILQ_INSERT_TAIL(&canQ[pduInfo->bus].pduHead,pdu,pduEntry);
+			}
+			else
+			{
+				ASWARNING("LUA CAN RX malloc failed\n");
+			}
 		}
 		else
 		{
-			ASWARNING("LUA CAN RX malloc failed\n");
+			/* not on-line */
+			ASLOG(LUA,"lua is not on-line now!\n");
 		}
 	}
 	else

@@ -40,7 +40,7 @@ private:
 public:
     explicit arCan(QString name,unsigned long channelNumber,QWidget *parent=0);
     ~arCan();
-    void RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+    void RxIndication(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data);
     void Transmit(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
 private slots:
     void on_btnClearTrace_clicked(void);
@@ -50,7 +50,7 @@ private slots:
     void on_btnTriggerTx_clicked(void);
 private:
     void createGui(void);
-    void putMsg(quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx=true);
+    void putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx=true);
     void clear(void);
 signals:
 

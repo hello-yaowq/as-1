@@ -154,16 +154,6 @@ typedef struct {
   PduIdType swPduHandle; //
 } Can_UnitType;
 
-typedef struct {
-    /* the CAN ID, 29 or 11-bit */
-    uint32_t 	id;
-    uint8_t     bus;
-    /* Length, max 8 bytes */
-    uint8_t		length;
-    /* data ptr */
-    uint8_t 		sdu[8];
-} Can_RPmsgPduType;
-
 /* ============================ [ DATAS     ] ====================================================== */
 Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {

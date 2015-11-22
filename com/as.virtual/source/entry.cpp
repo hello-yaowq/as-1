@@ -180,7 +180,7 @@ void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 
 {
     arCan* can = (arCan*)getDevice(CAN_DEVICE_NAME);
     assert(can);
-    can->RxIndication(busid,canid,dlc,data);
+    can->RxIndication(fromEcu->Name(),busid,canid,dlc,data);
     /* broadcast this message to others */
     vEcu* ecu;
     QList<vEcu*> ecus = 	map_ecu.values();

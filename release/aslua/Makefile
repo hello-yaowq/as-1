@@ -144,7 +144,6 @@ clean-dist:clean
 93:
 	make all board=posix compiler=posix-gcc debug=false	
 94:
-	make dll board=posix compiler=posix-gcc debug=true	
-	@(cp -v $(LUA)/script/test.lua d:/)
+	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
 	

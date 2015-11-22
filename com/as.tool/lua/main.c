@@ -13,6 +13,7 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include <pthread.h>
 #include <unistd.h>
 #include "Std_Types.h"
 
@@ -41,15 +42,18 @@ typedef struct {
 	uint32_t r_pos;
 	uint32_t w_pos;
 	volatile uint32_t counter;
+	pthread_mutex_t w_lock;
 	char     cmd[SHELL_CMD_CACHE_SIZE];
 }Shel_CmdInputCacheType;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern int lua_main(int argc, char *argv[]);
+static int lua_main_entry(int argc, char *argv[]);
+extern void luaclose_as(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static Shel_CmdInputCacheType shCmdCache;
 static ShellCmdT luacmd =
 {
-	.func = lua_main,
+	.func = lua_main_entry,
 	.argMin = 0,
 	.argMax = 0,
 	.cmd = "lua",
@@ -72,8 +76,16 @@ static void StartupHook(void)
 #endif
 
 	memset(&shCmdCache,0,sizeof(shCmdCache));
+	shCmdCache.w_lock = PTHREAD_MUTEX_INITIALIZER;
 	SHELL_Init();
 	SHELL_AddCmd(&luacmd);
+}
+static int lua_main_entry(int argc, char *argv[])
+{
+	int rv = lua_main(argc,argv);
+	luaclose_as();
+
+	return rv;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
@@ -84,6 +96,7 @@ void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 	ASLOG(SHELL,"receive cmd \"%s\"\n",cmd);
 	if( (shCmdCache.counter+len) < SHELL_CMD_CACHE_SIZE)
 	{
+		(void)pthread_mutex_lock(&shCmdCache.w_lock);
 		for(i=0;i<len;i++)
 		{
 			shCmdCache.cmd[shCmdCache.w_pos] = cmd[i];
@@ -94,6 +107,7 @@ void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 			}
 			shCmdCache.counter++;
 		}
+		(void)pthread_mutex_unlock(&shCmdCache.w_lock);
 	}
 	else
 	{
@@ -107,6 +121,7 @@ char SHELL_getc(void)
 	{
 		usleep(1);
 	}
+	(void)pthread_mutex_lock(&shCmdCache.w_lock);
 	chr = shCmdCache.cmd[shCmdCache.r_pos];
 	shCmdCache.r_pos++;
 	if(shCmdCache.r_pos >= SHELL_CMD_CACHE_SIZE)
@@ -114,6 +129,7 @@ char SHELL_getc(void)
 		shCmdCache.r_pos = 0;
 	}
 	shCmdCache.counter--;
+	(void)pthread_mutex_unlock(&shCmdCache.w_lock);
 	return chr;
 }
 void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)

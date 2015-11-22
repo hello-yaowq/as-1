@@ -63,7 +63,7 @@ void arShell::createGui(void)
 
            leCmd = new QLineEdit();
            hbox->addWidget(leCmd);
-           leCmd->setText(("lua d:/test.lua"));
+           leCmd->setText(("lua d:/repository/as/com/as.tool/lua/script/test.lua"));
 
            button = new QPushButton("send");
            connect(button,SIGNAL(clicked()),this,SLOT(on_btnSendCommand_clicked()));
