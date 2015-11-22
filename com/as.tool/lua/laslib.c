@@ -18,6 +18,9 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#include <pthread.h>
+#include <unistd.h>
+
 #if defined(USE_RPMSG)
 #include "RPmsg.h"
 #endif
@@ -33,6 +36,7 @@ struct Can_RPmsgPud_s {
 
 struct Can_RPmsgPduQueue_s {
 	int initialized;
+	pthread_mutex_t w_lock;
 	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -45,7 +49,13 @@ static const luaL_Reg aslib[] = {
 		{NULL,NULL}
 };
 
-static struct Can_RPmsgPduQueue_s canQ[CAN_RPMSG_BUS_NUM];
+static struct Can_RPmsgPduQueue_s canQ[CAN_RPMSG_BUS_NUM] =
+{
+	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.w_lock=PTHREAD_MUTEX_INITIALIZER}
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 static int luai_can_write (lua_State *L)
 {
@@ -166,21 +176,27 @@ static int luai_can_read  (lua_State *L)
 		{
 			struct Can_RPmsgPud_s* pdu;
 			int table_index,i;
-			pdu = STAILQ_FIRST(&canQ[busid].pduHead);
+
 			lua_pushboolean(L, TRUE);
+
+			(void)pthread_mutex_lock(&canQ[busid].w_lock);
+			pdu = STAILQ_FIRST(&canQ[busid].pduHead);
 
 			lua_pushinteger(L,pdu->msg.id);
 
 			lua_newtable(L);
 			table_index = lua_gettop(L);
 
+
 			for(i=0; i<pdu->msg.length;i++)
 			{
 				lua_pushinteger(L, pdu->msg.sdu[i]);
 				lua_seti(L, table_index, i);
 			}
-			free(pdu);
 			STAILQ_REMOVE_HEAD(&canQ[busid].pduHead,pduEntry);
+			(void)pthread_mutex_unlock(&canQ[busid].w_lock);
+
+			free(pdu);
 		}
 		return 3;
 	}
@@ -197,6 +213,7 @@ LUAMOD_API int (luaopen_as) (lua_State *L)
 
 	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
 	{
+		(void)pthread_mutex_lock(&canQ[i].w_lock);
 		if(canQ[i].initialized)
 		{	/* free previous receive message */
 			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
@@ -206,6 +223,7 @@ LUAMOD_API int (luaopen_as) (lua_State *L)
 
 		STAILQ_INIT(&canQ[i].pduHead);
 		canQ[i].initialized = TRUE;
+		(void)pthread_mutex_unlock(&canQ[i].w_lock);
 	}
 	luaL_newlib(L, aslib);
 	return 1;
@@ -218,6 +236,7 @@ void luaclose_as(void)
 
 	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
 	{
+		(void)pthread_mutex_lock(&canQ[i].w_lock);
 		if(canQ[i].initialized)
 		{	/* free previous receive message */
 			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
@@ -227,6 +246,7 @@ void luaclose_as(void)
 
 		STAILQ_INIT(&canQ[i].pduHead);
 		canQ[i].initialized = FALSE;
+		(void)pthread_mutex_unlock(&canQ[i].w_lock);
 	}
 }
 
