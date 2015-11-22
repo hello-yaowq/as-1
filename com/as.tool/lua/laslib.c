@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+/* LUA version is 5.3.1 */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "lua.h"
 
@@ -191,7 +192,7 @@ static int luai_can_read  (lua_State *L)
 			for(i=0; i<pdu->msg.length;i++)
 			{
 				lua_pushinteger(L, pdu->msg.sdu[i]);
-				lua_seti(L, table_index, i);
+				lua_seti(L, table_index, i+1);
 			}
 			STAILQ_REMOVE_HEAD(&canQ[busid].pduHead,pduEntry);
 			(void)pthread_mutex_unlock(&canQ[busid].w_lock);

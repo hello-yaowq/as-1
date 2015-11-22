@@ -165,11 +165,7 @@ static int os_getenv (lua_State *L) {
 
 
 static int os_clock (lua_State *L) {
-#ifdef __AS_BY_PARAI__
-  lua_pushnumber(L, ((lua_Number)clock()));
-#else
   lua_pushnumber(L, ((lua_Number)clock())/(lua_Number)CLOCKS_PER_SEC);
-#endif
   return 1;
 }
 
@@ -346,7 +342,32 @@ static int os_exit (lua_State *L) {
   if (L) exit(status);  /* 'if' to avoid warnings for unreachable 'return' */
   return 0;
 }
+#ifdef __AS_BY_PARAI__
+#include <unistd.h>
+static int os_usleep (lua_State *L) {
+	int n = lua_gettop(L);  /* number of arguments */
+	if(1==n)
+	{
+		lua_Integer time;
+		int is_num;
 
+		time = lua_tounsignedx(L, 1,&is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument time to function 'usleep'");
+		}
+
+		usleep(time);
+
+		return 0;
+	}
+	else
+	{
+		return luaL_error(L, "usleep(time) API should has 1 arguments");
+	}
+  return 1;
+}
+#endif
 
 static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
@@ -360,6 +381,9 @@ static const luaL_Reg syslib[] = {
   {"setlocale", os_setlocale},
   {"time",      os_time},
   {"tmpname",   os_tmpname},
+#ifdef __AS_BY_PARAI__
+  {"usleep",   os_usleep},
+#endif
   {NULL, NULL}
 };
 

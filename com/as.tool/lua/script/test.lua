@@ -12,35 +12,16 @@
 -- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- * for more details.
 -- */
-require("as")
-require("math")
-require("os")
-function wait(time)
-  pre = os.clock()
-  
-  now = os.clock()
-  
-  while((now-pre)<time) do
-    now = os.clock()
-  end
-end
+require("cantp")
+
 
 function main()
-
-    print "Hello World!"
-    print "Welcome to arLua, hope better AUTOSAR!"
-    print("sin(pi/2)=" , math.sin(math.pi/2))
- 
-    as.can_write(0,0x731,{0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55})
-    wait(100)
-	result,canid,data = as.can_read(0)
-	print("can_read:",result,canid,data)
-	as.can_write(0,0x731,{0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55})
-    wait(100)
-	result,canid,data = as.can_read(0)
-	print("can_read:",result,canid,data[0],data[1],data[2])
-	result,canid,data = as.can_read(0)
-	print("can_read:",result,canid,data)
+  data = {}
+  cantp.init(0,0,0x732,0x731)
+  for i=1,50,1 do
+    data[i] = i;
+  end
+  cantp.transmit(0,data)
 end
 
 main()
