@@ -23,6 +23,8 @@
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif
+#include <pthread.h>
+#include <sys/queue.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,6 +142,15 @@ typedef struct {
   Can_Arc_ObjectHOHMapType CanHTHMap[NUM_OF_HTHS];
 } Can_GlobalType;
 
+struct Can_RPmsgPud_s {
+	Can_RPmsgPduType msg;
+	STAILQ_ENTRY(Can_RPmsgPud_s) pduEntry;
+};
+
+struct Can_RPmsgPduQueue_s {
+	pthread_mutex_t w_lock;
+	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
+};
 /* Type for holding information about each controller */
 typedef struct {
   CanIf_ControllerModeType state;
@@ -152,6 +163,8 @@ typedef struct {
 
   // Data stored for Txconfirmation callbacks to CanIf
   PduIdType swPduHandle; //
+
+  struct Can_RPmsgPduQueue_s rQ;
 } Can_UnitType;
 
 /* ============================ [ DATAS     ] ====================================================== */
@@ -159,18 +172,23 @@ Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {
   {
     .state = CANIF_CS_UNINIT,
+	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
   },
   {
     .state = CANIF_CS_UNINIT,
+	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
   },
   {
     .state = CANIF_CS_UNINIT,
+	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
   },
   {
     .state = CANIF_CS_UNINIT,
+	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
   },
   {
     .state = CANIF_CS_UNINIT,
+	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
   },
 };
 // Global config
@@ -240,6 +258,10 @@ void Can_Init( const Can_ConfigType *config ) {
 
     canUnit->lock_cnt = 0;
     canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;	/* 0xFFFF marked as Empty and invalid */
+
+    (void)pthread_mutex_lock(&canUnit->rQ.w_lock);
+	STAILQ_INIT(&canUnit->rQ.pduHead);
+	(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
 
     // Clear stats
 #if (USE_CAN_STATISTICS == STD_ON)
@@ -555,30 +577,81 @@ void Can_SimulatorRunning(void)
 		}
 
 		/* Rx Process */
+		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++)
+		{
+			canHwConfig = GET_CONTROLLER_CONFIG(configId);
+			ctlrId = canHwConfig->CanControllerId;
+
+			canUnit = GET_PRIVATE_DATA(ctlrId);
+			if(STAILQ_EMPTY(&canUnit->rQ.pduHead))
+			{
+			}
+			else
+			{
+				uint16 Hrh = 0xFFFF;
+				struct Can_RPmsgPud_s* pdu;
+
+				(void)pthread_mutex_lock(&canUnit->rQ.w_lock);
+				pdu = STAILQ_FIRST(&canUnit->rQ.pduHead);
+				STAILQ_REMOVE_HEAD(&canUnit->rQ.pduHead,pduEntry);
+				(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
+
+				const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[pdu->msg.bus].Can_Arc_Hoh;
+				hoh --;
+				do{
+					hoh ++;
+					if(CAN_OBJECT_TYPE_RECEIVE == hoh->CanObjectType)
+					{
+						Hrh = hoh->CanObjectId;
+						break;
+					}
+				}while(FALSE == hoh->Can_Arc_EOL);
+				asAssert(0xFFFF != Hrh);
+				asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
+				Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(0,pdu->msg.id,pdu->msg.length,pdu->msg.sdu);
+
+				free(pdu);
+			}
+		}
 	}
 }
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
-	Can_RPmsgPduType* rpmsg = data;
+	Can_UnitType *canUnit;
+	const Can_ControllerConfigType *canHwConfig;
+	uint8 ctlrId;
+	Can_RPmsgPduType* pduInfo = data;
 	asAssert(len==sizeof(Can_RPmsgPduType));
 	asAssert(chl == RPMSG_CHL_CAN);
 
-	uint16 Hrh = 0xFFFF;
-	if(Can_Global.initRun == CAN_READY)
+	if(pduInfo->bus < CAN_CTRL_CONFIG_CNT)
 	{
-		const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[rpmsg->bus].Can_Arc_Hoh;
-		hoh --;
-		do{
-			hoh ++;
-			if(CAN_OBJECT_TYPE_RECEIVE == hoh->CanObjectType)
+		canHwConfig = GET_CONTROLLER_CONFIG(pduInfo->bus);
+		ctlrId = canHwConfig->CanControllerId;
+		canUnit = GET_PRIVATE_DATA(ctlrId);
+		if(CANIF_CS_STARTED == canUnit->state)
+		{
+			struct Can_RPmsgPud_s* pdu = malloc(sizeof(struct Can_RPmsgPud_s));
+			if(pdu)
 			{
-				Hrh = hoh->CanObjectId;
-				break;
+				memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
+				(void)pthread_mutex_lock(&canUnit->rQ.w_lock);
+				STAILQ_INSERT_TAIL(&canUnit->rQ.pduHead,pdu,pduEntry);
+				(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
 			}
-		}while(FALSE == hoh->Can_Arc_EOL);
-		asAssert(0xFFFF != Hrh);
-		asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
-		Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(0,rpmsg->id,rpmsg->length,rpmsg->sdu);
+			else
+			{
+				ASWARNING("CAN RX malloc failed\n");
+			}
+		}
+		else
+		{
+			ASLOG(CAN,"CAN is not on-line!\n");
+		}
+	}
+	else
+	{
+		ASWARNING("CAN RX bus <%d> out of range, busid < %d is support only\n",pduInfo->bus,CAN_CTRL_CONFIG_CNT);
 	}
 
 }

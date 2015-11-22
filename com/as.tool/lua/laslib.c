@@ -51,10 +51,10 @@ static const luaL_Reg aslib[] = {
 
 static struct Can_RPmsgPduQueue_s canQ[CAN_RPMSG_BUS_NUM] =
 {
-	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.w_lock=PTHREAD_MUTEX_INITIALIZER}
+	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
+	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER}
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 static int luai_can_write (lua_State *L)
@@ -262,11 +262,14 @@ void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 	{
 		if(canQ[pduInfo->bus].initialized)
 		{
+
 			pdu = malloc(sizeof(struct Can_RPmsgPud_s));
 			if(pdu)
 			{
 				memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
+				(void)pthread_mutex_lock(&canQ[pduInfo->bus].w_lock);
 				STAILQ_INSERT_TAIL(&canQ[pduInfo->bus].pduHead,pdu,pduEntry);
+				(void)pthread_mutex_unlock(&canQ[pduInfo->bus].w_lock);
 			}
 			else
 			{
