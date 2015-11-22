@@ -24,9 +24,9 @@
 #define AS_LOG_CAN      0
 #define AS_LOG_CANIF    5
 #define AS_LOG_CANTP    6
-#define AS_LOG_LUA      7
+#define AS_LOG_LUA      0
 #define AS_LOG_OS       0
-#define AS_LOG_SHELL    1
+#define AS_LOG_SHELL    0
 /* and so on ... */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
