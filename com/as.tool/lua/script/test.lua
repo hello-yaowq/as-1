@@ -22,6 +22,7 @@ function main()
     data[i] = i;
   end
   cantp.transmit(0,data)
+  response = cantp.receive(0)
 end
 
 main()

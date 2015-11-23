@@ -42,6 +42,7 @@ local CANTP_ST_SEND_FC = 6
 
 local cfgSTmin = 10
 local cfgBS    = 8
+local cfgPadding = 0x55
 -- ===================== [ LOCAL    ] ================================
 local M = {}
 local runtime = {}
@@ -53,8 +54,8 @@ function M.init(channel,bus,rxid,txid)
   runtime[channel]["bus"]  = bus
   runtime[channel]["rxid"] = rxid
   runtime[channel]["txid"] = txid
-  runtime[channel]["rxbuffer"] = {}
-  runtime[channel]["t_size"] = 0 -- already transmit size
+  
+  runtime[channel]["t_size"] = 0 -- already transmit size or receive response data size 
 
   -- get on FC
   runtime[channel]["cfgSTmin"] = 0
@@ -75,7 +76,7 @@ local function sendSF(channel,data)
     pdu[i+1] = data[i]
   end
   for i=length+1,8,1 do
-    pdu[i] = 0x55
+    pdu[i] = cfgPadding
   end
 
   return as.can_write(bus,txid,pdu)
@@ -153,7 +154,7 @@ local function sendCF(channel,request)
   end
   
    for i=l_size+2,8,1 do
-    pdu[i] = 0x55
+    pdu[i] = cfgPadding
   end
   
   runtime[channel]["t_size"] = runtime[channel]["t_size"] + l_size
@@ -175,7 +176,6 @@ local function sendCF(channel,request)
   
   runtime[channel]["STmin"] = runtime[channel]["cfgSTmin"]
   
-  print("next state is ",runtime[channel]["state"])
   return as.can_write(bus,txid,pdu)
 end
 
@@ -183,21 +183,25 @@ local function handleFC(channel,request)
   ercd,data = waitRF(channel)
   if true == ercd then
     print("FC:",channel,table.concat(data, ":"))
-  
-    if (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS then
-      runtime[channel]["cfgSTmin"] = data[3]
-      runtime[channel]["BS"] = data[2]
-      runtime[channel]["STmin"] = 0   -- send the first CF immediately
-      runtime[channel]["state"] = CANTP_ST_SEND_CF
-    elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT then
-      runtime[channel]["state"] = CANTP_ST_WAIT_FC
-    elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW then
-      print("cantp buffer over-flow, cancel...")
-      ercd = false
+    if (data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FC then
+      if (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS then
+        runtime[channel]["cfgSTmin"] = data[3]
+        runtime[channel]["BS"] = data[2]
+        runtime[channel]["STmin"] = 0   -- send the first CF immediately
+        runtime[channel]["state"] = CANTP_ST_SEND_CF
+      elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT then
+        runtime[channel]["state"] = CANTP_ST_WAIT_FC
+      elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW then
+        print("cantp buffer over-flow, cancel...")
+        ercd = false
+      else
+        print(string.format("FC error as reason %X,invalid flow status",data[1]))
+        ercd = false
+      end
     else
-      print(string.format("FC error as reason %X",data[1]))
-      ercd = false
-    end 
+      print(string.format("FC error as reason %X,invalid PCI",data[1]))
+      ercd = false 
+    end
   end
   return ercd
 end
@@ -233,12 +237,77 @@ local function ScheduleTx(channel,request)
 end
 
 function M.transmit(channel,data)
-  print(channel,table.concat(data, ":"))
+  print("request: ",channel,table.concat(data, ":"))
   if rawlen(data) < 7 then
     sendSF(channel,data)
   else
     ScheduleTx(channel,data)
   end
+end
+
+local function waitSForFF(channel,response)
+  ercd,data = waitRF(channel)
+  finished = false
+  if true == ercd then
+    if (data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_SF then
+      lsize = data[1]&ISO15765_TPCI_DL
+      for i=1,lsize,1 do
+        response[i] = data[1+i]
+      end
+      ercd = true
+      finished = true
+    elseif (data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FF then
+      runtime[channel]["t_size"] = ((data[1]&0x0F)<<8) + data[2]
+      for i=1,6,1 do
+        response[i] = data[2+i]
+      end
+      runtime[channel]["state"] = CANTP_ST_SEND_FC
+      ercd = true
+      finished = false
+    else
+      ercd = false
+      finished = true
+    end
+  end
+  
+  return ercd,finished
+end
+
+local function sendFC(channel)
+  
+  bus = runtime[channel]["bus"]
+  txid = runtime[channel]["txid"]
+  pdu = {}
+  pdu[1] = ISO15765_TPCI_FC | ISO15765_FLOW_CONTROL_STATUS_CTS
+  pdu[2] = cfgBS
+  pdu[3] = cfgSTmin
+  
+  for i=4,8,1 do
+    pdu[i] = cfgPadding
+  end
+  
+  runtime[channel]["BS"] = cfgBS
+  runtime[channel]["state"] = CANTP_ST_WAIT_CF
+  
+  return as.can_write(bus,txid,pdu)
+end
+
+function M.receive(channel)
+  ercd = true
+  response = {}
+  
+  finished = false
+  
+  ercd,finished = waitSForFF(channel,response)
+  
+  while (true == ercd) and (false == finised) do
+    if runtime[channel]["state"] == CANTP_ST_SEND_FC then
+      ercd = sendFC(channel)
+    end
+  end
+  
+  print("response:",channel,table.concat(response, ":"))
+  return ercd,response
 end
 
 return cantp
