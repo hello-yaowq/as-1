@@ -55,6 +55,10 @@ function M.init(channel,bus,rxid,txid)
   runtime[channel]["txid"] = txid
   runtime[channel]["rxbuffer"] = {}
   runtime[channel]["t_size"] = 0 -- already transmit size
+
+  -- get on FC
+  runtime[channel]["cfgSTmin"] = 0
+  
   runtime[channel]["SN"] = 0
   runtime[channel]["BS"] = 0
   runtime[channel]["STmin"] = 0
@@ -127,6 +131,7 @@ local function waitRF(channel)
 end
 
 local function sendCF(channel,request) 
+  sz = rawlen(request)
   bus = runtime[channel]["bus"]
   txid = runtime[channel]["txid"]
   t_size = runtime[channel]["t_size"]
@@ -136,7 +141,7 @@ local function sendCF(channel,request)
   if runtime[channel]["SN"] > 15 then
     runtime[channel]["SN"] = 0
   end
-  l_size = rawlen(request) - t_size  --  left size 
+  l_size = sz - t_size  --  left size 
   if l_size > 7 then
     l_size = 7
   end
@@ -147,9 +152,30 @@ local function sendCF(channel,request)
     pdu[1+i] = request[t_size+i]
   end
   
-  runtime[channel]["t_size"] = runtime[channel]["t_size"] + l_size
-  runtime[channel]["state"] = CANTP_ST_WAIT_FC
+   for i=l_size+2,8,1 do
+    pdu[i] = 0x55
+  end
   
+  runtime[channel]["t_size"] = runtime[channel]["t_size"] + l_size
+  
+  if runtime[channel]["t_size"] == sz then
+    runtime[channel]["state"] = CANTP_ST_IDLE
+  else
+    if runtime[channel]["BS"] > 0 then
+      runtime[channel]["BS"] = runtime[channel]["BS"] - 1
+      if 0 == runtime[channel]["BS"] then
+        runtime[channel]["state"] = CANTP_ST_WAIT_FC
+      else
+        runtime[channel]["state"] = CANTP_ST_SEND_CF
+      end
+    else
+      runtime[channel]["state"] = CANTP_ST_SEND_CF
+    end
+  end
+  
+  runtime[channel]["STmin"] = runtime[channel]["cfgSTmin"]
+  
+  print("next state is ",runtime[channel]["state"])
   return as.can_write(bus,txid,pdu)
 end
 
@@ -159,9 +185,10 @@ local function handleFC(channel,request)
     print("FC:",channel,table.concat(data, ":"))
   
     if (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS then
+      runtime[channel]["cfgSTmin"] = data[3]
       runtime[channel]["BS"] = data[2]
-      runtime[channel]["STmin"] = data[3]
-      ercd = sendCF(channel,request)
+      runtime[channel]["STmin"] = 0   -- send the first CF immediately
+      runtime[channel]["state"] = CANTP_ST_SEND_CF
     elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT then
       runtime[channel]["state"] = CANTP_ST_WAIT_FC
     elseif (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW then
@@ -185,8 +212,17 @@ local function ScheduleTx(channel,request)
     while(runtime[channel]["t_size"] < length) do
       if runtime[channel]["state"] == CANTP_ST_WAIT_FC then
         ercd = handleFC(channel,request);
+      elseif runtime[channel]["state"] == CANTP_ST_SEND_CF then
+        if runtime[channel]["STmin"] > 0 then
+          runtime[channel]["STmin"] = runtime[channel]["STmin"] - 1
+        end
+        if runtime[channel]["STmin"] == 0 then
+          ercd = sendCF(channel,request);
+        end
+      else
+        print("unknown state ",runtime[channel]["state"])
+        ercd = false
       end
-      
       if ercd == false then
         break
       end

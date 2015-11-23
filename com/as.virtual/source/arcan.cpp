@@ -57,8 +57,8 @@ void arCan::on_btnClearTrace_clicked(void)
 {
     QStringList  list;
     tableTrace->clear();
-    list<<"Bus"<<"Time"<<"Direction"<<"Id"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
-    tableTrace->setColumnCount(12);
+    list<<"from"<<"Bus"<<"Time"<<"Direction"<<"Id"<<"dlc"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
+    tableTrace->setColumnCount(list.size());
     tableTrace->setRowCount(0);
     tableTrace->setHorizontalHeaderLabels(list);
 }
@@ -105,7 +105,6 @@ void arCan::on_btnAbsRelTime_clicked(void)
 void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
 {
     quint32 index = tableTrace->rowCount();
-    (void)dlc;
     tableTrace->setRowCount(index+1);
     tableTrace->setItem(index,0,new QTableWidgetItem(from));
     tableTrace->setItem(index,1,new QTableWidgetItem(QString("%1").arg(busid)));
@@ -119,9 +118,10 @@ void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* da
         tableTrace->setItem(index,3,new QTableWidgetItem(QString("TX")));
     }
     tableTrace->setItem(index,4,new QTableWidgetItem(QString("%1").arg(canid,0,16)));
+    tableTrace->setItem(index,5,new QTableWidgetItem(QString("%1").arg(dlc,0,16)));
     for(int i=0;i<8;i++)
     {
-        tableTrace->setItem(index,5+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
+        tableTrace->setItem(index,6+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
     }
     tableTrace->setCurrentCell(index,0);
 }
@@ -194,7 +194,7 @@ void arCan::createGui(void)
     {   // create trace
         tableTrace = new QTableWidget();
         QStringList  list;
-        list<<"from"<<"Bus"<<"Time(ms)"<<"Direction"<<"Id"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
+        list<<"from"<<"Bus"<<"Time(ms)"<<"Direction"<<"Id"<<"dlc"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
         tableTrace->setColumnCount(list.size());
         tableTrace->setRowCount(0);
         tableTrace->setHorizontalHeaderLabels(list);

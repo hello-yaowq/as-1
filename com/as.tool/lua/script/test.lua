@@ -18,7 +18,7 @@ require("cantp")
 function main()
   data = {}
   cantp.init(0,0,0x732,0x731)
-  for i=1,50,1 do
+  for i=1,256,1 do
     data[i] = i;
   end
   cantp.transmit(0,data)
