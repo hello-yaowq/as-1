@@ -57,8 +57,19 @@ void arCan::on_btnClearTrace_clicked(void)
 {
     QStringList  list;
     tableTrace->clear();
-    list<<"from"<<"Bus"<<"Time"<<"Direction"<<"Id"<<"dlc"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
+    list<<"from"<<"Bus"<<"Time(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
     tableTrace->setColumnCount(list.size());
+    tableTrace->setRowCount(0);
+    tableTrace->setHorizontalHeaderLabels(list);
+    tableTrace->setColumnWidth(0,150);
+    tableTrace->setColumnWidth(1,60);
+    tableTrace->setColumnWidth(2,150);
+    tableTrace->setColumnWidth(3,60);
+    tableTrace->setColumnWidth(4,80);
+    for(int i=5;i<list.size();i++)
+    {
+        tableTrace->setColumnWidth(i,60);
+    }
     tableTrace->setRowCount(0);
     tableTrace->setHorizontalHeaderLabels(list);
 }
@@ -121,7 +132,7 @@ void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* da
     tableTrace->setItem(index,5,new QTableWidgetItem(QString("%1").arg(dlc,0,16)));
     for(int i=0;i<8;i++)
     {
-        tableTrace->setItem(index,6+i,new QTableWidgetItem(QString("%1").arg(data[i],0,16).toUpper()));
+        tableTrace->setItem(index,6+i,new QTableWidgetItem(QString("%1").arg((uint)data[i],2,16,QLatin1Char('0')).toUpper()));
     }
     tableTrace->setCurrentCell(index,0);
 }
@@ -194,10 +205,20 @@ void arCan::createGui(void)
     {   // create trace
         tableTrace = new QTableWidget();
         QStringList  list;
-        list<<"from"<<"Bus"<<"Time(ms)"<<"Direction"<<"Id"<<"dlc"<<"Byte 0"<<"Byte 1"<< "Byte 2"<< "Byte 3"<< "Byte 4"<< "Byte 5"<< "Byte 6"<< "Byte 7";
+        list<<"from"<<"Bus"<<"Time(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
         tableTrace->setColumnCount(list.size());
         tableTrace->setRowCount(0);
         tableTrace->setHorizontalHeaderLabels(list);
+        tableTrace->setColumnWidth(0,150);
+        tableTrace->setColumnWidth(1,60);
+        tableTrace->setColumnWidth(2,150);
+        tableTrace->setColumnWidth(3,60);
+        tableTrace->setColumnWidth(4,80);
+        for(int i=5;i<list.size();i++)
+        {
+            tableTrace->setColumnWidth(i,60);
+        }
+        tableTrace->verticalHeader()->setResizeContentsPrecision(QHeaderView::ResizeToContents);
         vbox->addWidget(tableTrace);
     }
 
