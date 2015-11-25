@@ -224,7 +224,7 @@ local function ScheduleTx(channel,request)
           ercd = sendCF(channel,request);
         end
       else
-        print("unknown state ",runtime[channel]["state"])
+        print("cantp: transmit unknown state ",runtime[channel]["state"])
         ercd = false
       end
       if ercd == false then
@@ -262,8 +262,60 @@ local function waitSForFF(channel,response)
         response[i] = data[2+i]
       end
       runtime[channel]["state"] = CANTP_ST_SEND_FC
+      runtime[channel]["SN"] = 0
       ercd = true
       finished = false
+    else
+      ercd = false
+      finished = true
+    end
+  end
+  
+  return ercd,finished
+end
+
+local function waitCF(channel,response) 
+  sz = rawlen(response)
+  t_size = runtime[channel]["t_size"]
+  
+  ercd,data = waitRF(channel)
+  
+  if true == ercd then
+    if (data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_CF then
+      runtime[channel]["SN"] = runtime[channel]["SN"] + 1
+      if runtime[channel]["SN"] > 15 then
+        runtime[channel]["SN"] = 0
+      end
+      
+      SN = data[1]&0x0F
+      if SN == runtime[channel]["SN"] then
+        l_size = t_size -sz  --  left size 
+        if l_size > 7 then
+          l_size = 7
+        end
+        for i=1,l_size,1 do
+          response[sz+i] = data[1+i]
+        end
+        
+        if (sz+l_size) == t_size then
+          finished = true
+        else
+          if runtime[channel]["BS"] > 0 then
+            runtime[channel]["BS"] = runtime[channel]["BS"] - 1
+            if 0 == runtime[channel]["BS"] then
+              runtime[channel]["state"] = CANTP_ST_SEND_FC
+            else
+              runtime[channel]["state"] = CANTP_ST_WAIT_CF
+            end
+          else
+            runtime[channel]["state"] = CANTP_ST_WAIT_CF
+          end
+        end
+      else
+        ercd = false
+        finished = true
+        print("cantp: wrong sequence number!",SN,runtime[channel]["SN"])
+      end
     else
       ercd = false
       finished = true
@@ -303,6 +355,11 @@ function M.receive(channel)
   while (true == ercd) and (false == finised) do
     if runtime[channel]["state"] == CANTP_ST_SEND_FC then
       ercd = sendFC(channel)
+    elseif runtime[channel]["state"] == CANTP_ST_WAIT_CF then
+      ercd,finished = waitCF(channel,response)
+    else
+      print("cantp: receive unknown state ",runtime[channel]["state"])
+      ercd = false
     end
   end
   
