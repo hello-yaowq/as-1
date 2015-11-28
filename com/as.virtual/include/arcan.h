@@ -37,6 +37,9 @@ private:
     QLineEdit*   leId;
     QLineEdit*   leData;
     QTableWidget* tableTrace;
+    bool displayTimeInReal;
+    TickType preTime;
+    TickType startTime;
 public:
     explicit arCan(QString name,unsigned long channelNumber,QWidget *parent=0);
     ~arCan();

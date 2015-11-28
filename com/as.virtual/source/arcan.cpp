@@ -57,7 +57,14 @@ void arCan::on_btnClearTrace_clicked(void)
 {
     QStringList  list;
     tableTrace->clear();
-    list<<"from"<<"Bus"<<"Time(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+    if(displayTimeInReal)
+    {
+        list<<"from"<<"Bus"<<"Rel(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+    }
+    else
+    {
+        list<<"from"<<"Bus"<<"Abs(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+    }
     tableTrace->setColumnCount(list.size());
     tableTrace->setRowCount(0);
     tableTrace->setHorizontalHeaderLabels(list);
@@ -104,22 +111,84 @@ void arCan::on_btnAbsRelTime_clicked(void)
 {
     QString str = btnAbsRelTime->text();
 
-    if(str == "Real Time")
+    if(str == "Realated Time")
     {
+        displayTimeInReal = true;
         btnAbsRelTime->setText("Absolute Time");
+        int size = tableTrace->rowCount();
+        TickType pre;
+        for(int i=0;i<size;i++)
+        {
+            QTableWidgetItem* item =  tableTrace->item(i,2);
+            if(0==i)
+            {
+                pre = item->text().toInt();
+            }
+            else
+            {
+                TickType rel = item->text().toInt() - pre;
+                pre = item->text().toInt();
+                item->setText(QString("%1").arg(rel));
+            }
+        }
+        QStringList list;
+        list<<"from"<<"Bus"<<"Rel(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+        tableTrace->setColumnCount(list.size());
+        tableTrace->setHorizontalHeaderLabels(list);
     }
     else
     {
-        btnAbsRelTime->setText("Real Time");
+        displayTimeInReal = false;
+        btnAbsRelTime->setText("Realated Time");
+        int size = tableTrace->rowCount();
+        TickType pre;
+        for(int i=0;i<size;i++)
+        {
+            QTableWidgetItem* item =  tableTrace->item(i,2);
+            if(0==i)
+            {
+                pre = item->text().toInt();
+            }
+            else
+            {
+                pre += item->text().toInt();
+                item->setText(QString("%1").arg(pre));
+            }
+        }
+        QStringList list;
+        list<<"from"<<"Bus"<<"Abs(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+        tableTrace->setColumnCount(list.size());
+        tableTrace->setHorizontalHeaderLabels(list);
     }
 }
 void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
 {
+    TickType disTime;
     quint32 index = tableTrace->rowCount();
     tableTrace->setRowCount(index+1);
     tableTrace->setItem(index,0,new QTableWidgetItem(from));
     tableTrace->setItem(index,1,new QTableWidgetItem(QString("%1").arg(busid)));
-    tableTrace->setItem(index,2,new QTableWidgetItem(QString("%1").arg(GetOsTick())));
+    if(0 == index)
+    {
+        preTime   = GetOsTick();
+        startTime = preTime;
+        disTime = 0;
+    }
+    else
+    {
+        if(displayTimeInReal)
+        {
+            TickType now = GetOsTick();
+            disTime = now - preTime;
+            preTime = GetOsTick();
+        }
+        else
+        {
+            preTime = GetOsTick();
+            disTime = preTime - startTime;
+        }
+    }
+    tableTrace->setItem(index,2,new QTableWidgetItem(QString("%1").arg(disTime)));
     if(isRx)
     {
         tableTrace->setItem(index,3,new QTableWidgetItem(QString("RX")));
@@ -205,7 +274,7 @@ void arCan::createGui(void)
     {   // create trace
         tableTrace = new QTableWidget();
         QStringList  list;
-        list<<"from"<<"Bus"<<"Time(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
+        list<<"from"<<"Bus"<<"Rel(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
         tableTrace->setColumnCount(list.size());
         tableTrace->setRowCount(0);
         tableTrace->setHorizontalHeaderLabels(list);
@@ -238,11 +307,10 @@ void arCan::createGui(void)
         hbox->addWidget(btnHexlDeci);
         btnHexlDeci->setDisabled(true); // TODO
 
-        btnAbsRelTime = new QPushButton("Real Time");
+        btnAbsRelTime = new QPushButton("Absolute Time");
         this->connect(btnAbsRelTime,SIGNAL(clicked()),this,SLOT(on_btnAbsRelTime_clicked()));
         hbox->addWidget(btnAbsRelTime);
-        btnAbsRelTime->setDisabled(true);   // TODO
-
+        displayTimeInReal = true;
         hbox->setSpacing(20);
 
         vbox->addItem(hbox);
