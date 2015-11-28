@@ -393,7 +393,25 @@ void Fls_Init(const Fls_ConfigType *ConfigPtr) {
 	/** @req FLS191 */
 	Fls_Global.config = ConfigPtr;
 
-	//Flash_Init();
+	FILE* fp = fopen(FLASH_IMG,"r");
+	if(NULL == fp)
+	{
+		fp = fopen(FLASH_IMG,"w+");
+		asAssert(fp);
+		for(int i=0;i<FLS_TOTAL_SIZE;i++)
+		{
+			uint8_t data = 0xFF;
+			fwrite(&data,1,1,fp);
+		}
+		fclose(fp);
+
+		ASLOG(FLS,"simulation on new created image %s(%f0.1Kb)\n",FLASH_IMG,(float)FLS_TOTAL_SIZE/1024.0);
+	}
+	else
+	{
+		ASLOG(FLS,"simulation on old existed image %s(%f0.1Kb)\n",FLASH_IMG,(float)FLS_TOTAL_SIZE/1024.0);
+		fclose(fp);
+	}
 
 	/** @req FLS016 3.0 *//** @req FLS323 4.0 *//** @req FLS324 4.0*/
 	Fls_Global.status = MEMIF_IDLE;

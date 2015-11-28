@@ -74,6 +74,8 @@
 #include "debug.h"
 #define MODULE_NAME 	"/driver/Eep"
 
+#define EEPROM_IMG "Eeprom.img"
+
 // Define if you to check if the E2 seems sane at init..
 #define CFG_EEP_CHECK_SANE    1
 
@@ -210,6 +212,26 @@ void Eep_Init(const Eep_ConfigType* ConfigPtr) {
 	Eep_Global.jobResultType = MEMIF_JOB_OK;
 
 	Eep_SetMode(Eep_Global.config->EepDefaultMode);
+
+	FILE* fp = fopen(EEPROM_IMG,"r");
+	if(NULL == fp)
+	{
+		fp = fopen(EEPROM_IMG,"w+");
+		asAssert(fp);
+		for(int i=0;i<Eep_Global.config->EepSize;i++)
+		{
+			uint8_t data = 0xFF;
+			fwrite(&data,1,1,fp);
+		}
+		fclose(fp);
+
+		ASLOG(EEP,"simulation on new created image %s(%f0.1Kb)\n",EEPROM_IMG,(float)Eep_Global.config->EepSize/1024.0);
+	}
+	else
+	{
+		ASLOG(EEP,"simulation on old existed image %s(%f0.1Kb)\n",EEPROM_IMG,(float)Eep_Global.config->EepSize/1024.0);
+		fclose(fp);
+	}
 
 }
 
@@ -351,8 +373,6 @@ MemIf_StatusType Eep_GetStatus(void) {
 MemIf_JobResultType Eep_GetJobResult(void) {
 	return Eep_Global.jobResultType;
 }
-
-#define EEPROM_IMG "Eeprom.img"
 
 void Eep_MainFunction(void) {
 	FILE* fp = NULL;
