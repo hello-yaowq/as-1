@@ -103,6 +103,8 @@ def-y += -DUSE_DET -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM	
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+# memory service
+def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
@@ -151,6 +153,8 @@ dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/memory TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanIf TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/CanTp TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/PduR TRUE)
@@ -167,18 +171,34 @@ dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Ea_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Ea_Lcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Fee_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Fee_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/NvM_Cfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/NvM_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/MemIf_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Crc_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Mcu.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Fls.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Eep.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_ConfigTypes.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Eep_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Eep_Lcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fee_Memory_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fls_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fls_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/simulator TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 

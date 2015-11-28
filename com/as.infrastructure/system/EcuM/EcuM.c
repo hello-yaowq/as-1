@@ -234,20 +234,12 @@ void EcuM_StartupTwo(void)
 	 *   are run in a higher priority task that the task that executes this code.
 	 */
 	do {
-        #if defined(__GTK__)
-        #ifdef USE_FEE
-		Fls_MainFunction();
-		Fee_MainFunction();
-        #endif
-        #ifdef USE_EA
-		Eep_MainFunction();
-		Ea_MainFunction();
-        #endif
-		NvM_MainFunction();
+        #if defined(__SMALL_OS__)
+        Schedule();
         #endif
 		/* Read the multiblock status */
 		NvM_GetErrorStatus(0, &readAllResult);
-		tickTimerElapsed = OS_TICKS2MS_OS_TICK(GetOsTick() - tickTimerStart);
+		tickTimerElapsed = OS_TICKS2MS(GetOsTick() - tickTimerStart);
 		/* The timeout EcuMNvramReadAllTimeout is in ms */
 	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < EcuM_World.config->EcuMNvramReadAllTimeout) );
 #endif

@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#include "io.h"
 #include "Compiler.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */

@@ -722,6 +722,7 @@ def genForSmallOS_H(gendir,os_list):
     fp.write('#include "os_i.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __SMALL_OS__\n\n')
+    fp.write("#define OS_TICKS2MS(a) (a)\n\n")
     task_list = SmallOS_TaskList(os_list)
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(task.attrib['name'],id,task.attrib['priority']))
