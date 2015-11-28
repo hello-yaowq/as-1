@@ -225,11 +225,11 @@ void Eep_Init(const Eep_ConfigType* ConfigPtr) {
 		}
 		fclose(fp);
 
-		ASLOG(EEP,"simulation on new created image %s(%f0.1Kb)\n",EEPROM_IMG,(float)Eep_Global.config->EepSize/1024.0);
+		ASLOG(EEP,"simulation on new created image %s(%dKb)\n",EEPROM_IMG,Eep_Global.config->EepSize/1024);
 	}
 	else
 	{
-		ASLOG(EEP,"simulation on old existed image %s(%f0.1Kb)\n",EEPROM_IMG,(float)Eep_Global.config->EepSize/1024.0);
+		ASLOG(EEP,"simulation on old existed image %s(%dKb)\n",EEPROM_IMG,Eep_Global.config->EepSize/1024);
 		fclose(fp);
 	}
 

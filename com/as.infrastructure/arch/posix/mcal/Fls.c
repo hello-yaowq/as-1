@@ -405,11 +405,11 @@ void Fls_Init(const Fls_ConfigType *ConfigPtr) {
 		}
 		fclose(fp);
 
-		ASLOG(FLS,"simulation on new created image %s(%f0.1Kb)\n",FLASH_IMG,(float)FLS_TOTAL_SIZE/1024.0);
+		ASLOG(FLS,"simulation on new created image %s(%dKb)\n",FLASH_IMG,FLS_TOTAL_SIZE/1024);
 	}
 	else
 	{
-		ASLOG(FLS,"simulation on old existed image %s(%f0.1Kb)\n",FLASH_IMG,(float)FLS_TOTAL_SIZE/1024.0);
+		ASLOG(FLS,"simulation on old existed image %s(%dKb)\n",FLASH_IMG,FLS_TOTAL_SIZE/1024);
 		fclose(fp);
 	}
 
