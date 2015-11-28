@@ -194,7 +194,11 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
         }
         else
         {
+			#if defined(__WINDOWS__) || defined(__LINUX__)
+        	/* always run idle for simulation purpose in this case */
+			#else
             if(0 == CurrentTask)
+			#endif
             {	/* no task is ready, execute idle*/
                 ReleaseResource(RES_SCHEDULER);
 
