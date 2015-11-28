@@ -218,7 +218,6 @@ void arCan::createGui(void)
         {
             tableTrace->setColumnWidth(i,60);
         }
-        tableTrace->verticalHeader()->setResizeContentsPrecision(QHeaderView::ResizeToContents);
         vbox->addWidget(tableTrace);
     }
 

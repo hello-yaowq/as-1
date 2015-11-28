@@ -115,7 +115,7 @@ local function waitRF(channel)
   rxid = runtime[channel]["rxid"]
   pre = os.clock()
   while (elapsed(pre) < 1.0) and (ercd == false) do   -- 1s timeout
-    result,canid,data = as.can_read(channel)
+    result,canid,data = as.can_read(channel,rxid)
     if result and (canid == rxid) then
       ercd = true
       break

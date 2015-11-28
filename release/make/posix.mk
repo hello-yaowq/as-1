@@ -61,6 +61,7 @@ endif
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
+#	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@.s -E $<
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 ifeq ($(gen-mk),yes)	
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat

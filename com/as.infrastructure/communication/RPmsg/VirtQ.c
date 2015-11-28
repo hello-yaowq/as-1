@@ -162,5 +162,5 @@ void VirtQ_RxNotificatin(VirtQ_ChannerlType chl)
 }
 void VirtQ_TxConfirmation(VirtQ_ChannerlType chl)
 {
-
+	(void)chl;
 }

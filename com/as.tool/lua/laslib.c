@@ -29,16 +29,22 @@
 #include <sys/queue.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_RPMSG_BUS_NUM   4
+#define CAN_RPMSG_PDU_NUM   16
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_RPmsgPud_s {
 	Can_RPmsgPduType msg;
 	STAILQ_ENTRY(Can_RPmsgPud_s) pduEntry;
 };
-
+struct Can_RPmsgPduList_s {
+	uint32_t id;	/* can_id of this list */
+	uint32_t size;
+	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
+	STAILQ_ENTRY(Can_RPmsgPduList_s) listEntry;
+};
 struct Can_RPmsgPduQueue_s {
 	int initialized;
 	pthread_mutex_t w_lock;
-	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
+	STAILQ_HEAD(,Can_RPmsgPduList_s) listHead;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static int luai_can_write (lua_State *L);
@@ -152,9 +158,12 @@ static int luai_can_write (lua_State *L)
 static int luai_can_read  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
-	if(1==n)
+	if(2==n)
 	{
-		uint32 busid;
+		uint32_t busid;
+		uint32_t canid;
+		struct Can_RPmsgPduList_s* l;
+		struct Can_RPmsgPduList_s* list = NULL;
 		int is_num;
 
 		busid = lua_tounsignedx(L, 1,&is_num);
@@ -167,7 +176,23 @@ static int luai_can_read  (lua_State *L)
 			return luaL_error(L,"busid out of range(%d > %d) to function 'can_read'",busid,CAN_RPMSG_BUS_NUM);
 		}
 
-		if(STAILQ_EMPTY(&canQ[busid].pduHead))
+		canid = lua_tounsignedx(L, 2,&is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument canid to function 'can_read'");
+		}
+
+		STAILQ_FOREACH(l,&canQ[busid].listHead,listEntry)
+		{
+			if(l->id == canid)
+			{
+				list = l;
+				break;
+			}
+		}
+
+
+		if(NULL == list)
 		{
 			lua_pushboolean(L, FALSE);
 			lua_pushnil(L);
@@ -181,7 +206,7 @@ static int luai_can_read  (lua_State *L)
 			lua_pushboolean(L, TRUE);
 
 			(void)pthread_mutex_lock(&canQ[busid].w_lock);
-			pdu = STAILQ_FIRST(&canQ[busid].pduHead);
+			pdu = STAILQ_FIRST(&list->pduHead);
 
 			lua_pushinteger(L,pdu->msg.id);
 
@@ -194,7 +219,8 @@ static int luai_can_read  (lua_State *L)
 				lua_pushinteger(L, pdu->msg.sdu[i]);
 				lua_seti(L, table_index, i+1);
 			}
-			STAILQ_REMOVE_HEAD(&canQ[busid].pduHead,pduEntry);
+			STAILQ_REMOVE_HEAD(&list->pduHead,pduEntry);
+			list->size --;
 			(void)pthread_mutex_unlock(&canQ[busid].w_lock);
 
 			free(pdu);
@@ -203,26 +229,90 @@ static int luai_can_read  (lua_State *L)
 	}
 	else
 	{
-		return luaL_error(L, "can_read (bus_id) API should has 1 arguments");
+		return luaL_error(L, "can_read (bus_id, can_id) API should has 2 arguments");
+	}
+}
+static void freeL(struct Can_RPmsgPduList_s* l)
+{
+	struct Can_RPmsgPud_s* pdu;
+	while(FALSE == STAILQ_EMPTY(&l->pduHead))
+	{
+		pdu = STAILQ_FIRST(&l->pduHead);
+		STAILQ_REMOVE_HEAD(&l->pduHead,pduEntry);
+
+		free(pdu);
+	}
+}
+static void freeQ(struct Can_RPmsgPduQueue_s* q)
+{
+	struct Can_RPmsgPduList_s* l;
+	while(FALSE == STAILQ_EMPTY(&q->listHead))
+	{
+		l = STAILQ_FIRST(&q->listHead);
+		freeL(l);
+		STAILQ_REMOVE_HEAD(&q->listHead,listEntry);
+
+		free(l);
+	}
+}
+static void saveQ(struct Can_RPmsgPduQueue_s* q,struct Can_RPmsgPud_s* pdu)
+{
+	struct Can_RPmsgPduList_s* L;
+	struct Can_RPmsgPduList_s* l;
+	L = NULL;
+	STAILQ_FOREACH(l,&q->listHead,listEntry)
+	{
+		if(l->id == pdu->msg.id)
+		{
+			L = l;
+			break;
+		}
+	}
+
+	if(NULL == L)
+	{
+		L = malloc(sizeof(struct Can_RPmsgPduList_s));
+		if(L)
+		{
+			L->id = pdu->msg.id;
+			L->size = 0;
+			STAILQ_INIT(&L->pduHead);
+			STAILQ_INSERT_TAIL(&q->listHead,L,listEntry);
+		}
+		else
+		{
+			ASWARNING("LUA CAN Q List malloc failed\n");
+		}
+	}
+
+	if(L)
+	{
+		if(L->size < CAN_RPMSG_PDU_NUM)
+		{
+			STAILQ_INSERT_TAIL(&L->pduHead,pdu,pduEntry);
+			L->size ++;
+		}
+		else
+		{
+			ASWARNING("LUA CAN Q[id=%X] List is full with size %d\n",L->id,L->size);
+			free(pdu);
+		}
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 LUAMOD_API int (luaopen_as) (lua_State *L)
 {
 	int i;
-	struct Can_RPmsgPud_s* pdu;
 
 	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
 	{
 		(void)pthread_mutex_lock(&canQ[i].w_lock);
 		if(canQ[i].initialized)
 		{	/* free previous receive message */
-			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
-				free(pdu);
-			}
+			freeQ(&canQ[i]);
 		}
 
-		STAILQ_INIT(&canQ[i].pduHead);
+		STAILQ_INIT(&canQ[i].listHead);
 		canQ[i].initialized = TRUE;
 		(void)pthread_mutex_unlock(&canQ[i].w_lock);
 	}
@@ -233,19 +323,16 @@ LUAMOD_API int (luaopen_as) (lua_State *L)
 void luaclose_as(void)
 {
 	int i;
-	struct Can_RPmsgPud_s* pdu;
 
 	for(i=0;i<CAN_RPMSG_BUS_NUM;i++)
 	{
 		(void)pthread_mutex_lock(&canQ[i].w_lock);
 		if(canQ[i].initialized)
 		{	/* free previous receive message */
-			STAILQ_FOREACH(pdu,&canQ[i].pduHead,pduEntry ) {
-				free(pdu);
-			}
+			freeQ(&canQ[i]);
 		}
 
-		STAILQ_INIT(&canQ[i].pduHead);
+		STAILQ_INIT(&canQ[i].listHead);
 		canQ[i].initialized = FALSE;
 		(void)pthread_mutex_unlock(&canQ[i].w_lock);
 	}
@@ -269,7 +356,7 @@ void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 			{
 				memcpy(&(pdu->msg),pduInfo,sizeof(Can_RPmsgPduType));
 				(void)pthread_mutex_lock(&canQ[pduInfo->bus].w_lock);
-				STAILQ_INSERT_TAIL(&canQ[pduInfo->bus].pduHead,pdu,pduEntry);
+				saveQ(&canQ[pduInfo->bus],pdu);
 				(void)pthread_mutex_unlock(&canQ[pduInfo->bus].w_lock);
 			}
 			else
