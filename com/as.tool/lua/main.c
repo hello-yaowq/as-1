@@ -94,6 +94,8 @@ void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 	char* cmd = (char*)data;
 	asAssert(chl == RPMSG_CHL_SHELL);
 	ASLOG(SHELL,"receive cmd \"%s\"\n",cmd);
+	/* for debug */
+	/* strcpy(cmd,"lua d:/repository/as/com/as.tool/lua/script/test.lua"); */
 	if( (shCmdCache.counter+len) < SHELL_CMD_CACHE_SIZE)
 	{
 		(void)pthread_mutex_lock(&shCmdCache.w_lock);

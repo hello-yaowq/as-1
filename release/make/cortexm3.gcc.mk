@@ -61,8 +61,9 @@ $(obj-dir)/%.o:%.s
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
-	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
+	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<	
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
+	
 	@$(CS) -D $@ > $@.s
 	
 ifeq ($(host), Linux)

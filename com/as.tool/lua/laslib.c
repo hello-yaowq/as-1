@@ -164,6 +164,7 @@ static int luai_can_read  (lua_State *L)
 		uint32_t canid;
 		struct Can_RPmsgPduList_s* l;
 		struct Can_RPmsgPduList_s* list = NULL;
+		struct Can_RPmsgPud_s* pdu = NULL;
 		int is_num;
 
 		busid = lua_tounsignedx(L, 1,&is_num);
@@ -182,6 +183,7 @@ static int luai_can_read  (lua_State *L)
 			 return luaL_error(L,"incorrect argument canid to function 'can_read'");
 		}
 
+		(void)pthread_mutex_lock(&canQ[busid].w_lock);
 		STAILQ_FOREACH(l,&canQ[busid].listHead,listEntry)
 		{
 			if(l->id == canid)
@@ -190,9 +192,15 @@ static int luai_can_read  (lua_State *L)
 				break;
 			}
 		}
+		if(list && (FALSE == STAILQ_EMPTY(&list->pduHead)))
+		{
+			pdu = STAILQ_FIRST(&list->pduHead);
+			STAILQ_REMOVE_HEAD(&list->pduHead,pduEntry);
+			list->size --;
+		}
+		(void)pthread_mutex_unlock(&canQ[busid].w_lock);
 
-
-		if(NULL == list)
+		if(NULL == pdu)
 		{
 			lua_pushboolean(L, FALSE);
 			lua_pushnil(L);
@@ -200,29 +208,17 @@ static int luai_can_read  (lua_State *L)
 		}
 		else
 		{
-			struct Can_RPmsgPud_s* pdu;
 			int table_index,i;
 
 			lua_pushboolean(L, TRUE);
-
-			(void)pthread_mutex_lock(&canQ[busid].w_lock);
-			pdu = STAILQ_FIRST(&list->pduHead);
-
 			lua_pushinteger(L,pdu->msg.id);
-
 			lua_newtable(L);
 			table_index = lua_gettop(L);
-
-
 			for(i=0; i<pdu->msg.length;i++)
 			{
 				lua_pushinteger(L, pdu->msg.sdu[i]);
 				lua_seti(L, table_index, i+1);
 			}
-			STAILQ_REMOVE_HEAD(&list->pduHead,pduEntry);
-			list->size --;
-			(void)pthread_mutex_unlock(&canQ[busid].w_lock);
-
 			free(pdu);
 		}
 		return 3;
