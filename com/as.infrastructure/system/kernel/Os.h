@@ -43,7 +43,10 @@
 #define KSM_EXECUTE()
 #endif
 
-#define KsmGotoState(Ksm,State)	 KsmSetState(KSM_ID_##Ksm,KSM_##Ksm##_##State)
+/* define the state handle of kernel state machine(KSM) */
+#define KSM(_Ksm,State) void Ksm##_Ksm##_##State(void)
+/* trigger the KSM go to next state */
+#define KGS(Ksm,State)  KsmSetState(KSM_ID_##Ksm,KSM_##Ksm##_##State)
 
 /* ============================ [ TYPES     ] ====================================================== */
 #if(KSM_NUM < 0xFF)

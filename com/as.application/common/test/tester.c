@@ -13,41 +13,42 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include "Std_Types.h"
 #include "Os.h"
-#if defined(__SMALL_OS__)
-#include <sys/time.h>
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void Can_SimulatorRunning(void);
+extern void tester_time_1000ms_runnable(void);
+extern void tester_nvm_1000ms_runnable(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-#if defined(__SMALL_OS__)
-static clock_t previous = 0;
-#endif
+static TimerType timer;
 /* ============================ [ FUNCTIONS ] ====================================================== */
-KSM(Simulator,Init)
+KSM(Tester,Init)
 {
-	KGS(Simulator,Running);
+	KGS(Tester,RoundRobin);
+	StartTimer(&timer);
 }
-KSM(Simulator,Start)
+
+KSM(Tester,Start)
 {
 
 }
-KSM(Simulator,Stop)
+
+KSM(Tester,Stop)
 {
 
 }
-KSM(Simulator,Running)
-{
-	Can_SimulatorRunning();
 
-#if defined(__SMALL_OS__)
-	if(clock() != previous)
+
+KSM(Tester,RoundRobin)
+{
+	if(GetTimer(&timer) > 1000)
 	{
-		previous = clock();
-		OsTick();
+		ASLOG(KSM,"Teter 1s runnable\n");
+		StartTimer(&timer);
+		tester_time_1000ms_runnable();
+		tester_nvm_1000ms_runnable();
 	}
-#endif
 }

@@ -290,7 +290,7 @@
 #if defined(DEBUG_BLOCK)
 #define NVM_ASSERT(_exp)		if( !(_exp) ) { while(1) {}; } //assert(_exp)
 #else
-#define NVM_ASSERT(_exp)		if( !(_exp) ) { assert(_exp); } //
+#define NVM_ASSERT(_exp)		if( !(_exp) ) { asAssert(_exp); } //
 #endif
 
 
@@ -1704,6 +1704,8 @@ Std_ReturnType NvM_ReadBlock( NvM_BlockIdType blockId, uint8* NvM_DstPtr )
 	Nvm_QueueType qEntry;
 	int rv;
 
+	NVM_ASSERT( blockId >= 1 );
+
 	/** @req 3.1.5/NVM196 */ /** @req 3.1.5/NVM278 */
     DET_VALIDATE_RV( !(( NvM_DstPtr == NULL) &&
     			( NvM_Config.BlockDescriptor[blockId-1].RamBlockDataAddress == NULL )),
@@ -1744,7 +1746,9 @@ Std_ReturnType NvM_WriteBlock( NvM_BlockIdType blockId, const uint8* NvM_SrcPtr 
 	Nvm_QueueType qEntry;
 	int rv;
 
-	NVM_ASSERT( blockId >= 2 );	/* No support for lower numbers, yet */
+	// parai: TODO: why not
+	//NVM_ASSERT( blockId >= 2 );	/* No support for lower numbers, yet */
+	NVM_ASSERT( blockId >= 1 );
 
 	/* @req 3.1.5/NVM618 */
 	DET_VALIDATE_RV( 	blockId <= NVM_NUM_OF_NVRAM_BLOCKS,

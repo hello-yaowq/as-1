@@ -180,6 +180,7 @@ dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/MemIf_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Crc_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/test TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Mcu.c)

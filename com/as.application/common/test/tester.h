@@ -1,3 +1,5 @@
+#ifndef COM_AS_APPLICATION_COMMON_TEST_TESTER_H_
+#define COM_AS_APPLICATION_COMMON_TEST_TESTER_H_
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -13,41 +15,15 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Os.h"
-#if defined(__SMALL_OS__)
-#include <sys/time.h>
-#endif
+#include "Std_Types.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void Can_SimulatorRunning(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-#if defined(__SMALL_OS__)
-static clock_t previous = 0;
-#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
-KSM(Simulator,Init)
-{
-	KGS(Simulator,Running);
-}
-KSM(Simulator,Start)
-{
 
-}
-KSM(Simulator,Stop)
-{
 
-}
-KSM(Simulator,Running)
-{
-	Can_SimulatorRunning();
-
-#if defined(__SMALL_OS__)
-	if(clock() != previous)
-	{
-		previous = clock();
-		OsTick();
-	}
-#endif
-}
+#endif /* COM_AS_APPLICATION_COMMON_TEST_TESTER_H_ */
