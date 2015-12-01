@@ -147,6 +147,7 @@
 
 #define FLASH_NON_CORRECTABLE_ERROR 0x1
 
+#define FLS_TOTAL_SIZE  1024*1024
 #define FLASH_IMG "Flash.img"
 
 /* Enable check:

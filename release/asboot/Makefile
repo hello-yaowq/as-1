@@ -192,8 +192,6 @@ dep-posix: dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Eep_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Eep_Lcfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fee_Memory_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fls_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Fls_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)

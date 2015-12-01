@@ -611,4 +611,27 @@
 			/>
 	</TimingList>
 </Dcm>
+<Fls>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		FlashBaseAddress="Integer Default=0 PosGUI=2"
+		MaxFastReadSize="Integer Default=512 PosGUI=3"
+		MaxNormalReadSize="Integer Default=32 PosGUI=4"
+		MaxFastWriteSize="Integer Default=32 PosGUI=5"
+		MaxNormalWriteSize="Integer Default=8 PosGUI=6"
+		Comment="TextArea Default=* PosGUI=7"
+		>
+	</General>
+	<SectorList Max="65535">
+		<Sector 
+			Name="Text PosGUI=0"
+			NumberOfSectors="Integer Default=2048 PosGUI=1"
+			PageSize="Integer Default=8 PosGUI=2"
+			SectorSize="Integer Default=512 PosGUI=3"
+			StartAddress="Integer Default=0 PosGUI=4"
+			Comment="TextArea Default=* PosGUI=5"
+			/>
+	</SectorList>
+</Fls>
 </AUTOSAR>

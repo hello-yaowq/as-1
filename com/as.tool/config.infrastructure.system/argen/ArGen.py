@@ -20,6 +20,7 @@
  */
 """
 import os
+import traceback
 
 __all__=['ArGen','ArGenMain']
 from argen.GenOS import GenOS
@@ -29,22 +30,27 @@ from argen.GenPduR import GenPduR
 from argen.GenCanTp import GenCanTp
 from argen.GenCom import GenCom
 from argen.GenDcm import GenDcm
+from argen.GenFls import GenFls
+
+
+def dummy(arxml,dir):
+    pass
+
+__gen_engine =  {   
+    'OS':GenOS,
+    'Can':GenCan,'CanIf':GenCanIf,'CanTp':GenCanTp,'PduR':GenPduR,'Com':GenCom,'Dcm':GenDcm,
+    'Fls':GenFls,
+    'EcuC':dummy
+}
+
 def ArGen(arxml,dir):
     if(arxml.tag == 'OS'):
         return # supress OS Gen
-        GenOS(arxml,dir)
-    elif(arxml.tag == 'Can'):
-        GenCan(arxml,dir)
-    elif(arxml.tag == 'CanIf'):
-        GenCanIf(arxml,dir)
-    elif(arxml.tag == 'PduR'):
-        GenPduR(arxml,dir)
-    elif(arxml.tag == 'CanTp'):
-        GenCanTp(arxml,dir)
-    elif(arxml.tag == 'Com'):
-        GenCom(arxml,dir)
-    elif(arxml.tag == 'Dcm'):
-        GenDcm(arxml,dir)
+    try:
+        engine = __gen_engine[arxml.tag]
+    except KeyError:
+        print('TODO: generator engine for "%s" is not implemented'%(arxml.tag))
+    engine(arxml,dir)
 
 def ArGenMain(wfxml,gendir):
     import xml.etree.ElementTree as ET
