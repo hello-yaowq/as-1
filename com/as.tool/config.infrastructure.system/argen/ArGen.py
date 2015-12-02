@@ -31,7 +31,8 @@ from argen.GenCanTp import GenCanTp
 from argen.GenCom import GenCom
 from argen.GenDcm import GenDcm
 from argen.GenFls import GenFls
-
+from argen.GenFee import GenFee
+from argen.GenEa import GenEa
 
 def dummy(arxml,dir):
     pass
@@ -39,7 +40,7 @@ def dummy(arxml,dir):
 __gen_engine =  {   
     'OS':GenOS,
     'Can':GenCan,'CanIf':GenCanIf,'CanTp':GenCanTp,'PduR':GenPduR,'Com':GenCom,'Dcm':GenDcm,
-    'Fls':GenFls,
+    'Fls':GenFls,'Fee':GenFee,'Ea':GenEa,
     'EcuC':dummy
 }
 
@@ -50,6 +51,7 @@ def ArGen(arxml,dir):
         engine = __gen_engine[arxml.tag]
     except KeyError:
         print('TODO: generator engine for "%s" is not implemented'%(arxml.tag))
+        return
     engine(arxml,dir)
 
 def ArGenMain(wfxml,gendir):

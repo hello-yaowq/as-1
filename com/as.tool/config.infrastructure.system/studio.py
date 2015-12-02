@@ -119,6 +119,12 @@ class easySARGui(QMainWindow):
             ROOT.append(module.toArxml())
         tree = ET.ElementTree(ROOT)
         tree.write(wfxml, encoding="utf-8", xml_declaration=True);
+        fp = open(wfxml,'r')
+        content = fp.read()
+        fp.close()
+        fp = open(wfxml,'w')
+        fp.write(content.replace('>','>\n'))
+        fp.close()
         QMessageBox(QMessageBox.Information, 'Info', 
                     'Save OpenSAR Configuration arxml Successfully !').exec_();
     def mGen(self):

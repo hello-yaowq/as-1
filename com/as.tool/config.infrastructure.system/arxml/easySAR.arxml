@@ -634,4 +634,68 @@
 			/>
 	</SectorList>
 </Fls>
+<Fee>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		PollingMode="Enum=(ON,OFF) Default=ON PosGUI=2"
+		VirtualPageSize="Integer Default=8 PosGUI=3"
+		NvmJobEndNotification="Text Default=NULL PosGUI=4"
+		NvmJobErrorNotification="Text Default=NULL PosGUI=5"
+		Comment="TextArea Default=* PosGUI=6"
+		>
+	</General>
+	<BlockList Max="65535">
+		<Block 
+			Name="Text PosGUI=0"
+			BlockSize="Integer Default=0 PosGUI=1"
+			ImmediateData="Boolean Default=False PosGUI=2"
+			NumberOfWriteCycles="Integer Default=0xFFFFFFFF PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			/>
+	</BlockList>
+</Fee>
+<Ea>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		SetModeApi="Enum=(ON,OFF) Default=ON PosGUI=2"
+		VirtualPageSize="Integer Default=8 PosGUI=3"
+		NvmJobEndNotification="Text Default=NULL PosGUI=4"
+		NvmJobErrorNotification="Text Default=NULL PosGUI=5"
+		Comment="TextArea Default=* PosGUI=6"
+		>
+	</General>
+	<BlockList Max="65535">
+		<Block 
+			Name="Text PosGUI=0"
+			BlockSize="Integer Default=0 PosGUI=1"
+			ImmediateData="Boolean Default=False PosGUI=2"
+			NumberOfWriteCycles="Integer Default=0xFFFFFFFF PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			/>
+	</BlockList>
+</Ea>
+<NvM>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		PollingMode="Enum=(ON,OFF) Default=ON PosGUI=2"
+		ConfigClass="Enum=(CLASS_1,CLASS_2,CLASS_3) Default=CLASS_2 PosGUI=3"
+		MultiBlockCallback="Text Default=NULL PosGUI=4"
+		ImmediateJobQueueSize="Integer Default=8 PosGUI=5"
+		StandardJobQueueSize="Integer Default=8 PosGUI=6"
+		Comment="TextArea Default=* PosGUI=7"
+		>
+	</General>
+	<BlockList Max="65535">
+		<Block 
+			Name="Text PosGUI=0"
+			BlockSize="Integer Default=0 PosGUI=1"
+			ImmediateData="Boolean Default=False PosGUI=2"
+			NumberOfWriteCycles="Integer Default=0xFFFFFFFF PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			/>
+	</BlockList>
+</NvM>
 </AUTOSAR>
