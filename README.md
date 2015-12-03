@@ -5,7 +5,7 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
-2015-July-28: Till now, FreeRTOS on MINGW for the purpose to simulate OSEK ECC2 OS partially OK. Toppers_osek is the real OSEK ECC2 RTOS for real hardware boards. By this OS simulation strategy, application can be developed with the real board ready. And as my power is very limited, I start to integrated ArcCore BSW(AUTOSAR 4.x).
+2015-July-28: Till now, FreeRTOS on MINGW for the purpose to simulate OSEK ECC2 OS partially OK. Toppers_osek is the real OSEK ECC2 RTOS for real hardware boards. By this OS simulation strategy, application can be developed without the real board ready. And as my power is very limited, I start to integrated ArcCore BSW(AUTOSAR 4.x).
 2015-July-28: For the purpose to validate ArcCore, all of MCAL will be abstracted on the simulation platform FreeRTOS MINGW.
 2015-Sep-18: roll back to accroe as I found out the the arccore is not free to be used in product.
 
@@ -17,6 +17,7 @@ GUI or network connection, I think QT is perfect, even more, maybe I can integra
 it. Let's start.
 
 ## Key Point
+
 ### 1. Integrated ArcCore AUTOSAR 3.1 BSW
 * Communication: Can CanIf PduR Com 
 * Diagnostic: CanTp Dcm
