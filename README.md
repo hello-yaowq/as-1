@@ -11,10 +11,7 @@ because I am not powerful so I decided to develop small but smart part of automo
 
 
 ## Idea
-2015-Aug-17: I came up with an idea for how to implement the simulation of AUTOSAR BSW. That is compiling the AS core package
-software to the format of DLL and then load the dll by the simulator. The simulator which should have rich feature to provide 
-GUI or network connection, I think QT is perfect, even more, maybe I can integrated it with pyQt, much more wonderful, isn't 
-it. Let's start.
+2015-Aug-17: I came up with an idea for how to implement the simulation of AUTOSAR BSW. That is compiling the AS core package software to the format of DLL and then load the dll by the simulator. The simulator which should have rich feature to provide GUI or network connection, I think QT is perfect, even more, maybe I can integrated it with pyQt, much more wonderful, isn't it. Let's start.
 
 ## Key Point
 

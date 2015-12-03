@@ -267,6 +267,27 @@
 </Ea>
 <NvM>
 <General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="OFF" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="ON" StandardJobQueueSize="8" VersionInfoApi="OFF" />
-<BlockList Max="TBD" />
+<BlockList Max="TBD">
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Time" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="time" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="2015" IsArray="False" Name="year" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="12" IsArray="False" Name="month" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="3" IsArray="False" Name="day" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="21" IsArray="False" Name="hour" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="49" IsArray="False" Name="minute" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="7" IsArray="False" Name="second" Type="uint8" />
+</DataList>
+</Block>
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Finger_Print" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="finger_print" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Data ArraySize="32" Comment="*" DefaultValue="0" IsArray="True" Name="bytes" Type="uint8" />
+</DataList>
+</Block>
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Config" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="config" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="64" IsArray="True" Name="bytes" Type="uint8" />
+</DataList>
+</Block>
+</BlockList>
 </NvM>
 </AUTOSAR>
