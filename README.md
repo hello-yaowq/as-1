@@ -16,6 +16,28 @@ software to the format of DLL and then load the dll by the simulator. The simula
 GUI or network connection, I think QT is perfect, even more, maybe I can integrated it with pyQt, much more wonderful, isn't 
 it. Let's start.
 
+## Key Point
+### 1. Integrated ArcCore AUTOSAR 3.1 BSW
+* Communication: Can CanIf PduR Com 
+* Diagnostic: CanTp Dcm
+* System: EcuM SchM
+* Memory: Fls Fee Eep Ea NvM MemIf
+
+### 2. OS 
+* [toppers_osek](https://www.toppers.jp/osek-os.html)
+* [FreeOSEK](http://opensek.sourceforge.net/)
+* [FreeRTOS](http://www.freertos.org/)
+* small : this OS is developed by me, OSEK BCC1 conformed
+
+## 3. BSW configuration tool
+> This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
+
+## 4. Virtual Simulation of AUTOSAR
+
+## 5. Lua Script Integrated
+* support can, going to support Peak-CAN and Vector CanCase
+
+
 ## RPmsg
 * [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
 * [remoteproc](https://www.kernel.org/doc/Documentation/remoteproc.txt)
