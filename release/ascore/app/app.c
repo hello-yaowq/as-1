@@ -52,7 +52,7 @@ TASK(TaskApp)
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif
-	printf("TaskApp is running\n");
+	//printf("TaskApp is running\n");
 	OsTerminateTask(TaskApp);
 }
 

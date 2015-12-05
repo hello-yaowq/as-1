@@ -173,11 +173,12 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
     {
         task = GetBit();
         asAssert(task < TASK_NUM);
-        declare = &TaskList[task];
 
         if (task > CurrentTask)
         {	/* task with high priority */
             TaskType previous = CurrentTask;	/* link it in the dynamic ram queue */
+
+            declare = &TaskList[task];
 
             CurrentTask = task;		/* preempt */
             SetBit(previous);       /* put this low priority task to ready map again */
@@ -196,6 +197,7 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
         {
 			#if defined(__WINDOWS__) || defined(__LINUX__)
         	/* always run idle for simulation purpose in this case */
+        	declare = &TaskList[0];
 			#else
             if(0 == CurrentTask)
 			#endif

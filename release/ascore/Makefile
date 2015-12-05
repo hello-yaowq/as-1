@@ -51,7 +51,8 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 #rtos?=freeosek
 #rtos?=freertos
-rtos?=toppers_osek
+#rtos?=toppers_osek
+rtos?=smallos
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
@@ -112,6 +113,8 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR 
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+# memory service
+def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
@@ -220,12 +223,18 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/memory TRUE)
 #	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.c Sg.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
+ifeq ($(rtos),smallos)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+endif
 ifeq ($(rtos),freeosek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/inc TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/src FALSE)

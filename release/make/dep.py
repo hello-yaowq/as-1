@@ -44,8 +44,8 @@ def get_abs(file):
 def abs_dep(dep):
     dep = dep.replace('\n','')  
     dep = dep.replace('\\','') 
-    grp = dep.split(':')
-    cstr = '%s :'%(grp[0])
+    grp = dep.split('.o:')
+    cstr = '%s.o :'%(grp[0])
     deps = grp[1].split(' ')
     for d in deps:
         if(d != ''):

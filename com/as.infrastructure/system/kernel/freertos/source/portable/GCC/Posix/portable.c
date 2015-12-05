@@ -786,12 +786,12 @@ struct tms xTimes;
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
 #include "Std_Types.h"
-imask_t portGetIrqStateAndDisableIt(void)
+imask_t __Irq_Save(void)
 {
 	vPortEnterCritical();
 	return uxCriticalNesting;
 }
-void portRestroeIrqState(imask_t irq_state)
+void Irq_Restore(imask_t irq_state)
 {
 	vPortExitCritical();
 }

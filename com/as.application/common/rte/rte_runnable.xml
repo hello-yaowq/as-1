@@ -2,8 +2,8 @@
 <AS>
 	<Os>
 		<Task name='Rte_Runnable' priority='10'  exe-priority='10' max-activation='5'
-              auto-start='true'   		
+              auto-start='false'   		
 		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
-        <Alarm name='Alarm_BswService' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
+        <Alarm name='Alarm_Rte_Runnable' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
 	</Os>
 </AS>

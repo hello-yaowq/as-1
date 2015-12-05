@@ -75,15 +75,3 @@ int main(int argc,char* argv[])
 
 	return 0;
 }
-
-#if defined(__WINDOWS__) || defined(__LINUX__)
-imask_t __Irq_Save(void)
-{
-	return 0;
-}
-void Irq_Restore(imask_t irq_state)
-{
-
-}
-
-#endif

@@ -13,8 +13,6 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-
-#include "Lcd.h"
 #ifdef GUI_USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -30,6 +28,7 @@
 #endif
 
 #include <Sg.h>
+#include "Lcd.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage

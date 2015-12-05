@@ -254,6 +254,7 @@ def genForToppersOSEK_H(gendir,os_list):
     fp.write('#include "kernel.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __TOPPERS_OSEK__\n\n')
+    fp.write("#define OS_TICKS2MS(a) (a)\n\n")
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
@@ -488,6 +489,7 @@ def genForFreeRTOS_H(gendir,os_list):
     fp.write('#include "semphr.h"\n')
     fp.write('#include "event_groups.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
+    fp.write("#define OS_TICKS2MS(a) (a)\n\n")
     fp.write('%s\n'%(__for_freertos_macros))
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
@@ -678,6 +680,7 @@ def genForFreeOSEK(gendir,os_list):
     fp.write('#define __FREEOSEK__\n')
     fp.write('#define HWCOUNTER0 0\n')
     fp.write('/* #define HWCOUNTER1 1 */\n\n')
+    fp.write("#define OS_TICKS2MS(a) (a)\n\n")
 #     task_list = ScanFrom(os_list,'Task')
 #     for id,task in enumerate(task_list):
 #         fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],task.attrib['name']))
@@ -783,7 +786,7 @@ def genForSmallOS_C(gendir,os_list):
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM] = \n{\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\tDeclareAlarm(%s\n)'%(alarm.attrib['name']))
+        fp.write('\tDeclareAlarm(%s),\n'%(alarm.attrib['name']))
     fp.write('};\n\n')
     fp.write('\n\n')
     fp.close()

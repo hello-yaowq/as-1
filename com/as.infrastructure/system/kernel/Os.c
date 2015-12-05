@@ -126,6 +126,7 @@ TimerType GetTimer(TimerType* timer)
 TASK(TaskIdle)
 {
 #if !defined(__SMALL_OS__)
+	ASLOG(STDOUT,"TaskIdle is running\n");
 	for(;;)
 	{
 #endif
@@ -138,3 +139,16 @@ TASK(TaskIdle)
 	}
 #endif
 }
+
+#if defined(__SMALL_OS__)
+#if defined(__WINDOWS__) || defined(__LINUX__)
+imask_t __Irq_Save(void)
+{
+	return 0;
+}
+void Irq_Restore(imask_t irq_state)
+{
+
+}
+#endif
+#endif

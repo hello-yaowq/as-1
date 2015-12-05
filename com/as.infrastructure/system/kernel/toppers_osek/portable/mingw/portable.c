@@ -13,8 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
+
 #include <Windows.h>
+#include "Std_Types.h"
 #include "osek_kernel.h"
 #include "task.h"
 #include <setjmp.h>
@@ -155,7 +156,7 @@ TIMECAPS xTimeCaps;
 			Sleep( portTICK_PERIOD_MS );
 		}
 
-		configASSERT( xPortRunning );
+		while( FALSE == xPortRunning ) Sleep(1);
 
 		WaitForSingleObject( pvInterruptEventMutex, INFINITE );
 
@@ -268,7 +269,7 @@ void *pvObjectList[ 2 ];
 	SetEvent( pvInterruptEvent );
 
 	xPortRunning = pdTRUE;
-
+	ASLOG(OS,"portable is running...\n");
 	for(;;)
 	{
 		WaitForMultipleObjects( sizeof( pvObjectList ) / sizeof( void * ), pvObjectList, TRUE, INFINITE );
@@ -338,17 +339,14 @@ void *pvObjectList[ 2 ];
 
 void disable_int(void)
 {
-	asAssert(ulCriticalNesting==0);
+	while(ulCriticalNesting!=0)	Sleep(1);
 	vPortEnterCritical();
-	asAssert(ulCriticalNesting==1);
 
 	ASLOG(OS,"lock_cpu()\n");
 }
 void enable_int(void)
 {
-	asAssert(ulCriticalNesting==1);
 	vPortExitCritical();
-	asAssert(ulCriticalNesting==0);
 
 	ASLOG(OS,"unlock_cpu()\n");
 }

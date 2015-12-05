@@ -350,6 +350,7 @@ static void runMemory( void ) {
  */
 TASK(SchM_Startup){
 
+	ASLOG(OFF,"SchM_Startup is running\n");
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
 	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 2);
@@ -397,6 +398,7 @@ TASK(SchM_Startup){
 TASK(SchM_BswService) {
 	EcuM_StateType state;
 
+	ASLOG(OFF,"SchM_BswService is running\n");
 	EcuM_GetState(&state);
 
 	switch( state ) {
