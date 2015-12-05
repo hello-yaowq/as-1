@@ -685,7 +685,8 @@
 		MultiBlockCallback="Text Default=NULL PosGUI=4"
 		ImmediateJobQueueSize="Integer Default=8 PosGUI=5"
 		StandardJobQueueSize="Integer Default=8 PosGUI=6"
-		Comment="TextArea Default=* PosGUI=7"
+		RamBlockStatusApi="Enum=(ON,OFF) Default=ON PosGUI=7"
+		Comment="TextArea Default=* PosGUI=8"
 		>
 	</General>
 	<BlockList Max="65535">
@@ -707,7 +708,7 @@
 				IsArray="Boolean Default=False PosGUI=1"
 				Type="Enum=(uint8,uint16,uint32,sint8,sint16,sint32) Default=uint32 PosGUI=2"
 				ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=3"
-				DefaultValue="Text Default=0 PosGUI=4"
+				DefaultValue="TextArea Default=0 PosGUI=4"
 				Comment="TextArea Default=* PosGUI=5"
 				/>
 		</DataList>

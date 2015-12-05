@@ -33,6 +33,7 @@ from argen.GenDcm import GenDcm
 from argen.GenFls import GenFls
 from argen.GenFee import GenFee
 from argen.GenEa import GenEa
+from argen.GenNvM import GenNvM
 
 def dummy(arxml,dir):
     pass
@@ -40,7 +41,7 @@ def dummy(arxml,dir):
 __gen_engine =  {   
     'OS':GenOS,
     'Can':GenCan,'CanIf':GenCanIf,'CanTp':GenCanTp,'PduR':GenPduR,'Com':GenCom,'Dcm':GenDcm,
-    'Fls':GenFls,'Fee':GenFee,'Ea':GenEa,
+    'Fls':GenFls,'Fee':GenFee,'Ea':GenEa,'NvM':GenNvM,
     'EcuC':dummy
 }
 

@@ -261,31 +261,47 @@
 <Ea>
 <General Comment="*" DevelopmentErrorDetection="ON" NvmJobEndNotification="NULL" NvmJobErrorNotification="NULL" SetModeApi="ON" VersionInfoApi="OFF" VirtualPageSize="8" />
 <BlockList Max="TBD">
-<Block BlockSize="20" Comment="*" ImmediateData="False" Name="EaTest1" NumberOfWriteCycles="0xFFFFFFFF" />
-<Block BlockSize="20" Comment="*" ImmediateData="False" Name="EaTest2" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block BlockSize="32" Comment="*" ImmediateData="False" Name="EaTest1" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block BlockSize="32" Comment="*" ImmediateData="False" Name="EaTest2" NumberOfWriteCycles="0xFFFFFFFF" />
 </BlockList>
 </Ea>
 <NvM>
-<General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="OFF" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="ON" StandardJobQueueSize="8" VersionInfoApi="OFF" />
+<General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="ON" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="OFF" RamBlockStatusApi="OFF" StandardJobQueueSize="8" VersionInfoApi="OFF" />
 <BlockList Max="TBD">
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Time" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="time" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Time" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="Time" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
-<Data ArraySize="2" Comment="*" DefaultValue="2015" IsArray="False" Name="year" Type="uint16" />
-<Data ArraySize="2" Comment="*" DefaultValue="12" IsArray="False" Name="month" Type="uint8" />
-<Data ArraySize="2" Comment="*" DefaultValue="3" IsArray="False" Name="day" Type="uint8" />
-<Data ArraySize="2" Comment="*" DefaultValue="21" IsArray="False" Name="hour" Type="uint8" />
-<Data ArraySize="2" Comment="*" DefaultValue="49" IsArray="False" Name="minute" Type="uint8" />
-<Data ArraySize="2" Comment="*" DefaultValue="7" IsArray="False" Name="second" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="2015" IsArray="False" Name="Year" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="12" IsArray="False" Name="Month" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="3" IsArray="False" Name="Day" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="21" IsArray="False" Name="Hour" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="49" IsArray="False" Name="Minute" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="7" IsArray="False" Name="Second" Type="uint8" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Finger_Print" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="finger_print" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Finger_Print" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="FingerPrint" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
-<Data ArraySize="32" Comment="*" DefaultValue="0" IsArray="True" Name="bytes" Type="uint8" />
+<Data ArraySize="32" Comment="*" DefaultValue="{0,}" IsArray="True" Name="bytes" Type="uint8" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Config" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="config" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Config" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="Config" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
-<Data ArraySize="2" Comment="*" DefaultValue="64" IsArray="True" Name="bytes" Type="uint8" />
+<Data ArraySize="260" Comment="*" DefaultValue="{0,}" IsArray="True" Name="bytes" Type="uint8" />
+</DataList>
+</Block>
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest1" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="EaTest1" NvramDeviceId="Ea" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data0" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data1" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data2" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data3" Type="uint32" />
+</DataList>
+</Block>
+<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest2" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="EaTest2" NvramDeviceId="Ea" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="1" IsArray="False" Name="Data1" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="2" IsArray="False" Name="Data2" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="3" IsArray="False" Name="Data3" Type="uint32" />
+<Data ArraySize="2" Comment="*" DefaultValue="4" IsArray="False" Name="Data4" Type="uint32" />
 </DataList>
 </Block>
 </BlockList>

@@ -38,12 +38,25 @@ def GenH():
     BlockList = GLGet('BlockList')
     cstr = ''
     for id,block in enumerate(BlockList):
-        cstr += '#define EA_BLOCK_ID_%-32s %s\n'%(GAGet(block,'Name').upper(),id)
-    cstr += '#define EA_NUM_OF_BLOCKS  %s\n'%(len(BlockList))
+        cstr += '#define EA_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),id+1)
+    cstr += '\n#define EA_NUMBER_OF_BLOCKS %s\n\n'%(len(BlockList))
+    max_block_size = 0
+    for block in BlockList:
+        block_size = Integer(GAGet(block,'BlockSize'))
+        if(block_size>max_block_size):
+            max_block_size = block_size
+    cstr += '#ifdef USE_NVM\n'
+    cstr += '  #define EA_MAX_BLOCK_SIZE NVM_EA_MAX_BLOCK_LENGTH\n'
+    cstr += '#else\n'
+    cstr += '  #define EA_MAX_BLOCK_SIZE %s\n'%(max_block_size)
+    cstr += '#endif\n\n'
     fp.write('''#ifndef EA_CFG_H_
 #define EA_CFG_H_
 
 #include "MemIf_Types.h"
+#ifdef USE_NVM
+#include "NvM.h"
+#endif
 
 #define EA_DEV_ERROR_DETECT            STD_%s
 #define EA_VERSION_INFO_API            STD_%s
@@ -132,7 +145,7 @@ def GenC():
     fp.write(GHeader('Ea'))
     General=GLGet('General')
     BlockList = GLGet('BlockList')
-    fp.write('#include "Ea.h"\n#include "NvM_Cbk.h"\n\n')
+    fp.write('#include "Ea.h"\n\n')
     if(GAGet(General,'NvmJobEndNotification') != 'NULL'):
         fp.write('extern void %s(void);\n'%(GAGet(General,'NvmJobEndNotification')))
     if(GAGet(General,'NvmJobErrorNotification') != 'NULL'):
@@ -146,8 +159,12 @@ def GenC():
     fp.write('\nconst Ea_BlockConfigType Ea_BlockConfigData[] = {\n')     
     for id,block in enumerate(BlockList):
         fp.write('\t{    /* %s */\n'%(GAGet(block,'Name')))
-        fp.write('\t\t.EaBlockNumber = EA_BLOCK_ID_%s,\n'%(GAGet(block,'Name').upper()))
+        fp.write('\t\t.EaBlockNumber = EA_BLOCK_NUM_%s,\n'%(GAGet(block,'Name')))
+        fp.write('\t\t#ifdef USE_NVM\n')
+        fp.write('\t\t.EaBlockSize  =  NVM_EA_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
+        fp.write('\t\t#else\n')
         fp.write('\t\t.EaBlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
+        fp.write('\t\t#endif\n')
         fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
         fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
         if(id+1 == len(BlockList)): 

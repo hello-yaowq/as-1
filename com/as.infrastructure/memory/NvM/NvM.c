@@ -481,6 +481,9 @@ uint8 Nvm_WorkBuffer[NVM_MAX_BLOCK_LENGTH+4]; /* +4 to make place for max crc le
 
 CirqBufferType nvmQueue;
 
+const NvM_BlockDescriptorType *	nvmBlock;
+AdministrativeBlockType *admBlock;
+
 
 /* ----------------------------[private functions]---------------------------*/
 
@@ -1875,9 +1878,6 @@ Std_ReturnType NvM_GetDataIndex( NvM_BlockIdType blockId, uint8 *dataIndexPtr ) 
 	return E_OK;
 }
 //#endif
-
-const NvM_BlockDescriptorType *	nvmBlock;
-AdministrativeBlockType *admBlock;
 
 /**
  *
