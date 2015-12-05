@@ -43,6 +43,8 @@
 #define KSM_EXECUTE()
 #endif
 
+#define TICK_MAX                (TickType)-1
+
 /* define the state handle of kernel state machine(KSM) */
 #define KSM(_Ksm,State) void Ksm##_Ksm##_##State(void)
 /* trigger the KSM go to next state */
@@ -77,4 +79,5 @@ extern KSMState_Type KsmGetState(KsmID_Type Ksm);
 extern void StartTimer(TimerType* timer);
 extern void StopTimer(TimerType* timer);
 extern TimerType GetTimer(TimerType* timer);
+extern TickType GetOsTick(void);
 #endif /* COM_CLANG_INCLUDE_OS_H_ */

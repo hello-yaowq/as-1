@@ -518,6 +518,7 @@ def genForFreeRTOS_H(gendir,os_list):
     fp.write('typedef uint32      AppModeType;\n')
     fp.write('typedef uint8       StatusType;\n')
     fp.write('typedef uint16      AlarmType;\n')
+    fp.write('typedef uint16      CounterType;\n')
     fp.write('typedef TickType_t  TickType;\n')
     fp.write('\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')

@@ -646,7 +646,7 @@ void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 		}
 		else
 		{
-			ASLOG(CAN,"CAN is not on-line!\n");
+			ASWARNING("CAN is not on-line!\n");
 		}
 	}
 	else

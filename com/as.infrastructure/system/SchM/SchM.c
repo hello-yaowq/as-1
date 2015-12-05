@@ -374,15 +374,19 @@ TASK(SchM_Startup){
 #if defined(USE_COM)
 	// Start CAN it
 	Com_IpduGroupStart(COM_DEFAULT_IPDU_GROUP,True);
-#else
-	CanIf_SetControllerMode(CANIF_CHL_LS,CANIF_CS_STARTED);
-	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
 #endif
 
 #if defined(USE_NM)
 	// Start NM
 	Nm_NetworkRequest(NM_CHL_LS);
 	Nm_NetworkRequest(NM_CHL_HS);
+#endif
+#if defined(USE_CANSM)
+	CanSM_RequestComMode(CANSM_CHL_LS,COMM_FULL_COMMUNICATION);
+	CanSM_RequestComMode(CANSM_CHL_HS,COMM_FULL_COMMUNICATION);
+#else
+	CanIf_SetControllerMode(CANIF_CHL_LS,CANIF_CS_STARTED);
+	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
 #endif
 
 #if defined(USE_COMM)

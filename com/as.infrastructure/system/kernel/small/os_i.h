@@ -46,7 +46,6 @@
 #define READY                      ((StatusType) 2)
 #define WAITING                    ((StatusType) 3)
 
-#define TICK_MAX                (TickType)-1
 #define INVALID_TASK            (TaskType)-1
 
 /*

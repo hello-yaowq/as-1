@@ -769,6 +769,9 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
   /* Check PDU mode before continue processing */
   CanIf_ChannelGetModeType mode;
   CanIf_Arc_ChannelIdType channel = CanIf_Arc_FindHrhChannel( (Can_Arc_HRHType) Hrh);
+  ASLOG(CANIF,"Rx CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",CanId,CanDlc,
+		  CanSduPtr[0],CanSduPtr[1],CanSduPtr[2],CanSduPtr[3],
+		  CanSduPtr[4],CanSduPtr[5],CanSduPtr[6],CanSduPtr[7]);
   if (channel == -1)  // Invalid HRH
   {
     return;

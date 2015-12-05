@@ -69,7 +69,7 @@
 
 /* Standard includes. */
 #include <stdio.h>
-
+#include <Windows.h>
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
@@ -638,5 +638,9 @@ imask_t __Irq_Save(void)
 void Irq_Restore(imask_t irq_state)
 {
 	vPortExitCritical();
+}
+TickType_t GetOsTick( void )
+{
+	return OsTickCounter;
 }
 

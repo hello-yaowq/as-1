@@ -88,7 +88,32 @@ void arCan::on_btnSaveTrace_clicked(void)
 
     if(file.open(QFile::WriteOnly))
     {
-        //file.write()
+        int size = tableTrace->rowCount();
+        for(int i=0;i<size;i++)
+        {
+            QString from =  tableTrace->item(i,0)->text();
+            QString bus  =  tableTrace->item(i,1)->text();
+            QString time =  tableTrace->item(i,2)->text();
+            QString dir  =  tableTrace->item(i,3)->text();
+            QString id   =  tableTrace->item(i,4)->text();
+            QString dlc  =  tableTrace->item(i,5)->text();
+            QString b0 =  tableTrace->item(i,6)->text();
+            QString b1 =  tableTrace->item(i,7)->text();
+            QString b2 =  tableTrace->item(i,8)->text();
+            QString b3 =  tableTrace->item(i,9)->text();
+            QString b4 =  tableTrace->item(i,10)->text();
+            QString b5 =  tableTrace->item(i,11)->text();
+            QString b6 =  tableTrace->item(i,12)->text();
+            QString b7 =  tableTrace->item(i,13)->text();
+
+            char text[512];
+            snprintf(text,512,"from %-16s bus(%s) time(%-8s) %2s id=0x%3s dlc=%s data=[%s,%s,%s,%s,%s,%s,%s,%s]\n",
+                     from.toStdString().c_str(),bus.toStdString().c_str(),time.toStdString().c_str(),
+                     dir.toStdString().c_str(),id.toStdString().c_str(),dlc.toStdString().c_str(),
+                     b0.toStdString().c_str(),b1.toStdString().c_str(),b2.toStdString().c_str(),b3.toStdString().c_str(),
+                     b4.toStdString().c_str(),b5.toStdString().c_str(),b6.toStdString().c_str(),b7.toStdString().c_str());
+            file.write(text);
+        }
 
     	file.close();
     }

@@ -24,7 +24,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 TASK(Rte_Runnable)
 {
-	OsTerminateTask();
+	OsTerminateTask(Rte_Runnable);
 }
 ALARM(Alarm_Rte_Runnable)
 {
