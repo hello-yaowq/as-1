@@ -109,6 +109,7 @@ static struct Can_Bus_s* getBus(uint32_t busid)
 	handle = NULL;
 	if(canbusH.initialized)
 	{
+		(void)pthread_mutex_lock(&canbusH.q_lock);
 		STAILQ_FOREACH(h,&canbusH.head,entry)
 		{
 			if(h->busid == busid)
@@ -117,14 +118,39 @@ static struct Can_Bus_s* getBus(uint32_t busid)
 				break;
 			}
 		}
+		(void)pthread_mutex_unlock(&canbusH.q_lock);
 	}
 	return handle;
+}
+static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
+{
+	struct Can_PduQueue_s* L=NULL;
+	struct Can_Pdu_s* pdu = NULL;
+	struct Can_PduQueue_s* l;
+	(void)pthread_mutex_lock(&canbusH.q_lock);
+	STAILQ_FOREACH(l,&b->head,entry)
+	{
+		if(l->id == canid)
+		{
+			L = l;
+			break;
+		}
+	}
+	if(L && (FALSE == STAILQ_EMPTY(&L->head)))
+	{
+		pdu = STAILQ_FIRST(&L->head);
+		STAILQ_REMOVE_HEAD(&L->head,entry);
+		L->size --;
+	}
+	(void)pthread_mutex_unlock(&canbusH.q_lock);
+	return pdu;
 }
 static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 {
 	struct Can_PduQueue_s* L;
 	struct Can_PduQueue_s* l;
 	L = NULL;
+	(void)pthread_mutex_lock(&canbusH.q_lock);
 	STAILQ_FOREACH(l,&b->head,entry)
 	{
 		if(l->id == pdu->msg.id)
@@ -163,14 +189,13 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 			free(pdu);
 		}
 	}
+	(void)pthread_mutex_unlock(&canbusH.q_lock);
 }
 static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	if(busid < CAN_BUS_NUM)
 	{
-		pthread_mutex_lock(&canbusH.q_lock);
 		struct Can_Bus_s* b = getBus(busid);
-		pthread_mutex_unlock(&canbusH.q_lock);
 		if(NULL != b)
 		{
 			struct Can_Pdu_s* pdu = malloc(sizeof(struct Can_Pdu_s));
@@ -180,9 +205,9 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 				pdu->msg.id = canid;
 				pdu->msg.length = dlc;
 				memcpy(&(pdu->msg.sdu),data,dlc);
-				(void)pthread_mutex_lock(&canbusH.q_lock);
+
 				saveB(b,pdu);
-				(void)pthread_mutex_unlock(&canbusH.q_lock);
+
 			}
 			else
 			{
@@ -406,9 +431,7 @@ int luai_can_read  (lua_State *L)
 	{
 		uint32_t busid;
 		uint32_t canid;
-		struct Can_PduQueue_s* l;
-		struct Can_PduQueue_s* list = NULL;
-		struct Can_Pdu_s* pdu = NULL;
+		struct Can_Pdu_s* pdu;
 		int is_num;
 
 		busid = lua_tounsignedx(L, 1,&is_num);
@@ -422,30 +445,12 @@ int luai_can_read  (lua_State *L)
 		{
 			 return luaL_error(L,"incorrect argument canid to function 'can_read'");
 		}
-		pthread_mutex_lock(&canbusH.q_lock);
 		struct Can_Bus_s* b = getBus(busid);
-		pthread_mutex_unlock(&canbusH.q_lock);
 		if(NULL == b)
 		{
 			 return luaL_error(L,"bus(%d) is not on-line 'can_read'",busid);
 		}
-		(void)pthread_mutex_lock(&canbusH.q_lock);
-		STAILQ_FOREACH(l,&b->head,entry)
-		{
-			if(l->id == canid)
-			{
-				list = l;
-				break;
-			}
-		}
-		if(list && (FALSE == STAILQ_EMPTY(&list->head)))
-		{
-			pdu = STAILQ_FIRST(&list->head);
-			STAILQ_REMOVE_HEAD(&list->head,entry);
-			list->size --;
-		}
-		(void)pthread_mutex_unlock(&canbusH.q_lock);
-
+		pdu = getPdu(b,canid);
 		if(NULL == pdu)
 		{
 			lua_pushboolean(L, FALSE);
