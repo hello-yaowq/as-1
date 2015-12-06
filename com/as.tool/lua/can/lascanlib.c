@@ -455,6 +455,10 @@ void luai_canlib_close(void)
 		if(canQ[i].initialized)
 		{	/* free previous receive message */
 			freeQ(&canQ[i]);
+			if(NULL != canQ[i].device.ops->close)
+			{
+				canQ[i].device.ops->close(canQ[i].device.port);
+			}
 		}
 
 		STAILQ_INIT(&canQ[i].listHead);

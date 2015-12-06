@@ -35,12 +35,13 @@ struct Can_RPmsgHandleList_s
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean rpmsg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
 static boolean rpmsg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void rpmsg_close(uint32_t port);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_rpmsg_ops =
 {
 	.name = "rpmsg",
 	.probe = rpmsg_probe,
-	.close = NULL,
+	.close = rpmsg_close,
 	.write = rpmsg_write,
 };
 static struct Can_RPmsgHandleList_s* rpmsgH = NULL;
@@ -49,12 +50,15 @@ static struct Can_RPmsgHandle_s* getHandle(uint32_t port)
 {
 	struct Can_RPmsgHandle_s *handle,*h;
 	handle = NULL;
-	STAILQ_FOREACH(h,&rpmsgH->head,entry)
+	if(NULL != rpmsgH)
 	{
-		if(h->port == port)
+		STAILQ_FOREACH(h,&rpmsgH->head,entry)
 		{
-			handle = h;
-			break;
+			if(h->port == port)
+			{
+				handle = h;
+				break;
+			}
 		}
 	}
 	return handle;
@@ -117,10 +121,18 @@ static boolean rpmsg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* da
 
 	return rv;
 }
+static void rpmsg_close(uint32_t port)
+{
+	struct Can_RPmsgHandle_s* handle = getHandle(port);
+	if(NULL != handle)
+	{
+		STAILQ_REMOVE(&rpmsgH->head,handle,Can_RPmsgHandle_s,entry);
+		free(handle);
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
-	struct Can_Pdu_s* pdu;
 	Can_RPmsgPduType* pduInfo = (Can_RPmsgPduType*)data;
 	asAssert(len==sizeof(Can_RPmsgPduType));
 	asAssert(chl == RPMSG_CHL_CAN);
