@@ -96,6 +96,7 @@ $(src-dir):
 	
 dep-posix:
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
 	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)

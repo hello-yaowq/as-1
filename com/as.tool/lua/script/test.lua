@@ -13,10 +13,11 @@
 -- * for more details.
 -- */
 require("cantp")
-
+require("as")
 
 function main()
   data = {}
+  as.can_open(0,"rpmsg",0,1000000)
   cantp.init(0,0,0x732,0x731)
   for i=1,256,1 do
     data[i] = i;

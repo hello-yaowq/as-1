@@ -381,6 +381,7 @@ TASK(SchM_Startup){
 	Nm_NetworkRequest(NM_CHL_LS);
 	Nm_NetworkRequest(NM_CHL_HS);
 #endif
+
 #if defined(USE_CANSM)
 	CanSM_RequestComMode(CANSM_CHL_LS,COMM_FULL_COMMUNICATION);
 	CanSM_RequestComMode(CANSM_CHL_HS,COMM_FULL_COMMUNICATION);
