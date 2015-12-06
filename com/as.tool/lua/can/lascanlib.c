@@ -33,28 +33,32 @@ typedef struct {
 } Can_PduType;
 struct Can_Pdu_s {
 	Can_PduType msg;
-	STAILQ_ENTRY(Can_Pdu_s) pduEntry;
-};
-struct Can_PduList_s {
-	uint32_t id;	/* can_id of this list */
-	uint32_t size;
-	STAILQ_HEAD(,Can_Pdu_s) pduHead;
-	STAILQ_ENTRY(Can_PduList_s) listEntry;
+	STAILQ_ENTRY(Can_Pdu_s) entry;
 };
 struct Can_PduQueue_s {
-	int initialized;
-	pthread_mutex_t w_lock;
+	uint32_t id;	/* can_id of this list */
+	uint32_t size;
+	STAILQ_HEAD(,Can_Pdu_s) head;
+	STAILQ_ENTRY(Can_PduQueue_s) entry;
+};
+struct Can_Bus_s {
+	uint32_t busid;
 	Can_DeviceType  device;
-	STAILQ_HEAD(,Can_PduList_s) listHead;
+	STAILQ_HEAD(,Can_PduQueue_s) head;
+	STAILQ_ENTRY(Can_Bus_s) entry;
+};
+
+struct Can_BusList_s {
+	boolean initialized;
+	pthread_mutex_t q_lock;
+	STAILQ_HEAD(,Can_Bus_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static struct Can_PduQueue_s canQ[CAN_BUS_NUM] =
+static struct Can_BusList_s canbusH =
 {
-	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER},
-	{.initialized=FALSE,.w_lock=PTHREAD_MUTEX_INITIALIZER}
+	.initialized=FALSE,
+	.q_lock=PTHREAD_MUTEX_INITIALIZER
 };
 static const Can_DeviceOpsType* canOps [] =
 {
@@ -62,35 +66,66 @@ static const Can_DeviceOpsType* canOps [] =
 	NULL
 };
 /* ============================ [ LOCALS    ] ====================================================== */
-static void freeL(struct Can_PduList_s* l)
+static void freeQ(struct Can_PduQueue_s* l)
 {
 	struct Can_Pdu_s* pdu;
-	while(FALSE == STAILQ_EMPTY(&l->pduHead))
+	while(FALSE == STAILQ_EMPTY(&l->head))
 	{
-		pdu = STAILQ_FIRST(&l->pduHead);
-		STAILQ_REMOVE_HEAD(&l->pduHead,pduEntry);
+		pdu = STAILQ_FIRST(&l->head);
+		STAILQ_REMOVE_HEAD(&l->head,entry);
 
 		free(pdu);
 	}
 }
-static void freeQ(struct Can_PduQueue_s* q)
+static void freeB(struct Can_Bus_s* b)
 {
-	struct Can_PduList_s* l;
-	while(FALSE == STAILQ_EMPTY(&q->listHead))
+	struct Can_PduQueue_s* l;
+	while(FALSE == STAILQ_EMPTY(&b->head))
 	{
-		l = STAILQ_FIRST(&q->listHead);
-		freeL(l);
-		STAILQ_REMOVE_HEAD(&q->listHead,listEntry);
-
+		l = STAILQ_FIRST(&b->head);
+		STAILQ_REMOVE_HEAD(&b->head,entry);
+		freeQ(l);
 		free(l);
 	}
+
 }
-static void saveQ(struct Can_PduQueue_s* q,struct Can_Pdu_s* pdu)
+static void freeH(struct Can_BusList_s*h)
 {
-	struct Can_PduList_s* L;
-	struct Can_PduList_s* l;
+	struct Can_Bus_s* b;
+
+	pthread_mutex_lock(&h->q_lock);
+	while(FALSE == STAILQ_EMPTY(&h->head))
+	{
+		b = STAILQ_FIRST(&h->head);
+		STAILQ_REMOVE_HEAD(&h->head,entry);
+		freeB(b);
+		free(b);
+	}
+	pthread_mutex_unlock(&h->q_lock);
+}
+static struct Can_Bus_s* getBus(uint32_t busid)
+{
+	struct Can_Bus_s *handle,*h;
+	handle = NULL;
+	if(canbusH.initialized)
+	{
+		STAILQ_FOREACH(h,&canbusH.head,entry)
+		{
+			if(h->busid == busid)
+			{
+				handle = h;
+				break;
+			}
+		}
+	}
+	return handle;
+}
+static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
+{
+	struct Can_PduQueue_s* L;
+	struct Can_PduQueue_s* l;
 	L = NULL;
-	STAILQ_FOREACH(l,&q->listHead,listEntry)
+	STAILQ_FOREACH(l,&b->head,entry)
 	{
 		if(l->id == pdu->msg.id)
 		{
@@ -101,17 +136,17 @@ static void saveQ(struct Can_PduQueue_s* q,struct Can_Pdu_s* pdu)
 
 	if(NULL == L)
 	{
-		L = malloc(sizeof(struct Can_PduList_s));
+		L = malloc(sizeof(struct Can_PduQueue_s));
 		if(L)
 		{
 			L->id = pdu->msg.id;
 			L->size = 0;
-			STAILQ_INIT(&L->pduHead);
-			STAILQ_INSERT_TAIL(&q->listHead,L,listEntry);
+			STAILQ_INIT(&L->head);
+			STAILQ_INSERT_TAIL(&b->head,L,entry);
 		}
 		else
 		{
-			ASWARNING("LUA CAN Q List malloc failed\n");
+			ASWARNING("LUA CAN Bus List malloc failed\n");
 		}
 	}
 
@@ -119,7 +154,7 @@ static void saveQ(struct Can_PduQueue_s* q,struct Can_Pdu_s* pdu)
 	{
 		if(L->size < CAN_BUS_PDU_NUM)
 		{
-			STAILQ_INSERT_TAIL(&L->pduHead,pdu,pduEntry);
+			STAILQ_INSERT_TAIL(&L->head,pdu,entry);
 			L->size ++;
 		}
 		else
@@ -133,7 +168,10 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 {
 	if(busid < CAN_BUS_NUM)
 	{
-		if(canQ[busid].initialized)
+		pthread_mutex_lock(&canbusH.q_lock);
+		struct Can_Bus_s* b = getBus(busid);
+		pthread_mutex_unlock(&canbusH.q_lock);
+		if(NULL != b)
 		{
 			struct Can_Pdu_s* pdu = malloc(sizeof(struct Can_Pdu_s));
 			if(pdu)
@@ -142,9 +180,9 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 				pdu->msg.id = canid;
 				pdu->msg.length = dlc;
 				memcpy(&(pdu->msg.sdu),data,dlc);
-				(void)pthread_mutex_lock(&canQ[busid].w_lock);
-				saveQ(&canQ[busid],pdu);
-				(void)pthread_mutex_unlock(&canQ[busid].w_lock);
+				(void)pthread_mutex_lock(&canbusH.q_lock);
+				saveB(b,pdu);
+				(void)pthread_mutex_unlock(&canbusH.q_lock);
 			}
 			else
 			{
@@ -218,8 +256,8 @@ int luai_can_open  (lua_State *L)
 		{
 			 return luaL_error(L,"incorrect argument baudrate to function 'can_open'");
 		}
-
-		if(canQ[busid].initialized)
+		struct Can_Bus_s* b = getBus(busid);
+		if(NULL != b)
 		{
 			return luaL_error(L,"can bus(%d) is already on-line 'can_open'",busid);
 		}
@@ -228,19 +266,25 @@ int luai_can_open  (lua_State *L)
 			ops = search_ops(device_name);
 			if(NULL != ops)
 			{
-				canQ[busid].initialized = TRUE;
-				canQ[busid].device.ops = ops;
-				canQ[busid].device.busid = busid;
-				canQ[busid].device.port = port;
+				b = malloc(sizeof(struct Can_Bus_s));
+				b->busid = busid;
+				b->device.ops = ops;
+				b->device.busid = busid;
+				b->device.port = port;
 
 				boolean rv = ops->probe(busid,port,baudrate,rx_notification);
 
 				if(rv)
 				{
+					STAILQ_INIT(&b->head);
+					pthread_mutex_lock(&canbusH.q_lock);
+					STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
+					pthread_mutex_unlock(&canbusH.q_lock);
 					lua_pushboolean(L, TRUE);        /* result OK */
 				}
 				else
 				{
+					free(b);
 					return luaL_error(L, "can_open device <%s> failed!",device_name);
 				}
 			}
@@ -322,15 +366,16 @@ int luai_can_write (lua_State *L)
 			/* Stack is now the same as it was on entry to this function */
 		}
 
-		if(FALSE == canQ[busid].initialized)
+		struct Can_Bus_s * b = getBus(busid);
+		if(NULL == b)
 		{
 			return luaL_error(L,"can bus(%d) is not on-line 'can_write'",busid);
 		}
 		else
 		{
-			if(canQ[busid].device.ops->write)
+			if(b->device.ops->write)
 			{
-				boolean rv = canQ[busid].device.ops->write(canQ[busid].device.port,canid,dlc,data);
+				boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
 				if(rv)
 				{
 					lua_pushboolean(L, TRUE);        /* result OK */
@@ -361,8 +406,8 @@ int luai_can_read  (lua_State *L)
 	{
 		uint32_t busid;
 		uint32_t canid;
-		struct Can_PduList_s* l;
-		struct Can_PduList_s* list = NULL;
+		struct Can_PduQueue_s* l;
+		struct Can_PduQueue_s* list = NULL;
 		struct Can_Pdu_s* pdu = NULL;
 		int is_num;
 
@@ -371,19 +416,21 @@ int luai_can_read  (lua_State *L)
 		{
 			 return luaL_error(L,"incorrect argument busid to function 'can_read'");
 		}
-		if( busid >= CAN_BUS_NUM)
-		{
-			return luaL_error(L,"busid out of range(%d > %d) to function 'can_read'",busid,CAN_BUS_NUM);
-		}
 
 		canid = lua_tounsignedx(L, 2,&is_num);
 		if(!is_num)
 		{
 			 return luaL_error(L,"incorrect argument canid to function 'can_read'");
 		}
-
-		(void)pthread_mutex_lock(&canQ[busid].w_lock);
-		STAILQ_FOREACH(l,&canQ[busid].listHead,listEntry)
+		pthread_mutex_lock(&canbusH.q_lock);
+		struct Can_Bus_s* b = getBus(busid);
+		pthread_mutex_unlock(&canbusH.q_lock);
+		if(NULL == b)
+		{
+			 return luaL_error(L,"bus(%d) is not on-line 'can_read'",busid);
+		}
+		(void)pthread_mutex_lock(&canbusH.q_lock);
+		STAILQ_FOREACH(l,&b->head,entry)
 		{
 			if(l->id == canid)
 			{
@@ -391,13 +438,13 @@ int luai_can_read  (lua_State *L)
 				break;
 			}
 		}
-		if(list && (FALSE == STAILQ_EMPTY(&list->pduHead)))
+		if(list && (FALSE == STAILQ_EMPTY(&list->head)))
 		{
-			pdu = STAILQ_FIRST(&list->pduHead);
-			STAILQ_REMOVE_HEAD(&list->pduHead,pduEntry);
+			pdu = STAILQ_FIRST(&list->head);
+			STAILQ_REMOVE_HEAD(&list->head,entry);
 			list->size --;
 		}
-		(void)pthread_mutex_unlock(&canQ[busid].w_lock);
+		(void)pthread_mutex_unlock(&canbusH.q_lock);
 
 		if(NULL == pdu)
 		{
@@ -430,40 +477,24 @@ int luai_can_read  (lua_State *L)
 
 void luai_canlib_open(void)
 {
-	int i;
-
-	for(i=0;i<CAN_BUS_NUM;i++)
+	if(canbusH.initialized)
 	{
-		(void)pthread_mutex_lock(&canQ[i].w_lock);
-		if(canQ[i].initialized)
-		{	/* free previous receive message */
-			freeQ(&canQ[i]);
-		}
-
-		STAILQ_INIT(&canQ[i].listHead);
-		canQ[i].initialized = FALSE;
-		(void)pthread_mutex_unlock(&canQ[i].w_lock);
+		freeH(&canbusH);
 	}
+	canbusH.initialized = TRUE;
+	STAILQ_INIT(&canbusH.head);
 }
 void luai_canlib_close(void)
 {
-	int i;
-
-	for(i=0;i<CAN_BUS_NUM;i++)
+	if(canbusH.initialized)
 	{
-		(void)pthread_mutex_lock(&canQ[i].w_lock);
-		if(canQ[i].initialized)
-		{	/* free previous receive message */
-			freeQ(&canQ[i]);
-			if(NULL != canQ[i].device.ops->close)
-			{
-				canQ[i].device.ops->close(canQ[i].device.port);
-			}
+		struct Can_Bus_s* b;
+		STAILQ_FOREACH(b,&canbusH.head,entry)
+		{
+			b->device.ops->close(b->device.port);
 		}
-
-		STAILQ_INIT(&canQ[i].listHead);
-		canQ[i].initialized = FALSE;
-		(void)pthread_mutex_unlock(&canQ[i].w_lock);
+		freeH(&canbusH);
+		canbusH.initialized = FALSE;
 	}
 }
 
