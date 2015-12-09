@@ -63,6 +63,7 @@ static struct Can_BusList_s canbusH =
 static const Can_DeviceOpsType* canOps [] =
 {
 	&can_rpmsg_ops,
+	&can_serial_ops,
 	NULL
 };
 /* ============================ [ LOCALS    ] ====================================================== */

@@ -20,16 +20,15 @@
 #include <sys/queue.h>
 #include <pthread.h>
 /* ============================ [ MACROS    ] ====================================================== */
-#define CAN_SERIAL_CACHE_SIZE  1024
+#define CAN_SERIAL_CACHE_SIZE  64
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SerialHandle_s
 {
 	uint32_t busid;
 	uint32_t port;
 	uint32_t baudrate;
-	char cache[CAN_SERIAL_CACHE_SIZE];
-	int r_pos;
-	int w_pos;
+	char r_cache[CAN_SERIAL_CACHE_SIZE];
+	int  r_size;
 	can_device_rx_notification_t rx_notification;
 	STAILQ_ENTRY(Can_SerialHandle_s) entry;
 };
@@ -39,16 +38,6 @@ struct Can_SerialHandleList_s
 	volatile boolean   terminated;
 	STAILQ_HEAD(,Can_SerialHandle_s) head;
 };
-typedef struct {
-    /* the CAN ID, 29 or 11-bit */
-	uint32_t    magic;
-    uint32_t 	id;
-    uint8_t     bus;
-    /* Length, max 8 bytes */
-    uint8_t		length;
-    /* data ptr */
-    uint8_t 		sdu[8];
-} Can_SerialPduType;
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
 static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
@@ -117,10 +106,12 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			handle->port = port;
 			handle->baudrate = baudrate;
 			handle->rx_notification = rx_notification;
+			handle->r_size = 0;
 			STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
 		}
 		else
 		{
+			ASWARNING("CAN SERIAL port=%d is is not able to be opened!\n",port);
 			rv = FALSE;
 		}
 	}
@@ -133,14 +124,19 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 	struct Can_SerialHandle_s* handle = getHandle(port);
 	if(handle != NULL)
 	{
-		Can_SerialPduType pduInfo;
-		pduInfo.magic = ((uint32)'S'<<24) + ((uint32)'C'<<16) + ((uint32)'A'<<8) + ((uint32)'N'<<0);
-		pduInfo.bus = port;
-		pduInfo.id = canid;
-		pduInfo.length = dlc;
-		memcpy(pduInfo.sdu,data,dlc);
+		char string[512];
+		uint32_t i;
+		int size = snprintf(string,sizeof(string),"SCAN%02X%04X%02X",handle->busid,canid,dlc);
+		for(i=0;i<dlc;i++)
+		{
+			size += snprintf(&string[size],sizeof(string)-size,"%02X",data[i]);
+		}
+		string[size++] = '\n';
+		string[size++] = '\0';
 
-		if(0 == RS232_SendBuf((int)handle->port,(unsigned char*)&pduInfo,sizeof(Can_SerialPduType)))
+		ASLOG(STDOUT,"CAN Serial write '%s'\n",string);
+
+		if(0 == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
 		{
 			/* send OK */
 		}
@@ -175,6 +171,68 @@ static void serial_close(uint32_t port)
 		}
 	}
 }
+static uint32_t IntH(char chr)
+{
+	uint32_t v;
+	if( (chr>='0') && (chr<='9'))
+	{
+		v= chr - '0';
+	}
+	else if( (chr>='A') && (chr<='F'))
+	{
+		v= chr - 'A';
+	}
+	else if( (chr>='a') && (chr<='f'))
+	{
+		v= chr - 'a';
+	}
+	else
+	{
+		ASWARNING("CAN serial receiving invalid data '0x%02X', cast to 0\n",chr);
+		v = 0;
+	}
+
+	return v;
+}
+static void rx_notifiy(struct Can_SerialHandle_s* handle)
+{
+	uint32_t canid;
+	uint32_t busid;
+	uint32_t dlc;
+	uint8_t  data[8];
+	uint32_t i;
+	if( (handle->r_size >= 12) &&
+		(handle->r_cache[0]='S') &&
+		(handle->r_cache[1]='C') &&
+		(handle->r_cache[2]='A') &&
+		(handle->r_cache[3]='N') )
+	{
+		busid = IntH(handle->r_cache[4])*16 + IntH(handle->r_cache[5]);
+		canid = IntH(handle->r_cache[6])*16*16*16 + IntH(handle->r_cache[7])*16*16 + IntH(handle->r_cache[8])*16 + IntH(handle->r_cache[9]);
+		dlc   = IntH(handle->r_cache[10])*16 + IntH(handle->r_cache[11]);
+		if((dlc>0) &&(dlc<=8))
+		{
+			for(i=0;i<dlc;i++)
+			{
+				data[i] = IntH(handle->r_cache[12+2*i])*16 + IntH(handle->r_cache[13+2*i]);
+			}
+			if(NULL != handle->rx_notification)
+			{
+				handle->rx_notification(busid,canid,dlc,data);
+			}
+		}
+		else
+		{
+			ASWARNING("CAN serial port=%d receiving data with invalid dlc = %d\n",handle->port,dlc);
+		}
+	}
+	else
+	{
+		ASWARNING("CAN serial port=%d receiving invalid data\n",handle->port);
+	}
+
+	handle->r_size = 0;
+}
 static void * rx_daemon(void * param)
 {
 	(void)param;
@@ -183,7 +241,26 @@ static void * rx_daemon(void * param)
 	{
 		STAILQ_FOREACH(handle,&serialH->head,entry)
 		{
-			RS232_PollComport()
+			char chr;
+			int size;
+			do
+			{
+				size = RS232_PollComport((int)handle->port,(unsigned char*)&chr,1);
+				if(1u == size)
+				{
+					handle->r_cache[handle->r_size++] = chr;
+					if('\n' == chr)
+					{
+						rx_notifiy(handle);
+					}
+
+					if(handle->r_size >= CAN_SERIAL_CACHE_SIZE)
+					{
+						handle->r_size = 0;
+						ASWARNING("CAN serial port=%d receiving invalid data, buffer over-run\n",handle->port);
+					}
+				}
+			}while(1u == size);
 		}
 	}
 
