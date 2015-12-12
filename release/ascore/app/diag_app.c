@@ -69,7 +69,7 @@ Std_ReturnType Diag_DidGetDataLengthFingerPrint(uint16 *didLength)
 }
 Std_ReturnType Diag_DidConditionReadCheckFingerPrint(Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	return E_OK;
 }
 Std_ReturnType Diag_DidReadDataFingerPrint(uint8 *data)
@@ -82,12 +82,12 @@ Std_ReturnType Diag_DidReadDataFingerPrint(uint8 *data)
 }
 Std_ReturnType Diag_DidConditionCheckWriteFingerPrint(Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	return E_OK;
 }
 Std_ReturnType Diag_DidWriteDataFingerPrint(uint8 *data, uint16 dataLength, Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	printf("FingerPrint = [");
 	for(int i=0;i<dataLength;i++)
 	{
@@ -100,25 +100,25 @@ Std_ReturnType Diag_DidWriteDataFingerPrint(uint8 *data, uint16 dataLength, Dcm_
 
 Std_ReturnType Diag_StartRoutineFLErase(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	printf("In %s()\n",__FUNCTION__);
 	return E_OK;
 }
 Std_ReturnType Diag_RequestResultRoutineFLErase(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	printf("In %s()\n",__FUNCTION__);
 	return E_OK;
 }
 Std_ReturnType Diag_StartRoutineFLCheckProgrmIntegrity(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	printf("In %s()\n",__FUNCTION__);
 	return E_OK;
 }
 Std_ReturnType Diag_RequestResultRoutineFLCheckProgrmIntegrity(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
 {
-	*errorCode = DCM_E_POSITIVERESPONSE;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
 	printf("In %s()\n",__FUNCTION__);
 	return E_OK;
 }
