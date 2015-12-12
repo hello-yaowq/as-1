@@ -56,13 +56,21 @@ function get_service_name(serviceid)
 end
 
 function get_nrc_name(nrc)
-    if nrc == 0x33 then
-      name = "security access denied"
-    else
-      name = string.format("unknown(%X)",nrc)
-    end
-    
-    return name
+  if nrc == 0x11 then
+    name = "service not supported"
+  elseif nrc == 0x12 then
+    name = "sub function not supported"
+  elseif nrc == 0x13 then
+    name = "incorrect message length or invalid format"
+  elseif nrc == 0x33 then
+    name = "security access denied"
+  elseif nrc == 0x7f then
+    name = "service not suppoted in active session"
+  else
+    name = string.format("unknown(%X)",nrc)
+  end
+  
+  return name
 end
 
 local function show_negative_response(res)
@@ -76,16 +84,45 @@ local function show_negative_response(res)
   
 end
 
+local function show_request(req)
+  ss = "  >> dcm request  = ["
+  len = rawlen(req)
+  if len > 16 then
+    len = 16
+  end
+  for i=1,len,1 do
+    ss = string.format("%s%02X,",ss,req[i])
+  end
+  ss = string.format("%s],",ss)
+  print(ss)
+end
+
+local function show_response(res)
+  ss = "  >> dcm response = ["
+  len = rawlen(res)
+  if len > 16 then
+    len = 16
+  end
+  for i=1,len,1 do
+    ss = string.format("%s%02X,",ss,res[i])
+  end
+  ss = string.format("%s],",ss)
+  print(ss)
+end
+
 function M.transmit(channel,req)
   ercd = true
   response  = nil
+  show_request(req)
   cantp.transmit(channel,req)
   while ercd == true do
     ercd,res = cantp.receive(channel)
     if ercd == true then
+      show_response(res)
       if (req[1]|0x40 == res[1]) then
         -- positive response
         response  = res
+        break
       elseif (rawlen(res) == 3) and (res[1] == 0x7f) and (res[2] == req[0]) and (res[3] == 0x78) then
         -- response is pending as server is busy
         -- continue

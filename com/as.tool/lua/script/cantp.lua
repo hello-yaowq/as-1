@@ -72,10 +72,10 @@ local function sendSF(channel,data)
   txid = runtime[channel]["txid"]
   pdu = {}
   pdu[1] = ISO15765_TPCI_SF | length
-  for i=1,length,1 do
-    pdu[i+1] = data[i]
+  for i=2,length+1,1 do
+    pdu[i] = data[i-1]
   end
-  for i=length+1,8,1 do
+  for i=length+2,8,1 do
     pdu[i] = cfgPadding
   end
 
@@ -270,7 +270,7 @@ local function waitSForFF(channel,response)
       finished = true
     end
   end
-  
+
   return ercd,finished
 end
 
@@ -351,8 +351,8 @@ function M.receive(channel)
   finished = false
   
   ercd,finished = waitSForFF(channel,response)
-  
-  while (true == ercd) and (false == finised) do
+
+  while (true == ercd) and (false == finished) do
     if runtime[channel]["state"] == CANTP_ST_SEND_FC then
       ercd = sendFC(channel)
     elseif runtime[channel]["state"] == CANTP_ST_WAIT_CF then

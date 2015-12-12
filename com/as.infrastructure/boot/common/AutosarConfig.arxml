@@ -157,6 +157,7 @@
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 <Security Comment="*" Name="EXTDS" />
+<Security Comment="*" Name="Default" />
 </SecurityList>
 <SessionList Max="TBD">
 <Session Comment="*" Name="DS" />
