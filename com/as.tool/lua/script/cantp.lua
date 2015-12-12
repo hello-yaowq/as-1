@@ -237,7 +237,7 @@ local function ScheduleTx(channel,request)
 end
 
 function M.transmit(channel,data)
-  print("request: ",channel,table.concat(data, ":"))
+  -- print("request: ",channel,table.concat(data, ":"))
   if rawlen(data) < 7 then
     sendSF(channel,data)
   else
@@ -363,7 +363,7 @@ function M.receive(channel)
     end
   end
   
-  print("response:",channel,table.concat(response, ":"))
+  -- print("response:",channel,table.concat(response, ":"))
   return ercd,response
 end
 

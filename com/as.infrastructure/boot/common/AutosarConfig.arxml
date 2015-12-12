@@ -241,7 +241,23 @@
 <SessionControl Comment="*" GetSessionChangePermissionCbk="BL_GetSessionChangePermission" Name="SessionControl" />
 </SessionControlList>
 <TimingList Max="TBD">
-<Timing Comment="*" Name="Timing1" P2ServerMaxTimeMs="5000" P2ServerMinTimeMs="3000" S3ServerTimeMs="10000" />
+<Timing Comment="*" Name="Timing1" P2ServerMaxTimeMs="100" P2ServerMinTimeMs="20" S3ServerTimeMs="5000" />
 </TimingList>
 </Dcm>
+<Fls>
+<General Comment="*" DevelopmentErrorDetection="OFF" FlashBaseAddress="0" MaxFastReadSize="512" MaxFastWriteSize="32" MaxNormalReadSize="32" MaxNormalWriteSize="8" VersionInfoApi="OFF" />
+<SectorList Max="TBD" />
+</Fls>
+<Fee>
+<General Comment="*" DevelopmentErrorDetection="OFF" NvmJobEndNotification="NULL" NvmJobErrorNotification="NULL" PollingMode="ON" VersionInfoApi="OFF" VirtualPageSize="8" />
+<BlockList Max="TBD" />
+</Fee>
+<Ea>
+<General Comment="*" DevelopmentErrorDetection="OFF" NvmJobEndNotification="NULL" NvmJobErrorNotification="NULL" SetModeApi="ON" VersionInfoApi="OFF" VirtualPageSize="8" />
+<BlockList Max="TBD" />
+</Ea>
+<NvM>
+<General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="OFF" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="ON" RamBlockStatusApi="ON" StandardJobQueueSize="8" VersionInfoApi="OFF" />
+<BlockList Max="TBD" />
+</NvM>
 </AUTOSAR>
