@@ -45,6 +45,8 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 extern const Can_DeviceOpsType can_rpmsg_ops;
 extern const Can_DeviceOpsType can_serial_ops;
+extern const Can_DeviceOpsType can_vxl_ops;
+extern const Can_DeviceOpsType can_peak_ops;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

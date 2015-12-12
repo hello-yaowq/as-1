@@ -81,6 +81,8 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 cflags-y +=-Wextra 
 def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
+
+def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 endif	# posix end
 
 inc-y += -I$(inc-dir)
@@ -119,6 +121,8 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
 	@(echo "  >> prepare link for posix done")
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)

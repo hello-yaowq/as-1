@@ -30,7 +30,20 @@ function enter_program_session()
   
 end
 
-operation_list = {enter_program_session}
+function security_access()
+  ercd,res = dcm.transmit(can_bus,{0x27,0x03})
+  
+  if (false == ercd) then
+    print("  >> security access failed!")
+  else
+    print("  >> security access ok!")
+  end
+  
+  return ercd
+  
+end
+
+operation_list = {enter_program_session,security_access}
 
 function main()
   data = {}

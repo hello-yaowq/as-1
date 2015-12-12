@@ -48,6 +48,8 @@ end
 function get_service_name(serviceid)
     if serviceid == 0x10 then
       service = "session control"
+    elseif serviceid == 0x27 then
+      service = "security access"
     else
       service = string.format("unknown(%X)",serviceid)
     end

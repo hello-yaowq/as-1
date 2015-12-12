@@ -64,6 +64,8 @@ static const Can_DeviceOpsType* canOps [] =
 {
 	&can_rpmsg_ops,
 	&can_serial_ops,
+	&can_vxl_ops,
+	&can_peak_ops,
 	NULL
 };
 /* ============================ [ LOCALS    ] ====================================================== */
