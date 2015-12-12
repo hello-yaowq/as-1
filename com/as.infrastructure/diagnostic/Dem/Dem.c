@@ -111,7 +111,7 @@
  */
 #if !defined(USE_DCM)
 typedef uint8 Dcm_NegativeResponseCodeType;
-#define DCM_E_POSITIVERESPONSE ((Dcm_NegativeResponseCodeType)0x00)
+#define DCM_E_POSITIVE_RESPONSE ((Dcm_NegativeResponseCodeType)0x00)
 #endif
 
 // DtcFilterType
@@ -3774,7 +3774,7 @@ static void getPidData(const Dem_PidOrDidType ** const *pidClassPtr, FreezeFrame
 				/* store data */
 				if(FFIdClassRef[i]->DidConditionCheckReadFnc != NULL){
 					callbackReturnCode = FFIdClassRef[i]->DidConditionCheckReadFnc(&errorCode);
-					if ((callbackReturnCode == E_OK) && (errorCode == DCM_E_POSITIVERESPONSE)) {
+					if ((callbackReturnCode == E_OK) && (errorCode == DCM_E_POSITIVE_RESPONSE)) {
 						if(FFIdClassRef[i]->DidReadFnc!= NULL){
 							callbackReturnCode = FFIdClassRef[i]->DidReadFnc(&(*freezeFrame)->data[storeIndex]);
 							if (callbackReturnCode != E_OK) {

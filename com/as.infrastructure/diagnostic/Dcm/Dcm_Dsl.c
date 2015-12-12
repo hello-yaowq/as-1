@@ -571,17 +571,17 @@ void DslMain(void) {
 					if (DCM_Config.Dsl->DslDiagResp != NULL) {
 						if (DCM_Config.Dsl->DslDiagResp->DslDiagRespForceRespPendEn == TRUE) {
 							if (runtime->responsePendingCount != 0) {
-								sendResponse(protocolRowEntry, DCM_E_RESPONSEPENDING);  /** @req DCM024 */
+								sendResponse(protocolRowEntry, DCM_E_RESPONSE_PENDING);  /** @req DCM024 */
 								DECREMENT( runtime->responsePendingCount );
 							} else {
 								DspCancelPendingRequests();
-								sendResponse(protocolRowEntry, DCM_E_GENERALREJECT); /** @req DCM120 */
+								sendResponse(protocolRowEntry, DCM_E_GENERAL_REJECT); /** @req DCM120 */
 								releaseExternalRxTxBuffers(protocolRowEntry, runtime);
 							}
 						} else {
 							DEBUG( DEBUG_MEDIUM, "Not configured to send response pending, now sending general reject!\n");
 							DspCancelPendingRequests();
-							sendResponse(protocolRowEntry, DCM_E_GENERALREJECT);
+							sendResponse(protocolRowEntry,DCM_E_GENERAL_REJECT);
 							releaseExternalRxTxBuffers(protocolRowEntry, runtime);
 						}
 					}
@@ -635,7 +635,7 @@ void DslMain(void) {
 				if (TRUE == PreemptionNotProcessingDone){
 					if( !BusyRepeatSent ) {
 						/*sent NRC 0x21 till timeout or processing done*/
-						sendResponse(protocolRowEntry, DCM_E_BUSYREPEATREQUEST);
+						sendResponse(protocolRowEntry, DCM_E_BUSY_REPEAT_REQUEST);
 						BusyRepeatSent = TRUE;
 					}
 

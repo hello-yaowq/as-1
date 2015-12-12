@@ -74,7 +74,8 @@ static Std_ReturnType askApplicationForServicePermission(uint8 *requestData, uin
 static void createAndSendNcr(Dcm_NegativeResponseCodeType responseCode)
 {
 	if (!((msgData.addrType == DCM_PROTOCOL_FUNCTIONAL_ADDR_TYPE)
-		  && ((responseCode == DCM_E_SERVICENOTSUPPORTED) || (responseCode == DCM_E_SUBFUNCTIONNOTSUPPORTED) || (responseCode == DCM_E_REQUESTOUTOFRANGE)))) {   /** @req DCM001 */
+		  && ((responseCode == DCM_E_SERVICE_NOT_SUPPORTED) || (responseCode == DCM_E_SUB_FUNCTION_NOT_SUPPORTED)
+				  || (responseCode == DCM_E_REQUEST_OUT_OF_RANGE)))) {   /** @req DCM001 */
 		msgData.pduTxData->SduDataPtr[0] = SID_NEGATIVE_RESPONSE;
 		msgData.pduTxData->SduDataPtr[1] = currentSid;
 		msgData.pduTxData->SduDataPtr[2] = responseCode;
@@ -246,7 +247,7 @@ static void selectServiceFunction(uint8 sid)
 #endif
 	default:
 		/* Non implemented service */
-		createAndSendNcr(DCM_E_SERVICENOTSUPPORTED);
+		createAndSendNcr(DCM_E_SERVICE_NOT_SUPPORTED);
 		break;
 	}
 }
@@ -328,7 +329,7 @@ void DsdHandleRequest(void)
 					}
 					else {
 						if (result == E_REQUEST_ENV_NOK) {
-							createAndSendNcr(DCM_E_CONDITIONSNOTCORRECT);	/** @req DCM463 */
+							createAndSendNcr(DCM_E_CONDITIONS_NOT_CORRECT);	/** @req DCM463 */
 						}
 						else {
 							// Do not send any response		/** @req DCM462 */
@@ -337,15 +338,15 @@ void DsdHandleRequest(void)
 					}
 				}
 				else {
-					createAndSendNcr(DCM_E_SECUTITYACCESSDENIED);	/** @req DCM217 */
+					createAndSendNcr(DCM_E_SECUTITY_ACCESS_DENIED);	/** @req DCM217 */
 				}
 			}
 			else {
-				createAndSendNcr(DCM_E_SERVICENOTSUPPORTEDINACTIVESESSION);	/** @req DCM211 */
+				createAndSendNcr(DCM_E_SERVICE_NOT_SUPPORTED_IN_ACTIVE_SESSION);	/** @req DCM211 */
 			}
 		}
 		else {
-			createAndSendNcr(DCM_E_SERVICENOTSUPPORTED);	/** @req DCM197 */
+			createAndSendNcr(DCM_E_SERVICE_NOT_SUPPORTED);	/** @req DCM197 */
 		}
 	}
 	else {
@@ -358,7 +359,7 @@ void DsdHandleRequest(void)
 
 void DsdDspProcessingDone(Dcm_NegativeResponseCodeType responseCode)
 {
-	if (responseCode == DCM_E_POSITIVERESPONSE) {
+	if (responseCode == DCM_E_POSITIVE_RESPONSE) {
 		if (!suppressPosRspMsg) {	/** @req DCM200 */ /** @req DCM231 */
 			/** @req DCM222 */
 			msgData.pduTxData->SduDataPtr[0] = currentSid | SID_RESPONSE_BIT;	/** @req DCM223 */ /** @req DCM224 */
