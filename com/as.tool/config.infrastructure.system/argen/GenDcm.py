@@ -684,7 +684,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '};\n\n'
     fp.write(cstr);
     fp.write("""static const Dcm_DslProtocolTimingType ProtocolTiming = {
-/* DslProtocolTimingRow = */ ProtocolTimingList
+    .DslProtocolTimingRow = ProtocolTimingList
 };\n\n""")
     #--------------
     cstr = 'static const Dcm_DslSessionControlType SessionControlList[] = {\n'
