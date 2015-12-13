@@ -82,17 +82,17 @@ def GenC():
 #include "PduR.h"
 #endif
 
-const CanTp_GeneralType CanTpGeneralConfig =
+static const CanTp_GeneralType CanTpGeneralConfig =
 {
     .main_function_period =  10,
 };
 //NSa TODO:
-const CanTp_NSaType CanTpNSaConfig =
+static const CanTp_NSaType CanTpNSaConfig =
 {
     .CanTpNSa =  0,
 };
 
-const CanTp_NTaType CanTpNTaConfig =
+static const CanTp_NTaType CanTpNTaConfig =
 {
     .CanTpNTa =  0,
 };\n\n""")

@@ -200,7 +200,7 @@ def GenC():
         if(GAGet(rtn,'RoutineResultCbk') != 'NULL'):
             fp.write('extern Std_ReturnType %s(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode);\n'%(GAGet(rtn,'RoutineResultCbk')));
     # -=-=-==------- Security Level
-    cstr = 'const Dcm_DspSecurityRowType DspSecurityList[] = {\n'
+    cstr = 'static const Dcm_DspSecurityRowType DspSecurityList[] = {\n'
     for sec in GLGet('SecurityList'):
         cstr += '\t{ // %s\n'%(GAGet(sec,'Name'));
         cstr += '\t\t.DspSecurityLevel =  %s,\n'%(GAGet(sec,'Identifier'));
@@ -220,11 +220,11 @@ def GenC():
     cstr += '\t}\n';
     cstr += '};\n\n'
     fp.write(cstr);
-    fp.write("""const Dcm_DspSecurityType DspSecurity = {
+    fp.write("""static const Dcm_DspSecurityType DspSecurity = {
     .DspSecurityRow = DspSecurityList
 };\n\n""");
     #-------------------------- Session -------------
-    cstr = 'const Dcm_DspSessionRowType DspSessionList[] = {\n';
+    cstr = 'static const Dcm_DspSessionRowType DspSessionList[] = {\n';
     for ses in GLGet('SessionList'):
         cstr +='\t{ //%s\n'%(GAGet(ses,'Name'));
         cstr +='\t\t.DspSessionLevel = %s,\n'%(GAGet(ses,'Identifier'));
@@ -237,7 +237,7 @@ def GenC():
     cstr +='\t},\n';
     cstr += '};\n\n';
     fp.write(cstr);
-    fp.write("""const Dcm_DspSessionType DspSession = {
+    fp.write("""static const Dcm_DspSessionType DspSession = {
     .DspSessionRow = DspSessionList,
 };\n\n""")
     #----------------- Service Table ---------------
@@ -251,7 +251,7 @@ def GenC():
     #------------------DID Control Record
     if(len(GLGet('DIDControlRecordList'))>0):
         for rec in GLGet('DIDControlRecordList'):
-            fp.write('const Dcm_DspDidControlRecordSizesType %s_SizeInfo = {\n'%(GAGet(rec,'Name')));
+            fp.write('static const Dcm_DspDidControlRecordSizesType %s_SizeInfo = {\n'%(GAGet(rec,'Name')));
             fp.write('\t.DspDidControlEnableMaskRecordSize =  %s,\n'%(GAGet(rec,'EnableMaskSize')))
             fp.write('\t.DspDidControlOptionRecordSize = %s,\n'%(GAGet(rec,'OptionSize')))
             fp.write('\t.DspDidControlStatusRecordSize = %s,\n'%(GAGet(rec,'StatusSize')))
@@ -269,7 +269,7 @@ def GenC():
             if(len(GLGet(ReadAccess,'SecurityList'))):
                 GenSecurityRef(fp,GLGet(ReadAccess,'SecurityList'))
                 str2 = GetSecurityRefName(GLGet(ReadAccess,'SecurityList'))
-            fp.write("""const Dcm_DspDidReadType %s_didRead = {
+            fp.write("""static const Dcm_DspDidReadType %s_didRead = {
     .DspDidReadSessionRef =  %s,
     .DspDidReadSecurityLevelRef =  %s
 };\n\n"""%(GAGet(didInfo,'Name'), str1, str2));
@@ -284,7 +284,7 @@ def GenC():
             if(len(GLGet(WriteAccess,'SecurityList'))):
                 GenSecurityRef(fp,GLGet(WriteAccess,'SecurityList'))
                 str2 = GetSecurityRefName(GLGet(WriteAccess,'SecurityList'))
-            fp.write("""const Dcm_DspDidWriteType %s_didWrite = {
+            fp.write("""static const Dcm_DspDidWriteType %s_didWrite = {
     .DspDidWriteSessionRef =  %s,
     .DspDidWriteSecurityLevelRef =  %s
 };\n\n"""%(GAGet(didInfo,'Name'), str1, str2));
@@ -319,7 +319,7 @@ def GenC():
                 str6 = '&%s_SizeInfo'%(str6);
             else:
                 str6 = 'NULL'
-            fp.write("""const Dcm_DspDidControlType %s_didControl = {
+            fp.write("""static const Dcm_DspDidControlType %s_didControl = {
     .DspDidControlSessionRef =  %s,
     .DspDidControlSecurityLevelRef =  %s,
     .DspDidFreezeCurrentState =  %s,
@@ -327,7 +327,7 @@ def GenC():
     .DspDidReturnControlToEcu =  %s,
     .DspDidShortTermAdjustment =  %s
 };\n\n"""%(GAGet(didInfo,'Name'), str1, str2, str3, str4, str5, str6));
-    cstr = 'const Dcm_DspDidInfoType DspDidInfoList[] = {\n';
+    cstr = 'static const Dcm_DspDidInfoType DspDidInfoList[] = {\n';
     for didInfo in GLGet('DIDInfoList'):
         cstr += '\t{ // %s\n'%(GAGet(didInfo,'Name'));
         cstr += '\t\t.DspDidDynamicllyDefined =  %s,\n'%(GAGet(didInfo,'DynamicDefined'));
@@ -353,7 +353,7 @@ def GenC():
     #------------------ DIDs ----------
     fp.write('extern const Dcm_DspDidType DspDidList[];\n');
     for did in GLGet('DIDList'):
-        fp.write("""const Dcm_DspDidType* %s_dididRefList[] =
+        fp.write("""static const Dcm_DspDidType* %s_dididRefList[] =
 {    // TODO
 &DspDidList[DCM_DID_LIST_EOL_INDEX]  //add did ref by hand please,If you need it
 };\n"""%(GAGet(did,'Name')));
@@ -391,26 +391,26 @@ def GenC():
     for rtninfo in GLGet('RoutineInfoList'):
         start = GLGet(rtninfo,'Start')
         if(start != []):
-            fp.write("""const Dcm_DspStartRoutineType %s_start = {
+            fp.write("""static const Dcm_DspStartRoutineType %s_start = {
     .DspStartRoutineCtrlOptRecSize = %s,
     .DspStartRoutineStsOptRecSize =  %s
 };\n"""%(GAGet(rtninfo,'Name'), GAGet(start,'RecordSizeOfRequest'), GAGet(start,'RecordSizeOfResponse')));
         stop = GLGet(rtninfo,'Start')
         if(stop != []):
-            fp.write("""const Dcm_DspRoutineStopType %s_stop = {
+            fp.write("""static const Dcm_DspRoutineStopType %s_stop = {
     .DspStopRoutineCtrlOptRecSize = %s,
     .DspStopRoutineStsOptRecSize = %s,
 };\n"""%(GAGet(rtninfo,'Name'), GAGet(stop,'RecordSizeOfRequest'), GAGet(stop,'RecordSizeOfResponse')));
         rsl = GLGet(rtninfo,'Result')
         if(rsl != []):
-            fp.write("""const Dcm_DspRoutineRequestResType %s_result = {
+            fp.write("""static const Dcm_DspRoutineRequestResType %s_result = {
     .DspReqResRtnCtrlOptRecSize = %s
 };\n"""%(GAGet(rtninfo,'Name'), GAGet(rsl,'RecordSizeOfResponse')))
         # sss 
         GenSessionRef(fp,GLGet(rtninfo,'SessionList'))
         GenSecurityRef(fp,GLGet(rtninfo,'SecurityList'))
         
-    cstr = 'const Dcm_DspRoutineInfoType DspRoutineInfoList[] = {\n'
+    cstr = 'static const Dcm_DspRoutineInfoType DspRoutineInfoList[] = {\n'
     for rtninfo in GLGet('RoutineInfoList'):
         str1= GetSessionRefName(GLGet(rtninfo,'SessionList'))
         str2= GetSecurityRefName(GLGet(rtninfo,'SecurityList'))
@@ -432,7 +432,7 @@ def GenC():
         cstr += '\t},\n'
     cstr += '};\n\n'
     fp.write(cstr);
-    cstr = 'const Dcm_DspRoutineType  DspRoutineList[] = {\n'
+    cstr = 'static const Dcm_DspRoutineType  DspRoutineList[] = {\n'
     for rtn in GLGet('RoutineList'):
         cstr += '\t{//%s\n'%(GAGet(rtn,'Name'));
         cstr += '\t\t.DspRoutineUsePort = %s,\n'%('FALSE')
@@ -453,7 +453,7 @@ def GenC():
 *                            Memory Info                                 *
 ************************************************************************/\n\n""")
     #---------------------- DSP
-    fp.write("""const Dcm_DspType Dsp = {
+    fp.write("""static const Dcm_DspType Dsp = {
     .DspMaxDidToRead =  0xDB, // TODO
     .DspDid =  DspDidList,
     .DspDidInfo = DspDidInfoList,
@@ -477,7 +477,7 @@ def GenC():
             GenSecurityRef(fp,GLGet(ser,'SecurityList'))
             GenSessionRef(fp,GLGet(ser,'SessionList'))
     for sertbl in GLGet('ServiceTableList'):
-        cstr = 'const Dcm_DsdServiceType %s_serviceList[] = {\n'%(GAGet(sertbl,'Name'));
+        cstr = 'static const Dcm_DsdServiceType %s_serviceList[] = {\n'%(GAGet(sertbl,'Name'));
         for ser in GLGet(sertbl,'ServiceList'):
             cstr += '\t{ \n'
             cstr += '\t\t.DsdSidTabServiceId = SID_%s,\n'%(GAGet(ser,'Name'));
@@ -491,7 +491,7 @@ def GenC():
         cstr += '\t}\n';
         cstr += '};\n\n'
         fp.write(cstr);
-    cstr = 'const Dcm_DsdServiceTableType DsdServiceTable[] = {    \n';
+    cstr = 'static const Dcm_DsdServiceTableType DsdServiceTable[] = {    \n';
     id = 0;
     for sertbl in GLGet('ServiceTableList'):
         cstr += '\t{ // %s\n'%(GAGet(sertbl,'Name'));
@@ -505,7 +505,7 @@ def GenC():
     cstr += '\t}\n'
     cstr += '};\n\n'
     fp.write(cstr);
-    fp.write("""const Dcm_DsdType Dsd = {
+    fp.write("""static const Dcm_DsdType Dsd = {
     .DsdServiceTable = DsdServiceTable
 };\n\n""");
     #----------------------- DSL
@@ -513,10 +513,10 @@ def GenC():
 *                                    DSL                                    *
 ************************************************************************/\n\n""")
     #--------------- buffer 
-    cstr = 'const Dcm_DslBufferType DcmDslBufferList[DCM_DSL_BUFFER_LIST_LENGTH] = {\n'
+    cstr = 'static const Dcm_DslBufferType DcmDslBufferList[DCM_DSL_BUFFER_LIST_LENGTH] = {\n'
     id = 0;
     for buf in GLGet('BufferList'):
-        fp.write("""uint8 %s[%s];
+        fp.write("""static uint8 %s[%s];
 Dcm_DslBufferRuntimeType rxBufferParams_%s =
 {
     .status =  NOT_IN_USE
@@ -534,7 +534,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '};\n\n'
     fp.write(cstr);
     #----------------- Request Service
-    cstr = 'const Dcm_DslCallbackDCMRequestServiceType DCMRequestServiceList[] = {\n'
+    cstr = 'static const Dcm_DslCallbackDCMRequestServiceType DCMRequestServiceList[] = {\n'
     for reqser in GLGet('RequestServiceList'):
         cstr += '\t{ // %s\n'%(GAGet(reqser,'Name'));
         cstr += '\t\t.StartProtocol = %s,\n'%(GAGet(reqser,'StartProtocolCbk'));
@@ -546,7 +546,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '\t}\n'
     cstr += '};\n\n';
     fp.write(cstr);
-    cstr = 'const Dcm_DslServiceRequestIndicationType DCMServiceRequestIndicationList[] = {\n'
+    cstr = 'static const Dcm_DslServiceRequestIndicationType DCMServiceRequestIndicationList[] = {\n'
     for reqser in  GLGet('RequestServiceList'):
         if(GAGet(reqser,'ProtocolIndicationCbk') != 'NULL'):
             cstr += '\t{ // %s\n'%(GAGet(reqser,'Name'));
@@ -562,7 +562,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     fp.write('extern const Dcm_DslMainConnectionType DslMainConnectionList[];\n\n');
     #here I am confused witn Main Connection and Connection.
     #So I assume the first configured one was main connection.
-    cstr = 'const Dcm_DslProtocolRxType DcmDslProtocolRxList[] = {\n';
+    cstr = 'static const Dcm_DslProtocolRxType DcmDslProtocolRxList[] = {\n';
     cid = 0;
     for pro in GLGet('ProtocolList'):
         for con in GLGet(pro,'ConnectionList'):
@@ -582,7 +582,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '};\n\n'
     fp.write(cstr);
     #---tx
-    cstr = 'const Dcm_DslProtocolTxType DcmDslProtocolTxList[] = {\n';
+    cstr = 'static const Dcm_DslProtocolTxType DcmDslProtocolTxList[] = {\n';
     cid = 0;
     for pro in GLGet('ProtocolList'):
         for con in GLGet(pro,'ConnectionList'):
@@ -639,7 +639,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     # now I am really very confused by the relation between Connection and Main Connection, ???
     #----------------
     fp.write('extern const Dcm_DslProtocolTimingRowType ProtocolTimingList[];\n\n');
-    fp.write('Dcm_DslRunTimeProtocolParametersType dcmDslRuntimeVariables[%s];\n'%(len(GLGet('ProtocolList'))))
+    fp.write('static Dcm_DslRunTimeProtocolParametersType dcmDslRuntimeVariables[%s];\n'%(len(GLGet('ProtocolList'))))
     cstr = 'const Dcm_DslProtocolRowType DslProtocolRowList[]= {\n'
     id = 0;
     for pro in GLGet('ProtocolList'):
@@ -663,7 +663,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '\t}\n'
     cstr += '};\n\n'
     fp.write(cstr);
-    fp.write("""const Dcm_DslProtocolType DslProtocol = {
+    fp.write("""static const Dcm_DslProtocolType DslProtocol = {
     .DslProtocolRxGlobalList = DcmDslProtocolRxList,
     .DslProtocolTxGlobalList = DcmDslProtocolTxList,
     .DslProtocolRowList = DslProtocolRowList
@@ -683,11 +683,11 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr +='\t},\n'
     cstr += '};\n\n'
     fp.write(cstr);
-    fp.write("""const Dcm_DslProtocolTimingType ProtocolTiming = {
+    fp.write("""static const Dcm_DslProtocolTimingType ProtocolTiming = {
 /* DslProtocolTimingRow = */ ProtocolTimingList
 };\n\n""")
     #--------------
-    cstr = 'const Dcm_DslSessionControlType SessionControlList[] = {\n'
+    cstr = 'static const Dcm_DslSessionControlType SessionControlList[] = {\n'
     for ses in GLGet('SessionControlList'):
         cstr += '\t{//%s\n'%(GAGet(ses,'Name'))
         cstr += '\t\t.GetSesChgPermission = %s,\n'%(GAGet(ses,'GetSessionChangePermissionCbk'))
@@ -701,13 +701,13 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '};\n\n'
     fp.write(cstr);
     # also I am not sure, so ... ??????
-    fp.write("""const Dcm_DslDiagRespType DiagResp = {
+    fp.write("""static const Dcm_DslDiagRespType DiagResp = {
     .DslDiagRespForceRespPendEn = TRUE,
     .DslDiagRespMaxNumRespPend =  8    // TODO
 };\n""")
 
     fp.write("""
-const Dcm_DslType Dsl = {
+static const Dcm_DslType Dsl = {
     .DslBuffer =  DcmDslBufferList,
     .DslCallbackDCMRequestService = DCMRequestServiceList,
     .DslDiagResp = &DiagResp,
@@ -783,7 +783,7 @@ def GenSessionRef(fp,SessionList):
             index = AlreadySessionRef.index(Name)
     except:
         AlreadySessionRef.append(Name)
-        cstr = 'const Dcm_DspSessionRowType *%s[] = {\n'%(Name);
+        cstr = 'static const Dcm_DspSessionRowType *%s[] = {\n'%(Name);
         for ss in SessionRef:
             cstr += '\t&DspSessionList[INDEX_OF_SESSION_%s],\n'%(ss);
         cstr += '\t&DspSessionList[DCM_SECURITY_EOL_INDEX]\n};\n'
