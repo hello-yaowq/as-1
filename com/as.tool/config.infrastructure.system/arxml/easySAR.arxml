@@ -464,6 +464,12 @@
 			Name="Text PosGUI=0"
 			Comment="TextArea Default=* PosGUI=1"
 			>
+			<SessionList Max="65535">
+				<Session 
+					Name="EnumRef=Dcm.SessionList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</SessionList>
 			<SecurityList Max="65535">
 				<Security 
 					Name="EnumRef=Dcm.SecurityList PosGUI=0"

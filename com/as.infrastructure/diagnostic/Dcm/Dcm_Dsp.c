@@ -444,7 +444,7 @@ boolean DspCheckSessionLevel(Dcm_DspSessionRowType const* const* sessionLevelRef
 	Std_ReturnType returnStatus;
 	boolean levelFound = FALSE;
 	Dcm_SesCtrlType currentSession;
-
+	asAssert(sessionLevelRefTable);
 	returnStatus = DslGetSesCtrlType(&currentSession);
 	if (returnStatus == E_OK) {
 		while ( ((*sessionLevelRefTable)->DspSessionLevel != currentSession) && (!(*sessionLevelRefTable)->Arc_EOL) ) {
@@ -466,7 +466,7 @@ boolean DspCheckSecurityLevel(Dcm_DspSecurityRowType const* const* securityLevel
 	Std_ReturnType returnStatus;
 	boolean levelFound = FALSE;
 	Dcm_SecLevelType currentSecurityLevel;
-
+	asAssert(securityLevelRefTable);
 	returnStatus = DslGetSecurityLevel(&currentSecurityLevel);
 	if (returnStatus == E_OK) {
 		while ( ((*securityLevelRefTable)->DspSecurityLevel != currentSecurityLevel) && (!(*securityLevelRefTable)->Arc_EOL) ) {

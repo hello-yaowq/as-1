@@ -16,6 +16,18 @@ require("dcm")
 require("as")
 local can_bus = 0
 
+function enter_extend_session()
+  ercd,res = dcm.transmit(can_bus,{0x10,0x03})
+  
+  if (false == ercd) then
+    print("  >> enter extend session failed!")
+  else
+    print("  >> enter extend session ok!")
+  end
+  
+  return ercd
+  
+end
 
 function enter_program_session()
   ercd,res = dcm.transmit(can_bus,{0x10,0x02})
@@ -30,20 +42,69 @@ function enter_program_session()
   
 end
 
-function security_access()
-  ercd,res = dcm.transmit(can_bus,{0x27,0x03})
+function security_extds_access()
+  -- level 1 
+  ercd,res = dcm.transmit(can_bus,{0x27,0x01})
   
   if (false == ercd) then
-    print("  >> security access failed!")
+    print("  >> security access request seed failed!")
   else
-    print("  >> security access ok!")
+    print("  >> security access request seed ok!")
+    seed = (res[3]<<24) + (res[4]<<16) + (res[5]<<8) +(res[6]<<0)
+    key = seed ~ 0x78934673
+    print(type(key),key)
+    ercd,res = dcm.transmit(can_bus,{0x27,0x02,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
+    if (false == ercd) then
+      print("  >> security access send key failed!")
+    else
+      print("  >> security access send key ok!")
+    end
   end
   
   return ercd
   
 end
 
-operation_list = {enter_program_session,security_access}
+function security_prgs_access()
+  -- level 2
+  ercd,res = dcm.transmit(can_bus,{0x27,0x03})
+  
+  if (false == ercd) then
+    print("  >> security access request seed failed!")
+  else
+    print("  >> security access request seed ok!")
+    seed = (res[3]<<24) + (res[4]<<16) + (res[5]<<8) +(res[6]<<0)
+    key = seed ~ 0x94586792
+    ercd,res = dcm.transmit(can_bus,{0x27,0x04,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
+    if (false == ercd) then
+      print("  >> security access send key failed!")
+    else
+      print("  >> security access send key ok!")
+    end
+  end
+  
+  return ercd
+  
+end
+
+
+function routine_erase_flash()
+  ercd,res = dcm.transmit(can_bus,{0x31,0x01,0xFF,0x01,0x00,0x00,0x00,0x00,0x00,0x10,0x00,0x00})
+  
+  if (false == ercd) then
+    print("  >> routine erase flash failed!")
+  else
+    print("  >> routine erase flash ok!")
+  end
+  
+  return ercd
+  
+end
+
+operation_list = {enter_extend_session, security_extds_access,
+                  enter_program_session,security_prgs_access,
+                  routine_erase_flash
+}
 
 function main()
   data = {}

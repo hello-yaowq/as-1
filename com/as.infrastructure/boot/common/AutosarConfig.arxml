@@ -105,7 +105,7 @@
 <Session Comment="*" Identifier="3" Name="EXTDS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
 </SessionList>
 <SecurityList Max="TBD">
-<Security Comment="*" CompareKeyCallback="BL_CompareProgramSessionSeed" GetSeedCallback="BL_GetProgramSessionSeed" Identifier="3" KeySize="4" Name="PRGS" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="BL_CompareProgramSessionSeed" GetSeedCallback="BL_GetProgramSessionSeed" Identifier="2" KeySize="4" Name="PRGS" SeedSize="4" />
 <Security Comment="*" CompareKeyCallback="BL_CompareExtendedSessionSeed" GetSeedCallback="BL_GetExtendedSessionSeed" Identifier="1" KeySize="4" Name="EXTDS" SeedSize="4" />
 <Security Comment="Level 0, is the default for each session when enterred" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="0" KeySize="4" Name="Default" SeedSize="4" />
 </SecurityList>
@@ -118,11 +118,13 @@
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 <Start Comment="4 byte address, 4 byte size" RecordSizeOfRequest="8" RecordSizeOfResponse="0" />
-<Result Comment="*" RecordSizeOfResponse="1" />
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
 </RoutineInfo>
 </RoutineInfoList>
 <RoutineList Max="TBD">
-<Routine Comment="*" Identifier="0xFF01" Name="EraseFlash" RoutineInfoRef="RoutineInfo_EraseFlash" RoutineResultCbk="BL_GetEraseFlashResult" StartRoutineCbk="BL_StartEraseFlash" StopRoutineCbk="NULL" />
+<Routine Comment="*" Identifier="0xFF01" Name="EraseFlash" RoutineInfoRef="RoutineInfo_EraseFlash" RoutineResultCbk="NULL" StartRoutineCbk="BL_StartEraseFlash" StopRoutineCbk="NULL" />
 </RoutineList>
 <MemoryList Max="TBD" />
 <ProtocolList Max="TBD">

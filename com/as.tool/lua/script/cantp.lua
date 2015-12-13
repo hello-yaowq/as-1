@@ -182,7 +182,6 @@ end
 local function handleFC(channel,request)
   ercd,data = waitRF(channel)
   if true == ercd then
-    print("FC:",channel,table.concat(data, ":"))
     if (data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FC then
       if (data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS then
         runtime[channel]["cfgSTmin"] = data[3]

@@ -50,6 +50,8 @@ function get_service_name(serviceid)
       service = "session control"
     elseif serviceid == 0x27 then
       service = "security access"
+    elseif serviceid == 0x31 then
+      service = "routine control"      
     else
       service = string.format("unknown(%X)",serviceid)
     end
@@ -64,8 +66,12 @@ function get_nrc_name(nrc)
     name = "sub function not supported"
   elseif nrc == 0x13 then
     name = "incorrect message length or invalid format"
+  elseif nrc == 0x22 then
+    name = "condition not ok"
   elseif nrc == 0x33 then
     name = "security access denied"
+  elseif nrc == 0x35 then
+    name = "invalid key"
   elseif nrc == 0x7f then
     name = "service not suppoted in active session"
   else
@@ -125,7 +131,7 @@ function M.transmit(channel,req)
         -- positive response
         response  = res
         break
-      elseif (rawlen(res) == 3) and (res[1] == 0x7f) and (res[2] == req[0]) and (res[3] == 0x78) then
+      elseif (rawlen(res) == 3) and (res[1] == 0x7f) and (res[2] == req[1]) and (res[3] == 0x78) then
         -- response is pending as server is busy
         -- continue
       else

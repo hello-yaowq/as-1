@@ -76,6 +76,11 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 		asAssert(peakH);
 		STAILQ_INIT(&peakH->head);
 
+		peakH->terminated = TRUE;
+	}
+
+	if(TRUE == peakH->terminated)
+	{
 		if( 0 == pthread_create(&(peakH->rx_thread),NULL,rx_daemon,NULL))
 		{
 			peakH->terminated = FALSE;

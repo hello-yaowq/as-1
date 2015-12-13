@@ -123,6 +123,11 @@ static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 		asAssert(vxlH);
 		STAILQ_INIT(&vxlH->head);
 
+		vxlH->terminated = TRUE;
+	}
+
+	if(TRUE == vxlH->terminated)
+	{
 		if( 0 == pthread_create(&(vxlH->rx_thread),NULL,rx_daemon,NULL))
 		{
 			vxlH->terminated = FALSE;
@@ -131,8 +136,6 @@ static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 		{
 			asAssert(0);
 		}
-
-
 	}
 	handle = getHandle(port);
 

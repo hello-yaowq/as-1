@@ -18,6 +18,7 @@ clean:
 	@(cd asboot;make 94)
 	@(cd ascore;make 94)
 	@(cd aslua; make 94)
+	@(cd asboot/out;rm core.dll)
 
 depc:
 	@(cd asboot;make depc)

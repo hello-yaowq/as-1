@@ -80,6 +80,11 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		asAssert(serialH);
 		STAILQ_INIT(&serialH->head);
 
+		serialH->terminated = TRUE;
+	}
+
+	if(TRUE == serialH->terminated)
+	{
 		if( 0 == pthread_create(&(serialH->rx_thread),NULL,rx_daemon,NULL))
 		{
 			serialH->terminated = FALSE;
@@ -89,6 +94,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			asAssert(0);
 		}
 	}
+
 	handle = getHandle(port);
 
 	if(handle)
