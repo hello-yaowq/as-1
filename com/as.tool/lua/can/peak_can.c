@@ -13,17 +13,23 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include <windows.h>
 #include "Std_Types.h"
 #include "lascanlib.h"
+#ifdef SLIST_ENTRY
+#undef SLIST_ENTRY
+#endif
 #include <sys/queue.h>
 #include <pthread.h>
+#include "PCANBasic.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define Kbps *1000
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_PeakHandle_s
 {
 	uint32_t busid;
 	uint32_t port;
+	uint32_t channel;
 	uint32_t baudrate;
 	can_device_rx_notification_t rx_notification;
 	STAILQ_ENTRY(Can_PeakHandle_s) entry;
@@ -48,6 +54,25 @@ const Can_DeviceOpsType can_peak_ops =
 	.write = peak_write,
 };
 static struct Can_PeakHandleList_s* peakH = NULL;
+static uint32_t peak_ports[] = {
+	PCAN_USBBUS1,PCAN_USBBUS2,PCAN_USBBUS3,PCAN_USBBUS4,
+	PCAN_USBBUS5,PCAN_USBBUS6,PCAN_USBBUS7,PCAN_USBBUS8,
+};
+static uint32_t peak_bauds[][2] = {
+	{1000 Kbps,PCAN_BAUD_1M		},
+	{800  Kbps,PCAN_BAUD_800K	},
+	{500  Kbps,PCAN_BAUD_500K	},
+	{250  Kbps,PCAN_BAUD_250K	},
+	{100  Kbps,PCAN_BAUD_100K	},
+	{95   Kbps,PCAN_BAUD_95K	},
+	{83   Kbps,PCAN_BAUD_83K	},
+	{50   Kbps,PCAN_BAUD_50K	},
+	{47   Kbps,PCAN_BAUD_47K	},
+	{33   Kbps,PCAN_BAUD_33K	},
+	{20   Kbps,PCAN_BAUD_20K	},
+	{10   Kbps,PCAN_BAUD_10K	},
+	{5    Kbps,PCAN_BAUD_5K		}
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 static struct Can_PeakHandle_s* getHandle(uint32_t port)
 {
@@ -66,6 +91,40 @@ static struct Can_PeakHandle_s* getHandle(uint32_t port)
 	}
 	return handle;
 }
+/*
+ * InOut: port, baudrate
+ */
+static boolean get_peak_param(uint32_t *port,uint32_t* baudrate)
+{
+	uint32_t i;
+	boolean rv = TRUE;
+
+	if(*port < SIZE_OF_ARRAY(peak_ports))
+	{
+		*port = peak_ports[*port];
+	}
+	else
+	{
+		rv = FALSE;
+	}
+
+	for(i=0;i<SIZE_OF_ARRAY(peak_bauds);i++)
+	{
+		if(*baudrate == peak_bauds[i][0])
+		{
+			*baudrate = peak_bauds[i][1];
+			break;
+		}
+	}
+
+	if(i >= SIZE_OF_ARRAY(peak_bauds))
+	{
+		rv = FALSE;
+	}
+
+	return rv;
+}
+
 static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification)
 {
 	boolean rv = TRUE;;
@@ -79,17 +138,6 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 		peakH->terminated = TRUE;
 	}
 
-	if(TRUE == peakH->terminated)
-	{
-		if( 0 == pthread_create(&(peakH->rx_thread),NULL,rx_daemon,NULL))
-		{
-			peakH->terminated = FALSE;
-		}
-		else
-		{
-			asAssert(0);
-		}
-	}
 	handle = getHandle(port);
 
 	if(handle)
@@ -99,20 +147,50 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 	}
 	else
 	{
-		if( 0 )
+		uint32_t peak_baud = baudrate;
+		uint32_t peak_port = port;
+		boolean rv = get_peak_param(&peak_port,&peak_port);
+		if( rv )
+		{
+			TPCANStatus status = CAN_Initialize(peak_port,peak_baud,0,0,0);
+
+			if(PCAN_ERROR_OK == status)
+			{
+				rv = TRUE;
+			}
+			else
+			{
+				ASWARNING("CAN PEAK port=%d is is not able to be opened,error=%X!\n",port,status);
+				rv = FALSE;
+			}
+		}
+		if( rv )
 		{	/* open port OK */
 			handle = malloc(sizeof(struct Can_PeakHandle_s));
 			asAssert(handle);
 			handle->busid = busid;
 			handle->port = port;
+			handle->channel = peak_port;
 			handle->baudrate = baudrate;
 			handle->rx_notification = rx_notification;
 			STAILQ_INSERT_TAIL(&peakH->head,handle,entry);
 		}
 		else
 		{
-			ASWARNING("CAN PEAK port=%d is is not able to be opened!\n",port);
 			rv = FALSE;
+		}
+	}
+
+	if( (TRUE == peakH->terminated) &&
+		(FALSE == STAILQ_EMPTY(&peakH->head)) )
+	{
+		if( 0 == pthread_create(&(peakH->rx_thread),NULL,rx_daemon,NULL))
+		{
+			peakH->terminated = FALSE;
+		}
+		else
+		{
+			asAssert(0);
 		}
 	}
 
@@ -124,14 +202,29 @@ static boolean peak_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* dat
 	struct Can_PeakHandle_s* handle = getHandle(port);
 	if(handle != NULL)
 	{
-		if( 0 )
+		TPCANMsg msg;
+		msg.ID = canid;
+		msg.LEN = dlc;
+		if(0 != (canid&0x80000000))
+		{
+			msg.MSGTYPE = PCAN_MESSAGE_STANDARD;
+		}
+		else
+		{
+			msg.MSGTYPE = PCAN_MESSAGE_EXTENDED;
+		}
+
+		memcpy(msg.DATA,data,dlc);
+
+		TPCANStatus status = CAN_Write(handle->channel,&msg);
+		if( PCAN_ERROR_OK == status)
 		{
 			/* send OK */
 		}
 		else
 		{
 			rv = FALSE;
-			ASWARNING("CAN PEAK port=%d send message failed!\n",port);
+			ASWARNING("CAN PEAK port=%d send message failed: error = %X!\n",port,status);
 		}
 	}
 	else
@@ -160,6 +253,21 @@ static void peak_close(uint32_t port)
 
 static void rx_notifiy(struct Can_PeakHandle_s* handle)
 {
+	TPCANMsg msg;
+	TPCANStatus status = CAN_Read(handle->channel,&msg,NULL);
+
+	if(PCAN_ERROR_OK == status)
+	{
+		handle->rx_notification(handle->busid,msg.ID,msg.LEN,msg.DATA);
+	}
+	else if (PCAN_ERROR_QRCVEMPTY == status)
+	{
+
+	}
+	else
+	{
+		ASWARNING("CAN PEAK port=%d read message failed: error = %X!\n",handle->port,status);
+	}
 
 }
 static void * rx_daemon(void * param)
@@ -170,6 +278,7 @@ static void * rx_daemon(void * param)
 	{
 		STAILQ_FOREACH(handle,&peakH->head,entry)
 		{
+			rx_notifiy(handle);
 		}
 	}
 

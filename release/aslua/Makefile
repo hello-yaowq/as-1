@@ -83,6 +83,8 @@ def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
+
+ldflags-y += $(src-dir)/PCANBasic.lib
 endif	# posix end
 
 inc-y += -I$(inc-dir)
@@ -108,6 +110,7 @@ dep-posix:
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
+	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)

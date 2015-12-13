@@ -81,6 +81,7 @@
 #define STD_ON			0x01
 #define STD_OFF			0x00
 
+#define SIZE_OF_ARRAY(a) 	(sizeof(a)/sizeof(a[0]))
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned char		       	boolean;
 typedef int8_t        				sint8;

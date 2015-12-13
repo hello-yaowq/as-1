@@ -126,17 +126,6 @@ static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 		vxlH->terminated = TRUE;
 	}
 
-	if(TRUE == vxlH->terminated)
-	{
-		if( 0 == pthread_create(&(vxlH->rx_thread),NULL,rx_daemon,NULL))
-		{
-			vxlH->terminated = FALSE;
-		}
-		else
-		{
-			asAssert(0);
-		}
-	}
 	handle = getHandle(port);
 
 	if(handle)
@@ -162,6 +151,19 @@ static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 			free(handle);
 			ASWARNING("CAN VXL port=%d is is not able to be opened!\n",port);
 			rv = FALSE;
+		}
+	}
+
+	if( (TRUE == vxlH->terminated) &&
+		(FALSE == STAILQ_EMPTY(&vxlH->head)) )
+	{
+		if( 0 == pthread_create(&(vxlH->rx_thread),NULL,rx_daemon,NULL))
+		{
+			vxlH->terminated = FALSE;
+		}
+		else
+		{
+			asAssert(0);
 		}
 	}
 

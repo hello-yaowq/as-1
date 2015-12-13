@@ -29,6 +29,8 @@ cflags-y  += -mcpu=cortex-m3  -mthumb -std=gnu99
 cflags-y  += -mstructure-size-boundary=8 -ffreestanding
 cflags-y  += -W -Wall
 
+ldflags-y += -Map $(exe-dir)/$(target-y).map
+
 ifeq ($(debug),true)
 cflags-y += -g -O0
 asflags-y += -g -O0

@@ -83,18 +83,6 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		serialH->terminated = TRUE;
 	}
 
-	if(TRUE == serialH->terminated)
-	{
-		if( 0 == pthread_create(&(serialH->rx_thread),NULL,rx_daemon,NULL))
-		{
-			serialH->terminated = FALSE;
-		}
-		else
-		{
-			asAssert(0);
-		}
-	}
-
 	handle = getHandle(port);
 
 	if(handle)
@@ -119,6 +107,19 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		{
 			ASWARNING("CAN SERIAL port=%d is is not able to be opened!\n",port);
 			rv = FALSE;
+		}
+	}
+
+	if( (TRUE == serialH->terminated) &&
+		(FALSE == STAILQ_EMPTY(&serialH->head)) )
+	{
+		if( 0 == pthread_create(&(serialH->rx_thread),NULL,rx_daemon,NULL))
+		{
+			serialH->terminated = FALSE;
+		}
+		else
+		{
+			asAssert(0);
 		}
 	}
 
