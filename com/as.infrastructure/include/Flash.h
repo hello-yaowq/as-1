@@ -80,7 +80,7 @@ typedef unsigned long tAddress;
 /* logical address */
 typedef unsigned long tLength;
 /* length (in bytes) */
-typedef unsigned char tData;
+typedef unsigned long tData;
 /* ambiguous data */
 typedef void (*tWDTriggerFct) (void);
 /* watchdog trigger routine */

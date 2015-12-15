@@ -19,6 +19,14 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define FLASH_IMG "Flash.img"
 #define FLS_TOTAL_SIZE  1024*1024
+
+#define IS_FLASH_ADDRESS(a) ((a) < FLS_TOTAL_SIZE)
+
+#define FLASH_ERASE_SIZE  512
+#define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
+
+#define FLASH_WRITE_SIZE  512
+#define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -75,38 +83,97 @@ void FlashDeinit(tFlashParam* FlashParam)
 
 void FlashErase(tFlashParam* FlashParam)
 {
-	FILE* fp = NULL;
-	static unsigned char EraseMask[4] = {0xFF,0xFF,0xFF,0xFF};
-	fp = fopen(FLASH_IMG,"r+");
-	if(NULL == fp)
+	tAddress address;
+	tLength  length;
+	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
+		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
+		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
 	{
-		FlashParam->errorcode = kFlashFailed;
+		length = FlashParam->length;
+		address = FlashParam->address;
+		if ( (FALSE == FLASH_IS_ERASE_ADDRESS_ALIGNED(address)) ||
+			 (FALSE == IS_FLASH_ADDRESS(address)) )
+		{
+			FlashParam->errorcode = kFlashInvalidAddress;
+		}
+		else if( (FALSE == IS_FLASH_ADDRESS(address+length)) ||
+				 (FALSE == FLASH_IS_ERASE_ADDRESS_ALIGNED(length)) )
+		{
+			FlashParam->errorcode = kFlashInvalidSize;
+		}
+		else
+		{
+			FILE* fp = NULL;
+			static unsigned char EraseMask[4] = {0xFF,0xFF,0xFF,0xFF};
+			fp = fopen(FLASH_IMG,"r+");
+			if(NULL == fp)
+			{
+				FlashParam->errorcode = kFlashFailed;
+			}
+			else
+			{
+				fseek(fp,FlashParam->address,SEEK_SET);
+				for(int i=0;i<(FlashParam->length);i++)
+				{
+					fwrite(EraseMask,1,1,fp);
+				}
+				fclose(fp);
+				FlashParam->errorcode = kFlashOk;
+			}
+		}
 	}
 	else
 	{
-		fseek(fp,FlashParam->address,SEEK_SET);
-		for(int i=0;i<(FlashParam->length);i++)
-		{
-			fwrite(EraseMask,1,1,fp);
-		}
-		fclose(fp);
-		FlashParam->errorcode = kFlashOk;
+		FlashParam->errorcode = kFlashFailed;
 	}
 }
 
 void FlashWrite(tFlashParam* FlashParam)
 {
-	FILE* fp = NULL;
-	fp = fopen(FLASH_IMG,"r+");
-	if(NULL == fp)
+	tAddress address;
+	tLength  length;
+	tData*    data;
+	uint32_t  i;
+	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
+		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
+		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
 	{
-		FlashParam->errorcode = kFlashFailed;
+		length = FlashParam->length;
+		address = FlashParam->address;
+		data = FlashParam->data;
+		if ( (FALSE == FLASH_IS_WRITE_ADDRESS_ALIGNED(address)) ||
+			 (FALSE == IS_FLASH_ADDRESS(address)) )
+		{
+			FlashParam->errorcode = kFlashInvalidAddress;
+		}
+		else if( (FALSE == IS_FLASH_ADDRESS(address+length)) ||
+				 (FALSE == FLASH_IS_WRITE_ADDRESS_ALIGNED(length)) )
+		{
+			FlashParam->errorcode = kFlashInvalidSize;
+		}
+		else if( NULL == data )
+		{
+			FlashParam->errorcode = kFlashInvalidData;
+		}
+		else
+		{
+			FILE* fp = NULL;
+			fp = fopen(FLASH_IMG,"r+");
+			if(NULL == fp)
+			{
+				FlashParam->errorcode = kFlashFailed;
+			}
+			else
+			{
+				fseek(fp,FlashParam->address,SEEK_SET);
+				fwrite(FlashParam->data,FlashParam->length,1,fp);
+				fclose(fp);
+				FlashParam->errorcode = kFlashOk;
+			}
+		}
 	}
 	else
 	{
-		fseek(fp,FlashParam->address,SEEK_SET);
-		fwrite(FlashParam->data,FlashParam->length,1,fp);
-		fclose(fp);
-		FlashParam->errorcode = kFlashOk;
+		FlashParam->errorcode = kFlashFailed;
 	}
 }

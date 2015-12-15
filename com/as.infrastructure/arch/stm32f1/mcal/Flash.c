@@ -64,7 +64,7 @@ void FlashDeinit(tFlashParam* FlashParam)
 void FlashErase(tFlashParam* FlashParam)
 {
 	tAddress address;
-	tAddress length;
+	tLength  length;
 	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
 		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
