@@ -21,7 +21,7 @@
 #define FLASH_ERASE_SIZE  512 	/* TODO */
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
 
-#define FLASH_WRITE_SIZE  2 		/* TODO */
+#define FLASH_WRITE_SIZE  512
 #define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -106,8 +106,9 @@ void FlashErase(tFlashParam* FlashParam)
 void FlashWrite(tFlashParam* FlashParam)
 {
 	tAddress address;
-	tAddress length;
+	tLength  length;
 	tData*    data;
+	uint32_t  i;
 	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
 		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
@@ -115,13 +116,13 @@ void FlashWrite(tFlashParam* FlashParam)
 		length = FlashParam->length;
 		address = FlashParam->address;
 		data = FlashParam->data;
-		if ( (FALSE == FLASH_IS_ERASE_ADDRESS_ALIGNED(address)) ||
+		if ( (FALSE == FLASH_IS_WRITE_ADDRESS_ALIGNED(address)) ||
 			 (FALSE == IS_FLASH_ADDRESS(address)) )
 		{
 			FlashParam->errorcode = kFlashInvalidAddress;
 		}
 		else if( (FALSE == IS_FLASH_ADDRESS(address+length)) ||
-				 (FALSE == FLASH_IS_ERASE_ADDRESS_ALIGNED(length)) )
+				 (FALSE == FLASH_IS_WRITE_ADDRESS_ALIGNED(length)) )
 		{
 			FlashParam->errorcode = kFlashInvalidSize;
 		}
@@ -131,9 +132,18 @@ void FlashWrite(tFlashParam* FlashParam)
 		}
 		else
 		{
+			while(length > 0)
+			{
+				for(i=0;i<(FLASH_WRITE_SIZE/sizeof(tData));i++)
+				{
+					FLASH_ProgramWord((address+i*sizeof(tData)), data[i]);
+				}
+				length  -= FLASH_WRITE_SIZE;
+				address += FLASH_WRITE_SIZE;
+				data    += (FLASH_WRITE_SIZE/sizeof(tData));
+			}
 			FlashParam->errorcode = kFlashOk;
 		}
-
 	}
 	else
 	{
