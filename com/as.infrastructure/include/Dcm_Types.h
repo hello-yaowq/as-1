@@ -66,8 +66,8 @@ typedef uint8 Dcm_ProtocolType;
 #define DCM_UDS_ON_FLEAXRAY				((Dcm_ProtocolType)0x02)
 #define DCM_ROE_ON_CAN					((Dcm_ProtocolType)0x03)
 #define DCM_ROE_ON_FLEXRAY				((Dcm_ProtocolType)0x04)
-#define DCM_PERIODICTRANS_ON_CAN		((Dcm_ProtocolType)0x05)
-#define DCM_PERIODICTRANS_ON_FLEXRAY	((Dcm_ProtocolType)0x06)
+#define DCM_PERIODIC_TRANS_ON_CAN		((Dcm_ProtocolType)0x05)
+#define DCM_PERIODIC_TRANS_ON_FLEXRAY	((Dcm_ProtocolType)0x06)
 
 /*
  * Dcm_ReturnReadMemoryType
@@ -151,18 +151,18 @@ typedef uint8 Dcm_StatusType;
 #define DCM_E_REQUEST_ENV_NOK 							(Dcm_StatusType)0x09u
 
 typedef uint8 Dcm_PeriodicTransmitModeType;
-#define DCM_PERIODICTRANSMIT_DEFAULT_MODE      (Dcm_PeriodicTransmitModeType)0x00u 
-#define DCM_PERIODICTRANSMIT_SLOWRATE_MODE 				(Dcm_PeriodicTransmitModeType)0x01u
-#define DCM_PERIODICTRANSMIT_MEDIUM_MODE 					(Dcm_PeriodicTransmitModeType)0x02u
-#define DCM_PERIODICTRANSMIT_FAST_MODE 					(Dcm_PeriodicTransmitModeType)0x03u
-#define DCM_PERIODICTRANSMIT_STOPSENDING_MODE				(Dcm_PeriodicTransmitModeType)0x04u
+#define DCM_PERIODIC_TRANSMIT_DEFAULT_MODE      (Dcm_PeriodicTransmitModeType)0x00u
+#define DCM_PERIODIC_TRANSMIT_SLOWRATE_MODE 				(Dcm_PeriodicTransmitModeType)0x01u
+#define DCM_PERIODIC_TRANSMIT_MEDIUM_MODE 					(Dcm_PeriodicTransmitModeType)0x02u
+#define DCM_PERIODIC_TRANSMIT_FAST_MODE 					(Dcm_PeriodicTransmitModeType)0x03u
+#define DCM_PERIODIC_TRANSMIT_STOPSENDING_MODE				(Dcm_PeriodicTransmitModeType)0x04u
 
 
 
 typedef uint8 Dcm_DDDSubfunctionType;
-#define DCM_DDD_SUBFUNCTION_DEFINEBYDID 				(Dcm_DDDSubfunctionType)0x01u
-#define DCM_DDD_SUBFUNCTION_DEFINEBYADDRESS 			(Dcm_DDDSubfunctionType)0x02u
-#define DCM_DDD_SUBFUNCTION_CLEAR 						(Dcm_DDDSubfunctionType)0x03u
+#define DCM_DDD_SUB_FUNCTION_DEFINEBYDID 				(Dcm_DDDSubfunctionType)0x01u
+#define DCM_DDD_SUB_FUNCTION_DEFINEBYADDRESS 			(Dcm_DDDSubfunctionType)0x02u
+#define DCM_DDD_SUB_FUNCTION_CLEAR 						(Dcm_DDDSubfunctionType)0x03u
 
 
 typedef uint8 Dcm_PeriodicDidStartType;
@@ -170,8 +170,8 @@ typedef uint8 Dcm_PeriodicDidStartType;
 #define	DCM_PERIODIC_TRANISMIT_START 					(Dcm_PeriodicDidStartType)0x01u
 
 typedef uint8 Dcm_DDDSourceStateType;
-#define DCM_DDDSOURCE_BY_DID 							(Dcm_DDDSourceStateType)0x00u
-#define DCM_DDDSOURCE_BY_ADDRESS 						(Dcm_DDDSourceStateType)0x01u
+#define DCM_DDD_SOURCE_BY_DID 							(Dcm_DDDSourceStateType)0x00u
+#define DCM_DDD_SOURCE_BY_ADDRESS 						(Dcm_DDDSourceStateType)0x01u
 
 typedef uint8 Dcm_IOControlParameterType;
 #define DCM_RETURN_CONTROL_TO_ECU 					(Dcm_IOControlParameterType)0x0

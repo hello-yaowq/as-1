@@ -49,7 +49,7 @@ def GenH():
     fp.write('#define DCM_DEV_ERROR_DETECT              STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
     fp.write('#define DCM_RESPOND_ALL_REQUEST           STD_ON  // Activate/Deactivate response on SID 0x40-0x7f and 0xc0-0xff.\n')
     fp.write('#define DCM_REQUEST_INDICATION_ENABLED    STD_ON  // Activate/Deactivate indication request mechanism.\n')
-    fp.write('#define DCM_PAGEDBUFFER_ENABLED           STD_OFF // Enable/disable page buffer mechanism (currently only disabled supported)\n\n')
+    fp.write('#define DCM_PAGED_BUFFER_ENABLED           STD_OFF // Enable/disable page buffer mechanism (currently only disabled supported)\n\n')
     fp.write('#define DCM_DSL_BUFFER_LIST_LENGTH        %s\n'%(len(GLGet('BufferList'))))
     lengthRx = lengthTx =0;
     for protocol in GLGet('ProtocolList'):
@@ -59,12 +59,12 @@ def GenH():
     fp.write('#define DCM_DSL_TX_PDU_ID_LIST_LENGTH        %s\n'%(lengthTx));
     fp.write('#define DCM_DSL_RX_PDU_ID_LIST_LENGTH        %s\n\n'%(lengthRx));
     fp.write('#define DCM_MAIN_FUNCTION_PERIOD_TIME_MS     10\n\n');
-    fp.write('#define DCM_LIMITNUMBER_PERIODDATA        %s   // MaxNumberofSimultaneousPeriodictransmissions\n'%(GAGet(General,'MaxPeriodDIDNumber')));
-    fp.write('#define DCM_MAX_DDDSOURCE_NUMBER          8   // TODO: MaxSourcesforOneDynamicIdentifier\n');
+    fp.write('#define DCM_LIMIT_NUMBER_PERIOD_DATA        %s   // MaxNumberofSimultaneousPeriodictransmissions\n'%(GAGet(General,'MaxPeriodDIDNumber')));
+    fp.write('#define DCM_MAX_DDD_SOURCE_NUMBER          8   // TODO: MaxSourcesforOneDynamicIdentifier\n');
     fp.write('#define DCM_MAX_DDD_NUMBER                8   // TODO\n\n');
-    fp.write('#define DCM_PERIODICTRANSMIT_SLOW            %s\n'%(GAGet(General,'PeriodicDIDSlowModeTime')));
-    fp.write('#define DCM_PERIODICTRANSMIT_MEDIUM          %s\n'%(GAGet(General,'PeriodicDIDMediumModeTime')));
-    fp.write('#define DCM_PERIODICTRANSMIT_FAST            %s\n\n'%(GAGet(General,'PeriodicDIDFastModeTime')));
+    fp.write('#define DCM_PERIODIC_TRANSMIT_SLOW            %s\n'%(GAGet(General,'PeriodicDIDSlowModeTime')));
+    fp.write('#define DCM_PERIODIC_TRANSMIT_MEDIUM          %s\n'%(GAGet(General,'PeriodicDIDMediumModeTime')));
+    fp.write('#define DCM_PERIODIC_TRANSMIT_FAST            %s\n\n'%(GAGet(General,'PeriodicDIDFastModeTime')));
     id = 0;
     for protocol in GLGet('ProtocolList'):
         for connection in GLGet(protocol,'ConnectionList'):
@@ -81,22 +81,23 @@ def GenH():
                 id += 1;
     fp.write("""//do add/subtract by hand.please
 //#define USE_DEM
-#define DCM_USE_SERVICE_DIAGNOSTICSESSIONCONTROL
+#define DCM_USE_SERVICE_DIAGNOSTIC_SESSION_CONTROL
 #define DCM_USE_SERVICE_ECURESET
-//#define DCM_USE_SERVICE_CLEARDIAGNOSTICINFORMATION
-//#define DCM_USE_SERVICE_READDTCINFORMATION
-#define DCM_USE_SERVICE_READDATABYIDENTIFIER
-#define DCM_USE_SERVICE_READMEMORYBYADDRESS
-#define DCM_USE_SERVICE_WRITEMEMORYBYADDRESS
-#define DCM_USE_SERVICE_READSCALINGDATABYIDENTIFIER
-#define DCM_USE_SERVICE_SECURITYACCESS
-#define DCM_USE_SERVICE_WRITEDATABYIDENTIFIER
-#define DCM_USE_SERVICE_ROUTINECONTROL
-#define DCM_USE_SERVICE_TESTERPRESENT
-//#define DCM_USE_SERVICE_CONTROLDTCSETTING
-#define DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
-#define DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
-#define DCM_USE_SERVICE_INPUTOUTPUTCONTROLBYIDENTIFIER
+//#define DCM_USE_SERVICE_CLEAR_DIAGNOSTIC_INFORMATION
+//#define DCM_USE_SERVICE_READ_DTC_INFORMATION
+#define DCM_USE_SERVICE_READ_DATA_BY_IDENTIFIER
+#define DCM_USE_SERVICE_READ_MEMORY_BY_ADDRESS
+#define DCM_USE_SERVICE_WRITE_MEMORY_BY_ADDRESS
+#define DCM_USE_SERVICE_READ_SCALING_DATA_BY_IDENTIFIER
+#define DCM_USE_SERVICE_SECURITY_ACCESS
+#define DCM_USE_SERVICE_WRITE_DATA_BY_IDENTIFIER
+#define DCM_USE_SERVICE_ROUTINE_CONTROL
+#define DCM_USE_SERVICE_TESTER_PRESENT
+//#define DCM_USE_SERVICE_CONTROL_DTC_SETTING
+#define DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
+#define DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
+#define DCM_USE_SERVICE_INPUT_OUTPUT_CONTROL_BY_IDENTIFIER
+#define DCM_USE_SERVICE_UPLOAD_DOWNLOAD
 """)
     #-------------------------------------------------------
     fp.write('#endif /*DCM_CFG_H_*/\n\n')

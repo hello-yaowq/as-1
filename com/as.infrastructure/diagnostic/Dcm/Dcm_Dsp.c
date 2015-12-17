@@ -31,9 +31,9 @@
 #include <string.h>
 #include "Dcm.h"
 #include "Dcm_Internal.h"
-#if defined (DCM_USE_SERVICE_CLEARDIAGNOSTICINFORMATION)|| defined(DCM_USE_SERVICE_READDTCINFORMATION)	|| defined(DCM_USE_SERVICE_CONTROLDTCSETTING) \
-		|| defined (DCM_USE_SERVICE_REQUESTPOWERTRAINFREEZEFRAMEDATA) || defined(DCM_USE_SERVICE_CLEAREMISSIONRELATEDDIAGNOSTICDATA) \
-		|| defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCS) || defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCSDETECTEDDURINGCURRENTORLASCOMPLETEDDRIVINGCYCLE)
+#if defined (DCM_USE_SERVICE_CLEAR_DIAGNOSTIC_INFORMATION)|| defined(DCM_USE_SERVICE_READ_DTC_INFORMATION)	|| defined(DCM_USE_SERVICE_CONTROL_DTC_SETTING) \
+		|| defined (DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA) || defined(DCM_USE_SERVICE_CLEAR_EMISSION_RELATED_DIAGNOSTIC_DATA) \
+		|| defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS) || defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE)
 #if defined(USE_DEM)
 #include "Dem.h"
 #else
@@ -126,8 +126,8 @@
 #define MAX_PID_FFNUM_NUM					3
 #define OBD_REQ_MESSAGE_LEN_TWO_MIN			3
 
-#if defined(DEM_MAX_NR_OF_RECORDS_IN_FREEZEFRAME_DATA)
-#define DCM_MAX_PID_NUM_IN_FF				DEM_MAX_NR_OF_RECORDS_IN_FREEZEFRAME_DATA
+#if defined(DEM_MAX_NR_OF_RECORDS_IN_FREEZE_FRAME_DATA)
+#define DCM_MAX_PID_NUM_IN_FF				DEM_MAX_NR_OF_RECORDS_IN_FREEZE_FRAME_DATA
 #else
 #define DCM_MAX_PID_NUM_IN_FF				0
 #endif
@@ -218,10 +218,10 @@ typedef struct{
 }Dcm_pDidType;/* a type to save  the periodic DID and cycle */
 
 typedef struct{
-	Dcm_pDidType dspPDid[DCM_LIMITNUMBER_PERIODDATA];	/*a buffer to save the periodic DID and cycle   */
+	Dcm_pDidType dspPDid[DCM_LIMIT_NUMBER_PERIOD_DATA];	/*a buffer to save the periodic DID and cycle   */
 	uint8 PDidNr;										/* note the number of periodic DID is used */
 }Dsp_pDidRefType;
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 static Dsp_pDidRefType dspPDidRef;
 #endif
 
@@ -235,11 +235,11 @@ typedef struct{
 
 typedef struct{
 	uint16 DynamicallyDid;
-	Dcm_DspDDDSourceType DDDSource[DCM_MAX_DDDSOURCE_NUMBER];
+	Dcm_DspDDDSourceType DDDSource[DCM_MAX_DDD_SOURCE_NUMBER];
 }
 Dcm_DspDDDType;
 
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 static Dcm_DspDDDType dspDDD[DCM_MAX_DDD_NUMBER];
 #endif
 
@@ -273,23 +273,23 @@ static const Dcm_DspMemoryRangeInfo* findRange(const Dcm_DspMemoryRangeInfo *mem
 static Dcm_NegativeResponseCodeType writeMemoryData(Dcm_OpStatusType* OpStatus, uint8 memoryIdentifier, uint32 MemoryAddress, uint32 MemorySize, uint8 *SourceData);
 
 /* OBD */
-#ifdef DCM_USE_SERVICE_REQUESTVEHICLEINFORMATION
+#ifdef DCM_USE_SERVICE_REQUEST_VEHICLE_INFORMATION
 static boolean lookupInfoType(uint8 InfoType, const Dcm_DspVehInfoType **InfoTypePtr);
 static boolean Dem_SetAvailabilityInfoTypeValue(uint8 InfoType,uint32 *DATABUF);
 #endif
-#ifdef DCM_USE_SERVICE_REQUESTCURRENTPOWERTRAINDIAGDATA
+#ifdef DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA
 static boolean Dcm_SetAvailabilityPidValue(uint8 Pid,uint32 *Data);
 #endif
 
 #if defined(USE_DEM)
-#if defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCS) || defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCSDETECTEDDURINGCURRENTORLASCOMPLETEDDRIVINGCYCLE)
+#if defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS) || defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE)
 static Dcm_NegativeResponseCodeType OBD_Sevice_03_07(PduInfoType *pduTxData,Dem_ReturnSetDTCFilterType setDtcFilterResult);
 #endif
-#if defined(DCM_USE_SERVICE_CLEAREMISSIONRELATEDDIAGNOSTICDATA)
+#if defined(DCM_USE_SERVICE_CLEAR_EMISSION_RELATED_DIAGNOSTIC_DATA)
 static boolean Dcm_LookupService(uint8 serviceId,const Dcm_DsdServiceType **dsdService);
 #endif
 #endif
-#if defined(DCM_USE_SERVICE_REQUESTCURRENTPOWERTRAINDIAGDATA) || defined(DCM_USE_SERVICE_REQUESTPOWERTRAINFREEZEFRAMEDATA)
+#if defined(DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA) || defined(DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA)
 static boolean lookupPid(uint8 pidId,const Dcm_DspPidType **PidPtr);
 #endif
 /* OBD */
@@ -305,11 +305,11 @@ void DspInit(void)
 
 	dspWritePending = FALSE;
 	dspMemoryState=DCM_MEMORY_UNUSED;
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 	/* clear periodic send buffer */
 	memset(&dspPDidRef,0,sizeof(dspPDidRef));
 #endif
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 	/* clear dynamically Did buffer */
 	memset(&dspDDD[0],0,sizeof(dspDDD));
 #endif
@@ -384,7 +384,7 @@ void DspMemoryMainFunction(void)
 			
 	}
 }
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 void DspPeriodicDIDMainFunction()
 {
 	uint8 i;
@@ -411,7 +411,7 @@ void DspPeriodicDIDMainFunction()
 		}	
 	}
 }
-#endif // DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#endif // DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 void DspReadDidMainFunction(void) {
 	if( DCM_DID_PENDING == dspUdsReadDidPending.state ) {
 		DspUdsReadDataByIdentifier(dspUdsReadDidPending.pduRxData, dspUdsReadDidPending.pduTxData);
@@ -425,7 +425,7 @@ void DspMain(void)
 {
 	DspResetMainFunction();
 	DspMemoryMainFunction();
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 	DspPeriodicDIDMainFunction();
 #endif
 	DspReadDidMainFunction();
@@ -618,7 +618,7 @@ void DspUdsEcuReset(const PduInfoType *pduRxData, PduIdType txPduId, PduInfoType
 	}
 }
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEARDIAGNOSTICINFORMATION)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAR_DIAGNOSTIC_INFORMATION)
 void DspUdsClearDiagnosticInformation(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 {
 	/** @req DCM247 */
@@ -650,7 +650,7 @@ void DspUdsClearDiagnosticInformation(const PduInfoType *pduRxData, PduInfoType 
 }
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_READDTCINFORMATION)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_READ_DTC_INFORMATION)
 
 static void udsReportDtc(uint32 dtc, uint8 *buffer)
 {
@@ -1215,7 +1215,7 @@ void DspUdsReadDtcInformation(const PduInfoType *pduRxData, PduInfoType *pduTxDa
 }
 #endif
 
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 /**
 **		This Function for check the pointer of Dynamically Did Sourced by Did buffer using a didNr
 **/
@@ -1244,7 +1244,7 @@ static boolean LookupDDD(uint16 didNr,  const Dcm_DspDDDType **DDid )
 
 	return ret;
 }
-#endif // DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#endif // DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 
 static boolean lookupDid(uint16 didNr, const Dcm_DspDidType **didPtr)
 {
@@ -1359,7 +1359,7 @@ static Dcm_NegativeResponseCodeType readDDDData(Dcm_DspDDDType *DDidPtr, uint8 *
 	*Length = 0;
 	uint8_t* nextDataSlot = Data;
 
-	for(i = 0;(i < DCM_MAX_DDDSOURCE_NUMBER) && (DDidPtr->DDDSource[i].formatOrPosition != 0)
+	for(i = 0;(i < DCM_MAX_DDD_SOURCE_NUMBER) && (DDidPtr->DDDSource[i].formatOrPosition != 0)
 		&&(responseCode == DCM_E_POSITIVE_RESPONSE);i++)
 	{
 		if(DDidPtr->DDDSource[i].DDDTpyeID == DCM_DDD_SOURCE_ADDRESS)
@@ -1457,7 +1457,7 @@ void DspUdsReadDataByIdentifier(const PduInfoType *pduRxData, PduInfoType *pduTx
 					}
 				}
 			}
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 			else if(LookupDDD(didNr,(const Dcm_DspDDDType **)&DDidPtr) == TRUE) {
 				noRequestedDidSupported = FALSE;
 				/*DCM 651,DCM 652*/
@@ -1468,7 +1468,7 @@ void DspUdsReadDataByIdentifier(const PduInfoType *pduRxData, PduInfoType *pduTx
 				responseCode = readDDDData(DDidPtr,&(pduTxData->SduDataPtr[txPos]), &Length);
 				txPos = txPos + Length;
 			}
-#endif // DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#endif // DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 			else {
 				/** !req DCM438 */
 				/* DID not found. Continue with next Did in request (if any).
@@ -1967,7 +1967,7 @@ void DspUdsTesterPresent(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 	}
 }
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CONTROLDTCSETTING)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CONTROL_DTC_SETTING)
 void DspUdsControlDtcSetting(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 {
 	/** @req DCM249 */
@@ -2050,7 +2050,7 @@ static Dcm_NegativeResponseCodeType readMemoryData( Dcm_OpStatusType *OpStatus,
 	ReadRet = Dcm_ReadMemory(*OpStatus,memoryIdentifier,
 									MemoryAddress,
 									MemorySize,
-									&pduTxData->SduDataPtr[1]);
+									&pduTxData->SduDataPtr[2]);
 	if(DCM_READ_FAILED == ReadRet)
 	{
 		responseCode = DCM_E_GENERAL_PROGRAMMING_FAILURE;  /*@req Dcm644*/
@@ -2337,7 +2337,7 @@ static Dcm_NegativeResponseCodeType writeMemoryData(Dcm_OpStatusType* OpStatus,
 	
 	return responseCode;
 }
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 static boolean checkPeriodicIdentifierBuffer(uint8 PeriodicDid,uint8 Length,uint8 *postion)
 {
 	uint8 i;
@@ -2470,12 +2470,12 @@ static Dcm_NegativeResponseCodeType DspSavePeriodicData(uint16 didNr, uint32 per
 			responseCode = DCM_E_REQUEST_OUT_OF_RANGE;
 		}
 	}
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 	else if(LookupDDD(didNr, (const Dcm_DspDDDType **)&DDidPtr) == TRUE)
 	{
 		responseCode = DCM_E_POSITIVE_RESPONSE;
 	}
-#endif // DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#endif // DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 	else
 	{
 		responseCode = DCM_E_REQUEST_OUT_OF_RANGE;
@@ -2494,7 +2494,7 @@ static void ClearPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *pd
 	uint8 PDidLowByte;
 	uint8 PdidPostion;
 	uint8 i;
-	if( pduRxData->SduDataPtr[1] == DCM_PERIODICTRANSMIT_STOPSENDING_MODE )
+	if( pduRxData->SduDataPtr[1] == DCM_PERIODIC_TRANSMIT_STOPSENDING_MODE )
 	{
 		PdidNumber = pduRxData->SduLength - 2;
 		for(i = 0;i < PdidNumber;i++)
@@ -2533,26 +2533,26 @@ void DspReadDataByPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *p
 		
 		switch(pduRxData->SduDataPtr[1])
 		{
-			case DCM_PERIODICTRANSMIT_DEFAULT_MODE:
+			case DCM_PERIODIC_TRANSMIT_DEFAULT_MODE:
 				periodicTransmitCounter = 0;
 				break;
-			case DCM_PERIODICTRANSMIT_SLOWRATE_MODE:
-				periodicTransmitCounter = DCM_PERIODICTRANSMIT_SLOW;
+			case DCM_PERIODIC_TRANSMIT_SLOWRATE_MODE:
+				periodicTransmitCounter = DCM_PERIODIC_TRANSMIT_SLOW;
 				break;
-				case DCM_PERIODICTRANSMIT_MEDIUM_MODE:
-					periodicTransmitCounter = DCM_PERIODICTRANSMIT_MEDIUM;
+				case DCM_PERIODIC_TRANSMIT_MEDIUM_MODE:
+					periodicTransmitCounter = DCM_PERIODIC_TRANSMIT_MEDIUM;
 				break;
-			case DCM_PERIODICTRANSMIT_FAST_MODE:
-				periodicTransmitCounter = DCM_PERIODICTRANSMIT_FAST;
+			case DCM_PERIODIC_TRANSMIT_FAST_MODE:
+				periodicTransmitCounter = DCM_PERIODIC_TRANSMIT_FAST;
 				break;
-			case DCM_PERIODICTRANSMIT_STOPSENDING_MODE:
+			case DCM_PERIODIC_TRANSMIT_STOPSENDING_MODE:
 				ClearPeriodicIdentifier(pduRxData,pduTxData);
 				break;
 			default:
 				responseCode = DCM_E_REQUEST_OUT_OF_RANGE;
 				break;
 		}
-		if((pduRxData->SduDataPtr[1] != DCM_PERIODICTRANSMIT_STOPSENDING_MODE) && responseCode == DCM_E_POSITIVE_RESPONSE)
+		if((pduRxData->SduDataPtr[1] != DCM_PERIODIC_TRANSMIT_STOPSENDING_MODE) && responseCode == DCM_E_POSITIVE_RESPONSE)
 		{
 			PdidNumber = pduRxData->SduLength - 2;
 			if(1 == PdidNumber)
@@ -2568,7 +2568,7 @@ void DspReadDataByPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *p
 							responseCode = readPeriodDidData(PDidPtr,&pduTxData->SduDataPtr[2],&DataLength);
 							pduTxData->SduLength = DataLength + 2;
 						}
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 						else if(TRUE == LookupDDD((0xF200 + (uint16)PDidLowByte), (const Dcm_DspDDDType **)&DDidPtr))
 						{
 							pduTxData->SduDataPtr[1] = PDidLowByte;
@@ -2599,7 +2599,7 @@ void DspReadDataByPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *p
 					pduTxData->SduLength = 1;
 				}
 			}
-			else if(((PdidNumber + PdidBufferNr) <= DCM_LIMITNUMBER_PERIODDATA) && (responseCode == DCM_E_POSITIVE_RESPONSE))	/*UDS_REQ_0x2A_6*/
+			else if(((PdidNumber + PdidBufferNr) <= DCM_LIMIT_NUMBER_PERIOD_DATA) && (responseCode == DCM_E_POSITIVE_RESPONSE))	/*UDS_REQ_0x2A_6*/
 			{	
 				for(i = 0;(i < PdidNumber)&&(responseCode == DCM_E_POSITIVE_RESPONSE);i++)
 				{
@@ -2629,7 +2629,7 @@ void DspReadDataByPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *p
 			}
 		}							
 	}
-	else if((pduRxData->SduLength == 2)&&(pduRxData->SduDataPtr[1] == DCM_PERIODICTRANSMIT_STOPSENDING_MODE))
+	else if((pduRxData->SduLength == 2)&&(pduRxData->SduDataPtr[1] == DCM_PERIODIC_TRANSMIT_STOPSENDING_MODE))
 	{
 		memset(&dspPDidRef,0,sizeof(dspPDidRef));
 		pduTxData->SduLength = 1;
@@ -2640,8 +2640,8 @@ void DspReadDataByPeriodicIdentifier(const PduInfoType *pduRxData,PduInfoType *p
 	}
 	DsdDspProcessingDone(responseCode);
 }
-#endif // DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#endif // DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyDid(uint16 DDIdentifier,const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	uint8 i;
@@ -2671,7 +2671,7 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyDid(uint16 
 	}
 	else
 	{
-		while((SourceLength < DCM_MAX_DDDSOURCE_NUMBER) && (DDid->DDDSource[SourceLength].formatOrPosition != 0 ))
+		while((SourceLength < DCM_MAX_DDD_SOURCE_NUMBER) && (DDid->DDDSource[SourceLength].formatOrPosition != 0 ))
 		{
 			SourceLength++;
 		}
@@ -2682,7 +2682,7 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyDid(uint16 
 		Length = (pduRxData->SduLength - SID_AND_DDDID_LEN) /SDI_AND_MS_LEN;
 		if(((Length*SDI_AND_MS_LEN) == (pduRxData->SduLength - SID_AND_DDDID_LEN)) && (Length != 0))
 		{
-			if((Length + SourceLength) <= DCM_MAX_DDDSOURCE_NUMBER)
+			if((Length + SourceLength) <= DCM_MAX_DDD_SOURCE_NUMBER)
 			{
 				for(i = 0;(i < Length) && (responseCode == DCM_E_POSITIVE_RESPONSE);i++)
 				{
@@ -2764,12 +2764,12 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyDid(uint16 
 		if(responseCode == DCM_E_POSITIVE_RESPONSE)
 		{
 			DDid->DynamicallyDid = DDIdentifier;
-			pduTxData->SduDataPtr[1] = DCM_DDD_SUBFUNCTION_DEFINEBYDID;
+			pduTxData->SduDataPtr[1] = DCM_DDD_SUB_FUNCTION_DEFINEBYDID;
 		}
 	}
 	if(responseCode == DCM_E_POSITIVE_RESPONSE)
 	{
-		pduTxData->SduDataPtr[1] = DCM_DDD_SUBFUNCTION_DEFINEBYDID;
+		pduTxData->SduDataPtr[1] = DCM_DDD_SUB_FUNCTION_DEFINEBYDID;
 	}
 	
 	return responseCode;
@@ -2808,11 +2808,11 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyAddress(uin
 	}
 	else
 	{
-		while((numEarlierDefinitions < DCM_MAX_DDDSOURCE_NUMBER) && (DDid->DDDSource[numEarlierDefinitions].formatOrPosition != 0 ))
+		while((numEarlierDefinitions < DCM_MAX_DDD_SOURCE_NUMBER) && (DDid->DDDSource[numEarlierDefinitions].formatOrPosition != 0 ))
 		{
 			numEarlierDefinitions++;
 		}
-		if(numEarlierDefinitions >= DCM_MAX_DDDSOURCE_NUMBER)
+		if(numEarlierDefinitions >= DCM_MAX_DDD_SOURCE_NUMBER)
 		{
 			diagResponseCode = DCM_E_REQUEST_OUT_OF_RANGE;
 		}
@@ -2830,7 +2830,7 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyAddress(uin
 				if( (numNewDefinitions != 0) &&
 					((SID_LEN + SF_LEN + DDDDI_LEN + ALFID_LEN + numNewDefinitions * (sizeFormat + addressFormat)) == pduRxData->SduLength) )
 				{
-					if( (numEarlierDefinitions+numNewDefinitions) <= DCM_MAX_DDDSOURCE_NUMBER )
+					if( (numEarlierDefinitions+numNewDefinitions) <= DCM_MAX_DDD_SOURCE_NUMBER )
 					{
 						for( definitionIndex = 0; (definitionIndex < numNewDefinitions) && (diagResponseCode == DCM_E_POSITIVE_RESPONSE); definitionIndex++ )
 						{
@@ -2909,7 +2909,7 @@ static Dcm_NegativeResponseCodeType dynamicallyDefineDataIdentifierbyAddress(uin
 
 	if(diagResponseCode == DCM_E_POSITIVE_RESPONSE)
 	{
-		pduTxData->SduDataPtr[SF_INDEX] = DCM_DDD_SUBFUNCTION_DEFINEBYADDRESS;
+		pduTxData->SduDataPtr[SF_INDEX] = DCM_DDD_SUB_FUNCTION_DEFINEBYADDRESS;
 	}
 	
 	return diagResponseCode;
@@ -2945,7 +2945,7 @@ static Dcm_NegativeResponseCodeType CleardynamicallyDid(uint16 DDIdentifier,cons
 						for (j = 0; j <DCM_MAX_DDD_NUMBER; j++) { /* find the first empty slot from top */
 							if (j >= i) {
 								/* Rearrange finished */
-								pduTxData->SduDataPtr[1] = DCM_DDD_SUBFUNCTION_CLEAR;
+								pduTxData->SduDataPtr[1] = DCM_DDD_SUB_FUNCTION_CLEAR;
 								pduTxData->SduLength = 2;
 								return responseCode;
 							}
@@ -2969,7 +2969,7 @@ static Dcm_NegativeResponseCodeType CleardynamicallyDid(uint16 DDIdentifier,cons
 	}
 	if(responseCode == DCM_E_POSITIVE_RESPONSE)
 	{
-		pduTxData->SduDataPtr[1] = DCM_DDD_SUBFUNCTION_CLEAR;
+		pduTxData->SduDataPtr[1] = DCM_DDD_SUB_FUNCTION_CLEAR;
 		pduTxData->SduLength = 2;
 	}
 	
@@ -2993,13 +2993,13 @@ void DspDynamicallyDefineDataIdentifier(const PduInfoType *pduRxData,PduInfoType
 		{
 			switch(pduRxData->SduDataPtr[1])	/*UDS_REQ_0x2C_2,DCM 646*/
 			{
-				case DCM_DDD_SUBFUNCTION_DEFINEBYDID:
+				case DCM_DDD_SUB_FUNCTION_DEFINEBYDID:
 					responseCode  = dynamicallyDefineDataIdentifierbyDid(DDIdentifier,pduRxData,pduTxData);
 					break;
-				case DCM_DDD_SUBFUNCTION_DEFINEBYADDRESS:
+				case DCM_DDD_SUB_FUNCTION_DEFINEBYADDRESS:
 					responseCode = dynamicallyDefineDataIdentifierbyAddress(DDIdentifier,pduRxData,pduTxData);
 					break;
-				case DCM_DDD_SUBFUNCTION_CLEAR:
+				case DCM_DDD_SUB_FUNCTION_CLEAR:
 					responseCode = CleardynamicallyDid(DDIdentifier,pduRxData,pduTxData);
 					break;
 				default:
@@ -3019,7 +3019,7 @@ void DspDynamicallyDefineDataIdentifier(const PduInfoType *pduRxData,PduInfoType
 			pduTxData->SduLength = 4;
 		}
 	}
-	else if((pduRxData->SduLength == 2)&&(pduRxData->SduDataPtr[1] == DCM_DDD_SUBFUNCTION_CLEAR))
+	else if((pduRxData->SduLength == 2)&&(pduRxData->SduDataPtr[1] == DCM_DDD_SUB_FUNCTION_CLEAR))
 	{
 		/*UDS_REQ_0x2C_7*/
 		for(i = 0;i < DCM_MAX_DDD_NUMBER;i++)
@@ -3032,7 +3032,7 @@ void DspDynamicallyDefineDataIdentifier(const PduInfoType *pduRxData,PduInfoType
 		if(PeriodicUse == FALSE)
 		{
 			memset(dspDDD,0,sizeof(dspDDD));
-			pduTxData->SduDataPtr[1] = DCM_DDD_SUBFUNCTION_CLEAR;
+			pduTxData->SduDataPtr[1] = DCM_DDD_SUB_FUNCTION_CLEAR;
 			pduTxData->SduLength = 2;
 		}
 		else
@@ -3047,7 +3047,7 @@ void DspDynamicallyDefineDataIdentifier(const PduInfoType *pduRxData,PduInfoType
 	}
 	DsdDspProcessingDone(responseCode);
 }
-#endif //DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#endif //DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 
 static const Dcm_DspDidControlRecordSizesType* getControlRecordSizesForControlParameter(uint8 controlParam, const Dcm_DspDidControlType *DidControl)
 {
@@ -3445,7 +3445,7 @@ void DspCommunicationControl(const PduInfoType *pduRxData,PduInfoType *pduTxData
 }
 #endif
 
-#if defined(DCM_USE_SERVICE_REQUESTCURRENTPOWERTRAINDIAGDATA) || defined(DCM_USE_SERVICE_REQUESTPOWERTRAINFREEZEFRAMEDATA)
+#if defined(DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA) || defined(DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA)
 static boolean lookupPid(uint8 pidId,const Dcm_DspPidType **PidPtr)
 {
 	boolean pidFound = FALSE;
@@ -3476,7 +3476,7 @@ static boolean lookupPid(uint8 pidId,const Dcm_DspPidType **PidPtr)
 }
 #endif
 
-#ifdef DCM_USE_SERVICE_REQUESTCURRENTPOWERTRAINDIAGDATA
+#ifdef DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA
 static boolean Dcm_SetAvailabilityPidValue(uint8 Pid,uint32 *Data)
 {
 	uint8 shift;
@@ -3676,7 +3676,7 @@ void DspObdRequestCurrentPowertrainDiagnosticData(const PduInfoType *pduRxData,P
 }
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTPOWERTRAINFREEZEFRAMEDATA)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA)
 /*@req OBD_DCM_REQ_9*/
 void DspObdRequsetPowertrainFreezeFrameData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
@@ -3922,7 +3922,7 @@ void DspObdRequsetPowertrainFreezeFrameData(const PduInfoType *pduRxData,PduInfo
 }
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAREMISSIONRELATEDDIAGNOSTICDATA)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAR_EMISSION_RELATED_DIAGNOSTIC_DATA)
 static boolean Dcm_LookupService(uint8 serviceId,const Dcm_DsdServiceType **dsdService)
 {
 	boolean serviceFind = FALSE;
@@ -4016,7 +4016,7 @@ void DspObdClearEmissionRelatedDiagnosticData(const PduInfoType *pduRxData,PduIn
 #endif
 
 #if defined(USE_DEM)
-#if defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCS) || defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCSDETECTEDDURINGCURRENTORLASCOMPLETEDDRIVINGCYCLE)
+#if defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS) || defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE)
 static Dcm_NegativeResponseCodeType OBD_Sevice_03_07(PduInfoType *pduTxData,Dem_ReturnSetDTCFilterType setDtcFilterResult)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
@@ -4062,7 +4062,7 @@ static Dcm_NegativeResponseCodeType OBD_Sevice_03_07(PduInfoType *pduTxData,Dem_
 #endif
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCS)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS)
 /*@req OBD_DCM_REQ_23*//* @req OBD_REQ_7 */
 void  DspObdRequestEmissionRelatedDiagnosticTroubleCodes(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
@@ -4091,7 +4091,7 @@ void  DspObdRequestEmissionRelatedDiagnosticTroubleCodes(const PduInfoType *pduR
 }
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCSDETECTEDDURINGCURRENTORLASCOMPLETEDDRIVINGCYCLE)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE)
 /*@req OBD_DCM_REQ_25*//* @req OBD_REQ_12 */
 void  DspObdRequestEmissionRelatedDiagnosticTroubleCodesService07(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
@@ -4513,8 +4513,7 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						length = dspUDTData.memorySize;
 					}
 
-					responseCode = readMemoryData(&OpStatus, 0xFF, memoryAddress, length,
-													&pduTxData->SduDataPtr[2]);
+					responseCode = readMemoryData(&OpStatus, 0xFF, memoryAddress, length, pduTxData);
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
 						dspUDTData.memoryAddress += length;

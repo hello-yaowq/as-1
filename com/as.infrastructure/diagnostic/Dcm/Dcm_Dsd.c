@@ -93,7 +93,7 @@ static void selectServiceFunction(uint8 sid)
 	/** @req DCM442.Partially */
 	switch (sid)	 /** @req DCM221 */
 	{
-#ifdef DCM_USE_SERVICE_DIAGNOSTICSESSIONCONTROL
+#ifdef DCM_USE_SERVICE_DIAGNOSTIC_SESSION_CONTROL
 	case SID_DIAGNOSTIC_SESSION_CONTROL:
 		DspUdsDiagnosticSessionControl(msgData.pduRxData, msgData.txPduId, msgData.pduTxData);
 		break;
@@ -105,127 +105,127 @@ static void selectServiceFunction(uint8 sid)
 		break;
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEARDIAGNOSTICINFORMATION)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAR_DIAGNOSTIC_INFORMATION)
 	case SID_CLEAR_DIAGNOSTIC_INFORMATION:
 		DspUdsClearDiagnosticInformation(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_READDTCINFORMATION)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_READ_DTC_INFORMATION)
 	case SID_READ_DTC_INFORMATION:
 		DspUdsReadDtcInformation(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_READDATABYIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_IDENTIFIER
 	case SID_READ_DATA_BY_IDENTIFIER:
 		DspUdsReadDataByIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#ifdef DCM_USE_SERVICE_READMEMORYBYADDRESS
+#ifdef DCM_USE_SERVICE_READ_MEMORY_BY_ADDRESS
 	case SID_READ_MEMORY_BY_ADDRESS:
 		DspUdsReadMemoryByAddress(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#ifdef DCM_USE_SERVICE_WRITEMEMORYBYADDRESS
+#ifdef DCM_USE_SERVICE_WRITE_MEMORY_BY_ADDRESS
 	case SID_WRITE_MEMORY_BY_ADDRESS:
 		DspUdsWriteMemoryByAddress(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_READSCALINGDATABYIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_SCALING_DATA_BY_IDENTIFIER
 	case SID_READ_SCALING_DATA_BY_IDENTIFIER:
 		DspUdsReadScalingDataByIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_SECURITYACCESS
+#ifdef DCM_USE_SERVICE_SECURITY_ACCESS
 	case SID_SECURITY_ACCESS:
 		DspUdsSecurityAccess(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_WRITEDATABYIDENTIFIER
+#ifdef DCM_USE_SERVICE_WRITE_DATA_BY_IDENTIFIER
 	case SID_WRITE_DATA_BY_IDENTIFIER:
 		DspUdsWriteDataByIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_ROUTINECONTROL
+#ifdef DCM_USE_SERVICE_ROUTINE_CONTROL
 	case SID_ROUTINE_CONTROL:
 		DspUdsRoutineControl(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_TESTERPRESENT
+#ifdef DCM_USE_SERVICE_TESTER_PRESENT
 	case SID_TESTER_PRESENT:
 		DspUdsTesterPresent(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CONTROLDTCSETTING)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CONTROL_DTC_SETTING)
 	case SID_CONTROL_DTC_SETTING:
 		DspUdsControlDtcSetting(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_READDATABYPERIODICIDENTIFIER
+#ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 	case SID_READ_DATA_BY_PERIODIC_IDENTIFIER:
 		DspReadDataByPeriodicIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#ifdef DCM_USE_SERVICE_DYNAMICALLYDEFINEDATAIDENTIFIER
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 	case SID_DYNAMICALLY_DEFINE_DATA_IDENTIFIER:
 		DspDynamicallyDefineDataIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#ifdef DCM_USE_SERVICE_INPUTOUTPUTCONTROLBYIDENTIFIER
+#ifdef DCM_USE_SERVICE_INPUT_OUTPUT_CONTROL_BY_IDENTIFIER
 	case SID_INPUT_OUTPUT_CONTROL_BY_IDENTIFIER:
 		DspIOControlByDataIdentifier(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_COMMUNICATIONCONTROL
+#ifdef DCM_USE_SERVICE_COMMUNICATION_CONTROL
 	case SID_COMMUNICATION_CONTROL:
 		DspCommunicationControl(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 	/* OBD */
-#ifdef DCM_USE_SERVICE_REQUESTCURRENTPOWERTRAINDIAGDATA
+#ifdef DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA
 	case SID_REQUEST_CURRENT_POWERTRAIN_DIAGNOSTIC_DATA:
 		DspObdRequestCurrentPowertrainDiagnosticData(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTPOWERTRAINFREEZEFRAMEDATA)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA)
 	case SID_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA:
 		DspObdRequsetPowertrainFreezeFrameData(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAREMISSIONRELATEDDIAGNOSTICDATA)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_CLEAR_EMISSION_RELATED_DIAGNOSTIC_DATA)
 	case SID_CLEAR_EMISSION_RELATED_DIAGNOSTIC_INFORMATION:
 		DspObdClearEmissionRelatedDiagnosticData(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 		
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCS)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS)
 	case SID_REQUEST_EMISSION_RELATED_DIAGNOSTIC_TROUBLE_CODES:
 		DspObdRequestEmissionRelatedDiagnosticTroubleCodes(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUESTEMISSIONRELATEDDTCSDETECTEDDURINGCURRENTORLASCOMPLETEDDRIVINGCYCLE)
+#if defined(USE_DEM) && defined(DCM_USE_SERVICE_REQUEST_EMISSION_RELATED_DTCS_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE)
 	case SID_REQUEST_EMISSION_RELATED_DIAGNOSTIC_TROUBLE_CODES_DETECTED_DURING_CURRENT_OR_LAST_COMPLETED_DRIVING_CYCLE:
 		DspObdRequestEmissionRelatedDiagnosticTroubleCodesService07(msgData.pduRxData, msgData.pduTxData);
 		break;
 #endif
 
-#ifdef DCM_USE_SERVICE_REQUESTVEHICLEINFORMATION
+#ifdef DCM_USE_SERVICE_REQUEST_VEHICLE_INFORMATION
 	case SID_REQUEST_VEHICLE_INFORMATION:
 		DspObdRequestvehicleinformation(msgData.pduRxData, msgData.pduTxData);
 		break;

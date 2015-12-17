@@ -42,7 +42,7 @@
 #define DCM_CONVERT_MS_TO_MAIN_CYCLES(x)  ((x)/DCM_MAIN_FUNCTION_PERIOD_TIME_MS)
 
 
-#if (DCM_PAGEDBUFFER_ENABLED)
+#if (DCM_PAGED_BUFFER_ENABLED)
 #error "DCM_PAGEDBUFFER_ENABLED is set to STD_ON, this is not supported by the code."
 #endif
 
@@ -497,10 +497,10 @@ void DslInit(void) {
 Std_ReturnType DslInternal_ResponseOnOneDataByPeriodicId(uint8 PericodID)
 {
 	Std_ReturnType ret = E_NOT_OK;
-	const Dcm_DslProtocolRowType *protocolRowEntry;
+	/* const Dcm_DslProtocolRowType *protocolRowEntry; */
 	Dcm_DslRunTimeProtocolParametersType *runtime = NULL;
 	PduInfoType  *pPeriodData;
-	protocolRowEntry = DCM_Config.Dsl->DslProtocol->DslProtocolRowList;
+	/* protocolRowEntry = DCM_Config.Dsl->DslProtocol->DslProtocolRowList; */
 
 	if( NULL != DcmDslRunTimeData.activeProtocol ) {
 		runtime =  DcmDslRunTimeData.activeProtocol->DslRunTimeProtocolParameters;
@@ -508,7 +508,7 @@ Std_ReturnType DslInternal_ResponseOnOneDataByPeriodicId(uint8 PericodID)
 		{
 			if( BUFREQ_OK == DslProvideRxBufferToPdur(runtime->diagReqestRxPduId, 3, (const PduInfoType **)&pPeriodData)){
 				pPeriodData->SduDataPtr[0] = SID_READ_DATA_BY_PERIODIC_IDENTIFIER;
-				pPeriodData->SduDataPtr[1] = DCM_PERIODICTRANSMIT_DEFAULT_MODE;
+				pPeriodData->SduDataPtr[1] = DCM_PERIODIC_TRANSMIT_DEFAULT_MODE;
 				pPeriodData->SduDataPtr[2] = PericodID;
 				pPeriodData->SduLength = 3;
 				DslRxIndicationFromPduR(runtime->diagReqestRxPduId, NTFRSLT_OK);
