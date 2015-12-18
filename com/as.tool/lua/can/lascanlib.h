@@ -45,8 +45,10 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 extern const Can_DeviceOpsType can_rpmsg_ops;
 extern const Can_DeviceOpsType can_serial_ops;
+#ifdef __WINDOWS__
 extern const Can_DeviceOpsType can_vxl_ops;
 extern const Can_DeviceOpsType can_peak_ops;
+#endif
 #ifdef __LINUX__
 extern const Can_DeviceOpsType can_socket_ops;
 #endif

@@ -13,6 +13,7 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef __WINDOWS__
 #include <windows.h>
 #include "Std_Types.h"
 #include "lascanlib.h"
@@ -286,5 +287,5 @@ static void * rx_daemon(void * param)
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
+#endif /* __WINDOWS__ */
 

@@ -67,24 +67,22 @@ def-y += -D__LINUX__
 def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
+def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 endif	
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=  -ldl -lreadline
 else
 ldflags-y +=-lwinmm 
+ldflags-y += $(src-dir)/PCANBasic.lib
 endif
-ldflags-y += -lstdc++ -lm -lpthread
+ldflags-y += -lm -lpthread
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
 def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
-
-def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
-
-ldflags-y += $(src-dir)/PCANBasic.lib
 endif	# posix end
 
 inc-y += -I$(inc-dir)
@@ -97,7 +95,7 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
-	
+
 dep-posix:
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
@@ -138,11 +136,11 @@ depc:
 clean: 
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*
-	
+
 clean-dist:clean
 	@rm -fv $(src-dir)/*
 	@rm -fv $(inc-dir)/*
-	
+
 00:clean-dist
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
@@ -154,4 +152,3 @@ clean-dist:clean
 94:
 	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
-	

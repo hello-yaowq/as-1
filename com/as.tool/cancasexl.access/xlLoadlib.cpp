@@ -1,3 +1,4 @@
+#ifdef __WINDOWS__
 /*---------------------------------------------------------------------------------------
 | File:
 |   xlLoadlib.cpp
@@ -508,3 +509,4 @@ XLstatus xlCloseDriver(void){
   return xlUnloadLibrary();
 }
 
+#endif /* __WINDOWS__ */

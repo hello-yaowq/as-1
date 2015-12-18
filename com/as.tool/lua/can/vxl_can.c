@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <windows.h>
 #include "vxlapi.h"
@@ -267,5 +268,5 @@ static void * rx_daemon(void * param)
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
+#endif /* __WINDOWS__ */
 

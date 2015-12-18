@@ -60,6 +60,7 @@ static ShellCmdT luacmd =
 	.shortDesc = "lua <script>",
 	.longDesc ="lua script executor",
 };
+static const pthread_mutex_t mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void StartupHook(void)
 {
@@ -76,7 +77,7 @@ static void StartupHook(void)
 #endif
 
 	memset(&shCmdCache,0,sizeof(shCmdCache));
-	shCmdCache.w_lock = PTHREAD_MUTEX_INITIALIZER;
+	memcpy(&shCmdCache.w_lock,&mutex_initializer,sizeof(mutex_initializer));
 	SHELL_Init();
 	SHELL_AddCmd(&luacmd);
 }

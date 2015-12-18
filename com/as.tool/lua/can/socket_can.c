@@ -63,6 +63,7 @@ const Can_DeviceOpsType can_socket_ops =
 	.close = socket_close,
 	.write = socket_write,
 };
+static struct Can_SocketHandleList_s* socketH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static struct Can_SocketHandle_s* getHandle(uint32_t port)
 {
@@ -116,7 +117,7 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 
 		if( rv )
 		{
-			snprintf(ifr.ifr_name,IFNAMSIZ - 1,"can%s", port);
+			snprintf(ifr.ifr_name,IFNAMSIZ - 1,"can%d", port);
 			ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 			ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
 			if (!ifr.ifr_ifindex) {
@@ -186,7 +187,7 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 	{
 		struct can_frame frame;
 		frame.can_id = canid;
-		frame.len = dlc;
+		frame.can_dlc = dlc;
 		memcpy(frame.data,data,dlc);
 
 		if (write(handle->s, &frame, CAN_MTU) != CAN_MTU) {
@@ -224,14 +225,14 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 {
 	int nbytes,len;
 	struct can_frame frame;
-	nbytes = recvfrom(handle->s, &frame, CAN_MTU, 0, (struct sockaddr*)&handle.addr, &len);
+	nbytes = recvfrom(&handle->s, &frame, CAN_MTU, 0, (struct sockaddr*)&handle->addr, &len);
 	if (nbytes < 0) {
 		perror("CAN socket read");
 		ASWARNING("CAN Socket port=%d read message failed!\n",handle->port);
 	}
 	else
 	{
-		handle->rx_notification(handle->busid,frame.canid,frame.len,frame.data);
+		handle->rx_notification(handle->busid,frame.can_id,frame.can_dlc,frame.data);
 	}
 
 }
