@@ -16,45 +16,24 @@
 /* Ecum Callout Stubs - generic version */
 
 #include "Dcm.h"
-#if defined(HIS_FL)
-#include "Flash.h"
-static tFlashParam FlashParam =
-{
-    .patchlevel  = FLASH_DRIVER_VERSION_PATCH,
-    .minornumber = FLASH_DRIVER_VERSION_MINOR,
-    .majornumber = FLASH_DRIVER_VERSION_MAJOR,
-    .wdTriggerFct = NULL,
-    .errorcode   = kFlashOk,
-};
-#endif
-//#include "Mcu.h"
-Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
+#include "Mcu.h"
+Dcm_ReturnWriteMemoryType __weak Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 											   uint8 MemoryIdentifier,
 											   uint32 MemoryAddress,
 											   uint32 MemorySize,
 											   uint8* MemoryData)
 {
-#if defined(HIS_FL)
-	FlashParam.address = MemoryAddress;
-	FlashParam.length = MemorySize;
-	FlashParam.data = MemoryData;
-	FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&FlashParam);
-#endif
-	//return DCM_WRITE_FAILED;
-	return DCM_WRITE_OK;
+	return DCM_WRITE_FAILED;
 }
 
 /*@req Dcm495*/
-Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
+Dcm_ReturnReadMemoryType __weak Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 											   uint8 MemoryIdentifier,
 											   uint32 MemoryAddress,
 											   uint32 MemorySize,
 											   uint8* MemoryData)
 {
-
-
-	//return DCM_WRITE_FAILED;
-	return DCM_WRITE_OK;
+	return DCM_WRITE_FAILED;
 }
 
 void Dcm_DiagnosticSessionControl(Dcm_SesCtrlType session)

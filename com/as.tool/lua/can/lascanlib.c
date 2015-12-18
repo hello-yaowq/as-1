@@ -66,6 +66,9 @@ static const Can_DeviceOpsType* canOps [] =
 	&can_serial_ops,
 	&can_vxl_ops,
 	&can_peak_ops,
+	#ifdef __LINUX__
+	&can_socket_ops,
+	#endif
 	NULL
 };
 /* ============================ [ LOCALS    ] ====================================================== */
