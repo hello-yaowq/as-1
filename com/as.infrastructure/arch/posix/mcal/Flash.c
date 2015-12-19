@@ -21,12 +21,6 @@
 #define FLS_TOTAL_SIZE  1024*1024
 
 #define IS_FLASH_ADDRESS(a) ((a) < FLS_TOTAL_SIZE)
-
-#define FLASH_ERASE_SIZE  512
-#define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
-
-#define FLASH_WRITE_SIZE  512
-#define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

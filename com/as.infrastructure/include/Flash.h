@@ -65,6 +65,13 @@
 #define FLASH_DRIVER_STARTADDRESS   ((unsigned long)(&FlashHeader))
 #define FLASH_DRIVER_NUMBER_OF_MODULES 1
 
+/* configuration according to the mcu information */
+#define FLASH_ERASE_SIZE  512
+#define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
+
+#define FLASH_WRITE_SIZE  512
+#define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned long tFlashAddress;
 typedef unsigned long tFlashLength;

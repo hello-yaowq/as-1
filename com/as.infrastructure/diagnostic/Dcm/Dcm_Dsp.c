@@ -2390,6 +2390,7 @@ static Dcm_NegativeResponseCodeType eraseMemory(uint8 memoryIdentifier,
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
 	Dcm_ReturnEraseMemoryType eraseRet;
+
 	eraseRet = Dcm_EraseMemory( DCM_INITIAL,
 								memoryIdentifier,
 								MemoryAddress,
@@ -4681,13 +4682,29 @@ void DspRequestTransferExit(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 #endif
 
 #ifdef __AS_BOOTLOADER__
+#include "Flash.h"
 Std_ReturnType BL_StartEraseFlash(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
 {
 
 	uint32 memoryAddress = ((uint32)inBuffer[0]<<24) + ((uint32)inBuffer[1]<<16) + ((uint32)inBuffer[2]<<8) +((uint32)inBuffer[3]);
 	uint32 length  = ((uint32)inBuffer[4]<<24) + ((uint32)inBuffer[5]<<16) + ((uint32)inBuffer[6]<<8) +((uint32)inBuffer[7]);
 	uint8  memoryIdentifier = inBuffer[8];
+	/* TODO: check address is sector aligned */
 	*errorCode = checkAddressRange(DCM_WRITE_MEMORY, memoryIdentifier, memoryAddress, length);
+
+	if( DCM_E_POSITIVE_RESPONSE == *errorCode)
+	{
+		if( FLASH_IS_ERASE_ADDRESS_ALIGNED(memoryAddress) &&
+			FLASH_IS_ERASE_ADDRESS_ALIGNED(length) && (length > 0))
+		{
+			/* parameter OK */
+		}
+		else
+		{
+			*errorCode = DCM_E_REQUEST_OUT_OF_RANGE;
+		}
+	}
+
 	if( DCM_E_POSITIVE_RESPONSE == *errorCode )
 	{
 		*errorCode = eraseMemory(memoryIdentifier, memoryAddress, length);
