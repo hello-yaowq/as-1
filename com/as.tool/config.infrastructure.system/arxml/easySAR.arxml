@@ -510,13 +510,12 @@
 			Identifier="Integer Range=0~255 PosGUI=1"
 			Comment="TextArea Default=* PosGUI=2"
 			>
-		<MemoryInfoList Max="65535">
+		<MemoryReadInfoList Max="65535">
 			<MemoryInfo 
 				Name="Text PosGUI=0"
 				AddressHigh="Integer PosGUI=1"
 				AddressLow="Integer PosGUI=2"
-				Attribute="Enum=(ReadOnly,WriteOnly,ReadWrite) Default=ReadOnly PosGUI=3"
-				Comment="TextArea Default=* PosGUI=4"
+				Comment="TextArea Default=* PosGUI=3"
 				>
 				<SecurityList Max="65535">
 					<Security 
@@ -525,7 +524,22 @@
 						/>
 				</SecurityList>
 			</MemoryInfo>
-		</MemoryInfoList>
+		</MemoryReadInfoList>
+		<MemoryWriteInfoList Max="65535">
+			<MemoryInfo 
+				Name="Text PosGUI=0"
+				AddressHigh="Integer PosGUI=1"
+				AddressLow="Integer PosGUI=2"
+				Comment="TextArea Default=* PosGUI=3"
+				>
+				<SecurityList Max="65535">
+					<Security 
+						Name="EnumRef=Dcm.SecurityList PosGUI=0"
+						Comment="TextArea Default=* PosGUI=1"
+						/>
+				</SecurityList>
+			</MemoryInfo>
+		</MemoryWriteInfoList>
 		</Memory>
 	</MemoryList>
 	<ProtocolList Max="65535">

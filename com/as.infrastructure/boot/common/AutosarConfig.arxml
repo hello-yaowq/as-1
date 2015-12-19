@@ -114,19 +114,67 @@
 <DIDList Max="TBD" />
 <RoutineInfoList Max="TBD">
 <RoutineInfo Comment="*" Name="RoutineInfo_EraseFlash">
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 <Start Comment="4 byte address, 4 byte size" RecordSizeOfRequest="8" RecordSizeOfResponse="0" />
-<SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
-</SessionList>
 </RoutineInfo>
 </RoutineInfoList>
 <RoutineList Max="TBD">
 <Routine Comment="*" Identifier="0xFF01" Name="EraseFlash" RoutineInfoRef="RoutineInfo_EraseFlash" RoutineResultCbk="NULL" StartRoutineCbk="BL_StartEraseFlash" StopRoutineCbk="NULL" />
 </RoutineList>
-<MemoryList Max="TBD" />
+<MemoryList Max="TBD">
+<Memory Comment="*" Identifier="0xFF" Name="Flash">
+<MemoryReadInfoList Max="TBD">
+<MemoryInfo AddressHigh="0x10000" AddressLow="0" Comment="0~64K for bootloader" Name="Bootloader">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="0x100000" AddressLow="0x10000" Comment="64K~1M for application" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryReadInfoList>
+<MemoryWriteInfoList Max="TBD">
+<MemoryInfo AddressHigh="0x100000" AddressLow="0x10000" Comment="*" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryWriteInfoList>
+</Memory>
+<Memory Comment="*" Identifier="0xEE" Name="Eeprom">
+<MemoryReadInfoList Max="TBD">
+<MemoryInfo AddressHigh="256" AddressLow="0" Comment="0~256 for bootloader information storage" Name="Bootloader">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="4096" AddressLow="256" Comment="*" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryReadInfoList>
+<MemoryWriteInfoList Max="TBD">
+<MemoryInfo AddressHigh="256" AddressLow="0" Comment="*" Name="Bootloader">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="4096" AddressLow="256" Comment="*" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryWriteInfoList>
+</Memory>
+</MemoryList>
 <ProtocolList Max="TBD">
 <Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
 <ConnectionList Max="TBD">

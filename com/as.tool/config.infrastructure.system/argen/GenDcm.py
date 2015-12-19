@@ -453,6 +453,55 @@ def GenC():
     fp.write("""/************************************************************************
 *                            Memory Info                                 *
 ************************************************************************/\n\n""")
+    memoryList = GLGet('MemoryList')
+    for memory in memoryList:
+        for mm in GLGet('MemoryReadInfoList')+GLGet('MemoryWriteInfoList'):
+            GenSecurityRef(fp,GLGet(mm,'SecurityList'))
+    if(len(memoryList) > 0):
+        for memory in memoryList:
+            fp.write('static Dcm_DspMemoryRangeInfo pReadMemoryInfo_%s[] = \n{\n'%(GAGet(memory,'Name')))
+            for mm in GLGet(memory,'MemoryReadInfoList'):
+                fp.write('\t{ /* %s */\n'%(GAGet(mm,'Name')))
+                fp.write('\t\t.MemoryAddressHigh = %s,\n'%(GAGet(mm,'AddressHigh')))
+                fp.write('\t\t.MemoryAddressLow  = %s,\n'%(GAGet(mm,'AddressLow')))
+                fp.write('\t\t.pSecurityLevel  = %s,\n'%(GetSecurityRefName(GLGet(mm,'SecurityList'))))
+                fp.write('\t\t.Arc_EOL = FALSE\n')
+                fp.write('\t},\n')
+            fp.write('\t{\n')
+            fp.write('\t\t.Arc_EOL = TRUE\n')
+            fp.write('\t},\n')
+            fp.write('};\n')
+            fp.write('static Dcm_DspMemoryRangeInfo pWriteMemoryInfo_%s[] = \n{\n'%(GAGet(memory,'Name')))
+            for mm in GLGet(memory,'MemoryReadInfoList'):
+                fp.write('\t{ /* %s */\n'%(GAGet(mm,'Name')))
+                fp.write('\t\t.MemoryAddressHigh = %s,\n'%(GAGet(mm,'AddressHigh')))
+                fp.write('\t\t.MemoryAddressLow  = %s,\n'%(GAGet(mm,'AddressLow')))
+                fp.write('\t\t.pSecurityLevel  = %s,\n'%(GetSecurityRefName(GLGet(mm,'SecurityList'))))
+                fp.write('\t\t.Arc_EOL = FALSE\n')
+                fp.write('\t},\n')
+            fp.write('\t{\n')
+            fp.write('\t\t.Arc_EOL = TRUE\n')
+            fp.write('\t},\n')
+            fp.write('};\n')  
+        fp.write('static const Dcm_DspMemoryIdInfo DspMemoryIdInfo[] = \n{\n')
+        for memory in memoryList:         
+            fp.write('\t{ /* %s */\n'%(GAGet(memory,'Name')))
+            fp.write('\t\t.MemoryIdValue = %s,\n'%(GAGet(memory,'Identifier')))
+            fp.write('\t\t.pReadMemoryInfo = pReadMemoryInfo_%s,\n'%(GAGet(memory,'Name')))
+            fp.write('\t\t.pWriteMemoryInfo = pWriteMemoryInfo_%s,\n'%(GAGet(memory,'Name')))
+            fp.write('\t\t.Arc_EOL = FALSE\n')
+            fp.write('\t},\n')
+        fp.write('\t{\n')
+        fp.write('\t\t.Arc_EOL = TRUE,\n')
+        fp.write('\t},\n')
+        fp.write('};\n')   
+        fp.write('static Dcm_DspMemoryType DspMemory = \n{\n')
+        fp.write('\t\t.DcmDspUseMemoryId = TRUE, /* parai: always use ID */\n')
+        fp.write('\t\t.DspMemoryIdInfo = DspMemoryIdInfo\n')
+        fp.write('};\n\n')
+        dspMemory = '&DspMemory'
+    else:
+        dspMemory = 'NULL'
     #---------------------- DSP
     fp.write("""static const Dcm_DspType Dsp = {
     .DspMaxDidToRead =  0xDB, // TODO
@@ -467,8 +516,9 @@ def GenC():
     .DspSecurity =  &DspSecurity,
     .DspSession =  &DspSession,
     .DspTestResultByObdmid =  NULL,
-    .DspVehInfo = NULL
-};\n\n""");
+    .DspVehInfo = NULL,
+    .DspMemory = %s
+};\n\n"""%(dspMemory));
     # ------------------------------- DSD
     fp.write("""/************************************************************************
 *                                    DSD                                    *
