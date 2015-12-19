@@ -60,7 +60,7 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 	}
 	else
 	{
-		if(GetTimer(&eraseTimer) > 2000)
+		if(GetTimer(&eraseTimer) > 12000)
 		{
 			rv = DCM_ERASE_OK;
 		}

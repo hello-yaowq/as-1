@@ -60,7 +60,9 @@ function get_service_name(serviceid)
 end
 
 function get_nrc_name(nrc)
-  if nrc == 0x11 then
+  if nrc == 0x10 then
+    name = "general reject"
+  elseif nrc == 0x11 then
     name = "service not supported"
   elseif nrc == 0x12 then
     name = "sub function not supported"

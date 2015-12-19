@@ -12,8 +12,6 @@
 <PduList Max="TBD">
 <Pdu Comment="*" Name="TxDiagP2P" Size="64" />
 <Pdu Comment="*" Name="RxDiagP2P" Size="64" />
-<Pdu Comment="*" Name="TxDiagP2A" Size="64" />
-<Pdu Comment="*" Name="RxDiagP2A" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -35,7 +33,6 @@
 <Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2A" Identifier="0x742" Name="P2A" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
 </PduList>
 </Hth>
 </HthList>
@@ -43,7 +40,6 @@
 <Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0xFFF" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x741" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>
@@ -54,11 +50,9 @@
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="OFF" />
 <RxSduList Max="TBD">
 <Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" />
-<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2A" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2A" STmin="1" TxFcPduRef="TxDiagP2A" />
 </RxSduList>
 <TxSduList Max="TBD">
 <Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" />
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2A" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2A" TxPduRef="TxDiagP2A" />
 </TxSduList>
 </CanTp>
 <PduR>
@@ -74,16 +68,6 @@
 <Destination Comment="*" Module="Dcm" Name="DcmP2P" PduRef="RxDiagP2P" />
 </DestinationList>
 </Source>
-<Source Comment="*" Module="Dcm" Name="DcmP2A" PduRef="TxDiagP2A">
-<DestinationList Max="TBD">
-<Destination Comment="*" Module="CanTp" Name="CanTpP2A" PduRef="TxDiagP2A" />
-</DestinationList>
-</Source>
-<Source Comment="*" Module="CanTp" Name="CanTpP2A" PduRef="RxDiagP2A">
-<DestinationList Max="TBD">
-<Destination Comment="*" Module="Dcm" Name="DcmP2A" PduRef="RxDiagP2A" />
-</DestinationList>
-</Source>
 </RoutineList>
 </PduR>
 <Com>
@@ -94,15 +78,13 @@
 <Dcm>
 <General Comment="*" DevelopmentErrorDetection="ON" MaxPeriodDIDNumber="8" PeriodicDIDFastModeTime="50" PeriodicDIDMediumModeTime="100" PeriodicDIDSlowModeTime="200" VersionInfoApi="OFF" />
 <BufferList Max="TBD">
-<Buffer Comment="*" Name="Buffer1" Size="512" />
-<Buffer Comment="*" Name="Buffer2" Size="512" />
-<Buffer Comment="*" Name="Buffer3" Size="512" />
-<Buffer Comment="*" Name="Buffer4" Size="512" />
+<Buffer Comment="rx buffer" Name="Buffer1" Size="4096" />
+<Buffer Comment="tx buffer" Name="Buffer2" Size="512" />
 </BufferList>
 <SessionList Max="TBD">
-<Session Comment="*" Identifier="1" Name="DS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
-<Session Comment="*" Identifier="2" Name="PRGS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
-<Session Comment="*" Identifier="3" Name="EXTDS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
+<Session Comment="*" Identifier="1" Name="DS" P2ServerMaxTimeMs="100" P2StartServerMaxTimeMs="100" />
+<Session Comment="*" Identifier="2" Name="PRGS" P2ServerMaxTimeMs="100" P2StartServerMaxTimeMs="100" />
+<Session Comment="*" Identifier="3" Name="EXTDS" P2ServerMaxTimeMs="100" P2StartServerMaxTimeMs="100" />
 </SessionList>
 <SecurityList Max="TBD">
 <Security Comment="*" CompareKeyCallback="BL_CompareProgramSessionSeed" GetSeedCallback="BL_GetProgramSessionSeed" Identifier="2" KeySize="4" Name="PRGS" SeedSize="4" />
@@ -183,16 +165,6 @@
 <RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="RxDiagP2P" />
 </RxChannelList>
 <TxChannel Comment="*" Name="TxChannel2" PduRef="TxDiagP2P" />
-</Connection>
-</ConnectionList>
-</Protocol>
-<Protocol Comment="*" Name="P2A" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer3" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer4">
-<ConnectionList Max="TBD">
-<Connection Comment="*" Name="Connection1">
-<RxChannelList Max="TBD">
-<RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="RxDiagP2A" />
-</RxChannelList>
-<TxChannel Comment="*" Name="TxChannel2" PduRef="TxDiagP2A" />
 </Connection>
 </ConnectionList>
 </Protocol>

@@ -97,6 +97,14 @@ void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 	ASLOG(SHELL,"receive cmd \"%s\"\n",cmd);
 	/* for debug */
 	/* strcpy(cmd,"lua d:/repository/as/com/as.tool/lua/script/flashloader.lua"); */
+	if(NULL != strstr(cmd,"lua"))
+	{
+
+	}
+	else
+	{	/* invalid command, use default */
+		strcpy(cmd,"lua d:/repository/as/com/as.tool/lua/script/flashloader.lua");
+	}
 	if( (shCmdCache.counter+len) < SHELL_CMD_CACHE_SIZE)
 	{
 		(void)pthread_mutex_lock(&shCmdCache.w_lock);

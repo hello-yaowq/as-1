@@ -58,7 +58,7 @@ def GenH():
             lengthTx += len(connection)-1;
     fp.write('#define DCM_DSL_TX_PDU_ID_LIST_LENGTH        %s\n'%(lengthTx));
     fp.write('#define DCM_DSL_RX_PDU_ID_LIST_LENGTH        %s\n\n'%(lengthRx));
-    fp.write('#define DCM_MAIN_FUNCTION_PERIOD_TIME_MS     5\n\n');
+    fp.write('#define DCM_MAIN_FUNCTION_PERIOD_TIME_MS     10\n\n');
     fp.write('#define DCM_LIMIT_NUMBER_PERIOD_DATA        %s   // MaxNumberofSimultaneousPeriodictransmissions\n'%(GAGet(General,'MaxPeriodDIDNumber')));
     fp.write('#define DCM_MAX_DDD_SOURCE_NUMBER          8   // TODO: MaxSourcesforOneDynamicIdentifier\n');
     fp.write('#define DCM_MAX_DDD_NUMBER                8   // TODO\n\n');
@@ -741,10 +741,9 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     cstr += '\t}\n'
     cstr += '};\n\n'
     fp.write(cstr);
-    # also I am not sure, so ... ??????
     fp.write("""static const Dcm_DslDiagRespType DiagResp = {
     .DslDiagRespForceRespPendEn = TRUE,
-    .DslDiagRespMaxNumRespPend =  8    // TODO
+    .DslDiagRespMaxNumRespPend =  100  /* if P2Server=100ms, so 10s totally */
 };\n""")
 
     fp.write("""

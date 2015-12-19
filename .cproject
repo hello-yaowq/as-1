@@ -77,6 +77,7 @@
 									<listOptionValue builtIn="false" value="LUA_COMPAT_APIINTCASTS"/>
 									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__AS_BOOTLOADER__"/>
+									<listOptionValue builtIn="false" value="USE_DCM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -128,6 +129,7 @@
 									<listOptionValue builtIn="false" value="USE_MEMIF"/>
 									<listOptionValue builtIn="false" value="USE_NVM"/>
 									<listOptionValue builtIn="false" value="LUA_COMPAT_APIINTCASTS"/>
+									<listOptionValue builtIn="false" value="USE_DCM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
