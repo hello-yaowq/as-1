@@ -185,7 +185,6 @@ typedef struct {
 
 static DspUdsEcuResetDataType dspUdsEcuResetData;
 static DspUdsSessionControlDataType dspUdsSessionControlData;
-static boolean dspWritePending;
 static DspUdsDidPendingType dspUdsReadDidPending;
 static DspUdsDidPendingType dspUdsWriteDidPending;
 
@@ -201,6 +200,7 @@ typedef enum{
 	DCM_MEMORY_UNUSED,
 	DCM_MEMORY_READ,
 	DCM_MEMORY_WRITE,
+	DCM_MEMORY_ERASE,
 	DCM_MEMORY_FAILED	
 }Dcm_DspMemoryStateType;
 static Dcm_DspMemoryStateType dspMemoryState;
@@ -257,17 +257,18 @@ typedef struct
 	uint8  dataFormatIdentifier;
 	uint32 memoryAddress;
 	uint32 memorySize;
-	uint8 blockSequenceCounter;
+	uint8  blockSequenceCounter;
 }Dcm_DspUDTType;
-#ifdef DCM_USE_SERVICE_UPLOAD_DOWNLOAD
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 static Dcm_DspUDTType dspUDTData;
 #endif
 
 /*
  * * static Function
  */
-
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 static boolean LookupDDD(uint16 didNr, const Dcm_DspDDDType **DDid);
+#endif
 static Dcm_NegativeResponseCodeType checkAddressRange(DspMemoryServiceType serviceType, uint8 memoryIdentifier, uint32 memoryAddress, uint32 length);
 static const Dcm_DspMemoryRangeInfo* findRange(const Dcm_DspMemoryRangeInfo *memoryRangePtr, uint32 memoryAddress, uint32 length);
 static Dcm_NegativeResponseCodeType writeMemoryData(Dcm_OpStatusType* OpStatus, uint8 memoryIdentifier, uint32 MemoryAddress, uint32 MemorySize, uint8 *SourceData);
@@ -292,6 +293,64 @@ static boolean Dcm_LookupService(uint8 serviceId,const Dcm_DsdServiceType **dsdS
 #if defined(DCM_USE_SERVICE_REQUEST_CURRENT_POWERTRAIN_DIAG_DATA) || defined(DCM_USE_SERVICE_REQUEST_POWERTRAIN_FREEZE_FRAME_DATA)
 static boolean lookupPid(uint8 pidId,const Dcm_DspPidType **PidPtr);
 #endif
+
+static void DspMainFunctionWrite(void)
+{
+	Dcm_ReturnWriteMemoryType WriteRet;
+	WriteRet = Dcm_WriteMemory(DCM_PENDING,0,0,0,0);
+	if(WriteRet == DCM_WRITE_OK)/*asynchronous writing is ok*/
+	{
+		DsdDspProcessingDone(DCM_E_POSITIVE_RESPONSE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else if(WriteRet == DCM_WRITE_FAILED)
+	{
+		DsdDspProcessingDone(DCM_E_GENERAL_PROGRAMMING_FAILURE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else
+	{
+
+	}
+}
+static void DspMainFunctionRead(void)
+{
+	Dcm_ReturnReadMemoryType ReadRet;
+	ReadRet = Dcm_ReadMemory(DCM_PENDING,0,0,0,0);
+	if(ReadRet == DCM_READ_OK)/*asynchronous read is ok*/
+	{
+		DsdDspProcessingDone(DCM_E_POSITIVE_RESPONSE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else if(ReadRet == DCM_READ_FAILED)
+	{
+		DsdDspProcessingDone(DCM_E_GENERAL_PROGRAMMING_FAILURE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else
+	{
+
+	}
+}
+static void DspMainFunctionErase(void)
+{
+	Dcm_ReturnReadMemoryType EraseRet;
+	EraseRet = Dcm_EraseMemory(DCM_PENDING,0,0,0);
+	if(EraseRet == DCM_ERASE_OK)/* asynchronous erasing is OK */
+	{
+		DsdDspProcessingDone(DCM_E_POSITIVE_RESPONSE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else if(EraseRet == DCM_ERASE_FAILED)
+	{
+		DsdDspProcessingDone(DCM_E_GENERAL_PROGRAMMING_FAILURE);
+		dspMemoryState = DCM_MEMORY_UNUSED;
+	}
+	else
+	{
+
+	}
+}
 /* OBD */
 /*
 *   end  
@@ -303,7 +362,6 @@ void DspInit(void)
 	dspUdsEcuResetData.resetPending = DCM_DSP_RESET_NO_RESET;
 	dspUdsSessionControlData.sessionPending = FALSE;
 
-	dspWritePending = FALSE;
 	dspMemoryState=DCM_MEMORY_UNUSED;
 #ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 	/* clear periodic send buffer */
@@ -346,42 +404,21 @@ void DspResetMainFunction(void)
 
 void DspMemoryMainFunction(void)
 {
-	Dcm_ReturnWriteMemoryType WriteRet;
-	Dcm_ReturnReadMemoryType ReadRet;
 	switch(dspMemoryState)
 	{
 		case DCM_MEMORY_UNUSED:
 			break;
 		case DCM_MEMORY_READ:
-			ReadRet = Dcm_ReadMemory(DCM_PENDING,0,0,0,0);
-			if(ReadRet == DCM_READ_OK)/*asynchronous writing is ok*/
-			{
-				DsdDspProcessingDone(DCM_E_POSITIVE_RESPONSE);
-				dspMemoryState = DCM_MEMORY_UNUSED;
-			}
-			if(ReadRet == DCM_READ_FAILED)
-			{
-				DsdDspProcessingDone(DCM_E_GENERAL_PROGRAMMING_FAILURE);
-				dspMemoryState = DCM_MEMORY_UNUSED;
-			}
+			DspMainFunctionRead();
 			break;
 		case DCM_MEMORY_WRITE:
-			WriteRet = Dcm_WriteMemory(DCM_PENDING,0,0,0,0);
-			if(WriteRet == DCM_WRITE_OK)/*asynchronous writing is ok*/
-			{
-				DsdDspProcessingDone(DCM_E_POSITIVE_RESPONSE);
-				dspMemoryState = DCM_MEMORY_UNUSED;
-			}
-			if(WriteRet == DCM_WRITE_FAILED)
-			{
-				DsdDspProcessingDone(DCM_E_GENERAL_PROGRAMMING_FAILURE);
-				dspMemoryState = DCM_MEMORY_UNUSED;
-			}
+			DspMainFunctionWrite();
 			break;
-
+		case DCM_MEMORY_ERASE:
+			DspMainFunctionErase();
+			break;
 			default:
 			break;
-			
 	}
 }
 #ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
@@ -1349,6 +1386,7 @@ static Dcm_NegativeResponseCodeType readDidData(const Dcm_DspDidType *didPtr, Pd
 /**
 **		This Function for read Dynamically Did data buffer Sourced by Memory address using a didNr
 **/
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 static Dcm_NegativeResponseCodeType readDDDData(Dcm_DspDDDType *DDidPtr, uint8 *Data, uint16 *Length)
 {
 	uint8 i;
@@ -1426,7 +1464,7 @@ static Dcm_NegativeResponseCodeType readDDDData(Dcm_DspDDDType *DDidPtr, uint8 *
 	}
 	return responseCode;
 }
-
+#endif
 void DspUdsReadDataByIdentifier(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 {
 	/** @req DCM253 */
@@ -1435,10 +1473,12 @@ void DspUdsReadDataByIdentifier(const PduInfoType *pduRxData, PduInfoType *pduTx
 	uint16 nrOfDids;
 	uint16 didNr;
 	const Dcm_DspDidType *didPtr = NULL;
+#ifdef DCM_USE_SERVICE_DYNAMICALLY_DEFINE_DATA_IDENTIFIER
 	Dcm_DspDDDType *DDidPtr=NULL;
+	uint16 Length;
+#endif
 	uint16 txPos = 1;
 	uint16 i;
-	uint16 Length;
 	boolean noRequestedDidSupported = TRUE;
 
 	if ( ((pduRxData->SduLength - 1) % 2) == 0 ) {
@@ -1931,14 +1971,27 @@ void DspUdsRoutineControl(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 		responseCode = DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT;
 	}
 
-	if (responseCode == DCM_E_POSITIVE_RESPONSE) {
+	if ( (responseCode == DCM_E_POSITIVE_RESPONSE)
+		#ifdef __AS_BOOTLOADER__
+		|| ((responseCode == DCM_E_RESPONSE_PENDING) && (0xFF01 == routineId))
+		#endif
+	   )
+	{
 		// Add header to the positive response message
 		pduTxData->SduDataPtr[1] = subFunctionNumber;
 		pduTxData->SduDataPtr[2] = (routineId >> 8) & 0xFFu;
 		pduTxData->SduDataPtr[3] = routineId & 0xFFu;
 	}
-
-	DsdDspProcessingDone(responseCode);
+	#ifdef __AS_BOOTLOADER__
+	if ((responseCode == DCM_E_RESPONSE_PENDING) && (0xFF01 == routineId))
+	{
+		dspMemoryState=DCM_MEMORY_ERASE;
+	}
+	else
+	#endif
+	{
+		DsdDspProcessingDone(responseCode);
+	}
 }
 
 
@@ -2020,13 +2073,6 @@ void DspDcmConfirmation(PduIdType confirmPduId)
 		if (confirmPduId == dspUdsEcuResetData.resetPduId) {
 			dspUdsEcuResetData.resetPending = DCM_DSP_RESET_NO_RESET;
 			DcmE_EcuPerformReset(dspUdsEcuResetData.resetType);
-			if(DCM_HARD_RESET == dspUdsEcuResetData.resetType) {
-#if defined(USE_MCU) && ( MCU_PERFORM_RESET_API == STD_ON )
-				Mcu_PerformReset();
-#else
-				DET_REPORTERROR(MODULE_ID_DCM, 0, DCM_UDS_RESET_ID, DCM_E_NOT_SUPPORTED);
-#endif
-			}
 		}
 	}
 
@@ -2076,7 +2122,7 @@ static Dcm_NegativeResponseCodeType checkAddressRange(DspMemoryServiceType servi
 			{
 				memoryRangeInfo = findRange( dspMemoryInfo->pReadMemoryInfo, memoryAddress, length );
 			}
-			else
+			else	/* for erase and write */
 			{
 				memoryRangeInfo = findRange( dspMemoryInfo->pWriteMemoryInfo, memoryAddress, length );
 			}
@@ -2337,6 +2383,33 @@ static Dcm_NegativeResponseCodeType writeMemoryData(Dcm_OpStatusType* OpStatus,
 	
 	return responseCode;
 }
+#ifdef __AS_BOOTLOADER__
+static Dcm_NegativeResponseCodeType eraseMemory(uint8 memoryIdentifier,
+												uint32 MemoryAddress,
+												uint32 MemorySize)
+{
+	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
+	Dcm_ReturnEraseMemoryType eraseRet;
+	eraseRet = Dcm_EraseMemory( DCM_INITIAL,
+								memoryIdentifier,
+								MemoryAddress,
+								MemorySize);
+	if(DCM_ERASE_FAILED == eraseRet)
+	{
+		responseCode = DCM_E_GENERAL_PROGRAMMING_FAILURE;   /*@req UDS_REQ_0X3D_16,DCM643*/
+	}
+	else if(DCM_ERASE_PENDING == eraseRet)
+	{
+		responseCode = DCM_E_RESPONSE_PENDING;
+	}
+	else
+	{
+		responseCode = DCM_E_POSITIVE_RESPONSE;
+	}
+
+	return responseCode;
+}
+#endif
 #ifdef DCM_USE_SERVICE_READ_DATA_BY_PERIODIC_IDENTIFIER
 static boolean checkPeriodicIdentifierBuffer(uint8 PeriodicDid,uint8 Length,uint8 *postion)
 {
@@ -4340,12 +4413,7 @@ void DspObdRequestvehicleinformation(const PduInfoType *pduRxData,PduInfoType *p
 }
 #endif
 
-#ifdef DCM_USE_SERVICE_UPLOAD_DOWNLOAD
-// If dataFormatIdentifier is Valid Then
-//   return TRUE
-// Else
-//   return FALSE
-// End If
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 static boolean checkDataFormatIdentifier(uint8 dataFormatIdentifier)
 {
 	boolean rv = FALSE;
@@ -4364,7 +4432,8 @@ static boolean checkDataFormatIdentifier(uint8 dataFormatIdentifier)
 
 	return rv;
 }
-// DATA Transfer Service
+#endif
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
 void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
@@ -4429,6 +4498,8 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	}
 	DsdDspProcessingDone(responseCode);
 }
+#endif
+#if defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
@@ -4493,6 +4564,8 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	}
 	DsdDspProcessingDone(responseCode);
 }
+#endif
+#ifdef DCM_USE_SERVICE_TRANSFER_DATA
 void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
@@ -4581,6 +4654,8 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	}
 	DsdDspProcessingDone(responseCode);
 }
+#endif
+#ifdef DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT
 void DspRequestTransferExit(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
@@ -4603,5 +4678,21 @@ void DspRequestTransferExit(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	}
 	DsdDspProcessingDone(responseCode);
 }
+#endif
 
+#ifdef __AS_BOOTLOADER__
+Std_ReturnType BL_StartEraseFlash(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
+{
+
+	uint32 memoryAddress = ((uint32)inBuffer[0]<<24) + ((uint32)inBuffer[1]<<16) + ((uint32)inBuffer[2]<<8) +((uint32)inBuffer[3]);
+	uint32 length  = ((uint32)inBuffer[4]<<24) + ((uint32)inBuffer[5]<<16) + ((uint32)inBuffer[6]<<8) +((uint32)inBuffer[7]);
+	uint8  memoryIdentifier = inBuffer[8];
+	*errorCode = checkAddressRange(DCM_WRITE_MEMORY, memoryIdentifier, memoryAddress, length);
+	if( DCM_E_POSITIVE_RESPONSE == *errorCode )
+	{
+		*errorCode = eraseMemory(memoryIdentifier, memoryAddress, length);
+	}
+
+	return E_OK;
+}
 #endif

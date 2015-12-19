@@ -123,6 +123,7 @@ endif
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
+def-y += -D__AS_BOOTLOADER__
 
 $(inc-dir)/utility:
 	@mkdir -p $@

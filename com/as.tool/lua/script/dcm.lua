@@ -68,12 +68,16 @@ function get_nrc_name(nrc)
     name = "incorrect message length or invalid format"
   elseif nrc == 0x22 then
     name = "condition not ok"
+  elseif nrc == 0x31 then
+    name = "request out of range"    
   elseif nrc == 0x33 then
     name = "security access denied"
   elseif nrc == 0x35 then
     name = "invalid key"
+  elseif nrc == 0x72 then
+    name = "general programming failure"
   elseif nrc == 0x7f then
-    name = "service not suppoted in active session"
+    name = "service not supported in active session"
   else
     name = string.format("unknown(%X)",nrc)
   end

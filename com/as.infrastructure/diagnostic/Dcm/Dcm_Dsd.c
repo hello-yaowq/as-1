@@ -231,16 +231,22 @@ static void selectServiceFunction(uint8 sid)
 		break;
 #endif
 	/* OBD */
-#ifdef DCM_USE_SERVICE_UPLOAD_DOWNLOAD
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
 	case SID_REQUEST_DOWNLOAD:
 		DspRequestDownload(msgData.pduRxData, msgData.pduTxData);
 		break;
+#endif
+#if defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 	case SID_REQUEST_UPLOAD:
 		DspRequestUpload(msgData.pduRxData, msgData.pduTxData);
 		break;
+#endif
+#if defined(DCM_USE_SERVICE_TRANSFER_DATA)
 	case SID_TRANSFER_DATA:
 		DspTransferData(msgData.pduRxData, msgData.pduTxData);
 		break;
+#endif
+#ifdef DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT
 	case SID_REQUEST_TRANSFER_EXIT:
 		DspRequestTransferExit(msgData.pduRxData, msgData.pduTxData);
 		break;

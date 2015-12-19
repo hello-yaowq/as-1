@@ -86,6 +86,13 @@ typedef uint8 Dcm_ReturnWriteMemoryType;
 #define DCM_WRITE_FAILED				((Dcm_ReturnWriteMemoryType)0x02)
 
 /*
+ * Dcm_ReturnReadMemoryType
+ */
+typedef uint8 Dcm_ReturnEraseMemoryType;
+#define DCM_ERASE_OK						((Dcm_ReturnEraseMemoryType)0x00)
+#define DCM_ERASE_PENDING					((Dcm_ReturnEraseMemoryType)0x01)
+#define	DCM_ERASE_FAILED					((Dcm_ReturnEraseMemoryType)0x02)
+/*
  * Dcm_OpStatusType
  */
 typedef uint8 Dcm_OpStatusType;

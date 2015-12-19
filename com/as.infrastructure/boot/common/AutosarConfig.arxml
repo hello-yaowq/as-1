@@ -120,7 +120,7 @@
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
-<Start Comment="4 byte address, 4 byte size" RecordSizeOfRequest="8" RecordSizeOfResponse="0" />
+<Start Comment="4 byte address, 4 byte size, 1 byte identifier" RecordSizeOfRequest="9" RecordSizeOfResponse="0" />
 </RoutineInfo>
 </RoutineInfoList>
 <RoutineList Max="TBD">
@@ -236,37 +236,7 @@
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>
-<Service Comment="*" Name="READ_DATA_BY_IDENTIFIER" SubFunctionSupported="False">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
 <Service Comment="*" Name="ROUTINE_CONTROL" SubFunctionSupported="True">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="WRITE_DATA_BY_IDENTIFIER" SubFunctionSupported="False">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="INPUT_OUTPUT_CONTROL_BY_IDENTIFIER" SubFunctionSupported="True">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 <Security Comment="*" Name="EXTDS" />
@@ -286,6 +256,31 @@
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>
+<Service Comment="*" Name="REQUEST_DOWNLOAD" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="REQUEST_UPLOAD" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="TRANSFER_DATA" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="REQUEST_TRANSFER_EXIT" SubFunctionSupported="False" />
 </ServiceList>
 </ServiceTable>
 </ServiceTableList>

@@ -15,6 +15,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "bootloader.h"
 #include "Flash.h"
+#include "Os.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -29,28 +30,47 @@ static tFlashParam FlashParam =
     .wdTriggerFct = NULL,
     .errorcode   = kFlashOk,
 };
+static TimerType eraseTimer;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
-Std_ReturnType BL_StartEraseFlash(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
+Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
+											   uint8 MemoryIdentifier,
+											   uint32 MemoryAddress,
+											   uint32 MemorySize)
 {
+	Dcm_ReturnEraseMemoryType rv;
 	if(FALSE == fls_initialized)
 	{
 		FLASH_DRIVER_INIT(FLASH_DRIVER_STARTADDRESS,&FlashParam);
 		fls_initialized = TRUE;
 	}
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	uint32 address = ((uint32)inBuffer[0]<<24) + ((uint32)inBuffer[1]<<16) + ((uint32)inBuffer[2]<<8) +((uint32)inBuffer[3]);
-	uint32 length  = ((uint32)inBuffer[4]<<24) + ((uint32)inBuffer[5]<<16) + ((uint32)inBuffer[6]<<8) +((uint32)inBuffer[7]);
 
-	FlashParam.address = address;
-	FlashParam.length = length;
+	if(DCM_INITIAL == OpStatus)
+	{
+		FlashParam.address = MemoryAddress;
+		FlashParam.length = MemorySize;
 
-	ASLOG(BL,"%s(%X,%X)\n",__func__,address,length);
+		ASLOG(BL,"%s(%X,%X)\n",__func__,MemoryAddress,MemorySize);
 
-	FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&FlashParam);
+		FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&FlashParam);
+		rv = DCM_ERASE_PENDING;
 
-	return E_OK;
+		StartTimer(&eraseTimer);
+	}
+	else
+	{
+		if(GetTimer(&eraseTimer) > 2000)
+		{
+			rv = DCM_ERASE_OK;
+		}
+		else
+		{
+			rv = DCM_ERASE_PENDING;
+		}
+	}
+
+	return rv;
 }
 
 Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,

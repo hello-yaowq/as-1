@@ -36,6 +36,15 @@ Dcm_ReturnReadMemoryType __weak Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 	return DCM_WRITE_FAILED;
 }
 
+
+Dcm_ReturnEraseMemoryType __weak Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
+											   uint8 MemoryIdentifier,
+											   uint32 MemoryAddress,
+											   uint32 MemorySize)
+{
+	return DCM_WRITE_FAILED;
+}
+
 void Dcm_DiagnosticSessionControl(Dcm_SesCtrlType session)
 {
 
