@@ -55,6 +55,8 @@
 #include <string.h>
 
 
+#define AS_LOG_CANTP    0
+
 
 #if  ( CANTP_DEV_ERROR_DETECT == STD_ON ) /** @req CANTP006 *//** @req CANTP134 */
 
@@ -1252,7 +1254,7 @@ void CanTp_MainFunction(void)
 			case RX_WAIT_CONSECUTIVE_FRAME: {
 				TIMER_DECREMENT (rxRuntimeListItem->iso15765.stateTimeoutCount);
 				if (rxRuntimeListItem->iso15765.stateTimeoutCount == 0) {
-					ASLOG(CANTP, "TIMEOUT!\n");
+					ASLOG(CANTP,"CANTP TIMEOUT!\n");
 					PduR_CanTpRxIndication(rxConfigListItem->PduR_PduId, NTFRSLT_E_NOT_OK);
 					rxRuntimeListItem->iso15765.state = IDLE;
 					rxRuntimeListItem->mode = CANTP_RX_WAIT;

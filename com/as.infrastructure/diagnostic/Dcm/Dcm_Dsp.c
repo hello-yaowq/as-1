@@ -372,7 +372,7 @@ void DspInit(void)
 	/* clear dynamically Did buffer */
 	memset(&dspDDD[0],0,sizeof(dspDDD));
 #endif
-#ifdef DCM_USE_SERVICE_UPLOAD_DOWNLOAD
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 	/* clear Upload Download Transfer Data */
 	memset(&dspUDTData,0,sizeof(dspUDTData));
 #endif
@@ -4670,7 +4670,7 @@ void DspRequestTransferExit(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	if(pduRxData->SduLength>=1)
 	{
 		if( (DCM_UDT_IDLE_STATE != dspUDTData.state)
-			&& (0u == dspUDTData.memorySize))
+			/* && (0u == dspUDTData.memorySize) */)
 		{
 			memset(&dspUDTData,0u,sizeof(dspUDTData)); // Exit
 			pduTxData->SduLength = 1;
@@ -4716,8 +4716,6 @@ Std_ReturnType BL_StartEraseFlash(uint8 *inBuffer, uint8 *outBuffer, Dcm_Negativ
 	{
 		*errorCode = eraseMemory(memoryIdentifier, memoryAddress, length);
 	}
-
-	dspUDTData.state = DCM_UDT_IDLE_STATE;
 
 	return E_OK;
 }

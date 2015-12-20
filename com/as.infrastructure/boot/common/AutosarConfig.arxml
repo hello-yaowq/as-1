@@ -252,7 +252,14 @@
 <Session Comment="*" Name="PRGS" />
 </SessionList>
 </Service>
-<Service Comment="*" Name="REQUEST_TRANSFER_EXIT" SubFunctionSupported="False" />
+<Service Comment="*" Name="REQUEST_TRANSFER_EXIT" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+</Service>
 </ServiceList>
 </ServiceTable>
 </ServiceTableList>

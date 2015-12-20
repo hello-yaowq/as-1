@@ -23,7 +23,6 @@
 #define AS_LOG_RPMSG    0
 #define AS_LOG_CAN      0
 #define AS_LOG_CANIF    0
-#define AS_LOG_CANTP    0
 #define AS_LOG_LUA      0
 #define AS_LOG_OS       0
 #define AS_LOG_FLS      1
