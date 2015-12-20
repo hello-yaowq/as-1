@@ -386,8 +386,10 @@ TASK(SchM_Startup){
 	CanSM_RequestComMode(CANSM_CHL_LS,COMM_FULL_COMMUNICATION);
 	CanSM_RequestComMode(CANSM_CHL_HS,COMM_FULL_COMMUNICATION);
 #else
+#ifdef USE_CANIF
 	CanIf_SetControllerMode(CANIF_CHL_LS,CANIF_CS_STARTED);
 	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
+#endif
 #endif
 
 #if defined(USE_COMM)

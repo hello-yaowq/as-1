@@ -12,10 +12,15 @@
 -- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- * for more details.
 -- */
+-- ===================== [ INCLUDE  ] ================================
 require("dcm")
 require("as")
-local can_bus = 0
+-- ===================== [ MACRO    ] ================================
 
+-- ===================== [ LOCAL    ] ================================
+local can_bus = 0
+-- ===================== [ DATA     ] ================================
+-- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
   ercd,res = dcm.transmit(can_bus,{0x10,0x03})
   

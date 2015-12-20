@@ -24,7 +24,7 @@ static TimerType ledTimer;
 static Dio_LevelType ioStsLed1;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void KsmLEDsAPP_Init                    (void)
+KSM(LEDsAPP,Init)
 {
 
 	ioStsLed1 = STD_HIGH;
@@ -34,17 +34,17 @@ void KsmLEDsAPP_Init                    (void)
 	Dio_WriteChannel(DIO_CHL_LED2,STD_LOW);
 	Dio_WriteChannel(DIO_CHL_LED3,STD_LOW);
 
-	KsmGotoState(LEDsAPP,Running);
+	KGS(LEDsAPP,Running);
 }
-void KsmLEDsAPP_Start                   (void)
+KSM(LEDsAPP,Start)
 {
 
 }
-void KsmLEDsAPP_Stop                    (void)
+KSM(LEDsAPP,Stop)
 {
 
 }
-void KsmLEDsAPP_Running                 (void)
+KSM(LEDsAPP,Running)
 {
 	if(GetTimer(&ledTimer) > 500)
 	{

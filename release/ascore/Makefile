@@ -286,7 +286,8 @@ endif
 dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)	
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
@@ -301,6 +302,14 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
+ifeq ($(rtos),smallos)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)
+else
+	$(error for small os, on-gcc compiler is not supported)
+endif
+endif
 ifeq ($(rtos),freertos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/include FALSE)

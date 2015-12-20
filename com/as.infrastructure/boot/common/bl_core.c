@@ -71,7 +71,7 @@ static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 				length = blMemorySize;
 			}
 			blFlashParam.address = blMemoryAddress;
-			blFlashParam.length = length;
+			blFlashParam.length  = length;
 			blFlashParam.data    = (tData*)blMemoryData;
 			FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&blFlashParam);
 			blMemoryAddress += length;
@@ -89,7 +89,8 @@ static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			}
 			else
 			{
-				ASLOG(BL,"erase faile: errorcode = %X\n",blFlashParam.errorcode);
+				ASLOG(BL,"erase faile: errorcode = %X(addr=%X,size=%X)\n",
+						blFlashParam.errorcode,blFlashParam.address,blFlashParam.length);
 				rv = DCM_ERASE_FAILED;
 			}
 			break;
@@ -143,8 +144,8 @@ static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			}
 			else
 			{
-				ASLOG(BL,"write faile: errorcode = %X, address = %X\n",
-						blFlashParam.errorcode,blFlashParam.errorAddress);
+				ASLOG(BL,"write faile: errorcode = %X(addr=%X,size=%X)\n",
+						blFlashParam.errorcode,blFlashParam.address,blFlashParam.length);
 				rv = DCM_WRITE_FAILED;
 			}
 			break;
@@ -205,12 +206,6 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 			break;
 	}
 	return rv;
-	blFlashParam.address = MemoryAddress;
-	blFlashParam.length = MemorySize;
-	blFlashParam.data = (tData*)MemoryData;
-	FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&blFlashParam);
-
-	return DCM_WRITE_OK;
 }
 
 /*@req Dcm495*/

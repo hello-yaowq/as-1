@@ -105,7 +105,9 @@ void vEcu::run(void)
 {
     ASLOG(VECU,"starting the Ecu<%s>\n",name.toStdString().c_str());
     virtio->start();
-    pfMain();
+    const char* argv[1];
+    argv[0] = name.toStdString().c_str();
+    pfMain(1,argv);
 }
 
 vmEcu::vmEcu(vEcu* ecu,QWidget* parent)

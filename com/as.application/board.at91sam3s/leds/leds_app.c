@@ -23,7 +23,7 @@
 static TimerType ledTimer;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void KsmLEDsAPP_Init                    (void)
+KSM(LEDsAPP,Init)
 {
 	LED_Configure(LED_BLUE);
 	LED_Configure(LED_RED);
@@ -32,17 +32,17 @@ void KsmLEDsAPP_Init                    (void)
 
 	StartTimer(&ledTimer);
 
-	KsmGotoState(LEDsAPP,Running);
+	KGS(LEDsAPP,Running);
 }
-void KsmLEDsAPP_Start                   (void)
+KSM(LEDsAPP,Start)
 {
 
 }
-void KsmLEDsAPP_Stop                    (void)
+KSM(LEDsAPP,Stop)
 {
 
 }
-void KsmLEDsAPP_Running                 (void)
+KSM(LEDsAPP,Running)
 {
 	if(GetTimer(&ledTimer) > 500)
 	{

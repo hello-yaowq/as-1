@@ -149,9 +149,15 @@ void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 }
 int main(int argc,char* argv[])
 {
-	(void)argc;(void)argv;
-	StartupHook();
+	if( argc != 1 )
+	{
+		lua_main(argc,argv);
+	}
+	else
+	{
+		StartupHook();
 
-	SHELL_Mainloop();
+		SHELL_Mainloop();
+	}
 	return 0;
 }
