@@ -177,9 +177,9 @@
 			BS="Integer Range=0~255 Default=8 PosGUI=5 \n Comment=(MaxReceiveBlockSize:If BS=0, no restrict.) "
 			STmin="Integer Range=0~255 Default=1 Unit=ms PosGUI=6 Comment=(minimum transmission delay)"
 			MaxBusyTransmission="Integer Range=0~255 Comment=(? ~_~ ?) PosGUI=7"
-			Nar="Integer Range=0~255 Default=1 PosGUI=8 \n Unit=ms \n Comment=(transmission time)"
-			Nbr="Integer Range=0~255 Default=100 PosGUI=9 \n Unit=ms \n Comment=(transmission time untill flow control)"
-			Ncr="Integer Range=0~255 Default=1 PosGUI=10 \n Unit=ms \n Comment=(transmission request delay)"
+			Nar="Integer Range=0~255 Default=25 PosGUI=8 \n Unit=ms \n Comment=(transmission time)"
+			Nbr="Integer Range=0~255 Default=25 PosGUI=9 \n Unit=ms \n Comment=(transmission time untill flow control)"
+			Ncr="Integer Range=0~255 Default=150 PosGUI=10 \n Unit=ms \n Comment=(transmission request delay)"
 			Comment="TextArea Default=* PosGUI=11"
 			>
 		</Sdu>
@@ -191,9 +191,9 @@
 			RxFcPduRef="EnumRef=EcuC.PduList PosGUI=2"
 			Padding="Enum=(ON,OFF) Default=ON Comment=(If ON,Padding value is 0x55) PosGUI=3"
 			CommunicationType="Enum=(PHYSICAL,FUNCTION) Default=PHYSICAL Enabled=(False) \n Comment=(Only Physical is supported) PosGUI=4"
-			Nas="Integer Range=0~255 Default=1 PosGUI=5 \n Unit=ms \n Comment=(transmission time)"
-			Nbs="Integer Range=0~255 Default=100 PosGUI=6 \n Unit=ms \n Comment=(transmission time untill flow control)"
-			Ncs="Integer Range=0~255 Default=1 PosGUI=7 \n Unit=ms \n Comment=(transmission request delay)"
+			Nas="Integer Range=0~255 Default=25 PosGUI=5 \n Unit=ms \n Comment=(transmission time)"
+			Nbs="Integer Range=0~255 Default=75 PosGUI=6 \n Unit=ms \n Comment=(transmission time untill flow control)"
+			Ncs="Integer Range=0~255 Default=25 PosGUI=7 \n Unit=ms \n Comment=(transmission request delay)"
 			Comment="TextArea Default=* PosGUI=8"
 			>
 		</Sdu>

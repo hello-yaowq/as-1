@@ -49,10 +49,10 @@
 <CanTp>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="OFF" />
 <RxSduList Max="TBD">
-<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" />
+<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="25" Nbr="25" Ncr="150" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" />
 </RxSduList>
 <TxSduList Max="TBD">
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" />
+<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="25" Nbs="75" Ncs="25" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" />
 </TxSduList>
 </CanTp>
 <PduR>

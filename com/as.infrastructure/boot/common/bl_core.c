@@ -127,7 +127,7 @@ static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			blFlashParam.address = blMemoryAddress;
 			blFlashParam.length = length;
 			blFlashParam.data    = (tData*)blMemoryData;
-			FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&blFlashParam);
+			FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&blFlashParam);
 			blMemoryAddress += length;
 			blMemorySize    -= length;
 			blMemoryData    = &blMemoryData[length/sizeof(uint32)];
