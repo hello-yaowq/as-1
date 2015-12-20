@@ -47,7 +47,8 @@
 #include "Mcu.h"
 #endif
 
-#include "debug.h"
+#include "asdebug.h"
+#define AS_LOG_DCM 1
 
 /*
  * Macros
@@ -254,10 +255,10 @@ typedef enum
 typedef struct
 {
 	Dcm_DspUDTStateType  state;
-	uint8  dataFormatIdentifier;
 	uint32 memoryAddress;
 	uint32 memorySize;
 	uint8  blockSequenceCounter;
+	uint8  dataFormatIdentifier;
 }Dcm_DspUDTType;
 #if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 static Dcm_DspUDTType dspUDTData;
@@ -493,7 +494,7 @@ boolean DspCheckSessionLevel(Dcm_DspSessionRowType const* const* sessionLevelRef
 		}
 	}
 
-	DEBUG(DEBUG_MEDIUM,"DspCheckSessionLevel()=%s\n",(TRUE==levelFound)?"True":"False");
+	ASLOG(DCM,"DspCheckSessionLevel()=%s\n",(TRUE==levelFound)?"True":"False");
 	return levelFound;
 }
 
@@ -4444,7 +4445,8 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 		uint8 dataFormatIdentifier = pduRxData->SduDataPtr[1];
 		uint8 addressFormat = (uint8)((pduRxData->SduDataPtr[2]>>0u)&0x0Fu);
 		uint8 lengthFormat  = (uint8)((pduRxData->SduDataPtr[2]>>4u)&0x0Fu);
-		if((addressFormat+lengthFormat+3u) == pduRxData->SduLength)
+		uint8 memoryIdentifier = pduRxData->SduDataPtr[3+addressFormat+lengthFormat];
+		if((addressFormat+lengthFormat+4u) == pduRxData->SduLength)
 		{
 			if(DCM_UDT_IDLE_STATE == dspUDTData.state )
 			{
@@ -4460,7 +4462,8 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 					{
 						memorySize = (memorySize<<8) + pduRxData->SduDataPtr[3+addressFormat+i];
 					}
-					responseCode = checkAddressRange(DCM_WRITE_MEMORY,0xFF,memoryAddress,memorySize);
+
+					responseCode = checkAddressRange(DCM_WRITE_MEMORY,memoryIdentifier,memoryAddress,memorySize);
 
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
@@ -4470,6 +4473,7 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						dspUDTData.dataFormatIdentifier = dataFormatIdentifier;
 						dspUDTData.blockSequenceCounter = 1u;
 
+						ASLOG(DCM,"request download addr(%X) size(%X),memory=%X",memoryAddress,memorySize,memoryIdentifier);
 						// create positive response code
 						pduTxData->SduDataPtr[1] = 0x20;  //lengthFormatIdentifier = 2 Bytes
 
@@ -4570,24 +4574,25 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
-	if(pduRxData->SduLength>=2)
+	if(pduRxData->SduLength>=4)
 	{
 		if((DCM_UDT_UPLOAD_STATE == dspUDTData.state)
 				&&(dspUDTData.memorySize>0))
 		{
-			if(2 == pduRxData->SduLength)
+			if(4 == pduRxData->SduLength)
 			{
 				if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
 				{
 					Dcm_OpStatusType OpStatus;
 					uint32 memoryAddress = dspUDTData.memoryAddress;
 					uint32 length = 128;
+					uint8   memoryIdentifier = pduRxData->SduDataPtr[3];
 					if(dspUDTData.memorySize < length)
 					{
 						length = dspUDTData.memorySize;
 					}
 
-					responseCode = readMemoryData(&OpStatus, 0xFF, memoryAddress, length, pduTxData);
+					responseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, pduTxData);
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
 						dspUDTData.memoryAddress += length;
@@ -4616,14 +4621,16 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 			{
 				Dcm_OpStatusType OpStatus;
 				uint32 memoryAddress = dspUDTData.memoryAddress;
-				uint32 length = pduRxData->SduLength-2;
+				uint32 length = pduRxData->SduLength-4;
+				uint8   memoryIdentifier = pduRxData->SduDataPtr[3];
 				if(dspUDTData.memorySize < length)
 				{
 					length = dspUDTData.memorySize;
 				}
 
-				responseCode = writeMemoryData(&OpStatus, 0xFF, memoryAddress, length,
-												&pduRxData->SduDataPtr[2]);
+				responseCode = writeMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length,
+												&pduRxData->SduDataPtr[4]);
+				ASLOG(DCM,"write memory addr(%X) size(%X),memory=%X",memoryAddress,length,memoryIdentifier);
 				if(DCM_E_POSITIVE_RESPONSE == responseCode)
 				{
 					dspUDTData.memoryAddress += length;
@@ -4709,6 +4716,8 @@ Std_ReturnType BL_StartEraseFlash(uint8 *inBuffer, uint8 *outBuffer, Dcm_Negativ
 	{
 		*errorCode = eraseMemory(memoryIdentifier, memoryAddress, length);
 	}
+
+	dspUDTData.state = DCM_UDT_IDLE_STATE;
 
 	return E_OK;
 }

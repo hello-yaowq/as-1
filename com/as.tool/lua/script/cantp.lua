@@ -83,7 +83,7 @@ local function sendSF(channel,data)
 end
 
 local function sendFF(channel,data)
-  
+  length = rawlen(data)
   bus = runtime[channel]["bus"]
   txid = runtime[channel]["txid"]
   pdu = {}

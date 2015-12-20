@@ -127,7 +127,6 @@ void FlashWrite(tFlashParam* FlashParam)
 	tAddress address;
 	tLength  length;
 	tData*    data;
-	uint32_t  i;
 	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
 		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
@@ -159,8 +158,8 @@ void FlashWrite(tFlashParam* FlashParam)
 			}
 			else
 			{
-				fseek(fp,FlashParam->address,SEEK_SET);
-				fwrite(FlashParam->data,FlashParam->length,1,fp);
+				fseek(fp,address,SEEK_SET);
+				fwrite(data,FlashParam->length,1,fp);
 				fclose(fp);
 				FlashParam->errorcode = kFlashOk;
 			}

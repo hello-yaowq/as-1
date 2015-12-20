@@ -51,7 +51,15 @@ function get_service_name(serviceid)
     elseif serviceid == 0x27 then
       service = "security access"
     elseif serviceid == 0x31 then
-      service = "routine control"      
+      service = "routine control"  
+    elseif serviceid == 0x34 then
+      service = "request download"        
+    elseif serviceid == 0x35 then
+      service = "request upload"
+    elseif serviceid == 0x36 then
+      service = "transfer data"
+    elseif serviceid == 0x37 then
+      service = "request transfer exit"        
     else
       service = string.format("unknown(%X)",serviceid)
     end
@@ -70,6 +78,8 @@ function get_nrc_name(nrc)
     name = "incorrect message length or invalid format"
   elseif nrc == 0x22 then
     name = "condition not ok"
+  elseif nrc == 0x24 then
+    name = "request sequence error"
   elseif nrc == 0x31 then
     name = "request out of range"    
   elseif nrc == 0x33 then

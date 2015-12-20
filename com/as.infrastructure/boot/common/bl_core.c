@@ -113,7 +113,7 @@ static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 		case DCM_INITIAL:
 			blMemoryAddress = MemoryAddress;
 			blMemorySize 	= MemorySize;
-			blMemoryData 	= (uint32*)&MemoryData[2]; /* uint32 aligned */
+			blMemoryData 	= (uint32*)MemoryData; /* should be uint32 aligned */
 			/* no break here intentionally */
 		case DCM_PENDING:
 			if(blMemorySize > (FL_WRITE_SECTOR_PER_CYCLE*FLASH_WRITE_SIZE))
