@@ -27,6 +27,11 @@ reSgTXT = re.compile(r'SgTXT\{(\d+)\}')
 qtApp = QtGui.QApplication(sys.argv)
 
 __SGL_MAX = 0
+
+
+def CName(s):
+    return s.replace('.','_').replace('/','_').replace('\\','_')
+
 class Sg():
     def __init__(self,file,option=None):
         self.file = file
@@ -54,7 +59,7 @@ class Sg():
                 fp.write('0x%-2X,'%(DOT))
         fp.write('\n};\n')
     def toU8Pixel(self,fp,X=0,Y=0):
-        name = os.path.basename(self.file).replace('.','_')
+        name = CName(os.path.basename(self.file))
         aname = os.path.abspath(self.file)
         fp.write('#include "SgRes.h"\n')
         fp.write('static const uint32 %s_bmp[] = \n{'%(name))
@@ -97,7 +102,7 @@ def GenearteSgBMP(widget,fph,fpc):
         raise Exception('size SG widget picture is not right <size=%s,len(SgPciture)=%s>!'%(size,len(IML)))
     fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size))
     for i,(file,x,y) in enumerate(IML):
-        name = os.path.basename(file).replace('.','_')
+        name = CName(os.path.basename(file))
         fp.write('\t&%s_BMP,\n'%(name))
         fph.write("#define SGR_%-32s %s\n"%(name.upper(),i))
     fp.write('};\n\n')
@@ -123,7 +128,7 @@ def GenearteSgBMP(widget,fph,fpc):
     fpc.write('\t\t/*d =*/%s,\n'%('0xFFFF/*no rotation*/'))
     fpc.write('\t\t/*l =*/%s,\n'%(widget.attrib['layer']))
     if(int(widget.attrib['layer'],10) > __SGL_MAX ): __SGL_MAX = int(widget.attrib['layer'],10)
-    name = os.path.basename(IML[0][0]).replace('.','_')
+    name = CName(os.path.basename(IML[0][0]))
     fpc.write('\t\t/*ri=*/SGR_%s,\n'%(name.upper()))
     fpc.write('\t\t/*src =*/&%s_SRC\n'%(widget.attrib['name']))
     fpc.write('\t},\n')  

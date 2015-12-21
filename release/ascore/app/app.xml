@@ -9,9 +9,6 @@
     		<Event name='Event1' mask='auto'/>
     		<Event name='Event2' mask='auto'/>
 		</Task>
-		<Alarm name='Alarm10ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='10' />
-		<Alarm name='Alarm20ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='10' period='20' />
-		<Alarm name='Alarm50ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='15' period='50' />
-		<Alarm name='Alarm100ms' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='20' period='100' />	
+		<Alarm name='AlarmApp' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />	
  	</Os>
 </AS>

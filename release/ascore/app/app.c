@@ -30,7 +30,7 @@ void StartupHook(void)
 #ifdef USE_GUI
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
-	OsSetRelAlarm(Alarm50ms, 10, 5);
+	OsSetRelAlarm(AlarmApp, 10, 5);
 #endif
 }
 
@@ -43,19 +43,9 @@ TASK(TaskApp)
 	OsTerminateTask(TaskApp);
 }
 
-ALARM(Alarm10ms)
-{
-}
-ALARM(Alarm20ms)
-{
-
-}
-ALARM(Alarm50ms)
+ALARM(AlarmApp)
 {
 	OsActivateTask(TaskApp);
-}
-ALARM(Alarm100ms)
-{
 }
 
 void ErrorHook(StatusType ercd)

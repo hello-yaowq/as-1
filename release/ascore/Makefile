@@ -183,10 +183,10 @@ $(src-dir):
 	@mkdir -p $@
 
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
-	@(cd SgDesign;$(SG) Sg.xml)	
+	@(cd SgDesign;$(SG) watch/Sg.xml)	
 
 SG:
-	@(cd SgDesign;$(SG) Sg.xml)
+	@(cd SgDesign;$(SG) watch/Sg.xml)
 	
 
 OS:

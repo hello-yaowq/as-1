@@ -19,7 +19,7 @@
 	>
 	<SgBMP 
 		name   = 'WatchBackground' 
-		locate = 'watch_bg.png' 
+		locate = 'watch/watch_bg.png' 
 		x      = '160' 				
 		y      = '160'  					
 		/>
@@ -37,7 +37,7 @@
 	>
 	<SgBMP 
 		name='PointerHour' 
-		locate='watch_pointer_hour.png' 
+		locate='watch/watch_pointer_hour.png' 
 		x='27' 
 		y='7' 
 		/>
@@ -55,7 +55,7 @@
 	>
 	<SgBMP 
 		name='sgwPointerMinute' 
-		locate='watch_pointer_minute.png' 
+		locate='watch/watch_pointer_minute.png' 
 		x='25'
 		y='6' 
 		/>
@@ -73,7 +73,7 @@
 	>
 	<SgBMP 
 		name='PointerSecond' 
-		locate='watch_pointer_second.png' 
+		locate='watch/watch_pointer_second.png' 
 		x='45' 
 		y='7' 
 		/>
@@ -101,7 +101,7 @@
 	type   = 'SgFont'
 	w      = '16'
 	h      = '16'
-	locate = 'Chinese16x16'
+	locate = 'watch/Chinese16x16'
 	/>
 </Sg>	
 
