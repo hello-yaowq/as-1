@@ -80,7 +80,7 @@ void* RefreshDate(SgWidget* w)
 	temp = (lt->tm_mon/10)%10;
 	Text[6] = '0' + temp;
 	temp = (lt->tm_mon)%10;
-	Text[7] = '0' + temp;
+	Text[7] = '1' + temp;
 
 	temp = (lt->tm_mday/10)%10;
 	Text[9] = '0' + temp;

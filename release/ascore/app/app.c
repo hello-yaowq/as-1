@@ -18,9 +18,6 @@
 #include "Sg.h"
 #include "Lcd.h"
 #endif
-#ifdef USE_CAN
-#include "Can.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -30,29 +27,19 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-	KSM_INIT();
 #ifdef USE_GUI
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
+	OsSetRelAlarm(Alarm50ms, 10, 5);
 #endif
 }
 
 TASK(TaskApp)
 {
-#ifdef USE_CAN
-	Can_PduType pdu;
-	uint8 data[8] = "RPmsgCAN";
-	pdu.id = 0x517;
-	pdu.length = 8;
-	pdu.swPduHandle = 0xFFFF;
-	pdu.sdu = data;
-
-	Can_Write(Can2Hth,&pdu);
-#endif
 #ifdef USE_GUI
 	Sg_ManagerTask();
 #endif
-	//printf("TaskApp is running\n");
+
 	OsTerminateTask(TaskApp);
 }
 

@@ -252,6 +252,8 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 
     Init();
 
+    StartupHook();
+
     for(;;)
     {
     	(void)Schedule();

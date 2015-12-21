@@ -17,6 +17,7 @@
 
 #include "Dcm.h"
 #include "Mcu.h"
+
 Dcm_ReturnWriteMemoryType __weak Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 											   uint8 MemoryIdentifier,
 											   uint32 MemoryAddress,

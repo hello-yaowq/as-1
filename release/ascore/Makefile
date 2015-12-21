@@ -116,6 +116,7 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
+def-y += -DUSE_GUI
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 
@@ -210,7 +211,8 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)

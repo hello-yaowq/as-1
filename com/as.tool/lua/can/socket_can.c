@@ -136,7 +136,7 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			/* This is obsolete as we do not read from the socket at all, but for */
 			/* this reason we can remove the receive list in the Kernel to save a */
 			/* little (really a very little!) CPU usage.                          */
-			setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
+			/* setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0); */
 
 			if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 				perror("CAN socket bind");
@@ -225,7 +225,7 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 {
 	int nbytes,len;
 	struct can_frame frame;
-	nbytes = recvfrom(&handle->s, &frame, CAN_MTU, 0, (struct sockaddr*)&handle->addr, &len);
+	nbytes = recvfrom(handle->s, &frame, sizeof(frame), 0, (struct sockaddr*)&handle->addr, &len);
 	if (nbytes < 0) {
 		perror("CAN socket read");
 		ASWARNING("CAN Socket port=%d read message failed!\n",handle->port);

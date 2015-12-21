@@ -23,6 +23,9 @@
 #if defined(__TOPPERS_OSEK__) || defined(__FREEOSEK__) || defined(__SMALL_OS__)
 #define OsActivateTask(x)	ActivateTask(TASK_ID_##x)
 #define OsTerminateTask(x)	TerminateTask()
+#define OsSetRelAlarm(x,a,b)	SetRelAlarm(ALARM_ID_##x,a,b)
+#define OsSetAbsAlarm(x,a,b)	SetAbsAlarm(ALARM_ID_##x,a,b)
+#define OsCancelAlarm(x)	CancelAlarm(ALARM_ID_##x)
 #endif /* AS_OS_BASED_ON_TOPPERS_OSEK */
 
 #if defined(__FREEOSEK__)

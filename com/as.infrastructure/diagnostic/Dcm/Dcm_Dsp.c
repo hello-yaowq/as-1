@@ -50,6 +50,11 @@
 #include "asdebug.h"
 #define AS_LOG_DCM 1
 
+Dcm_ReturnEraseMemoryType __weak Dcm_EraseMemory(Dcm_OpStatusType OpStatus, uint8 MemoryIdentifier, uint32 MemoryAddress, uint32 MemorySize);
+Dcm_ReturnWriteMemoryType __weak Dcm_WriteMemory(Dcm_OpStatusType OpStatus, uint8 MemoryIdentifier, uint32 MemoryAddress, uint32 MemorySize, uint8* MemoryData);
+Dcm_ReturnReadMemoryType  __weak Dcm_ReadMemory(Dcm_OpStatusType OpStatus, uint8 MemoryIdentifier, uint32 MemoryAddress, uint32 MemorySize, uint8* MemoryData);
+
+
 /*
  * Macros
  */
