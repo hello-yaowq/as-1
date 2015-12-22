@@ -37,8 +37,8 @@
 #define LCD_DRAWING_AREA 1
 #define cfgLcdHandle   LCD_DRAWING_AREA
 /* static malloc 1MB buffer */
-#define LCD_MAX_WIDTH    (1024)
-#define LCD_MAX_HEIGHT   (1024)
+#define LCD_MAX_WIDTH    (4096)
+#define LCD_MAX_HEIGHT   (2048)
 #define LCD_WIDTH        (lcdWidth*lcdPixel)
 #define LCD_HEIGHT       (lcdHeight*lcdPixel)
 

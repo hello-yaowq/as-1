@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Sg>
+<Sg w='320' h='480'>
 <!-- Sg Configuration File -->
 <!-- name: name of the widget or the resource -->
 <!-- SgBMP{n}: n static SgBMP resources -->

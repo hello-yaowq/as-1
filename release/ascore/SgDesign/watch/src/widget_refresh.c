@@ -1,5 +1,5 @@
 
-#include "SgRes.h"
+#include "Sg.h"
 #include <time.h>
 void* RefreshPointerHour(SgWidget* w)
 {

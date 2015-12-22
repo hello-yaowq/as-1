@@ -19,13 +19,9 @@
 
 /* ============================ [ MACROS    ] ====================================================== */
 /* declaration of the LCD size */
-#ifdef CHIP_AT91SAM3S
-#define SG_LCD_WIGTH 	240
-#define SG_LCD_HEIGHT   320
-#else
-#define SG_LCD_WIGTH 	320
-#define SG_LCD_HEIGHT   480
-#endif
+#define SG_LCD_WIGTH 	__SG_WIDTH__
+#define SG_LCD_HEIGHT   __SG_HEIGHT__
+
 enum
 {
 	SGT_DMP,
@@ -50,7 +46,7 @@ enum
 	SGL_12,
 	SGL_13,
 	SGL_14,
-	SGL_16,
+	SGL_15,
 	SGL_INVALID = 0xFF
 };
 /* ============================ [ TYPES     ] ====================================================== */
@@ -133,6 +129,7 @@ typedef struct
 	uint8  ri;  /* resource index */
 	const SgSRC const* src;
 }SgWidget;
+#include "SgRes.h"
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

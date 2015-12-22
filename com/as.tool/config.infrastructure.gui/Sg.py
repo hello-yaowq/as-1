@@ -61,7 +61,7 @@ class Sg():
     def toU8Pixel(self,fp,X=0,Y=0):
         name = CName(os.path.basename(self.file))
         aname = os.path.abspath(self.file)
-        fp.write('#include "SgRes.h"\n')
+        fp.write('#include "Sg.h"\n')
         fp.write('static const uint32 %s_bmp[] = \n{'%(name))
         IM = QImage(self.file)
         for y in range(0,IM.size().height()):
@@ -136,7 +136,7 @@ def GenearteSgBMP(widget,fph,fpc):
 def GenearteSgTXT(widget,fph,fpc):
     global __SGL_MAX
     fp = open('SgRes/%s.c'%(widget.attrib['name']),'w')
-    fp.write('#include "SgRes.h"\n')
+    fp.write('#include "Sg.h"\n')
     size = int(reSgTXT.search(widget.attrib['type']).groups()[0],10)
     
     FNT = []
@@ -183,7 +183,7 @@ def GenearteSgFont(widget,fph,fpc):
     locate = widget.attrib['locate']
     font_name = widget.attrib['name']
     fp = open('SgRes/%s.c'%(font_name),'w')
-    fp.write('#include "SgRes.h"\n\n')
+    fp.write('#include "Sg.h"\n\n')
     IML = []
     for png in glob.glob('%s/*.png'%(locate)):
         IML.append(png)
@@ -248,10 +248,11 @@ def GenerateSg(file):
     fph = open('SgRes/SgRes.h','w')
     fpc = open('SgRes/SgRes.c','w')
     fpc.write(__hh__)
-    fpc.write('\n#include "SgRes.h"\n')
+    fpc.write('\n#include "Sg.h"\n')
     fph.write(__hh__)
-    fph.write('\n#ifndef SGRES_H\n#define SGRES_H')
-    fph.write('\n#include "Sg.h"\n')
+    fph.write('\n#ifndef SGRES_H\n#define SGRES_H\n\n')
+    fph.write('#define __SG_WIDTH__ %s\n'%(root.attrib['w']))
+    fph.write('#define __SG_HEIGHT__ %s\n\n'%(root.attrib['h']))
     
     fpc.write('SgWidget SGWidget[%s] = \n{\n'%(len(widgets)))
     for w in widgets:

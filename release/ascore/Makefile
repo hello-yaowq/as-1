@@ -53,6 +53,9 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 #rtos?=freertos
 #rtos?=toppers_osek
 rtos?=smallos
+
+#sgapp ?= watch
+sgapp ?= virtual_cluster
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
@@ -183,10 +186,10 @@ $(src-dir):
 	@mkdir -p $@
 
 $(ASCORE)/SgDesign/SgRes/SgRes.h:
-	@(cd SgDesign;$(SG) watch/Sg.xml)	
+	@(cd SgDesign;$(SG) $(sgapp)/Sg.xml)	
 
 SG:
-	@(cd SgDesign;$(SG) watch/Sg.xml)
+	@(cd SgDesign;$(SG) $(sgapp)/Sg.xml)
 	
 
 OS:
@@ -217,6 +220,7 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/SGDesign/$(sgapp)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
@@ -425,8 +429,10 @@ clean:
 clean-dist:clean
 	@rm -fv $(src-dir)/*
 	@rm -fv $(inc-dir)/*
+	@rm -fv $(ASCORE)/SgDesign/SgRes/*
 	
-00:clean-dist
+00:
+	@(make clean-dist -i)
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #
 01:
 	make dep board=at91sam3s compiler=iccarm
