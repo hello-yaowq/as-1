@@ -37,7 +37,9 @@ void StartupHook(void)
 TASK(TaskApp)
 {
 #ifdef USE_GUI
+	ASPERF_MEASURE_START();
 	Sg_ManagerTask();
+	ASPERF_MEASURE_STOP("Sg_ManagerTask");
 #endif
 
 	OsTerminateTask(TaskApp);

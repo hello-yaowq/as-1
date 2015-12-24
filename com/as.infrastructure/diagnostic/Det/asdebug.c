@@ -143,4 +143,26 @@ void asAssertErrorHook(void)
 #endif
 }
 
+#if defined(__LINUX__) || defined(__WINDOWS__)
+void asPerfSet(asperf_t *m)
+{
+	gettimeofday(m,NULL);
+}
+void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor)
+{
+	float rv = m1->tv_sec-m0->tv_sec;
+
+	if(m1->tv_usec > m0->tv_usec)
+	{
+		rv += (float)(m1->tv_usec-m0->tv_usec)/1000000.0;
+	}
+	else
+	{
+		rv = rv - 1 + (float)(1000000.0+m1->tv_usec-m0->tv_usec)/1000000.0;
+	}
+
+	aslog("Perf","%s :: cost %f s\n",infor,rv);
+}
+#endif
+
 

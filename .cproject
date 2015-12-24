@@ -41,6 +41,8 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.721171525" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -58,7 +60,6 @@
 									<listOptionValue builtIn="false" value="USE_CANTP"/>
 									<listOptionValue builtIn="false" value="USE_GUI"/>
 									<listOptionValue builtIn="false" value="USE_VIRTIO"/>
-									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 									<listOptionValue builtIn="false" value="__packed="/>
 									<listOptionValue builtIn="false" value="__X86_64__"/>
 									<listOptionValue builtIn="false" value="CHIP_STM32F10X"/>
@@ -78,6 +79,7 @@
 									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__AS_BOOTLOADER__"/>
 									<listOptionValue builtIn="false" value="USE_DCM"/>
+									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -97,6 +99,8 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1621784308" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -114,7 +118,6 @@
 									<listOptionValue builtIn="false" value="USE_CANTP"/>
 									<listOptionValue builtIn="false" value="USE_GUI"/>
 									<listOptionValue builtIn="false" value="USE_VIRTIO"/>
-									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 									<listOptionValue builtIn="false" value="__packed="/>
 									<listOptionValue builtIn="false" value="__LINUX__"/>
 									<listOptionValue builtIn="false" value="__X86_64__"/>
@@ -130,6 +133,7 @@
 									<listOptionValue builtIn="false" value="USE_NVM"/>
 									<listOptionValue builtIn="false" value="LUA_COMPAT_APIINTCASTS"/>
 									<listOptionValue builtIn="false" value="USE_DCM"/>
+									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -157,6 +161,8 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1651600050" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>

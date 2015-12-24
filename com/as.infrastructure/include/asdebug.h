@@ -16,6 +16,9 @@
 #define COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#include <sys/time.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
 #define AS_LOG_IPC   	0
@@ -80,7 +83,26 @@
 		}																								\
 	}while(0)
 
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define ASPERF_MEASURE_START() 						\
+	{												\
+		asperf_t asperf0,asperf1;					\
+		asPerfSet(&asperf0)
+
+#define ASPERF_MEASURE_STOP(infor) 					\
+		asPerfSet(&asperf1);						\
+		asPerfLog(&asperf0,&asperf1,infor);					\
+	}
+
+#else
+#define ASPERF_MEASURE_START()
+#define ASPERF_MEASURE_STOP(infor)
+#endif
+
 /* ============================ [ TYPES     ] ====================================================== */
+#if defined(__LINUX__) || defined(__WINDOWS__)
+typedef struct timeval asperf_t;
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -90,5 +112,8 @@ extern void  asmem(void* address,size_t size);
 extern char* ashex(unsigned long a);
 extern char* aswho(void);
 extern void  asAssertErrorHook(void);
-
+#if defined(__LINUX__) || defined(__WINDOWS__)
+extern void asPerfSet(asperf_t *m);
+extern void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor);
+#endif
 #endif /* COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_ */

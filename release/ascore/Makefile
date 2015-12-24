@@ -122,7 +122,7 @@ dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 def-y += -DUSE_GUI
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
-else	 
+else	 # openVG
 def-y += -DGUI_USE_OPENVG	
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 inc-y += -I./include/EGL
@@ -280,10 +280,10 @@ endif
 endif 
 	
 ifeq ($(gui),openVG)	
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/mingw/openvg/vg/win32 FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/EGL)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/EGL)
 endif
 	@(cd $(src-dir);rm -f Dem.c J1939Tp* Lin*)
 	@(make BSW)

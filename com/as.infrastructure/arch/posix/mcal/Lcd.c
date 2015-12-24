@@ -27,8 +27,11 @@
 #include <pthread.h>
 #endif
 
+#include <sys/time.h>
+
 #include <Sg.h>
 #include "Lcd.h"
+#include "asdebug.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage
@@ -36,9 +39,6 @@
 #define LCD_IMAGE        0
 #define LCD_DRAWING_AREA 1
 #define cfgLcdHandle   LCD_DRAWING_AREA
-/* static malloc 1MB buffer */
-#define LCD_MAX_WIDTH    (4096)
-#define LCD_MAX_HEIGHT   (2048)
 #define LCD_WIDTH        (lcdWidth*lcdPixel)
 #define LCD_HEIGHT       (lcdHeight*lcdPixel)
 
@@ -62,7 +62,7 @@ EGLContext			eglcontext;
 
 
 static void* 			lcdThread   = NULL;
-static uint32           pLcdBuffer[LCD_MAX_WIDTH*LCD_MAX_HEIGHT];
+static uint32*          pLcdBuffer;
 static uint32           lcdWidth    = 0;
 static uint32           lcdHeight   = 0;
 static uint8            lcdPixel    = 0;
@@ -111,6 +111,7 @@ scribble_motion_notify_event (GtkWidget      *widget,
   return TRUE;
 }
 #endif
+
 static gboolean Refresh(gpointer data)
 {
 	uint32 x,y;
@@ -118,7 +119,10 @@ static gboolean Refresh(gpointer data)
 	guchar *pixels, *p;
 	uint32 index;
 	uint32 color;
+
 	if(FALSE == Sg_IsDataReady()) { return TRUE; }
+
+	ASPERF_MEASURE_START();
 
 	n_channels = gdk_pixbuf_get_n_channels (pLcdImage);
 
@@ -155,6 +159,8 @@ static gboolean Refresh(gpointer data)
 #else
 	gtk_image_set_from_pixbuf(GTK_IMAGE(pLcd),pLcdImage);
 #endif
+
+	ASPERF_MEASURE_STOP("GTK LCD refresh");
 
 	return TRUE;
 }
@@ -270,9 +276,11 @@ static void render(int w, int h)
 {
 	if(FALSE == Sg_IsDataReady()) { return; }
 
+	ASPERF_MEASURE_START();
 	uint32 x,y;
 	uint8 n_channels = 4;
 	VGint dataStride = LCD_WIDTH*n_channels;
+
 	uint8* vgdata= malloc(n_channels*LCD_WIDTH*LCD_HEIGHT);
 
 	eglSwapBuffers(egldisplay, eglsurface);	//force EGL to recognize resize
@@ -307,6 +315,7 @@ static void render(int w, int h)
 	eglSwapBuffers(egldisplay, eglsurface);
 	assert(eglGetError() == EGL_SUCCESS);
 	free(vgdata);
+	ASPERF_MEASURE_STOP("OPENVG LCD refresh");
 }
 static LONG WINAPI windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -391,8 +400,11 @@ void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
 		lcdHeight = height;
 		lcdPixel  = pixel;
 
-		assert(LCD_WIDTH  < LCD_MAX_WIDTH);
-		assert(LCD_HEIGHT < LCD_MAX_HEIGHT);
+		asAssert(lcdPixel);
+
+		pLcdBuffer = malloc(LCD_WIDTH*LCD_HEIGHT*sizeof(uint32));
+
+		asAssert(pLcdBuffer);
 
 #ifdef __WINDOWS__
 		lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
@@ -418,13 +430,19 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 	{
 		if((x<lcdWidth) && (y<lcdHeight))
 		{
-			for(x0=LCD_X0(x);x0<LCD_X1(x);x0++)
+			if(1 == lcdPixel)
 			{
-				for(y0=LCD_Y0(y);y0<LCD_Y1(y);y0++)
+				pLcdBuffer[y*LCD_WIDTH + x] = color;
+			}
+			else
+			{
+				for(x0=LCD_X0(x);x0<LCD_X1(x);x0++)
 				{
-					uint32 index = y0*LCD_WIDTH + x0;
-					assert(index < (LCD_WIDTH*LCD_HEIGHT));
-					pLcdBuffer[index] = color;
+					for(y0=LCD_Y0(y);y0<LCD_Y1(y);y0++)
+					{
+						uint32 index = y0*LCD_WIDTH + x0;
+						pLcdBuffer[index] = color;
+					}
 				}
 			}
 		}
