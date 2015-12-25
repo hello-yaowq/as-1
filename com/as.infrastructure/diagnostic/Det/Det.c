@@ -38,8 +38,7 @@
 #include <stdio.h>
 #endif
 
-//#define DEBUG_LVL 1
-//#include "debug.h"
+#include "asdebug.h"
 
 typedef enum
 {

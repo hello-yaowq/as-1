@@ -26,7 +26,7 @@
 #include "Com_misc.h"
 #include "debug.h"
 //#include "Cpu.h"
-
+#include "asdebug.h"
 
 /* TODO: Better way to get endianness across all compilers? */
 static const uint32_t endianness_test = 0xdeadbeefU;

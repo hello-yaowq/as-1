@@ -16,6 +16,7 @@
 #include "bootloader.h"
 #include "Flash.h"
 #include "Os.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define BL_FLASH_IDENTIFIER  0xFF
 #define BL_EEPROM_IDENTIFIER 0xEE

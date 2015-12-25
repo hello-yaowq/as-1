@@ -115,7 +115,7 @@
 #if defined(USE_RPMSG)
 #include "RPmsg.h"
 #endif
-
+#include "asdebug.h"
 /* ----------------------------[private define]------------------------------*/
 
 /* Does not run functions that are not drivers */

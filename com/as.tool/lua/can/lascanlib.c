@@ -18,6 +18,7 @@
 #include <sys/queue.h>
 #include <pthread.h>
 #include <unistd.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
 #define CAN_BUS_PDU_NUM   16

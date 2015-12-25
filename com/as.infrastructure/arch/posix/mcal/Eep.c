@@ -72,6 +72,8 @@
 
 //#define USE_LDEBUG_PRINTF	1
 #include "debug.h"
+
+#include "asdebug.h"
 #define MODULE_NAME 	"/driver/Eep"
 
 #define EEPROM_IMG "Eeprom.img"

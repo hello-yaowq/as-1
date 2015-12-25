@@ -25,6 +25,7 @@
 #if defined(USE_NVM)
 #include "NvM.h"
 #endif
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 //#define ENABLE_FEE_TEST
 #define ENABLE_NVM_TEST

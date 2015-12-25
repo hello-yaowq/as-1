@@ -31,7 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "RPmsg.h"
-
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define USE_CAN_STATISTICS      STD_ON
 

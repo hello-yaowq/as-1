@@ -19,6 +19,7 @@
 #include "lascanlib.h"
 #include <sys/queue.h>
 #include <pthread.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_SERIAL_CACHE_SIZE  64
 /* ============================ [ TYPES     ] ====================================================== */

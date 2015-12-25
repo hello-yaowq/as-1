@@ -19,7 +19,7 @@
 #include "osek_kernel.h"
 #include "task.h"
 #include <setjmp.h>
-
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define configASSERT(x)	asAssert(x)
 

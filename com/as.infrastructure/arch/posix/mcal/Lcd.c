@@ -31,8 +31,9 @@
 
 #include <Sg.h>
 #include "Lcd.h"
-#include "asdebug.h"
 
+#define AS_PERF_ENABLED
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage
 // 1 --> use GtkDrawingArea  : this is more powerful, so use this

@@ -140,14 +140,13 @@
 #if (FLS_BASE_ADDRESS != 0)
 #error Virtual addresses not supported
 #endif
-
+#include "asdebug.h"
 
 
 /* ----------------------------[private define]------------------------------*/
 
 #define FLASH_NON_CORRECTABLE_ERROR 0x1
 
-#define FLS_TOTAL_SIZE  1024*1024
 #define FLASH_IMG "Flash.img"
 
 /* Enable check:

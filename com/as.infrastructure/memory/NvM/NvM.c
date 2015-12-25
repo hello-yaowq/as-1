@@ -253,7 +253,7 @@
 #include "io.h"
 #include "Crc.h"
 #include <string.h>
-
+#include "asdebug.h"
 #define FIXME		0
 
 //#define DEBUG_BLOCK	1

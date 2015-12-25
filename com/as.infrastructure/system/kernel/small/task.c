@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#include "asdebug.h"
 #ifdef __cplusplus
 namespace autosar {
 #endif

@@ -16,6 +16,7 @@
 #include "Std_Types.h"
 #include "Flash.h"
 #include <stdio.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define FLASH_IMG "Flash.img"
 #define FLS_TOTAL_SIZE  1024*1024

@@ -69,6 +69,7 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
+#include "asdebug.h"
 /*-----------------------------------------------------------*/
 
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )

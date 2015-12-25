@@ -82,7 +82,7 @@
 			asAssertErrorHook();																		\
 		}																								\
 	}while(0)
-
+#ifdef AS_PERF_ENABLED
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define ASPERF_MEASURE_START() 						\
 	{												\
@@ -91,10 +91,13 @@
 
 #define ASPERF_MEASURE_STOP(infor) 					\
 		asPerfSet(&asperf1);						\
-		asPerfLog(&asperf0,&asperf1,infor);					\
+		asPerfLog(&asperf0,&asperf1,infor);			\
 	}
-
 #else
+#define ASPERF_MEASURE_START()
+#define ASPERF_MEASURE_STOP(infor)
+#endif
+#else	/* AS_PERF_ENABLED */
 #define ASPERF_MEASURE_START()
 #define ASPERF_MEASURE_STOP(infor)
 #endif
