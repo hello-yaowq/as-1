@@ -57,7 +57,7 @@ obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard 
 
 $(obj-dir)/%.o:%.s
 	@echo
-	@echo "  >> AS $(notdir $<)"
+	@echo "  >> AS $(notdir $<)"	
 	@$(AS) $(asflags-y) $(def-y) -o $@ -c $<
 	
 $(obj-dir)/%.o:%.c

@@ -571,6 +571,10 @@ int printf (const char *__restrict fmt, ...)
 int puts(const char* pstr)
 {
 	int len = 0;
+
+	imask_t imask;
+
+	Irq_Save(imask);
 	while('\0' == pstr[len])
 	{
 		if('\n' == pstr[len])
@@ -581,6 +585,7 @@ int puts(const char* pstr)
 		len ++;
 	}
 
+	Irq_Restore(imask);
 	return len;
 }
 

@@ -32,6 +32,10 @@
 	.extern usage_fault_handler
 	.extern debug_monitor_handler
 
+    #ifdef STM32F10X_CL
+	.extern knl_isr_usart2_process
+	#endif
+
 	.macro DEFAULT_ISR_HANDLER name=
   		.thumb_func
   		.weak \name
@@ -101,7 +105,11 @@ __vector_table:
     .word     knl_isr_process                      /* 50: */
     .word     knl_isr_process                      /* 51: */
     .word     knl_isr_process                      /* 52: */
+    #ifdef STM32F10X_CL
+    .extern knl_isr_usart2_process
+    #else
     .word     knl_isr_process                      /* 53: */
+    #endif
     .word     knl_isr_process                      /* 54: */
     .word     knl_isr_process                      /* 55: */
     .word     knl_isr_process                      /* 56: */

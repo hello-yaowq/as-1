@@ -80,6 +80,7 @@
 									<listOptionValue builtIn="false" value="__AS_BOOTLOADER__"/>
 									<listOptionValue builtIn="false" value="USE_DCM"/>
 									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
+									<listOptionValue builtIn="false" value="USE_SIMUL_CAN"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

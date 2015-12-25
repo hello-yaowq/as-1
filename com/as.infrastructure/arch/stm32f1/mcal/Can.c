@@ -14,10 +14,6 @@
  * -------------------------------- Arctic Core ------------------------------*/
 
 #include "Can.h"
-
-#ifndef USE_CAN_STUB
-#include "stm32f10x.h"
-#include "stm32f10x_can.h"
 #include "Mcu.h"
 #include "CanIf_Cbk.h"
 #if defined(USE_DET)
@@ -31,7 +27,9 @@
 #include <string.h>
 #include "Os.h"
 #include "asdebug.h"
-
+#ifndef USE_SIMUL_CAN
+#include "stm32f10x.h"
+#include "stm32f10x_can.h"
 
 /* CONFIGURATION NOTES
  * ------------------------------------------------------------------
@@ -837,67 +835,171 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
   *stats = canUnit->stats;
 }
 
-#else // Stub all functions for use in simulator environment
+#else /* USE_SIMUL_CAN */
+#include "stm32f10x.h"
+#include "stm32f10x_usart.h"
 
-#include "debug.h"
+static char r_cache[32];
+static uint32_t  r_size;
+static uint32_t IntH(char chr)
+{
+	uint32_t v;
+	if( (chr>='0') && (chr<='9'))
+	{
+		v= chr - '0';
+	}
+	else if( (chr>='A') && (chr<='F'))
+	{
+		v= chr - 'A';
+	}
+	else if( (chr>='a') && (chr<='f'))
+	{
+		v= chr - 'a';
+	}
+	else
+	{
+		ASWARNING("CAN serial receiving invalid data '0x%02X', cast to 0\n",chr);
+		v = 0;
+	}
+
+	return v;
+}
+static void rx_notifiy( void )
+{
+	uint8_t busid;
+	uint32_t canid;
+	uint32_t dlc;
+	uint8_t  data[8];
+	uint32_t i;
+	if( (r_size >= 12) &&
+		(r_cache[0]='S') &&
+		(r_cache[1]='C') &&
+		(r_cache[2]='A') &&
+		(r_cache[3]='N') )
+	{
+		busid = IntH(r_cache[4])*16 + IntH(r_cache[5]);
+		canid = IntH(r_cache[6])*16*16*16 + IntH(r_cache[7])*16*16 + IntH(r_cache[8])*16 + IntH(r_cache[9]);
+		dlc   = IntH(r_cache[10])*16 + IntH(r_cache[11]);
+		if((dlc>0) &&(dlc<=8))
+		{
+			for(i=0;i<dlc;i++)
+			{
+				data[i] = IntH(r_cache[12+2*i])*16 + IntH(r_cache[13+2*i]);
+			}
+
+			CanIf_RxIndication(busid, canid, dlc, data);
+		}
+		else
+		{
+			ASWARNING("CAN serial receiving data with invalid dlc = %d\n",(int)dlc);
+		}
+	}
+	else
+	{
+		ASWARNING("CAN serial receiving invalid data\n");
+	}
+
+	r_size = 0;
+}
 
 void Can_Init( const Can_ConfigType *Config )
 {
   // Do initial configuration of layer here
+	(void)Config;
+	r_size = 0;
 }
 
 void Can_InitController( uint8 controller, const Can_ControllerConfigType *config)
 {
-	// Do initialisation of controller here.
+	(void)controller;
+	(void)config;
 }
 
 Can_ReturnType Can_SetControllerMode( uint8 Controller, Can_StateTransitionType transition )
 {
-	// Turn on off controller here depending on transition
+	(void)Controller;
+	switch(transition )
+	{
+		case CAN_T_START:	/* no break here */
+		case CAN_T_WAKEUP:
+			USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
+			NVIC_EnableIRQ(USART2_IRQn);
+		break;
+		case CAN_T_SLEEP:
+		case CAN_T_STOP:
+		default:
+			USART_ITConfig(USART2,USART_IT_RXNE,DISABLE);
+			NVIC_DisableIRQ(USART2_IRQn);
+		break;
+	}
 	return E_OK;
 }
 
 Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 {
 	// Write to mailbox on controller here.
-	DEBUG(DEBUG_MEDIUM, "Can_Write(stub): Received data ");
-	for (int i = 0; i < pduInfo->length; i++) {
-		DEBUG(DEBUG_MEDIUM, "%d ", pduInfo->sdu[i]);
+	char string[32];
+	uint32_t i;
+	int size = snprintf(string,sizeof(string),"SCAN%02X%04X%02X",hth,(unsigned int)pduInfo->id,pduInfo->length);
+	asAssert(pduInfo->length <= 8);
+	for(i=0;i<pduInfo->length;i++)	/* maximum 16 */
+	{
+		size += snprintf(&string[size],sizeof(string)-size,"%02X",pduInfo->sdu[i]);
 	}
-	DEBUG(DEBUG_MEDIUM, "\n");
-
+	string[size++] = '\n';
+	string[size++] = '\0';
+	asAssert(size <= 32);
+	puts(string);
 	return E_OK;
 }
-
-extern void CanIf_RxIndication(uint8 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8 *CanSduPtr);
-Can_ReturnType Can_ReceiveAFrame()
+void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 15 = 53 */
 {
-	// This function is not part of autosar but needed to feed the stack with data
-	// from the mailboxes. Normally this is an interrup but probably not in the PCAN case.
-	uint8 CanSduData[] = {1,2,1,0,0,0,0,0};
-	CanIf_RxIndication(CAN_HRH_0_1, 3, 8, CanSduData);
 
-	return E_OK;
+	if(USART_GetITStatus(USART2,USART_IT_RXNE))
+	{
+
+		char chr = (char)(USART_ReceiveData(USART2)&0xFF);
+
+		r_cache[r_size++] = chr;
+
+		if(chr == '\n')
+		{
+			rx_notifiy();
+		}
+
+		if(r_size >= sizeof(r_cache))
+		{
+			r_size = 0;
+		}
+		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
+	}
+
+	NVIC_ClearPendingIRQ(USART2_IRQn);
 }
 
 void Can_DisableControllerInterrupts( uint8 controller )
 {
+	(void)controller;
+	NVIC_DisableIRQ(USART2_IRQn);
 }
 
 void Can_EnableControllerInterrupts( uint8 controller )
 {
+	(void)controller;
+	NVIC_EnableIRQ(USART2_IRQn);
 }
 
 
 // Hth - for Flexcan, the hardware message box number... .We don't care
-void Can_Cbk_CheckWakeup( uint8 controller ){}
+void Can_Cbk_CheckWakeup( uint8 controller ){(void)controller;}
 
 void Can_MainFunction_Write( void ){}
 void Can_MainFunction_Read( void ){}
 void Can_MainFunction_BusOff( void ){}
 void Can_MainFunction_Wakeup( void ){}
+void Can_MainFunction_Error ( void ){}
 
-void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){}
+void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){(void)controller;(void)stat;}
 
 #endif
 

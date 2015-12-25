@@ -53,8 +53,8 @@
 #define VALIDATE_W_RV(_exp,_api,_err,_rv )
 #endif
 
-
 #define CORE_CPUID_CORTEX_M3   	0x411FC231UL
+#define CORE_QEMU_ARM_CORTEX_M3    0x410fc231UL
 
 
 
@@ -125,6 +125,10 @@ core_info_t core_info_list[] = {
     .name = "CORE_ARM_CORTEX_M3",
     .pvr = CORE_CPUID_CORTEX_M3,
     },
+    {
+    	.name = "CORE_QEMU_ARM_CORTEX_M3",
+    	.pvr = CORE_QEMU_ARM_CORTEX_M3
+    }
 };
 
 #if 0

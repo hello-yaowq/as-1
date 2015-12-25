@@ -43,6 +43,7 @@
 #define AS_LOG_ON       AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 
+#ifdef USE_DET
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define ASLOG(level,fmt,...) 								\
 	do {													\
@@ -70,10 +71,22 @@
 			printf(fmt,##__VA_ARGS__);						\
 	}while(0)
 #endif
+#else	/* USE_DET */
+#define ASLOG(level,fmt,...)
+#define ASWARNING(fmt,...)
+#endif
 
+#ifdef USE_DET
 #define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
+#if defined(__WINDOWS__) || defined(__LINUX__)
 #define ASHEX(a)	ashex((unsigned long)(a))
+#endif
+#else
+#define PRINTF(fmt,...)
+#define ASHEX(a)
+#endif
 
+#ifdef USE_DET
 #define asAssert(e)  																					\
 	do {																								\
 		if(FALSE==(e))																					\
@@ -82,6 +95,10 @@
 			asAssertErrorHook();																		\
 		}																								\
 	}while(0)
+#else
+#define asAssert(e)
+#endif
+
 #ifdef AS_PERF_ENABLED
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define ASPERF_MEASURE_START() 						\

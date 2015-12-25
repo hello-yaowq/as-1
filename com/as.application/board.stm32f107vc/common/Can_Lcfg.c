@@ -18,7 +18,7 @@
 #include "Can.h"
 #include "CanIf_Cbk.h"
 
-
+#ifndef USE_SIMUL_CAN
 Can_FilterMaskType Can_FilterMaskConfigData_Controller_1_Mask_1 = 0x0;
 
 
@@ -84,4 +84,16 @@ const Can_ConfigSetType Can_ConfigSetData =
 const Can_ConfigType Can_ConfigData = {
   .CanConfigSet =	&Can_ConfigSetData,
 };
+#else
+const Can_ControllerConfigType Can_ControllerCfgData[1] ;
+const Can_ConfigSetType Can_ConfigSetData =
+{
+  .CanController =	NULL,
+  .CanCallbacks =	NULL,
+};
+
+const Can_ConfigType Can_ConfigData = {
+  .CanConfigSet =	&Can_ConfigSetData,
+};
+#endif
 
