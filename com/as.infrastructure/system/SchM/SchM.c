@@ -334,7 +334,7 @@ void SchM_Deinit( void ) {
 }
 
 void SchM_GetVersionInfo( Std_VersionInfoType *versionInfo ) {
-
+	(void)versionInfo;
 }
 
 

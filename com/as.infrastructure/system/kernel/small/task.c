@@ -15,9 +15,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
 #include "asdebug.h"
-#ifdef __cplusplus
-namespace autosar {
-#endif
+#include "portable.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -198,13 +196,13 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
         {
 			#if defined(__WINDOWS__) || defined(__LINUX__)
         	/* always run idle for simulation purpose in this case */
-        	declare = &TaskList[0];
 			#else
             if(0 == CurrentTask)
 			#endif
             {	/* no task is ready, execute idle*/
                 ReleaseResource(RES_SCHEDULER);
 
+                declare = &TaskList[0];
                 declare->main();
 
                 GetResource(RES_SCHEDULER);
@@ -255,9 +253,14 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 
     StartupHook();
 
+    StartOsTick();
+
+    Irq_Enable();
+
     for(;;)
     {
     	(void)Schedule();
+    	Irq_Enable();
     }
 }
 
@@ -266,8 +269,4 @@ FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )
 	(void)ercd;
 	while(1);
 }
-
-#ifdef __cplusplus
-} /* namespace autosar */
-#endif
 

@@ -231,7 +231,8 @@ operation_list = {enter_extend_session, security_extds_access,
 
 function main()
   data = {}
-  as.can_open(can_bus,"rpmsg",0,1000000)
+  -- as.can_open(can_bus,"rpmsg",0,1000000)
+  as.can_open(can_bus,"serial",3,115200)	-- COM4
   dcm.init(can_bus,0,0x732,0x731)
   
   

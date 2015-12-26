@@ -839,8 +839,24 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
 #include "stm32f10x.h"
 #include "stm32f10x_usart.h"
 
+#define CAN_SERIAL_Q_SIZE 32
+#define CAN_EMPTY_MESSAGE_BOX 0xFFFF
+
+typedef struct {
+    uint32_t 	canid;
+    uint8_t     busid;
+    uint8_t		dlc;
+    uint8_t 	data[8];
+} Can_SerialPduType;
+
 static char r_cache[32];
 static uint32_t  r_size;
+
+static Can_SerialPduType rQ[CAN_SERIAL_Q_SIZE];
+static uint32_t r_pos;
+static uint32_t w_pos;
+static volatile uint32_t r_counter;
+static PduIdType swPduHandle;;
 static uint32_t IntH(char chr)
 {
 	uint32_t v;
@@ -866,37 +882,46 @@ static uint32_t IntH(char chr)
 }
 static void rx_notifiy( void )
 {
-	uint8_t busid;
-	uint32_t canid;
-	uint32_t dlc;
-	uint8_t  data[8];
+	Can_SerialPduType* pdu;
 	uint32_t i;
 	if( (r_size >= 12) &&
-		(r_cache[0]='S') &&
-		(r_cache[1]='C') &&
-		(r_cache[2]='A') &&
-		(r_cache[3]='N') )
+		('S' == r_cache[0]) &&
+		('C' == r_cache[1]) &&
+		('A' == r_cache[2]) &&
+		('N' == r_cache[3]) )
 	{
-		busid = IntH(r_cache[4])*16 + IntH(r_cache[5]);
-		canid = IntH(r_cache[6])*16*16*16 + IntH(r_cache[7])*16*16 + IntH(r_cache[8])*16 + IntH(r_cache[9]);
-		dlc   = IntH(r_cache[10])*16 + IntH(r_cache[11]);
-		if((dlc>0) &&(dlc<=8))
+		if ( r_counter < CAN_SERIAL_Q_SIZE )
 		{
-			for(i=0;i<dlc;i++)
+			pdu = &rQ[w_pos];
+			pdu->busid = IntH(r_cache[4])*16 + IntH(r_cache[5]);
+			pdu->canid = IntH(r_cache[6])*16*16*16 + IntH(r_cache[7])*16*16 + IntH(r_cache[8])*16 + IntH(r_cache[9]);
+			pdu->dlc   = IntH(r_cache[10])*16 + IntH(r_cache[11]);
+			if((pdu->dlc>0) &&(pdu->dlc<=8))
 			{
-				data[i] = IntH(r_cache[12+2*i])*16 + IntH(r_cache[13+2*i]);
+				for(i=0;i<pdu->dlc;i++)
+				{
+					pdu->data[i] = IntH(r_cache[12+2*i])*16 + IntH(r_cache[13+2*i]);
+				}
+				r_counter ++;
+				w_pos ++;
+				if(w_pos >= CAN_SERIAL_Q_SIZE)
+				{
+					w_pos = 0;
+				}
 			}
-
-			CanIf_RxIndication(busid, canid, dlc, data);
+			else
+			{
+				ASWARNING("CAN serial receiving data with invalid dlc = %d\n",(int)pdu->dlc);
+			}
 		}
 		else
 		{
-			ASWARNING("CAN serial receiving data with invalid dlc = %d\n",(int)dlc);
+			ASWARNING("CAN serial receiving queue full, missing message\n");
 		}
 	}
 	else
 	{
-		ASWARNING("CAN serial receiving invalid data\n");
+		ASWARNING("CAN serial receiving invalid data:: %s\n",r_cache);
 	}
 
 	r_size = 0;
@@ -907,6 +932,10 @@ void Can_Init( const Can_ConfigType *Config )
   // Do initial configuration of layer here
 	(void)Config;
 	r_size = 0;
+	r_pos = 0;
+	w_pos = 0;
+	r_counter = 0;
+	swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 }
 
 void Can_InitController( uint8 controller, const Can_ControllerConfigType *config)
@@ -937,20 +966,32 @@ Can_ReturnType Can_SetControllerMode( uint8 Controller, Can_StateTransitionType 
 
 Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 {
-	// Write to mailbox on controller here.
-	char string[32];
 	uint32_t i;
-	int size = snprintf(string,sizeof(string),"SCAN%02X%04X%02X",hth,(unsigned int)pduInfo->id,pduInfo->length);
-	asAssert(pduInfo->length <= 8);
-	for(i=0;i<pduInfo->length;i++)	/* maximum 16 */
+	imask_t imask;
+	Can_ReturnType rv = CAN_OK;
+
+	Irq_Save(imask);
+
+	if(CAN_EMPTY_MESSAGE_BOX == swPduHandle)
 	{
-		size += snprintf(&string[size],sizeof(string)-size,"%02X",pduInfo->sdu[i]);
+		printf("SCAN%02X%04X%02X",hth,(unsigned int)pduInfo->id,pduInfo->length);
+		asAssert(pduInfo->length <= 8);
+		for(i=0;i<pduInfo->length;i++)	/* maximum 16 */
+		{
+			printf("%02X",pduInfo->sdu[i]);
+		}
+		printf("\n");
+
+		swPduHandle = pduInfo->swPduHandle;
 	}
-	string[size++] = '\n';
-	string[size++] = '\0';
-	asAssert(size <= 32);
-	puts(string);
-	return E_OK;
+	else
+	{
+		rv = CAN_BUSY;
+	}
+
+	Irq_Restore(imask);
+
+	return rv;
 }
 void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 15 = 53 */
 {
@@ -993,8 +1034,35 @@ void Can_EnableControllerInterrupts( uint8 controller )
 // Hth - for Flexcan, the hardware message box number... .We don't care
 void Can_Cbk_CheckWakeup( uint8 controller ){(void)controller;}
 
-void Can_MainFunction_Write( void ){}
-void Can_MainFunction_Read( void ){}
+void Can_MainFunction_Write( void )
+{
+	if(CAN_EMPTY_MESSAGE_BOX != swPduHandle)
+	{
+		CanIf_TxConfirmation(swPduHandle);
+		swPduHandle = CAN_EMPTY_MESSAGE_BOX;
+	}
+}
+void Can_MainFunction_Read( void )
+{
+	imask_t imask;
+	Can_SerialPduType* pdu;
+
+	while(r_counter > 0)
+	{
+		Irq_Save(imask);
+		r_counter --;
+		pdu = &rQ[r_pos++];
+		if(r_pos >= CAN_SERIAL_Q_SIZE)
+		{
+			r_pos = 0;
+		}
+		Irq_Restore(imask);
+
+		CanIf_RxIndication(pdu->busid,pdu->canid,pdu->dlc,pdu->data);
+	}
+
+
+}
 void Can_MainFunction_BusOff( void ){}
 void Can_MainFunction_Wakeup( void ){}
 void Can_MainFunction_Error ( void ){}
@@ -1002,5 +1070,22 @@ void Can_MainFunction_Error ( void ){}
 void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){(void)controller;(void)stat;}
 
 #endif
+
+KSM(CANIdle,Init)
+{
+	KGS(CANIdle,Running);
+}
+KSM(CANIdle,Start)
+{
+}
+KSM(CANIdle,Stop)
+{
+
+}
+KSM(CANIdle,Running)
+{
+	Can_MainFunction_Write();
+	Can_MainFunction_Read();
+}
 
 

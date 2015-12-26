@@ -17,4 +17,6 @@
 	        
         <Alarm name='Alarm_BswService' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />       
 	</Os>
+	
+	<KSM> <CANIdle><Running/></CANIdle> </KSM>
 </AS>

@@ -11,6 +11,7 @@ extern "C" {
 #include <sys/queue.h>
 #include "asdebug.h"
 
+#define AS_LOG_SHELL 0
 typedef int (*ShellFuncT)(int argc, char *argv[]);
 
 typedef struct ShellCmd {

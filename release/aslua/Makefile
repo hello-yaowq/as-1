@@ -88,6 +88,7 @@ endif	# posix end
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
+def-y += -DUSE_DET
 
 $(inc-dir)/utility:
 	@mkdir -p $@

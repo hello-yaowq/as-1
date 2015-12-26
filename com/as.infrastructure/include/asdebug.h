@@ -21,22 +21,6 @@
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* levels for log output */
-#define AS_LOG_IPC   	0
-#define AS_LOG_VIRTQ    0
-#define AS_LOG_RPMSG    0
-#define AS_LOG_CAN      0
-#define AS_LOG_CANIF    0
-#define AS_LOG_LUA      0
-#define AS_LOG_OS       0
-#define AS_LOG_FLS      1
-#define AS_LOG_EEP      1
-#define AS_LOG_NVM      1
-#define AS_LOG_KSM      1
-#define AS_LOG_EA       1
-#define AS_LOG_FEE      1
-#define AS_LOG_MEMIF    1
-#define AS_LOG_SHELL    0
-/* and so on ... */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
 #define AS_LOG_STDERR  	AS_LOG_DEFAULT

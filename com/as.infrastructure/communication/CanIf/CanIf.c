@@ -56,6 +56,8 @@
 
 #include "asdebug.h"
 
+#define AS_LOG_CANIF  5
+
 #if  ( CANIF_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \
         if( !(_exp) ) { \

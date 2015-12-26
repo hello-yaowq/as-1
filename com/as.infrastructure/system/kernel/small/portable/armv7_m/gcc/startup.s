@@ -17,8 +17,6 @@
 	.fpu softvfp
 	.thumb
 
-#include "portable.h"
-
 	.global __vector_table
 
 	.extern knl_start_dispatch
@@ -105,11 +103,7 @@ __vector_table:
     .word     knl_isr_process                      /* 50: */
     .word     knl_isr_process                      /* 51: */
     .word     knl_isr_process                      /* 52: */
-    #ifdef STM32F10X_CL
-    .extern knl_isr_usart2_process
-    #else
     .word     knl_isr_process                      /* 53: */
-    #endif
     .word     knl_isr_process                      /* 54: */
     .word     knl_isr_process                      /* 55: */
     .word     knl_isr_process                      /* 56: */
@@ -359,7 +353,6 @@ LoopFillZerobss:
 	b	.
 .size	reset_handler, .-reset_handler
 
-
     DEFAULT_ISR_HANDLER     nmi_handler
     DEFAULT_ISR_HANDLER     hard_fault_handler
     DEFAULT_ISR_HANDLER     mpu_fault_handler
@@ -369,7 +362,6 @@ LoopFillZerobss:
     DEFAULT_ISR_HANDLER     debug_monitor_handler
     DEFAULT_ISR_HANDLER     pendsv_handler
     DEFAULT_ISR_HANDLER     systick_handler
-    DEFAULT_ISR_HANDLER     knl_isr_process
 
     .section .text
     .global Irq_Restore
@@ -402,4 +394,16 @@ Irq_Enable:
     .type   Irq_Disable, %function
 Irq_Disable:
     cpsid   i
+    bx lr
+
+    .section .text
+    .global knl_isr_process
+    .extern knl_isr_handler
+    .type   knl_isr_process, %function
+knl_isr_process:
+    mrs     r0, ipsr                             /* r0 = dintno */
+    cpsie   i
+    push {lr}
+    bl knl_isr_handler
+    pop {lr}
     bx lr

@@ -103,6 +103,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			handle->rx_notification = rx_notification;
 			handle->r_size = 0;
 			STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
+			ASLOG(STDOUT,"CAN Serial open port %d OK\n",port);
 		}
 		else
 		{
@@ -130,6 +131,7 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 {
 	boolean rv = TRUE;
 	struct Can_SerialHandle_s* handle = getHandle(port);
+
 	if(handle != NULL)
 	{
 		char string[512];
@@ -144,14 +146,14 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 
 		ASLOG(STDOUT,"CAN Serial write '%s'\n",string);
 
-		if(0 == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
+		if(size == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
 		{
 			/* send OK */
 		}
 		else
 		{
 			rv = FALSE;
-			ASWARNING("CAN Serial port=%d send message failed!\n",port);
+			ASWARNING("CAN Serial port=%d<%d> send message failed!\n",port,handle->port);
 		}
 	}
 	else
@@ -210,10 +212,10 @@ static void rx_notifiy(struct Can_SerialHandle_s* handle)
 	uint8_t  data[8];
 	uint32_t i;
 	if( (handle->r_size >= 12) &&
-		(handle->r_cache[0]='S') &&
-		(handle->r_cache[1]='C') &&
-		(handle->r_cache[2]='A') &&
-		(handle->r_cache[3]='N') )
+		('S' == handle->r_cache[0]) &&
+		('C' == handle->r_cache[1]) &&
+		('A' == handle->r_cache[2]) &&
+		('N' == handle->r_cache[3]) )
 	{
 		busid = IntH(handle->r_cache[4])*16 + IntH(handle->r_cache[5]);
 		canid = IntH(handle->r_cache[6])*16*16*16 + IntH(handle->r_cache[7])*16*16 + IntH(handle->r_cache[8])*16 + IntH(handle->r_cache[9]);
@@ -236,7 +238,7 @@ static void rx_notifiy(struct Can_SerialHandle_s* handle)
 	}
 	else
 	{
-		ASWARNING("CAN serial port=%d receiving invalid data\n",handle->port);
+		ASWARNING("CAN serial port=%d receiving invalid data::%s\n",handle->port,handle->r_cache);
 	}
 
 	handle->r_size = 0;
@@ -259,6 +261,7 @@ static void * rx_daemon(void * param)
 					handle->r_cache[handle->r_size++] = chr;
 					if('\n' == chr)
 					{
+						ASLOG(STDOUT,"CAN serial message :: %s",handle->r_cache);
 						rx_notifiy(handle);
 					}
 

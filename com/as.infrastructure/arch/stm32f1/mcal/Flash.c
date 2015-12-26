@@ -18,11 +18,6 @@
 #include "Flash.h"
 #include "stm32f10x_flash.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define FLASH_ERASE_SIZE  512 	/* TODO */
-#define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
-
-#define FLASH_WRITE_SIZE  512
-#define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

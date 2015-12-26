@@ -24,13 +24,10 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-
+	ASLOG(STDOUT,"start bootloaster BUILD @ %s %s\n",__DATE__,__TIME__);
 }
 int main(int argc,char* argv[])
 {
-#if defined(__WINDOWS__) || defined(__LINUX__)
-	ASLOG(STDOUT,"start bootloaster\n");
-#endif
 	EcuM_Init();
 	while(1);
 

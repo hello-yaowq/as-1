@@ -26,7 +26,7 @@ local function hexs(data)
   return ss
 end
 
-function test_can()
+function test_can_peak()
   data = {}
   as.can_open(0,"peak",0,1000000)
   cantp.init(0,0,0x732,0x731)
@@ -46,4 +46,12 @@ function test_s19()
   end
 end
 
-test_s19()
+function test_can_serail()
+  data = {}
+  as.can_open(0,"serial",3,115200)
+  while true do
+	as.can_read(0,0x732)
+  end
+end
+
+test_can_serail()
