@@ -22,6 +22,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_SERIAL_CACHE_SIZE  64
+#define AS_LOG_RS232   AS_LOG_STDOUT
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SerialHandle_s
 {
@@ -141,10 +142,9 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 		{
 			size += snprintf(&string[size],sizeof(string)-size,"%02X",data[i]);
 		}
-		string[size++] = '\n';
-		string[size++] = '\0';
 
-		ASLOG(STDOUT,"CAN Serial write '%s'\n",string);
+		string[size++] = '\n';
+		string[size] = '\0';
 
 		if(size == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
 		{
@@ -190,11 +190,11 @@ static uint32_t IntH(char chr)
 	}
 	else if( (chr>='A') && (chr<='F'))
 	{
-		v= chr - 'A';
+		v= chr - 'A' + 10;
 	}
 	else if( (chr>='a') && (chr<='f'))
 	{
-		v= chr - 'a';
+		v= chr - 'a' + 10;;
 	}
 	else
 	{
@@ -238,7 +238,7 @@ static void rx_notifiy(struct Can_SerialHandle_s* handle)
 	}
 	else
 	{
-		ASWARNING("CAN serial port=%d receiving invalid data::%s\n",handle->port,handle->r_cache);
+		ASLOG(RS232,"%s\n",handle->r_cache);
 	}
 
 	handle->r_size = 0;
@@ -261,7 +261,6 @@ static void * rx_daemon(void * param)
 					handle->r_cache[handle->r_size++] = chr;
 					if('\n' == chr)
 					{
-						ASLOG(STDOUT,"CAN serial message :: %s",handle->r_cache);
 						rx_notifiy(handle);
 					}
 

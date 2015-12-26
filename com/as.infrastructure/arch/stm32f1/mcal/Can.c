@@ -866,11 +866,11 @@ static uint32_t IntH(char chr)
 	}
 	else if( (chr>='A') && (chr<='F'))
 	{
-		v= chr - 'A';
+		v= chr - 'A' + 10;
 	}
 	else if( (chr>='a') && (chr<='f'))
 	{
-		v= chr - 'a';
+		v= chr - 'a' + 10;
 	}
 	else
 	{
@@ -921,7 +921,7 @@ static void rx_notifiy( void )
 	}
 	else
 	{
-		ASWARNING("CAN serial receiving invalid data:: %s\n",r_cache);
+		ASWARNING("CAN serial receiving invalid data:: %d/%s\n",r_size,r_cache);
 	}
 
 	r_size = 0;
@@ -1003,7 +1003,7 @@ void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 15 = 53 */
 
 		r_cache[r_size++] = chr;
 
-		if(chr == '\n')
+		if('\n' == chr)
 		{
 			rx_notifiy();
 		}

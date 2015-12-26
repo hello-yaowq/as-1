@@ -35,11 +35,6 @@ FUNC(void,MEM_OsTick) OsTick ( void )
 		OsTickCounter = 1;
 	}
 
-	if ( 0 == (OsTickCounter % 2000) )
-	{
-		ASLOG(STDOUT,"OS Tick is online!\n");
-	}
-
 	for(AlarmId=0; AlarmId<ALARM_NUM; AlarmId++)
 	{
 		if(AlarmTick[AlarmId] > 0)
