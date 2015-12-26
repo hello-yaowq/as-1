@@ -1,7 +1,9 @@
-/* -------------------------------- Arctic Core ------------------------------
+/* -------------------------------- Arctic Core -> AS ------------------------------
  * Arctic Core - the open source AUTOSAR platform http://arccore.com
+ * AS - the open source Automotive Software on https://github.com/parai
  *
  * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ * Copyright (C) 2015  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -11,11 +13,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
- * -------------------------------- Arctic Core ------------------------------*/
-
-
+ * -------------------------------- Arctic Core -> AS ------------------------------*/
 #ifndef CANIF_H_
 #define CANIF_H_
+/* ============================ [ INCLUDES  ] ====================================================== */
 #include "Modules.h"
 
 #if defined(USE_PDUR)
@@ -26,6 +27,12 @@
 #include "Com.h"
 #endif
 
+#if defined(USE_DET)
+#include "Det.h"
+#endif
+#include "CanIf_Types.h"
+#include "CanIf_Cfg.h"
+/* ============================ [ MACROS    ] ====================================================== */
 #define CANIF_VENDOR_ID          VENDOR_ID_ARCCORE
 #define CANIF_MODULE_ID          MODULE_ID_CANIF
 #define CANIF_AR_MAJOR_VERSION   3
@@ -35,13 +42,8 @@
 #define CANIF_SW_MAJOR_VERSION   1
 #define CANIF_SW_MINOR_VERSION   3
 #define CANIF_SW_PATCH_VERSION   0
-
-#if defined(USE_DET)
-#include "Det.h"
-#endif
-#include "CanIf_Types.h"
 #include "CanIf_SpecialPdus.h"
-#include "CanIf_Cfg.h"
+
 
 
 // Service IDs
@@ -70,6 +72,11 @@
 #define CANIF_SETWAKEUPEVENT_ID       0x40
 #define CANIF_ARCERROR_ID           0x41
 
+/* ============================ [ TYPES     ] ====================================================== */
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ DATAS     ] ====================================================== */
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr);
 
 void CanIf_InitController(uint8  Controller,

@@ -1,5 +1,3 @@
-#ifndef COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
-#define COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -15,18 +13,20 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Dcm.h"
+#include "Os.h"
+#include "portable.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_BL 0
-
-#define BL_SECURITY_LEVEL_EXTDS 1
-#define BL_SECURITY_LEVEL_PRGS  2
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void StartOsTick (void)
+{
 
+}
 
-#endif /* COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_ */
+void Irq_Enable(void){}
+void Irq_Disable(void){}
+imask_t __Irq_Save(void){ return 0; }
+void Irq_Restore(imask_t irq_state) { (void)irq_state; }

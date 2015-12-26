@@ -295,13 +295,13 @@ typedef enum {
  *  @see CanIf_Arc_ChannelIdType */
 typedef struct {
     /** Not used */
-	CanIf_WakeupSupportType WakeupSupport;
+	/* CanIf_WakeupSupportType WakeupSupport; */
 
 	/** CanIf-specific id of the controller */
 	CanIf_Arc_ChannelIdType CanIfControllerIdRef;
 
 	/** Not used */
-	const char CanIfDriverNameRef[8];
+	/* const char CanIfDriverNameRef[8]; */
 
 	/** Reference to */
 	const Can_ControllerConfigType *CanIfInitControllerRef;

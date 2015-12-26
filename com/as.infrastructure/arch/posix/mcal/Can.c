@@ -34,6 +34,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define USE_CAN_STATISTICS      STD_ON
+#define AS_LOG_CAN 0
 
 /* CONFIGURATION NOTES
  * ------------------------------------------------------------------

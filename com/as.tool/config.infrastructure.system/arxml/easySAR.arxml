@@ -106,7 +106,10 @@
 		BusOffNotification="Text Default=CanIf_User_BusoffNotification PosGUI=2"
 		ErrorNotification="Text Default=CanIf_User_ErrorNotification PosGUI=3"
 		DataLengthCodeCheck="Enum=(ON,OFF) Default=ON PosGUI=4"
-		Comment="TextArea Default=* PosGUI=5"
+		TaskFifoMode="Enum=(ON,OFF) Default=ON PosGUI=5"
+		RxFifoSize="Integer Default=32 PosGUI=6"
+		TxFifoSize="Integer Default=32 PosGUI=7"
+		Comment="TextArea Default=* PosGUI=8"
 		>
 	</General>	
 	<ChannelList Max="65535">

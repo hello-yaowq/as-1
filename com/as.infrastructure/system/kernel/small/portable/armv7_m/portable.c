@@ -1,5 +1,3 @@
-#ifndef COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
-#define COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -15,18 +13,51 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Dcm.h"
+#include "Os.h"
+#include "Mcu.h"
+#include "portable.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_BL 0
-
-#define BL_SECURITY_LEVEL_EXTDS 1
-#define BL_SECURITY_LEVEL_PRGS  2
+#define AS_LOG_OS  5
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
+void systick_handler(void)
+{
+	OsTick();
+}
 
-#endif /* COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_ */
+void StartOsTick(void)
+{
+	if (SysTick_Config(McuE_GetSystemClock() / 1000)) { /* Capture error */ while (1); }
+}
+
+
+void knl_isr_handler(uint32_t intno)
+{
+#if defined(STM32F10X_CL) && defined(__AS_BOOTLOADER__) && defined(USE_SIMUL_CAN)
+	if(54 == intno)
+	{
+		extern void knl_isr_usart2_process(void);
+		knl_isr_usart2_process();
+	}
+	else
+#endif
+	{
+		ASLOG(OS,"ISR %d happened\n",intno);
+		while(1);
+	}
+}
+
+
+void nmi_handler(void) 			{ printf("nmi_handler\n");while(1);}
+void hard_fault_handler(void)	{ printf("hard_fault_handler\n");while(1);}
+void mpu_fault_handler(void)	{ printf("mpu_fault_handler\n");while(1);}
+void bus_fault_handler(void)	{ printf("bus_fault_handler\n");while(1);}
+void usage_fault_handler(void)	{ printf("usage_fault_handler\n");while(1);}
+void debug_monitor_handler(void){ printf("debug_monitor_handler\n");while(1);}
+void svcall_handler(void)		{ printf("svcall_handler\n");while(1);}
+void pendsv_handler(void)		{ printf("pendsv_handler\n");while(1);}

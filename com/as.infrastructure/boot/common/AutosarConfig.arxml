@@ -26,7 +26,7 @@
 </ControllerList>
 </Can>
 <CanIf>
-<General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" VersionInfoApi="OFF" />
+<General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" RxFifoSize="32" TaskFifoMode="ON" TxFifoSize="32" VersionInfoApi="OFF" />
 <ChannelList Max="TBD">
 <Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
 <HthList Max="TBD">

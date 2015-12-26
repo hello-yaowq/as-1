@@ -1,7 +1,9 @@
-/* -------------------------------- Arctic Core ------------------------------
+/* -------------------------------- Arctic Core -> AS ------------------------------
  * Arctic Core - the open source AUTOSAR platform http://arccore.com
+ * AS - the open source Automotive Software on https://github.com/parai
  *
  * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ * Copyright (C) 2015  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -11,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
- * -------------------------------- Arctic Core ------------------------------*/
+ * -------------------------------- Arctic Core -> AS ------------------------------*/
 
 /** @addtogroup CanIf CAN Interface
  *  @{ */
@@ -22,12 +24,12 @@
 
 #ifndef CANIF_TYPES_H_
 #define CANIF_TYPES_H_
-
+/* ============================ [ INCLUDES  ] ====================================================== */
 #include "ComStack_Types.h"
-
-// API service with wrong parameter
+/* ============================ [ MACROS    ] ====================================================== */
+/* API service with wrong parameter */
 /** @name Error Codes */
-//@{
+/* @{ */
 #define CANIF_E_PARAM_CANID		      10 
 #define CANIF_E_PARAM_DLC			      11  
 #define CANIF_E_PARAM_HRH			      12 
@@ -46,8 +48,9 @@
 #define CANIF_TRCV_E_TRCV_NOT_NORMAL	70
 #define CANIF_E_INVALID_TXPDUID		    80
 #define CANIF_E_INVALID_RXPDUID 		  90
-//@}
+/*@} */
 
+/* ============================ [ TYPES     ] ====================================================== */
 typedef enum {
 	/** UNINIT mode. Default mode of the CAN driver and all
 	 *  CAN controllers connected to one CAN network after
@@ -182,6 +185,9 @@ typedef enum {
 	/** A stored wakeup event is cleared on the addressed network */
 	CANIF_TRCV_WU_CLEAR
 } CanIf_TrcvWakeupModeType;
-
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ DATAS     ] ====================================================== */
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
 #endif /*CANIF_TYPES_H_*/
 /** @} */

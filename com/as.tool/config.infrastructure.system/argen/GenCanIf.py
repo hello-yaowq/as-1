@@ -46,27 +46,32 @@ def GenH():
     fp.write("""
 #ifndef CANIF_CFG_H_
 #define CANIF_CFG_H_
-
+/* ============================ [ INCLUDES  ] ====================================================== */
 #include "Can.h"
-
+/* ============================ [ MACROS    ] ====================================================== */
 #define CANIF_VERSION_INFO_API   STD_%s
 #define CANIF_DEV_ERROR_DETECT   STD_%s
 #define CANIF_DLC_CHECK          STD_%s
 
-#define CANIF_MULITPLE_DRIVER_SUPPORT       STD_OFF   // Not supported
-#define CANIF_READRXPDU_DATA_API             STD_OFF   // Not supported
-#define CANIF_READRXPDU_NOTIFY_STATUS_API     STD_OFF   // Not supported
-#define CANIF_READTXPDU_NOTIFY_STATUS_API     STD_OFF   // Not supported
-#define CANIF_SETDYNAMICTXID_API            STD_OFF   // Not supported
-#define CANIF_WAKEUP_EVENT_API                 STD_OFF   // Not supported
-#define CANIF_TRANSCEIVER_API               STD_OFF   // Not supported
-#define CANIF_TRANSMIT_CANCELLATION         STD_OFF   // Not supported
-#define CANIF_ARC_RUNTIME_PDU_CONFIGURATION STD_OFF   // Not supported
-#define CANIF_CANPDUID_READDATA_API         STD_OFF   // Not supported
-#define CANIF_READRXPDU_NOTIF_STATUS_API    STD_OFF   // Not supported
+#define CANIF_TASK_FIFO_MODE     STD_%s
+#define CANIF_RX_FIFO_SIZE       %s
+#define CANIF_TX_FIFO_SIZE       %s
+
+#define CANIF_MULITPLE_DRIVER_SUPPORT       STD_OFF   /*  Not supported */
+#define CANIF_READRXPDU_DATA_API            STD_OFF   /*  Not supported */
+#define CANIF_READRXPDU_NOTIFY_STATUS_API   STD_OFF   /*  Not supported */
+#define CANIF_READTXPDU_NOTIFY_STATUS_API   STD_OFF   /*  Not supported */
+#define CANIF_SETDYNAMICTXID_API            STD_OFF   /*  Not supported */
+#define CANIF_WAKEUP_EVENT_API              STD_OFF   /*  Not supported */
+#define CANIF_TRANSCEIVER_API               STD_OFF   /*  Not supported */
+#define CANIF_TRANSMIT_CANCELLATION         STD_OFF   /*  Not supported */
+#define CANIF_ARC_RUNTIME_PDU_CONFIGURATION STD_OFF   /*  Not supported */
+#define CANIF_CANPDUID_READDATA_API         STD_OFF   /*  Not supported */
+#define CANIF_READRXPDU_NOTIF_STATUS_API    STD_OFF   /*  Not supported */
 \n"""%(GAGet(General,'VersionInfoApi'),
          GAGet(General,'DevelopmentErrorDetection'),
-         GAGet(General,'DataLengthCodeCheck')))
+         GAGet(General,'DataLengthCodeCheck'),
+         GAGet(General,'TaskFifoMode'),GAGet(General,'RxFifoSize'),GAGet(General,'TxFifoSize')))
     cstr1=cstr2=''
     startId = 0 
     fp.write("/*CanIf Receive */\n")    
@@ -85,8 +90,9 @@ def GenH():
                 fp.write('#define CANIF_ID_%-32s %s\n'%(GAGet(pdu,'EcuCPduRef'),startId))
                 startId += 1
     fp.write("""
-// Identifiers for the elements in CanIfControllerConfig[]
-// This is the ConfigurationIndex in CanIf_InitController()
+/* ============================ [ TYPES     ] ====================================================== */
+/* Identifiers for the elements in CanIfControllerConfig[]
+ * This is the ConfigurationIndex in CanIf_InitController() */
 typedef enum {
 %s
     CANIF_CHANNEL_CONFIGURATION_CNT
@@ -114,34 +120,40 @@ def GenC():
         cstr2+='\t%s_CONFIG_0,\n'%(GAGet(chl,'Name'))
         cstr3+="""
     {
-        .WakeupSupport = CANIF_WAKEUP_SUPPORT_NO_WAKEUP,
+        /* .WakeupSupport = CANIF_WAKEUP_SUPPORT_NO_WAKEUP, */
         .CanIfControllerIdRef = %s,
-        .CanIfDriverNameRef = "FLEXCAN",  // Not used
+        /* .CanIfDriverNameRef = "FLEXCAN", */  /* Not used */
         .CanIfInitControllerRef = &Can_ControllerCfgData[INDEX_OF_%s],
     },\n"""%(GAGet(chl,'Name'),GAGet(chl,'ControllerRef'))
     fp.write("""
+/* ============================ [ INCLUDES  ] ====================================================== */
 #include "CanIf.h"
-//#if defined(USE_CANTP)
+#if defined(USE_CANTP)
 #include "CanTp.h"
 #include "CanTp_Cbk.h"
-//#endif
+#endif
 #if defined(USE_J1939TP)
 #include "J1939Tp.h"
 #include "J1939Tp_Cbk.h"
 #endif
-//#if defined(USE_PDUR)
+#if defined(USE_PDUR)
 #include "PduR.h"
-//#endif
+#endif
 #if defined(USE_CANNM)
 #include "CanNm_Cbk.h"
 #endif
-//#include <stdlib.h>
-
-// Imported structs from Can_PBcfg.c
+/* ============================ [ DECLARES  ] ====================================================== */
+/* Imported structs from Can_PBcfg.c */
 extern const Can_ControllerConfigType Can_ControllerCfgData[];
 extern const Can_ConfigSetType Can_ConfigSetData;
-
-// Contains the mapping from CanIf-specific Channels to Can Controllers
+""")
+    if(GAGet(GLGet('General'),'BusOffNotification')!='NULL'):
+        fp.write('extern void %s(uint8);\n'%(GAGet(GLGet('General'),'BusOffNotification')))
+    if(GAGet(GLGet('General'),'ErrorNotification')!='NULL'):
+        fp.write('extern void %s(uint8,Can_Arc_ErrorType);\n'%(GAGet(GLGet('General'),'ErrorNotification')))
+    fp.write("""
+/* ============================ [ DATAS     ] ====================================================== */
+/* Contains the mapping from CanIf-specific Channels to Can Controllers */
 const CanControllerIdType CanIf_Arc_ChannelToControllerMap[CANIF_CHANNEL_CNT] = {
 %s
 };
@@ -150,30 +162,26 @@ const uint8 CanIf_Arc_ChannelDefaultConfIndex[CANIF_CHANNEL_CNT] = {
 %s
 };
 
-// Container that gets slamed into CanIf_InitController()
-// Inits ALL controllers
-// Multiplicity 1..*
+/* Container that gets slamed into CanIf_InitController()
+ * Inits ALL controllers
+ * Multiplicity 1..* */
 const CanIf_ControllerConfigType CanIfControllerConfig[] = {
 %s
 };\n\n"""%(cstr1,cstr2,cstr3))
-    if(GAGet(GLGet('General'),'BusOffNotification')!='NULL'):
-        fp.write('extern void %s(uint8);\n'%(GAGet(GLGet('General'),'BusOffNotification')))
-    if(GAGet(GLGet('General'),'ErrorNotification')!='NULL'):
-        fp.write('extern void %s(uint8,Can_Arc_ErrorType);\n'%(GAGet(GLGet('General'),'ErrorNotification')))
     fp.write("""
-// Function callbacks for higher layers
+/* Function callbacks for higher layers */
 const CanIf_DispatchConfigType CanIfDispatchConfig =
 {
     .CanIfBusOffNotification = %s,
-    .CanIfWakeUpNotification = NULL,        // Not used
-    .CanIfWakeupValidNotification = NULL,   // Not used
+    .CanIfWakeUpNotification = NULL,        /* Not used */
+    .CanIfWakeupValidNotification = NULL,   /* Not used */
     .CanIfErrorNotificaton = %s,
 };\n"""%(GAGet(GLGet('General'),'BusOffNotification'),GAGet(GLGet('General'),'ErrorNotification')))
 
 
     for chl in GLGet('ChannelList'):
         if(len(GLGet(chl,'HthList'))>0):
-            cstr = 'const CanIf_HthConfigType CanIfHthConfigData_%s[]=\n{\n'%(GAGet(chl,'Name'))
+            cstr = 'static const CanIf_HthConfigType CanIfHthConfigData_%s[]=\n{\n'%(GAGet(chl,'Name'))
             Number=0
             for hth in GLGet(chl,'HthList'):
                 Number += 1
@@ -183,7 +191,7 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                     isEol='FALSE'
                 cstr += """
     {
-        .CanIfHthType = CAN_ARC_HANDLE_TYPE_BASIC, // TODO
+        .CanIfHthType = CAN_ARC_HANDLE_TYPE_BASIC, /* TODO */
         .CanIfCanControllerIdRef = %s,
         .CanIfHthIdSymRef = %s,
         .CanIf_Arc_EOL = %s
@@ -192,7 +200,7 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
             fp.write(cstr)
     for chl in GLGet('ChannelList'):
         if(len(GLGet(chl,'HrhList'))>0):
-            cstr = 'const CanIf_HrhConfigType CanIfHrhConfigData_%s[]=\n{\n'%(GAGet(chl,'Name'))
+            cstr = 'static const CanIf_HrhConfigType CanIfHrhConfigData_%s[]=\n{\n'%(GAGet(chl,'Name'))
             Number=0
             for hrh in GLGet(chl,'HrhList'):
                 Number += 1
@@ -202,8 +210,8 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                     isEol='FALSE'
                 cstr += """
     {
-        .CanIfHrhType = CAN_ARC_HANDLE_TYPE_BASIC, // TODO: not used by CanIf now.
-        .CanIfSoftwareFilterHrh = TRUE, // Must Be True
+        .CanIfHrhType = CAN_ARC_HANDLE_TYPE_BASIC, /* TODO: not used by CanIf now. */
+        .CanIfSoftwareFilterHrh = TRUE, /* Must Be True */
         .CanIfCanControllerHrhIdRef = %s,
         .CanIfHrhIdSymRef = %s,
         .CanIfHrhRangeConfig = NULL,
@@ -274,7 +282,7 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
              notifier,
              GAGet(chl,'Name'),Index)
     fp.write("""
-const CanIf_TxPduConfigType CanIfTxPduConfigData[] = 
+static const CanIf_TxPduConfigType CanIfTxPduConfigData[] = 
 {
     %s
 };\n\n"""%(cstr))
@@ -335,34 +343,36 @@ const CanIf_TxPduConfigType CanIfTxPduConfigData[] =
              GAGet(chl,'Name'),Index,
              GAGet(pdu,'FilterMask'))
     fp.write("""
-const CanIf_RxPduConfigType CanIfRxPduConfigData[] = 
+static const CanIf_RxPduConfigType CanIfRxPduConfigData[] = 
 {
     %s
 };
 
-// This container contains the init parameters of the CAN
-// Multiplicity 1..*
+/* This container contains the init parameters of the CAN
+ * Multiplicity 1..* */
 const CanIf_InitConfigType CanIfInitConfig =
 {
-    .CanIfConfigSet = 0, // Not used
+    .CanIfConfigSet = 0, /* Not used */
     .CanIfNumberOfCanRxPduIds = sizeof(CanIfRxPduConfigData)/sizeof(CanIf_RxPduConfigType),
     .CanIfNumberOfCanTXPduIds = sizeof(CanIfTxPduConfigData)/sizeof(CanIf_TxPduConfigType),
-    .CanIfNumberOfDynamicCanTXPduIds = 0, // Not used
-    // Containers
+    .CanIfNumberOfDynamicCanTXPduIds = 0, /* Not used */
+    /* Containers */
     .CanIfHohConfigPtr = CanIfHohConfigData,
     .CanIfRxPduConfigPtr = CanIfRxPduConfigData,
     .CanIfTxPduConfigPtr = CanIfTxPduConfigData,
 };
-// This container includes all necessary configuration sub-containers
-// according the CAN Interface configuration structure
+/* This container includes all necessary configuration sub-containers
+ * according the CAN Interface configuration structure */
 const CanIf_ConfigType CanIf_Config =
 {
     .ControllerConfig = CanIfControllerConfig,
     .DispatchConfig = &CanIfDispatchConfig,
     .InitConfig = &CanIfInitConfig,
-    .TransceiverConfig = NULL, // Not used
+    .TransceiverConfig = NULL, /* Not used */
     .Arc_ChannelToControllerMap = CanIf_Arc_ChannelToControllerMap,
     .Arc_ChannelDefaultConfIndex = CanIf_Arc_ChannelDefaultConfIndex,
 };
-    """%(cstr))
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
+\n\n"""%(cstr))
     fp.close() 

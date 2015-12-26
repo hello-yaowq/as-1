@@ -12,6 +12,9 @@
 		<Task name='TaskIdle' priority='1'
               auto-start='true'   		
 		      app-mode='OSDEFAULTAPPMODE' />
+		<Task name='TaskCanIf' priority='9'
+              auto-start='false'         
+              app-mode='OSDEFAULTAPPMODE' />
 		
 	    <Counter name='OsClock' max-value='65535' ticks-per-base='1' min-value='1'/>	
 	        

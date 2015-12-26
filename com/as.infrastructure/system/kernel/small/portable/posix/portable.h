@@ -1,5 +1,3 @@
-#ifndef COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
-#define COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -14,19 +12,16 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifndef PORTABLE_H_
+#define PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Dcm.h"
-/* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_BL 0
 
-#define BL_SECURITY_LEVEL_EXTDS 1
-#define BL_SECURITY_LEVEL_PRGS  2
+/* ============================ [ MACROS    ] ====================================================== */
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
-
-#endif /* COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_ */
+extern void StartOsTick (void);
+#endif /* PORTABLE_H_ */

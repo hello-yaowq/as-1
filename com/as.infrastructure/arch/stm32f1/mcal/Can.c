@@ -1071,21 +1071,4 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType * stat){(vo
 
 #endif
 
-KSM(CANIdle,Init)
-{
-	KGS(CANIdle,Running);
-}
-KSM(CANIdle,Start)
-{
-}
-KSM(CANIdle,Stop)
-{
-
-}
-KSM(CANIdle,Running)
-{
-	Can_MainFunction_Write();
-	Can_MainFunction_Read();
-}
-
 

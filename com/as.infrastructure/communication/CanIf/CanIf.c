@@ -1,7 +1,9 @@
-/* -------------------------------- Arctic Core ------------------------------
+/* -------------------------------- Arctic Core -> AS ------------------------------
  * Arctic Core - the open source AUTOSAR platform http://arccore.com
+ * AS - the open source Automotive Software on https://github.com/parai
  *
  * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ * Copyright (C) 2015  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -11,14 +13,8 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
- * -------------------------------- Arctic Core ------------------------------*/
-
-
-
-
-
-
-
+ * -------------------------------- Arctic Core -> AS ------------------------------*/
+/* ============================ [ INCLUDES  ] ====================================================== */
 #if defined(USE_DET)
 #include "Det.h"
 #endif
@@ -43,20 +39,11 @@
 #include "CanNm.h"
 #endif
 
-#if 0
-// TODO: Include upper layer functions, See CANIF208 and CANIF233
-#include "PduR_CanIf.h"
-#include "CanNm.h"
-#include "CanTp.h"
-
-#include "PduR_Cbk.h"
-#include "CanNm_Cbk.h"
-#include "CanTp_Cbk.h"
-#endif
+#include "Os.h"
 
 #include "asdebug.h"
-
-#define AS_LOG_CANIF  5
+/* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_CANIF  1
 
 #if  ( CANIF_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \
@@ -70,6 +57,7 @@
           Det_ReportError(MODULE_ID_CANIF, 0, _api, _err); \
           return; \
         }
+
 #define DET_REPORTERROR(_x,_y,_z,_q) Det_ReportError(_x, _y, _z, _q)
 
 #else
@@ -83,6 +71,7 @@
 #define ARC_GET_CHANNEL_CONTROLLER(_channel) \
 	CanIf_ConfigPtr->Arc_ChannelToControllerMap[_channel]
 
+/* ============================ [ TYPES     ] ====================================================== */
 /* Global configure */
 static const CanIf_ConfigType *CanIf_ConfigPtr;
 
@@ -93,20 +82,49 @@ typedef struct
   CanIf_ChannelGetModeType  PduMode;
 } CanIf_ChannelPrivateType;
 
+typedef struct {
+    uint32_t 			canid;
+    uint16_t            hrh;
+    uint8_t 			data[8];
+    uint8_t				dlc;
+} CanIf_PduType;
+
+typedef struct {
+	CanIf_PduType pdu[CANIF_RX_FIFO_SIZE];
+	uint16_t      r_pos;
+	uint16_t      w_pos;
+	volatile uint16_t      counter;
+}CanIf_RxFifoType;
+
+typedef struct {
+	PduIdType 	  pdu[CANIF_TX_FIFO_SIZE];
+	uint16_t      r_pos;
+	uint16_t      w_pos;
+	volatile uint16_t      counter;
+}CanIf_TxFifoType;
+
 typedef struct
 {
   boolean initRun;
   CanIf_ChannelPrivateType channelData[CANIF_CHANNEL_CNT];
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
+  CanIf_RxFifoType rfifo;
+  CanIf_TxFifoType tfifo;
+#endif
 } CanIf_GlobalType;
 
+/* ============================ [ DECLARES  ] ====================================================== */
 void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex);
 
+/* ============================ [ DATAS     ] ====================================================== */
+static CanIf_GlobalType CanIf_Global;
+/* ============================ [ LOCALS    ] ====================================================== */
 static CanIf_Arc_ChannelIdType CanIf_Arc_FindHrhChannel( Can_Arc_HRHType hrh )
 {
   const CanIf_InitHohConfigType *hohConfig;
   const CanIf_HrhConfigType *hrhConfig;
 
-  // foreach(hoh){ foreach(hrh in hoh) {} }
+  /* foreach(hoh){ foreach(hrh in hoh) {} } */
   hohConfig = CanIf_ConfigPtr->InitConfig->CanIfHohConfigPtr;
   hohConfig--;
   do
@@ -128,13 +146,209 @@ static CanIf_Arc_ChannelIdType CanIf_Arc_FindHrhChannel( Can_Arc_HRHType hrh )
 
   return (CanIf_Arc_ChannelIdType) -1;
 }
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
+static void schedultTxConfirmation(PduIdType canTxPduId)
+{
+	const CanIf_TxPduConfigType* entry;
+	if(canTxPduId < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds)
+	{
+		entry = &CanIf_ConfigPtr->InitConfig->CanIfTxPduConfigPtr[canTxPduId];
 
-// Global config
-CanIf_GlobalType CanIf_Global;
+		if (entry->CanIfUserTxConfirmation != NULL)
+		{
+			CanIf_ChannelGetModeType mode;
+			CanIf_GetPduMode(entry->CanIfCanTxPduHthRef->CanIfCanControllerIdRef, &mode);
+			if ( (mode == CANIF_GET_TX_ONLINE) ||
+				 (mode == CANIF_GET_ONLINE) ||
+				 (mode == CANIF_GET_OFFLINE_ACTIVE) ||
+				 (mode == CANIF_GET_OFFLINE_ACTIVE_RX_ONLINE) )
+			{
+				entry->CanIfUserTxConfirmation(entry->CanIfTxPduId);  /* CANIF053 */
+			}
+		}
+	}
+	else
+	{
+		asAssert(0); /* impossible case */
+	}
+}
+static void scheduleTxFifo(void)
+{
+	CanIf_TxFifoType *fifo;
+	PduIdType canTxPduId;
+	imask_t imask;
 
+	fifo = &(CanIf_Global.tfifo);
+
+	while(fifo->counter > 0)
+	{
+		canTxPduId = fifo->pdu[fifo->r_pos++];
+
+		Irq_Save(imask);
+		fifo->counter --;
+
+		if(fifo->r_pos >= CANIF_TX_FIFO_SIZE)
+		{
+			fifo->r_pos = 0;
+		}
+		Irq_Restore(imask);
+
+		schedultTxConfirmation(canTxPduId);
+	}
+}
+static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
+		const uint8 *CanSduPtr) {
+	/* Check PDU mode before continue processing */
+	CanIf_ChannelGetModeType mode;
+	CanIf_Arc_ChannelIdType channel = CanIf_Arc_FindHrhChannel(
+			(Can_Arc_HRHType) Hrh);
+	ASLOG(CANIF,
+			"Rx CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+			CanId, CanDlc, CanSduPtr[0], CanSduPtr[1], CanSduPtr[2],
+			CanSduPtr[3], CanSduPtr[4], CanSduPtr[5], CanSduPtr[6],
+			CanSduPtr[7]);
+	if (channel == -1)  // Invalid HRH
+	{
+		return;
+	}
+
+	if (CanIf_GetPduMode(channel, &mode) == E_OK) {
+		if ((mode == CANIF_GET_OFFLINE) || (mode == CANIF_GET_TX_ONLINE)
+				|| (mode == CANIF_GET_OFFLINE_ACTIVE)) {
+// Receiver path is disabled so just drop it
+			return;
+		}
+	} else {
+		return;  // No mode so just return
+	}
+
+	const CanIf_RxPduConfigType *entry =
+			CanIf_ConfigPtr->InitConfig->CanIfRxPduConfigPtr;
+
+	/* Find the CAN id in the RxPduList */
+	for (uint16 i = 0;
+			i < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanRxPduIds; i++) {
+		if (entry->CanIfCanRxPduHrhRef->CanIfHrhIdSymRef == Hrh) {
+			// Software filtering
+			if (entry->CanIfCanRxPduHrhRef->CanIfHrhType
+					== CAN_ARC_HANDLE_TYPE_BASIC) {
+				if (entry->CanIfCanRxPduHrhRef->CanIfSoftwareFilterHrh) {
+					if (entry->CanIfSoftwareFilterType
+							== CANIF_SOFTFILTER_TYPE_MASK) {
+						if ((CanId & entry->CanIfCanRxPduCanIdMask)
+								== (entry->CanIfCanRxPduCanId
+										& entry->CanIfCanRxPduCanIdMask)) {
+								// We found a pdu so call higher layers
+						} else {
+							entry++;
+							continue; // Go to next entry
+						}
+					} else {
+						DET_REPORTERROR(MODULE_ID_CAN, 0, CANIF_RXINDICATION_ID,
+								CANIF_E_PARAM_HRH);
+						continue; // Not a supported filter type, so just drop the frame
+					}
+				}
+			}
+
+#if (CANIF_DLC_CHECK == STD_ON)
+			if (CanDlc < entry->CanIfCanRxPduDlc) {
+				VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_DLC);
+				return;
+			}
+#endif
+
+			switch (entry->CanIfRxUserType) {
+			case CANIF_USER_TYPE_CAN_SPECIAL:
+			{
+				((CanIf_FuncTypeCanSpecial) (entry->CanIfUserRxIndication))(
+						entry->CanIfCanRxPduHrhRef->CanIfCanControllerHrhIdRef,
+						entry->CanIfCanRxPduId, CanSduPtr, CanDlc, CanId);
+
+				return;
+			}
+			break;
+
+			case CANIF_USER_TYPE_CAN_NM:
+#if defined(USE_CANNM)
+				CanNm_RxIndication(entry->CanIfCanRxPduId,CanSduPtr);
+				return;
+#endif
+			break;
+
+			case CANIF_USER_TYPE_CAN_PDUR:
+#if defined(USE_PDUR) && (PDUR_CANIF_SUPPORT == STD_ON)
+			{
+				PduInfoType pduInfo;
+				pduInfo.SduLength = CanDlc;
+				pduInfo.SduDataPtr = (uint8 *)CanSduPtr;
+				PduR_CanIfRxIndication(entry->CanIfCanRxPduId,&pduInfo);
+				return;
+			}
+#endif
+			break;
+
+			case CANIF_USER_TYPE_CAN_TP:
+#if defined(USE_CANTP)
+			{
+				PduInfoType CanTpRxPdu;
+				CanTpRxPdu.SduLength = CanDlc;
+				CanTpRxPdu.SduDataPtr = (uint8 *) CanSduPtr;
+				CanTp_RxIndication(entry->CanIfCanRxPduId, &CanTpRxPdu);
+				return;
+			}
+#endif
+			break;
+			case CANIF_USER_TYPE_J1939TP:
+#if defined(USE_J1939TP)
+			{
+				PduInfoType J1939TpRxPdu;
+				J1939TpRxPdu.SduLength = CanDlc;
+				J1939TpRxPdu.SduDataPtr = (uint8 *)CanSduPtr;
+				J1939Tp_RxIndication(entry->CanIfCanRxPduId, &J1939TpRxPdu);
+				return;
+			}
+#endif
+			break;
+			}
+		}
+
+		entry++;
+	}
+
+// Did not find the PDU, something is wrong
+	VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_LPDU);
+}
+static void scheduldRxFifo(void)
+{
+	CanIf_RxFifoType *fifo;
+	CanIf_PduType* pdu;;
+	imask_t imask;
+
+	fifo = &(CanIf_Global.rfifo);
+
+	while(fifo->counter > 0)
+	{
+		pdu = &(fifo->pdu[fifo->r_pos++]);
+
+		Irq_Save(imask);
+		fifo->counter --;
+
+		if(fifo->r_pos >= CANIF_TX_FIFO_SIZE)
+		{
+			fifo->r_pos = 0;
+		}
+		Irq_Restore(imask);
+
+		scheduleRxIndication(pdu->hrh,pdu->canid,pdu->dlc,pdu->data);
+	}
+}
+#endif /* CANIF_TASK_FIFO_MODE */
+
+/* ============================ [ FUNCTIONS ] ====================================================== */
 void CanIf_Init(const CanIf_ConfigType *ConfigPtr)
 {
-  VALIDATE_NO_RV(ConfigPtr != 0, CANIF_INIT_ID, CANIF_E_PARAM_POINTER); // Only PostBuild case supported
+  VALIDATE_NO_RV(ConfigPtr != 0, CANIF_INIT_ID, CANIF_E_PARAM_POINTER); /* Only PostBuild case supported */
 
   CanIf_ConfigPtr = ConfigPtr;
 
@@ -149,17 +363,13 @@ void CanIf_Init(const CanIf_ConfigType *ConfigPtr)
   CanIf_Global.initRun = TRUE;
 }
 
-
-
-
-//-------------------------------------------------------------------
 /*
  * Controller :: CanIf_Arc_ChannelIdType (CanIf-specific id to abstract from Can driver/controllers)
  * ConfigurationIndex :: CanIf_Arc_ConfigurationIndexType
  */
 void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex)
 {
-  // We call this a CanIf channel. Hopefully makes it easier to follow.
+  /* We call this a CanIf channel. Hopefully makes it easier to follow. */
   CanIf_Arc_ChannelIdType channel = (CanIf_Arc_ChannelIdType) Controller;
   CanIf_ControllerModeType mode;
 
@@ -171,11 +381,11 @@ void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex)
   {
     if (mode == CANIF_CS_STARTED)
     {
-      CanIf_SetControllerMode(channel, CANIF_CS_STOPPED); // CANIF092
+      CanIf_SetControllerMode(channel, CANIF_CS_STOPPED); /* CANIF092 */
     }
     else if (mode != CANIF_CS_STOPPED)
     {
-      VALIDATE_NO_RV(FALSE, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER_MODE); // CANIF092
+      VALIDATE_NO_RV(FALSE, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER_MODE); /* CANIF092 */
     }
   }
   else
@@ -183,27 +393,28 @@ void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex)
     VALIDATE_NO_RV(FALSE, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER_MODE);
   }
 
-  // CANIF293: ..Subsequently the CAN Interface calls the corresponding
-  //             CAN Driver initialization services.
-
-  // CANIF066: The CAN Interface has access to the CAN Driver configuration data. All
-  // public CAN Driver configuration data are described in [8] Specification of CAN Driver.
-
-  // Grab the configuration from the Can Controller
+  /* CANIF293: ..Subsequently the CAN Interface calls the corresponding
+   *             CAN Driver initialization services.
+   *
+   * CANIF066: The CAN Interface has access to the CAN Driver configuration data. All
+   * public CAN Driver configuration data are described in [8] Specification of CAN Driver.
+   *
+   * Grab the configuration from the Can Controller
+   */
   const Can_ControllerConfigType *canConfig;
   const CanControllerIdType canControllerId = ARC_GET_CHANNEL_CONTROLLER(channel);
 
-  // Validate that the configuration at the index match the right channel
+  /* Validate that the configuration at the index match the right channel */
   VALIDATE_NO_RV(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfControllerIdRef == channel, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
 
   canConfig = CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfInitControllerRef;
 
-  // Validate that the CanIfControllerConfig points to configuration for the right Can Controller
+  /* Validate that the CanIfControllerConfig points to configuration for the right Can Controller */
   VALIDATE_NO_RV(canConfig->CanControllerId == canControllerId, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
 
   Can_InitController(canControllerId, canConfig);
 
-  // Set mode to stopped
+  /* Set mode to stopped */
   CanIf_SetControllerMode(channel, CANIF_CS_STOPPED);
 }
 
@@ -746,163 +957,69 @@ Std_ReturnType CanIf_CheckValidation(EcuM_WakeupSourceType WakeupSource)
  */
 void CanIf_TxConfirmation(PduIdType canTxPduId)
 {
-  VALIDATE_NO_RV(CanIf_Global.initRun, CANIF_TXCONFIRMATION_ID, CANIF_E_UNINIT)
-  VALIDATE_NO_RV(canTxPduId < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds, CANIF_TXCONFIRMATION_ID, CANIF_E_PARAM_LPDU);
+	VALIDATE_NO_RV(CanIf_Global.initRun, CANIF_TXCONFIRMATION_ID, CANIF_E_UNINIT)
+	VALIDATE_NO_RV(canTxPduId < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds, CANIF_TXCONFIRMATION_ID,
+			CANIF_E_PARAM_LPDU);
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
+	CanIf_TxFifoType* fifo = &(CanIf_Global.tfifo);
+	if (fifo->counter < CANIF_TX_FIFO_SIZE)
+	{
+		fifo->pdu[fifo->w_pos] = canTxPduId;
 
-  const CanIf_TxPduConfigType* entry =
-    &CanIf_ConfigPtr->InitConfig->CanIfTxPduConfigPtr[canTxPduId];
-
-      if (entry->CanIfUserTxConfirmation != NULL)
-      {
-        CanIf_ChannelGetModeType mode;
-        CanIf_GetPduMode(entry->CanIfCanTxPduHthRef->CanIfCanControllerIdRef, &mode);
-        if ((mode == CANIF_GET_TX_ONLINE) || (mode == CANIF_GET_ONLINE)
-            || (mode == CANIF_GET_OFFLINE_ACTIVE) || (mode == CANIF_GET_OFFLINE_ACTIVE_RX_ONLINE) )
-        {
-          entry->CanIfUserTxConfirmation(entry->CanIfTxPduId);  /* CANIF053 */
-        }
-      }
-      return;
+		fifo->w_pos++;
+		if (fifo->w_pos >= CANIF_TX_FIFO_SIZE)
+		{
+			fifo->w_pos = 0;
+		}
+		fifo->counter++;
+		OsActivateTask(TaskCanIf);
+	}
+	else
+	{
+		/* buffer full, missing one message */
+		asAssert(0);
+	}
+#else
+	schedultTxConfirmation(canTxPduId);
+#endif
+	return;
 }
 
 void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
               const uint8 *CanSduPtr)
 {
-  VALIDATE_NO_RV(CanIf_Global.initRun, CANIF_RXINDICATION_ID, CANIF_E_UNINIT);
-  VALIDATE_NO_RV(CanSduPtr != NULL, CANIF_RXINDICATION_ID, CANIF_E_PARAM_POINTER);
-  /* Check PDU mode before continue processing */
-  CanIf_ChannelGetModeType mode;
-  CanIf_Arc_ChannelIdType channel = CanIf_Arc_FindHrhChannel( (Can_Arc_HRHType) Hrh);
-  ASLOG(CANIF,"Rx CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",CanId,CanDlc,
-		  CanSduPtr[0],CanSduPtr[1],CanSduPtr[2],CanSduPtr[3],
-		  CanSduPtr[4],CanSduPtr[5],CanSduPtr[6],CanSduPtr[7]);
-  if (channel == -1)  // Invalid HRH
-  {
-    return;
-  }
+	VALIDATE_NO_RV(CanIf_Global.initRun, CANIF_RXINDICATION_ID, CANIF_E_UNINIT);
+	VALIDATE_NO_RV(CanSduPtr != NULL, CANIF_RXINDICATION_ID, CANIF_E_PARAM_POINTER);
 
-  if (CanIf_GetPduMode(channel, &mode) == E_OK)
-  {
-    if ( (mode == CANIF_GET_OFFLINE) || (mode == CANIF_GET_TX_ONLINE) ||
-        (mode == CANIF_GET_OFFLINE_ACTIVE) )
-    {
-      // Receiver path is disabled so just drop it
-      return;
-    }
-  }
-  else
-  {
-    return;  // No mode so just return
-  }
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
+	CanIf_RxFifoType* fifo = &(CanIf_Global.rfifo);
+	CanIf_PduType* pdu;
+	if (fifo->counter < CANIF_RX_FIFO_SIZE)
+	{
+		pdu = &(fifo->pdu[fifo->w_pos]);
 
-  const CanIf_RxPduConfigType *entry = CanIf_ConfigPtr->InitConfig->CanIfRxPduConfigPtr;
-
-  /* Find the CAN id in the RxPduList */
-  for (uint16 i = 0; i < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanRxPduIds; i++)
-  {
-    if (entry->CanIfCanRxPduHrhRef->CanIfHrhIdSymRef == Hrh)
-    {
-      // Software filtering
-      if (entry->CanIfCanRxPduHrhRef->CanIfHrhType == CAN_ARC_HANDLE_TYPE_BASIC)
-      {
-        if (entry->CanIfCanRxPduHrhRef->CanIfSoftwareFilterHrh)
-        {
-          if (entry->CanIfSoftwareFilterType == CANIF_SOFTFILTER_TYPE_MASK)
-          {
-            if ((CanId & entry->CanIfCanRxPduCanIdMask ) ==
-                ( entry->CanIfCanRxPduCanId & entry->CanIfCanRxPduCanIdMask))
-            {
-              // We found a pdu so call higher layers
-            }
-            else
-            {
-              entry++;
-              continue; // Go to next entry
-            }
-          }
-          else
-          {
-            DET_REPORTERROR(MODULE_ID_CAN, 0, CANIF_RXINDICATION_ID, CANIF_E_PARAM_HRH);
-            continue; // Not a supported filter type, so just drop the frame
-          }
-        }
-      }
-
-#if (CANIF_DLC_CHECK == STD_ON)
-      if (CanDlc < entry->CanIfCanRxPduDlc)
-      {
-        VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_DLC);
-        return;
-      }
+		pdu->canid = CanId;
+		pdu->dlc   =CanDlc;
+		pdu->hrh   = Hrh;
+		asAssert(CanDlc<=8);
+		memcpy(pdu->data,CanSduPtr,CanDlc);
+		fifo->w_pos++;
+		if (fifo->w_pos >= CANIF_TX_FIFO_SIZE)
+		{
+			fifo->w_pos = 0;
+		}
+		fifo->counter++;
+		OsActivateTask(TaskCanIf);
+	}
+	else
+	{
+		/* buffer full, missing one message */
+		asAssert(0);
+	}
+#else
+	sheduleRxIndication(Hrh,CanId,CanDlc,CanSduPtr);
 #endif
 
-      switch (entry->CanIfRxUserType)
-      {
-        case CANIF_USER_TYPE_CAN_SPECIAL:
-        {
-          ( (CanIf_FuncTypeCanSpecial)(entry->CanIfUserRxIndication) )(
-            entry->CanIfCanRxPduHrhRef->CanIfCanControllerHrhIdRef,
-            entry->CanIfCanRxPduId,
-            CanSduPtr,
-            CanDlc,
-            CanId);
-
-            return;
-        }
-        break;
-
-        case CANIF_USER_TYPE_CAN_NM:
-#if defined(USE_CANNM)
-        	CanNm_RxIndication(entry->CanIfCanRxPduId,CanSduPtr);
-        	return;
-#endif
-        	break;
-
-        case CANIF_USER_TYPE_CAN_PDUR:
-            // Send Can frame to PDU router
-#if defined(USE_PDUR)
-        	{
-        		PduInfoType pduInfo;
-        		pduInfo.SduLength = CanDlc;
-        		pduInfo.SduDataPtr = (uint8 *)CanSduPtr;
-            	PduR_CanIfRxIndication(entry->CanIfCanRxPduId,&pduInfo);
-        	}
-            return;
-#endif
-            break;
-
-        case CANIF_USER_TYPE_CAN_TP:
-          // Send Can frame to CAN TP
-#if defined(USE_CANTP)
-            {
-        	    PduInfoType CanTpRxPdu;
-        	    CanTpRxPdu.SduLength = CanDlc;
-        	    CanTpRxPdu.SduDataPtr = (uint8 *)CanSduPtr;
-                CanTp_RxIndication(entry->CanIfCanRxPduId, &CanTpRxPdu);
-            }
-            return;
-#endif
-            break;
-        case CANIF_USER_TYPE_J1939TP:
-          // Send Can frame to CAN TP
-#if defined(USE_J1939TP)
-            {
-        	    PduInfoType J1939TpRxPdu;
-        	    J1939TpRxPdu.SduLength = CanDlc;
-        	    J1939TpRxPdu.SduDataPtr = (uint8 *)CanSduPtr;
-        	    J1939Tp_RxIndication(entry->CanIfCanRxPduId, &J1939TpRxPdu);
-            }
-            return;
-#endif
-            break;            
-      }
-    }
-
-    entry++;
-  }
-
-  // Did not find the PDU, something is wrong
-  VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_LPDU);
 }
 
 #if ( CANIF_TRANSMIT_CANCELLATION == STD_ON )
@@ -1001,3 +1118,29 @@ uint8 CanIf_Arc_GetChannelDefaultConfIndex(CanIf_Arc_ChannelIdType Channel)
 	return CanIf_Config.Arc_ChannelDefaultConfIndex[Channel];
 }
 
+
+KSM(CANIdle,Init)
+{
+	KGS(CANIdle,Running);
+}
+KSM(CANIdle,Start)
+{
+}
+KSM(CANIdle,Stop)
+{
+
+}
+KSM(CANIdle,Running)
+{
+	Can_MainFunction_Write();
+	Can_MainFunction_Read();
+}
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
+TASK(TaskCanIf)
+{
+
+	scheduleTxFifo();
+	scheduldRxFifo();
+	OsTerminateTask(TaskCanIf);
+}
+#endif
