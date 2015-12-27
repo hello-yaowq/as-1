@@ -238,10 +238,11 @@ end
 function M.transmit(channel,data)
   -- print("request: ",channel,table.concat(data, ":"))
   if rawlen(data) < 7 then
-    sendSF(channel,data)
+    ercd = sendSF(channel,data)
   else
-    ScheduleTx(channel,data)
+    ercd = ScheduleTx(channel,data)
   end
+  return ercd
 end
 
 local function waitSForFF(channel,response)

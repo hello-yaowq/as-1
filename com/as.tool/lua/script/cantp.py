@@ -15,7 +15,7 @@ __lic__ = '''
  */
  '''
 
-import AS
+from can import *
 import time
 
 ISO15765_TPCI_MASK =  0x30
@@ -39,69 +39,259 @@ CANTP_ST_WAIT_CF = 4
 CANTP_ST_SEND_CF = 5
 CANTP_ST_SEND_FC = 6
 
-cfgSTmin = 10
-cfgBS    = 8
-cfgPadding = 0x55
-
 class cantp():
-    def __init__(self,can,canbus,rxid,txid,padding=0x55):
-        self.can = can
+    def __init__(self,canbus,rxid,txid,cfgSTmin=10,cfgBS=8,padding=0x55):
         self.canbus  = canbus
         self.rxid = rxid
         self.txid = txid
         self.padding = padding
+        self.state = CANTP_ST_IDLE
+        self.SN = 0
+        self.t_size = 0
+        self.STmin = 0
+        self.cSTmin = cfgSTmin
+        self.cBS = cfgBS
+        self.cfgSTmin = 0
+        self.cfgBS = 0
     
-    def __sendFF__(self,request):
+    def __sendSF__(self,request):
         length = len(request)
-        data = '%c'%(ISO15765_TPCI_SF | (length&0x0F))
+        data = []
+        data.append(ISO15765_TPCI_SF | (length&0x0F))
         for i,c in enumerate(request):
-            data += '%c'%(c&0xFF)
+            data.append(c&0xFF)
         i += 2
         while(i<8):
-            data += '%c'%(self.padding)
+            data.append(self.padding)
             i += 1
-        return self.can.write(self.canbus,self.txid,8,data.encode('utf-8'))
-        
-    def transmit(self,request):
-        if(len(request) < 7):
-            return self.__sendFF__(request)
+        return can_write(self.canbus,self.txid,data)
     
-    def __str2ary__(self,cstr):
-        data = []
-        for i in range(len(cstr)>>1):
-            data.append(int(cstr[2*i:2*i+2],16))
+    def __sendFF__(self,data):
+        length = rawlen(data)
+        pdu = []
+        pdu.append(ISO15765_TPCI_FF | ((length>>8)&0x0F))
+        pdu.append(length&0xFF)
+  
+        for d in data:
+            pdu.append(d)
+  
+        self.SN = 0
+        self.t_size = 6
+        self.state = CANTP_ST_WAIT_FC
+  
+        return can_write(self.can_bus,self.txid,pdu)
+    
+    def __sendCF__(self,request): 
+        sz = len(request)
+        t_size = self.t_size
+        pdu = []
+  
+        self.SN += 1
+        if (self.SN > 15):
+            self.SN = 0
             
-        return data
+        l_size = sz - t_size  #  left size 
+        if (l_size > 7):
+            l_size = 7
+  
+        pdu.append(ISO15765_TPCI_CF | self.SN)
+  
+        for i in range(l_size):
+          pdu.append(request[t_size+i])
+  
+        i = len(pdu)
+        while(i<8):
+            pdu.append(self.padding)
+            i = i + 1
+  
+        self.t_size += l_size
+  
+        if (self.t_size == sz):
+            self.state = CANTP_ST_IDLE
+        else:
+            if (self.BS > 0):
+                self.BS -= 1
+                if (0 == self.BS):
+                    self.state = CANTP_ST_WAIT_FC
+                else:
+                    self.state = CANTP_ST_SEND_CF
+            else:
+              self.state = CANTP_ST_SEND_CF
+  
+        self.STmin = self.cfgSTmin
+  
+        return can_write(self.canbus,self.txid,pdu)
+   
+    def __handleFC__(self,request):
+        ercd,data = self.__waitRF__()
+        if (True == ercd):
+            if ((data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FC):
+                if ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS): 
+                    self.cfgSTmin = data[3]
+                    self.BS = data[2]
+                    self.STmin = 0   # send the first CF immediately
+                    self.state = CANTP_ST_SEND_CF
+                elif ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT):
+                    self.state = CANTP_ST_WAIT_FC
+                elif ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW):
+                    print("cantp buffer over-flow, cancel...")
+                    ercd = False
+                else:
+                    print("FC error as reason %X,invalid flow status"%(data[1]))
+                    ercd = False
+        else:
+            print("FC error as reason %X,invalid PCI"%(data[1]))
+            ercd = False 
+        return ercd
+    
+    def __schedule_tx__(self,request):
+        length = len(request)
 
-    def waitRF(self):
+        ercd = self.sendFF(request[:6])  # FF sends 6 bytes
+  
+        if (True == ercd):
+            while(self.t_size < length):
+                if(self.state == CANTP_ST_WAIT_FC):
+                    ercd = self.__handleFC__(request)
+                elif(self.state == CANTP_ST_SEND_CF):
+                    if(self.STmin > 0):
+                        self.STmin = self.STmin - 1
+                    if(self.STmin == 0):
+                      ercd = self.__sendCF__(request)
+                else:
+                    print("cantp: transmit unknown state ",self.state)
+                    ercd = False
+                if(ercd == False):
+                    break
+  
+        return ercd
+         
+    def transmit(self,request):
+        assert(len(request) < 4096)
+        if(len(request) < 7):
+            ercd = self.__sendSF__(request)
+        else:
+            ercd = self.__schedule_tx__(request)
+        return ercd
+
+    def __waitRF__(self):
         ercd = False
-        timeout = 0
-        while ( (timeout < 1000000) and (ercd == False)): # 1s timeout
-            result,dlc,data= self.can.read(self.canbus,self.rxid)
+        data=None
+        pre = time.time()
+        while ( ((time.time() -pre) < 1) and (ercd == False)): # 1s timeout
+            result,data= can_read(self.canbus,self.rxid)
             if(True == result):
-                data = self.__str2ary__(data)
                 ercd = True
                 break
             else:
-                time.sleep(0.00001) # sleep a while 
-                timeout += 1
+                time.sleep(0.001) # sleep 1 ms
         
         if (False == ercd):
-            print("cantp timeout when receiving a frame! elapsed time = %s ms"%(timeout))
+            print("cantp timeout when receiving a frame! elapsed time = %s ms"%(time.time() -pre))
   
         return ercd,data
    
+    def __waitSForFF__(self,response):
+        ercd,data = self.__waitRF__()
+        finished = False
+        if (True == ercd):
+            if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_SF):
+                lsize = data[0]&ISO15765_TPCI_DL
+                for d in data[1:]:
+                    response.append(d)
+                ercd = True
+                finished = True
+            elif ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FF):
+                self.t_size = ((data[0]&0x0F)<<8) + data[1]
+                for d in data[2:]:
+                    response.append(d)
+                self.state = CANTP_ST_SEND_FC
+                self.state = 0
+                ercd = True
+                finished = False
+        else:
+            ercd = False
+            finished = True
+ 
+        return ercd,finished
+
+    def __waitCF__(self,response): 
+        sz = len(response)
+        t_size = self.t_size
+   
+        ercd,data = self.__waitRF__()
+   
+        if (True == ercd ):
+            if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_CF):
+                self.SN += 1
+                if (self.SN > 15):
+                    self.SN = 0
+       
+                SN = data[1]&0x0F
+                if (SN == self.SN):
+                    l_size = t_size -sz  # left size 
+                    if (l_size > 7):
+                        l_size = 7
+                    for d in data[1:]:
+                        response.append(d)
+         
+                    if ((sz+l_size) == t_size):
+                        finished = true
+                    else:
+                        if (self.BS > 0):
+                            self.BS -= 1
+                            if (0 == self.BS):
+                                self.state = CANTP_ST_SEND_FC
+                            else:
+                                self.state = CANTP_ST_WAIT_CF
+                        else:
+                            self.state = CANTP_ST_WAIT_CF
+            else:
+                ercd = False
+                finished = True
+                print("cantp: wrong sequence number!",SN,self.SN)
+        else:
+            ercd = False
+            finished = True
+   
+        return ercd,finished
+
+    def __sendFC__(self):
+        pdu = []
+        pdu.append(ISO15765_TPCI_FC | ISO15765_FLOW_CONTROL_STATUS_CTS)
+        pdu.append(self.cBS)
+        pdu.append(self.cSTmin)
+   
+        i = len(pdu)
+        while(i<8):
+            pdu.append(self.padding)
+            i += 1
+        self.BS = self.cBS
+        self.state = CANTP_ST_WAIT_CF
+   
+        return can_write(self.canbus,self.txid,pdu)
+
     def receive(self):
-        ercd,data = self.waitRF()
-        print(ercd,data)
+        ercd = True
+        response = []
+  
+        finished = False
+  
+        ercd,finished = self.__waitSForFF__(response)
 
-
-
+        while ((True == ercd) and (false == finished)):
+            if (self.state == CANTP_ST_SEND_FC):
+                ercd = self.__sendFC__()
+            elif (self.state == CANTP_ST_WAIT_CF):
+                ercd,finished = self.__waitCF__(response)
+            else:
+                print("cantp: receive unknown state ",self.state)
+                ercd = False
+        return ercd,response
 
 if(__name__ == '__main__'):
     # open COM4
-    can = AS.can()
-    can.open(0,'serial'.encode('utf-8'),3,115200)
-    tp  = cantp(can,0,0x732,0x731)
+    can_open(0,'serial',3,115200)
+    tp  = cantp(0,0x732,0x731)
     tp.transmit([0x10,0x03])
     tp.receive()
