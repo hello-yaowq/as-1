@@ -15,7 +15,6 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "rs232.h"
 #include "Std_Types.h"
-#include "RPmsg.h"
 #include "lascanlib.h"
 #include <sys/queue.h>
 #include <pthread.h>

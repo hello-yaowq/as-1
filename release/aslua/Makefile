@@ -18,6 +18,7 @@ obj-dir = ./obj
 exe-dir = ./out
 src-dir = ./src
 inc-dir = ./include
+pyt-dir = ./python
 
 prj-dir = $(subst release/aslua,,$(CURDIR))
 
@@ -85,6 +86,28 @@ def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
+ifeq ($(board),pycan)
+ifeq ($(host),Linux)
+def-y += -DLUA_USE_LINUX
+def-y += -D__LINUX__
+# my computer is 64 bit 
+def-y += -D__X86_64__
+else
+def-y += -D__WINDOWS__
+def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
+endif
+ifeq ($(host),Linux)
+ldflags-y +=-lrt
+ldflags-y +=  -ldl -lreadline
+else
+ldflags-y +=-lwinmm 
+ldflags-y += $(src-dir)/PCANBasic.lib
+endif
+ldflags-y += -lm -lpthread
+cflags-y +=-Wextra 
+def-y    += -D__AS_PY_CAN__
+endif	# pycan end
+
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
@@ -127,6 +150,27 @@ endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
 	@(echo "  >> prepare link for posix done")
 
+$(pyt-dir):
+	@mkdir -p $@
+
+# check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
+pysip:$(pyt-dir)
+	@($(PY34) $(src-dir)/configure.py $(src-dir)/pycan.sip $(pyt-dir))
+
+dep-pycan:
+	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+ifeq ($(host),Linux)
+else
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
+	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+endif
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)	
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+	@(make pysip)
+	
+	
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
 
 all:exe
@@ -153,3 +197,12 @@ clean-dist:clean
 94:
 	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
+	
+# ---------------------------------- [ pycan       ] ---------------------------------- #
+# lua is preferred by me for validation, as it is small and perfect
+# but it is not able to make UI application
+# so I start this for a solution based on the lua can.
+81:
+	make dep board=pycan compiler=posix-gcc
+82:
+	make lib board=pycan compiler=posix-gcc debug=true

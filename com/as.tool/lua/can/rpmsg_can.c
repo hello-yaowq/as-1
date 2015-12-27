@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_RPMSG
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "RPmsg.h"
@@ -163,3 +164,4 @@ void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 {
 	asAssert(chl == RPMSG_CHL_CAN);
 }
+#endif /* USE_RPMSG */

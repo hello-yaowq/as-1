@@ -208,8 +208,8 @@ function download_application()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  0x00010000 + ss['addr'] - srecord[1]['addr']
-    ercd = download_one_record(addr,ss['size'],ss['data'])
+    addr =  ss['addr']
+    ercd =  download_one_record(addr,ss['size'],ss['data'])
     if (false == ercd) then
       break
     end
@@ -231,8 +231,8 @@ operation_list = {enter_extend_session, security_extds_access,
 
 function main()
   data = {}
-  -- as.can_open(can_bus,"rpmsg",0,1000000)
-  as.can_open(can_bus,"serial",3,115200)	-- COM4
+  as.can_open(can_bus,"rpmsg",0,1000000)
+  -- as.can_open(can_bus,"serial",3,115200)	-- COM4
   dcm.init(can_bus,0,0x732,0x731)
   
   

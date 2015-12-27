@@ -65,7 +65,9 @@ static struct Can_BusList_s canbusH =
 };
 static const Can_DeviceOpsType* canOps [] =
 {
+	#ifdef USE_RPMSG
 	&can_rpmsg_ops,
+	#endif
 	&can_serial_ops,
 	#ifdef __WINDOWS__
 	&can_vxl_ops,
@@ -257,6 +259,7 @@ static const Can_DeviceOpsType* search_ops(const char* name)
 	return ops;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef __AS_PY_CAN__
 int luai_can_open  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
@@ -514,4 +517,4 @@ void luai_canlib_close(void)
 	}
 }
 
-
+#endif /* __AS_PY_CAN__ */

@@ -75,7 +75,7 @@
 /* Global configure */
 static const CanIf_ConfigType *CanIf_ConfigPtr;
 
-// Struct of controller private data.
+/* Struct of controller private data. */
 typedef struct
 {
   CanIf_ControllerModeType  ControllerMode;

@@ -16,10 +16,11 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#ifndef __AS_PY_CAN__
 #include "lua.h"
-
 #include "lualib.h"
 #include "lauxlib.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_DEVICE_NAME_SIZE 32
 /* ============================ [ TYPES     ] ====================================================== */
@@ -55,11 +56,11 @@ extern const Can_DeviceOpsType can_socket_ops;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef __AS_PY_CAN__
 int luai_can_write (lua_State *L);
 int luai_can_read  (lua_State *L);
 int luai_can_open  (lua_State *L);
-
 void luai_canlib_open(void);
 void luai_canlib_close(void);
-
+#endif
 #endif /* COM_AS_TOOL_LUA_CAN_LASCANLIB_H_ */
