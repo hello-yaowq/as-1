@@ -14,11 +14,11 @@
 # */
 target-y = $(board)
 
-obj-dir = ./obj
-exe-dir = ./out
-src-dir = ./src
-inc-dir = ./include
-pyt-dir = ./python
+obj-dir = $(CURDIR)/obj
+exe-dir = $(CURDIR)/out
+src-dir = $(CURDIR)/src
+inc-dir = $(CURDIR)/include
+pyt-dir = $(CURDIR)/python
 
 prj-dir = $(subst release/aslua,,$(CURDIR))
 
@@ -150,12 +150,10 @@ endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
 	@(echo "  >> prepare link for posix done")
 
-$(pyt-dir):
-	@mkdir -p $@
-
 # check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
-pysip:$(pyt-dir)
-	@($(PY34) $(src-dir)/configure.py $(src-dir)/pycan.sip $(pyt-dir))
+pysip:$(exe-dir)
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.sip)
+	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pycan.sip $(exe-dir))
 
 dep-pycan:
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
@@ -206,3 +204,4 @@ clean-dist:clean
 	make dep board=pycan compiler=posix-gcc
 82:
 	make lib board=pycan compiler=posix-gcc debug=true
+	@(cd $(exe-dir);make all)

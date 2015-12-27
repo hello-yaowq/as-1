@@ -14,7 +14,6 @@ def sip_makefile(sipfile,output):
     config = sipconfig.Configuration()
     
     # compiler sip
-    print(" ".join([config.sip_bin, "-c", output, sipfile]))
     os.system(" ".join([config.sip_bin, "-c", output, sipfile]))
     
     # Run SIP to generate the code.
@@ -27,7 +26,7 @@ def sip_makefile(sipfile,output):
     # specific prefixes or extensions (e.g. the "lib" prefix on UNIX, or the
     # ".dll" extension on Windows).
     makefile.extra_libs = [module]
-    makefile.extra_lib_dirs = ['.']
+    makefile.extra_lib_dirs = [output]
     makefile.extra_defines  = []
     makefile.extra_cflags = ['--std=gnu99']
     # Generate the Makefile itself.
