@@ -18,7 +18,6 @@ obj-dir = $(CURDIR)/obj
 exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src
 inc-dir = $(CURDIR)/include
-pyt-dir = $(CURDIR)/python
 
 prj-dir = $(subst release/aslua,,$(CURDIR))
 
@@ -86,7 +85,7 @@ def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
-ifeq ($(board),pycan)
+ifeq ($(board),pyas)
 ifeq ($(host),Linux)
 def-y += -DLUA_USE_LINUX
 def-y += -D__LINUX__
@@ -106,7 +105,7 @@ endif
 ldflags-y += -lm -lpthread
 cflags-y +=-Wextra 
 def-y    += -D__AS_PY_CAN__
-endif	# pycan end
+endif	# pyas end
 
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
@@ -152,11 +151,16 @@ endif
 
 # check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
 pysip:$(exe-dir)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.sip)
-	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pycan.sip $(exe-dir))
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.h)
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))
+	@echo "  >> pysip build done "
 
-dep-pycan:
+dep-pyas:
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/pyas TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
@@ -196,12 +200,12 @@ clean-dist:clean
 	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
 	
-# ---------------------------------- [ pycan       ] ---------------------------------- #
+# ---------------------------------- [ pyas        ] ---------------------------------- #
 # lua is preferred by me for validation, as it is small and perfect
 # but it is not able to make UI application
 # so I start this for a solution based on the lua can.
 81:
-	make dep board=pycan compiler=posix-gcc
+	make dep board=pyas compiler=posix-gcc
 82:
-	make lib board=pycan compiler=posix-gcc debug=true
+	make lib board=pyas compiler=posix-gcc debug=true
 	@(cd $(exe-dir);make all)

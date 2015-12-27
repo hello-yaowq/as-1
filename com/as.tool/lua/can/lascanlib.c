@@ -493,7 +493,7 @@ int luai_can_read  (lua_State *L)
 		return luaL_error(L, "can_read (bus_id, can_id) API should has 2 arguments");
 	}
 }
-
+#endif /* __AS_PY_CAN__ */
 void luai_canlib_open(void)
 {
 	if(canbusH.initialized)
@@ -516,5 +516,110 @@ void luai_canlib_close(void)
 		canbusH.initialized = FALSE;
 	}
 }
+#ifdef __AS_PY_CAN__
+int can_open(unsigned long busid,const char* device_name,unsigned long port, unsigned long baudrate)
+{
+	int rv;
+	const Can_DeviceOpsType* ops;
+	ops = search_ops(device_name);
+	struct Can_Bus_s* b = getBus(busid);
+	rv = FALSE;
+	if(NULL != b)
+	{
+		printf("ERROR :: can bus(%d) is already on-line 'can_open'\n",(int)busid);
+	}
+	else
+	{
+		if(NULL != ops)
+		{
+			b = malloc(sizeof(struct Can_Bus_s));
+			b->busid = busid;
+			b->device.ops = ops;
+			b->device.busid = busid;
+			b->device.port = port;
 
+			rv = ops->probe(busid,port,baudrate,rx_notification);
+
+			if(rv)
+			{
+				STAILQ_INIT(&b->head);
+				pthread_mutex_lock(&canbusH.q_lock);
+				STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
+				pthread_mutex_unlock(&canbusH.q_lock);
+				/* result OK */
+			}
+			else
+			{
+				free(b);
+				printf("ERROR :: can_open device <%s> failed!",device_name);
+			}
+		}
+		else
+		{
+			printf("ERROR :: can_open device <%s> is not known by lua!",device_name);
+		}
+	}
+
+	fflush(stdout);
+	return rv;
+}
+int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data)
+{
+	int rv;
+	struct Can_Bus_s * b = getBus(busid);
+	rv = FALSE;
+	if(NULL == b)
+	{
+		printf("ERROR :: can bus(%d) is not on-line 'can_write'",(int)busid);
+	}
+	else if(dlc > 8)
+	{
+		printf("ERROR :: can bus(%d) 'can_write' with invalid dlc(%d>8)",(int)busid,(int)dlc);
+	}
+	else
+	{
+		if(b->device.ops->write)
+		{
+			boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
+			if(rv)
+			{
+				/* result OK */
+			}
+			else
+			{
+				printf("ERROR :: can_write bus(%d) failed!",(int)busid);
+			}
+		}
+		else
+		{
+			printf("ERROR :: can bus(%d) is read-only 'can_write'",(int)busid);
+		}
+	}
+	fflush(stdout);
+	return rv;
+}
+int can_read(unsigned long busid,unsigned long canid,unsigned long *dlc,unsigned char* data)
+{
+	int rv = FALSE;
+	struct Can_Pdu_s* pdu;
+	struct Can_Bus_s* b = getBus(busid);
+	if(NULL == b)
+	{
+		printf("ERROR :: bus(%d) is not on-line 'can_read'",(int)busid);
+	}
+	pdu = getPdu(b,canid);
+	if(NULL == pdu)
+	{
+		/* no data */
+	}
+	else
+	{
+		*dlc = pdu->msg.length;
+		memcpy(data,pdu->msg.sdu,*dlc);
+		free(pdu);
+
+		rv = TRUE;
+	}
+	return rv;
+}
 #endif /* __AS_PY_CAN__ */

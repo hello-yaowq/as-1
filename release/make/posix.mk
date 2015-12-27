@@ -109,7 +109,7 @@ endif
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).LIB"
-	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
+	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 
 clean-obj:
