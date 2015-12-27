@@ -551,12 +551,12 @@ int can_open(unsigned long busid,const char* device_name,unsigned long port, uns
 			else
 			{
 				free(b);
-				printf("ERROR :: can_open device <%s> failed!",device_name);
+				printf("ERROR :: can_open device <%s> failed!\n",device_name);
 			}
 		}
 		else
 		{
-			printf("ERROR :: can_open device <%s> is not known by lua!",device_name);
+			printf("ERROR :: can_open device <%s> is not known by lua!\n",device_name);
 		}
 	}
 
@@ -570,56 +570,71 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	rv = FALSE;
 	if(NULL == b)
 	{
-		printf("ERROR :: can bus(%d) is not on-line 'can_write'",(int)busid);
+		printf("ERROR :: can bus(%d) is not on-line 'can_write'\n",(int)busid);
 	}
 	else if(dlc > 8)
 	{
-		printf("ERROR :: can bus(%d) 'can_write' with invalid dlc(%d>8)",(int)busid,(int)dlc);
+		printf("ERROR :: can bus(%d) 'can_write' with invalid dlc(%d>8)\n",(int)busid,(int)dlc);
 	}
 	else
 	{
 		if(b->device.ops->write)
 		{
-			boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
+			rv = b->device.ops->write(b->device.port,canid,dlc,data);
 			if(rv)
 			{
 				/* result OK */
 			}
 			else
 			{
-				printf("ERROR :: can_write bus(%d) failed!",(int)busid);
+				printf("ERROR :: can_write bus(%d) failed!\n",(int)busid);
 			}
 		}
 		else
 		{
-			printf("ERROR :: can bus(%d) is read-only 'can_write'",(int)busid);
+			printf("ERROR :: can bus(%d) is read-only 'can_write'\n",(int)busid);
 		}
 	}
 	fflush(stdout);
 	return rv;
 }
-int can_read(unsigned long busid,unsigned long canid,unsigned long *dlc,unsigned char* data)
+int can_read(unsigned long busid,unsigned long canid,unsigned long *dlc,unsigned char** data)
 {
 	int rv = FALSE;
 	struct Can_Pdu_s* pdu;
 	struct Can_Bus_s* b = getBus(busid);
+
+	*dlc = 0;
+	*data = NULL;
+
 	if(NULL == b)
 	{
-		printf("ERROR :: bus(%d) is not on-line 'can_read'",(int)busid);
-	}
-	pdu = getPdu(b,canid);
-	if(NULL == pdu)
-	{
-		/* no data */
+		printf("ERROR :: bus(%d) is not on-line 'can_read'\n",(int)busid);
 	}
 	else
 	{
-		*dlc = pdu->msg.length;
-		memcpy(data,pdu->msg.sdu,*dlc);
-		free(pdu);
-
-		rv = TRUE;
+		pdu = getPdu(b,canid);
+		if(NULL == pdu)
+		{
+			/* no data */
+		}
+		else
+		{
+			size_t size = 0;
+			*dlc = pdu->msg.length;
+			*data = malloc((*dlc)*2+1);
+			asAssert(*data);
+			for(unsigned long i=0;i<*dlc;i++)
+			{
+				size += snprintf((char*)&((*data)[size]),(*dlc)*2+1-size,"%02X",pdu->msg.sdu[i]);
+			}
+			(*data)[size] = '\0';
+			free(pdu);
+			rv = TRUE;
+		}
 	}
+
+	fflush(stdout);
 	return rv;
 }
 #endif /* __AS_PY_CAN__ */

@@ -199,6 +199,7 @@ clean-dist:clean
 94:
 	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
+	@(cp -v $(exe-dir)/posix.exe $(prj-dir)/com/as.tool/lua/script/aslua.exe)
 	
 # ---------------------------------- [ pyas        ] ---------------------------------- #
 # lua is preferred by me for validation, as it is small and perfect
@@ -209,3 +210,4 @@ clean-dist:clean
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
 	@(cd $(exe-dir);make all)
+	@(cp -v $(exe-dir)/AS.pyd $(prj-dir)/com/as.tool/lua/script)

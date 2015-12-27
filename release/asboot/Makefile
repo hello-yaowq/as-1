@@ -122,7 +122,7 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM
 ifeq ($(led_app),yes)
 def-y += -DUSE_DIO -DUSE_PORT
 endif
-def-y += -DUSE_DET
+#def-y += -DUSE_DET
 def-y += -DUSE_SIMUL_CAN
 endif
 

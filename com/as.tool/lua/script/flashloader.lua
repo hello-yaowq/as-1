@@ -21,12 +21,13 @@ require("math")
 
 -- ===================== [ LOCAL    ] ================================
 local can_bus = 0
+local dcm_chl = 0
 
 local FLASH_WRITE_SIZE = 512
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
-  ercd,res = dcm.transmit(can_bus,{0x10,0x03})
+  ercd,res = dcm.transmit(dcm_chl,{0x10,0x03})
   
   if (false == ercd) then
     print("  >> enter extend session failed!")
@@ -39,7 +40,7 @@ function enter_extend_session()
 end
 
 function enter_program_session()
-  ercd,res = dcm.transmit(can_bus,{0x10,0x02})
+  ercd,res = dcm.transmit(dcm_chl,{0x10,0x02})
   
   if (false == ercd) then
     print("  >> enter program session failed!")
@@ -53,7 +54,7 @@ end
 
 function security_extds_access()
   -- level 1 
-  ercd,res = dcm.transmit(can_bus,{0x27,0x01})
+  ercd,res = dcm.transmit(dcm_chl,{0x27,0x01})
   
   if (false == ercd) then
     print("  >> security access request seed failed!")
@@ -62,7 +63,7 @@ function security_extds_access()
     seed = (res[3]<<24) + (res[4]<<16) + (res[5]<<8) +(res[6]<<0)
     key = seed ~ 0x78934673
     print(type(key),key)
-    ercd,res = dcm.transmit(can_bus,{0x27,0x02,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
+    ercd,res = dcm.transmit(dcm_chl,{0x27,0x02,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
     if (false == ercd) then
       print("  >> security access send key failed!")
     else
@@ -76,7 +77,7 @@ end
 
 function security_prgs_access()
   -- level 2
-  ercd,res = dcm.transmit(can_bus,{0x27,0x03})
+  ercd,res = dcm.transmit(dcm_chl,{0x27,0x03})
   
   if (false == ercd) then
     print("  >> security access request seed failed!")
@@ -84,7 +85,7 @@ function security_prgs_access()
     print("  >> security access request seed ok!")
     seed = (res[3]<<24) + (res[4]<<16) + (res[5]<<8) +(res[6]<<0)
     key = seed ~ 0x94586792
-    ercd,res = dcm.transmit(can_bus,{0x27,0x04,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
+    ercd,res = dcm.transmit(dcm_chl,{0x27,0x04,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
     if (false == ercd) then
       print("  >> security access send key failed!")
     else
@@ -98,7 +99,7 @@ end
 
 
 function routine_erase_flash()
-  ercd,res = dcm.transmit(can_bus,{0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x0F,0x00,0x00,0xFF})
+  ercd,res = dcm.transmit(dcm_chl,{0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x0F,0x00,0x00,0xFF})
   -- start address = 0x00010000 = 64K 
   -- end   address = 0x00100000 = 1M, so size =  0x000F0000
   -- identifier 0xFF
@@ -127,7 +128,7 @@ function request_download(addr,size)
   data[11] = (size>>0)&0xFF
   data[12] = 0xFF -- memory identifier
  
-  ercd,res = dcm.transmit(can_bus,data)
+  ercd,res = dcm.transmit(dcm_chl,data)
   
   if (false == ercd) then
     print("  >> request download failed!")
@@ -139,7 +140,7 @@ function request_download(addr,size)
 end
 
 function request_transfer_exit()
-  ercd,res = dcm.transmit(can_bus,{0x37})
+  ercd,res = dcm.transmit(dcm_chl,{0x37})
   
   if (false == ercd) then
     print("  >> request_transfer_exit failed!")
@@ -181,7 +182,7 @@ function download_one_record(addr,size,data)
       end
     end
 
-    ercd,res = dcm.transmit(can_bus,req)
+    ercd,res = dcm.transmit(dcm_chl,req)
     
     pos = pos + sz
 
@@ -231,9 +232,9 @@ operation_list = {enter_extend_session, security_extds_access,
 
 function main()
   data = {}
-  as.can_open(can_bus,"rpmsg",0,1000000)
-  -- as.can_open(can_bus,"serial",3,115200)	-- COM4
-  dcm.init(can_bus,0,0x732,0x731)
+  -- as.can_open(can_bus,"rpmsg",0,1000000)
+  as.can_open(can_bus,"serial",3,115200)	-- COM4
+  dcm.init(dcm_chl,can_bus,0x732,0x731)
   
   
   for i=1,rawlen(operation_list),1 do
