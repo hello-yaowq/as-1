@@ -22,6 +22,30 @@ require("cantp")
 -- ===================== [ LOCAL    ] ================================
 local M = {}
 local runtime = {}
+local l_service = { [0x10]="diagnostic session control",[0x11]="ecu reset",[0x14]="clear diagnostic information",
+                [0x19]="read dtc information",[0x22]="read data by identifier",[0x23]="read memory by address",
+                [0x24]="read scaling data by identifier",[0x27]="security access",[0x28]="communication control",
+                [0x2A]="read data by periodic identifier",[0x2C]="dynamically define data identifier",[0x2E]="write data by identifier",
+                [0x2F]="input output control by identifier",[0x31]="routine control",[0x34]="request download",
+                [0x35]="request upload",[0x36]="transfer data",[0x37]="request transfer exit",
+                [0x3D]="write memory by address",[0x3E]="tester present",[0x7F]="negative response",
+                [0x85]="control dtc setting",[0x01]="request current powertrain diagnostic data",[0x02]="request powertrain freeze frame data",
+                [0x04]="clear emission related diagnostic information",[0x03]="request emission related diagnostic trouble codes",[0x07]="request emission related diagnostic trouble codes detected during current or last completed driving cycle",
+                [0x09]="request vehicle information"}
+                
+local l_nrc = { [0x10]="general reject",[0x21]="busy repeat request",[0x22]="conditions not correct",
+                [0x24]="request sequence error",[0x31]="request out of range",[0x33]="secutity access denied",
+                [0x35]="invalid key",[0x72]="general programming failure",[0x73]="wrong block sequence counter",
+                [0x7E]="sub function not supported in active session",[0x81]="rpm too high",[0x82]="rpm to low",
+                [0x83]="engine is running",[0x84]="engine is not running",[0x85]="engine run time too low",
+                [0x86]="temperature too high",[0x87]="temperature too low",[0x88]="vehicle speed too high",
+                [0x89]="vehicle speed too low",[0x8A]="throttle pedal too high",[0x8B]="throttle pedal too low",
+                [0x8C]="transmission range not in neutral",[0x8D]="transmission range not in gear",[0x8F]="brake switch not closed",
+                [0x90]="shifter lever not in park",[0x91]="torque converter clutch locked",[0x92]="voltage too high",
+                [0x93]="voltage too low",[0x00]="positive response",[0x11]="service not supported",
+                [0x12]="sub function not supported",[0x13]="incorrect message length or invalid format",[0x78]="response pending",
+                [0x7F]="service not supported in active session"}
+                
 -- ===================== [ DATA     ] ================================
 dcm = M 
 
@@ -31,21 +55,8 @@ function M.init(channel,bus,rxid,txid)
 end
 
 function get_service_name(serviceid)
-    if serviceid == 0x10 then
-      service = "session control"
-    elseif serviceid == 0x27 then
-      service = "security access"
-    elseif serviceid == 0x31 then
-      service = "routine control"  
-    elseif serviceid == 0x34 then
-      service = "request download"        
-    elseif serviceid == 0x35 then
-      service = "request upload"
-    elseif serviceid == 0x36 then
-      service = "transfer data"
-    elseif serviceid == 0x37 then
-      service = "request transfer exit"        
-    else
+    service = l_service[serviceid]
+    if nil == service then
       service = string.format("unknown(%X)",serviceid)
     end
     
@@ -53,31 +64,10 @@ function get_service_name(serviceid)
 end
 
 function get_nrc_name(nrc)
-  if nrc == 0x10 then
-    name = "general reject"
-  elseif nrc == 0x11 then
-    name = "service not supported"
-  elseif nrc == 0x12 then
-    name = "sub function not supported"
-  elseif nrc == 0x13 then
-    name = "incorrect message length or invalid format"
-  elseif nrc == 0x22 then
-    name = "condition not ok"
-  elseif nrc == 0x24 then
-    name = "request sequence error"
-  elseif nrc == 0x31 then
-    name = "request out of range"    
-  elseif nrc == 0x33 then
-    name = "security access denied"
-  elseif nrc == 0x35 then
-    name = "invalid key"
-  elseif nrc == 0x72 then
-    name = "general programming failure"
-  elseif nrc == 0x7f then
-    name = "service not supported in active session"
-  else
-    name = string.format("unknown(%X)",nrc)
-  end
+    name = l_nrc[nrc]
+    if nil == name then
+      name = string.format("unknown(%X)",nrc)
+    end
   
   return name
 end
@@ -94,7 +84,7 @@ local function show_negative_response(res)
 end
 
 local function show_request(req)
-  ss = "  >> dcm request  = ["
+  ss = string.format("  >> dcm request %s = [",get_service_name(req[1]))
   len = rawlen(req)
   if len > 16 then
     len = 16
