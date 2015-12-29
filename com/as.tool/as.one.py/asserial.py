@@ -5,6 +5,7 @@ from serial import Serial
 from time import sleep
 from time import ctime
 from binascii import hexlify, unhexlify
+import sys
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -23,8 +24,8 @@ class AsSerial(QThread):
                     settings['parity'], settings['stopbits'], settings['timeout'])
             self.serial.flushInput()
             self.serial.flushOutput()
-        except (Exception, msg):
-            return (False, msg.message.decode('gb2312'))
+        except:
+            return (False, "%s"%(sys.exc_info()[1]))
         
         self.start()
         return (True, 'success')
@@ -87,39 +88,51 @@ class UISerial(QWidget):
         grid = QtGui.QGridLayout()
         grid.addWidget(QLabel('Port:'), 0, 0)
         self.cmdPorts = QtGui.QComboBox()
-        self.cmdPorts.addItems(QStringList(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']))
+        #self.cmdPorts.addItems(QStringList(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']))
+        for i in ['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']:
+            self.cmdPorts.addItem(i)
         grid.addWidget(self.cmdPorts, 0, 1)
         self.cmdPorts.setCurrentIndex(6)
         self.cmdPorts.setEditable(True)
         
         grid.addWidget(QLabel('Baudrate:'), 0, 2)
         self.cmdBaudrate = QtGui.QComboBox()
-        self.cmdBaudrate.addItems(QStringList(['4800','7200','9600','14400','19200','38400','57600','115200','128000']))
+        #self.cmdBaudrate.addItems(QStringList(['4800','7200','9600','14400','19200','38400','57600','115200','128000']))
+        for i in ['4800','7200','9600','14400','19200','38400','57600','115200','128000']:
+            self.cmdBaudrate.addItem(i)
         grid.addWidget(self.cmdBaudrate, 0, 3)
         self.cmdBaudrate.setCurrentIndex(7)
         self.cmdBaudrate.setEditable(True) 
         
         grid.addWidget(QLabel('Data:'), 0, 4)
         self.cmdData = QtGui.QComboBox()
-        self.cmdData.addItems(QStringList(['8','7','6','5','4']))
+        #self.cmdData.addItems(QStringList(['8','7','6','5','4']))
+        for i in ['8','7','6','5','4']:
+            self.cmdData.addItem(i)
         grid.addWidget(self.cmdData, 0, 5)
         self.cmdData.setCurrentIndex(0) 
         
         grid.addWidget(QLabel('Parity:'), 0, 6)
         self.cmdParity = QtGui.QComboBox()
-        self.cmdParity.addItems(QStringList(['Odd','Even','Flag','Space','None']))
+        #self.cmdParity.addItems(QStringList(['Odd','Even','Flag','Space','None']))
+        for i in ['Odd','Even','Flag','Space','None']:
+            self.cmdParity.addItem(i)
         grid.addWidget(self.cmdParity, 0, 7)
         self.cmdParity.setCurrentIndex(4)
         
         grid.addWidget(QLabel('Stop:'), 0, 8)
         self.cmdStop = QtGui.QComboBox()
-        self.cmdStop.addItems(QStringList(['1','1.5','2']))
+        #self.cmdStop.addItems(QStringList(['1','1.5','2']))
+        for i in ['1','1.5','2']:
+            self.cmdStop.addItem(i)        
         grid.addWidget(self.cmdStop, 0, 9)
         self.cmdStop.setCurrentIndex(0)
         
         grid.addWidget(QLabel('FlowControl:'), 0, 10)
         self.cmdFlowControl = QtGui.QComboBox()
-        self.cmdFlowControl.addItems(QStringList(['Xon / Xoff','Hardware','None']))
+        #self.cmdFlowControl.addItems(QStringList(['Xon / Xoff','Hardware','None']))
+        for i in ['Xon / Xoff','Hardware','None']:
+            self.cmdFlowControl.addItem(i)          
         grid.addWidget(self.cmdFlowControl, 0, 11)
         self.cmdFlowControl.setCurrentIndex(2)                              
     
