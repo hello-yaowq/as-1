@@ -32,10 +32,6 @@
 #include "shell.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-#ifndef USE_SHELL
-#error "macro USE_SHELL is not defined"
-#endif
-
 #define SHELL_CMD_CACHE_SIZE  4096
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct {

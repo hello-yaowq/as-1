@@ -88,7 +88,7 @@ class dcm():
         print(ss)
 
     def transmit(self,req):
-        response  = []
+        response  = None
         self.__show_request__(req)
         ercd = self.cantp.transmit(req)
         while(ercd == True):

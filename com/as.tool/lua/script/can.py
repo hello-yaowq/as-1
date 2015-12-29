@@ -14,8 +14,12 @@ __lic__ = '''
  * for more details.
  */
  '''
- 
-import AS
+import sys
+#print('system version :: ',sys.version)
+if (float(sys.version[:3]) < 3.0):
+    import as27 as AS
+else:
+    import as34 as AS
 
 __all__ = ['can_open','can_write','can_read']
 

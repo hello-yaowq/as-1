@@ -149,12 +149,22 @@ endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
 	@(echo "  >> prepare link for posix done")
 
+$(exe-dir)/py27:
+	@mkdir -p $@
+	
+$(exe-dir)/py34:
+	@mkdir -p $@
+
 # check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
-pysip:$(exe-dir)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.h)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
-	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))
+pysip:$(exe-dir)/py27 $(exe-dir)/py34
+	@(cd $(exe-dir)/py27;sed -e "5c %Module as27" $(src-dir)/pyas.sip > pyas.sip)
+	@(cd $(exe-dir)/py27;$(LNFS) $(src-dir)/pycan.h)
+	@(cd $(exe-dir)/py27;$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir)/py27;$(PY27) $(src-dir)/configure.py pyas.sip $(exe-dir)/py27)
+	@(cd $(exe-dir)/py34;sed -e "5c %Module as34" $(src-dir)/pyas.sip > pyas.sip)
+	@(cd $(exe-dir)/py34;$(LNFS) $(src-dir)/pycan.h)
+	@(cd $(exe-dir)/py34;$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir)/py34;$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)/py34)	
 	@echo "  >> pysip build done "
 
 dep-pyas:
@@ -209,5 +219,10 @@ clean-dist:clean
 	make dep board=pyas compiler=posix-gcc
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
-	@(cd $(exe-dir);make all)
-	@(cp -v $(exe-dir)/AS.pyd $(prj-dir)/com/as.tool/lua/script)
+	@cp $(exe-dir)/*.a $(exe-dir)/py27
+	@cp $(exe-dir)/*.a $(exe-dir)/py34
+	@(cd $(exe-dir)/py27;make all)
+	@(cd $(exe-dir)/py34;make all)
+	@(cp -v $(exe-dir)/py27/*.pyd $(prj-dir)/com/as.tool/lua/script)
+	@(cp -v $(exe-dir)/py34/*.pyd $(prj-dir)/com/as.tool/lua/script)
+	@(cd $(prj-dir)/com/as.tool/as.one.py; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)

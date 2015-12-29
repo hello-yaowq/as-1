@@ -23,7 +23,7 @@ class AsSerial(QThread):
                     settings['parity'], settings['stopbits'], settings['timeout'])
             self.serial.flushInput()
             self.serial.flushOutput()
-        except Exception, msg:
+        except (Exception, msg):
             return (False, msg.message.decode('gb2312'))
         
         self.start()
