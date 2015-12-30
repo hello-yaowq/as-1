@@ -16,15 +16,17 @@ __hh__ = '''
  '''
  
 import sys,os
-from PyQt4 import QtGui
-from PyQt4.QtGui import *
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 import xml.etree.ElementTree as ET
 import re
 import glob
 
 reSgBMP = re.compile(r'SgBMP\{(\d+)\}')
 reSgTXT = re.compile(r'SgTXT\{(\d+)\}')
-qtApp = QtGui.QApplication(sys.argv)
+qtApp = QApplication(sys.argv)
 
 __SGL_MAX = 0
 

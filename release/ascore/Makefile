@@ -46,7 +46,7 @@ endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 DEPC  = $(PY27) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
-STUDIO = $(PY27) studio.py
+STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 #rtos?=freeosek

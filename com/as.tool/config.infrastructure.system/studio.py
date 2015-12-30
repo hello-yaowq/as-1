@@ -13,9 +13,10 @@
  * for more details.
  */
 '''
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 import sys,os
 from arxml.Argui import *
 from arxml.Arxml import *
@@ -44,7 +45,6 @@ class easySARGui(QMainWindow):
         
         QMainWindow.__init__(self, None)
         self.setWindowTitle('easy OpenSAR Studio( parai@foxmail.com ^_^)');
-        self.showMaximized()
         self.setMinimumSize(800, 400)
         
         self.creStatusBar()
@@ -52,6 +52,8 @@ class easySARGui(QMainWindow):
         self.creMenu()
         # try to open a default configuration file
         self.mOpen(gDefault_GEN)
+        
+        self.showMaximized()
 
     def creMenu(self):
         # File
@@ -60,19 +62,19 @@ class easySARGui(QMainWindow):
         sItem=QAction(self.tr('Open'),self) 
         sItem.setShortcut('Ctrl+O'); 
         sItem.setStatusTip('Open a OpenSAR configure file.')
-        self.connect(sItem,SIGNAL('triggered()'),self.mOpen)  
+        sItem.triggered.connect(self.mOpen)
         tMenu.addAction(sItem) 
         ## Save Ctrl+S
         sItem=QAction(self.tr('Save'),self) 
         sItem.setShortcut('Ctrl+S'); 
         sItem.setStatusTip('Save the OpenSAR configure file.')
-        self.connect(sItem,SIGNAL('triggered()'),self.mSave)  
+        sItem.triggered.connect(self.mSave) 
         tMenu.addAction(sItem)  
         ## Save Ctrl+G
         sItem=QAction(self.tr('Generate'),self) 
         sItem.setShortcut('Ctrl+G'); 
         sItem.setStatusTip('Convert the OpenSAR configure file to C Code.')
-        self.connect(sItem,SIGNAL('triggered()'),self.mGen)  
+        sItem.triggered.connect(self.mGen)  
         tMenu.addAction(sItem)
         # easySAR Module
         tMenu=self.menuBar().addMenu(self.tr('Module'))
@@ -168,7 +170,7 @@ class easySARGui(QMainWindow):
         self.statusBar.showMessage('easy OpenSAR Studio Platform',0)
         
 def easySAR():
-    qtApp = QtGui.QApplication(sys.argv)
+    qtApp = QApplication(sys.argv)
     if(os.name == 'nt'):
         qtApp.setFont(QFont('Consolas')) 
     elif(os.name == 'posix'):

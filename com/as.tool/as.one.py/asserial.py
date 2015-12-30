@@ -1,6 +1,23 @@
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+__lic__ = '''
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
+ '''
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from serial import Serial
 from time import sleep
 from time import ctime
@@ -85,59 +102,47 @@ class UISerial(QWidget):
         
     def creGui(self):
         vbox = QVBoxLayout()
-        grid = QtGui.QGridLayout()
+        grid = QGridLayout()
         grid.addWidget(QLabel('Port:'), 0, 0)
-        self.cmdPorts = QtGui.QComboBox()
-        #self.cmdPorts.addItems(QStringList(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']))
-        for i in ['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9']:
-            self.cmdPorts.addItem(i)
+        self.cmdPorts = QComboBox()
+        self.cmdPorts.addItems(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9'])
         grid.addWidget(self.cmdPorts, 0, 1)
         self.cmdPorts.setCurrentIndex(6)
         self.cmdPorts.setEditable(True)
         
         grid.addWidget(QLabel('Baudrate:'), 0, 2)
-        self.cmdBaudrate = QtGui.QComboBox()
-        #self.cmdBaudrate.addItems(QStringList(['4800','7200','9600','14400','19200','38400','57600','115200','128000']))
-        for i in ['4800','7200','9600','14400','19200','38400','57600','115200','128000']:
-            self.cmdBaudrate.addItem(i)
+        self.cmdBaudrate = QComboBox()
+        self.cmdBaudrate.addItems(['4800','7200','9600','14400','19200','38400','57600','115200','128000'])
         grid.addWidget(self.cmdBaudrate, 0, 3)
         self.cmdBaudrate.setCurrentIndex(7)
         self.cmdBaudrate.setEditable(True) 
         
         grid.addWidget(QLabel('Data:'), 0, 4)
-        self.cmdData = QtGui.QComboBox()
-        #self.cmdData.addItems(QStringList(['8','7','6','5','4']))
-        for i in ['8','7','6','5','4']:
-            self.cmdData.addItem(i)
+        self.cmdData = QComboBox()
+        self.cmdData.addItems(['8','7','6','5','4'])
         grid.addWidget(self.cmdData, 0, 5)
         self.cmdData.setCurrentIndex(0) 
         
         grid.addWidget(QLabel('Parity:'), 0, 6)
-        self.cmdParity = QtGui.QComboBox()
-        #self.cmdParity.addItems(QStringList(['Odd','Even','Flag','Space','None']))
-        for i in ['Odd','Even','Flag','Space','None']:
-            self.cmdParity.addItem(i)
+        self.cmdParity = QComboBox()
+        self.cmdParity.addItems(['Odd','Even','Flag','Space','None'])
         grid.addWidget(self.cmdParity, 0, 7)
         self.cmdParity.setCurrentIndex(4)
         
         grid.addWidget(QLabel('Stop:'), 0, 8)
-        self.cmdStop = QtGui.QComboBox()
-        #self.cmdStop.addItems(QStringList(['1','1.5','2']))
-        for i in ['1','1.5','2']:
-            self.cmdStop.addItem(i)        
+        self.cmdStop = QComboBox()
+        self.cmdStop.addItems(['1','1.5','2'])
         grid.addWidget(self.cmdStop, 0, 9)
         self.cmdStop.setCurrentIndex(0)
         
         grid.addWidget(QLabel('FlowControl:'), 0, 10)
-        self.cmdFlowControl = QtGui.QComboBox()
-        #self.cmdFlowControl.addItems(QStringList(['Xon / Xoff','Hardware','None']))
-        for i in ['Xon / Xoff','Hardware','None']:
-            self.cmdFlowControl.addItem(i)          
+        self.cmdFlowControl = QComboBox()
+        self.cmdFlowControl.addItems(['Xon / Xoff','Hardware','None'])         
         grid.addWidget(self.cmdFlowControl, 0, 11)
         self.cmdFlowControl.setCurrentIndex(2)                              
     
         self.btnOpenClose = QPushButton('Open')
-        self.connect(self.btnOpenClose,SIGNAL('clicked()'),self.on_btnOpenClose_clicked)
+        self.btnOpenClose.clicked.connect(self.on_btnOpenClose_clicked)
         grid.addWidget(self.btnOpenClose, 1, 11)
         
         self.rbAscii = QRadioButton('ASCII')
@@ -147,7 +152,7 @@ class UISerial(QWidget):
         grid.addWidget(self.rbHex, 1, 1)
         
         self.btnClearHistory = QPushButton('Clear history')
-        self.connect(self.btnOpenClose,SIGNAL('clicked()'),self.on_btnClearHistory_clicked)
+        self.btnClearHistory.clicked.connect(self.on_btnClearHistory_clicked)
         grid.addWidget(self.btnClearHistory, 1, 7)
         vbox.addLayout(grid)
         
@@ -172,7 +177,7 @@ class UISerial(QWidget):
         hbox.addWidget(self.lcdSendNbr)
         hbox.addWidget(self.btnResetArduin)
         hbox.addWidget(self.btnSend)
-        self.connect(self.btnSend,SIGNAL('clicked()'),self.on_btnSend_clicked)
+        self.btnSend.clicked.connect(self.on_btnSend_clicked)
         
         vbox.addLayout(hbox)
         
@@ -211,12 +216,12 @@ class UISerial(QWidget):
              
     def on_btnSend_clicked(self):
         if(self.flags['opened']==False):
-            QtGui.QMessageBox.information(self, 'Tips', 'Please open COM fistly.')
+            QMessageBox.information(self, 'Tips', 'Please open COM fistly.')
             return
         data = self.teInput.toPlainText().toUtf8().data()
         ret, msg = self.checkData(data)
         if not ret:
-            QtGui.QMessageBox.critical(self, 'Error', msg)
+            QMessageBox.critical(self, 'Error', msg)
             return
         
         self.onSendData(data)

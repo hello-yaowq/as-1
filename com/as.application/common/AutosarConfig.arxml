@@ -2,7 +2,7 @@
 
 <AUTOSAR>
 <OS>
-<General Comment="*" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" />
+<General Comment="Not Used" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" />
 <TaskList Max="TBD">
 <Task Activation="1" Autostart="False" Comment="*" Name="Task100ms" Priority="5" Schedule="FULL" StackSize="512" />
 <Task Activation="1" Autostart="False" Comment="*" Name="Task1000ms" Priority="5" Schedule="FULL" StackSize="512">
@@ -62,7 +62,7 @@
 </ControllerList>
 </Can>
 <CanIf>
-<General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" VersionInfoApi="OFF" />
+<General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" RxFifoSize="32" TaskFifoMode="ON" TxFifoSize="32" VersionInfoApi="OFF" />
 <ChannelList Max="TBD">
 <Channel Comment="*" ControllerRef="CAN_CTRL_0" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
@@ -246,22 +246,7 @@
 <Routine Comment="*" Identifier="0x888" Name="EraseFlash" RoutineInfoRef="EraseFlashInfo" RoutineResultCbk="Diag_EraseFlashResult" StartRoutineCbk="Diag_EraseFlashStart" StopRoutineCbk="NULL" />
 </RoutineList>
 <MemoryList Max="TBD">
-<Memory Comment="*" Identifier="1" Name="Memory1">
-<MemoryInfoList Max="TBD">
-<MemoryInfo AddressHigh="0" AddressLow="1024" Attribute="ReadOnly" Comment="*" Name="MemoryInfo1">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-</MemoryInfo>
-<MemoryInfo AddressHigh="2000" AddressLow="3000" Attribute="ReadOnly" Comment="*" Name="MemoryInfo2">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-</MemoryInfo>
-</MemoryInfoList>
-</Memory>
+<Memory Comment="*" Identifier="1" Name="Memory1" />
 </MemoryList>
 <ProtocolList Max="TBD">
 <Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
