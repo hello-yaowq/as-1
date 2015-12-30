@@ -15,8 +15,11 @@ __lic__ = '''
  */
  '''
 
-from can import *
+from .can import *
 import time
+
+
+__all__ = ['cantp']
 
 ISO15765_TPCI_MASK =  0x30
 ISO15765_TPCI_SF = 0x00         #/* Single Frame */

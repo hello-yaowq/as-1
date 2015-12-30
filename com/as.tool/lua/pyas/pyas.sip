@@ -1,6 +1,6 @@
 /* Define the SIP wrapper to the AS lua library. 
  * python version 3 -- sip 4.17  
- * python version 2 -- sip 4.15 */  
+ * python version 2 -- sip 4.16.4 */  
 
 %Module AS
 

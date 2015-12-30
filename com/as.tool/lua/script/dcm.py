@@ -14,7 +14,9 @@ __lic__ = '''
  * for more details.
  */
  '''
-from cantp import *
+from .cantp import *
+
+__all__ = ['dcm']
                 
 class dcm():
     __service__ = { 0x10:"diagnostic session control",0x11:"ecu reset",0x14:"clear diagnostic information",

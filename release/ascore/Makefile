@@ -44,7 +44,7 @@ else
 $(error fix your home path)
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
-DEPC  = $(PY27) $(prj-dir)/release/make/dep.py
+DEPC  = $(PY34) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py

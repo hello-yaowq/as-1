@@ -22,6 +22,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from asserial import UISerial
+from pyas.flashloader import *
     
 class Window(QWidget):
     def __init__(self, parent=None):
@@ -35,6 +36,7 @@ class Window(QWidget):
         grid = QVBoxLayout()
         tabWidget = QTabWidget(self)
         tabWidget.addTab(UISerial(), 'Serial')
+        tabWidget.addTab(UIFlashloader(), 'Flashloader')
         grid.addWidget(tabWidget)
         self.setLayout(grid)
 

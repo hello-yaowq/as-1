@@ -24,6 +24,8 @@ from time import ctime
 from binascii import hexlify, unhexlify
 import sys
 
+__all__ = ['UISerial']
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
