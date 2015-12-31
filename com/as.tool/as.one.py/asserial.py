@@ -252,7 +252,6 @@ class UISerial(QWidget):
             self.serial.recv_msg.connect(self.on_message_received)
             ret, msg = self.serial.open(settings)
             if(ret==False): # open failed
-                print(msg)
                 QMessageBox.critical(self, 'Error', msg)
             else:
                 self.btnOpenClose.setText('Close')
