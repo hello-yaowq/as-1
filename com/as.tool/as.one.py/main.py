@@ -23,22 +23,54 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from asserial import UISerial
 from pyas.flashloader import *
+
+class AsAction(QAction):
+    action=QtCore.pyqtSignal(str)
+    def __init__(self,text,parent=None): 
+        super(QAction,self).__init__(text,parent) 
+        self.triggered.connect(self.onAction)
+ 
+    def onAction(self):
+        self.action.emit(self.text())
     
-class Window(QWidget):
+class Window(QMainWindow):
+    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader}
     def __init__(self, parent=None):
-        super(QWidget, self).__init__(parent) 
+        super(QMainWindow, self).__init__(parent) 
         self.creGui()
         self.setWindowTitle("AsOne")
            
     def closeEvent(self,Event):
         pass
+    
+    def creMenu(self):
+        # easySAR Module
+        tMenu=self.menuBar().addMenu(self.tr('MyApp'))
+        for name,ui in self.UIList.items():
+            sItem=AsAction(self.tr(name),self) 
+            sItem.action.connect(self.onAction)
+            tMenu.addAction(sItem)
+            
+    def onAction(self,text):
+        for i in range(self.tabWidget.count()):
+            if(text == str(self.tabWidget.tabText(i))):
+                return
+        for name,ui in self.UIList.items():
+            if(text == name):
+                self.tabWidget.addTab(ui(), name)
+                return
+    
     def creGui(self):
+        wid = QWidget()
         grid = QVBoxLayout()
-        tabWidget = QTabWidget(self)
-        tabWidget.addTab(UISerial(), 'Serial')
-        tabWidget.addTab(UIFlashloader(), 'Flashloader')
-        grid.addWidget(tabWidget)
-        self.setLayout(grid)
+        self.tabWidget = QTabWidget(self)
+        grid.addWidget(self.tabWidget)
+        wid.setLayout(grid)
+
+        self.setCentralWidget(wid)
+        self.creMenu()
+        
+        self.setMinimumSize(1200, 600)
 
 def main():
     app = QApplication(sys.argv)

@@ -23,6 +23,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
+import os
+
 __all__ = ['UIFlashloader']
 
 class AsFlashloader(QThread):
@@ -33,6 +35,21 @@ class AsFlashloader(QThread):
         self.steps = [ self.enter_extend_session, self.security_extds_access,
                   self.enter_program_session,self.security_prgs_access,
                   self.routine_erase_flash, self.download_application ]
+        self.enable = []
+        for s in self.steps:
+            self.enable.append(True)
+
+    def GetSteps(self):
+        ss = []
+        for s in self.steps:
+            ss.append(s.__name__.replace('_',' '))
+        return ss
+    
+    def SetEnable(self,step,enable):
+        print(step,enable)
+        for id,s in enumerate(self.steps):
+            if(step == s.__name__.replace('_',' ')):
+                self.enable[id] = enable
 
     def enter_extend_session(self):
         pass
@@ -49,13 +66,28 @@ class AsFlashloader(QThread):
     
     def run(self):
         self.infor.emit("starting ... ")
-        for s in self.steps:
-            self.infor.emit('  '+s.__name__.replace('_',' '))
-            s()
+        for id,s in enumerate(self.steps):
+            if(self.enable[id] == True):
+                self.infor.emit('  '+s.__name__.replace('_',' '))
+                s()
+        self.progress.emit(100)
+
+class AsStepEnable(QCheckBox):
+    enableChanged=QtCore.pyqtSignal(str,bool)
+    def __init__(self,text,parent=None):
+        super(QCheckBox, self).__init__(text,parent)
+        self.stateChanged.connect(self.on_stateChanged)
+    def on_stateChanged(self,state):
+        self.enableChanged.emit(self.text(),state)
         
 class UIFlashloader(QWidget):
     def __init__(self, parent=None):
         super(QWidget, self).__init__(parent)
+        
+        self.loader = AsFlashloader()
+        self.loader.infor.connect(self.on_loader_infor)
+        self.loader.progress.connect(self.on_loader_progress)
+        
         vbox = QVBoxLayout()
         
         grid = QGridLayout()
@@ -73,19 +105,29 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.btnStart,1,2)
         vbox.addLayout(grid)
         
+        hbox = QHBoxLayout()
+        vbox2 = QVBoxLayout()
+        for s in self.loader.GetSteps():
+            cbxEnable = AsStepEnable(s)
+            cbxEnable.setChecked(True)
+            cbxEnable.enableChanged.connect(self.on_enableChanged)
+            vbox2.addWidget(cbxEnable)
+        hbox.addLayout(vbox2)
         self.leinfor = QTextEdit()
         self.leinfor.setReadOnly(True)
-        vbox.addWidget(self.leinfor)
+        hbox.addWidget(self.leinfor)
+        
+        vbox.addLayout(hbox)
         
         self.setLayout(vbox)
         
         self.btnOpen.clicked.connect(self.on_btnOpen_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
-        self.loader = AsFlashloader()
-        self.loader.infor.connect(self.on_loader_infor)
-        self.loader.progress.connect(self.on_loader_progress)
         
         self.app = ''
+
+    def on_enableChanged(self,step,enable):
+        self.loader.SetEnable(step, enable)
 
     def on_loader_infor(self,text):
         self.leinfor.append(text)
@@ -99,5 +141,9 @@ class UIFlashloader(QWidget):
         self.leApplication.setText(self.app)
     
     def on_btnStart_clicked(self):
-        self.pgbProgress.setValue(1)
-        self.loader.start()
+        if(os.path.exists(self.app)):
+            self.pgbProgress.setValue(1)
+            self.loader.start()
+        else:
+            QMessageBox.information(self, 'Tips', 'Please load application first!')
+        
