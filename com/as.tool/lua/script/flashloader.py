@@ -46,7 +46,6 @@ class AsFlashloader(QThread):
         return ss
     
     def SetEnable(self,step,enable):
-        print(step,enable)
         for id,s in enumerate(self.steps):
             if(step == s.__name__.replace('_',' ')):
                 self.enable[id] = enable

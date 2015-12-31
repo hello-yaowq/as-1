@@ -23,6 +23,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from asserial import UISerial
 from pyas.flashloader import *
+from pyas.ascan import *
 
 class AsAction(QAction):
     action=QtCore.pyqtSignal(str)
@@ -34,7 +35,7 @@ class AsAction(QAction):
         self.action.emit(self.text())
     
 class Window(QMainWindow):
-    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader}
+    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan}
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent) 
         self.creGui()
