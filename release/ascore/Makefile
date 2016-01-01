@@ -48,12 +48,7 @@ DEPC  = $(PY34) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
-
-#rtos?=freeosek
-#rtos?=freertos
-#rtos?=toppers_osek
-rtos?=smallos
-
+S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
 sgapp ?= virtual_cluster
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
@@ -89,7 +84,10 @@ endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),posix)
-
+#rtos?=freeosek
+#rtos?=freertos
+#rtos?=toppers_osek
+rtos?=smallos
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
 # my computer is 64 bit 
@@ -131,6 +129,10 @@ endif
 endif	# posix end
 
 ifeq ($(board),at91sam3s)
+#rtos?=freeosek
+#rtos?=freertos
+rtos?=toppers_osek
+#rtos?=smallos
 ifeq ($(DEBUG),TRUE)
 link-script = $(COMPILER_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-sram.icf
 else
@@ -150,6 +152,10 @@ inc-y += -I./include/libraries/usb/device/cdc-serial
 endif	# AT91SAM3S end
 
 ifeq ($(board),stm32f107vc)
+#rtos?=freeosek
+#rtos?=freertos
+rtos?=toppers_osek
+#rtos?=smallos
 ifeq ($(compiler),arm-none-eabi-gcc)
 link-script = $(src-dir)/linker-app.lds
 endif
@@ -166,6 +172,10 @@ def-y += -DUSE_SIMUL_CAN
 endif	# stm32f107vc end
 
 ifeq ($(board),lm3s6965evb)
+#rtos?=freeosek
+#rtos?=freertos
+rtos?=toppers_osek
+#rtos?=smallos
 ifeq ($(compiler),arm-none-eabi-gcc)
 link-script = $(src-dir)/linker.lds
 else
@@ -457,6 +467,7 @@ clean-dist:clean
 	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
 12:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=true
+	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 13:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=false	
 	

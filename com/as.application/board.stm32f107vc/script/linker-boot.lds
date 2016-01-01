@@ -11,6 +11,8 @@ MEMORY
     RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
+/* application address */
+applican_main = 0x00010001;
 
 ENTRY(reset_handler)
 
