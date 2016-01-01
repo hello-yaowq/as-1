@@ -14,6 +14,8 @@
 #define NM_NODE_ID_ENABLED STD_ON
 #define NM_NODE_DETECTION_ENABLED STD_ON
 
+#define MM_CHL_COUNT 1
+
 #define NM_CHL_LS 0
 #define NM_CHL_HS 1
 

@@ -104,7 +104,7 @@ typedef struct EcuM_ConfigS
 	uint8 EcuMDefaultSleepMode;
 	AppModeType EcuMDefaultAppMode;
 	uint32 EcuMRunMinimumDuration;
-	uint32 EcuMNvramReadAllTimeout;
+	uint32 EcuMNvramReadAllTimeout; /* time in ms */
 	uint32 EcuMNvramWriteAllTimeout;
 #if defined(USE_WDGM)
 	const EcuM_WdgMType *EcuMWdgMConfig;

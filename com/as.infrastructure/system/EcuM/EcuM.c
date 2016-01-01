@@ -194,11 +194,8 @@ void EcuM_StartupTwo(void)
 {
 	//TODO:  Validate that we are in state STARTUP_ONE.
 #if defined(USE_NVM)
-	extern CounterType Os_Arc_OsTickCounter;
-	TickType tickTimerStart, tickTimerElapsed;
-	static NvM_RequestResultType readAllResult;
-	TickType tickTimer;
-	StatusType tickTimerStatus;
+	TimerType nvmTimer,tickTimerElapsed;
+	NvM_RequestResultType readAllResult;
 #endif
 
 	set_current_state(ECUM_STATE_STARTUP_TWO);
@@ -219,7 +216,7 @@ void EcuM_StartupTwo(void)
 
 #if defined(USE_NVM)
 	// Start timer to wait for NVM job to complete
-	tickTimerStart = GetOsTick();
+	StartTimer(&nvmTimer);
 #endif
 
 	// Prepare the system to startup RTE
@@ -236,12 +233,14 @@ void EcuM_StartupTwo(void)
 	do {
         #if defined(__SMALL_OS__)
         Schedule();
+        extern void SchM_RunMemory(void);
+        SchM_RunMemory();
         #endif
 		/* Read the multiblock status */
 		NvM_GetErrorStatus(0, &readAllResult);
-		tickTimerElapsed = OS_TICKS2MS(GetOsTick() - tickTimerStart);
+		tickTimerElapsed = GetTimer(&nvmTimer);
 		/* The timeout EcuMNvramReadAllTimeout is in ms */
-	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < EcuM_World.config->EcuMNvramReadAllTimeout) );
+	} while( (readAllResult == NVM_REQ_PENDING) && (GetTimer < EcuM_World.config->EcuMNvramReadAllTimeout) );
 #endif
 
 	// Initialize drivers that need NVRAM data

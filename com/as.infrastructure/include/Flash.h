@@ -66,7 +66,11 @@
 #define FLASH_DRIVER_NUMBER_OF_MODULES 1
 
 /* configuration according to the mcu information */
+#ifdef STM32F10X_CL
+#define FLASH_ERASE_SIZE  2048
+#else
 #define FLASH_ERASE_SIZE  512
+#endif
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
 
 #define FLASH_WRITE_SIZE  4

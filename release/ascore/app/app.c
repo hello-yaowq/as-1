@@ -18,9 +18,10 @@
 #include "Sg.h"
 #include "Lcd.h"
 #endif
-#define AS_PERF_ENABLED
+// #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 
@@ -29,7 +30,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
-	ASLOG(STDOUT,"start application BUILD @ %s %s\n",__DATE__,__TIME__);
+	printf(" start application BUILD @ %s %s\n",__DATE__,__TIME__);
 #ifdef USE_GUI
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
@@ -96,7 +97,7 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
-#if defined(__FREERTOS__) || defined(__FREEOSEK__)
+#if defined(__FREERTOS__) || defined(__FREEOSEK__) || defined(__SMALL_OS__)
 void PreTaskHook(void)
 {
 }

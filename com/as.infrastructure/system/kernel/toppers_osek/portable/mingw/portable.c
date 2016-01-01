@@ -21,6 +21,7 @@
 #include <setjmp.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_OS 0
 #define configASSERT(x)	asAssert(x)
 
 #define pdFALSE			( ( BaseType_t ) 0 )

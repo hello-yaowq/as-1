@@ -347,11 +347,20 @@ static void runMemory( void ) {
 	SCHM_MAINFUNCTION_SPI();
 }
 
+#if defined(__SMALL_OS__)
+void SchM_RunMemory(void)
+{
+	runMemory();
+}
+#endif
 /**
  * Startup task.
  */
 TASK(SchM_Startup){
 
+#if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANSM)
+	uint32_t i;
+#endif
 	ASLOG(OFF,"SchM_Startup is running\n");
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
@@ -380,23 +389,33 @@ TASK(SchM_Startup){
 
 #if defined(USE_NM)
 	// Start NM
-	Nm_NetworkRequest(NM_CHL_LS);
-	Nm_NetworkRequest(NM_CHL_HS);
+	for(i=0;i<MM_CHL_COUNT;i++)
+	{
+		Nm_NetworkRequest(i);
+	}
 #endif
 
 #if defined(USE_CANSM)
-	CanSM_RequestComMode(CANSM_CHL_LS,COMM_FULL_COMMUNICATION);
-	CanSM_RequestComMode(CANSM_CHL_HS,COMM_FULL_COMMUNICATION);
+	for(i=0;i<CANSM_NETWORK_COUNT;i++)
+	{
+		CanSM_RequestComMode(i,COMM_FULL_COMMUNICATION);
+	}
 #else
 #ifdef USE_CANIF
-	CanIf_SetControllerMode(CANIF_CHL_LS,CANIF_CS_STARTED);
-	CanIf_SetPduMode(CANIF_CHL_LS,CANIF_SET_ONLINE);
+	for(i=0;i<CANIF_CHANNEL_CNT;i++)
+	{
+		CanIf_SetControllerMode(i,CANIF_CS_STARTED);
+		CanIf_SetPduMode(i,CANIF_SET_ONLINE);
+	}
+
 #endif
 #endif
 
 #if defined(USE_COMM)
-	ComM_RequestComMode(COMM_LS_USER,COMM_FULL_COMMUNICATION);
-	ComM_RequestComMode(COMM_HS_USER,COMM_FULL_COMMUNICATION);
+	for(i=0;i<COMM_CHANNEL_COUNT;i++)
+	{
+		ComM_RequestComMode(COMM_LS_USER,COMM_FULL_COMMUNICATION);
+	}
 #endif
 
 	OsTerminateTask(SchM_Startup);

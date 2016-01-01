@@ -32,7 +32,7 @@
 #include <Sg.h>
 #include "Lcd.h"
 
-#define AS_PERF_ENABLED
+//#define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage

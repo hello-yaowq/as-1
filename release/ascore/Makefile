@@ -51,8 +51,8 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 #rtos?=freeosek
 #rtos?=freertos
-rtos?=toppers_osek
-#rtos?=smallos
+#rtos?=toppers_osek
+rtos?=smallos
 
 #sgapp ?= watch
 sgapp ?= virtual_cluster
@@ -243,6 +243,7 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
 endif
 ifeq ($(rtos),freeosek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/inc TRUE)

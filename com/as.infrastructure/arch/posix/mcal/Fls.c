@@ -142,7 +142,7 @@
 #endif
 #include "asdebug.h"
 
-
+#define AS_LOG_FLS 0
 /* ----------------------------[private define]------------------------------*/
 
 #define FLASH_NON_CORRECTABLE_ERROR 0x1

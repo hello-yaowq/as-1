@@ -55,7 +55,7 @@ void FlashDeinit(tFlashParam* FlashParam)
 	FLASH_Lock();
 	FlashParam->errorcode = kFlashOk;
 }
-
+/* 1 sector size is 2K */
 void FlashErase(tFlashParam* FlashParam)
 {
 	tAddress address;

@@ -370,6 +370,7 @@ Can_ReturnType Can_SetControllerMode( uint8 controller, Can_StateTransitionType 
   {
 	  case CAN_T_START:
 		canUnit->state = CANIF_CS_STARTED;
+		ASLOG(STDOUT,"can set on-line!\n");
 		if (canUnit->lock_cnt == 0){   // REQ CAN196
 		  Can_EnableControllerInterrupts(controller);
 		}
