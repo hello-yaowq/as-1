@@ -19,6 +19,7 @@ const CanNm_ChannelType  CanNm_Channels[] = {
 		.NidPosition =  CANNM_PDU_BYTE_1,
 		.CbvPosition =  CANNM_PDU_BYTE_0
 	},
+#ifdef CANIF_ID_HS_NM_TX
 	{
 		.Active =  TRUE,
 		.NmNetworkHandle =  CANNM_CHANNEL_HS,
@@ -34,6 +35,7 @@ const CanNm_ChannelType  CanNm_Channels[] = {
 		.NidPosition =  CANNM_PDU_BYTE_1,
 		.CbvPosition =  CANNM_PDU_BYTE_0
 	}
+#endif
 };
 
 const CanNm_ConfigType CanNm_Cfg = {

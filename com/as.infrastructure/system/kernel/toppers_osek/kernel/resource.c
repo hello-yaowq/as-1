@@ -64,7 +64,8 @@
 #include "task.h"
 #include "interrupt.h"
 #include "resource.h"
-
+#include "asdebug.h"
+#define AS_LOG_OS 0
 /*
  *  initialize resource
  */

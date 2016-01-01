@@ -38,13 +38,14 @@ class easyDockWidget(QDockWidget):
 
 class easySARGui(QMainWindow):
     def __init__(self):
+        global gDefault_GEN
         self.modules = []
         self.docks   = []
         self.actions = []
         self.pdir = ''
         
         QMainWindow.__init__(self, None)
-        self.setWindowTitle('easy OpenSAR Studio( parai@foxmail.com ^_^)');
+        self.setWindowTitle('easy OpenSAR Studio( parai@foxmail.com ^_^ @ %s)'%(gDefault_GEN));
         self.setMinimumSize(800, 400)
         
         self.creStatusBar()
@@ -98,7 +99,7 @@ class easySARGui(QMainWindow):
                 return
         else:
             self.pdir = default
-        wfxml = '%s/AutosarConfig.arxml'%(self.pdir)
+        wfxml = '%s/autosar.arxml'%(self.pdir)
         if(os.path.exists(wfxml)==False):
             return
         root = ET.parse(wfxml).getroot();
@@ -115,7 +116,7 @@ class easySARGui(QMainWindow):
             self.pdir = QFileDialog.getExistingDirectory(None,'Save OpenSAR Configuration',gDefault_GEN,QFileDialog.DontResolveSymlinks)
         if(self.pdir == ''):
             return
-        wfxml = '%s/AutosarConfig.arxml'%(self.pdir)
+        wfxml = '%s/autosar.arxml'%(self.pdir)
         ROOT = ET.Element('AUTOSAR')
         for module in self.modules:
             ROOT.append(module.toArxml())
@@ -183,7 +184,6 @@ def easySAR():
     
 
 if(__name__ == '__main__'):
-    global gDefault_GEN
     if(len(sys.argv)==2):
         gDefault_GEN = sys.argv[1]
     easySAR()

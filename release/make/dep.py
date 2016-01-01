@@ -62,6 +62,11 @@ def Dep(obj_dir,dep):
             cstr += el
         fd.write('%s\n\n'%(abs_dep(cstr)))
         fp.close()
+    src_dir = os.path.abspath('%s/../src'%(obj_dir))
+    if(os.path.exists(src_dir)):
+        for ss in glob.glob('%s/*.s'%(src_dir)):
+            ss = os.path.basename(ss)[:-2]
+            fd.write('%s\n\n'%(abs_dep('obj/%s.o:src/%s.s'%(ss,ss))))
     fd.close()
     print("  >> CC DEPC DOEN")
     os.system('rm .deps')

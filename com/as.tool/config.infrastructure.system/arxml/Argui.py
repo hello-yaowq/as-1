@@ -170,6 +170,7 @@ class ArgInput(QLineEdit):
             self.onTextChanged()
        
     def onTextChanged(self):
+        text = str(self.text())
         reInput = re.compile(r'^(Text|Integer)')
         descriptor = self.arobj.arxml.getKeyDescriptor(self.key)
         

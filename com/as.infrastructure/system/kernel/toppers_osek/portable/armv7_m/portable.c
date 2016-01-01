@@ -30,9 +30,8 @@ FP tcxb_pc[TASK_NUM];
 #if (ISR_NUM > 0)
 extern const FP tisr_pc[ISR_NUM];
 #endif
-#if defined(CHIP_AT91SAM3S)
+
 extern const uint32 __vector_table[];
-#endif
 uint32 knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -81,11 +80,11 @@ void sys_exit(void)
 
 void cpu_initialize(void)
 {
-#if defined(CHIP_AT91SAM3S)
 	const uint32_t* pSrc;
 	pSrc = __vector_table ;
-	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
 
+#if defined(CHIP_AT91SAM3S)
+	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
 	if ( ((uint32_t)pSrc >= IRAM_ADDR) && ((uint32_t)pSrc < IRAM_ADDR+IRAM_SIZE) )
 	{
 		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
@@ -94,6 +93,8 @@ void cpu_initialize(void)
 	WDT_Disable(WDT);
 	/* Low level Initialize */
 	LowLevelInit() ;
+#else
+	SCB->VTOR = (uint32_t)pSrc;
 #endif
 
 	knl_taskindp = 0;

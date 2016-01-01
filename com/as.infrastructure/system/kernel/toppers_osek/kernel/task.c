@@ -63,6 +63,8 @@
 #include "check.h"
 #include "task.h"
 #include "resource.h"
+#include "asdebug.h"
+#define AS_LOG_OS 0
 
 /*
  *  task ready queue management APIs

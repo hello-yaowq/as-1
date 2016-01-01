@@ -19,7 +19,7 @@ exe-dir = ./out
 src-dir = ./src
 inc-dir = ./include
 
-prj-dir = $(subst release/ascore,,$(CURDIR))
+prj-dir = $(subst /release/ascore,,$(CURDIR))
 
 host = $(shell uname)
 
@@ -51,8 +51,8 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 #rtos?=freeosek
 #rtos?=freertos
-#rtos?=toppers_osek
-rtos?=smallos
+rtos?=toppers_osek
+#rtos?=smallos
 
 #sgapp ?= watch
 sgapp ?= virtual_cluster
@@ -151,15 +151,18 @@ endif	# AT91SAM3S end
 
 ifeq ($(board),stm32f107vc)
 ifeq ($(compiler),arm-none-eabi-gcc)
-link-script = $(src-dir)/linker.lds
+link-script = $(src-dir)/linker-app.lds
 endif
 ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
-def-y += -DUSE_DET
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
-def-y += -DUSE_SIMULATOR
+# network of CAN
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM
+#def-y += -DUSE_DET
+def-y += -DUSE_SIMUL_CAN
 endif	# stm32f107vc end
 
 ifeq ($(board),lm3s6965evb)
@@ -220,7 +223,7 @@ dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/SGDesign/$(sgapp)/src TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/$(sgapp)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
@@ -300,10 +303,12 @@ dep-stm32f107vc:
 	@(cd $(src-dir);rm -f widget_refresh.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
@@ -311,7 +316,8 @@ dep-stm32f107vc:
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 ifeq ($(compiler),arm-none-eabi-gcc)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)	
 else
 	$(error for small os, on-gcc compiler is not supported)
 endif
@@ -345,8 +351,13 @@ ifeq ($(compiler),arm-none-eabi-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
-	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
 	@(cp -fv $(src-dir)/rom.gdbinit $(HOME)/.gdbinit)
+	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
+	@(make BSW)
+	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Lcfg.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Cfg.h)
+	@(cd  $(src-dir); rm -fv Dem* J1939Tp* Lin* NvM* Fee* Ea* Eep* Fls* RPmsg* Ipc* VirtQ* Rproc*)
 	@(echo "  >> prepare link for STM32F107VC done")
 
 dep-lm3s6965evb-library:	

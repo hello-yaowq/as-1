@@ -5,7 +5,9 @@
 const CanSM_ControllerType CanSmNetwork_Controllers[] =
 {
     {.CanIfControllerId =  CANIF_CHL_LS},
+#ifdef CANIF_CHL_HS
     {.CanIfControllerId =  CANIF_CHL_HS}
+#endif
 }; 
 const const CanSM_NetworkType CanSM_Networks[] = 
 {
@@ -26,6 +28,7 @@ const const CanSM_NetworkType CanSM_Networks[] =
         .CanSMBusOffDemEvent =  0xEF,
         #endif         
     },
+#ifdef CANIF_CHL_HS
     {
 		.Controllers =   &CanSmNetwork_Controllers[1],
 		.ControllerCount =  1,
@@ -43,6 +46,7 @@ const const CanSM_NetworkType CanSM_Networks[] =
 		.CanSMBusOffDemEvent =  0xEF,
 		#endif
 	}
+#endif
 };
 const CanSM_ConfigType CanSM_Cfg =
 {

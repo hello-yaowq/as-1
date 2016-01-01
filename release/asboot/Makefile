@@ -14,12 +14,12 @@
 # */
 target-y = $(board)
 
-obj-dir = ./obj
-exe-dir = ./out
-src-dir = ./src
-inc-dir = ./include
+obj-dir = $(CURDIR)/obj
+exe-dir = $(CURDIR)/out
+src-dir = $(CURDIR)/src
+inc-dir = $(CURDIR)/include
 
-prj-dir = $(subst release/asboot,,$(CURDIR))
+prj-dir = $(subst /release/asboot,,$(CURDIR))
 
 host = $(shell uname)
 
@@ -111,7 +111,7 @@ endif	# posix end
 
 ifeq ($(board),stm32f107vc)
 ifeq ($(compiler),arm-none-eabi-gcc)
-link-script = $(src-dir)/linker.lds
+link-script = $(src-dir)/linker-boot.lds
 endif
 ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
@@ -190,6 +190,7 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common/autosar-boot.arxml autosar.arxml)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Flash.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Mcu.c)
@@ -227,6 +228,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common/autosar-boot.arxml autosar.arxml)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Flash.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Mcu.c)
@@ -243,7 +245,7 @@ ifeq ($(led_app),yes)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Port_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Port_ConfigTypes.h)
 endif
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script/linker.lds)	
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script TRUE)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))

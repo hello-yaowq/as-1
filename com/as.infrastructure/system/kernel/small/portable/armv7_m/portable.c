@@ -21,6 +21,7 @@
 #define AS_LOG_OS  5
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern const uint32 __vector_table[];
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -32,6 +33,23 @@ void systick_handler(void)
 
 void StartOsTick(void)
 {
+	const uint32_t* pSrc;
+	pSrc = __vector_table ;
+
+#if defined(CHIP_AT91SAM3S)
+	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
+	if ( ((uint32_t)pSrc >= IRAM_ADDR) && ((uint32_t)pSrc < IRAM_ADDR+IRAM_SIZE) )
+	{
+		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
+	}
+
+	WDT_Disable(WDT);
+	/* Low level Initialize */
+	LowLevelInit() ;
+#else
+	SCB->VTOR = (uint32_t)pSrc;
+#endif
+
 	if (SysTick_Config(McuE_GetSystemClock() / 1000)) { /* Capture error */ while (1); }
 }
 

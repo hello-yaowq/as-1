@@ -62,6 +62,8 @@
 #include "osek_kernel.h"
 #include "check.h"
 #include "interrupt.h"
+#include "asdebug.h"
+#define AS_LOG_OS 0
 
 /*
  *  help os to remember os status

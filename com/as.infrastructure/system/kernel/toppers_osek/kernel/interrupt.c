@@ -61,7 +61,8 @@
 
 #include "osek_kernel.h"
 #include "interrupt.h"
-
+#include "asdebug.h"
+#define AS_LOG_OS 0
 /*
  *  help the kernel to remember current ISR ID
  */

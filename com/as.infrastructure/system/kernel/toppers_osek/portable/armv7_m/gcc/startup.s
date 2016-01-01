@@ -306,7 +306,7 @@ __vector_table:
  * @param  None
  * @retval : None
 */
-    .section	.text
+    .section	.startup
 	.weak	reset_handler
 	.type	reset_handler, %function
 reset_handler:

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Sg w='1200' h='500'>
+<!-- Sg Configuration File -->
+<!-- name: name of the widget or the resource -->
+<!-- SgBMP{n}: n static SgBMP resources -->
+<!-- w: width of the widget  -->
+<!-- h: height of the widget -->
+<!-- This SgBMP(x,y) center point is use for rotation -->	
+<!-- refresh: it is a function called if this widget is in display -->	
+<SgWidget 
+	name     = 'sgwClusterBackground'	
+	type     = 'SgBMP{1}' 			
+	x        = '0'
+	y        = '0'
+	w        = '1200'	
+	h        = '500'				
+	layer    = '0'
+	refresh  = 'NULL'
+	>
+	<SgBMP 
+		name   = 'ClusterBackground' 
+		locate = 'virtual_cluster/pics/bg.png' 
+		x      = '600' 				
+		y      = '250'  					
+		/>
+</SgWidget>
+</Sg>	
+

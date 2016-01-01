@@ -41,22 +41,15 @@
 <Pdu Comment="*" Name="TxMsgTime" Size="64" />
 <Pdu Comment="*" Name="RxMsgAbsInfo" Size="64" />
 <Pdu Comment="*" Name="LS_NM_TX" Size="64" />
-<Pdu Comment="*" Name="HS_NM_TX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" />
 <ControllerList Max="TBD">
-<Controller Baudrate="500" Comment="*" Name="CAN_CTRL_0" Seg1="13" Seg2="2">
+<Controller Baudrate="1000" Comment="*" Name="CAN_CTRL_1" Seg1="13" Seg2="2">
 <HohList Max="TBD">
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hrh" ObjectType="RECEIVE" />
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hth" ObjectType="TRANSMIT" />
-</HohList>
-</Controller>
-<Controller Baudrate="500" Comment="*" Name="CAN_CTRL_2" Seg1="13" Seg2="2">
-<HohList Max="TBD">
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can2Hrh" ObjectType="RECEIVE" />
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can2Hth" ObjectType="TRANSMIT" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hrh" ObjectType="RECEIVE" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hth" ObjectType="TRANSMIT" />
 </HohList>
 </Controller>
 </ControllerList>
@@ -64,38 +57,23 @@
 <CanIf>
 <General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" RxFifoSize="32" TaskFifoMode="ON" TxFifoSize="32" VersionInfoApi="OFF" />
 <ChannelList Max="TBD">
-<Channel Comment="*" ControllerRef="CAN_CTRL_0" Name="CANIF_CHL_LS">
+<Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
-<Hth Comment="*" HthRef="Can0Hth" Name="LS_Hth">
+<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x734" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2A" Identifier="0x744" Name="P2A" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" Identifier="0x402" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" Identifier="0x101" Name="Time" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
 </PduList>
 </Hth>
 </HthList>
 <HrhList Max="TBD">
-<Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
+<Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0xFFF" Identifier="0x733" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
-</PduList>
-</Hrh>
-</HrhList>
-</Channel>
-<Channel Comment="*" ControllerRef="CAN_CTRL_2" Name="CANIF_CHL_HS">
-<HthList Max="TBD">
-<Hth Comment="*" HthRef="Can2Hth" Name="HS_Hth">
-<PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" Identifier="0x101" Name="Pdu1" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="HS_NM_TX" Identifier="0x402" Name="Pdu2" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
-</PduList>
-</Hth>
-</HthList>
-<HrhList Max="TBD">
-<Hrh Comment="*" HrhRef="Can2Hrh" Name="HS_Hrh" SoftwareFilterUsed="True">
-<PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0xFFFF" Identifier="0x102" Name="Pdu1" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>

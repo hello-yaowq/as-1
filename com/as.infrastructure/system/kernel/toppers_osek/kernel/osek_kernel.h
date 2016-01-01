@@ -74,6 +74,7 @@ typedef	UINT8		IPL;			/* interrupt processing level */
 #endif /* _MACRO_ONLY */
 
 #include "portable.h"
+
 /*
  *  number of prioritys
  */

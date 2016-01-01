@@ -62,7 +62,8 @@
 #include "osek_kernel.h"
 #include "check.h"
 #include "alarm.h"
-
+#include "asdebug.h"
+#define AS_LOG_OS 0
 TickType				OsTickCounter;
 
 /*
