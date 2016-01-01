@@ -1,32 +1,29 @@
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
+ *
+ * Copyright (C) 2015  AS <parai@foxmail.com>
+ *
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
+/* ============================ [ INCLUDES  ] ====================================================== */
 #include "Dcm.h"
-
-static uint32  diagRandomSeed = 0xDEADBEEF;
-static Std_ReturnType GetSeed (uint8 *securityAccessDataRecord, uint8 *seed,
-                        Dcm_NegativeResponseCodeType *errorCode)
-{
-	diagRandomSeed = (diagRandomSeed<<1u)-7;
-    seed[0] = (uint8)(diagRandomSeed>>24u);
-    seed[1] = (uint8)(diagRandomSeed>>16u);
-    seed[2] = (uint8)(diagRandomSeed>>8u);
-    seed[3] = (uint8)(diagRandomSeed);
-    *errorCode = E_OK;
-    return E_OK;
-}
-static Std_ReturnType CompKey (uint8 *key)
-{
-	uint32 diagKey,diagKey2;
-	diagKey = ((uint32)key[0]<<24u)+((uint32)key[1]<<16u)+((uint32)key[2]<<8u)+((uint32)key[3]);
-    diagKey2 = ((diagRandomSeed/7)<<3) - 111;
-    if(diagKey == diagKey2)
-    {
-    	return E_OK;
-    }
-    else
-    {
-    	return E_NOT_OK;
-    }
-}
-
+#include "Os.h"
+#include "asdebug.h"
+/* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_DIAG 1
+/* ============================ [ TYPES     ] ====================================================== */
+/* ============================ [ DECLARES  ] ====================================================== */
+/* ============================ [ DATAS     ] ====================================================== */
+static uint32 bl_extds_seed= 0xbeafdada;
+/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
 Std_ReturnType Diag_RequestServiceStart (Dcm_ProtocolType protocolID)
 {
     return E_OK;
@@ -46,92 +43,43 @@ Std_ReturnType Diag_GetSesChgPer(Dcm_SesCtrlType sesCtrlTypeActive,
     return E_OK;
 }
 
-Std_ReturnType Diag_GetSeedPRGS(uint8 *securityAccessDataRecord, uint8 *seed, Dcm_NegativeResponseCodeType *errorCode)
-{
-	return GetSeed(securityAccessDataRecord,seed,errorCode);
-}
-Std_ReturnType Diag_CompareKeyPRGS(uint8 *key)
-{
-	return CompKey(key);
-}
 Std_ReturnType Diag_GetSeedEXTDS(uint8 *securityAccessDataRecord, uint8 *seed, Dcm_NegativeResponseCodeType *errorCode)
 {
-	return GetSeed(securityAccessDataRecord,seed,errorCode);
+	uint32 u32Seed; /* intentional not initialized to use the stack random value */
+	uint32 u32Time = GetOsTick();
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
+	(void)securityAccessDataRecord;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
+
+	bl_extds_seed = bl_extds_seed ^ u32Seed ^ u32Time ^ 0x95774321;
+
+	ASLOG(DIAG,"%s(seed = %X)\n",__func__,bl_extds_seed);
+
+	seed[0] = (uint8)(bl_extds_seed>>24);
+	seed[1] = (uint8)(bl_extds_seed>>16);
+	seed[2] = (uint8)(bl_extds_seed>>8);
+	seed[3] = (uint8)(bl_extds_seed);
+	return E_OK;
 }
 Std_ReturnType Diag_CompareKeyEXTDS(uint8 *key){
-	return CompKey(key);
-}
+	Std_ReturnType ercd;
+	uint32 u32Key = ((uint32)key[0]<<24) + ((uint32)key[1]<<16) + ((uint32)key[2]<<8) +((uint32)key[3]);
+	uint32 u32KeyExpected = bl_extds_seed ^ 0x78934673;
 
-Std_ReturnType Diag_DidGetDataLengthFingerPrint(uint16 *didLength)
-{
-	*didLength = 128;
-	return E_OK;
-}
-Std_ReturnType Diag_DidConditionReadCheckFingerPrint(Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	return E_OK;
-}
-Std_ReturnType Diag_DidReadDataFingerPrint(uint8 *data)
-{
-	for(int i=0;i<128;i++)
+	ASLOG(DIAG,"%s(key = %X(%X))\n",__func__,u32Key,u32KeyExpected);
+
+	if(u32KeyExpected == u32Key)
 	{
-		data[i] = i;
+		ercd = E_OK;
 	}
-	return E_OK;
-}
-Std_ReturnType Diag_DidConditionCheckWriteFingerPrint(Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	return E_OK;
-}
-Std_ReturnType Diag_DidWriteDataFingerPrint(uint8 *data, uint16 dataLength, Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	printf("FingerPrint = [");
-	for(int i=0;i<dataLength;i++)
+	else
 	{
-		printf("%-2X,",data[i]);
+		ercd = E_NOT_OK;
 	}
-	printf("]\n");
-	return E_OK;
+	return ercd;
 }
 
 
-Std_ReturnType Diag_StartRoutineFLErase(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	printf("In %s()\n",__FUNCTION__);
-	return E_OK;
-}
-Std_ReturnType Diag_RequestResultRoutineFLErase(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	printf("In %s()\n",__FUNCTION__);
-	return E_OK;
-}
-Std_ReturnType Diag_StartRoutineFLCheckProgrmIntegrity(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	printf("In %s()\n",__FUNCTION__);
-	return E_OK;
-}
-Std_ReturnType Diag_RequestResultRoutineFLCheckProgrmIntegrity(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	*errorCode = DCM_E_POSITIVE_RESPONSE;
-	printf("In %s()\n",__FUNCTION__);
-	return E_OK;
-}
-
-
-Std_ReturnType Diag_GetSeed (uint8 *securityAccessDataRecord, uint8 *seed, Dcm_NegativeResponseCodeType *errorCode)
-{
-	return GetSeed(securityAccessDataRecord,seed,errorCode);
-}
-Std_ReturnType Diag_CompareSeed (uint8 *key)
-{
-	return E_OK;
-}
 Std_ReturnType Diag_StartProtocolCbk (Dcm_ProtocolType protocolID)
 {
 	return E_OK;
@@ -141,21 +89,6 @@ Std_ReturnType Diag_StopProtocolCbk (Dcm_ProtocolType protocolID)
 	return E_OK;
 }
 Std_ReturnType Diag_ProtocolIndicationCbk(uint8 *requestData, uint16 dataSize)
-{
-	return E_OK;
-}
-
-Std_ReturnType Diag_EraseFlashStart(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	return E_OK;
-}
-Std_ReturnType Diag_EraseFlashResult(uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
-{
-	return E_OK;
-}
-
-Std_ReturnType Diag_DID1_ShortTermAdjustment(uint8 *controlOptionRecord, uint8 *controlEnableMaskRecord,
-	uint8 *controlStatusRecord, Dcm_NegativeResponseCodeType *errorCode)
 {
 	return E_OK;
 }

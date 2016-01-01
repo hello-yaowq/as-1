@@ -171,61 +171,16 @@
 <Session Comment="*" Identifier="3" Name="EXTDS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
 </SessionList>
 <SecurityList Max="TBD">
-<Security Comment="*" CompareKeyCallback="Diag_CompareSeed" GetSeedCallback="Diag_GetSeed" Identifier="5" KeySize="4" Name="DS" SeedSize="4" />
-<Security Comment="*" CompareKeyCallback="Diag_CompareSeed" GetSeedCallback="Diag_GetSeed" Identifier="6" KeySize="4" Name="PRGS" SeedSize="4" />
-<Security Comment="*" CompareKeyCallback="Diag_CompareSeed" GetSeedCallback="Diag_GetSeed" Identifier="7" KeySize="4" Name="EXTDS" SeedSize="4" />
-<Security Comment="Level 0, is the default for each session when enterred" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="0" KeySize="4" Name="Default" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="6" KeySize="4" Name="PRGS" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="Diag_CompareKeyEXTDS" GetSeedCallback="Diag_GetSeedEXTDS" Identifier="7" KeySize="4" Name="EXTDS" SeedSize="4" />
+<Security Comment="Level 0, is the default for each session when enterred" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="0" KeySize="4" Name="DS" SeedSize="4" />
 </SecurityList>
-<DIDControlRecordList Max="TBD">
-<DIDControlRecord Comment="*" EnableMaskSize="4" Name="DIDControlRecord1" OptionSize="4" StatusSize="4" />
-<DIDControlRecord Comment="*" EnableMaskSize="4" Name="DIDControlRecord2" OptionSize="4" StatusSize="4" />
-</DIDControlRecordList>
-<DIDInfoList Max="TBD">
-<DIDInfo Comment="*" DynamicDefined="True" FixedLength="True" Name="DIDInfo1" ScalingInfoSize="0">
-<ControlAccess Comment="*" EnableFreezeCurrentState="False" EnableResetToDefault="False" EnableReturnControlToEcu="False" EnableShortTermAdjustment="True" FreezeCurrentStateControlRef="TBD" Name="ControlAccess" ResetToDefaultRef="TBD" ReturnControlToEcuRef="TBD" ShortTermAdjustmentRef="DIDControlRecord1">
-<SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
-</SessionList>
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-</SecurityList>
-</ControlAccess>
-<ReadAccess Name="ReadAccess">
-<SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-</SessionList>
-<SecurityList Max="TBD">
-<Security Comment="*" Name="DS" />
-</SecurityList>
-</ReadAccess>
-<WriteAccess Name="WriteAccess">
-<SessionList Max="TBD">
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-<SecurityList Max="TBD">
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-</WriteAccess>
-</DIDInfo>
-</DIDInfoList>
-<DIDList Max="TBD">
-<DID Comment="*" DIDInfoRef="DIDInfo1" FreezeCurrentStateCbk="NULL" GetScalingInfoCbk="NULL" Identifier="0x2014" Name="DID1" ReadCbk="NULL" ReadConditionCheckCbk="NULL" ReadDataLengthCbk="NULL" ResetToDefaultCbk="NULL" ReturnControlToEcu="NULL" ShortTermAdjustment="Diag_DID1_ShortTermAdjustment" Size="12" WriteCbk="NULL" WriteConditionCheckCbk="NULL" />
-</DIDList>
-<RoutineInfoList Max="TBD">
-<RoutineInfo Comment="*" Name="EraseFlashInfo">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
-</SecurityList>
-<Start Comment="*" RecordSizeOfRequest="1" RecordSizeOfResponse="1" />
-<Result Comment="*" RecordSizeOfResponse="1" />
-</RoutineInfo>
-</RoutineInfoList>
-<RoutineList Max="TBD">
-<Routine Comment="*" Identifier="0x888" Name="EraseFlash" RoutineInfoRef="EraseFlashInfo" RoutineResultCbk="Diag_EraseFlashResult" StartRoutineCbk="Diag_EraseFlashStart" StopRoutineCbk="NULL" />
-</RoutineList>
-<MemoryList Max="TBD">
-<Memory Comment="*" Identifier="1" Name="Memory1" />
-</MemoryList>
+<DIDControlRecordList Max="TBD" />
+<DIDInfoList Max="TBD" />
+<DIDList Max="TBD" />
+<RoutineInfoList Max="TBD" />
+<RoutineList Max="TBD" />
+<MemoryList Max="TBD" />
 <ProtocolList Max="TBD">
 <Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
 <ConnectionList Max="TBD">
@@ -273,8 +228,6 @@
 <Security Comment="*" Name="EXTDS" />
 </SecurityList>
 <SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>
@@ -285,66 +238,14 @@
 <Security Comment="*" Name="EXTDS" />
 </SecurityList>
 <SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="READ_DATA_BY_IDENTIFIER" SubFunctionSupported="False">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="DS" />
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="ROUTINE_CONTROL" SubFunctionSupported="True">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="DS" />
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="WRITE_DATA_BY_IDENTIFIER" SubFunctionSupported="False">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="DS" />
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
-<Session Comment="*" Name="EXTDS" />
-</SessionList>
-</Service>
-<Service Comment="*" Name="INPUT_OUTPUT_CONTROL_BY_IDENTIFIER" SubFunctionSupported="True">
-<SecurityList Max="TBD">
-<Security Comment="*" Name="DS" />
-<Security Comment="*" Name="PRGS" />
-<Security Comment="*" Name="EXTDS" />
-</SecurityList>
-<SessionList Max="TBD">
-<Session Comment="*" Name="DS" />
-<Session Comment="*" Name="PRGS" />
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>
 <Service Comment="*" Name="ECU_RESET" SubFunctionSupported="True">
 <SecurityList Max="TBD">
-<Security Comment="*" Name="PRGS" />
 <Security Comment="*" Name="EXTDS" />
 </SecurityList>
 <SessionList Max="TBD">
-<Session Comment="*" Name="PRGS" />
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>

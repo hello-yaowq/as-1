@@ -29,6 +29,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
+	ASLOG(STDOUT,"start application BUILD @ %s %s\n",__DATE__,__TIME__);
 #ifdef USE_GUI
 	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
 	Sg_Init();
