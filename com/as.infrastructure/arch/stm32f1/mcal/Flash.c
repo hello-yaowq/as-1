@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-
+#ifdef FLASH_DRIVER_DYNAMIC_DOWNLOAD
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "Flash.h"
@@ -21,7 +21,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-tFlashHeader FlashHeader =
+const tFlashHeader FlashHeader =
 {
 	.Info.w    = 0x01004512,
 	.Init      = FlashInit,
@@ -148,3 +148,5 @@ void FlashWrite(tFlashParam* FlashParam)
 		FlashParam->errorcode = kFlashFailed;
 	}
 }
+#endif /* FLASH_DRIVER_DYNAMIC_DOWNLOAD */
+

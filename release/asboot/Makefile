@@ -126,6 +126,17 @@ endif
 def-y += -DUSE_SIMUL_CAN
 endif
 
+ifeq ($(board),stm32f107vc-flsdrv)
+ifeq ($(compiler),arm-none-eabi-gcc)
+link-script = $(src-dir)/linker-flsdrv.lds
+endif
+ifeq ($(compiler),iccarm)
+link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
+endif
+def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
+def-y += -DFLASH_DRIVER_DYNAMIC_DOWNLOAD
+endif
+
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
@@ -142,7 +153,10 @@ BSW:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) true)
 		
 OS:
+ifeq ($(board),stm32f107vc-flsdrv)
+else
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)	
+endif
 
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(src-dir))	
@@ -254,6 +268,14 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Can_Cfg.h)
 	@(echo "  >> prepare link for STM32F107VC done")		
 
+dep-stm32f107vc-flsdrv: 
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Flash.c)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.stm32f107vc/script TRUE)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
+	@(cd $(inc-dir);$(LNFS) $(CMSIS))
+	
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
@@ -278,6 +300,21 @@ clean:
 	make all board=stm32f107vc compiler=iccarm debug=true
 17:
 	make all board=stm32f107vc compiler=iccarm debug=false
+	
+# ---------------------------------- [ STM32F107VC ] ---------------------------------- #
+21:
+	make dep board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc
+22:
+	make all board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc debug=true
+23:
+	make all board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc debug=false	
+	
+25:
+	make dep board=stm32f107vc-flsdrv compiler=iccarm
+26:
+	make all board=stm32f107vc-flsdrv compiler=iccarm debug=true
+27:
+	make all board=stm32f107vc-flsdrv compiler=iccarm debug=false
 	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:

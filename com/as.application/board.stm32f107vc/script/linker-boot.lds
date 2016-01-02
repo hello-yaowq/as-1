@@ -8,11 +8,12 @@
 MEMORY
 {
     FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K
-    RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 64K
+    RAM (rwx)  : ORIGIN = 0x20001000, LENGTH = 60K
 }
 
 /* application address */
 application_main = 0x00010001;
+FlashHeader=0x20000000;
 
 ENTRY(reset_handler)
 
