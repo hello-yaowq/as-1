@@ -51,3 +51,9 @@ KSM(Simulator,Running)
 	}
 #endif
 }
+
+#ifdef __AS_BOOTLOADER__
+void application_main(void) { }
+#endif
+
+

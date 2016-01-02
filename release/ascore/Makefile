@@ -445,16 +445,9 @@ depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
 clean: 
-	@rm -fv $(obj-dir)/*
-	@rm -fv $(exe-dir)/*
-	
-clean-dist:clean
-	@rm -fv $(src-dir)/*
-	@rm -fv $(inc-dir)/*
+	@rm -frv ./obj/*
 	@rm -fv $(ASCORE)/SgDesign/SgRes/*
-	
-00:
-	@(make clean-dist -i)
+
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #
 01:
 	make dep board=at91sam3s compiler=iccarm
@@ -470,7 +463,7 @@ clean-dist:clean
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 13:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek debug=false	
-	
+
 15:
 	make dep board=stm32f107vc compiler=iccarm
 16:
@@ -517,6 +510,6 @@ clean-dist:clean
 	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=false	
 94:
 	make dll board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true	
-	@cp -v $(exe-dir)/posix.dll ../asboot/out/core.dll
+	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 

@@ -227,7 +227,6 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common/autosar-boot.arxml autosar.arxml)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Flash.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal/Mcu.c)
@@ -257,20 +256,14 @@ endif
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
-all:exe depc
+all:exe
 
-depc: $(obj-dir)/as.dep
+depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
 clean: 
-	@rm -fv $(obj-dir)/*
-	@rm -fv $(exe-dir)/*
+	@rm -frv ./obj/*
 	
-clean-dist:clean
-	@rm -fv $(src-dir)/*
-	@rm -fv $(inc-dir)/*
-	
-00:clean-dist
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
 	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
