@@ -358,7 +358,7 @@ void SchM_RunMemory(void)
  */
 TASK(SchM_Startup){
 
-#if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANSM)
+#if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)
 	uint32_t i;
 #endif
 	ASLOG(OFF,"SchM_Startup is running\n");

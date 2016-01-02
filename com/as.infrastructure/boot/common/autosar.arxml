@@ -104,26 +104,36 @@
 </SecurityList>
 <Start Comment="4 byte address, 4 byte size, 1 byte identifier" RecordSizeOfRequest="9" RecordSizeOfResponse="0" />
 </RoutineInfo>
+<RoutineInfo Comment="*" Name="RoutineInfo_TestJumpToApplication">
+<SessionList Max="TBD">
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<Start Comment="direct jump to application and no response" RecordSizeOfRequest="0" RecordSizeOfResponse="0" />
+</RoutineInfo>
 </RoutineInfoList>
 <RoutineList Max="TBD">
 <Routine Comment="*" Identifier="0xFF01" Name="EraseFlash" RoutineInfoRef="RoutineInfo_EraseFlash" RoutineResultCbk="NULL" StartRoutineCbk="BL_StartEraseFlash" StopRoutineCbk="NULL" />
+<Routine Comment="*" Identifier="0xFF03" Name="TestJumpToApplication" RoutineInfoRef="RoutineInfo_TestJumpToApplication" RoutineResultCbk="NULL" StartRoutineCbk="BL_TestJumpToApplicatin" StopRoutineCbk="NULL" />
 </RoutineList>
 <MemoryList Max="TBD">
 <Memory Comment="*" Identifier="0xFF" Name="Flash">
 <MemoryReadInfoList Max="TBD">
-<MemoryInfo AddressHigh="0x10000" AddressLow="0" Comment="0~64K for bootloader" Name="Bootloader">
+<MemoryInfo AddressHigh="0x00010000" AddressLow="0x00000000" Comment="0~64K for bootloader" Name="Bootloader">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 </MemoryInfo>
-<MemoryInfo AddressHigh="0x100000" AddressLow="0x10000" Comment="64K~1M for application" Name="Application">
+<MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="64K~256K for application" Name="Application">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 </MemoryInfo>
 </MemoryReadInfoList>
 <MemoryWriteInfoList Max="TBD">
-<MemoryInfo AddressHigh="0x100000" AddressLow="0x10000" Comment="*" Name="Application">
+<MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="*" Name="Application">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>

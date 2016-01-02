@@ -14,10 +14,10 @@
 # */
 target-y = $(board)
 
-obj-dir = ./obj
-exe-dir = ./out
-src-dir = ./src
-inc-dir = ./include
+obj-dir = $(CURDIR)/obj/$(board)-$(rtos)-$(compiler)
+exe-dir = $(CURDIR)/out
+src-dir = $(CURDIR)/src/$(board)-$(rtos)-$(compiler)
+inc-dir = $(CURDIR)/include/$(board)-$(rtos)-$(compiler)/include
 
 prj-dir = $(subst /release/ascore,,$(CURDIR))
 
@@ -123,8 +123,8 @@ def-y += -DGUI_USE_GTK
 else	 # openVG
 def-y += -DGUI_USE_OPENVG	
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
-inc-y += -I./include/EGL
-inc-y += -I./include/VG	
+inc-y += -I$(inc-dir)/EGL
+inc-y += -I$(inc-dir)/VG	
 endif
 endif	# posix end
 
@@ -139,16 +139,16 @@ else
 link-script = $(COMPILER_DIR)/arm/config/linker/Atmel/SAM3S/SAM3S-EK/sam3s-ek-flash.icf
 endif
 def-y += -DCHIP_AT91SAM3S -Dsam3s4 -DUSBD_LEDUSB=LED_RED
-inc-y += -I./include/libraries/libchip_sam3s
-inc-y += -I./include/libraries/libchip_sam3s/include
-inc-y += -I./include/libraries/libboard_sam3s-ek
-inc-y += -I./include/libraries/libboard_sam3s-ek/include
-inc-y += -I./include/libraries
-inc-y += -I./include/libraries/usb/include
-inc-y += -I./include/libraries/usb/common/core
-inc-y += -I./include/libraries/usb/common/cdc
-inc-y += -I./include/libraries/usb/device/core
-inc-y += -I./include/libraries/usb/device/cdc-serial
+inc-y += -I$(inc-dir)/libraries/libchip_sam3s
+inc-y += -I$(inc-dir)/libraries/libchip_sam3s/include
+inc-y += -I$(inc-dir)/libraries/libboard_sam3s-ek
+inc-y += -I$(inc-dir)/libraries/libboard_sam3s-ek/include
+inc-y += -I$(inc-dir)/libraries
+inc-y += -I$(inc-dir)/libraries/usb/include
+inc-y += -I$(inc-dir)/libraries/usb/common/core
+inc-y += -I$(inc-dir)/libraries/usb/common/cdc
+inc-y += -I$(inc-dir)/libraries/usb/device/core
+inc-y += -I$(inc-dir)/libraries/usb/device/cdc-serial
 endif	# AT91SAM3S end
 
 ifeq ($(board),stm32f107vc)
@@ -189,7 +189,7 @@ endif	# lm3s6965evb end
 
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
-inc-y += -I./include
+inc-y += -I$(inc-dir)
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -206,7 +206,7 @@ SG:
 	
 
 OS:
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src false)	
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)	
 ifeq ($(rtos),freeosek)
 # as the bug of FreeOSEK generator
 	@(mv -v srcme/parai/workspace/as/release/ascore/src/* $(src-dir))
@@ -214,10 +214,10 @@ ifeq ($(rtos),freeosek)
 endif
 
 BSW:
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/ascore/src true)
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) true)
 	
 studio:
-	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/ascore/src)	
+	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(src-dir))	
 	
 
 dep-as-virtual:
@@ -464,12 +464,12 @@ clean-dist:clean
 	make all board=at91sam3s compiler=iccarm debug=false	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
+	make dep board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek
 12:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=true
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek debug=true
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 13:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=false	
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek debug=false	
 	
 15:
 	make dep board=stm32f107vc compiler=iccarm
@@ -510,13 +510,13 @@ clean-dist:clean
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos 
 92:
-	make all board=posix compiler=posix-gcc gui=GTK debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true	
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/core.dll
 
 

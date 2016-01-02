@@ -117,5 +117,6 @@ void PostTaskHook(void)
 #endif
 void ShutdownHook(StatusType ercd)
 {
+	printf("ShutdownHook(%X)\n",ercd);
 }
 

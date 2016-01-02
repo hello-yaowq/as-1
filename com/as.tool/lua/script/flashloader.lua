@@ -99,9 +99,9 @@ end
 
 
 function routine_erase_flash()
-  ercd,res = dcm.transmit(dcm_chl,{0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x0F,0x00,0x00,0xFF})
+  ercd,res = dcm.transmit(dcm_chl,{0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0xFF})
   -- start address = 0x00010000 = 64K 
-  -- end   address = 0x00100000 = 1M, so size =  0x000F0000
+  -- end   address = 0x00040000 = 256K, so size =  0x00030000
   -- identifier 0xFF
   
   if (false == ercd) then
@@ -113,6 +113,7 @@ function routine_erase_flash()
   return ercd
   
 end
+
 function request_download(addr,size)
   data = {}
   data[1] = 0x34
@@ -225,9 +226,23 @@ function download_application()
   return ercd
 end
 
+function routine_test_jump_to_application()
+  ercd,res = dcm.transmit(dcm_chl,{0x31,0x01,0xFF,0x03})
+  
+  if (false == ercd) then
+    print("  >> routine test jump to application failed!")
+  else
+    print("  >> routine test jump to application ok!")
+  end
+  
+  return ercd
+  
+end
+
 operation_list = {enter_extend_session, security_extds_access,
                   enter_program_session,security_prgs_access,
-                  routine_erase_flash, download_application
+                  routine_erase_flash, download_application,
+				  routine_test_jump_to_application
 }
 
 function main()
@@ -243,6 +258,10 @@ function main()
       break
     end
   end
+  
+  while true do
+  end
+  
 end
 
 main()

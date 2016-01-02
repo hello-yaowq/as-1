@@ -12,7 +12,7 @@ MEMORY
 }
 
 /* application address */
-applican_main = 0x00010001;
+application_main = 0x00010001;
 
 ENTRY(reset_handler)
 

@@ -65,7 +65,7 @@ void FlashErase(tFlashParam* FlashParam)
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
 	{
 		length = FlashParam->length;
-		address = FlashParam->address;
+		address = FlashParam->address + 0x08000000;
 		if ( (FALSE == FLASH_IS_ERASE_ADDRESS_ALIGNED(address)) ||
 			 (FALSE == IS_FLASH_ADDRESS(address)) )
 		{
@@ -109,7 +109,7 @@ void FlashWrite(tFlashParam* FlashParam)
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
 	{
 		length = FlashParam->length;
-		address = FlashParam->address;
+		address = FlashParam->address + 0x08000000;
 		data = FlashParam->data;
 		if ( (FALSE == FLASH_IS_WRITE_ADDRESS_ALIGNED(address)) ||
 			 (FALSE == IS_FLASH_ADDRESS(address)) )
@@ -131,7 +131,10 @@ void FlashWrite(tFlashParam* FlashParam)
 			{
 				for(i=0;i<(FLASH_WRITE_SIZE/sizeof(tData));i++)
 				{
-					FLASH_ProgramWord((address+i*sizeof(tData)), data[i]);
+					volatile FLASH_Status status = FLASH_BUSY;
+					while(status != FLASH_COMPLETE){
+						status = FLASH_ProgramWord((address+i*sizeof(tData)), data[i]);
+					}
 				}
 				length  -= FLASH_WRITE_SIZE;
 				address += FLASH_WRITE_SIZE;

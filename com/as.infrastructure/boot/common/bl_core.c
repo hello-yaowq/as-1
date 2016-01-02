@@ -24,11 +24,12 @@
 #define FL_ERASE_SECTOR_PER_CYCLE 32
 #define FL_WRITE_SECTOR_PER_CYCLE 32
 #else
-#define FL_ERASE_SECTOR_PER_CYCLE 8
-#define FL_WRITE_SECTOR_PER_CYCLE 8
+#define FL_ERASE_SECTOR_PER_CYCLE 1
+#define FL_WRITE_SECTOR_PER_CYCLE 1
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void application_main(void); /* Symbol exposed in linker.lds */
 /* ============================ [ DATAS     ] ====================================================== */
 static tFlashParam blFlashParam =
 {
@@ -219,3 +220,19 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 	return DCM_WRITE_OK;
 }
 
+
+Std_ReturnType BL_TestJumpToApplicatin(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode)
+{
+
+	imask_t imask;
+
+	Irq_Save(imask);
+
+	application_main();
+
+	Irq_Restore(imask);
+	/* impossible return, failed */
+	*errorCode = DCM_E_REQUEST_OUT_OF_RANGE;
+
+	return E_NOT_OK;
+}

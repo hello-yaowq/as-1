@@ -14,10 +14,10 @@
 # */
 target-y = $(board)
 
-obj-dir = $(CURDIR)/obj
+obj-dir = $(CURDIR)/obj/$(board)-$(compiler)
 exe-dir = $(CURDIR)/out
-src-dir = $(CURDIR)/src
-inc-dir = $(CURDIR)/include
+src-dir = $(CURDIR)/src/$(board)-$(compiler)
+inc-dir = $(CURDIR)/include/$(board)-$(compiler)/include
 
 prj-dir = $(subst /release/asboot,,$(CURDIR))
 
@@ -139,13 +139,13 @@ $(src-dir):
 	@mkdir -p $@
 
 BSW:	
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/asboot/src true)
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) true)
 		
 OS:
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(prj-dir)/release/asboot/src false)	
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)	
 
 studio:
-	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(prj-dir)/release/asboot/src)	
+	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(src-dir))	
 
 dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
@@ -190,7 +190,6 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/CanIf_SpecialPdus.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/boot/common/autosar-boot.arxml autosar.arxml)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Flash.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Mcu.c)
@@ -258,9 +257,9 @@ endif
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
-all:exe
+all:exe depc
 
-depc:
+depc: $(obj-dir)/as.dep
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
 clean: 

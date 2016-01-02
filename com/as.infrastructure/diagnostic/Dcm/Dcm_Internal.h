@@ -24,7 +24,7 @@
 #define DCM_INTERNAL_H_
 
 
-#if  ( DCM_DEV_ERROR_DETECT == STD_ON )
+#if  ( DCM_DEV_ERROR_DETECT == STD_ON ) && defined(USE_DET)
 #if defined(USE_DET)
 #include "Det.h"
 #endif
