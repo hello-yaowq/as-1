@@ -166,6 +166,22 @@
 </MemoryInfo>
 </MemoryWriteInfoList>
 </Memory>
+<Memory Comment="*" Identifier="0xFD" Name="FlashDriver">
+<MemoryReadInfoList Max="TBD">
+<MemoryInfo AddressHigh="4096" AddressLow="0" Comment="*" Name="FlashDriver">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryReadInfoList>
+<MemoryWriteInfoList Max="TBD">
+<MemoryInfo AddressHigh="4096" AddressLow="0" Comment="*" Name="FlashDriver">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+</MemoryWriteInfoList>
+</Memory>
 </MemoryList>
 <ProtocolList Max="TBD">
 <Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">

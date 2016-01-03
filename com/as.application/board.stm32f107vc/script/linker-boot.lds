@@ -13,7 +13,10 @@ MEMORY
 
 /* application address */
 application_main = 0x00010001;
-FlashHeader=0x20000000;
+
+FlashHeader = 0x20000000;
+
+FlashDriverRam = 0x20000000;
 
 ENTRY(reset_handler)
 

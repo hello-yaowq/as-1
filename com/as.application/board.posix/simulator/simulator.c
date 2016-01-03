@@ -54,6 +54,7 @@ KSM(Simulator,Running)
 
 #ifdef __AS_BOOTLOADER__
 void application_main(void) { }
+uint32_t FlashDriverRam[1024];
 #endif
 
 

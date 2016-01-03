@@ -18,18 +18,21 @@
 #include "Os.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define BL_FLASH_IDENTIFIER  0xFF
-#define BL_EEPROM_IDENTIFIER 0xEE
+#define BL_FLASH_IDENTIFIER   0xFF
+#define BL_EEPROM_IDENTIFIER  0xEE
+#define BL_FLSDRV_IDENTIFIER  0xFD
+
 #if defined(__LINUX__) || defined(__WINDOWS__)
-#define FL_ERASE_SECTOR_PER_CYCLE 32
-#define FL_WRITE_SECTOR_PER_CYCLE 32
+#define FL_ERASE_PER_CYCLE 32
 #else
-#define FL_ERASE_SECTOR_PER_CYCLE 1
-#define FL_WRITE_SECTOR_PER_CYCLE 1
+#define FL_ERASE_PER_CYCLE 1
 #endif
+#define FL_WRITE_PER_CYCLE (512/FLASH_WRITE_SIZE)
+#define FL_READ_PER_CYCLE  (512/FLASH_WRITE_SIZE)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void application_main(void); /* Symbol exposed in linker.lds */
+extern uint32_t FlashDriverRam[];
 /* ============================ [ DATAS     ] ====================================================== */
 static tFlashParam blFlashParam =
 {
@@ -64,9 +67,9 @@ static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			}
 			break;
 		case DCM_PENDING:
-			if(blMemorySize > (FL_ERASE_SECTOR_PER_CYCLE*FLASH_ERASE_SIZE))
+			if(blMemorySize > (FL_ERASE_PER_CYCLE*FLASH_ERASE_SIZE))
 			{
-				length  = FL_ERASE_SECTOR_PER_CYCLE*FLASH_ERASE_SIZE;
+				length  = FL_ERASE_PER_CYCLE*FLASH_ERASE_SIZE;
 			}
 			else
 			{
@@ -118,9 +121,9 @@ static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			blMemoryData 	= (uint32*)MemoryData; /* should be uint32 aligned */
 			/* no break here intentionally */
 		case DCM_PENDING:
-			if(blMemorySize > (FL_WRITE_SECTOR_PER_CYCLE*FLASH_WRITE_SIZE))
+			if(blMemorySize > (FL_WRITE_PER_CYCLE*FLASH_WRITE_SIZE))
 			{
-				length  = FL_WRITE_SECTOR_PER_CYCLE*FLASH_WRITE_SIZE;
+				length  = FL_WRITE_PER_CYCLE*FLASH_WRITE_SIZE;
 			}
 			else
 			{
@@ -159,6 +162,75 @@ static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 
 	return rv;
 }
+
+static Dcm_ReturnReadMemoryType readFlash(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
+		uint8* MemoryData)
+{
+	Dcm_ReturnReadMemoryType rv;
+	uint32 length;
+	switch(OpStatus)
+	{
+		case DCM_INITIAL:
+			blMemoryAddress = MemoryAddress;
+			blMemorySize 	= MemorySize;
+			blMemoryData 	= (uint32*)MemoryData; /* should be uint32 aligned */
+			/* no break here intentionally */
+		case DCM_PENDING:
+			if(blMemorySize > (FL_READ_PER_CYCLE*FLASH_READ_SIZE))
+			{
+				length  = FL_READ_PER_CYCLE*FLASH_READ_SIZE;
+			}
+			else
+			{
+				length = blMemorySize;
+			}
+			blFlashParam.address = blMemoryAddress;
+			blFlashParam.length = length;
+			blFlashParam.data    = (tData*)blMemoryData;
+			FLASH_DRIVER_READ(FLASH_DRIVER_STARTADDRESS,&blFlashParam);
+			blMemoryAddress += length;
+			blMemorySize    -= length;
+			blMemoryData    = &blMemoryData[length/sizeof(uint32)];
+			if(kFlashOk == blFlashParam.errorcode)
+			{
+				if( 0 == blMemorySize)
+				{
+					rv = DCM_READ_OK;
+				}
+				else
+				{
+					rv = DCM_READ_PENDING;
+				}
+			}
+			else
+			{
+				ASLOG(BL,"read faile: errorcode = %X(addr=%X,size=%X)\n",
+						blFlashParam.errorcode,blFlashParam.address,blFlashParam.length);
+				rv = DCM_READ_FAILED;
+			}
+			break;
+		default:
+			asAssert(0);
+			rv = DCM_READ_FAILED;
+			break;
+	}
+
+	return rv;
+}
+
+static Dcm_ReturnEraseMemoryType writeFlashDriver(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
+		uint8* MemoryData)
+{
+	memcpy((void*)&(FlashDriverRam[MemoryAddress/sizeof(uint32_t)]),(void*)MemoryData,MemorySize);
+	return DCM_WRITE_OK;
+}
+
+static Dcm_ReturnReadMemoryType readFlashDriver(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
+		uint8* MemoryData)
+{
+	memcpy((void*)MemoryData,(void*)&(FlashDriverRam[MemoryAddress/sizeof(uint32_t)]),MemorySize);
+	return DCM_READ_OK;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
 Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
@@ -168,6 +240,8 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 {
 	Dcm_ReturnEraseMemoryType rv;
 
+	ASLOG(BL,"Dcm_EraseMemory(%X,%X,%X,%X)\n",
+			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
 	if(DCM_INITIAL == OpStatus)
 	{
 		blMemoryIdentifier = MemoryIdentifier;
@@ -192,7 +266,8 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 											   uint8* MemoryData)
 {
 	Dcm_ReturnEraseMemoryType rv;
-
+	ASLOG(BL,"Dcm_WriteMemory(%X,%X,%X,%X)\n",
+			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
 	if(DCM_INITIAL == OpStatus)
 	{
 		blMemoryIdentifier = MemoryIdentifier;
@@ -201,6 +276,9 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 	{
 		case BL_FLASH_IDENTIFIER:
 			rv = writeFlash(OpStatus,MemoryAddress,MemorySize,MemoryData);
+			break;
+		case BL_FLSDRV_IDENTIFIER:
+			rv = writeFlashDriver(OpStatus,MemoryAddress,MemorySize,MemoryData);
 			break;
 		default:
 			asAssert(0);
@@ -217,7 +295,27 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 											   uint32 MemorySize,
 											   uint8* MemoryData)
 {
-	return DCM_WRITE_OK;
+	Dcm_ReturnReadMemoryType rv;
+	ASLOG(BL,"Dcm_ReadMemory(%X,%X,%X,%X)\n",
+			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
+	if(DCM_INITIAL == OpStatus)
+	{
+		blMemoryIdentifier = MemoryIdentifier;
+	}
+	switch(blMemoryIdentifier)
+	{
+		case BL_FLASH_IDENTIFIER:
+			rv = readFlash(OpStatus,MemoryAddress,MemorySize,MemoryData);
+			break;
+		case BL_FLSDRV_IDENTIFIER:
+			rv = readFlashDriver(OpStatus,MemoryAddress,MemorySize,MemoryData);
+			break;
+		default:
+			asAssert(0);
+			rv = DCM_READ_FAILED;
+			break;
+	}
+	return rv;
 }
 
 

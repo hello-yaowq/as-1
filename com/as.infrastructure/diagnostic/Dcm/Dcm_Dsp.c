@@ -2106,7 +2106,7 @@ static Dcm_NegativeResponseCodeType readMemoryData( Dcm_OpStatusType *OpStatus,
 	}
 	if (DCM_READ_PENDING == ReadRet)
 	{
-		*OpStatus = DCM_READ_PENDING;
+		*OpStatus = DCM_PENDING;
 	}	
 	return responseCode;
 }
@@ -4515,7 +4515,7 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 		uint8 dataFormatIdentifier = pduRxData->SduDataPtr[1];
 		uint8 addressFormat = (uint8)((pduRxData->SduDataPtr[2]>>0u)&0x0Fu);
 		uint8 lengthFormat  = (uint8)((pduRxData->SduDataPtr[2]>>4u)&0x0Fu);
-		if((addressFormat+lengthFormat+3u) == pduRxData->SduLength)
+		if((addressFormat+lengthFormat+4u) == pduRxData->SduLength)
 		{
 			if(DCM_UDT_IDLE_STATE == dspUDTData.state )
 			{
@@ -4575,6 +4575,10 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 #ifdef DCM_USE_SERVICE_TRANSFER_DATA
 void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 {
+	Dcm_OpStatusType OpStatus;
+	uint32 memoryAddress;
+	uint32 length;
+	uint8   memoryIdentifier;
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
 	if(pduRxData->SduLength>=4)
 	{
@@ -4583,12 +4587,15 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 		{
 			if(4 == pduRxData->SduLength)
 			{
-				if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
+				if(DCM_MEMORY_UNUSED!=dspMemoryState)
 				{
-					Dcm_OpStatusType OpStatus;
-					uint32 memoryAddress = dspUDTData.memoryAddress;
-					uint32 length = 128;
-					uint8   memoryIdentifier = pduRxData->SduDataPtr[3];
+					responseCode = DCM_E_BUSY_REPEAT_REQUEST;
+				}
+				else if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
+				{
+					memoryAddress = dspUDTData.memoryAddress;
+					length = 128;
+					memoryIdentifier = pduRxData->SduDataPtr[3];
 					if(dspUDTData.memorySize < length)
 					{
 						length = dspUDTData.memorySize;
@@ -4597,6 +4604,11 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 					responseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, pduTxData);
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
+						if(DCM_PENDING == OpStatus)
+						{
+							dspMemoryState = DCM_MEMORY_READ;
+						}
+
 						dspUDTData.memoryAddress += length;
 						dspUDTData.memorySize    -= length;
 						dspUDTData.blockSequenceCounter ++; // may roll-over from 0xFF to 0x00
@@ -4619,12 +4631,15 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 		else if((DCM_UDT_DOWNLOAD_STATE == dspUDTData.state)
 				&&(dspUDTData.memorySize>0))
 		{
-			if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
+			if(DCM_MEMORY_UNUSED!=dspMemoryState)
 			{
-				Dcm_OpStatusType OpStatus;
-				uint32 memoryAddress = dspUDTData.memoryAddress;
-				uint32 length = pduRxData->SduLength-4;
-				uint8   memoryIdentifier = pduRxData->SduDataPtr[3];
+				responseCode = DCM_E_BUSY_REPEAT_REQUEST;
+			}
+			else if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
+			{
+				memoryAddress = dspUDTData.memoryAddress;
+				length = pduRxData->SduLength-4;
+				memoryIdentifier = pduRxData->SduDataPtr[3];
 				if(dspUDTData.memorySize < length)
 				{
 					length = dspUDTData.memorySize;
@@ -4632,9 +4647,14 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 
 				responseCode = writeMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length,
 												&pduRxData->SduDataPtr[4]);
-				ASLOG(DCM,"write memory addr(%X) size(%X),memory=%X",memoryAddress,length,memoryIdentifier);
+
 				if(DCM_E_POSITIVE_RESPONSE == responseCode)
 				{
+					if(DCM_PENDING == OpStatus)
+					{
+						dspMemoryState = DCM_MEMORY_WRITE;
+					}
+
 					dspUDTData.memoryAddress += length;
 					dspUDTData.memorySize    -= length;
 					dspUDTData.blockSequenceCounter ++; // may roll-over from 0xFF to 0x00
@@ -4658,11 +4678,21 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 	{
 		responseCode = DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT;
 	}
+
 	if(DCM_E_POSITIVE_RESPONSE != responseCode)
-	{	// Exit as Error.
+	{	/* Exit as Error. */
 		memset(&dspUDTData,0u,sizeof(dspUDTData));
+		DsdDspProcessingDone(responseCode);
 	}
-	DsdDspProcessingDone(responseCode);
+	else if ( DCM_MEMORY_UNUSED == dspMemoryState )
+	{
+		DsdDspProcessingDone(responseCode);
+	}
+	else
+	{
+
+	}
+
 }
 #endif
 #ifdef DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT

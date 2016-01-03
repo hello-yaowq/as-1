@@ -1,16 +1,3 @@
-/* -------------------------------- Flash Loader ------------------------------
- *
- * Copyright (C) 2014  parai <parai@foxmail.com>
- *
- * This source code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by the
- * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- * -------------------------------- Flash Loader ------------------------------*/
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -26,6 +13,8 @@
  * for more details.
  */
 
+/* refer: http://portal.automotive-his.de/images/pdf/FlashProgramming/his%20flash%20driver%20v130.pdf */
+
 #ifndef FLASH_H
 #define FLASH_H
 /* ============================ [ INCLUDES  ] ====================================================== */
@@ -40,6 +29,7 @@
 #define FLASH_DRIVER_DEINIT_OFFSET  0x00000008
 #define FLASH_DRIVER_ERASE_OFFSET   0x0000000C
 #define FLASH_DRIVER_WRITE_OFFSET   0x00000010
+#define FLASH_DRIVER_READ_OFFSET    0x00000014
 
 /* sa holds flash driver start address, 
  * pp contains pointer the pointer to the parameter structure */
@@ -47,6 +37,7 @@
 #define FLASH_DRIVER_DEINIT(sa, pp)   (*(tFlashFct*) ((sa)+FLASH_DRIVER_DEINIT_OFFSET))((pp))
 #define FLASH_DRIVER_ERASE(sa, pp)    (*(tFlashFct*) ((sa)+FLASH_DRIVER_ERASE_OFFSET)) ((pp))
 #define FLASH_DRIVER_WRITE(sa, pp)    (*(tFlashFct*) ((sa)+FLASH_DRIVER_WRITE_OFFSET)) ((pp))
+#define FLASH_DRIVER_READ(sa, pp)     (*(tFlashFct*) ((sa)+FLASH_DRIVER_READ_OFFSET))  ((pp))
 
 /* standard error codes */
 #define kFlashOk             0x00 /* called function succeeded */
@@ -73,8 +64,13 @@
 #endif
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
 
+/* must be n times of 4 */
 #define FLASH_WRITE_SIZE  4
 #define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
+
+/* must be 1 or 2 */
+#define FLASH_READ_SIZE   2
+#define FLASH_IS_READ_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_READ_SIZE-1)&(a)) )
 
 /* ============================ [ TYPES     ] ====================================================== */
 typedef unsigned long tFlashAddress;
@@ -139,6 +135,7 @@ typedef struct
 	tFlashFct Deinit;
 	tFlashFct Erase;
 	tFlashFct Write;
+	tFlashFct Read;  /* add by parai, extended API */
 }tFlashHeader;
 
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -150,4 +147,5 @@ extern void FlashInit(tFlashParam* FlashParam);
 extern void FlashDeinit(tFlashParam* FlashParam);
 extern void FlashErase(tFlashParam* FlashParam);
 extern void FlashWrite(tFlashParam* FlashParam);
+extern void FlashRead(tFlashParam* FlashParam);
 #endif 

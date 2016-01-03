@@ -573,6 +573,7 @@ void Can_SimulatorRunning(void)
 				if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
 				{
 					Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
+					ASLOG(CAN,"TxComfirm(%d,%d)\n",configId,canUnit->swPduHandle);
 				}
 				canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 			}

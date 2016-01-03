@@ -82,6 +82,12 @@ def GenC():
 #include "PduR.h"
 #endif
 
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#define CANTP_TIMEOUT_UNIT 10
+#else
+#define CANTP_TIMEOUT_UNIT 1
+#endif
+
 static const CanTp_GeneralType CanTpGeneralConfig =
 {
     .main_function_period =  10,
@@ -106,10 +112,10 @@ static const CanTp_NTaType CanTpNTaConfig =
         .configData.CanTpRxNSdu.CanIf_FcPduId =  CANIF_ID_%s,
         .configData.CanTpRxNSdu.PduR_PduId =  PDUR_ID_%s,
         .configData.CanTpRxNSdu.CanTpAddressingFormant =  CANTP_STANDARD,
-        .configData.CanTpRxNSdu.CanTpBs =   %s,
-        .configData.CanTpRxNSdu.CanTpNar =  %s,
-        .configData.CanTpRxNSdu.CanTpNbr =  %s,
-        .configData.CanTpRxNSdu.CanTpNcr =  %s,
+        .configData.CanTpRxNSdu.CanTpBs =   (%s)*CANTP_TIMEOUT_UNIT,
+        .configData.CanTpRxNSdu.CanTpNar =  (%s)*CANTP_TIMEOUT_UNIT,
+        .configData.CanTpRxNSdu.CanTpNbr =  (%s)*CANTP_TIMEOUT_UNIT,
+        .configData.CanTpRxNSdu.CanTpNcr =  (%s)*CANTP_TIMEOUT_UNIT,
         .configData.CanTpRxNSdu.CanTpRxChannel =  CANTP_ID_%s,
         .configData.CanTpRxNSdu.CanTpRxDI =  8,
         .configData.CanTpRxNSdu.CanTpRxPaddingActivation =  CANTP_%s,
@@ -144,9 +150,9 @@ static const CanTp_NTaType CanTpNTaConfig =
         .configData.CanTpTxNSdu.CanIf_PduId   =  CANIF_ID_%s,
         .configData.CanTpTxNSdu.PduR_PduId =  PDUR_ID2_%s,
         .configData.CanTpTxNSdu.CanTpAddressingMode =  CANTP_STANDARD,
-        .configData.CanTpTxNSdu.CanTpNas =  %s,
-        .configData.CanTpTxNSdu.CanTpNbs =  %s,
-        .configData.CanTpTxNSdu.CanTpNcs =  %s,
+        .configData.CanTpTxNSdu.CanTpNas =  (%s)*CANTP_TIMEOUT_UNIT,
+        .configData.CanTpTxNSdu.CanTpNbs =  (%s)*CANTP_TIMEOUT_UNIT,
+        .configData.CanTpTxNSdu.CanTpNcs =  (%s)*CANTP_TIMEOUT_UNIT,
         .configData.CanTpTxNSdu.CanTpTxChannel =  CANTP_ID_%s,
         .configData.CanTpTxNSdu.CanTpTxDI =  8,
         .configData.CanTpTxNSdu.CanTpTxPaddingActivation =  CANTP_%s,

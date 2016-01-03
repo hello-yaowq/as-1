@@ -24,6 +24,7 @@ local can_bus = 0
 local dcm_chl = 0
 
 local FLASH_WRITE_SIZE = 512
+local FLASH_READ_SIZE  = 512
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
@@ -114,7 +115,45 @@ function routine_erase_flash()
   
 end
 
-function request_download(addr,size)
+function request_upload(addr,size,mem)
+  data = {}
+  data[1] = 0x35
+  data[2] = 0x00 -- data format identifier
+  data[3] = 0x44 -- address and length format
+  data[4] = (addr>>24)&0xFF
+  data[5] = (addr>>16)&0xFF
+  data[6] = (addr>>8)&0xFF
+  data[7] = (addr>>0)&0xFF
+  data[8] = (size>>24)&0xFF
+  data[9] = (size>>16)&0xFF
+  data[10] = (size>>8)&0xFF
+  data[11] = (size>>0)&0xFF
+  data[12] = mem -- memory identifier
+ 
+  ercd,res = dcm.transmit(dcm_chl,data)
+  
+  if (false == ercd) then
+    print("  >> request upload failed!")
+  else
+    print("  >> request upload ok!")
+  end
+  
+  return ercd
+end
+
+function request_transfer_exit()
+  ercd,res = dcm.transmit(dcm_chl,{0x37})
+  
+  if (false == ercd) then
+    print("  >> request_transfer_exit failed!")
+  else
+    print("  >> request_transfer_exit ok!")
+  end
+  
+  return ercd
+end
+
+function request_download(addr,size,mem)
   data = {}
   data[1] = 0x34
   data[2] = 0x00 -- data format identifier
@@ -127,7 +166,7 @@ function request_download(addr,size)
   data[9] = (size>>16)&0xFF
   data[10] = (size>>8)&0xFF
   data[11] = (size>>0)&0xFF
-  data[12] = 0xFF -- memory identifier
+  data[12] = mem -- memory identifier
  
   ercd,res = dcm.transmit(dcm_chl,data)
   
@@ -152,8 +191,8 @@ function request_transfer_exit()
   return ercd
 end
 
-function download_one_record(addr,size,data)
-  ercd = request_download(addr,size)
+function download_one_record(addr,size,data,mem)
+  ercd = request_download(addr,size,mem)
   
   -- download application
   blockSequenceCounter = 1
@@ -166,7 +205,7 @@ function download_one_record(addr,size,data)
     req[1] = 0x36
     req[2] = blockSequenceCounter
     req[3] = 0
-    req[4] = 0xFF
+    req[4] = mem
     
     if (left_size > ability) then
       sz = ability
@@ -198,6 +237,124 @@ function download_one_record(addr,size,data)
   return ercd
 end
 
+function upload_one_record(addr,size,data,mem)
+  ercd = request_upload(addr,size,mem)
+  record = {}
+  
+  -- request upload application
+  blockSequenceCounter = 1
+  left_size = size
+  pos = 1
+  ability = math.floor((4096-4)/FLASH_READ_SIZE) * FLASH_READ_SIZE
+
+  while (left_size > 0) and (true== ercd) do
+    req ={}
+    req[1] = 0x36
+    req[2] = blockSequenceCounter
+    req[3] = 0
+    req[4] = mem
+
+    ercd,res = dcm.transmit(dcm_chl,req)
+    
+    sz = rawlen(res) - 2
+    
+    if (left_size > sz) then
+      left_size = left_size - sz
+    else
+      left_size = 0
+    end
+    
+    for i=1,sz,1 do
+      record[pos+i] = res[2+i]
+    end
+    
+    pos = pos + sz
+
+    blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
+ 
+  end
+  
+  if (true == ercd) then
+    ercd = request_transfer_exit()
+  end
+  
+  return ercd,record
+end
+
+function download_flash_driver()
+  srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
+  
+  if( nil == srecord ) then
+    print("  >> invalid flash driver srecord file!")
+    return false
+  end
+  -- flash driver mapped to address 0
+  secnbr = rawlen(srecord)
+  for i=1,secnbr,1 do
+    ss = srecord[i]
+    addr =  ss['addr']-srecord[1]['addr']
+    ercd =  download_one_record(addr,ss['size'],ss['data'],0xFD)
+    if (false == ercd) then
+      break
+    end
+  end
+ 
+  if (false == ercd) then
+    print("  >> download flash driver failed!")
+  else
+    print("  >> download flash driver ok!")
+  end
+  
+  return ercd
+end
+
+function fl_compare(s1,s2)
+
+  ercd = true
+  length = rawlen(s1)
+  for i=1,length,1 do
+    if s1[i] ~= s2[i] then
+      print(string.format("fl_compare(%X != %X @%d)",s1[i],s2[i],i))
+      ercd = false
+      break
+    end
+  end
+  
+  return ercd
+end
+
+function check_flash_driver()
+ srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
+  
+  if( nil == srecord ) then
+    print("  >> invalid flash driver srecord file!")
+    return false
+  end
+  -- flash driver mapped to address 0
+  secnbr = rawlen(srecord)
+  for i=1,secnbr,1 do
+    ss = srecord[i]
+    addr =  ss['addr']-srecord[1]['addr']
+    ercd,record =  upload_one_record(addr,ss['size'],ss['data'],0xFD)
+    if (false == ercd) then
+      break
+    else
+      ercd = fl_compare(ss['data'],record)
+      if (false == ercd) then
+        break
+      end
+    end
+  end
+ 
+  if (false == ercd) then
+    print("  >> check flash driver failed!")
+  else
+    print("  >> check flash driver ok!")
+  end
+  
+  return ercd
+end
+
 function download_application()
 
   srecord = s19.open("D:/repository/as/release/ascore/out/stm32f107vc.s19")
@@ -211,7 +368,7 @@ function download_application()
   for i=1,secnbr,1 do
     ss = srecord[i]
     addr =  ss['addr']
-    ercd =  download_one_record(addr,ss['size'],ss['data'])
+    ercd =  download_one_record(addr,ss['size'],ss['data'],0xFF)
     if (false == ercd) then
       break
     end
@@ -241,8 +398,9 @@ end
 
 operation_list = {enter_extend_session, security_extds_access,
                   enter_program_session,security_prgs_access,
+                  download_flash_driver,check_flash_driver,
                   routine_erase_flash, download_application,
-				  routine_test_jump_to_application
+				          routine_test_jump_to_application
 }
 
 function main()
@@ -257,9 +415,6 @@ function main()
     if false == ercd then
       break
     end
-  end
-  
-  while true do
   end
   
 end

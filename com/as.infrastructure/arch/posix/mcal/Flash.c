@@ -26,7 +26,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-tFlashHeader FlashHeader =
+const tFlashHeader FlashHeader =
 {
 	.Info.W.MCU     = 1,
 	.Info.W.mask    = 2,
@@ -34,7 +34,8 @@ tFlashHeader FlashHeader =
 	.Init      = FlashInit,
 	.Deinit    = FlashDeinit,
 	.Erase     = FlashErase,
-	.Write     = FlashWrite
+	.Write     = FlashWrite,
+	.Read      = FlashRead
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -162,6 +163,55 @@ void FlashWrite(tFlashParam* FlashParam)
 			{
 				fseek(fp,address,SEEK_SET);
 				fwrite(data,FlashParam->length,1,fp);
+				fclose(fp);
+				FlashParam->errorcode = kFlashOk;
+			}
+		}
+	}
+	else
+	{
+		FlashParam->errorcode = kFlashFailed;
+	}
+}
+
+void FlashRead(tFlashParam* FlashParam)
+{
+	tAddress address;
+	tLength  length;
+	tData*    data;
+	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
+		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
+		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
+	{
+		length = FlashParam->length;
+		address = FlashParam->address;
+		data = FlashParam->data;
+		if ( (FALSE == FLASH_IS_READ_ADDRESS_ALIGNED(address)) ||
+			 (FALSE == IS_FLASH_ADDRESS(address)) )
+		{
+			FlashParam->errorcode = kFlashInvalidAddress;
+		}
+		else if( (FALSE == IS_FLASH_ADDRESS(address+length)) ||
+				 (FALSE == FLASH_IS_READ_ADDRESS_ALIGNED(length)) )
+		{
+			FlashParam->errorcode = kFlashInvalidSize;
+		}
+		else if( NULL == data )
+		{
+			FlashParam->errorcode = kFlashInvalidData;
+		}
+		else
+		{
+			FILE* fp = NULL;
+			fp = fopen(FLASH_IMG,"r+");
+			if(NULL == fp)
+			{
+				FlashParam->errorcode = kFlashFailed;
+			}
+			else
+			{
+				fseek(fp,address,SEEK_SET);
+				fread(data,FlashParam->length,1,fp);
 				fclose(fp);
 				FlashParam->errorcode = kFlashOk;
 			}
