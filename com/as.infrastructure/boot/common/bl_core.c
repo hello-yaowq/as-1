@@ -238,6 +238,7 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 											   uint32 MemoryAddress,
 											   uint32 MemorySize)
 {
+	imask_t imask;
 	Dcm_ReturnEraseMemoryType rv;
 
 	ASLOG(BL,"Dcm_EraseMemory(%X,%X,%X,%X)\n",
@@ -246,6 +247,7 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 	{
 		blMemoryIdentifier = MemoryIdentifier;
 	}
+	Irq_Save(imask);
 	switch(blMemoryIdentifier)
 	{
 		case BL_FLASH_IDENTIFIER:
@@ -256,6 +258,7 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 			rv = DCM_READ_FAILED;
 			break;
 	}
+	Irq_Restore(imask);
 	return rv;
 }
 
@@ -265,6 +268,7 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 											   uint32 MemorySize,
 											   uint8* MemoryData)
 {
+	imask_t imask;
 	Dcm_ReturnEraseMemoryType rv;
 	ASLOG(BL,"Dcm_WriteMemory(%X,%X,%X,%X)\n",
 			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
@@ -272,6 +276,7 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 	{
 		blMemoryIdentifier = MemoryIdentifier;
 	}
+	Irq_Save(imask);
 	switch(blMemoryIdentifier)
 	{
 		case BL_FLASH_IDENTIFIER:
@@ -285,6 +290,7 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 			rv = DCM_READ_FAILED;
 			break;
 	}
+	Irq_Restore(imask);
 	return rv;
 }
 
@@ -295,6 +301,7 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 											   uint32 MemorySize,
 											   uint8* MemoryData)
 {
+	imask_t imask;
 	Dcm_ReturnReadMemoryType rv;
 	ASLOG(BL,"Dcm_ReadMemory(%X,%X,%X,%X)\n",
 			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
@@ -302,6 +309,7 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 	{
 		blMemoryIdentifier = MemoryIdentifier;
 	}
+	Irq_Save(imask);
 	switch(blMemoryIdentifier)
 	{
 		case BL_FLASH_IDENTIFIER:
@@ -315,6 +323,7 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 			rv = DCM_READ_FAILED;
 			break;
 	}
+	Irq_Restore(imask);
 	return rv;
 }
 

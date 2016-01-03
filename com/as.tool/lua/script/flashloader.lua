@@ -366,7 +366,7 @@ function download_application()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr'] - srecord[1]['addr']
+    addr =  ss['addr']
     ercd =  download_one_record(addr,ss['size'],ss['data'],0xFF)
     if (false == ercd) then
       break
@@ -392,7 +392,7 @@ function check_application()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr'] - srecord[1]['addr']
+    addr =  ss['addr']
     ercd,record =  upload_one_record(addr,ss['size'],0xFF)
     if (false == ercd) then
       break
@@ -435,8 +435,8 @@ operation_list = {enter_extend_session, security_extds_access,
 
 function main()
   data = {}
-  as.can_open(can_bus,"rpmsg",0,1000000)
-  -- as.can_open(can_bus,"serial",3,115200)	-- COM4
+  -- as.can_open(can_bus,"rpmsg",0,1000000)
+  as.can_open(can_bus,"serial",3,115200)	-- COM4
   dcm.init(dcm_chl,can_bus,0x732,0x731)
   
   

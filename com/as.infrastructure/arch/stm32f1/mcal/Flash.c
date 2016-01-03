@@ -27,7 +27,8 @@ const tFlashHeader FlashHeader =
 	.Init      = FlashInit,
 	.Deinit    = FlashDeinit,
 	.Erase     = FlashErase,
-	.Write     = FlashWrite
+	.Write     = FlashWrite,
+	.Read      = FlashRead
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -131,16 +132,63 @@ void FlashWrite(tFlashParam* FlashParam)
 			{
 				for(i=0;i<(FLASH_WRITE_SIZE/sizeof(tData));i++)
 				{
+					#if 0
 					volatile FLASH_Status status = FLASH_BUSY;
 					while(status != FLASH_COMPLETE){
 						status = FLASH_ProgramWord((address+i*sizeof(tData)), data[i]);
 					}
+					#else
+					FLASH_ProgramWord((address+i*sizeof(tData)), data[i]);
+					#endif
 				}
 				length  -= FLASH_WRITE_SIZE;
 				address += FLASH_WRITE_SIZE;
 				data    += (FLASH_WRITE_SIZE/sizeof(tData));
 			}
 			FlashParam->errorcode = kFlashOk;
+		}
+	}
+	else
+	{
+		FlashParam->errorcode = kFlashFailed;
+	}
+}
+
+void FlashRead(tFlashParam* FlashParam)
+{
+	tAddress address;
+	tLength  length;
+	tData*    data;
+	if ( (FLASH_DRIVER_VERSION_PATCH == FlashParam->patchlevel) ||
+		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
+		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
+	{
+		length = FlashParam->length;
+		address = FlashParam->address + 0x08000000;
+		data = FlashParam->data;
+		if ( (FALSE == FLASH_IS_READ_ADDRESS_ALIGNED(address)) ||
+			 (FALSE == IS_FLASH_ADDRESS(address)) )
+		{
+			FlashParam->errorcode = kFlashInvalidAddress;
+		}
+		else if( (FALSE == IS_FLASH_ADDRESS(address+length)) ||
+				 (FALSE == FLASH_IS_READ_ADDRESS_ALIGNED(length)) )
+		{
+			FlashParam->errorcode = kFlashInvalidSize;
+		}
+		else if( NULL == data )
+		{
+			FlashParam->errorcode = kFlashInvalidData;
+		}
+		else
+		{
+			tLength i;
+			const char* src = (const char*) address;
+
+			for(i=0;i<length;i++)
+			{
+				data[i] = src[i];
+			}
 		}
 	}
 	else
