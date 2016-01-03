@@ -237,14 +237,14 @@ function download_one_record(addr,size,data,mem)
   return ercd
 end
 
-function upload_one_record(addr,size,data,mem)
+function upload_one_record(addr,size,mem)
   ercd = request_upload(addr,size,mem)
   record = {}
   
   -- request upload application
   blockSequenceCounter = 1
   left_size = size
-  pos = 1
+  pos = 0
   ability = math.floor((4096-4)/FLASH_READ_SIZE) * FLASH_READ_SIZE
 
   while (left_size > 0) and (true== ercd) do
@@ -314,7 +314,6 @@ function fl_compare(s1,s2)
   length = rawlen(s1)
   for i=1,length,1 do
     if s1[i] ~= s2[i] then
-      print(string.format("fl_compare(%X != %X @%d)",s1[i],s2[i],i))
       ercd = false
       break
     end
@@ -324,7 +323,7 @@ function fl_compare(s1,s2)
 end
 
 function check_flash_driver()
- srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
+  srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
   
   if( nil == srecord ) then
     print("  >> invalid flash driver srecord file!")
@@ -335,11 +334,11 @@ function check_flash_driver()
   for i=1,secnbr,1 do
     ss = srecord[i]
     addr =  ss['addr']-srecord[1]['addr']
-    ercd,record =  upload_one_record(addr,ss['size'],ss['data'],0xFD)
+    ercd,record =  upload_one_record(addr,ss['size'],0xFD)
     if (false == ercd) then
       break
     else
-      ercd = fl_compare(ss['data'],record)
+      ercd = fl_compare(srecord[i]['data'],record)
       if (false == ercd) then
         break
       end
@@ -367,7 +366,7 @@ function download_application()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr']
+    addr =  ss['addr'] - srecord[1]['addr']
     ercd =  download_one_record(addr,ss['size'],ss['data'],0xFF)
     if (false == ercd) then
       break
@@ -378,6 +377,37 @@ function download_application()
     print("  >> download application failed!")
   else
     print("  >> download application ok!")
+  end
+  
+  return ercd
+end
+
+function check_application()
+  srecord = s19.open("D:/repository/as/release/ascore/out/stm32f107vc.s19")
+  
+  if( nil == srecord ) then
+    print("  >> invalid application srecord file!")
+    return false
+  end
+  secnbr = rawlen(srecord)
+  for i=1,secnbr,1 do
+    ss = srecord[i]
+    addr =  ss['addr'] - srecord[1]['addr']
+    ercd,record =  upload_one_record(addr,ss['size'],0xFF)
+    if (false == ercd) then
+      break
+    else
+      ercd = fl_compare(srecord[i]['data'],record)
+      if (false == ercd) then
+        break
+      end
+    end
+  end
+ 
+  if (false == ercd) then
+    print("  >> check application failed!")
+  else
+    print("  >> check application ok!")
   end
   
   return ercd
@@ -399,7 +429,7 @@ end
 operation_list = {enter_extend_session, security_extds_access,
                   enter_program_session,security_prgs_access,
                   download_flash_driver,check_flash_driver,
-                  routine_erase_flash, download_application,
+                  routine_erase_flash, download_application,check_application,
 				          routine_test_jump_to_application
 }
 
