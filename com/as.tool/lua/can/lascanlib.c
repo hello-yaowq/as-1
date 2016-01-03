@@ -18,6 +18,8 @@
 #include <sys/queue.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
@@ -57,6 +59,7 @@ struct Can_BusList_s {
 	STAILQ_HEAD(,Can_Bus_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
+static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct Can_BusList_s canbusH =
 {
@@ -78,6 +81,7 @@ static const Can_DeviceOpsType* canOps [] =
 	#endif
 	NULL
 };
+static FILE* canLog = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void freeQ(struct Can_PduQueue_s* l)
 {
@@ -220,7 +224,7 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 				memcpy(&(pdu->msg.sdu),data,dlc);
 
 				saveB(b,pdu);
-
+				logCan(TRUE,busid,canid,dlc,data);
 			}
 			else
 			{
@@ -257,6 +261,35 @@ static const Can_DeviceOpsType* search_ops(const char* name)
 	}
 
 	return ops;
+}
+static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data)
+{
+	static struct timeval m0 = { -1 , -1 };
+
+	if(-1 == m0.tv_sec)
+	{
+		gettimeofday(&m0,NULL);
+	}
+	if(NULL != canLog)
+	{
+		static struct timeval m1;
+		gettimeofday(&m1,NULL);
+
+		float rtim = m1.tv_sec-m0.tv_sec;
+
+		if(m1.tv_usec > m0.tv_usec)
+		{
+			rtim += (float)(m1.tv_usec-m0.tv_usec)/1000000.0;
+		}
+		else
+		{
+			rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
+		}
+		gettimeofday(&m0,NULL);
+		fprintf(canLog,"busid=%d, %s canid=%04X dlc=%d data=[ %02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X ] @ %f s\n",
+				busid,isRx?"rx":"tx",canid,dlc,data[0],data[1],data[2],data[3],
+						data[4],data[5],data[6],data[7],rtim);
+	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef __AS_PY_CAN__
@@ -415,6 +448,7 @@ int luai_can_write (lua_State *L)
 			if(b->device.ops->write)
 			{
 				boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
+				logCan(FALSE,busid,canid,dlc,data);
 				if(rv)
 				{
 					lua_pushboolean(L, TRUE);        /* result OK */
@@ -502,6 +536,18 @@ void luai_canlib_open(void)
 	}
 	canbusH.initialized = TRUE;
 	STAILQ_INIT(&canbusH.head);
+
+	time_t t = time(0);
+	struct tm* lt = localtime(&t);
+
+	char name[512];
+	snprintf(name,512,"lascan-%d-%d-%d-%d-%d-%d.asc",lt->tm_year+1900,lt->tm_mon+1,lt->tm_mday,
+			lt->tm_hour,lt->tm_min,lt->tm_sec);
+	canLog = fopen(name,"w+");
+	if(NULL != canLog)
+	{
+		printf("can trace log to file < %s >\n\n",name);
+	}
 }
 void luai_canlib_close(void)
 {
@@ -514,6 +560,11 @@ void luai_canlib_close(void)
 		}
 		freeH(&canbusH);
 		canbusH.initialized = FALSE;
+	}
+
+	if(NULL != canLog)
+	{
+		fclose(canLog);
 	}
 }
 #ifdef __AS_PY_CAN__

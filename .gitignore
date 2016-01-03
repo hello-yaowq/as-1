@@ -3,7 +3,7 @@
 #################
 
 ##################
-
+*.asc
 *.exe
 *.EXE
 # std arccore directorys  >>>

@@ -78,8 +78,8 @@
 <Dcm>
 <General Comment="*" DevelopmentErrorDetection="ON" MaxPeriodDIDNumber="8" PeriodicDIDFastModeTime="50" PeriodicDIDMediumModeTime="100" PeriodicDIDSlowModeTime="200" VersionInfoApi="OFF" />
 <BufferList Max="TBD">
-<Buffer Comment="rx buffer" Name="Buffer1" Size="4096" />
-<Buffer Comment="tx buffer" Name="Buffer2" Size="512" />
+<Buffer Comment="rx buffer" Name="Buffer1" Size="4095" />
+<Buffer Comment="tx buffer" Name="Buffer2" Size="4095" />
 </BufferList>
 <SessionList Max="TBD">
 <Session Comment="*" Identifier="1" Name="DS" P2ServerMaxTimeMs="100" P2StartServerMaxTimeMs="100" />

@@ -4476,11 +4476,11 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						dspUDTData.blockSequenceCounter = 1u;
 
 						ASLOG(DCM,"request download addr(%X) size(%X),memory=%X",memoryAddress,memorySize,memoryIdentifier);
-						// create positive response code
-						pduTxData->SduDataPtr[1] = 0x20;  //lengthFormatIdentifier = 2 Bytes
+						/* create positive response code */
+						pduTxData->SduDataPtr[1] = 0x20;  /* lengthFormatIdentifier = 2 Bytes */
 
-						pduTxData->SduDataPtr[2] = 0x01;  //maxNumberOfBlockLength = 258 Bytes
-						pduTxData->SduDataPtr[3] = 0x02;  //[SID+BlockSequenceCounter+256 Server Data]
+						pduTxData->SduDataPtr[2] = (pduTxData->SduLength >> 8) & 0xFF;
+						pduTxData->SduDataPtr[3] = (pduTxData->SduLength >> 0) & 0xFF;
 						pduTxData->SduLength = 4;
 					}
 				}
@@ -4542,11 +4542,11 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						dspUDTData.dataFormatIdentifier = dataFormatIdentifier;
 						dspUDTData.blockSequenceCounter = 1u;
 
-						// create positive response code
-						pduTxData->SduDataPtr[1] = 0x20;  //lengthFormatIdentifier = 2 Bytes
+						/* create positive response code */
+						pduTxData->SduDataPtr[1] = 0x20;  /* lengthFormatIdentifier = 2 Bytes */
 
-						pduTxData->SduDataPtr[2] = 0x01;  //maxNumberOfBlockLength = 258 Bytes
-						pduTxData->SduDataPtr[3] = 0x02;  //[SID+BlockSequenceCounter+256 Server Data]
+						pduTxData->SduDataPtr[2] = (pduTxData->SduLength >> 8) & 0xFF;
+						pduTxData->SduDataPtr[3] = (pduTxData->SduLength >> 0) & 0xFF;
 						pduTxData->SduLength = 4;
 					}
 				}
@@ -4594,7 +4594,7 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 				else if(dspUDTData.blockSequenceCounter == pduRxData->SduDataPtr[1])
 				{
 					memoryAddress = dspUDTData.memoryAddress;
-					length = 128;
+					length = (pduTxData->SduLength-2)&0xFFFC; /* ability 4 align */
 					memoryIdentifier = pduRxData->SduDataPtr[3];
 					if(dspUDTData.memorySize < length)
 					{
@@ -4611,9 +4611,9 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 
 						dspUDTData.memoryAddress += length;
 						dspUDTData.memorySize    -= length;
-						dspUDTData.blockSequenceCounter ++; // may roll-over from 0xFF to 0x00
+						dspUDTData.blockSequenceCounter ++; /* may roll-over from 0xFF to 0x00 */
 
-						// create positive response code
+						/* create positive response code */
 						pduTxData->SduDataPtr[1] = pduRxData->SduDataPtr[1];
 						pduTxData->SduLength = 2+length;
 					}

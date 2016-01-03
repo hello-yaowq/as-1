@@ -338,7 +338,7 @@
 	<BufferList Max="255">
 		<Buffer
 			Name="Text PosGUI=0"
-			Size="Integer Range=64~65535 PosGUI=1 Default=512"
+			Size="Integer Range=0~4095 PosGUI=1 Default=512"
 			Comment="TextArea Default=* PosGUI=2"
 			>
 		</Buffer>
