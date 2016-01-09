@@ -66,7 +66,7 @@
  */
 
 /*
- *		カウンタ機能
+ *		Counter function
  */
 
 #ifndef TOPPERS_COUNTER_H
@@ -75,161 +75,162 @@
 #include "queue.h"
 
 /*
- *  カウンタ状態の定義
- *  IncrementCounterのネスト防止策
+ *  The definition of the counter state
+ *  IncrementCounter nest prevention measures
  */
-#define CS_NULL		(FALSE)         /* 非操作中 */
-#define CS_DOING	(TRUE)          /* 操作中 */
+#define CS_NULL		(FALSE)         /* In the non-operation */
+#define CS_DOING	(TRUE)          /* During operation */
 
 /*
- *  カウンタIDからカウンタ管理ブロックを取り出すためのマクロ
+ *  Macro for taking out the counter management block from the counter IC
  */
 #define get_cntcb(cntid)	(&(cntcb_table[(cntid)]))
 
 /*
- *  カウンタIDでハードウェアカウンタかチェック用マクロ
+ *  Hardware counter or check for macros in counter ID
  */
 #define is_hwcnt(cntid)		((cntid) < tnum_hardcounter)
 
 /*
- *  CNTCBからカウンタIDを取り出すためのマクロ
+ *  Macro for extracting counter ID from CNTCB
  */
 #define CNTID(p_cntcb)	((CounterType) ((p_cntcb) - cntcb_table))
 
 /*
- *  満了アクションの属性
+ *  Attribute of expiration action
  */
-#define ACTIVATETASK		UINT_C(0x01)    /* タスク起動 */
-#define SETEVENT			UINT_C(0x02)    /* イベントセット */
-#define CALLBACK			UINT_C(0x04)    /* コールバック */
-#define INCREMENTCOUNTER	UINT_C(0x08)    /* カウンタインクリメント */
+#define ACTIVATETASK		UINT_C(0x01)    /* Task start */
+#define SETEVENT			UINT_C(0x02)    /* Event set */
+#define CALLBACK			UINT_C(0x04)    /* Callback */
+#define INCREMENTCOUNTER	UINT_C(0x08)    /* Counter increment */
 
 /*
- *  自動起動の属性
+ *  Automatic start of attributes
  */
-#define ABSOLUTE			UINT_C(0x10)    /* 絶対値起動 */
-#define RELATIVE			UINT_C(0x20)    /* 相対値起動 */
+#define ABSOLUTE			UINT_C(0x10)    /* Absolute value start */
+#define RELATIVE			UINT_C(0x20)    /* relative value start */
 
 /*
- *  各ハードウェアカウンタ処理関数型
+ *  Each hardware counter processing function type
  */
-typedef void (*HardwareCounterInitRefType)(TickType maxval, TimeType nspertick);    /* 初期化関数型 */
-typedef void (*HardwareCounterStartRefType)(void);                                  /* 開始関数型 */
-typedef void (*HardwareCounterStopRefType)(void);                                   /* 停止関数型 */
-typedef void (*HardwareCounterSetRefType)(TickType exprtick);                       /* 時間設定関数型 */
-typedef TickType (*HardwareCounterGetRefType)(void);                                /* 時間取得関数型 */
-typedef void (*HardwareCounterCancelRefType)(void);                                 /* 設定時間取消関数型 */
-typedef void (*HardwareCounterTriggerRefType)(void);                                /* 強制割込み要求関数型 */
-typedef void (*HardwareCounterIntClearRefType)(void);                               /* 割込み要求クリア関数型 */
-typedef void (*HardwareCounterIntCancelRefType)(void);                              /* 割込み要求取消関数型 */
-typedef void (*HardwareCounterIncrementRefType)(void);                              /* インクリメント関数型 */
+typedef void (*HardwareCounterInitRefType)(TickType maxval, TimeType nspertick);    /* Initialization function type */
+typedef void (*HardwareCounterStartRefType)(void);                                  /* Start function type */
+typedef void (*HardwareCounterStopRefType)(void);                                   /* Stop function type */
+typedef void (*HardwareCounterSetRefType)(TickType exprtick);                       /* Time setting function type */
+typedef TickType (*HardwareCounterGetRefType)(void);                                /* Time acquisition function type */
+typedef void (*HardwareCounterCancelRefType)(void);                                 /* Set time cancel function type */
+typedef void (*HardwareCounterTriggerRefType)(void);                                /* Force the interrupt request function type */
+typedef void (*HardwareCounterIntClearRefType)(void);                               /* Interrupt request clear function type */
+typedef void (*HardwareCounterIntCancelRefType)(void);                              /* Interrupt request cancellation function type */
+typedef void (*HardwareCounterIncrementRefType)(void);                              /* Increment function type */
 
 /*
- *  ハードウェアカウンタ処理関数型
+ *  Hardware counter processing function type
  */
 typedef struct hardware_counter_initialization_block {
-	HardwareCounterInitRefType		init;               /* 初期化関数ポインタ */
-	HardwareCounterStartRefType		start;              /* 開始関数ポインタ */
-	HardwareCounterStopRefType		stop;               /* 停止関数ポインタ */
-	HardwareCounterSetRefType		set;                /* 時間設定関数ポインタ */
-	HardwareCounterGetRefType		get;                /* 時間取得関数ポインタ*/
-	HardwareCounterCancelRefType	cancel;             /* 時間取消関数ポインタ */
-	HardwareCounterTriggerRefType	trigger;            /* 強制割込み要求関数ポインタ */
-	HardwareCounterIntClearRefType	intclear;           /* 割込み要求クリア関数型 */
-	HardwareCounterIntCancelRefType	intcancel;          /* 割込み要求取消関数型 */
-	HardwareCounterIncrementRefType	increment;          /* インクリメント関数ポインタ */
-	TimeType						nspertick;          /* ハードウェアカウンタでの1ティックの重み(ns単位) */
+	HardwareCounterInitRefType		init;               /* Initialization function pointer */
+	HardwareCounterStartRefType		start;              /* Start function pointer */
+	HardwareCounterStopRefType		stop;               /* Stop function pointer */
+	HardwareCounterSetRefType		set;                /* Time setting function pointer */
+	HardwareCounterGetRefType		get;                /* Time acquisition function pointer*/
+	HardwareCounterCancelRefType	cancel;             /* Time cancellation function pointer */
+	HardwareCounterTriggerRefType	trigger;            /* Force interrupt request function pointer */
+	HardwareCounterIntClearRefType	intclear;           /* Interrupt request clear function type */
+	HardwareCounterIntCancelRefType	intcancel;          /* Interrupt request cancellation function type */
+	HardwareCounterIncrementRefType	increment;          /* Increment function pointer */
+	TimeType						nspertick;          /* Weight of one tick of the hardware counter(ns単位) */
 } HWCNTINIB;
 
 /*
- *  カウンタ初期化ブロック
+ *  Counter initialization block
  */
 typedef struct counter_initialization_block {
-	TickType	maxval;                                 /* カウンタの最大値 */
-	TickType	maxval2;                                /* カウンタの最大値の2倍+1 */
-	TickType	tickbase;                               /* OS内部では使用せず，ユーザが自由に使用する値 */
-	TickType	mincyc;                                 /* 周期の最小値 */
-	OSAPCB		*p_osapcb;                              /* 所属するOSアプリケーションの管理ブロック */
-	uint32		acsbtmp;                                /* アクセス許可OSアプリケーション ビットマップ */
+	TickType	maxval;                                 /* The maximum value of the counter */
+	TickType	maxval2;                                /* 2 times the maximum value of the counter+1 */
+	TickType	tickbase;                               /* Is not used in the OS inside, the value that the user is free to use */
+	TickType	mincyc;                                 /* The minimum value of the cycle */
+	OSAPCB		*p_osapcb;                              /* Management block belongs to OS application */
+	uint32		acsbtmp;                                /* Permissions OS application bitmap*/
 } CNTINIB;
 
 /*
- *  カウンタ管理ブロック
+ *  Counter management block
  */
 typedef struct counter_control_block {
-	QUEUE							cntexpque;          /* カウンタ満了キュー */
-	const CNTINIB					*p_cntinib;         /* カウンタ初期化ブロックポインタ */
-	TickType						curval;             /* カウンタの現在ティック */
-	struct counter_control_block	*p_prevcntcb;       /* 前に獲得したカウンタ管理ブロックへのポインタ */
-	boolean							cstat;              /* カウンタ操作中フラグ */
-	boolean							hwset;              /* ハードウェアカウンタセットフラグ */
+	QUEUE							cntexpque;          /* Counter expiration queue */
+	const CNTINIB					*p_cntinib;         /* Counter initialization block pointer */
+	TickType						curval;             /* Current tick of counter */
+	struct counter_control_block	*p_prevcntcb;       /* A pointer to the acquired counter management block before */
+	boolean							cstat;              /* Counter-operation flag */
+	boolean							hwset;              /* Hardware counter set flag */
 } CNTCB;
 
 /*
- *  カウンタ満了情報
+ *  Counter expiration information
  */
 typedef struct counter_expire_info CNTEXPINFO;
 
 /*
- *  満了処理関数型
+ *  Expiration processing function type
  */
 typedef void (*EXPFP)(CNTEXPINFO *p_cntexpinfo, const CNTCB *p_cntcb);
 
 /*
- *  カウンタ満了情報
+ *  Counter expiration information
  */
 struct counter_expire_info {
-	QUEUE		cntexpque;                              /* カウンタ満了キュー(構造体の先頭に入る必要) */
-	TickType	expiretick;                             /* 満了するカウンタ上のティック値 */
-	EXPFP		expirefunc;                             /* 満了処理関数ポインタ */
+	QUEUE		cntexpque;                              /* Counter expiration queue (need to enter at the top of the structure) */
+	TickType	expiretick;                             /* The expiration to counter Ueno tick value */
+	EXPFP		expirefunc;                             /* Expiration processing function pointer */
 };
 
 
 /*
- *  ハードウェアカウンタ数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of hardware counter
  */
 extern const CounterType	tnum_hardcounter;
 
 /*
- *  カウンタ数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of counter
  */
 extern const CounterType	tnum_counter;
 
 /*
- *  カウンタ初期化ブロックのエリア（Os_Lcfg.c）
+ *  Area of counter initialization block
  */
 extern const CNTINIB		cntinib_table[];
 
 /*
- *  カウンタ管理ブロックのエリア（Os_Lcfg.c）
+ *  Of counter management block area
  */
 extern CNTCB				cntcb_table[];
 
 /*
- *  ハードウェアカウンタ処理関数テーブル（Os_Lcfg.c）
+ *  Hardware counter processing function table
  */
 extern const HWCNTINIB		hwcntinib_table[];
 
 /*
- *  ティック値の加算
+ *  Addition of the tick value
  */
 LOCAL_INLINE TickType
 add_tick(TickType val, TickType incr, TickType maxval2)
 {
 	TickType result;
 	/*
-	 *  素直な条件式は val + incr <= maxval2 であるが，この条件式で
-	 *  は，val + incr が TickType で表せる範囲を超える場合に正しく
-	 *  判定できなくなるため，次の条件式としている
+	 *  Although straightforward condition is val + incr <= maxval2, 
+	 * in this condition, since the val + incr is not properly determine 
+	 * if it exceeds the range represented by TickType, it has the 
+	 * following conditional expression
 	 */
 	if (incr <= (maxval2 - val)) {
 		result = val + incr;
 	}
 	else {
 		/*
-		 *  下の計算式で，val + incr と maxval2 + 1 が TickType で表
-		 *  せる範囲を超える場合があるが，オーバフローしても求まる値は
-		 *  正しいため差し支えない
+		 *  By equation below, but there is a case in which val + incr 
+		 * and maxval2 + 1 exceeds the range expressed by TickType, no 
+		 * problem for correct calculated values are also overflows
 		 */
 		result = (val + incr) - (maxval2 + 1U);
 	}
@@ -237,7 +238,7 @@ add_tick(TickType val, TickType incr, TickType maxval2)
 }
 
 /*
- *  ティック値の差
+ *  The difference between the tick value
  */
 LOCAL_INLINE TickType
 diff_tick(TickType val1, TickType val2, TickType maxval2)
@@ -249,9 +250,9 @@ diff_tick(TickType val1, TickType val2, TickType maxval2)
 	}
 	else {
 		/*
-		 *  下の計算式で，val1 - val2 と maxval2 + 1 が TickType で表せ
-		 *  る範囲を超える場合があるが，オーバフローしても求まる値は正
-		 *  しいため差し支えない
+		 *  In formula below, val1 - val2 and although maxval2 + 1 in 
+		 * some cases exceeds the range represented by TickType, permissible 
+		 * for the correct calculated values are also overflows
 		 */
 		result = (val1 - val2) + (maxval2 + 1U);
 	}
@@ -259,16 +260,16 @@ diff_tick(TickType val1, TickType val2, TickType maxval2)
 }
 
 /*
- *  カウンタの現在値取得
- *  ソフトウェアカウンタの場合, CNTCBのcurvalデータを返す
- *  ハードウェアカウンタの場合, 最新の現在時間を返す
+ *  The current value of the counter acquisition
+ *  In the case of software counter, in the case of a hardware counter 
+ * that returns the curval data of CNTCB, and returns the latest current time
  */
 LOCAL_INLINE TickType
 get_curval(const CNTCB *p_cntcb, CounterType cntid)
 {
 	TickType curval;
 
-	/* カウンタ値の取得 */
+	/* Acquisition of counter value */
 	if (is_hwcnt(cntid)) {
 		curval = (hwcntinib_table[cntid].get)();
 	}
@@ -280,61 +281,61 @@ get_curval(const CNTCB *p_cntcb, CounterType cntid)
 }
 
 /*
- *  指定した相対時間からのカウンタ値取得(APIからの取得)
+ *  Counter value acquisition from the specified relative time (obtained from API)
  */
 extern TickType get_reltick(const CNTCB *p_cntcb, TickType relval);
 
 /*
- *  指定した絶対時間からのカウンタ値取得(APIからの取得)
+ *  The specified counter value acquisition from the absolute time (obtained from API)
  */
 extern TickType get_abstick(const CNTCB *p_cntcb, TickType absval);
 
 /*
- *  カウンタ機能の初期化
+ *  Initialization of counter function
  */
 extern void counter_initialize(void);
 
 /*
- *  カウンタ機能の終了処理
+ *  End processing of counter function
  */
 extern void counter_terminate(void);
 
 /*
- *  カウンタ満了キューへの挿入
+ *  Insertion into the counter expiration queue
  */
 extern void insert_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb);
 
 /*
- *  カウンタ満了キューから削除
+ *  Delete from the counter expiration queue
  */
 extern void delete_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb);
 
 /*
- *  カウンタの満了処理
+ *  Expiration processing of counter
  */
 extern void expire_process(CNTCB *p_cntcb, CounterType cntid);
 
 /*
- *  ハードウェアカウンタ満了処理
+ *  Hardware counter expiration processing
  */
 extern void notify_hardware_counter(CounterType cntid);
 
 /*
- *  カウンタのインクリメント
+ *  Increment of the counter
  *
- *  条件：割込み禁止状態で呼ばれる
+ *  Conditions: it is called in the interrupt disabled state
  */
 extern StatusType incr_counter_process(CNTCB *p_cntcb, CounterType CounterID);
 
 /*
- *  アラーム満了によるカウンタのインクリメント
+ *  Increment of the counter by the alarm expiration
  *
- *  条件：割込み禁止状態で呼ばれる
+ *  Conditions: it is called in the interrupt disabled state
  */
 extern StatusType incr_counter_action(OSAPCB *p_expire_osapcb, CounterType CounterID);
 
 /*
- *  OSAP所属するカウンタの強制終了
+ *  Forced termination of counter that OSAP belongs
  */
 extern void force_term_osap_counter(OSAPCB *p_osapcb);
 
