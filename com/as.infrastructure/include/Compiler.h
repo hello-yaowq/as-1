@@ -72,6 +72,14 @@
 #error Compiler not defined.
 #endif
 
+#ifndef alignof
+#define alignof(type)	offsetof(struct { uint8 field1; type field2; }, field2)
+#endif /* alignof */
+
+#ifndef ALIGNED_TYPE    /* Type size align check */
+#define ALIGNED_TYPE(addr, type)	(boolean) ((((uintptr) (addr)) & (alignof(type) - 1U)) == 0U)
+#endif /* ALIGNED_TYPE */
+
 #define SECTION_BALIGN(x)  __balign(x)
 
 #if defined(__ICCHCS12__) || defined(__ICCARM__)

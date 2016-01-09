@@ -17,7 +17,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "atk_os.h"
-#include "asdebug.h"
+#include "allfunc.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define __TOPPERS_ATK2_SC4__
 
@@ -31,11 +31,17 @@
 #define TASK_ID_TaskApp    0
 #define TASK_ID_TaskCanIf  1
 #define TASK_ID_SchM_BswService 2
+#define TASK_NUM  3
+
+//#define CFG_USE_ERRORHOOK
+
+#define ALARM(a)  void AlarmMain##a(void)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
+extern void target_initialize(void);
+extern void object_initialize(void);
 
 #endif /* OS_CFG_H_ */

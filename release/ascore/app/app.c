@@ -108,11 +108,11 @@ void PostTaskHook(void)
 extern TaskType	runtsk;
 void PreTaskHook(void)
 {
-	ASLOG(OS,"PreTaskHook(%d)\n",runtsk);
+	//ASLOG(OS,"PreTaskHook(%d)\n",runtsk);
 }
 void PostTaskHook(void)
 {
-	ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
+	//ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
 }
 #endif
 void ShutdownHook(StatusType ercd)
