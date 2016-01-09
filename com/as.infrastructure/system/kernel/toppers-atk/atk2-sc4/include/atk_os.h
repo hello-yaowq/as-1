@@ -17,7 +17,7 @@
  *  Copyright (C) 2014-2015 by eSOL Co.,Ltd., JAPAN
  *  Copyright (C) 2014-2015 by SCSK Corporation, JAPAN
  *  Copyright (C) 2015 by SUZUKI MOTOR CORPORATION
- *  Copyright (C) 2016 by Fan Wang(parai), China
+ *  Copyright (C) 2016 by Fan Wang(parai@foxmail.com), China
  * 
  * The above copyright holders grant permission gratis to use,
  * duplicate, modify, or redistribute (hereafter called use) this
@@ -64,6 +64,18 @@
  *
  *  $Id: Os.h 520 2015-12-24 12:19:40Z witz-itoyo $
  */
+ 
+/*
+ *		ATK2 OS header file
+ *
+ * Header file that contains ATK2 and is a system service that supports declaration, 
+ * required data types, constants, the definition of the macro
+ *
+ * When you include this file from the assembly language source file is, by this 
+ * to be defined the TOPPERS_MACRO_ONLY, so that except for the non-macro definition
+ *
+ * No files that should be included before including this file
+ */
 
 #ifndef TOPPERS_OS_H
 #define TOPPERS_OS_H
@@ -77,7 +89,7 @@
 #endif
 
 /*
- *  File includes
+ *  Common data types, constants, macros
  */
 #include "Std_Types.h"
 #include "MemMap.h"
@@ -90,42 +102,42 @@
  */
 
 /*
- *  オブジェクト番号の型定義
+ *  Type definiton
  */
-typedef uint8	TaskStateType;                  /* タスク状態 */
-typedef uint32	EventMaskType;                  /* イベントマスク */
-typedef uint32	TickType;                       /* カウンタ値（ティック）*/
-typedef uint32	AppModeType;                    /* アプリケーションモード */
-typedef uint8	OSServiceIdType;                /* システムサービスID */
-typedef uint8	ScheduleTableStatusType;        /* スケジュールテーブル状態 */
-typedef uint8	ProtectionReturnType;           /* プロテクションフックからの返り値 */
-typedef uintptr	MemorySizeType;                 /* メモリ領域サイズ */
-typedef uint8	ApplicationType;                /* OSアプリケーションID */
-typedef uint8	ObjectTypeType;                 /* OSオブジェクト種別 */
-typedef uint8	ApplicationStateType;           /* OSアプリケーション状態 */
-typedef uint8	AccessType;                     /* メモリ領域アクセス権 */
-typedef boolean	ObjectAccessType;               /* OSオブジェクトアクセス権 */
-typedef uint8	RestartType;                    /* OSAPリスタート属性 */
-typedef uint8	MonitoringType;                 /* 監視項目 */
+typedef uint8	TaskStateType;                  /* task state */
+typedef uint32	EventMaskType;                  /* event mask */
+typedef uint32	TickType;                       /* counter value in tick */
+typedef uint32	AppModeType;                    /* applicantion mode */
+typedef uint8	OSServiceIdType;                /* system service ID */
+typedef uint8	ScheduleTableStatusType;        /* schedule table state */
+typedef uint8	ProtectionReturnType;           /* the return value from protection hook */
+typedef uintptr	MemorySizeType;                 /* memory area size */
+typedef uint8	ApplicationType;                /* OS application ID */
+typedef uint8	ObjectTypeType;                 /* OS object type */
+typedef uint8	ApplicationStateType;           /* OS applicantion state */
+typedef uint8	AccessType;                     /* memory access rights */
+typedef boolean	ObjectAccessType;               /* OS object access rights */
+typedef uint8	RestartType;                    /* OSAP restart attribute */
+typedef uint8	MonitoringType;                 /* monitoring project */
 
 typedef struct {
-	TickType	maxallowedvalue;                /* カウンタ指定の最大値 */
-	TickType	ticksperbase;                   /* OSでは使用せず，ユーザが自由に使用する値 */
-	TickType	mincycle;                       /* サイクル指定の最小値 */
+	TickType	maxallowedvalue;                /* Counter-specified maximum value*/
+	TickType	ticksperbase;                   /* OS counter increase number of ticks per base cycle */
+	TickType	mincycle;                       /* Cycle specified minimum value*/
 } AlarmBaseType;
 
 /*
- *  最適化するため，依存部再定義できる型
+ *  To optimize, dependent part redefinition  type
  */
 #ifndef OMIT_DATA_TYPE
-typedef uint32	TimeType;                       /* 時間 */
-typedef uint32	AlarmType;                      /* アラームID */
-typedef uint32	ResourceType;                   /* リソースID */
-typedef uint32	TaskType;                       /* タスクID */
+typedef uint32	TimeType;                       /* Time */
+typedef uint32	AlarmType;                      /* Alarm ID */
+typedef uint32	ResourceType;                   /* Resource ID */
+typedef uint32	TaskType;                       /* Task ID */
 typedef uint32	ISRType;                        /* ISR ID */
-typedef uint32	CounterType;                    /* カウンタID */
-typedef uint32	ScheduleTableType;              /* スケジュールテーブルID */
-typedef float32	PhysicalTimeType;               /* （ティックから時間に換算用）時間 */
+typedef uint32	CounterType;                    /* Counter ID */
+typedef uint32	ScheduleTableType;              /* Schedule table ID */
+typedef float32	PhysicalTimeType;               /* (And for the conversion from tick time) time*/
 typedef uint32	IocType;                        /* IOC ID */
 typedef uint8	SenderIdType;                   /* Sender ID */
 typedef uint32	TrustedFunctionIndexType;       /* Trusted Function Index */
@@ -138,16 +150,16 @@ typedef EventMaskType *				EventMaskRefType;
 typedef TickType *					TickRefType;
 typedef ScheduleTableStatusType *	ScheduleTableStatusRefType;
 typedef ApplicationStateType *		ApplicationStateRefType;
-typedef void *						MemoryStartAddressType;             /* メモリ領域先頭 */
+typedef void *						MemoryStartAddressType;             /* memory area start address */
 typedef void *						TrustedFunctionParameterRefType;    /* Trusted Function Parameter */
 
 /*
- *  保護違反を起こした処理単位の型
+ *  Type of processing unit that caused the protection violation
  */
 typedef uint8 FaultyContextType;
 
 /*
- *  OSオブジェクト宣言用のマクロ
+ *  Macro for OS object declaration
  */
 #define DeclareTask(TaskIdentifier)
 #define DeclareResource(ResourceIdentifier)
@@ -155,7 +167,7 @@ typedef uint8 FaultyContextType;
 #define DeclareAlarm(AlarmIdentifier)
 
 /*
- *  メインルーチン定義用のマクロ
+ *  Macro for the main routine definition
  */
 #define TASK(TaskName)		void TaskMain ## TaskName(void)
 #define ISR(ISRName)		void ISRMain ## ISRName(void)
@@ -170,15 +182,15 @@ typedef uint8 FaultyContextType;
 		)
 
 /*
- *  メモリ領域確保のための型定義
+ *  Type definition for the memory area reservation
  */
 #ifndef TOPPERS_STK_T
 #define TOPPERS_STK_T	sintptr
 #endif /* TOPPERS_STK_T */
-typedef	TOPPERS_STK_T StackType;    /* スタック領域を確保するための型 */
+typedef	TOPPERS_STK_T StackType;    /* Type for securing a stack area */
 
 /*
- *  システムサービスパラメータ取得のための定義
+ *  Definitions for the system service parameter acquisition
  */
 typedef union {
 	TaskType						tskid;
@@ -217,10 +229,10 @@ typedef union {
 
 
 /*
- *  メモリ領域確保のためのマクロ
+ *  Macros for memory area securing
  *
- *  以下のTOPPERS_COUNT_SZとTOPPERS_ROUND_SZの定義は，unitが2の巾乗であ
- *  ることを仮定している．
+ *  Defining the following TOPPERS_COUNT_SZ and TOPPERS_ROUND_SZ assumes 
+ *  that the unit is a power of the width of two.
  */
 #ifndef TOPPERS_COUNT_SZ
 #define TOPPERS_COUNT_SZ(sz, unit)	((((sz) + (unit)) - (1U)) / (unit))
@@ -233,7 +245,7 @@ typedef union {
 #define ROUND_STK_T(sz)		(TOPPERS_ROUND_SZ((sz), sizeof(StackType)))
 
 /*
- *  フックルーチン
+ *  Hook routine
  */
 #ifdef CFG_USE_ERRORHOOK
 extern void ErrorHook(StatusType Error);
@@ -260,27 +272,27 @@ extern ProtectionReturnType ProtectionHook(StatusType FatalError);
 #endif /* CFG_USE_PROTECTIONHOOK */
 
 /*
- *  ライブラリで提供するシステムサービス
+ *  System services to be provided by the library
  */
 extern ObjectAccessType CheckObjectAccess(ApplicationType ApplID, ObjectTypeType ObjectType, ...);
 extern ApplicationType CheckObjectOwnership(ObjectTypeType ObjectType, ...);
 
 /*
- *  ファイル名，行番号の参照用の変数
+ *  File name, variable for the reference line number
  */
-extern const char8	*fatal_file_name;   /* ファイル名 */
-extern sint32		fatal_line_num;     /* 行番号 */
+extern const char8	*fatal_file_name;   /* file name */
+extern sint32		fatal_line_num;     /* line number */
 
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
- *  システムサービス呼出しのための定義と宣言
+ *  Definitions and declarations for the system service call
  */
-#include "kernel_fncode.h"              /* 機能コードの定義 */
-#include "svc_funccall.h"               /* 関数呼出しによる呼出し */
+#include "kernel_fncode.h"              /* The definition of the function code */
+#include "svc_funccall.h"               /* system service call definition  */
 
 /*
- *  OSのエラーコード
+ *  OS error code
  */
 #define E_OS_ACCESS							UINT_C(1)
 #define E_OS_CALLEVEL						UINT_C(2)
@@ -319,12 +331,12 @@ extern sint32		fatal_line_num;     /* 行番号 */
 #define E_OS_PROTECTION_TIMEWINDOW			UINT_C(35)
 #define E_OS_PROTECTION_COUNT_ISR			UINT_C(36)
 
-/* AUTOSAR仕様R4.0.3との互換性考慮 */
+/* Compatibility consideration of the AUTOSAR specification R4.0.3 */
 #define OS_E_PARAM_POINTER					E_OS_PARAM_POINTER
 
-#define ERRCODE_NUM							UINT_C(36) /* エラーコード数 */
+#define ERRCODE_NUM							UINT_C(36) /* Number of error code */
 /*
- *  IOCのエラーコード
+ *  IOC error code
  */
 #define IOC_E_OK			UINT_C(0)
 #define IOC_E_NOK			UINT_C(1)
@@ -333,29 +345,29 @@ extern sint32		fatal_line_num;     /* 行番号 */
 #define IOC_E_NO_DATA		UINT_C(131)
 
 /*
- *  その他の定数値
+ *  Other constant values
  */
 #define UINT32_INVALID		UINT_C(0xffffffff)
 #define UINT8_INVALID		UINT_C(0xff)
 
-#define SUSPENDED			((TaskStateType) 0) /* 休止状態 */
-#define RUNNING				((TaskStateType) 1) /* 実行状態 */
-#define READY				((TaskStateType) 2) /* 実行可能状態 */
-#define WAITING				((TaskStateType) 3) /* 待ち状態 */
+#define SUSPENDED			((TaskStateType) 0) /* Hibernation */
+#define RUNNING				((TaskStateType) 1) /* Execution state */
+#define READY				((TaskStateType) 2) /* Executable state */
+#define WAITING				((TaskStateType) 3) /* Wait state */
 
 /*
- *  タイミング保護用数値
+ *  Timing protection for numerical
  */
-#define NON_MONITORING				((MonitoringType) 0)        /* 監視を行っていない */
-#define TASK_MONITORING				((MonitoringType) 1)        /* タスク実行時間監視 */
-#define RESOURCE_MONITORING			((MonitoringType) 2)        /* リソース占有時間監視 */
-#define LOCKOSINT_MONITORING		((MonitoringType) 3)        /* OS割り込み禁止時間監視 */
+#define NON_MONITORING				((MonitoringType) 0)        /* It is not monitoring */
+#define TASK_MONITORING				((MonitoringType) 1)        /* Task execution time monitoring */
+#define RESOURCE_MONITORING			((MonitoringType) 2)        /* Resource occupation time monitoring */
+#define LOCKOSINT_MONITORING		((MonitoringType) 3)        /* OS interrupt disable time monitoring */
 
-#define ARRIVAL_TASK		UINT_C(0x00)        /* タスク起動 */
-#define ARRIVAL_C2ISR		UINT_C(0x01)        /* C2ISR起動 */
+#define ARRIVAL_TASK		UINT_C(0x00)        /* Task start */
+#define ARRIVAL_C2ISR		UINT_C(0x01)        /* C2ISR start */
 
 /*
- *  最適化するため，依存部での再定義が必要
+ *  To optimize, it must be re-defined in the dependent part
  */
 #ifndef OMIT_DATA_TYPE
 #define INVALID_TASK			((TaskType) UINT32_INVALID)
@@ -365,7 +377,7 @@ extern sint32		fatal_line_num;     /* 行番号 */
 #define INVALID_OSAPPLICATION	((ApplicationType) UINT8_INVALID)
 
 /*
- *  スケジュールテーブルのステータス定義
+ *  Status defined for schedule table
  */
 #define SCHEDULETABLE_STOPPED					((ScheduleTableStatusType) 0x01)
 #define SCHEDULETABLE_NEXT						((ScheduleTableStatusType) 0x02)
@@ -374,20 +386,20 @@ extern sint32		fatal_line_num;     /* 行番号 */
 #define SCHEDULETABLE_RUNNING_AND_SYNCHRONOUS	((ScheduleTableStatusType) 0x10)
 
 /*
- *  OSアプリケーションの状態
+ *  The state of the OS application
  */
-#define APPLICATION_ACCESSIBLE	((ApplicationStateType) 0)  /* 利用可能状態 */
-#define APPLICATION_RESTARTING	((ApplicationStateType) 1)  /* 再起動状態 */
-#define APPLICATION_TERMINATED	((ApplicationStateType) 2)  /* アプリケーション終了状態 */
+#define APPLICATION_ACCESSIBLE	((ApplicationStateType) 0)  /* Available state */
+#define APPLICATION_RESTARTING	((ApplicationStateType) 1)  /* Restart state */
+#define APPLICATION_TERMINATED	((ApplicationStateType) 2)  /* Application termination state */
 
 /*
- *  アクセス情報
+ *  Access information
  */
 #define ACCESS		(TRUE)
 #define NO_ACCESS	(FALSE)
 
 /*
- *  システムサービスID
+ *  System Services ID
  */
 #define OSServiceId_GetApplicationID			((OSServiceIdType) 0x00)
 #define OSServiceId_GetISRID					((OSServiceIdType) 0x01)
@@ -459,24 +471,24 @@ extern sint32		fatal_line_num;     /* 行番号 */
 #define OSServiceId_StartOS						((OSServiceIdType) 0xf8)
 #define OSServiceId_ShutdownOS					((OSServiceIdType) 0xf9)
 
-#define OSServiceId_INVALID						((OSServiceIdType) 0xff)  /* 無効なシステムサービスID */
+#define OSServiceId_INVALID						((OSServiceIdType) 0xff)  /* Invalid system service ID */
 
 /*
- *  保護違反を起こした処理単位の定義
+ *  Definition of the processing unit that caused the protection violation
  */
-#define FC_INVALID			UINT_C(0x00)        /* 保護違反を起こした処理単位が特定できない */
-#define FC_TASK				UINT_C(0x01)        /* 保護違反を起こした処理単位がタスク */
-#define FC_C2ISR			UINT_C(0x02)        /* 保護違反を起こした処理単位がC2ISR */
-#define FC_SYSTEM_HOOK		UINT_C(0x03)        /* 保護違反を起こした処理単位がフック */
-#define FC_TRUSTED_FUNC		UINT_C(0x04)        /* 保護違反を起こした処理単位が信頼関数 */
+#define FC_INVALID			UINT_C(0x00)        /* It is not possible to identify the processing unit that caused the protection violation */
+#define FC_TASK				UINT_C(0x01)        /* And it caused the protection violation processing unit task */
+#define FC_C2ISR			UINT_C(0x02)        /* And it caused the protection violation processing units C2ISR */
+#define FC_SYSTEM_HOOK		UINT_C(0x03)        /* Processing unit that caused the protection violation hook */
+#define FC_TRUSTED_FUNC		UINT_C(0x04)        /* Trust function processing unit that caused the protection violation */
 
 /*
- *  システムサービスパラメータ取得のための定義
+ *  Definitions for the system service parameter acquisition
  */
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
- *  エラーフックOFF時，サービスID取得とパラメータ取得もOFFになる
+ *  When the error hook OFF, service ID acquisition and parameter acquisition also becomes OFF
  */
 #ifdef CFG_USE_ERRORHOOK
 
@@ -495,19 +507,19 @@ extern _ErrorHook_Par	errorhook_par3;
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
- *  エラーフックOFF時，サービスID取得とパラメータ取得もOFFになる
+ *  When the error hook OFF, service ID acquisition and parameter acquisition also becomes OFF
  */
 #ifdef CFG_USE_ERRORHOOK
 
 /*
- *  マクロの定義
+ *  The definition of the macro
  */
 #ifdef CFG_USE_GETSERVICEID
 #define OSErrorGetServiceId()				(_errorhook_svcid)
 #endif /* CFG_USE_GETSERVICEID */
 
 /*
- *  エラーを引き起こしたシステムサービスID
+ *  System service ID that caused the error
  */
 #ifdef CFG_USE_PARAMETERACCESS
 #define OSError_StartOS_Mode()									(errorhook_par1.mode)
@@ -595,7 +607,7 @@ extern _ErrorHook_Par	errorhook_par3;
 #endif /* CFG_USE_ERRORHOOK */
 
 /*
- *  プロテクションフック関係のマクロ
+ *  Macro of protection hook relationship
  */
 #define PRO_IGNORE					UINT_C(0x00)
 #define PRO_SHUTDOWN				UINT_C(0x01)
@@ -604,17 +616,17 @@ extern _ErrorHook_Par	errorhook_par3;
 #define PRO_TERMINATEAPPL_RESTART	UINT_C(0x04)
 
 /*
- *  OSAP終了/再起動関係のマクロ
+ *  Macro of OSAP end / restart relationship
  */
 #define NO_RESTART					UINT_C(0x00)
 #define RESTART						UINT_C(0x01)
 
 /*
- *  メモリアクセス権限チェックのためのマクロ
+ *  Macros for memory access authority check
  */
 
 /*
- *  メモリ領域 権限
+ *  Memory area authority
  */
 
 #define AP_NoAccess		UINT_C(0x0)
@@ -624,7 +636,7 @@ extern _ErrorHook_Par	errorhook_par3;
 #define AP_StackSpace	UINT_C(0x8)
 
 /*
- *  アクセスチェックマクロ
+ *  Access check macro
  */
 #define OSMEMORY_IS_READABLE(AccessType)	((AccessType) & AP_Readable)
 #define OSMEMORY_IS_WRITEABLE(AccessType)	((AccessType) & AP_Writable)
@@ -632,7 +644,7 @@ extern _ErrorHook_Par	errorhook_par3;
 #define OSMEMORY_IS_STACKSPACE(AccessType)	((AccessType) & AP_StackSpace)
 
 /*
- *   オブジェクトタイプ
+ *   Object Type
  */
 #define OBJECT_TASK				UINT_C(0x01)
 #define OBJECT_ISR				UINT_C(0x02)
@@ -642,16 +654,16 @@ extern _ErrorHook_Par	errorhook_par3;
 #define OBJECT_SCHEDULETABLE	UINT_C(0x06)
 
 /*
- *  バージョン情報
+ *  version information
  */
-#define OS_SW_MAJOR_VERSION				UINT_C(1)   /* サプライヤーバージョン */
+#define OS_SW_MAJOR_VERSION				UINT_C(1)   /* Supplier version*/
 #define OS_SW_MINOR_VERSION				UINT_C(4)
 #define OS_SW_PATCH_VERSION				UINT_C(0)
 
-#define OS_AR_RELEASE_MAJOR_VERSION		UINT_C(4)   /* AUTOSARリリースバージョン */
+#define OS_AR_RELEASE_MAJOR_VERSION		UINT_C(4)   /* AUTOSAR release version */
 #define OS_AR_RELEASE_MINOR_VERSION		UINT_C(0)
 #define OS_AR_RELEASE_REVISION_VERSION	UINT_C(3)
 
-#define TKERNEL_NAME	"TOPPERS/ATK2-SC4"  /* カーネル名称（独自仕様） */
+#define TKERNEL_NAME	"TOPPERS/ATK2-SC4"  /* Kernel name (proprietary) */
 
 #endif /* TOPPERS_OS_H */

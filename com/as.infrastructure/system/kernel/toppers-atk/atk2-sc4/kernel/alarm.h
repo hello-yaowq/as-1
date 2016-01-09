@@ -3,9 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  *      Automotive Kernel Version 2
  *
- *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
- *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2015 by Center for Embedded Computing Systems
+ *  Copyright (C) 2011-2015 by Center for Embedded Computing Systems
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *  Copyright (C) 2011-2015 by FUJI SOFT INCORPORATED, JAPAN
  *  Copyright (C) 2011-2013 by Spansion LLC, USA
@@ -14,51 +12,61 @@
  *  Copyright (C) 2011-2014 by Renesas Electronics Corporation, JAPAN
  *  Copyright (C) 2011-2015 by Sunny Giken Inc., JAPAN
  *  Copyright (C) 2011-2015 by TOSHIBA CORPORATION, JAPAN
- *  Copyright (C) 2004-2015 by Witz Corporation
+ *  Copyright (C) 2011-2015 by Witz Corporation
  *  Copyright (C) 2014-2015 by AISIN COMCRUISE Co., Ltd., JAPAN
  *  Copyright (C) 2014-2015 by eSOL Co.,Ltd., JAPAN
  *  Copyright (C) 2014-2015 by SCSK Corporation, JAPAN
  *  Copyright (C) 2015 by SUZUKI MOTOR CORPORATION
+ *  Copyright (C) 2016 by Fan Wang(parai@foxmail.com), China
+ * 
+ * The above copyright holders grant permission gratis to use,
+ * duplicate, modify, or redistribute (hereafter called use) this
+ * software (including the one made by modifying this software),
+ * provided that the following four conditions (1) through (4) are
+ * satisfied.
+ * 
+ * (1) When this software is used in the form of source code, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be retained in the source code without modification.
  *
- *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
- *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
- *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
- *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
- *      権表示，この利用条件および下記の無保証規定が，そのままの形でソー
- *      スコード中に含まれていること．
- *  (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
- *      用できる形で再配布する場合には，再配布に伴うドキュメント（利用
- *      者マニュアルなど）に，上記の著作権表示，この利用条件および下記
- *      の無保証規定を掲載すること．
- *  (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
- *      用できない形で再配布する場合には，次のいずれかの条件を満たすこ
- *      と．
- *    (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
- *        作権表示，この利用条件および下記の無保証規定を掲載すること．
- *    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
- *        報告すること．
- *  (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
- *      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
- *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
- *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
- *      免責すること．
+ * (2) When this software is redistributed in the forms usable for the
+ *    development of other software, such as in library form, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be shown without modification in the document provided
+ *    with the redistributed software, such as the user manual.
  *
- *  本ソフトウェアは，AUTOSAR（AUTomotive Open System ARchitecture）仕
- *  様に基づいている．上記の許諾は，AUTOSARの知的財産権を許諾するもので
- *  はない．AUTOSARは，AUTOSAR仕様に基づいたソフトウェアを商用目的で利
- *  用する者に対して，AUTOSARパートナーになることを求めている．
+ * (3) When this software is redistributed in the forms unusable for the
+ *    development of other software, such as the case when the software
+ *    is embedded in a piece of equipment, either of the following two
+ *    conditions must be satisfied:
  *
- *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
- *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
- *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
- *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
- *  の責任を負わない．
+ *  (a) The above copyright notice, this use conditions, and the
+ *      disclaimer shown below must be shown without modification in
+ *      the document provided with the redistributed software, such as
+ *      the user manual.
+ *
+ *  (b) How the software is to be redistributed must be reported to the
+ *      TOPPERS Project according to the procedure described
+ *      separately.
+ *
+ * (4) The above copyright holders and the TOPPERS Project are exempt
+ *    from responsibility for any type of damage directly or indirectly
+ *    caused from the use of this software and are indemnified by any
+ *    users or end users of this software from any and all causes of
+ *    action whatsoever.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS." THE ABOVE COPYRIGHT HOLDERS AND
+ * THE TOPPERS PROJECT DISCLAIM ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, ITS APPLICABILITY TO A PARTICULAR
+ * PURPOSE. IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS AND THE
+ * TOPPERS PROJECT BE LIABLE FOR ANY TYPE OF DAMAGE DIRECTLY OR
+ * INDIRECTLY CAUSED FROM THE USE OF THIS SOFTWARE.
  *
  *  $Id: alarm.h 504 2015-12-24 01:22:56Z witz-itoyo $
  */
 
 /*
- *		アラーム機能
+ *		Alarm function
  */
 
 #ifndef TOPPERS_ALARM_H
@@ -67,60 +75,60 @@
 #include "counter.h"
 
 /*
- *  アラームIDからアラーム管理ブロックを取り出すためのマクロ
+ *  Macro for taking out the alarm management block from the alarm ID
  */
 #define get_almcb(almid)	(&(almcb_table[(almid)]))
 
 /*
- *  アラーム初期化ブロック
+ *  Alarm initialization block
  */
 typedef struct alarm_initialization_block {
-	CNTCB			*p_cntcb;       /* 駆動カウンタ管理ブロックのポインタ */
-	FunctionRefType	action;         /* アラーム満了アクション */
-	AppModeType		autosta;        /* 起動するモード */
-	TickType		almval;         /* expire するティック値 */
-	TickType		cycle;          /* アラームの周期 */
-	AttributeType	actatr;         /* 満了アクション・自動起動の属性 */
-	OSAPCB			*p_osapcb;      /* 所属するOSアプリケーションの管理ブロック */
-	uint32			acsbtmp;        /* アクセス許可OSアプリケーション ビットマップ */
+	CNTCB			*p_cntcb;       /* Pointer of the drive counter management block */
+	FunctionRefType	action;         /* Alarm expiration action */
+	AppModeType		autosta;        /* Starting up for the mode */
+	TickType		almval;         /* tick value to expire*/
+	TickType		cycle;          /* Period of alarm */
+	AttributeType	actatr;         /* Expiration action automatic start of attributes */
+	OSAPCB			*p_osapcb;      /* Management block belongs to OS application */
+	uint32			acsbtmp;        /* Permissions OS application bitmap */
 } ALMINIB;
 
 /*
- *  アラーム管理ブロック
+ *  Alarm management block
  */
 typedef struct alarm_control_block {
-	CNTEXPINFO		cntexpinfo;     /* カウンタ満了情報(構造体の先頭に入る必要) */
-	const ALMINIB	*p_alminib;     /* アラーム初期化ブロックポインタ */
-	TickType		cycle;          /* アラームの周期 */
+	CNTEXPINFO		cntexpinfo;     /* Counter expiration information (need to enter at the top of the structure) */
+	const ALMINIB	*p_alminib;     /* Alarm initialization block pointer*/
+	TickType		cycle;          /* Period of alarm */
 } ALMCB;
 
 /*
- *  アラーム数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of alarms 
  */
-extern const AlarmType	tnum_alarm;       /* アラームの数 */
+extern const AlarmType	tnum_alarm;       /* The number of alarms */
 
 /*
- *  アラーム初期化ブロックのエリア（Os_Lcfg.c）
+ *  Area of alarm initialization block
  */
 extern const ALMINIB	alminib_table[];
 
 /*
- *  アラーム管理ブロックのエリア（Os_Lcfg.c）
+ *  Area of alarm management block
  */
 extern ALMCB			almcb_table[];
 
 /*
- *  アラーム機能の初期化
+ *  Initialization of alarm function
  */
 extern void alarm_initialize(void);
 
 /*
- *  アラーム満了アクション処理用関数
+ *  Alarm expiration action processing function
  */
 extern void alarm_expire(CNTEXPINFO *p_cntexpinfo, const CNTCB *p_cntcb);
 
 /*
- *  OSAP所属するアラームの強制終了
+ *  Forced termination of OSAP belongs alarm
  */
 extern void force_term_osap_alarm(OSAPCB *p_osapcb);
 

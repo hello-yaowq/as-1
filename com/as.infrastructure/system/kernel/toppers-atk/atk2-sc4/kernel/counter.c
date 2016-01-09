@@ -3,9 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  *      Automotive Kernel Version 2
  *
- *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
- *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2015 by Center for Embedded Computing Systems
+ *  Copyright (C) 2011-2015 by Center for Embedded Computing Systems
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *  Copyright (C) 2011-2015 by FUJI SOFT INCORPORATED, JAPAN
  *  Copyright (C) 2011-2013 by Spansion LLC, USA
@@ -14,51 +12,61 @@
  *  Copyright (C) 2011-2014 by Renesas Electronics Corporation, JAPAN
  *  Copyright (C) 2011-2015 by Sunny Giken Inc., JAPAN
  *  Copyright (C) 2011-2015 by TOSHIBA CORPORATION, JAPAN
- *  Copyright (C) 2004-2015 by Witz Corporation
+ *  Copyright (C) 2011-2015 by Witz Corporation
  *  Copyright (C) 2014-2015 by AISIN COMCRUISE Co., Ltd., JAPAN
  *  Copyright (C) 2014-2015 by eSOL Co.,Ltd., JAPAN
  *  Copyright (C) 2014-2015 by SCSK Corporation, JAPAN
  *  Copyright (C) 2015 by SUZUKI MOTOR CORPORATION
+ *  Copyright (C) 2016 by Fan Wang(parai@foxmail.com), China
+ * 
+ * The above copyright holders grant permission gratis to use,
+ * duplicate, modify, or redistribute (hereafter called use) this
+ * software (including the one made by modifying this software),
+ * provided that the following four conditions (1) through (4) are
+ * satisfied.
+ * 
+ * (1) When this software is used in the form of source code, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be retained in the source code without modification.
  *
- *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
- *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
- *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
- *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
- *      権表示，この利用条件および下記の無保証規定が，そのままの形でソー
- *      スコード中に含まれていること．
- *  (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
- *      用できる形で再配布する場合には，再配布に伴うドキュメント（利用
- *      者マニュアルなど）に，上記の著作権表示，この利用条件および下記
- *      の無保証規定を掲載すること．
- *  (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
- *      用できない形で再配布する場合には，次のいずれかの条件を満たすこ
- *      と．
- *    (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
- *        作権表示，この利用条件および下記の無保証規定を掲載すること．
- *    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
- *        報告すること．
- *  (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
- *      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
- *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
- *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
- *      免責すること．
+ * (2) When this software is redistributed in the forms usable for the
+ *    development of other software, such as in library form, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be shown without modification in the document provided
+ *    with the redistributed software, such as the user manual.
  *
- *  本ソフトウェアは，AUTOSAR（AUTomotive Open System ARchitecture）仕
- *  様に基づいている．上記の許諾は，AUTOSARの知的財産権を許諾するもので
- *  はない．AUTOSARは，AUTOSAR仕様に基づいたソフトウェアを商用目的で利
- *  用する者に対して，AUTOSARパートナーになることを求めている．
+ * (3) When this software is redistributed in the forms unusable for the
+ *    development of other software, such as the case when the software
+ *    is embedded in a piece of equipment, either of the following two
+ *    conditions must be satisfied:
  *
- *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
- *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
- *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
- *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
- *  の責任を負わない．
+ *  (a) The above copyright notice, this use conditions, and the
+ *      disclaimer shown below must be shown without modification in
+ *      the document provided with the redistributed software, such as
+ *      the user manual.
+ *
+ *  (b) How the software is to be redistributed must be reported to the
+ *      TOPPERS Project according to the procedure described
+ *      separately.
+ *
+ * (4) The above copyright holders and the TOPPERS Project are exempt
+ *    from responsibility for any type of damage directly or indirectly
+ *    caused from the use of this software and are indemnified by any
+ *    users or end users of this software from any and all causes of
+ *    action whatsoever.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS." THE ABOVE COPYRIGHT HOLDERS AND
+ * THE TOPPERS PROJECT DISCLAIM ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, ITS APPLICABILITY TO A PARTICULAR
+ * PURPOSE. IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS AND THE
+ * TOPPERS PROJECT BE LIABLE FOR ANY TYPE OF DAMAGE DIRECTLY OR
+ * INDIRECTLY CAUSED FROM THE USE OF THIS SOFTWARE.
  *
  *  $Id: counter.c 504 2015-12-24 01:22:56Z witz-itoyo $
  */
 
 /*
- *		カウンタ制御モジュール
+ *		Counter control module
  */
 
 #include "kernel_impl.h"
@@ -66,7 +74,7 @@
 #include "counter.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_INCCNT_ENTER
 #define LOG_INCCNT_ENTER(cntid)
@@ -93,7 +101,7 @@
 #endif /* LOG_GETECT_LEAVE */
 
 /*
- *  カウンタ満了キューへの挿入
+ *  Insertion into the counter expiration queue
  */
 #ifdef TOPPERS_insert_cnt_expr_que
 
@@ -107,20 +115,21 @@ insert_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 	enqval = p_cntexpinfo->expiretick;
 
 	/*
-	 *  カウンタ満了キューへの挿入位置を決定するための基準点
+	 *  A reference point for determining the insertion position to the counter expired queue
 	 *
-	 *  ハードウェアカウンタの場合，カウンタ満了キューへの挿入位置を決める基準点は
-	 *  満了処理時に更新している値を使用し，ハードウェアから現在値を取得はしない
-	 *  (ハードウェアカウンタ上のティック値は満了しているが，まだ満了処理を実行して
-	 *  いない場合に，挿入場所の基準がずれてしまうため)
+	 *  In the case of hardware counter, the reference point for determining the insertion
+     * position to the counter expiration queue using the values that are updated at the 
+	 * time of expiration processing, does not get the current value from the hardware 
+	 * (tick value on the hardware counter has expired but if it is not already running 
+	 * the expiration process, since the reference for the insertion position is shifted)
 	 */
 	curval = p_cntcb->curval;
 
-	/* 挿入場所のサーチ */
+	/* Insert location of the search */
 	next = p_cntcb->cntexpque.p_next;
 
 	if (curval < enqval) {
-		/* カウンタのオーバーフローが起こらない場合 */
+		/* If the counter of the overflow does not occur */
 		while ((next != &(p_cntcb->cntexpque)) &&
 			   (curval <= ((CNTEXPINFO *) next)->expiretick) &&
 			   (((CNTEXPINFO *) next)->expiretick <= enqval)) {
@@ -128,7 +137,7 @@ insert_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 		}
 	}
 	else {
-		/* カウンタのオーバーフローが起こる場合 */
+		/* If a counter overflow occurs */
 		while ((next != &(p_cntcb->cntexpque)) &&
 			   ((curval <= ((CNTEXPINFO *) next)->expiretick)
 				|| (((CNTEXPINFO *) next)->expiretick <= enqval))) {
@@ -139,32 +148,32 @@ insert_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 	queue_insert_prev(next, &(p_cntexpinfo->cntexpque));
 
 	/*
-	 *  ハードウェアカウンタかつ先頭に挿入した場合,再度ハードウェアカウンタに
-	 *  満了時間を設定し直す必要がある
+	 *  If you have inserted into a hardware counter and top, there is a need 
+	 * to re-set the expiration time to the hardware counter again
 	 */
 	cntid = CNTID(p_cntcb);
 	if (is_hwcnt(cntid) && (p_cntcb->cntexpque.p_next == &(p_cntexpinfo->cntexpque))) {
 
-		/* 現在設定されている時刻をキャンセル */
+		/* Cancel the time currently set */
 		(hwcntinib_table[cntid].cancel)();
 
-		/* 先頭に挿入した時刻に再設定 */
+		/* The re-set to the inserted time to top */
 		(hwcntinib_table[cntid].set)(enqval);
 		p_cntcb->hwset = TRUE;
 
 		/*
-		 *  再設定中に次の満了時間を過ぎてしまったかチェック
+		 *  The check has passed the following expiration time during the reconfiguration
 		 *
-		 *  過ぎてしまった場合, 強制割込みにより満了処理を実行する
-		 *  またsetした時間とgetした時間が同じであった場合,
-		 *  ハードウェアで取りこぼしていると想定し, 強制割込みを発生させる
-		 *  ハードウェアで取りこぼしていない場合に強制割込みを起こしても問題ない
+		 *  If it has passed, if the forced interrupt by executing an expiration process
+		 * also time that was set and the get of time are the same, it is assumed to have 
+		 * missed in the hardware, it is not missed by the hardware to generate a forced 
+		 * interrupt no problem even caused the forced interruption in the case
 		 */
 		if (diff_tick((hwcntinib_table[cntid].get)(), enqval,
 					  p_cntcb->p_cntinib->maxval2) <= p_cntcb->p_cntinib->maxval) {
-			/* 現在設定されている時刻をキャンセル */
+			/* Cancel the time currently set */
 			(hwcntinib_table[cntid].cancel)();
-			/* 強制割込みを発生させる */
+			/* Generate a forced interruption */
 			(hwcntinib_table[cntid].trigger)();
 		}
 	}
@@ -173,7 +182,7 @@ insert_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 #endif /* TOPPERS_insert_cnt_expr_que */
 
 /*
- *  カウンタ満了キューから削除
+ *  Delete from the counter expiration queue
  */
 #ifdef TOPPERS_delete_cnt_expr_que
 
@@ -183,49 +192,49 @@ delete_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 	CounterType cntid;
 	QUEUE		*p_cntexpque;
 
-	/* カウンタキューから満了処理を削除する前の先頭キュー保持 */
+	/* Top queue retention of before you remove the expiration processing from the counter queue */
 	p_cntexpque = p_cntcb->cntexpque.p_next;
 
 	queue_delete(&(p_cntexpinfo->cntexpque));
 	queue_initialize(&(p_cntexpinfo->cntexpque));
 
 	/*
-	 *  ハードウェアカウンタかつ削除する満了処理はカウンタ満了の
-	 *  先頭の場合，タイマをキャンセルする
+	 *  Hardware counter and expiration processing to be deleted in the case of
+     * the head of the counter expiration, to cancel the timer
 	 */
 	cntid = CNTID(p_cntcb);
 	if (is_hwcnt(cntid) && (p_cntcb->cntexpque.p_next != p_cntexpque)) {
 
-		/* 現在設定されている時刻をキャンセル */
+		/* Cancel the time currently set */
 		(hwcntinib_table[cntid].cancel)();
 
-		/* ペンディング中の割込み要求をキャンセル */
+		/* Cancel the interrupt request pending */
 		(hwcntinib_table[cntid].intcancel)();
 
 		/*
-		 *  p_cntexpinfoで指定された満了処理削除後，カウンタ満了次の
-		 *  満了処理の満了点を設定する
+		 *  after the expiration processing Delete specified in p_cntexpinfo, 
+		 * to set the expiration point of counter expiration following expiration processing
 		 */
 		if (queue_empty(&(p_cntcb->cntexpque)) == FALSE) {
 
-			/* 先頭に挿入した時刻に再設定 */
+			/* The re-set to the inserted time to top */
 			(hwcntinib_table[cntid].set)(((CNTEXPINFO *) p_cntcb->cntexpque.p_next)->expiretick);
 			p_cntcb->hwset = TRUE;
 
 			/*
-			 *  再設定中に次の満了時間を過ぎてしまったかチェック
+			 * The check has passed the following expiration time during the reconfiguration
 			 *
-			 *  過ぎてしまった場合, 強制割込みにより満了処理を実行する
-			 *  またsetした時間とgetした時間が同じであった場合,
-			 *  ハードウェアで取りこぼしていると想定し, 強制割込みを発生させる
-			 *  ハードウェアで取りこぼしていない場合に強制割込みを起こしても問題ない
+			 *  If it has passed, if the forced interrupt by executing an expiration process 
+			 * also time that was set and the get of time are the same, it is assumed to have 
+			 * missed in the hardware, it is not missed by the hardware to generate a forced 
+			 * interrupt no problem even caused the forced interruption in the case
 			 */
 			if (diff_tick((hwcntinib_table[cntid].get)(),
 						  ((CNTEXPINFO *) p_cntcb->cntexpque.p_next)->expiretick,
 						  p_cntcb->p_cntinib->maxval2) <= p_cntcb->p_cntinib->maxval) {
-				/* 現在設定されている時刻をキャンセル */
+				/* Cancel the time currently set */
 				(hwcntinib_table[cntid].cancel)();
-				/* 強制割込みを発生させる */
+				/* Generate a forced interruption */
 				(hwcntinib_table[cntid].trigger)();
 			}
 		}
@@ -236,7 +245,7 @@ delete_cnt_expr_que(CNTEXPINFO *p_cntexpinfo, CNTCB *p_cntcb)
 #endif /* TOPPERS_delete_cnt_expr_que */
 
 /*
- *  カウンタ機能の初期化
+ *  Initialization of counter function
  */
 #ifdef TOPPERS_counter_initialize
 
@@ -266,7 +275,7 @@ counter_initialize(void)
 #endif /* TOPPERS_counter_initialize */
 
 /*
- *  カウンタ機能の終了処理
+ *  End processing of counter function
  */
 #ifdef TOPPERS_counter_terminate
 
@@ -283,10 +292,10 @@ counter_terminate(void)
 #endif /* TOPPERS_counter_terminate */
 
 /*
- *  指定した相対時間からのカウンタ値取得(APIからの取得)
+ *  Counter value acquisition from the specified relative time (obtained from API)
  *
- *  指定したカウンタの現在値と, 渡された相対値を足しこみ更新値を
- *  戻り値として返す
+ *  Return as the current value and the return value the updated value summation 
+ * the passed-in relative value of the specified counter
  */
 #ifdef TOPPERS_get_reltick
 
@@ -301,7 +310,7 @@ get_reltick(const CNTCB *p_cntcb, TickType relval)
 
 	curval = get_curval(p_cntcb, cntid);
 
-	/* 現在時間から指定されたオフセット分過ぎた時間を算出する */
+	/* And calculates the time that has passed a specified offset from the current time */
 	result = add_tick(curval, relval, p_cntcb->p_cntinib->maxval2);
 
 	return(result);
@@ -310,10 +319,10 @@ get_reltick(const CNTCB *p_cntcb, TickType relval)
 #endif /* TOPPERS_get_reltick */
 
 /*
- *  指定した絶対時間からのカウンタ値取得(APIからの取得)
+ *  The specified counter value acquisition from the absolute time (obtained from API)
  *
- *  引数で渡された絶対値を指定したカウンタの現在値に変換し
- *  更新値を戻り値として返す
+ *  It converts the absolute value that was passed as an argument to 
+ * the current value of the specified counter to return the updated value as the return value
  */
 #ifdef TOPPERS_get_abstick
 
@@ -329,13 +338,13 @@ get_abstick(const CNTCB *p_cntcb, TickType absval)
 
 	curval = get_curval(p_cntcb, cntid);
 
-	/* maxval2を考慮した絶対時間に変換 */
+	/* convert to absolute time considering the maxval2 */
 	nextval = absval +  p_cntcb->p_cntinib->maxval + 1U;
 
 	if (curval < (p_cntcb->p_cntinib->maxval + 1U)) {
 		/*
-		 *  カウンタの現在値が0〜maxvalの間の場合，
-		 *  絶対時刻に未到達なので，絶対時刻を返す
+		 *  If the current value of the counter is between 0~maxval, because 
+		 * it is not yet reached the absolute time, it returns the absolute time
 		 */
 		if (absval > curval) {
 			result = absval;
@@ -346,8 +355,9 @@ get_abstick(const CNTCB *p_cntcb, TickType absval)
 	}
 	else {
 		/*
-		 *  カウンタの現在値がmaxval〜maxval2の間の場合，
-		 *  maxval2考慮した絶対も超えたので，絶対時刻を返す
+		 *  If the current value of the counter is between maxval~maxval2, 
+		 * because beyond the absolute that maxval2 taken into consideration, 
+		 * and returns the absolute time
 		 */
 		if (nextval <= curval) {
 			result = absval;
@@ -363,7 +373,7 @@ get_abstick(const CNTCB *p_cntcb, TickType absval)
 #endif /* TOPPERS_get_abstick */
 
 /*
- *  カウンタの満了処理
+ *  Expiration processing of counter
  */
 #ifdef TOPPERS_expire_process
 
@@ -377,34 +387,36 @@ expire_process(CNTCB *p_cntcb, CounterType cntid)
 	nowval = get_curval(p_cntcb, cntid);
 
 	/*
-	 *  カウンタの満了処理
+	 *  Expiration processing of counter
 	 *
-	 *  キューが空でなく, リアルタイムな現在時間から見てキューの先頭の満了
-	 *  時間が既に過ぎていれば, 満了処理を実行する
+	 *  Queue is not empty, if already expiration time of the head of 
+	 * the queue when viewed from the real-time current time only, to 
+	 * run the expiration processing
 	 *
-	 *  リアルタイムな現在時間をその都度取得するため,キューの先頭満了処理
-	 *  の満了時間を再設定する時に目的の満了時間を超えてしまってもカバー
-	 *  できる
+	 *  To get each time a real-time current time, it is possible to cover 
+	 * even exceeds the expiration time of interest when resetting the expiration 
+	 * time of the first expiration processing queue
 	 */
 	while ((queue_empty(&(p_cntcb->cntexpque)) == FALSE) &&
 		   (diff_tick(nowval, ((CNTEXPINFO *) p_cntcb->cntexpque.p_next)->expiretick,
 					  p_cntcb->p_cntinib->maxval2) <= p_cntcb->p_cntinib->maxval)) {
 
-		/* カウンタ満了キューの先頭の満了処理を，キューから外す */
+		/* The expiration processing at the head of the counter expiration queue, removed from the queue */
 		p_cntexpinfo = (CNTEXPINFO *) p_cntcb->cntexpque.p_next;
 		queue_delete(&(p_cntexpinfo->cntexpque));
 		queue_initialize(&(p_cntexpinfo->cntexpque));
 
 		if (is_hwcnt(cntid)) {
 			/*
-			 *  カウンタ値を満了処理の満了点で更新し，満了処理キューに満了点を
-			 *  挿入する時，満了処理キューの挿入位置比較に使用
+			 *  When updated at the expiration point of the expiration process the counter value, 
+			 * to insert an expiration point expires processing queue is used at the insertion 
+			 * point comparison of expiration processing queue
 			 */
 			p_cntcb->curval = p_cntexpinfo->expiretick;
 
 			/*
-			 *  次の満了点の設定
-			 *  次の満了点が実時間を経過していない場合設定する
+			 *  Setting of the next expiration point
+			 *  Set if the following expiration point has not elapsed real time
 			 */
 			if ((queue_empty(&(p_cntcb->cntexpque)) == FALSE) && ((diff_tick((hwcntinib_table[cntid].get)(),
 																			 ((CNTEXPINFO *) p_cntcb->cntexpque.p_next)->expiretick, p_cntcb->p_cntinib->maxval2)) >
@@ -414,20 +426,20 @@ expire_process(CNTCB *p_cntcb, CounterType cntid)
 			}
 		}
 
-		/* カウンタ満了処理呼出し */
+		/* Counter expiration processing call */
 		(p_cntexpinfo->expirefunc)(p_cntexpinfo, p_cntcb);
 
 		/*
-		 *  タスクからの呼び出し時，高優先度タスクレディ状態になった場合あるので，
-		 *  チェックしてディスパッチする
+		 *  When calling from the task, because if it becomes a high priority 
+		 * task ready state, dispatching checks
 		 */
 		if ((p_runtsk != p_schedtsk) && (callevel_stat == TCL_TASK)) {
 			dispatch();
 		}
 
 		/*
-		 *  割込みレスポンス考慮し，1個の満了点処理後に
-		 *  1回の割込許可/禁止を実施
+		 *  Considering interrupt response, and implementation once the interrupt
+		 * enable / disable after one of the expiration point processing
 		 */
 		x_nested_unlock_os_int();
 		x_nested_lock_os_int();
@@ -442,7 +454,7 @@ expire_process(CNTCB *p_cntcb, CounterType cntid)
 #endif /* TOPPERS_expire_process */
 
 /*
- *  OSAP所属するカウンタの強制終了
+ *  Forced termination of counter that SAP belongs
  */
 #ifdef TOPPERS_force_term_osap_counter
 
@@ -452,8 +464,8 @@ force_term_osap_counter(OSAPCB *p_osapcb)
 	CounterType	i;
 	CNTCB		*p_cntcb;
 
-	/* 状態をクリアする */
-	/* 現在値を0に初期化する */
+	/* It wants to clear the state*/
+	/* Initialize the current value to 0 */
 	for (i = 0U; i < tnum_counter; i++) {
 		if (cntinib_table[i].p_osapcb == p_osapcb) {
 			p_cntcb = &cntcb_table[i];
