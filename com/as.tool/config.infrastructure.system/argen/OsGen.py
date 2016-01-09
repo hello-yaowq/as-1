@@ -20,6 +20,7 @@ from .gen_freeosek import *
 from .gen_toppers_osek import *
 from .gen_smallos import *
 from .gen_freertos import *
+from .gen_toppers_atk2_sc4 import *
 import glob
 
 __all__ = ['OsGen']
@@ -27,7 +28,8 @@ __all__ = ['OsGen']
 __osgen__ = {'freeosek':gen_freeosek,
              'toppers_osek':gen_toppers_osek,
              'smallos':gen_smallos,
-             'freertos':gen_freertos 
+             'freertos':gen_freertos,
+             'atk2-sc4':gen_toppers_atk2_sc4
             }
 
 def getOsRef(os_list):
