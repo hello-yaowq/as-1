@@ -122,6 +122,8 @@ static inline unsigned int ilog2(unsigned long _x)
 #define Inline static inline
 #endif
 
+#define LOCAL_INLINE Inline
+
 #define REGISTER static
 
 /* REQ:COMPILER005 */
@@ -143,6 +145,8 @@ static inline unsigned int ilog2(unsigned long _x)
 #define CONST(consttype,memclass) const consttype
 
 #define VAR(vartype,memclass) vartype
+
+#define UINT_C(v)  (v)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

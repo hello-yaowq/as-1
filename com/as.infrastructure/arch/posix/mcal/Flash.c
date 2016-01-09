@@ -162,7 +162,7 @@ void FlashWrite(tFlashParam* FlashParam)
 			else
 			{
 				fseek(fp,address,SEEK_SET);
-				fwrite(data,FlashParam->length,1,fp);
+				fwrite(data,length,1,fp);
 				fclose(fp);
 				FlashParam->errorcode = kFlashOk;
 			}
@@ -211,7 +211,7 @@ void FlashRead(tFlashParam* FlashParam)
 			else
 			{
 				fseek(fp,address,SEEK_SET);
-				fread(data,FlashParam->length,1,fp);
+				fread(data,length,1,fp);
 				fclose(fp);
 				FlashParam->errorcode = kFlashOk;
 			}

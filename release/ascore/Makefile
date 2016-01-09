@@ -255,6 +255,9 @@ ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
 endif
+ifeq ($(rtos),atk2-sc4)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/$(rtos) TRUE)
+endif
 ifeq ($(rtos),freeosek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/inc TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/src FALSE)
@@ -503,13 +506,13 @@ clean:
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos 
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 
