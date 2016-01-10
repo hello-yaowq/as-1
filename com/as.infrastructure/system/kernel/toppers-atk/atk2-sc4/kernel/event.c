@@ -66,7 +66,7 @@
  */
 
 /*
- *		イベント管理モジュール
+ *		Event Management module
  */
 
 #include "kernel_impl.h"
@@ -75,7 +75,7 @@
 #include "timingprotection.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_TSKSTAT
 #define LOG_TSKSTAT(p_tcb)
@@ -114,7 +114,7 @@
 #endif /* LOG_WAIEVT_LEAVE */
 
 /*
- *  イベントのセット
+ *  Event set
  */
 #ifdef TOPPERS_SetEvent
 
@@ -140,7 +140,7 @@ SetEvent(TaskType TaskID, EventMaskType Mask)
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* タスク所属のOSAPの状態をチェック */
+	/* Check OSAP of state of the task affiliation */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -185,7 +185,7 @@ SetEvent(TaskType TaskID, EventMaskType Mask)
 #endif /* TOPPERS_SetEvent */
 
 /*
- *  イベントのクリア
+ *  Events Clear
  */
 #ifdef TOPPERS_ClearEvent
 
@@ -222,7 +222,7 @@ ClearEvent(EventMaskType Mask)
 #endif /* TOPPERS_ClearEvent */
 
 /*
- *  イベントの状態参照
+ *  Events of state reference
  */
 #ifdef TOPPERS_GetEvent
 
@@ -246,11 +246,11 @@ GetEvent(TaskType TaskID, EventMaskRefType Event)
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* タスク所属のOSAPの状態をチェック */
+	/* Check OSAP of state of the task affiliation */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
-	/* 対象タスクが休止状態の場合はエラーとする */
+	/* It is an error if the target task is in hibernation */
 	D_CHECK_STATE((p_tcb->tstat != SUSPENDED) || (p_tcb == p_runtsk));
 
 	*Event = p_tcb->curevt;
@@ -277,7 +277,7 @@ GetEvent(TaskType TaskID, EventMaskRefType Event)
 #endif /* TOPPERS_GetEvent */
 
 /*
- *  イベント待ち
+ *  Event waiting
  */
 #ifdef TOPPERS_WaitEvent
 
@@ -337,9 +337,9 @@ WaitEvent(EventMaskType Mask)
 #endif /* TOPPERS_WaitEvent */
 
 /*
- *  満了処理専用イベントのセット
+ *  Set of expiration processing dedicated event
  *
- *  条件：OS割込み禁止状態で呼ばれる
+ *  Conditions: it is called by the OS interrupt disable state
  */
 #ifdef TOPPERS_set_event_action
 
@@ -358,7 +358,7 @@ set_event_action(OSAPCB *p_expire_osapcb, TaskType TaskID, EventMaskType Mask)
 	p_tcb = get_tcb(TaskID);
 
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
-	/* 満了点所属のOSAP及びセットイベント対象タスク所属のOSAPの状態をチェック */
+	/* Check the status of the expiration point belongs OSAP and set events target task affiliation of OSAP */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) || (p_expire_osapcb == p_osapcb));
 	D_CHECK_STATE(p_tcb->tstat != SUSPENDED);
 

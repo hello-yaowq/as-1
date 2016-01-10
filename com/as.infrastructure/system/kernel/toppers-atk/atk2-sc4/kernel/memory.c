@@ -72,11 +72,11 @@
 #include "memory.h"
 
 /*
- *		メモリオブジェクト管理モジュール
+ *		Memory object management module
  */
 
 /*
- *  トレースマクロのデフォルト定義
+ *  The default definition of trace macro
  */
 
 #ifndef LOG_CHKISRMEMACS_ENTER
@@ -97,7 +97,7 @@
 
 
 /*
- *  内部関数のプロトタイプ宣言
+ *  Prototype declaration of internal functions
  */
 #ifndef USE_TSKINICTXB
 
@@ -107,8 +107,8 @@ LOCAL_INLINE AccessType check_address_ustack(const MemoryStartAddressType base, 
 #endif /* USE_TSKINICTXB */
 
 /*
- *  タスクメモリアクセスチェックシステムサービス
- *  指定された タスク の 指定されたメモリ領域のアクセス権をチェックする
+ *  Task memory access checking system service
+ *  Check the access rights of the specified memory area of the specified task
  */
 #ifdef TOPPERS_CheckTaskMemoryAccess
 
@@ -156,8 +156,8 @@ CheckTaskMemoryAccess(TaskType TaskID, MemoryStartAddressType Address, MemorySiz
 #endif /* TOPPERS_CheckTaskMemoryAccess */
 
 /*
- *  ISRメモリアクセスチェックシステムサービス
- *  指定された ISR の 指定されたメモリ領域のアクセス権をチェックする
+ *  ISR memory access checking system service
+ *  Check the access rights of the specified designated ISR memory area
  */
 #ifdef TOPPERS_CheckISRMemoryAccess
 
@@ -205,11 +205,11 @@ CheckISRMemoryAccess(ISRType ISRID, MemoryStartAddressType Address, MemorySizeTy
 #endif /* TOPPERS_CheckISRMemoryAccess */
 
 /*
- *  メモリアクセスチェック関数
+ *  Memory access check function
  */
 
 /*
- *  スタックアクセスチェック本体
+ *  Stack access check body
  */
 #ifdef TOPPERS_check_address_stack
 
@@ -247,7 +247,7 @@ check_address_ustack(const MemoryStartAddressType base, MemorySizeType size, con
 
 #ifndef OMIT_STANDARD_MEMINIB
 /*
- *  メモリオブジェクト初期化ブロックの検索
+ *  Search of memory object initialization block
  */
 #ifdef TOPPERS_search_meminib
 
@@ -272,12 +272,12 @@ search_meminib(MemoryStartAddressType addr)
 
 #endif /* TOPPERS_search_meminib */
 /*
- *  メモリアクセスチェック
- *   メモリプロテクション単位(OSアプリケーション) でのチェックを行う
+ *  Memory access check
+ *   It does check in the memory protection unit (OS application)
  *
- *  信頼OSアプリケーションの場合は，バックグラウンドをチェックする
- *    現実装では全領域アクセス可能
- *  非信頼OSアプリケーションの場合は，メモリオブジェクトの属性を返却する
+ *  In the case of trust OS application, check the background
+ *    It can be all area access in the current implementation
+ *  In the case of non-confidence OS applications, and returns the attributes of the memory object
  */
 #ifdef TOPPERS_check_osap_memory
 
@@ -313,7 +313,7 @@ check_osap_memory(OSAPCB *p_osapcb, const MemoryStartAddressType adr, MemorySize
 #endif /* TOPPERS_check_osap_memory */
 
 /*
- *  ISRメモリアクセスチェックシステムサービス(カーネル内部用)
+ *  ISR memory access checking system services (for internal kernel)
  */
 #ifdef TOPPERS_check_isr_memory
 
@@ -329,7 +329,7 @@ check_isr_memory(ISRCB *p_isrcb, const MemoryStartAddressType adr, MemorySizeTyp
 	memsize = (MemorySizeType) (((uint8 *) (((pos + 1U) < tnum_meminib) ?
 											((uint8 * const) memtop_table[pos + 1U]) : 0U)) - (const uint8 *) adr);
 
-	/* リージョンを跨ったか判定 */
+	/* The decision whether or across the region */
 	if (size > memsize) {
 		*over_region = TRUE;
 	}
@@ -338,7 +338,7 @@ check_isr_memory(ISRCB *p_isrcb, const MemoryStartAddressType adr, MemorySizeTyp
 		access = check_address_stack(adr, size, _ostk, _ostksz);
 	}
 
-	/* 機能レベル2ではC2ISRは信頼しかないので，全アクセス可能にする */
+	/* Since C2ISR In functional level 2 is not only trust, it will allow all access */
 	access |= (AP_Readable | AP_Writable | AP_Executable);
 
 	return(access);
@@ -347,7 +347,7 @@ check_isr_memory(ISRCB *p_isrcb, const MemoryStartAddressType adr, MemorySizeTyp
 #endif /* TOPPERS_check_isr_memory */
 
 /*
- *  タスクメモリアクセスチェックシステムサービス(カーネル内部用)
+ *  Task memory access checking system services (for internal kernel)
  */
 #ifdef TOPPERS_check_task_memory
 
@@ -365,7 +365,7 @@ check_task_memory(const TCB *p_tcb, const MemoryStartAddressType adr, MemorySize
 	memsize = (MemorySizeType) (((uint8 *) (((pos + 1U) < tnum_meminib) ?
 											((uint8 * const) memtop_table[pos + 1U]) : 0U)) - (const uint8 *) adr);
 
-	/* リージョンを跨ったか判定 */
+	/* The decision whether or across the region */
 	if (size > memsize) {
 		*over_region = TRUE;
 	}
@@ -376,7 +376,7 @@ check_task_memory(const TCB *p_tcb, const MemoryStartAddressType adr, MemorySize
 	if (p_tcb->p_tinib->p_osapcb->p_osapinib->osap_trusted != FALSE) {
 		access = check_address_sstack(adr, size, p_tcb->p_tinib);
 
-		/* 信頼タスクの場合は全アクセス可能 */
+		/* It can be all access in the case of trust task */
 		access |= (AP_Readable | AP_Writable | AP_Executable);
 	}
 	else if (*over_region == FALSE) {
@@ -392,7 +392,7 @@ check_task_memory(const TCB *p_tcb, const MemoryStartAddressType adr, MemorySize
 		}
 	}
 	else {
-		/* 上記以外の場合，処理は行わない(戻り値：AP_NoAccess) */
+		/* Otherwise, it does not perform processing (return value: AP_NoAccess) */
 	}
 
 	return(access);
@@ -402,7 +402,7 @@ check_task_memory(const TCB *p_tcb, const MemoryStartAddressType adr, MemorySize
 #endif /* OMIT_STANDARD_MEMINIB */
 
 /*
- *  メモリアクセス権のチェック
+ *  Check the memory access rights
  */
 #ifdef TOPPERS_probe_memory_access
 
@@ -414,7 +414,7 @@ probe_memory_access(const MemoryStartAddressType base, MemorySizeType size)
 	MemoryStartAddressType	base_adr = base;
 
 	if (run_trusted != FALSE) {
-		/* 特権モードの場合は，バックグラウンドをチェックする */
+		/* In the case of privileged mode, check the background */
 		access = probe_trusted_osap_mem(base, (MemoryStartAddressType) ((uint8 *) base_adr + size));
 	}
 	else {
@@ -426,7 +426,7 @@ probe_memory_access(const MemoryStartAddressType base, MemorySizeType size)
 #endif /* TOPPERS_probe_memory_access */
 
 /*
- *  メモリへの書込み権のチェック
+ *  Check of write access to the memory
  */
 #ifdef TOPPERS_probe_memory_read
 
@@ -439,7 +439,7 @@ probe_memory_read(const MemoryStartAddressType base, MemorySizeType size)
 #endif /* TOPPERS_probe_memory_read */
 
 /*
- *  メモリへの書込み権のチェック
+ *  Check of write access to the memory
  */
 #ifdef TOPPERS_probe_memory_write
 
@@ -452,7 +452,7 @@ probe_memory_write(const MemoryStartAddressType base, MemorySizeType size)
 #endif /* TOPPERS_probe_memory_write */
 
 /*
- *  メモリに対する読書き権のチェック
+ *  Check reading and writing right to the memory
  */
 #ifdef TOPPERS_probe_memory_read_write
 
@@ -465,7 +465,7 @@ probe_memory_read_write(const MemoryStartAddressType base, MemorySizeType size)
 #endif /* TOPPERS_probe_memory_read_write */
 
 /*
- *  DATAセクションとBSSセクションの初期化
+ *  Initialization of DATA section and the BSS section
  */
 #ifdef TOPPERS_initialize_sections
 #ifndef OMIT_INITIALIZE_SECTIONS

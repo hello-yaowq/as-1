@@ -66,39 +66,38 @@
  */
 
 /*
- *		ATK2内部向け標準ヘッダファイル
+ *		ATK2 inside for standard header file
  *
- *  このヘッダファイルは，カーネルを構成するプログラムのソースファイル
- *  で必ずインクルードするべき標準ヘッダファイルである
+ *  This header file is the standard header file to be included always in the 
+ * source file for the program that you want to configure the kernel
  *
- *  アセンブリ言語のソースファイルからこのファイルをインクルードする時
- *  は，TOPPERS_MACRO_ONLYを定義しておく
- *  これにより，マクロ定義以外を除くようになっている
+ *  When you include this file from the assembly language source file is, by
+ * this to be defined the TOPPERS_MACRO_ONLY, so that except for the non-macro definition
  */
 
 #ifndef TOPPERS_KERNEL_IMPL_H
 #define TOPPERS_KERNEL_IMPL_H
 
 /*
- *  カーネル内部用リネームを使用するための定義
+ *  Definition for using the renaming for internal kernel
  */
 #ifndef TOPPERS_SVC_FUNCCALL
 #define TOPPERS_SVC_FUNCCALL
 #endif
 
 /*
- *  アプリケーションと共通のヘッダファイル
+ *  Applications a common header file
  */
 #define OMIT_INCLUDE_OS_LCFG
 #include "Os.h"
 
-/* 無効ポインタ */
+/* Invalid pointer */
 #ifndef NULL
 #define NULL		NULL_PTR
 #endif /* NULL */
 
 /*
- *  型キャストを行うマクロの定義
+ *  Definition of the macro to perform a type cast
  */
 #ifndef CAST
 #define CAST(type, val)		((type) (val))
@@ -106,20 +105,20 @@
 
 #ifndef TOPPERS_MACRO_ONLY
 
-/* 最適化するため，依存部再定義できる型 */
+/* To optimize, dependent part redefinition can type */
 #ifndef OMIT_DATA_TYPE
 /*
- *  カーネル内部のデータ型
+ *  Type of the internal kernel
  */
-typedef uint32	InterruptNumberType;            /* 割込み番号 */
-typedef uint32	AttributeType;                  /* オブジェクトの属性 */
-typedef sint32	PriorityType;                   /* 優先度 */
+typedef uint32	InterruptNumberType;            /* Interrupt number */
+typedef uint32	AttributeType;                  /* Object Attributes */
+typedef sint32	PriorityType;                   /* priority */
 #endif /* OMIT_DATA_TYPE */
 
-typedef void (*FunctionRefType)(void);          /* プログラムの起動番地 */
+typedef void (*FunctionRefType)(void);          /* Start address of the program */
 
 /*
- *  エラーフックOFF時，サービスID取得とパラメータ取得もOFFになる
+ *  When the error hook OFF, service ID acquisition and parameter acquisition also becomes OFF
  */
 #ifdef CFG_USE_ERRORHOOK
 
@@ -132,7 +131,7 @@ extern _ErrorHook_Par	_errorhook_par3;
 #endif /* CFG_USE_ERRORHOOK */
 
 /*
- *  OS内部からのShutdownOSの呼び出し
+ *  Call of ShutdownOS from internal OS
  */
 extern void internal_shutdownos(StatusType ercd);
 
@@ -143,7 +142,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
- *  ASSERTマクロ
+ *  ASSERT macro
  */
 #ifndef NDEBUG
 #define ASSERT(exp) do {								\
@@ -166,59 +165,60 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 #endif /* NDEBUG */
 
 /*
- *  すべての関数をコンパイルするための定義
+ *  Definition of the order to compile all the function
  */
 #ifdef ALLFUNC
 #include "allfunc.h"
 #endif /* ALLFUNC */
 
 /*
- *  アプリケーションモード値の定義
+ *  Definition of application mode value
  */
 #define APPMODE_NONE	((AppModeType) 0)   /* モードなし */
 
 /*
- *  実行中のコンテキスト（callevel_statの下位12ビット）の値の定義
- *  TCL_NULLの時に，本来の呼出下コンテキストが判別できなくなることに注意
+ *  At the time of the definition TCL_NULL of the value of the context of the 
+ * running (lower 12 bits of callevel_stat), and note that the original call 
+ * under the context can not be determined
  */
-#define TCL_NULL			UINT_C(0x0000)                          /* システムサービスを呼び出せない */
-#define TCL_TASK			UINT_C(0x0001)                          /* タスク */
+#define TCL_NULL			UINT_C(0x0000)                          /* It can not be called a system service */
+#define TCL_TASK			UINT_C(0x0001)                          /* task */
 #define TCL_ISR2			UINT_C(0x0002)                          /* C2ISR */
 #define TCL_PROTECT			UINT_C(0x0004)                          /* ProtectionHook */
 #define TCL_PREPOST			UINT_C(0x0008)                          /* PreTaskHook，PostTaskHook */
 #define TCL_STARTUP			UINT_C(0x0010)                          /* StartupHook */
 #define TCL_SHUTDOWN		UINT_C(0x0020)                          /* ShutdownHook */
 #define TCL_ERROR			UINT_C(0x0040)                          /* ErrorHook */
-/* OSアプリケーションに所属のフックマスク */
-#define TCLMASK				UINT_C(0x0fff)                          /* コールレベルを示すビットのマスク */
+/* The hook mask of belonging to the OS application */
+#define TCLMASK				UINT_C(0x0fff)                          /* Mask of the bit that indicates the call level */
 
 /*
- *  システム状態 (callevel_statの上位4ビット)の値の定義
+ *  Definition of the value of the system state (upper 4 bits of the callevel_stat)
  */
-#define TSYS_NULL			UINT_C(0x0000)      /* システム状態クリア */
-#define TSYS_DISALLINT		UINT_C(0x1000)      /* DisableAllInterrupts発行中 */
-#define TSYS_SUSALLINT		UINT_C(0x2000)      /* SuspendAllInterrupts発行中 */
-#define TSYS_SUSOSINT		UINT_C(0x4000)      /* SuspendOSInterrupts発行中 */
-#define TSYS_ISR1			UINT_C(0x8000)      /* C1ISR起動済み */
-#define TSYSMASK			UINT_C(0xf000)      /* システム状態を示すビットのマスク */
+#define TSYS_NULL			UINT_C(0x0000)      /* System state clear */
+#define TSYS_DISALLINT		UINT_C(0x1000)      /* DisableAllInterrupts in issue */
+#define TSYS_SUSALLINT		UINT_C(0x2000)      /* SuspendAllInterrupts in issue */
+#define TSYS_SUSOSINT		UINT_C(0x4000)      /* SuspendOSInterrupts in issue */
+#define TSYS_ISR1			UINT_C(0x8000)      /* C1ISR Started */
+#define TSYSMASK			UINT_C(0xf000)      /* Mask bits indicating system status */
 
 
 #ifdef CFG_USE_STACKMONITORING
 #ifndef STACK_MAGIC_NUMBER
 /*
- *  スタックモニタリング用マジックナンバーの定義
- *  ターゲット依存部の定義は優先される
+ *  Definition of the magic number for the stack monitoring
+ *  Definition of the target-dependent portion is priority
  */
 #define STACK_MAGIC_NUMBER	0x4E434553      /* NCESのASCIIコード(0x4E434553) */
 #endif /* STACK_MAGIC_NUMBER */
 
 #ifndef TOPPERS_ISTK_MAGIC_REGION
-/* 割込みスタック用マジックナンバー領域取得マクロ */
+/* Magic number area acquisition macro for the interrupt stack */
 #define TOPPERS_ISTK_MAGIC_REGION(stk, stksz)	(stk)
 #endif /* TOPPERS_ISTK_MAGIC_REGION */
 
 #ifndef TOPPERS_SSTK_MAGIC_REGION
-/* 信頼タスクスタック用マジックナンバー領域取得マクロ */
+/* Magic number area acquisition macro for the trust task stack */
 #ifndef USE_TSKINICTXB
 #define TOPPERS_SSTK_MAGIC_REGION(p_tinib)	((StackType *) ((p_tinib)->sstk))
 #endif /* USE_TSKINICTXB */
@@ -230,21 +230,21 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 #define exit_task		(_kernel_exit_task)
 
 /*
- *  フック種別の定義
+ *  Definition of hook type
  */
 #define STARTUP_HOOK	UINT_C(0)
 #define SHUTDOWN_HOOK	UINT_C(1)
 #define ERROR_HOOK		UINT_C(2)
 
 /*
- *  callevel_statのビット操作
+ *  bit manipulation of callevel_stat
  */
 #define ENTER_CALLEVEL(bit)		(callevel_stat |= (bit))
 #define LEAVE_CALLEVEL(bit)		(callevel_stat &= (uint16) ~((uint32) bit))
 
 
 /*
- *  各システムサービスを呼び出せる処理単位
+ *  Processing unit that invokes each system service
  */
 #define CALLEVEL_ACTIVATETASK				(TCL_TASK | TCL_ISR2)
 #define CALLEVEL_TERMINATETASK				(TCL_TASK)
@@ -293,63 +293,63 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 #define CALLEVEL_TERMINATEAPPLICATION		(TCL_TASK | TCL_ISR2)
 
 /*
- *  その他の定数値（標準割込みモデル）
+ *  Other constant value (standard interrupt model)
  */
-#define TIPM_ENAALL		UINT_C(0)   /* 割込み優先度マスク全解除 */
+#define TIPM_ENAALL		UINT_C(0)   /* Interrupt priority mask CANCEL */
 
 /*
- *  オブジェクト属性の定義（標準割込みモデル）
+ *  Definition of the object attributes (standard interrupt model)
  */
 #define ENABLE		UINT_C(0x01)
 #define DISABLE		UINT_C(0x00)
 
 
 /*
- *  OS内部用無効なシステムサービスID
+ *  Invalid system service ID for OS internal
  */
 #define OSServiceId_Invalid		((OSServiceIdType) 0xff)
 
 /*
- *  ヘッダファイルを持たないモジュールの関数・変数の宣言
+ *  Declaration of a function, variables of the module that does not have a header file
  */
 #ifndef TOPPERS_MACRO_ONLY
 
 #ifdef TOPPERS_StartOS
 /*
- *  アプリケーションモードの数
+ *  The number of application mode
  */
 extern const AppModeType	tnum_appmode;
 
 #endif /* TOPPERS_StartOS */
 
 /*
- *  OS実行制御のための変数（osctl_manage.c）
+ *  Variable for OS execution control (osctl_manage.c)
  */
-extern uint16				callevel_stat;  /* 実行中のコンテキスト */
-extern AppModeType			appmodeid;      /* アプリケーションモードID */
+extern uint16				callevel_stat;  /* Context of running */
+extern AppModeType			appmodeid;      /* Application mode ID */
 
 /*
- *  カーネル動作状態フラグ
+ *  Kernel operating state flag
  */
 extern boolean				kerflg;
 
 /*
- *  特権モードで動作中かを示すフラグ
+ *  Flag indicating whether running in privileged mode
  */
 extern boolean				run_trusted;
 
 extern boolean				pre_protection_supervised;
 
 /*
- *  エラーフック呼び出しのための宣言（osctl.c）
+ *  Declaration for error hook call (ioctl.c)
  */
 #ifdef CFG_USE_ERRORHOOK
 extern void internal_call_errorhook(StatusType ercd, OSServiceIdType svcid);
 #endif /* CFG_USE_ERRORHOOK */
 
 /*
- *  ポストタスクフック/プレタスクフック
- *  スタックモニタリング機能の初期化/プロテクションフック呼び出しのための宣言（osctl.c）
+ *  Post task hooks / pre-task hook
+ *  Declaration for the initialization / protection hook call stack monitoring function (osctl.c)
  */
 #ifdef CFG_USE_POSTTASKHOOK
 extern void call_posttaskhook(void);
@@ -366,26 +366,26 @@ extern void init_stack_magic_region(void);
 extern void call_protectionhk_main(StatusType protection_error);
 
 /*
- *  各モジュールの初期化（Os_Lcfg.c）
+ *  Initialization of each module
  */
 extern void object_initialize(void);
 
 /*
- *  各モジュールの終了処理（Os_Lcfg.c）
+ *  End processing of each module
  */
 extern void object_terminate(void);
 
 /*
- *  非タスクコンテキスト用のスタック領域（Os_Lcfg.c）
+ *  Stack area for the non-task context
  */
-extern const MemorySizeType	_ostksz;        /* スタック領域のサイズ（丸めた値） */
-extern StackType * const	_ostk;          /* スタック領域の先頭番地 */
+extern const MemorySizeType	_ostksz;        /* The size of the stack area (rounded value) */
+extern StackType * const	_ostk;          /* The start address of the stack area */
 #ifdef TOPPERS_OSTKPT
-extern StackType * const	_ostkpt;        /* スタックポインタの初期値 */
+extern StackType * const	_ostkpt;        /* The initial value of the stack pointer */
 #endif /* TOPPERS_OSTKPT */
 
 /*
- *  タイミング保護用時間型
+ *  Timing protection for time of frame
  */
 typedef struct time_frame_time {
 	uint32		tfcount;

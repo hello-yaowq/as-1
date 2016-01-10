@@ -66,7 +66,7 @@
  */
 
 /*
- *		割込み管理モジュール
+ *		Interrupt management module
  */
 
 #include "kernel_impl.h"
@@ -76,7 +76,7 @@
 #include "task.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_DISINT_ENTER
 #define LOG_DISINT_ENTER()
@@ -151,8 +151,8 @@
 #endif /* LOG_ENAINTSRC_LEAVE */
 
 /*
- *  すべての割込みの禁止（高速簡易版）
- *  全割込み禁止状態へ移行
+ *  Prohibition of all interrupts (high-speed simplified version)
+ *  Migration to all interrupts are disabled
  */
 #ifdef TOPPERS_DisableAllInterrupts
 
@@ -174,8 +174,8 @@ DisableAllInterrupts(void)
 #endif /* TOPPERS_DisableAllInterrupts */
 
 /*
- *  すべての割込みの許可（高速簡易版）
- *  全割込み禁止状態を解除する
+ *  Allow all of the interrupt (fast simplified version)
+ *  Remove all interrupt disabled state
  */
 #ifdef TOPPERS_EnableAllInterrupts
 
@@ -199,8 +199,8 @@ EnableAllInterrupts(void)
 #endif /* TOPPERS_EnableAllInterrupts */
 
 /*
- *  全割込み禁止
- *  CPU全ての割込みが対象の割込み禁止(ネストカウント有り)
+ *  All interrupt disabled
+ *  CPU all interrupts are subject to the interrupt disabled (nest count there)
  */
 #ifdef TOPPERS_SuspendAllInterrupts
 
@@ -214,7 +214,7 @@ SuspendAllInterrupts(void)
 	LOG_SUSALL_ENTER();
 	S_N_CHECK_DISALLINT();
 	S_N_CHECK_ERROR((run_trusted != FALSE), E_OS_ACCESS);
-	/* ネスト回数の上限値超過 */
+	/* The upper limit of the nesting excess */
 	S_N_CHECK_LIMIT(sus_all_cnt != UINT8_INVALID);
 
 	if (sus_all_cnt == 0U) {
@@ -242,8 +242,8 @@ SuspendAllInterrupts(void)
 #endif /* TOPPERS_SuspendAllInterrupts */
 
 /*
- *  全割込み禁止解除
- *  CPU全ての割込みが対象の割込み許可(ネストカウント有り)
+ *  All interrupt disable release
+ *  CPU all interrupts are subject to the interrupt enable (nest count there)
  */
 #ifdef TOPPERS_ResumeAllInterrupts
 
@@ -283,8 +283,8 @@ ResumeAllInterrupts(void)
 #endif /* TOPPERS_ResumeAllInterrupts */
 
 /*
- *  OS割込みの禁止
- *  C2ISRが対象の割込み禁止(ネストカウント有り)
+ *  Prohibition of OS interrupt
+ *  C2ISR is subject interrupt disabled (nest count there)
  */
 #ifdef TOPPERS_SuspendOSInterrupts
 
@@ -298,12 +298,12 @@ SuspendOSInterrupts(void)
 
 	LOG_SUSOSI_ENTER();
 	S_N_CHECK_DISALLINT();
-	/* ネスト回数の上限値超過 */
+	/* The upper limit of the nesting excess */
 	S_N_CHECK_LIMIT(sus_os_cnt != UINT8_INVALID);
 
 	if (x_is_called_in_c1isr() == FALSE) {
 		/*
-		 *  タスクかC2ISRから呼ばれた場合
+		 *  If it is called from the task or C2ISR
 		 */
 		x_nested_lock_os_int();
 
@@ -313,34 +313,34 @@ SuspendOSInterrupts(void)
 
 			if ((callevel_stat == TCL_TASK) && ((p_runtsk->p_tinib->monitoring & BITMAP_OSINTLOCK) != 0U)) {
 				/*
-				 *  OS割り込み禁止監視処理
+				 *  OS interrupt disable monitoring process
 				 */
-				/* 一つ前の監視項目に現在の監視項目を保存 */
+				/* Save the current monitoring item to the previous monitoring items */
 				os_saved_watchtype = p_runtsk->watchtype;
 				if (p_runtsk->watchtype == NON_MONITORING) {
 					/*
-					 *  現在の監視項目がない
+					 *  There is no current monitoring items
 					 */
-					/* 現在の監視項目にLOCKOSINT_MONITORINGを保存 */
+					/* Save LOCKOSINT_MONITORING to current monitoring items */
 					p_runtsk->watchtype = LOCKOSINT_MONITORING;
-					/* OS割り込み禁止時間バジェットでタイマを開始 */
+					/* And start the timer in the OS interrupt disable time budget */
 					tp_start_timer(osinterruptlock_budget);
 				}
 				else {
 					/*
-					 *  現在の監視項目がタスクかリソース
+					 *  The task of resource current monitoring items
 					 */
-					/* 残り実行時間バジェットを取得 */
+					/* Get the remaining run-time budget */
 					tp_timer = target_tp_get_remaining_ticks();
 					if (tp_timer > osinterruptlock_budget) {
 						/*
-						 *  タイマ切替処理
+						 *  Timer switching process
 						 */
-						/* 現在の監視項目にLOCKOSINT_MONITORINGを保存 */
+						/* Save LOCKOSINT_MONITORING to current monitoring items */
 						p_runtsk->watchtype = LOCKOSINT_MONITORING;
-						/* OS割り込み禁止時間バジェットとタイマ値の値の差を保存 */
+						/* Save the difference between the OS interrupt disable time budget and the time-out value */
 						os_difftime = tp_timer - osinterruptlock_budget;
-						/* OS割り込み禁止時間バジェットでタイマを開始 */
+						/* And start the timer in the OS interrupt disable time budget */
 						tp_start_timer(osinterruptlock_budget);
 					}
 				}
@@ -354,7 +354,7 @@ SuspendOSInterrupts(void)
 	}
 	else {
 		/*
-		 *  C1ISRから呼ばれた場合
+		 *  When called from C1ISR
 		 */
 		if (sus_os_cnt == 0U) {
 			ENTER_CALLEVEL(TSYS_SUSOSINT);
@@ -378,8 +378,8 @@ SuspendOSInterrupts(void)
 #endif /* TOPPERS_SuspendOSInterrupts */
 
 /*
- *  OS割込み禁止解除
- *  C2ISRが対象の割込み許可(ネストカウント有り)
+ *  OS interrupt prohibition release
+ *  C2ISR is the target interrupt enable (nest count there)
  */
 #ifdef TOPPERS_ResumeOSInterrupts
 
@@ -398,7 +398,7 @@ ResumeOSInterrupts(void)
 
 	if (x_is_called_in_c1isr() == FALSE) {
 		/*
-		 *  タスクかC2ISRから呼ばれた場合
+		 *  If it is called from the task or C2ISR
 		 */
 		x_nested_lock_os_int();
 
@@ -411,30 +411,32 @@ ResumeOSInterrupts(void)
 
 			if ((callevel_stat == TCL_TASK) && ((p_runtsk->p_tinib->monitoring & BITMAP_OSINTLOCK) != 0U)) {
 				/*
-				 *  OS割り込み禁止監視処理
+				 *  OS interrupt disable monitoring process
 				 */
-				/* 現在の監視項目に一つ前の監視項目を保存 */
+				/* Save the previous monitoring item to the current monitoring items */
 				p_runtsk->watchtype = os_saved_watchtype;
 				if (os_saved_watchtype == NON_MONITORING) {
 					/*
-					 *  一つ前の監視項目がない
+					 *  There is no one prior to the monitoring items
 					 */
-					/* 残り実行時間バジェットを取得し，停止する*/
+					/* It acquires the remaining run-time budget, to stop */
 					tp_timer = tp_stop_timer();
 				}
 				else {
 					/*
-					 *  一つ前の監視項目がタスクかリソース
+					 *  Previous monitoring item task of resource
 					 */
 					if (os_difftime != 0U) {
 						/*
-						 *  タイマ切替処理
+						 *  Timer switching process
 						 */
-						/* 残り実行時間バジェットを取得し，停止する*/
+						/* It acquires the remaining run-time budget, to stop */
 						tp_timer = tp_stop_timer();
-						/* SuspendOSInterrupts時に保存したos_difftimeとタイマ値を一つ前の監視項目の残り時間を復帰させ，タイマをスタート */
+						/* The os_difftime and timer value saved at SuspendOSInterrupts to restore 
+						 * the remaining time of the previous monitoring items, and starts a timer
+						 */
 						tp_start_timer(os_difftime + tp_timer);
-						/* os_difftimeの初期化 */
+						/* initialization of os_difftime */
 						os_difftime = 0U;
 					}
 				}
@@ -444,7 +446,7 @@ ResumeOSInterrupts(void)
 	}
 	else {
 		/*
-		 *  C1ISRから呼ばれた場合
+		 *  When called from C1ISR
 		 */
 		sus_os_cnt--;
 		if (sus_os_cnt == 0U) {
@@ -468,7 +470,7 @@ ResumeOSInterrupts(void)
 #endif /* TOPPERS_ResumeOSInterrupts */
 
 /*
- *  C2ISR IDの取得
+ *  Get C2ISR ID
  */
 #ifdef TOPPERS_GetISRID
 
@@ -491,8 +493,8 @@ GetISRID(void)
   exit_errorhook:
 	x_nested_lock_os_int();
 	/*
-	 *  エラー発生時はINVALID_ISRIDが返るが，エラーが発生したのか実行中の
-	 *  C2ISRが存在しないのか区別するため，エラーフックを呼ぶ
+	 *  When an error occurs but INVALID_ISRID is returned, in order to distinguish 
+	 * whether the error does not exist C2ISR running what has occurred, it is referred to as the error hook
 	 */
 	call_errorhook(ercd, OSServiceId_GetISRID);
 	x_nested_unlock_os_int();
@@ -506,7 +508,7 @@ GetISRID(void)
 #endif /* TOPPERS_GetISRID */
 
 /*
- *  割込みの禁止
+ *  Prohibition of interrupt
  */
 #ifdef TOPPERS_DisableInterruptSource
 
@@ -545,7 +547,7 @@ DisableInterruptSource(ISRType DisableISR)
 #endif /* TOPPERS_DisableInterruptSource */
 
 /*
- *  割込みの許可
+ *  Allow interrupt
  */
 #ifdef TOPPERS_EnableInterruptSource
 

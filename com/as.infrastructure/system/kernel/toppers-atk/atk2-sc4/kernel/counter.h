@@ -138,7 +138,7 @@ typedef struct hardware_counter_initialization_block {
 	HardwareCounterIntClearRefType	intclear;           /* Interrupt request clear function type */
 	HardwareCounterIntCancelRefType	intcancel;          /* Interrupt request cancellation function type */
 	HardwareCounterIncrementRefType	increment;          /* Increment function pointer */
-	TimeType						nspertick;          /* Weight of one tick of the hardware counter(ns単位) */
+	TimeType						nspertick;          /* Weight of one tick of the hardware counter(ns unit) */
 } HWCNTINIB;
 
 /*

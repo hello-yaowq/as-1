@@ -52,6 +52,8 @@ extern boolean target_is_int_controllable(uint32 intno);
 extern void    x_enable_int(uint32 intno);
 extern void    x_disable_int(uint32 intno);
 
+extern void target_initialize(void);
+extern void target_exit(void);
 extern void target_tp_initialize(void);
 extern void target_tp_terminate(void);
 extern void target_tp_start_timer(TickType tick);
@@ -72,4 +74,5 @@ extern void exit_and_dispatch_nohook(void);
 extern void activate_force_term_osap_main(void* tcb);
 extern void activate_context(void* tcb);
 extern StatusType trustedfunc_stack_check(uintptr sz);
+extern uint8 probe_trusted_osap_mem(void* sadr, void* eadr);
 #endif /* COM_AS_INFRASTRUCTURE_SYSTEM_KERNEL_TOPPERS_ATK_ATK2_SC4_PORTABLE_POSIX_PORTABLE_H_ */

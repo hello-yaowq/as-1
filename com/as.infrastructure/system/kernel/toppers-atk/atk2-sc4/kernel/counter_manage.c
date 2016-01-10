@@ -66,7 +66,7 @@
  */
 
 /*
- *		カウンタ管理モジュール
+ *		Counter management module
  */
 
 #include "kernel_impl.h"
@@ -74,7 +74,7 @@
 #include "counter.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_INCCNT_ENTER
 #define LOG_INCCNT_ENTER(cntid)
@@ -101,7 +101,7 @@
 #endif /* LOG_GETEPS_LEAVE */
 
 /*
- *  カウンタのインクリメント
+ *  Increment of the counter
  */
 #ifdef TOPPERS_IncrementCounter
 
@@ -123,15 +123,15 @@ IncrementCounter(CounterType CounterID)
 	p_osapcb = p_cntcb->p_cntinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* カウンタ所属のOSAPの状態をチェック */
+	/* Check OSAP of state of the counter belongs */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
 
 	/*
-	 *  カウンタのインクリメント
-	 *  エラーの場合はincr_counter_processでエラーフック呼び出しているので，
-	 *  ここでは，エラーフックを呼び出さない
+	 *  Increment of the counter
+	 *  Since the case of error are calling error hook incr_counter_process, 
+	 * here, it is not called the error hook
 	 */
 	ercd = incr_counter_process(p_cntcb, CounterID);
 
@@ -155,7 +155,7 @@ IncrementCounter(CounterType CounterID)
 #endif /* TOPPERS_IncrementCounter */
 
 /*
- *  カウンタ値の参照
+ *  Reference counter value
  */
 #ifdef TOPPERS_GetCounterValue
 
@@ -177,16 +177,17 @@ GetCounterValue(CounterType CounterID, TickRefType Value)
 	CHECK_RIGHT(p_cntcb->p_cntinib->acsbtmp);
 
 	/*
-	 *  内部処理のため，コンフィギュレーション設定値の２倍＋１までカウント
-	 *  アップするのでカウンタ値が設定値よりも大きい場合は設定値を減算する
+	 *  For internal processing, the counter value since the count up to twice +1 
+	 * configuration settings is greater than the set value will be subtracted
+	 * from the set value
 	 *
-	 *  *Value を直接操作してもよいが,局所変数がレジスタに割当てられること
-	 *  による速度を期待している
+	 *  *Value May be operated directly, but is expected to speed by the local
+	 * variables are allocated to register
 	 */
 	p_osapcb = p_cntcb->p_cntinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* カウンタ所属のOSAPの状態をチェック */
+	/* Check OSAP of state of the counter belongs */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -221,7 +222,7 @@ GetCounterValue(CounterType CounterID, TickRefType Value)
 #endif /* TOPPERS_GetCounterValue */
 
 /*
- *  経過カウンタ値の参照
+ *  Reference of the elapsed-time counter value
  */
 #ifdef TOPPERS_GetElapsedValue
 
@@ -247,13 +248,14 @@ GetElapsedValue(CounterType CounterID, TickRefType Value, TickRefType ElapsedVal
 	CHECK_VALUE(*Value <= p_cntcb->p_cntinib->maxval);
 
 	/*
-	 *  内部処理のため，コンフィギュレーション設定値の２倍＋１までカウント
-	 *  アップするのでカウンタ値が設定値よりも大きい場合は設定値を減算する
+	 *  For internal processing, the counter value since the count up to 
+	 * twice +1 configuration settings is greater than the set value will
+	 * be subtracted from the set value
 	 */
 	p_osapcb = p_cntcb->p_cntinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* カウンタ所属のOSAPの状態をチェック */
+	/* Check OSAP of state of the counter belongs */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -290,9 +292,9 @@ GetElapsedValue(CounterType CounterID, TickRefType Value, TickRefType ElapsedVal
 #endif /* TOPPERS_GetElapsedValue */
 
 /*
- *  ハードウェアカウンタ満了処理
+ *  Hardware counter expiration processing
  *
- *  割込みルーチンより実行される
+ *  It is executed from an interrupt routine
  */
 #ifdef TOPPERS_notify_hardware_counter
 
@@ -303,12 +305,12 @@ notify_hardware_counter(CounterType cntid)
 
 	p_cntcb = get_cntcb(cntid);
 
-	/* カウンタ満了処理中はOS割込みを禁止 */
+	/* During counter expiration process prohibit the OS interrupt */
 	x_nested_lock_os_int();
 
 	/*
-	 *  ハードウェアカウンタに対応するC2ISRが起動した際に，
-	 *  割込み要求のクリア処理を実行する
+	 *  When C2ISR corresponding to the hardware counter is started, 
+	 * you run the clear processing of the interrupt request
 	 */
 	(hwcntinib_table[cntid].intclear)();
 
@@ -320,9 +322,9 @@ notify_hardware_counter(CounterType cntid)
 #endif /* TOPPERS_notify_hardware_counter */
 
 /*
- *  カウンタのインクリメント
+ *  Increment of the counter
  *
- *  条件：割込み禁止状態で呼ばれる
+ *  Conditions: it is called in the interrupt disabled state
  */
 #ifdef TOPPERS_incr_counter_process
 
@@ -335,8 +337,8 @@ incr_counter_process(CNTCB *p_cntcb, CounterType CounterID)
 	LOG_INCCNT_ENTER(CounterID);
 
 	/*
-	 *  カウンタが操作中(IncrementCounterのネスト）の場合エラー
-	 *  ※独自仕様
+	 *  Error if the counter is in operation (nest of IncrementCounter)
+	 * Proprietary specification
 	 */
 	D_CHECK_STATE(p_cntcb->cstat == CS_NULL);
 
@@ -376,9 +378,9 @@ incr_counter_process(CNTCB *p_cntcb, CounterType CounterID)
 #endif /* TOPPERS_incr_counter_process */
 
 /*
- *  アラーム満了によるカウンタのインクリメント
+ *  Increment of the counter by the alarm expiration
  *
- *  条件：割込み禁止状態で呼ばれる
+ *  Conditions: it is called in the interrupt disabled state
  */
 #ifdef TOPPERS_incr_counter_action
 
@@ -391,7 +393,7 @@ incr_counter_action(OSAPCB *p_expire_osapcb, CounterType CounterID)
 
 	p_cntcb = get_cntcb(CounterID);
 	p_osapcb = p_cntcb->p_cntinib->p_osapcb;
-	/* 満了点所属のOSAP及びインクリメントカウンタ所属のOSAPの状態をチェック */
+	/* Check the status of the expiration point belongs OSAP and the increment counter belongs OSAP */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) || (p_expire_osapcb == p_osapcb));
 
 	ercd = incr_counter_process(p_cntcb, CounterID);

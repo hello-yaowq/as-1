@@ -47,6 +47,8 @@ boolean target_is_int_controllable(uint32 intno) {}
 void    x_enable_int(uint32 intno) {}
 void    x_disable_int(uint32 intno) {}
 
+void target_initialize(void) {}
+void target_exit(void)       {}
 void target_tp_initialize(void) {}
 void target_tp_terminate(void) {}
 void target_tp_start_timer(TickType tick) {}

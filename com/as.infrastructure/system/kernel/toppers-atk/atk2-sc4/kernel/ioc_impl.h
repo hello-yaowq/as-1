@@ -66,7 +66,7 @@
  */
 
 /*
- *		IOC機能
+ *		IOC function
  */
 
 #ifndef TOPPERS_IOC_IMPL_H
@@ -76,87 +76,87 @@
 #include "osap.h"
 
 /*
- *  Wrapper IDからIOCWRPINIBを取り出すためのマクロ
+ *  Macro for extracting IOCWRPINIB from Wrapper ID
  */
 #define get_iocwrpinib(WrapperId)	(&iocwrpinib_table[(WrapperId)])
 
 /*
- *  IOC IDからIOCCB,IOCINIBを取り出すためのマクロ
+ *  IOCCB from IOC ID, macro for extracting IOCINIB
  */
 #define get_ioccb(iocid)		(&ioccb_table[(iocid)])
 #define get_iocinib(iocid)		(&iocinib_table[(iocid)])
 
 /*
- *  IOCWRPINIBからIOC IDを取り出すためのマクロ
+ *  Macro for extracting IOC ID from IOCWRPINIB
  */
 #define IOCID(p_iocwrpinib)	((IocType) (((p_iocwrpinib)->p_iocinib) - iocinib_table))
 
 
 
 /*
- *  IOC初期化ブロック
+ *  IOC initialization block
  */
 typedef struct ioc_initialization_block {
-	uint32	maxque;                 /* キュー数 */
-	uint32	datasz;                 /* データサイズ */
-	uint32	alignsz;                /* アラインサイズ */
+	uint32	maxque;                 /* Number of queues */
+	uint32	datasz;                 /* Data size */
+	uint32	alignsz;                /* Aligned size */
 #ifdef CFG_USE_ERRORHOOK
-	boolean	groupflg;            /* グループ通信フラグ */
+	boolean	groupflg;            /* Group communication flag */
 #endif /* CFG_USE_ERRORHOOK */
-	OSAPCB	*p_rcvosapcb;        /* Receiverが所属するOSAPの初期化ブロックへのポインタ */
+	OSAPCB	*p_rcvosapcb;        /* A pointer to the initialization block of OSAP the Receiver belongs */
 	void	*p_iocmb;
 } IOCINIB;
 
 /*
- *  IOC管理ブロック（Os_Lcfg.c）
+ *  IOC management block
  */
 typedef struct ioc_control_block {
-	uint32	quecnt;                 /* 現在のキュー数 */
-	uint32	head;                   /* キューの先頭 */
-	uint32	tail;                   /* キューの最後 */
-	boolean	lostflg;                /* キューフルエラー(E_LOST_DATA)用フラグ */
+	uint32	quecnt;                 /* Current number of queue */
+	uint32	head;                   /* The head of the queue */
+	uint32	tail;                   /* Queue last */
+	boolean	lostflg;                /* Flag queue full error (E_LOST_DATA) */
 } IOCCB;
 
 /*
- *  IOC Wrapper初期化ブロック
+ *  IOC Wrapper initialization block
  */
 typedef struct ioc_wrapper_initialization_block {
-	const IOCINIB	*p_iocinib;         /* IOC初期化ブロックへのポインタ */
-	OSAPCB			*p_sndosapcb;       /* Senderが所属するOSAPの初期化ブロックへのポインタ */
+	const IOCINIB	*p_iocinib;         /* A pointer to the IOC initialization block */
+	OSAPCB			*p_sndosapcb;       /* A pointer to the SOAP initialization block the Sender belongs */
 	SenderIdType	senderid;           /* SenderID */
 } IOCWRPINIB;
 
 
-extern const IocType	tnum_ioc;       /* IOCの数 */
-extern const IocType	tnum_queueioc;  /* キューありIOCの数 */
+extern const IocType	tnum_ioc;       /* The number of IOC */
+extern const IocType	tnum_queueioc;  /* The number of queues There IOC */
 
 /*
- *  IOC Wrapper初期化ブロック（Os_Lcfg.c）
+ *  IOC Wrapper initialization block
  */
 extern const IOCWRPINIB	iocwrpinib_table[];
 
 /*
- *  IOC初期化ブロック（Os_Lcfg.c）
+ *  IOC initialization block 
  */
 extern const IOCINIB	iocinib_table[];
 
 /*
- *  IOC管理ブロック（Os_Lcfg.c）
+ *  IOC management block
  */
 extern IOCCB			ioccb_table[];
 
 /*
- *  IOC WRAPPER初期化ブロック（Os_Lcfg.c）
+ *  IOC WRAPPER initialization block
  */
 extern const IOCWRPINIB	iocwrpinib_table[];
 
 /*
- *  IOC初期化値テーブル
+ *  IOC initialization value table
  */
 extern void				*ioc_inival_table[];
 
 /*
- *  IOC管理モジュールの初期化
+ *  Initialization of the IOC management module
  */
 extern void ioc_initialize(void);
 

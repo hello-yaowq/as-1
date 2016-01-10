@@ -65,20 +65,16 @@
  *  $Id: kernel_int.h 504 2015-12-24 01:22:56Z witz-itoyo $
  */
 
-/*
- *		Os_Lcfg.c（およびcfg1_out.c）用ヘッダファイル
- */
-
 #ifndef TOPPERS_KERNEL_INT_H
 #define TOPPERS_KERNEL_INT_H
 
 /*
- *  カーネル標準ヘッダファイル
+ *  Kernel standard header file
  */
 #include "kernel_impl.h"
 
 /*
- *  カーネルの各ヘッダファイル
+ *  Each header file of the kernel
  */
 #include "task.h"
 #include "counter.h"
@@ -91,44 +87,44 @@
 #include "timingprotection.h"
 
 /*
- *  メインルーチン名定義用のマクロ
+ *  Macro for the main routine definition
  */
 #define TASKNAME(TaskName)	TaskMain ## TaskName
 #define ISRNAME(ISRName)	ISRMain ## ISRName
 
 /*
- *  オブジェクトの属性の定義（コンフィギュレーションファイルでのみ使用）
+ *  The definition of the attributes of an object (used in configuration files only)
  */
 
 /*
- *  イベントマスク値
+ *  Event mask value
  */
-#define AUTO		UINT_C(0x00)    /* イベントマスク値=AUTO */
+#define AUTO		UINT_C(0x00)    /* Event mask value=AUTO */
 
-#define TA_NOWRITE		UINT_C(0x01)    /* 書込みアクセス禁止 */
-#define TA_NOREAD		UINT_C(0x02)    /* 読出しアクセス禁止 */
-#define TA_EXEC			UINT_C(0x04)    /* 実行アクセス許可 */
-#define TA_MEMINI		UINT_C(0x08)    /* メモリの初期化を行う */
-#define TA_MEMPRSV		UINT_C(0x10)    /* メモリの初期化を行わない */
-#define TA_SDATA		UINT_C(0x20)    /* ショートデータ領域に配置 */
-#define TA_UNCACHE		UINT_C(0x40)    /* キャッシュ不可 */
-#define TA_IODEV		UINT_C(0x80)    /* 周辺デバイスの領域 */
+#define TA_NOWRITE		UINT_C(0x01)    /* Write access ban */
+#define TA_NOREAD		UINT_C(0x02)    /* Read access ban */
+#define TA_EXEC			UINT_C(0x04)    /* Execute permissions */
+#define TA_MEMINI		UINT_C(0x08)    /* Do initialization of memory */
+#define TA_MEMPRSV		UINT_C(0x10)    /* It is not performed to initialize the memory */
+#define TA_SDATA		UINT_C(0x20)    /* Place the short data area */
+#define TA_UNCACHE		UINT_C(0x40)    /* Cacheable */
+#define TA_IODEV		UINT_C(0x80)    /* Area of the peripheral device */
 
 #ifdef TOPPERS_TARGET_SUPPORT_ATT_MOD
-#define TOPPERS_SUPPORT_ATT_MOD         /* ATT_MODがサポートされている */
+#define TOPPERS_SUPPORT_ATT_MOD         /* ATT_MOD is supported */
 #endif /* TOPPERS_TARGET_SUPPORT_ATT_MOD */
 
 /*
- * OSアプリケーションID（HRP2の保護ドメインID）
+ * OS application ID (protection domain ID of HRP2)
  */
-#define TDOM_KERNEL		(-1)            /* カーネルドメイン */
-#define TDOM_NONE		(-2)            /* 無所属（保護ドメインに属さない）*/
+#define TDOM_KERNEL		(-1)            /* Kernel domain */
+#define TDOM_NONE		(-2)            /* Independent (not belonging to a protection domain)*/
 
-#define TA_NULL			UINT_C(0)       /* オブジェクト属性を指定しない */
+#define TA_NULL			UINT_C(0)       /* It does not specify the object attributes */
 
 /*
- * OSアプリケーション関係のマクロ
+ * Macro OS application relationship
  */
-#define TMAX_NTOSAPP		32          /* 非信頼OSアプリケーションの最大数 */
+#define TMAX_NTOSAPP		32          /* The maximum number of non-confidence OS application */
 
 #endif /* TOPPERS_KERNEL_INT_H */

@@ -25,9 +25,9 @@ def genH(gendir,os_list):
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Std_Types.h"\n')
     fp.write('#include "atk_os.h"\n')
-    fp.write('#include "allfunc.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __TOPPERS_ATK2_SC4__\n\n')
+    fp.write('#define ALLFUNC\n\n')
     fp.write('#define RES_SCHEDULER 0 \n\n')
     fp.write('#define OSDEFAULTAPPMODE 0 \n\n')
     task_list = ScanFrom(os_list,'Task')
@@ -66,8 +66,8 @@ def genH(gendir,os_list):
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    fp.write('extern void target_initialize(void);\n')
-    fp.write('extern void object_initialize(void);\n\n')
+    fp.write('extern void object_initialize(void);\n')
+    fp.write('extern void object_terminate(void);\n\n')
     for id,task in enumerate(task_list):
         fp.write('extern TASK(%s);\n'%(task.attrib['name']))
     fp.write('\n\n')
@@ -171,10 +171,8 @@ def genC(gendir,os_list):
     fp.write('const BSSSECINIB    bsssecinib_table[1];\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    fp.write('void target_initialize(void) {}\n')
     fp.write('void object_initialize(void) {}\n')
     fp.write('void object_terminate(void)  {}\n')
-    fp.write('void target_exit(void)       {}\n')
     fp.write('\n')
 
 def gen_toppers_atk2_sc4(gendir,os_list):

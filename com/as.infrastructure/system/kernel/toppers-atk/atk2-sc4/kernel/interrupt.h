@@ -66,7 +66,7 @@
  */
 
 /*
- *		割込み管理機能
+ *		Interrupt management functions
  */
 
 #ifndef TOPPERS_INTERRUPT_H
@@ -77,137 +77,138 @@
 #include "timingprotection.h"
 
 /*
- *  優先度値の定義（内部表現）
+ *  Definition of priority values (internal representation)
  */
-#define TPRI_MINISR		(-1)            /* 最低割込み優先度 */
+#define TPRI_MINISR		(-1)            /* Lowest interrupt priority */
 
 /*
- *  ISRIDからISRCBを取り出すためのマクロ
+ *  Macro for taking out the ISRCB by ISRID
  */
 #define get_isrcb(isrid)	(&(isrcb_table[(isrid)]))
 
 /*
- *  ISRCBからISRIDを取り出すためのマクロ
+ *  Macro for extracting ISRID from ISRCB 
  */
 #define ISR2ID(p_isrcb)	((ISRType) ((p_isrcb) - isrcb_table))
 
 #ifndef OMIT_INITIALIZE_INTERRUPT
 
 /*
- *  割込み要求ライン初期化ブロック
+ *  Interrupt request line initialization block
  */
 typedef struct interrupt_request_initialization_block {
-	InterruptNumberType	intno;          /* 割込み番号 */
-	AttributeType		intatr;         /* 割込み属性 */
-	PriorityType		intpri;         /* 割込み優先度 */
+	InterruptNumberType	intno;          /* Interrupt number */
+	AttributeType		intatr;         /* Interrupt attribute */
+	PriorityType		intpri;         /* Interrupt priority */
 #if defined(TOPPERS_CFG1_OUT) || defined(CFG_USE_STACKMONITORING)
-	MemorySizeType remain_stksz;        /* スタック残量チェック方式用スタックサイズ */
+	MemorySizeType remain_stksz;        /* Stack size stack remaining check scheme */
 #endif /* defined(TOPPERS_CFG1_OUT) || defined(CFG_USE_STACKMONITORING) */
 } INTINIB;
 
 /*
- *  割込み要求ラインの数（Os_Lcfg.c）
+ *  The number of interrupt request line 
  */
 extern const InterruptNumberType	tnum_intno;
 
 /*
- *  割込み要求ライン初期化ブロックのエリア（Os_Lcfg.c）
+ *  Interrupt request line initialization block area 
  */
 extern const INTINIB				intinib_table[];
 
 /*
- *  ISRCBから割込み番号を割出すマクロ
+ *  Macro to determine the interrupt number from ISRCB
  */
 #define GET_INTNO(p_isrcb)	((p_isrcb)->p_isrinib->p_intinib->intno)
 
 /*
- *  ISRCBから割込み優先度を割出すマクロ
+ *  Macro to determine the interrupt priority from ISRCB
  */
 #define GET_INTPRI(p_isrcb)	((p_isrcb)->p_isrinib->p_intinib->intpri)
 
 #endif /* OMIT_INITIALIZE_INTERRUPT */
 
 typedef struct isr_initialization_block {
-	const INTINIB	*p_intinib;     /* 割込み要求ライン初期化ブロックへのポインタ */
-	OSAPCB			*p_osapcb;      /* 所属するOSアプリケーションの管理ブロック */
-	uint32			acsbtmp;        /* アクセス許可OSアプリケーション ビットマップ */
-	TFTIME			time_frame;     /* 最小到着時間 */
+	const INTINIB	*p_intinib;     /* Pointer to the interrupt request line initialization block */
+	OSAPCB			*p_osapcb;      /* Management block belongs to OS application */
+	uint32			acsbtmp;        /* Permissions OS application bitmap */
+	TFTIME			time_frame;     /* Minimum arrival time */
 } ISRINIB;
 
 typedef struct isr_control_block {
 	const ISRINIB	*p_isrinib;
-	RESCB			*p_lastrescb;   /* 最後に獲得したリソース管理ブロックへのポインタ */
+	RESCB			*p_lastrescb;   /* A pointer to the last acquired resource management block */
 #ifdef CFG_USE_PROTECTIONHOOK
-	boolean	calltfn;                /* 信頼関数呼び出し中フラグ */
+	boolean	calltfn;                /* Trust function call in the flag */
 #endif /* CFG_USE_PROTECTIONHOOK */
-	TPACB 			tpacb;          /* 到着間隔保護保護管理ブロック */
+	TPACB 			tpacb;          /* Arrival interval protection protection management block */
 } ISRCB;
 
 /*
- *  C2ISR数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable that holds the C2ISR number
  */
-extern const ISRType	tnum_isr2;                         /* C2ISRの数 */
+extern const ISRType	tnum_isr2;                         /* Number of C2ISR */
 
 /*
- *  C2ISRの初期化ブロックのエリア（Os_Lcfg.c）
+ *  Of initialization block of C2ISR area
  */
 extern const ISRINIB	isrinib_table[];
 
 /*
- *  C2ISRの管理ブロックのエリア（Os_Lcfg.c）
+ *  C2ISR area of the management block 
  */
 extern ISRCB			isrcb_table[];
 
 /*
- *  実行中のC2ISR
+ *  C2ISR running
  *
- *  C2ISRを実行していない時は，NULL にする
+ *  When you are not running the C2ISR will be to NULL
  */
 extern ISRCB			*p_runisr;
 
 /*
- *  SuspendAllInterrupts のネスト回数
+ *  SuspendAllInterrupts Nesting number
  */
 extern uint8			sus_all_cnt;
 
 /*
- *  SuspendOSInterrupts のネスト回数
+ *  SuspendOSInterrupts Nesting number
  */
 extern uint8			sus_os_cnt;
 
 /*
- *  SuspendOSInterruptsの最初の呼び出し時の割込み優先度
+ *  Interrupt priority of the first call to SuspendOSInterrupts
  */
 extern PriorityType		sus_os_prevpri;
 
 /*
- * OS割り込み禁止時間バジェット
+ * OS interrupt disable time budget
  */
 extern const TickType	osinterruptlock_budget;
 
 /*
- *  OS割り込み禁止時間バジェットと元の監視項目の残り時間との差分
+ *  The difference between the remaining time of the OS interrupt disable time 
+ * budget and the original monitoring items
  */
 extern TickType			os_difftime;
 
 /*
- *  一つ前の監視項目
+ *  Previous monitoring items
  */
 extern MonitoringType	os_saved_watchtype;
 
 /*
- *  割込み管理機能の初期化
+ *  Initialization of interrupt management functions
  */
 extern void interrupt_initialize(void);
 
 /*
- *  割込み禁止の強制解除
+ *  Forced release of interrupt disabled
  */
 
 extern void release_interrupts(OSServiceIdType serviceId);
 
 /*
- *  C2ISR終了時のチェック関数
+ *  C2ISR at the end of the check function
  */
 extern void exit_isr2(void);
 

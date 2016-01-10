@@ -66,7 +66,7 @@
  */
 
 /*
- *		割込み制御モジュール
+ *		Interrupt control module
  */
 
 #include "kernel_impl.h"
@@ -74,40 +74,41 @@
 
 #ifdef TOPPERS_interrupt_initialize
 /*
- *  実行中のC2ISR
+ *  C2ISR running
  */
 ISRCB			*p_runisr;
 
 /*
- *  割込み管理機能内部で使用する変数の定義
+ *  The definition of the variables used in internal interrupt management function
  */
 
 /*
- *  SuspendAllInterrupts のネスト回数
+ *  SuspendAllInterrupts Nesting numbers
  */
 uint8			sus_all_cnt = 0U;
 
 /*
- *  SuspendOSInterrupts のネスト回数
+ *  SuspendOSInterrupts Nesting numbers
  */
 uint8			sus_os_cnt = 0U;
 
 /*
- *  SuspendOSInterruptsの最初の呼び出し時の割込み優先度
+ *  Interrupt priority of the first call to SuspendOSInterrupts
  */
 PriorityType	sus_os_prevpri;
 
 /*
- *  OS割り込み禁止時間バジェットと元の監視項目の残り時間との差分
+ *  The difference between the remaining time of the OS interrupt disable time 
+ * budget and the original monitoring items
  */
 TickType		os_difftime;
 /*
- *  一つ前の監視項目
+ *  Previous monitoring items
  */
 MonitoringType	os_saved_watchtype;
 
 /*
- *  割込み管理機能の初期化
+ *  Initialization of interrupt management functions
  */
 #ifndef OMIT_INITIALIZE_INTERRUPT
 
@@ -149,7 +150,7 @@ interrupt_initialize(void)
 #endif /* TOPPERS_interrupt_initialize */
 
 /*
- *  割込み禁止の解除
+ *  Release of the interrupt disable
  */
 #ifdef TOPPERS_release_interrupts
 
@@ -182,7 +183,7 @@ release_interrupts(OSServiceIdType serviceId)
 #endif /* CFG_USE_ERRORHOOK */
 	}
 
-	/* C2ISRの場合のみDisAllを解除する */
+	/* It will release the DisAll only case of C2ISR */
 	if (serviceId == OSServiceId_ISRMissingEnd) {
 		if ((callevel_stat & TSYS_DISALLINT) != TSYS_NULL) {
 			LEAVE_CALLEVEL(TSYS_DISALLINT);
@@ -203,18 +204,18 @@ release_interrupts(OSServiceIdType serviceId)
 #endif /* TOPPERS_release_interrupts */
 
 /*
- *  C2ISR終了時のチェック関数
+ *  C2ISR at the end of the check function
  */
 #ifdef TOPPERS_exit_isr2
 
 /*
- *  C2ISRの全リソース返却
+ *  All resources return of C2ISR
  */
 LOCAL_INLINE void
 release_isrresources(ISRCB *p_isrcb)
 {
 
-	/* OS割込み禁止状態以上で来るはず */
+	/* It should come with OS interrupt disable state abnormality */
 	if (p_isrcb->p_lastrescb != NULL) {
 		do {
 			x_set_ipm(p_isrcb->p_lastrescb->prevpri);

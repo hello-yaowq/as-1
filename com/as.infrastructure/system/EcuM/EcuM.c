@@ -240,7 +240,7 @@ void EcuM_StartupTwo(void)
 		NvM_GetErrorStatus(0, &readAllResult);
 		tickTimerElapsed = GetTimer(&nvmTimer);
 		/* The timeout EcuMNvramReadAllTimeout is in ms */
-	} while( (readAllResult == NVM_REQ_PENDING) && (GetTimer < EcuM_World.config->EcuMNvramReadAllTimeout) );
+	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < EcuM_World.config->EcuMNvramReadAllTimeout) );
 #endif
 
 	// Initialize drivers that need NVRAM data
