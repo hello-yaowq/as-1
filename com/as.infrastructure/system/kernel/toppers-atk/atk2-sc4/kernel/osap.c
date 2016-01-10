@@ -77,11 +77,11 @@
 #include "timingprotection.h"
 
 /*
- *		OSアプリケーション管理モジュール
+ *		OS application management module
  */
 
 /*
- *  トレースマクロのデフォルト定義
+ *  The default definition of trace macro
  */
 #ifndef LOG_GETOSAPID_ENTER
 #define LOG_GETOSAPID_ENTER()
@@ -220,18 +220,18 @@
 #endif /* LOG_TERMINATEAPPLICATION_LEAVE */
 
 #ifdef TOPPERS_force_term_osap
-/* 内部関数のプロトタイプ宣言 */
+/* Prototype declaration of internal functions */
 static void force_term_osap_main(void);
 #endif /* TOPPERS_force_term_osap */
 
 #ifdef TOPPERS_osap_initialize
 /*
- *  実行中のOSアプリケーション
+ *  OS application running
  */
 OSAPCB *p_runosap;
 
 /*
- *  OSアプリケーション管理ブロック初期化
+ *  OS application management block initialization
  */
 void
 osap_initialize(void)
@@ -250,7 +250,7 @@ osap_initialize(void)
 #endif /* TOPPERS_osap_initialize */
 
 /*
- *  実行状態のOSアプリケーション ID取得
+ *  OS application ID acquisition of execution state
  */
 #ifdef TOPPERS_GetApplicationID
 
@@ -285,7 +285,7 @@ GetApplicationID(void)
 #endif /* TOPPERS_GetApplicationID */
 
 /*
- *  アプリケーションを利用可能な状態にするシステムサービス
+ *  System services that the application to the available state
  */
 #ifdef TOPPERS_GetApplicationState
 
@@ -343,15 +343,15 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 	CHECK_DISABLEDINT();
 	CHECK_CALLEVEL(CALLEVEL_CALLTRUSTEDFUNCTION);
 
-	/* ファンクションIDのチェック */
+	/* Check the function ID */
 	CHECK_SERVICEID(FunctionIndex < tnum_tfn);
 
-	/* 使用するスタックのチェック */
+	/* Check the stack to be used */
 	p_tfinib = &(tfinib_table[FunctionIndex]);
 	ercd = trustedfunc_stack_check(p_tfinib->tf_stksz);
 	CHECK_NO_ERCD(ercd == E_OK);
 
-	/* 信頼関数実行時間監視 */
+	/* Trust function execution time monitoring */
 	if (is_tp_timer_running != FALSE) {
 		tp_timer = target_tp_get_remaining_ticks();
 		CHECK_ERROR_ERCD((tp_timer > p_tfinib->tf_budget), E_OS_TIMEINSUFFICIENT);
@@ -361,7 +361,7 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 	run_trusted = TRUE;
 
 #ifdef CFG_USE_PROTECTIONHOOK
-	/* 信頼関数呼び出し中フラグ設定 */
+	/* Trust in a function call flag setting */
 	if (callevel_stat == TCL_TASK) {
 		saved_calltfn = p_runtsk->calltfn;
 		p_runtsk->calltfn = TRUE;
@@ -373,7 +373,7 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 #endif /* CFG_USE_PROTECTIONHOOK */
 
 	LOG_TFN_ENTER(FunctionIndex);
-	/* 信頼関数実行 */
+	/* Run trust function */
 	ercd = p_tfinib->trs_func(FunctionIndex, FunctionParams);
 	LOG_TFN_LEAVE(FunctionIndex, ercd);
 
@@ -397,7 +397,7 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 #endif /* CFG_USE_STACKMONITORING */
 
 #ifdef CFG_USE_PROTECTIONHOOK
-	/* 信頼関数呼び出し中フラグ戻す */
+	/* Return in trust function call flag */
 	if (callevel_stat == TCL_TASK) {
 		p_runtsk->calltfn = saved_calltfn;
 	}
@@ -408,7 +408,7 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 
 	run_trusted = saved_run_trusted;
 
-	/* 信頼関数がエラーになった場合もエラーフックを呼び出す */
+	/* Call the error hook even if the trust function resulted in an error */
 	CHECK_NO_ERCD(ercd == E_OK);
 
   exit_no_errorhook:
@@ -431,23 +431,23 @@ CallTrustedFunction(TrustedFunctionIndexType FunctionIndex,
 #endif /* TOPPERS_CallTrustedFunction */
 
 /*
- *  アクセスチェック関数
+ *  Access check function
  */
 
 /*
- *  OSアプリケーションのオブジェクトのアクセス権限チェックシステムサービス
+ *  Access authority checking system services object of OS applications
  */
 
 /*
- *  ビットマップチェックマクロ
- *   このファイル内のみで使用するため，ここで定義している
+ *  Bitmap check macro
+ *   For use only this file, and is defined here
  */
 
 #define	CHECK_OSAP_ACS(p_osapinib, btmp)	(ObjectAccessType) ((((p_osapinib)->osap_trusted) != FALSE) || \
 																(((p_osapinib)->btptn & (btmp)) != 0U))
 
 /*
- *  タスク用アクセス権限チェックシステムサービス
+ *  Task for the access authority checking system service
  */
 #ifdef TOPPERS_CheckTaskAccess
 
@@ -492,7 +492,7 @@ CheckTaskAccess(ApplicationType ApplID, TaskType TaskID)
 #endif /* TOPPERS_CheckTaskAccess */
 
 /*
- *  ISR用アクセス権限チェックシステムサービス
+ *  ISR for access authority checking system service
  */
 #ifdef TOPPERS_CheckISRAccess
 
@@ -537,7 +537,7 @@ CheckISRAccess(ApplicationType ApplID, ISRType ISRID)
 #endif /* TOPPERS_CheckISRAccess */
 
 /*
- *  アラーム用アクセス権限チェックシステムサービス
+ *  Alarm for the access authority checking system service
  */
 #ifdef TOPPERS_CheckAlarmAccess
 
@@ -582,7 +582,7 @@ CheckAlarmAccess(ApplicationType ApplID, AlarmType AlarmID)
 #endif /* TOPPERS_CheckAlarmAccess */
 
 /*
- *  リソース用アクセス権限チェックシステムサービス
+ *  Resources for the access authority checking system service
  */
 #ifdef TOPPERS_CheckResourceAccess
 
@@ -626,7 +626,7 @@ CheckResourceAccess(ApplicationType ApplID, ResourceType ResID)
 #endif /* TOPPERS_CheckResourceAccess */
 
 /*
- *  カウンタ用アクセス権限チェックシステムサービス
+ *  Counter for access authority checking system service
  */
 #ifdef TOPPERS_CheckCounterAccess
 
@@ -671,7 +671,7 @@ CheckCounterAccess(ApplicationType ApplID, CounterType CounterID)
 #endif /* TOPPERS_CheckCounterAccess */
 
 /*
- *  スケジュールテーブル用アクセス権限チェックシステムサービス
+ *  Access authority checking system for service schedule table
  */
 #ifdef TOPPERS_CheckScheduleTableAccess
 
@@ -716,11 +716,11 @@ CheckScheduleTableAccess(ApplicationType ApplID, ScheduleTableType ScheduleTable
 #endif /* TOPPERS_CheckScheduleTableAccess */
 
 /*
- *  OSアプリケーションのオブジェクトの所有チェックシステムサービス
+ *  Ownership check system services object of OS applications
  */
 
 /*
- *  タスク用オブジェクト所有チェックシステムサービス
+ *  Task for the object owner check system service
  */
 #ifdef TOPPERS_CheckTaskOwnership
 
@@ -762,7 +762,7 @@ CheckTaskOwnership(TaskType TaskID)
 #endif /* TOPPERS_CheckTaskOwnership */
 
 /*
- *  ISR用オブジェクト所有チェックシステムサービス
+ *  ISR for the object owner check system service
  */
 #ifdef TOPPERS_CheckISROwnership
 
@@ -804,7 +804,7 @@ CheckISROwnership(ISRType ISRID)
 #endif /* TOPPERS_CheckISROwnership */
 
 /*
- *  アラーム用オブジェクト所有チェックシステムサービス
+ *  Alarm for the object owner check system service
  */
 #ifdef TOPPERS_CheckAlarmOwnership
 
@@ -846,7 +846,7 @@ CheckAlarmOwnership(AlarmType AlarmID)
 #endif /* TOPPERS_CheckAlarmOwnership */
 
 /*
- *  カウンタ用オブジェクト所有チェックシステムサービス
+ *  Counter for the object owner check system service
  */
 #ifdef TOPPERS_CheckCounterOwnership
 
@@ -888,7 +888,7 @@ CheckCounterOwnership(CounterType CounterID)
 #endif /* TOPPERS_CheckCounterOwnership */
 
 /*
- *  スケジュールテーブル用オブジェクト所有チェックシステムサービス
+ *  Object owner check system for service schedule table
  */
 #ifdef TOPPERS_CheckScheduleTableOwnership
 
@@ -930,7 +930,7 @@ CheckScheduleTableOwnership(ScheduleTableType ScheduleTableID)
 #endif /* TOPPERS_CheckScheduleTableOwnership */
 
 /*
- *  自OSAPを利用可能な状態にする
+ *  It will be ready for use of the self-SOAP
  */
 #ifdef TOPPERS_AllowAccess
 
@@ -943,7 +943,7 @@ AllowAccess(void)
 
 	CHECK_DISABLEDINT();
 	CHECK_CALLEVEL(CALLEVEL_ALLOWACCESS);
-	/* ここに来た場合p_runosap(自OSAP)がNULLではない */
+	/* p_runosap (self OSAP) is not NULL If you came here */
 	CHECK_STATE(p_runosap->osap_stat == APPLICATION_RESTARTING);
 
 	x_nested_lock_os_int();
@@ -967,7 +967,7 @@ AllowAccess(void)
 #endif /* TOPPERS_AllowAccess */
 
 /*
- *  指定OSAPを終了/再起動する
+ *  I terminate / restart the specified OSAP
  */
 #ifdef TOPPERS_TerminateApplication
 
@@ -1018,7 +1018,7 @@ TerminateApplication(ApplicationType Application, RestartType RestartOption)
 #endif /* TOPPERS_TerminateApplication */
 
 /*
- *  指定OSAPを終了/再起動する内部関数
+ *  Internal function to terminate / restart the specified OSAP
  */
 #ifdef TOPPERS_force_term_osap
 
@@ -1035,10 +1035,10 @@ force_term_osap_main(void)
 	if (p_osapcb->osap_stat == APPLICATION_RESTARTING) {
 		(void) make_active(p_osapcb->p_osapinib->p_restart_tcb);
 	}
-	/* 仮のリスタートタスクは役目を終えるため、キューの処理を実施 */
+	/* In order to finish the restart task role of provisional, it performs the processing of the queue */
 	search_schedtsk();
 
-	/* タスクコンテキストの設定 */
+	/* Set of task context */
 	callevel_stat = TCL_TASK;
 
 	if (sus_os_cnt > 0U) {
@@ -1047,12 +1047,12 @@ force_term_osap_main(void)
 		os_difftime = 0U;
 		x_set_ipm(sus_os_prevpri);
 	}
-	/* 自OSAPから呼び出しのため，呼び出し元に戻らない */
+	/* Because from the self OSAP of call, it does not return to the caller */
 	exit_and_dispatch_nohook();
 }
 
 /*
- *  リスタートタスクのpcにforce_term_osap_mainのアドレスを格納する
+ *  It stores the address of the force_term_osap_main to pc restart task
  */
 void
 force_term_osap(OSAPCB *p_osapcb, RestartType RestartOption)
@@ -1060,12 +1060,12 @@ force_term_osap(OSAPCB *p_osapcb, RestartType RestartOption)
 	TCB				*p_tcb;
 	PriorityType	remove_task_pri;
 
-	/* osap_statの更新 */
+	/* update of osap_stat */
 	if (RestartOption == RESTART) {
 		p_osapcb->osap_stat = APPLICATION_RESTARTING;
 		if (p_osapcb->p_osapinib->p_restart_tcb->p_tinib->task == NULL) {
-			/* リスタートタスクの設定がないにもかかわらず，*/
-			/* RESTARTオプションを設定した場合はシャットダウンを実施する */
+			/* Even though there is no set of restart task,*/
+			/* To implement the shut down If you set the RESTART option */
 			internal_shutdownos(E_OS_PROTECTION_FATAL);
 		}
 	}
@@ -1078,57 +1078,57 @@ force_term_osap(OSAPCB *p_osapcb, RestartType RestartOption)
 
 	p_tcb = p_osapcb->p_osapinib->p_restart_tcb;
 
-	/* リスタートタスクが既にREADY状態の場合はレディキューから削除する */
+	/* To be removed from the ready queue If restart task is already in the READY state */
 	if (p_tcb->tstat == READY) {
-		/* リスタートタスクの終了 */
+		/* The end of the restart task */
 		p_tcb->actcnt = 0U;
 #ifdef CFG_USE_PROTECTIONHOOK
 		p_tcb->calltfn = FALSE;
 #endif /* CFG_USE_PROTECTIONHOOK */
-		/* curpriとinipriが異なる値でレディキューに繋がれている場合への対応 */
+		/* corresponding to the case where curpri and inipri it has been linked to the ready queue with a different value */
 		remove_task_pri = p_tcb->curpri;
 
-		/* リソース確保したままの場合，リソース解放 */
+		/* If the as-resource reservation, resource release */
 		release_taskresources(p_tcb);
 
-		/* カウンタの状態を初期化する */
+		/* Initialize the state of the counter */
 		cancel_taskcounters(p_tcb);
 
-		/* 対象タスクをSUSPEND状態とし，レディキューから削除する */
+		/* The target task is set to SUSPEND state, to be removed from the ready queue */
 		p_tcb->tstat = SUSPENDED;
 		if (p_tcb != p_schedtsk) {
 			remove_task_from_queue(p_tcb, remove_task_pri);
-			/* p_schedtskをキューの先頭に退避 */
+			/* to save the p_schedtsk the head of the queue */
 			move_schedtsk();
 		}
 	}
 	else if (p_schedtsk != NULL) {
-		/* p_schedtskがNULLでなければ，キューの先頭に退避 */
+		/* unless p_schedtsk is NULL, and save the head of the queue */
 		move_schedtsk();
 	}
 	else {
-		/* p_schedtskがNULLの場合は何もしない */
+		/* it is not nothing if p_schedtsk is NULL */
 	}
 
-	/* リスタートタスクのpcにforce_term_osap_mainのアドレスを格納 */
+	/* And stores the address of the force_term_osap_main to pc restart task */
 	activate_force_term_osap_main(p_tcb);
 
-	/* curpriを最高優先度に変更 */
+	/* Change curpri to the highest priority */
 	p_tcb->curpri = TPRI_MAXTASK;
 
-	/* p_schedtskにp_restart_tcbを格納 */
+	/* Stores p_restart_tcb to p_schedtsk */
 	p_schedtsk = p_tcb;
 
 	if ((callevel_stat & TCL_ISR2) != TCL_NULL) {
-		/* C2ISRから呼び出された場合は,C2ISRの出口処理で */
-		/* ディスパッチを行うため，ここでは実施しない    */
+		/* If it is called from C2ISR, at the exit processing of C2ISR */
+		/* Order to perform the dispatch is not performed here    */
 	}
 	else if (p_osapcb != p_runosap) {
-		/* 他のOSAPを終了/再起動する場合は,ディスパッチを行う */
+		/* To terminate / restart another OS performs dispatching */
 		dispatch();
 	}
 	else {
-		/* 自OSAPを終了/再起動する場合は,呼び出し元に戻らない */
+		/* If you want to exit / restart the self OSAP, it does not return to the caller */
 		exit_and_dispatch_nohook();
 	}
 }

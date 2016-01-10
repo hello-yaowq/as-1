@@ -66,7 +66,7 @@
  */
 
 /*
- *		タスク管理モジュール
+ *		Task management module
  */
 
 #include "kernel_impl.h"
@@ -76,7 +76,7 @@
 #include "timingprotection.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_TSKSTAT
 #define LOG_TSKSTAT(p_tcb)
@@ -132,7 +132,7 @@
 
 
 /*
- *  タスクの起動
+ *  Activation of a task
  */
 #ifdef TOPPERS_ActivateTask
 
@@ -156,7 +156,7 @@ ActivateTask(TaskType TaskID)
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するタスク所属のOSAPの状態をチェック */
+	/* Start checking the SOAP of the state of the task belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -198,7 +198,7 @@ ActivateTask(TaskType TaskID)
 #endif /* TOPPERS_ActivateTask */
 
 /*
- *  自タスクの終了
+ *  The end of the current task
  */
 #ifdef TOPPERS_TerminateTask
 
@@ -214,8 +214,8 @@ TerminateTask(void)
 
 	x_nested_lock_os_int();
 	/*
-	 *  内部リソースの解放は優先度を下げるだけなので，ここでは
-	 *  何もしなくてよい
+	 *  Since the release of internal resources such only lower the priority, 
+	 * where it may not do anything
 	 */
 
 	suspend();
@@ -239,7 +239,7 @@ TerminateTask(void)
 #endif /* TOPPERS_TerminateTask */
 
 /*
- *  自タスクの終了とタスクの起動
+ *  Exit and start-up of the task of self-task
  */
 #ifdef TOPPERS_ChainTask
 
@@ -247,8 +247,8 @@ StatusType
 ChainTask(TaskType TaskID)
 {
 	/*
-	 *  ここでの ercd の初期化は本来は不要であるが，コンパイラの警
-	 *  告メッセージを避けるために初期化している
+	 *  Although the initialization of ercd here originally is not required, 
+	 * it is initialized to avoid compiler warnings
 	 */
 	StatusType	ercd = E_OK;
 	TCB			*p_tcb;
@@ -268,7 +268,7 @@ ChainTask(TaskType TaskID)
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するタスク所属のOSAPの状態をチェック */
+	/* Start checking the SOAP of the state of the task belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -284,8 +284,8 @@ ChainTask(TaskType TaskID)
 	}
 	else {
 		/*
-		 *  エラー時に副作用が残らないように，エラーチェックは
-		 *  タスク終了処理の前に行う必要がある
+		 *  So as not to leave any side effects in case of an error, error checking, 
+		 * it is necessary to perform in front of the task end processing
 		 */
 		S_D_CHECK_LIMIT((p_tcb->tstat == SUSPENDED)
 						|| (p_tcb->actcnt < p_tcb->p_tinib->maxact));
@@ -324,7 +324,7 @@ ChainTask(TaskType TaskID)
 #endif /* TOPPERS_ChainTask */
 
 /*
- *  スケジューラの呼び出し
+ *  Call of the scheduler
  */
 #ifdef TOPPERS_Schedule
 
@@ -332,8 +332,8 @@ StatusType
 Schedule(void)
 {
 	/*
-	 *  ここでの ercd の初期化は本来は不要であるが，コンパイラの警
-	 *  告メッセージを避けるために初期化している
+	 *  Although the initialization of ercd here originally is not required, 
+	 * it is initialized to avoid compiler warnings
 	 */
 	StatusType ercd = E_OK;
 
@@ -367,7 +367,7 @@ Schedule(void)
 #endif /* TOPPERS_Schedule */
 
 /*
- *  実行状態のタスクIDの参照
+ *  Reference of the task in the RUNNING state ID
  */
 #ifdef TOPPERS_GetTaskID
 
@@ -401,7 +401,7 @@ GetTaskID(TaskRefType TaskID)
 #endif /* TOPPERS_GetTaskID */
 
 /*
- *  タスク状態の参照
+ *  Reference of the task state
  */
 #ifdef TOPPERS_GetTaskState
 
@@ -423,7 +423,7 @@ GetTaskState(TaskType TaskID, TaskStateRefType State)
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するタスク所属のOSAPの状態をチェック */
+	/* Start checking the OSAP of the state of the task belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -451,9 +451,9 @@ GetTaskState(TaskType TaskID, TaskStateRefType State)
 #endif /* TOPPERS_GetTaskState */
 
 /*
- *  満了処理専用タスクの起動
+ *  Starting the expiration processing dedicated task
  *
- *  条件：OS割込み禁止状態で呼ばれる
+ *  Conditions: it is called by the OS interrupt disable state
  */
 #ifdef TOPPERS_activate_task_action
 
@@ -476,7 +476,7 @@ activate_task_action(OSAPCB *p_expire_osapcb, TaskType TaskID)
 	}
 
 	p_osapcb = p_tcb->p_tinib->p_osapcb;
-	/* 満了点所属のOSAP及び起動するタスク所属のOSAPの状態をチェック */
+	/* Check the status of the OSAP of the task belongs to OSAP and the start of expiration point belongs */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) || (p_expire_osapcb == p_osapcb));
 
 	if (p_tcb->tstat == SUSPENDED) {

@@ -66,7 +66,7 @@
  */
 
 /*
- *		タスク制御モジュール
+ *		Task control module
  */
 
 #include "kernel_impl.h"
@@ -75,13 +75,13 @@
 #include "interrupt.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_TSKSTAT
 #define LOG_TSKSTAT(p_tcb)
 #endif /* LOG_TSKSTAT */
 
-/* 内部関数のプロトタイプ宣言 */
+/* Prototype declaration of internal functions */
 LOCAL_INLINE uint16 bitmap_search(uint16 bitmap);
 LOCAL_INLINE boolean primap_empty(void);
 LOCAL_INLINE PriorityType primap_search(void);
@@ -91,32 +91,32 @@ LOCAL_INLINE void primap_clear(PriorityType pri);
 #ifdef TOPPERS_task_initialize
 
 /*
- *  実行状態のタスク
+ *  Of the execution state task
  */
 TCB				*p_runtsk;
 
 /*
- *  最高優先順位タスク
+ *  Highest priority task
  */
 TCB				*p_schedtsk;
 
 /*
- *  レディキュー中の最高優先度
+ *  Highest priority in the ready queue
  */
 PriorityType	nextpri;
 
 /*
- *  レディキュー
+ *  Ready queue
  */
 QUEUE			ready_queue[TNUM_TPRI];
 
 /*
- *  レディキューサーチのためのビットマップ
+ *  Bit map for the ready queue search
  */
 uint16			ready_primap;
 
 /*
- *  タスク管理モジュールの初期化
+ *  Initialization of the task management module
  */
 void
 task_initialize(void)
@@ -157,23 +157,24 @@ task_initialize(void)
 #endif /* TOPPERS_task_initialize */
 
 /*
- *  ビットマップサーチ関数
+ *  Bit map search function
  *
- *  bitmap内の1のビットの内，最も下位（右）のものをサーチし，そのビッ
- *  ト番号を返す
- *  ビット番号は，最下位ビットを0とする．bitmapに0を指定
- *  してはならない．この関数では，bitmapが16ビットであることを仮定し，
- *  uint16型としている
+ *  Of one bit in the bitmap, and searches the one of the most backward (right), 
+ * and returns the bit number
+ *  The bit number is the least significant bit is set to 0. Do not specify 
+ * 0 for the bitmap. In this function, it is assumed that the bitmap 
+ * is 16-bit, you are the type uint16
  *
- *  ビットサーチ命令を持つプロセッサでは，ビットサーチ命令を使うように
- *  書き直した方が効率が良い場合がある
- *  このような場合には，ターゲット依存部でビットサーチ命令を使った
- *  bitmap_searchを定義し，OMIT_BITMAP_SEARCHをマクロ定義すればよい
- *  また，ビットサーチ命令のサーチ方向が逆などの理由で優先度とビット
- *  との対応を変更したい場合には，PRIMAP_BITをマクロ定義すればよい
+ *  In the processor with a bit search instruction, those who rewrite to
+ * use the bit search instruction in some cases efficient
+ *  In such cases, define a bitmap_search that uses a bit search 
+ * instruction in the target-dependent part, and also may be macro
+ * defines the OMIT_BITMAP_SEARCH, corresponding search direction of the 
+ * bit search instruction of the reason in the priority and bits such as 
+ * reverse If you want to change, it is sufficient to define a macro PRIMAP_BIT
  *
- *  また，標準ライブラリにffsがあるなら，次のように定義して標準ライブ
- *  ラリを使った方が効率が良い可能性もある
+ *  There also, if the standard library is ffs, also defined potential efficiency 
+ * is better to use the standard library is as follows:
  *		#define	bitmap_search(bitmap) (ffs(bitmap) - 1)
  */
 #ifndef PRIMAP_BIT
@@ -186,7 +187,7 @@ LOCAL_INLINE uint16
 bitmap_search(uint16 bitmap)
 {
 	/*
-	 *  ビットマップサーチ関数用テーブル
+	 *  Table for the bit map search function
 	 */
 	const uint8	bitmap_search_table[BITMAP_NUM] = {
 		0U, 1U, 0U, 2U, 0U, 1U, 0U,
@@ -210,7 +211,7 @@ bitmap_search(uint16 bitmap)
 #endif /* OMIT_BITMAP_SEARCH */
 
 /*
- *  優先度ビットマップが空かのチェック
+ *  Empty or check priority bitmap
  */
 LOCAL_INLINE boolean
 primap_empty(void)
@@ -219,7 +220,7 @@ primap_empty(void)
 }
 
 /*
- *  優先度ビットマップのサーチ
+ *  Search priority bitmap
  */
 LOCAL_INLINE PriorityType
 primap_search(void)
@@ -228,7 +229,7 @@ primap_search(void)
 }
 
 /*
- *  優先度ビットマップのセット
+ *  Set of priority bitmap
  */
 LOCAL_INLINE void
 primap_set(PriorityType pri)
@@ -237,7 +238,7 @@ primap_set(PriorityType pri)
 }
 
 /*
- *  優先度ビットマップのクリア
+ *  Clear priority bitmap
  */
 LOCAL_INLINE void
 primap_clear(PriorityType pri)
@@ -246,7 +247,7 @@ primap_clear(PriorityType pri)
 }
 
 /*
- *  最高優先順位タスクのサーチ
+ *  Search for the highest priority task
  */
 #ifdef TOPPERS_search_schedtsk
 
@@ -269,7 +270,7 @@ search_schedtsk(void)
 #endif /* TOPPERS_search_schedtsk */
 
 /*
- *  実行できる状態への移行
+ *  Transition to a state that can be executed
  */
 #ifdef TOPPERS_make_runnable
 
@@ -294,8 +295,8 @@ make_runnable(TCB *p_tcb)
 		schedpri = p_schedtsk->curpri;
 		if (pri >= schedpri) {
 			/*
-			 *  schedtsk の方が優先度が高い場合，p_tcb をレ
-			 *  ディキューの最後に入れる
+			 *  If more of schedtsk has a higher priority, 
+			 * I put p_tcb to the end of the ready queue
 			 */
 			queue_insert_prev(&(ready_queue[pri]), &(p_tcb->task_queue));
 			primap_set(pri);
@@ -306,8 +307,8 @@ make_runnable(TCB *p_tcb)
 		}
 		else {
 			/*
-			 *  p_tcb の方が優先度が高い場合，schedtsk をレディキュー
-			 *  の先頭に入れ，p_tcb を新しい schedtsk とする
+			 *  If more of p_tcb has a higher priority, place the schedtsk to 
+			 * the top of the ready queue, and the p_tcb and new schedtsk
 			 */
 			queue_insert_next(&(ready_queue[schedpri]), &(p_schedtsk->task_queue));
 			primap_set(schedpri);
@@ -324,12 +325,12 @@ make_runnable(TCB *p_tcb)
 #endif /* TOPPERS_make_runnable */
 
 /*
- *  実行できる状態から他の状態への遷移
+ *  The transition from the state that can be run to another state
  *
- *  SC1-MCでmake_non_runnableが実装されるため
- *  SC1にもmake_non_runableを実装し，SC1もSC1-MCの関数構成に合せる
- *  （SC1-MCでは，p_runtskとp_schedtskが一致していることを確認する処理を入れる必要があるが，
- *  SC1では，search_schedtskのみ呼び出す処理とする）
+ *  Implement the make_non_runable also SC1 for make_non_runnable is 
+ * implemented in SC1-MC, SC1 also match the function configuration of SC1-MC
+ *  (In SC1-MC, it is necessary to put the process to make sure that the p_runtsk 
+ * and p_schedtsk is consistent, in SC1, is set to search_schedtsk only call processing)
  */
 #ifdef TOPPERS_make_non_runnable
 
@@ -342,10 +343,10 @@ make_non_runnable(void)
 #endif /* TOPPERS_make_non_runnable */
 
 /*
- *  タスクの起動
+ *  Activation of a task
  *
- *  TerminateTask や ChainTask の中で，自タスクに対して make_active を
- *  呼ぶ場合があるので注意する
+ *  In TerminateTask and ChainTask, be careful because there 
+ * is a case to call make_active to own task
  */
 #ifdef TOPPERS_make_active
 
@@ -367,7 +368,7 @@ make_active(TCB *p_tcb)
 #endif /* TOPPERS_make_active */
 
 /*
- *  タスクのプリエンプト
+ *  Task preemption
  */
 #ifdef TOPPERS_preempt
 
@@ -386,8 +387,8 @@ preempt(void)
 #endif /* TOPPERS_preempt */
 
 /*
- *  実行中のタスクをSUSPENDED状態にする
- *  リソース解放した状態で呼出す必要がある
+ *  There is a need to call in a state where the resources 
+ * released to the running task in SUSPENDED state
  */
 #ifdef TOPPERS_suspend
 
@@ -396,7 +397,7 @@ suspend(void)
 {
 	p_runtsk->tstat = SUSPENDED;
 	if (is_tp_timer_running == TRUE) {
-		/* タイミング保護タイマ停止 */
+		/* Timing protection timer is stopped */
 		tp_stop_task_monitor();
 	}
 	LOG_TSKSTAT(p_runtsk);
@@ -410,7 +411,7 @@ suspend(void)
 #endif /* TOPPERS_suspend */
 
 /*
- *  タスクの全リソース返却
+ *  All resources return of the task
  */
 #ifdef TOPPERS_release_taskresources
 
@@ -419,13 +420,13 @@ release_taskresources(TCB *p_tcb)
 {
 	if (p_tcb->p_lastrescb != NULL) {
 		if (p_tcb->curpri <= TPRI_MINISR) {
-			/* リソースを全部解放すれば割込み許可になる */
+			/* It is to interrupt enable If free resources all */
 			x_set_ipm((PriorityType) TIPM_ENAALL);
 		}
-		/* リソースを全部解放すれば実行中優先度に戻る */
+		/* By freeing the resources all the process returns to the executing priority */
 		p_tcb->curpri = p_tcb->p_tinib->exepri;
 
-		/* OS割込み禁止状態以上で来る p_tcb->p_lastrescb != NULL */
+		/* It comes with the OS interrupt disable state abnormality p_tcb->p_lastrescb != NULL */
 		do {
 			p_tcb->p_lastrescb->lockflg = FALSE;
 			p_tcb->p_lastrescb->res_saved_watchtype = NON_MONITORING;
@@ -438,7 +439,7 @@ release_taskresources(TCB *p_tcb)
 #endif /* TOPPERS_release_taskresources */
 
 /*
- *  タスクのカウンタの状態をすべてCS_NULLに戻す
+ *  All the counter state of the task I return to CS_NULL
  */
 #ifdef TOPPERS_cancel_taskcounters
 
@@ -447,7 +448,7 @@ cancel_taskcounters(TCB *p_tcb)
 {
 	if (p_tcb->p_lastcntcb != NULL) {
 
-		/* OS割込み禁止状態以上で来る */
+		/* It comes with the OS interrupt disable state abnormality */
 		do {
 			p_tcb->p_lastcntcb->cstat = CS_NULL;
 			p_tcb->p_lastcntcb = p_tcb->p_lastcntcb->p_prevcntcb;
@@ -457,9 +458,9 @@ cancel_taskcounters(TCB *p_tcb)
 #endif /* TOPPERS_cancel_taskcounters */
 
 /*
- *  タスクの不正終了時の保護
- *  TerminateTask()，ChainTask()なしでの自タスクの終了
- * （タスクの関数からリターン）した場合の処理
+ *  Protection of fraud at the end of task
+ *  TerminateTask (), ChainTask () No end of the current task in the processing 
+ * of the case where the (return from the function of the task)
  */
 #ifdef TOPPERS_exit_task
 
@@ -468,20 +469,20 @@ exit_task(void)
 {
 	x_nested_lock_os_int();
 
-	/* 割込み禁止状態の場合は割込み禁止を解除する */
+	/* To cancel the interrupt prohibition in the case of interrupt disabled state */
 	release_interrupts(OSServiceId_Invalid);
 
-	/* リソース確保したままの場合はリソースを解放する */
+	/* To release the resources in the case of remains resource reservation */
 	release_taskresources(p_runtsk);
 
 #ifdef CFG_USE_ERRORHOOK
-	/* エラーフックを呼ぶ */
+	/* Call the error hook */
 	call_errorhook(E_OS_MISSINGEND, OSServiceId_TaskMissingEnd);
 #endif /* CFG_USE_ERRORHOOK */
 
 	suspend();
 
-	/* ポストタスクフックが有効な場合はポストタスクフックが呼ばれる */
+	/* Post task hook is called when the post task hook is valid */
 	exit_and_dispatch();
 }
 
@@ -490,7 +491,7 @@ exit_task(void)
 #ifdef TOPPERS_remove_task_from_queue
 
 /*
- *  レディキューからタスクを削除する
+ *  You want to delete a task from the ready queue
  */
 void
 remove_task_from_queue(TCB *p_tcb, PriorityType remove_task_pri)
@@ -505,13 +506,13 @@ remove_task_from_queue(TCB *p_tcb, PriorityType remove_task_pri)
 #endif /* TOPPERS_remove_task_from_queue */
 
 /*
- *  自タスクの強制終了
- *    ProtectionHookからのみ呼出される
- *      リソースの解放，割込み禁止の解除を行った後
- *       TerminateTask相当の処理を行う
- *      強制タスク終了の場合は，PostTaskHookを呼出さないのでTerminateTask
- *      とは異なる処理となる
- *  本関数はOS割込み禁止状態で呼出されることを前提とする
+ *  Forced termination of its own task
+ *    It is called only from ProtectionHook
+ *      Resources of the release, after the release of the interrupt disable
+ *       Do processing of TerminateTask equivalent
+ *      If forced task completed, because it does not call the PostTaskHook to TerminateTask
+ *      It is handled differently than
+ *  This function is assumed to be called in the OS interrupt disable state
  */
 #ifdef TOPPERS_force_terminate_task
 
@@ -519,14 +520,14 @@ void
 force_terminate_task(TCB *p_tcb)
 {
 	/*
-	 *  割込み禁止を解除する
-	 *  エラーフックを呼ばないため，引数にOSServiceId_Invalidをする
+	 *  You want to cancel the interrupt prohibition
+	 *  Because it is not called the error hook, and the OSServiceId_Invalid argument
 	 */
 	release_interrupts(OSServiceId_Invalid);
 
-	/* リソース確保したままの場合，リソース解放 */
+	/* If the as-resource reservation, resource release */
 	release_taskresources(p_tcb);
-	/* カウンタの状態を初期化する */
+	/* Initialize the state of the counter */
 	cancel_taskcounters(p_tcb);
 
 	suspend();
@@ -537,14 +538,14 @@ force_terminate_task(TCB *p_tcb)
 #endif /* TOPPERS_force_terminate_task */
 
 /*
- *  OSAP所属するタスクの強制終了
+ *  Forced termination of SAP belongs to the task
  */
 #ifdef TOPPERS_force_term_osap_task
 
 void
 force_term_osap_task(OSAPCB *p_osapcb)
 {
-	/* OSAPに所属するタスクを強制終了 */
+	/* To kill the task that belongs to the OSAP */
 	TaskType		i;
 	TCB				*p_tcb;
 	PriorityType	remove_task_pri;
@@ -554,7 +555,7 @@ force_term_osap_task(OSAPCB *p_osapcb)
 		if ((tinib_table[i].p_osapcb == p_osapcb) &&
 			(p_tcb != p_runtsk)) {
 			/*
-			 *  OSAP終了/再起動よりタスクの強制終了
+			 *  Forced termination of tasks than OSAP end / restart
 			 */
 			p_tcb->actcnt = 0U;
 #ifdef CFG_USE_PROTECTIONHOOK
@@ -562,16 +563,17 @@ force_term_osap_task(OSAPCB *p_osapcb)
 #endif /* CFG_USE_PROTECTIONHOOK */
 
 			if (p_tcb->tstat == READY) {
-				/* curpriとinipriが異なる値でレディキューに繋がれている場合への対応 */
+				/* corresponding to the case where curpri and inipri it has been 
+				 * linked to the ready queue with a different value */
 				remove_task_pri = p_tcb->curpri;
 
-				/* リソース確保したままの場合，リソース解放 */
+				/* If the as-resource reservation, resource release */
 				release_taskresources(p_tcb);
 
-				/* カウンタの状態を初期化する */
+				/* Initialize the state of the counter */
 				cancel_taskcounters(p_tcb);
 
-				/* 対象タスクをSUSPEND状態とし，レディキューから削除する */
+				/* The target task is set to SUSPEND state, to be removed from the ready queue */
 				p_tcb->tstat = SUSPENDED;
 				remove_task_from_queue(p_tcb, remove_task_pri);
 			}
@@ -580,31 +582,31 @@ force_term_osap_task(OSAPCB *p_osapcb)
 			}
 
 			/*
-			 *  ここでC2ISRを受け付ける.
-			 *  フックの中からここに来た場合はnested_lock_os_int_cntが2以上なので，
-			 *  割込み禁止解除されない.
-			 *  SusOS状態でも，割込み優先度マスクは保持されたままなので，
-			 *  C2ISRは発生しない.
+			 *  Here we accept the C2ISR.
+			 *  Since nested_lock_os_int_cnt such is 2 or more if you came here from the hook, 
+			 * it is not released interrupt disabled.
+			 *  Even in SusOS state, interrupt priority mask because while being held, 
+			 * C2ISR does not occur.
 			 */
 			x_nested_unlock_os_int();
 
-			/* ここで割込み禁止とする */
+			/* Here it will be the interrupt disable */
 			x_nested_lock_os_int();
 		}
 	}
 
 	p_tcb = p_runtsk;
-	/* OSAPを強制終了するためのリスタートタスクからコールされるため */
-	/* リソース解放やカウンタの状態を初期化する必要はなし           */
-	/* 対象タスクをSUSPEND状態とする */
-	/* p_schedtskの更新はforce_term_osap_mainに戻ってから実施する */
+	/* Because it is called from the restart task to kill the OSAP */
+	/* No need to initialize the resource release and counter state of */
+	/* It will be the target task and SUSPEND state */
+	/* update of p_schedtsk will be carried out from the back to the force_term_osap_main */
 	p_tcb->tstat = SUSPENDED;
 }
 
 #endif /* TOPPERS_force_term_osap_task */
 
 /*
- *  p_schedtskをレディキューの先頭に退避
+ *  to save the p_schedtsk to the top of the ready queue
  */
 #ifdef TOPPERS_move_schedtsk
 

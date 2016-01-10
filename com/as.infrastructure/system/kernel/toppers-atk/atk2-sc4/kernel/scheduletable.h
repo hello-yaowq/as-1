@@ -66,7 +66,7 @@
  */
 
 /*
- *		スケジュールテーブル機能
+ *		Schedule table function
  */
 
 #ifndef TOPPERS_SCHEDULETABLE_H
@@ -75,112 +75,112 @@
 #include "counter.h"
 
 /*
- *  満了点テーブル制御用特殊な満了点インデックス
+ *  Special expiration point index for the expiration point table control
  */
 #define EXPPTINDEX_TOP			((uint8) 0x00)
 #define EXPPTINDEX_INITIAL		((uint8) 0xff)
 
 /*
- *  スケジュールテーブルIDからスケジュールテーブル管理ブロックを取り出すためのマクロ
+ *  Macro for taking out the schedule table management block from the schedule table ID
  */
 #define get_schtblcb(schtblid)	(&(schtblcb_table[(schtblid)]))
 
 /*
- *  暗黙同期スケジュールテーブルに関する定義
+ *  The definition of implicit synchronization schedule table
  */
 #define is_implschtbl(schtblid)	((schtblid) < tnum_implscheduletable)
 
 /*
- *  個々の満了点テーブル型
+ *  Individual expiration point table type
  */
 typedef struct scheduletable_expire_point_block {
-	TickType		offset;                                 /* オフセット値 */
-	FunctionRefType	expptfnt;                               /* 満了点処理関数のポインタ */
+	TickType		offset;                                 /* Offset value */
+	FunctionRefType	expptfnt;                               /* Pointer of expiration point processing function */
 } SCHTBLEXPPTCB;
 
 
 /*
- *  スケジュールテーブル初期化ブロック
+ *  Schedule table initialization block
  */
 typedef struct scheduletable_initialization_block {
-	CNTCB				*p_cntcb;                           /* 駆動カウンタ管理ブロックのポインタ */
-	TickType			length;                             /* 周期の長さ */
-	AppModeType			autosta;                            /* 起動するアプリケーションモード */
-	AttributeType		actatr;                             /* 自動起動の属性 */
-	TickType			staval;                             /* 自動起動ティック値 */
-	const SCHTBLEXPPTCB	*p_exppt;                           /* 満了点テーブルの先頭ポインタ */
-	boolean				repeat;                             /* 周期制御の有無 */
-	uint8				tnum_exppt;                         /* 満了点数 */
-	OSAPCB				*p_osapcb;                          /* 所属するOSアプリケーションの管理ブロック */
-	uint32				acsbtmp;                            /* アクセス許可OSアプリケーション ビットマップ */
+	CNTCB				*p_cntcb;                           /* Pointer of the drive counter management block */
+	TickType			length;                             /* The length of the cycle */
+	AppModeType			autosta;                            /* Starting up for the application mode */
+	AttributeType		actatr;                             /* Automatic start of attributes */
+	TickType			staval;                             /* Automatic start tick value */
+	const SCHTBLEXPPTCB	*p_exppt;                           /* Head pointer of the expiration point table */
+	boolean				repeat;                             /* The presence or absence of periodic control */
+	uint8				tnum_exppt;                         /* Expiration score */
+	OSAPCB				*p_osapcb;                          /* Management block belongs to OS application */
+	uint32				acsbtmp;                            /* Permissions OS application bitmap */
 } SCHTBLINIB;
 
 /*
- *  スケジュールテーブル管理ブロック
+ *  Schedule table management block
  */
 typedef struct scheduletable_control_block {
-	CNTEXPINFO							cntexpinfo;         /* カウンタ満了情報(構造体の先頭に入る必要) */
-	const SCHTBLINIB					*p_schtblinib;      /* 初期化ブロックへのポインタ */
-	struct scheduletable_control_block	*p_prevschtblcb;    /* 自分をNextにしたスケジュールテーブル管理ブロックへのポインタ */
-	struct scheduletable_control_block	*p_nextschtblcb;    /* Nextスケジュールテーブル管理ブロックへのポインタ */
-	ScheduleTableStatusType				status;             /* スケジュールテーブル状態 */
-	uint8								expptindex;         /* 満了点インデックス */
+	CNTEXPINFO							cntexpinfo;         /* Counter expiration information (need to enter at the top of the structure) */
+	const SCHTBLINIB					*p_schtblinib;      /* A pointer to the initialization block */
+	struct scheduletable_control_block	*p_prevschtblcb;    /* A pointer to the schedule table management block that myself Next */
+	struct scheduletable_control_block	*p_nextschtblcb;    /* A pointer to the Next schedule table management block */
+	ScheduleTableStatusType				status;             /* Schedule table state */
+	uint8								expptindex;         /* Expiration point index */
 } SCHTBLCB;
 
 /*
- *  満了処理実行用管理情報
+ *  Expiration processing execution management information
  */
 typedef struct scheduletable_expire_info {
-	SCHTBLCB *p_schtblcb;                                   /* スケジュールテーブル管理ブロックのアドレス */
+	SCHTBLCB *p_schtblcb;                                   /* Address of the schedule table management block */
 } SCHTBLEXPINFO;
 
 /*
- *  スケジュールテーブル数を保持する変数の宣言
+ *  Declaration of the variable to hold the number of schedule table
  */
-extern const ScheduleTableType	tnum_scheduletable;         /* 全スケジュールテーブルの数 */
-extern const ScheduleTableType	tnum_implscheduletable;     /* 暗黙同期スケジュールテーブル数 */
+extern const ScheduleTableType	tnum_scheduletable;         /* The total number of the schedule table */
+extern const ScheduleTableType	tnum_implscheduletable;     /* Number of implicit synchronization schedule table */
 
 /*
- *  スケジュールテーブル初期化ブロックのエリア（Os_Lcfg.c）
+ *  Area of the schedule table initialization block
  */
 extern const SCHTBLINIB			schtblinib_table[];
 /*
- *  スケジュールテーブル管理ブロックのエリア（Os_Lcfg.c）
+ *  Area of the schedule table management block
  */
 extern SCHTBLCB					schtblcb_table[];
 
 /*
- *  スケジュールテーブルオブジェクトの初期化
+ *  Initialization of the schedule table object
  */
 extern void schtbl_initialize(void);
 
 /*
- *  スケジュールテーブル満了処理関数
+ *  Schedule table expiration processing function
  */
 extern void schtbl_expire(CNTEXPINFO *p_cntexpinfo, const CNTCB *p_cntcb);
 
 /*
- *  満了処理関数から各タイミング処理の実行
+ *  Run from the expiration processing function of each timing processing
  */
 extern void schtbl_expiry_process(SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p_cntcb);
 
 /*
- *  スケジュールテーブルの開始処理
+ *  Start processing of the schedule table
  */
 extern boolean schtbl_head(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb);
 
 /*
- *  スケジュールテーブルの各満了点処理
+ *  Each expiration point processing of the schedule table
  */
 extern boolean schtbl_exppoint_process(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb);
 
 /*
- *  スケジュールテーブルの終端処理
+ *  Termination of the schedule table
  */
 extern boolean schtbl_tail(SCHTBLCB *p_schtblcb, SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p_cntcb);
 
 /*
- *  OSAP所属するスケジュールテーブルの強制終了
+ *  Forced termination of OSAP belongs to schedule table
  */
 extern void force_term_osap_schtbl(OSAPCB *p_osapcb);
 

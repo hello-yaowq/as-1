@@ -67,7 +67,7 @@
 
 
 /*
- *  タイミング保護管理モジュール
+ *  Timing protection management module
  *
  */
 #include "kernel_impl.h"
@@ -76,7 +76,7 @@
 #include "timingprotection.h"
 
 /*
- *  タイミング保護機能の初期化
+ *  Initialization of timing protection
  */
 #ifdef TOPPERS_tp_initialize
 
@@ -94,8 +94,8 @@ tp_initialize(void)
 #endif /* TOPPERS_tp_initialize */
 
 /*
- *  タイミング保護機能の終了
- *  OS処理レベルで呼び出される
+ *  The end of the timing protection
+ *  It is called by OS processing level
  */
 #ifdef TOPPERS_tp_terminate
 
@@ -109,9 +109,9 @@ tp_terminate(void)
 #endif /* TOPPERS_tp_terminate */
 
 /*
- *  タイミング保護タイマの開始
- *  現在実行中タスクのタイミング保護の監視が必要なら開始する
- *  OS処理レベルで呼び出される
+ *  The timing of the start of protection timer
+ *  It is called by OS processing level to start if necessary to 
+ * monitor the timing protection of the currently running task
  */
 #ifdef TOPPERS_tp_start_timer
 void
@@ -124,8 +124,8 @@ tp_start_timer(TickType tick)
 #endif /* TOPPERS_tp_start_timer  */
 
 /*
- *  タイマの停止処理
- *  OS処理レベルで呼び出される
+ *  Timer stop processing
+ *  It is called by OS processing level
  */
 #ifdef TOPPERS_tp_stop_timer
 
@@ -139,9 +139,9 @@ tp_stop_timer(void)
 #endif /* TOPPERS_tp_stop_timer */
 
 /*
- *  タイミング保護タイマの停止
- *  現在実行中タスクのタイミング保護の監視を停止する
- *  OS処理レベルで呼び出される
+ *  Stop timing protection timer
+ *  To stop the monitoring of timing protection of the currently running task
+ *  It is called by OS processing level
  */
 #ifdef TOPPERS_tp_stop_task_monitor
 
@@ -158,7 +158,7 @@ tp_stop_task_monitor(void)
 #endif /* TOPPERS_tp_stop_task_monitor */
 
 /*
- *  現在時刻の取得
+ *  Get the current time
  */
 #ifdef TOPPERS_tp_get_current_time
 
@@ -181,7 +181,7 @@ tp_get_current_time(TFTIME *tftime)
 	SIL_UNL_INT();
 
 	if ((is_timeout != FALSE) && (tick2 >= tick1)) {
-		/* 割込み禁止後，tick1を取得する前にタイムアウトしている場合 */
+		/* After interrupt disabled, if you have time-out before getting the tick1 */
 		current_count++;
 	}
 
@@ -194,8 +194,8 @@ tp_get_current_time(TFTIME *tftime)
 #endif /* TOPPERS_tp_get_current_time */
 
 /*
- *  到着間隔チェック
- *  OS処理レベルで呼び出される
+ *  Arrival interval check
+ *  It is called by OS processing level
  */
 #ifdef TOPPERS_tp_check_arrival_time
 
@@ -210,10 +210,10 @@ tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context)
 
 	if (p_tpacb->is_not_first != FALSE) {
 		/*
-		 *  2度目以降の場合は到着間隔をチェックする
+		 *  Check arrival interval in the case of second and subsequent
 		 */
 		/*
-		 *  起動間隔保護タイマは常に進んでいるから now >= p_tpacb.arrival_timeが成り立つ
+		 *  Start interval protection timer now> = p_tpacb.arrival_time holds it because always willing are in
 		 */
 		diff.tfcount = now.tfcount - p_tpacb->lastarrival.tfcount;
 
@@ -222,7 +222,7 @@ tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context)
 		}
 		else {
 			/*
-			 *  nowのtick部分が小さい場合の対応
+			 *  correspondence of the case tick part of now is small
 			 */
 			diff.tfcount--;
 			diff.tftick = ((TP_TIMER_MAX_TICK - p_tpacb->lastarrival.tftick) + now.tftick) + 1U;
@@ -232,20 +232,20 @@ tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context)
 			((diff.tfcount != time_frame.tfcount) ||
 			 (diff.tftick < time_frame.tftick))) {
 			if (context == ARRIVAL_TASK) {
-				/*タスクの到着間隔監視*/
+				/*Arrival interval monitoring tasks*/
 				flg = FALSE;
 			}
 			else {
 				pre_protection_supervised = run_trusted;
-				/*C2ISRの到着間隔監視*/
+				/*Arrival interval monitoring of C2ISR*/
 				call_protectionhk_main(E_OS_PROTECTION_ARRIVAL_ISR);
-				/* PRO_IGNOREの場合に戻ってくる */
+				/* Come back to the case of PRO_IGNORE */
 			}
 		}
 	}
 	else {
 		/*
-		 *  初回の場合は無条件で通す
+		 *  It passed through unconditionally in the case of first time
 		 */
 		p_tpacb->is_not_first = TRUE;
 	}
@@ -257,7 +257,7 @@ tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context)
 #endif /* TOPPERS_tp_check_arrival_time */
 
 /*
- *  タイミング保護監視タイマハンドラ
+ *  Timing protection monitoring timer handler
  */
 #ifdef TOPPERS_tp_fault_handler
 
@@ -285,13 +285,13 @@ tp_fault_handler(void)
 	call_protectionhk_main(ercd);
 
 	internal_shutdownos(E_OS_SYS_ASSERT_FATAL);
-	/* 呼び出し元には戻らない */
+	/* It does not return to the caller */
 }
 
 #endif /* TOPPERS_tp_fault_handler */
 
 /*
- *  タイミング保護用タイマハンドラ
+ *  Timing protection timer handler
  */
 #ifdef TOPPERS_tp_timer_handler
 

@@ -66,7 +66,7 @@
  */
 
 /*
- *		リソース管理モジュール
+ *		Resource management module
  */
 
 #include "kernel_impl.h"
@@ -77,7 +77,7 @@
 #include "timingprotection.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_GETRES_ENTER
 #define LOG_GETRES_ENTER(resid)
@@ -96,7 +96,7 @@
 #endif /* LOG_RELRES_LEAVE */
 
 /*
- *  リソース管理機能の初期化
+ *  Initialization of the resource management function
  */
 #ifdef TOPPERS_resource_initialize
 
@@ -116,7 +116,7 @@ resource_initialize(void)
 #endif /* TOPPERS_resource_initialize */
 
 /*
- *  リソースの獲得
+ *  Acquisition of resources
  */
 #ifdef TOPPERS_GetResource
 
@@ -149,36 +149,36 @@ GetResource(ResourceType ResID)
 
 		if ((p_rescb->p_resinib->res_lockbudget != 0U) && ((p_runtsk->p_tinib->monitoring & BITMAP_RESLOCK) != 0U)) {
 			/*
-			 *  リソース監視処理
+			 *  Resource monitoring process
 			 */
-			/* 一つ前の監視項目に現在の監視項目を保存 */
+			/* Save the current monitoring item to the previous monitoring items */
 			p_rescb->res_saved_watchtype = p_runtsk->watchtype;
 
 			if (p_runtsk->watchtype == NON_MONITORING) {
 				/*
-				 *  現在の監視項目がない
+				 *  There is no current monitoring items
 				 */
 
-				/* 現在の監視項目にRESOURCE_MONITORINGを保存 */
+				/* Save RESOURCE_MONITORING to current monitoring items */
 				p_runtsk->watchtype = RESOURCE_MONITORING;
-				/* リソース占有時間バジェットでタイマを開始 */
+				/* And start the timer in the resource occupancy time budget */
 				tp_start_timer(p_rescb->p_resinib->res_lockbudget);
 			}
 			else {
 				/*
-				 *  現在の監視項目がタスクかリソース
+				 *  The task of resource current monitoring items
 				 */
-				/* 残り実行時間バジェットを取得 */
+				/* Get the remaining run-time budget */
 				tp_timer = target_tp_get_remaining_ticks();
 				if (tp_timer > p_rescb->p_resinib->res_lockbudget) {
 					/*
-					 *  タイマ切替処理
+					 *  Timer switching process
 					 */
-					/* 現在の監視項目にRESOURCE_MONITORINGを保存 */
+					/* Save RESOURCE_MONITORING to current monitoring items */
 					p_runtsk->watchtype = RESOURCE_MONITORING;
-					/* 残り実行時間バジェットとリソース占有時間バジェットの差を保存 */
+					/* Save the difference between the remaining run-time budget and resource occupancy time budget */
 					p_rescb->res_difftime = tp_timer - p_rescb->p_resinib->res_lockbudget;
-					/* リソース占有時間バジェットでタイマを開始 */
+					/* And start the timer in the resource occupancy time budget */
 					tp_start_timer(p_rescb->p_resinib->res_lockbudget);
 				}
 			}
@@ -227,7 +227,7 @@ GetResource(ResourceType ResID)
 #endif /* TOPPERS_GetResource */
 
 /*
- *  リソースの返却
+ *  Return of resources
  */
 #ifdef TOPPERS_ReleaseResource
 
@@ -262,34 +262,36 @@ ReleaseResource(ResourceType ResID)
 
 		if ((p_rescb->p_resinib->res_lockbudget != 0U) && ((p_runtsk->p_tinib->monitoring & BITMAP_RESLOCK) != 0U)) {
 			/*
-			 *  リソース監視処理
+			 *  Resource monitoring process
 			 */
-			/* 現在の監視項目に一つ前の監視項目を保存 */
+			/* Save the previous monitoring item to the current monitoring items */
 			p_runtsk->watchtype = p_rescb->res_saved_watchtype;
 
 			/*
-			 *  リソース監視処理
+			 *  Resource monitoring process
 			 */
 			if (p_rescb->res_saved_watchtype == NON_MONITORING) {
 				/*
-				 *  一つ前の監視項目がない
+				 *  There is no one prior to the monitoring items
 				 */
-				/* 残り実行時間バジェットを取得し，停止する*/
+				/* It acquires the remaining run-time budget, to stop */
 				tp_timer = tp_stop_timer();
 			}
 			else {
 				/*
-				 *  一つ前の監視項目がタスクかリソース
+				 *  Previous monitoring item task of resource
 				 */
 				if (p_rescb->res_difftime != 0U) {
 					/*
-					 *  タイマ切替処理
+					 *  Timer switching process
 					 */
-					/* 残り実行時間バジェットを取得し，停止する*/
+					/* It acquires the remaining run-time budget, to stop*/
 					tp_timer = tp_stop_timer();
-					/* GetResource時に保存したres_difftimeとタイマ値を一つ前の監視項目の残り時間を復帰させ，タイマをスタート */
+					/*  The res_difftime and timer value saved at GetResource to restore the remaining time
+                     * of the previous monitoring items, and starts a timer 
+					 */
 					tp_start_timer(p_rescb->res_difftime + tp_timer);
-					/* p_rescb->difftimeの初期化 */
+					/* p_rescb->difftime initialization */
 					p_rescb->res_difftime = 0U;
 				}
 			}

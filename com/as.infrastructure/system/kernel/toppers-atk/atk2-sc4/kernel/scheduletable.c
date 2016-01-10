@@ -66,7 +66,7 @@
  */
 
 /*
- *		スケジュールテーブル管理モジュール
+ *		Schedule table management module
  */
 
 #include "kernel_impl.h"
@@ -74,7 +74,7 @@
 #include "scheduletable.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_STASCHTBLREL_ENTER
 #define LOG_STASCHTBLREL_ENTER(schtblid, offset)
@@ -125,7 +125,7 @@
 #endif /* LOG_SCHTBL_LEAVE */
 
 /*
- *  スケジュールテーブルオブジェクトの初期化
+ *  Initialization of the schedule table object
  */
 #ifdef TOPPERS_schtbl_initialize
 
@@ -142,8 +142,8 @@ schtbl_initialize(void)
 		p_schtblcb->p_schtblinib = &(schtblinib_table[i]);
 
 		/*
-		 *  STOPPED状態にする時，p_nextschtblcb，p_prevschtblcbを初期化する
-		 *  RUNNING，NEXT状態にする時，expptindexを初期化する
+		 *  When in the STOPPED state, p_nextschtblcb, when RUNNING, 
+		 * the NEXT state to initialize the p_prevschtblcb, to initialize the expptindex
 		 */
 		p_schtblcb->p_nextschtblcb = NULL;
 		p_schtblcb->p_prevschtblcb = NULL;
@@ -162,14 +162,14 @@ schtbl_initialize(void)
 			staval = p_schtblcb->p_schtblinib->staval;
 			if (p_schtblcb->p_schtblinib->actatr == ABSOLUTE) {
 				/*
-				 *  絶対時間の起動
-				 *  満了時間が0の場合，次の周期の0のタイミングとなる
-				 *  （get_abstickに考慮済み）
+				 *  Start-up of absolute time
+				 *  If the expiration time is 0, the 0 of the timing of the next period
+				 * (Already taken into account in get_abstick)
 				 */
 				(p_schtblcb->cntexpinfo).expiretick = get_abstick(p_cntcb, staval);
 			}
 			else {
-				/* 相対時間の起動 */
+				/* Start-up of the relative time */
 				(p_schtblcb->cntexpinfo).expiretick = get_reltick(p_cntcb, staval);
 			}
 
@@ -186,7 +186,7 @@ schtbl_initialize(void)
 #endif /* TOPPERS_schtbl_initialize */
 
 /*
- *  指定したスケジュールテーブルの開始(相対時間)
+ *  The start of the specified schedule table (relative time)
  */
 #ifdef TOPPERS_StartScheduleTableRel
 
@@ -214,7 +214,7 @@ StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Offset)
 	p_osapcb = p_schtblcb->p_schtblinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するスケジュールテーブル所属のOSAPの状態をチェック */
+	/* Start checking the OSAP state of the schedule table belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
@@ -248,7 +248,7 @@ StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Offset)
 #endif /* TOPPERS_StartScheduleTableRel */
 
 /*
- *  指定したスケジュールテーブルの開始(絶対時間)
+ *  The start of the specified schedule table (absolute time)
  */
 #ifdef TOPPERS_StartScheduleTableAbs
 
@@ -274,13 +274,13 @@ StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Start)
 	p_osapcb = p_schtblcb->p_schtblinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するスケジュールテーブル所属のOSAPの状態をチェック */
+	/* Start checking the OSAP state of the schedule table belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
 	S_D_CHECK_STATE(p_schtblcb->status == SCHEDULETABLE_STOPPED);
 
-	/* 暗黙同期の場合，同期動作状態で動作する */
+	/* In the case of implicit synchronization, it operates in synchronous operation state */
 	if (is_implschtbl(ScheduleTableID)) {
 		p_schtblcb->status = SCHEDULETABLE_RUNNING_AND_SYNCHRONOUS;
 	}
@@ -314,7 +314,7 @@ StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Start)
 #endif /* TOPPERS_StartScheduleTableAbs */
 
 /*
- *  指定したスケジュールテーブルの停止
+ *  Stop of the specified schedule table
  */
 #ifdef TOPPERS_StopScheduleTable
 
@@ -337,15 +337,15 @@ StopScheduleTable(ScheduleTableType ScheduleTableID)
 	p_osapcb = p_schtblcb->p_schtblinib->p_osapcb;
 	x_nested_lock_os_int();
 
-	/* 起動するスケジュールテーブル所属のOSAPの状態をチェック */
+	/* Start checking the OSAP state of the schedule table belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
 	S_D_CHECK_NOFUNC(p_schtblcb->status != SCHEDULETABLE_STOPPED);
 
 	/*
-	 *  指定されたスケジュールテーブルがSCHEDULETABLE_NEXTの場合,
-	 *  自分をNextにしたスケジュールテーブルから，自分を外す
+	 *  If the specified schedule table is SCHEDULETABLE_NEXT, 
+	 * from the schedule table that yourself to Next, remove yourself
 	 */
 	if (p_schtblcb->status == SCHEDULETABLE_NEXT) {
 		p_schtblcb->p_prevschtblcb->p_nextschtblcb = NULL;
@@ -353,8 +353,8 @@ StopScheduleTable(ScheduleTableType ScheduleTableID)
 	}
 	else {
 		/*
-		 *  Nextスケジュールテーブルが存在した場合,
-		 *  Nextスケジュールテーブルの予約をキャンセルする
+		 *  If the Next schedule table exists, 
+		 * to cancel the reservation of Next schedule table
 		 */
 		p_nextcb = p_schtblcb->p_nextschtblcb;
 		if (p_nextcb != NULL) {
@@ -363,7 +363,7 @@ StopScheduleTable(ScheduleTableType ScheduleTableID)
 			p_schtblcb->p_nextschtblcb = NULL;
 		}
 
-		/* カウンタ満了キューから既に登録した満了処理を削除 */
+		/* Remove already registered expiration processing from the counter expiration queue */
 		delete_cnt_expr_que(&(p_schtblcb->cntexpinfo),
 							p_schtblcb->p_schtblinib->p_cntcb);
 	}
@@ -390,7 +390,7 @@ StopScheduleTable(ScheduleTableType ScheduleTableID)
 #endif /* TOPPERS_StopScheduleTable */
 
 /*
- *  スケジュールテーブルの切替え
+ *  Switching of schedule table
  */
 #ifdef TOPPERS_NextScheduleTable
 
@@ -420,26 +420,26 @@ NextScheduleTable(ScheduleTableType ScheduleTableID_From,
 
 	x_nested_lock_os_int();
 	p_osapcb = p_curcb->p_schtblinib->p_osapcb;
-	/* 起動するスケジュールテーブル所属のOSAPの状態をチェック */
+	/* Start checking the OSAP state of the schedule table belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
 
 	p_osapcb = p_nextcb->p_schtblinib->p_osapcb;
-	/* 起動するスケジュールテーブル所属のOSAPの状態をチェック */
+	/* Start checking the OSAP state of the schedule table belongs to */
 	D_CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				   ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
 					(p_osapcb == p_runosap)));
 
-	/* ScheduleTableID_Fromの状態チェック */
+	/* Status check of ScheduleTableID_From */
 	S_D_CHECK_NOFUNC((p_curcb->status & (SCHEDULETABLE_STOPPED | SCHEDULETABLE_NEXT)) == 0U);
 
-	/* ScheduleTableID_Toの状態チェック */
+	/* Status check of ScheduleTableID_To */
 	S_D_CHECK_STATE(p_nextcb->status == SCHEDULETABLE_STOPPED);
 
 	/*
-	 *  Currentに対して既にNextが存在した場合,
-	 *  これまでのNextに対してキャンセルする
+	 *  If you already Next exists against Current, 
+	 * we will cancel for the Next of far
 	 */
 	if (p_curcb->p_nextschtblcb != NULL) {
 		p_curcb->p_nextschtblcb->status = SCHEDULETABLE_STOPPED;
@@ -472,7 +472,7 @@ NextScheduleTable(ScheduleTableType ScheduleTableID_From,
 #endif /* TOPPERS_NextScheduleTable */
 
 /*
- *  スケジュールテーブル状態の取得
+ *  Acquisition of schedule table state
  */
 #ifdef TOPPERS_GetScheduleTableStatus
 
@@ -494,7 +494,7 @@ GetScheduleTableStatus(ScheduleTableType ScheduleTableID,
 	p_schtblcb = get_schtblcb(ScheduleTableID);
 	CHECK_RIGHT(p_schtblcb->p_schtblinib->acsbtmp);
 
-	/* スケジュールテーブル所属のOSAPの状態をチェック */
+	/* Check OSAP state of the schedule table belongs */
 	p_osapcb = p_schtblcb->p_schtblinib->p_osapcb;
 	CHECK_ACCESS((p_osapcb->osap_stat == APPLICATION_ACCESSIBLE) ||
 				 ((p_osapcb->osap_stat == APPLICATION_RESTARTING) &&
@@ -522,7 +522,7 @@ GetScheduleTableStatus(ScheduleTableType ScheduleTableID,
 #endif /* TOPPERS_GetScheduleTableStatus */
 
 /*
- *  スケジュール満了処理関数
+ *  Schedule expiration processing function
  */
 #ifdef TOPPERS_schtbl_expire
 
@@ -543,7 +543,7 @@ schtbl_expire(CNTEXPINFO *p_cntexpinfo, const CNTCB *p_cntcb)
 #endif /* TOPPERS_schtbl_expire */
 
 /*
- *  満了処理関数から各タイミング処理の実行
+ *  Run from the expiration processing function of each timing processing
  */
 #ifdef TOPPERS_schtbl_expiry_process
 
@@ -554,24 +554,24 @@ schtbl_expiry_process(SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p_cntcb)
 	SCHTBLCB	*p_schtblcb;
 
 	/*
-	 *  設定した満了点は，すぐ満了する可能性があるので，
-	 *  繰り返し情報によってループ処理
+	 *  Since the set expiration point is likely to be soon expire, 
+	 * the loop process by repeating information
 	 */
 	do {
 		p_schtblcb = p_schtblexpinfo->p_schtblcb;
 
 		if (p_schtblcb->expptindex < p_schtblcb->p_schtblinib->tnum_exppt) {
-			/* 各満了点時 */
+			/* During each expiration point */
 			loopcont = schtbl_exppoint_process(p_schtblcb, p_cntcb);
 		}
 		else if (p_schtblcb->expptindex == p_schtblcb->p_schtblinib->tnum_exppt) {
-			/* 周期の最後時 */
+			/* The last time period */
 			loopcont = schtbl_tail(p_schtblcb, p_schtblexpinfo, p_cntcb);
 		}
 		else {
 			/*
-			 *  周期の開始時
-			 *  p_schtblcb->expptindex == EXPPTINDEX_INITIALしかあり得ない
+			 *  At the start of the period
+			 *  p_schtblcb-> expptindex == EXPPTINDEX_INITIAL it is not only there is obtained
 			 */
 			loopcont = schtbl_head(p_schtblcb, p_cntcb);
 		}
@@ -581,7 +581,7 @@ schtbl_expiry_process(SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p_cntcb)
 #endif /* TOPPERS_schtbl_expiry_process */
 
 /*
- *  スケジュールテーブルの開始処理
+ *  Start processing of the schedule table
  */
 #ifdef TOPPERS_schtbl_head
 
@@ -594,12 +594,13 @@ schtbl_head(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb)
 	p_exppoint = &(p_schtblcb->p_schtblinib->p_exppt[EXPPTINDEX_TOP]);
 
 	if (p_exppoint->offset == 0U) {
-		/* 初期オフセット0の場合，今回満了処理内で1個目の満了点処理を行う */
+		/* If the initial offset 0, and performs one second of expiration 
+		 * point processing within this time expiration processing */
 		loopcont = TRUE;
 	}
 	else {
 		loopcont = FALSE;
-		/* 次に起動すべき時間の選定 */
+		/* The selection of the next time to be activated */
 		p_schtblcb->cntexpinfo.expiretick = add_tick(p_schtblcb->cntexpinfo.expiretick,
 													 p_exppoint->offset, p_cntcb->p_cntinib->maxval2);
 	}
@@ -612,7 +613,7 @@ schtbl_head(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb)
 #endif /* TOPPERS_schtbl_head */
 
 /*
- *  スケジュールテーブルの各満了点処理
+ *  Each expiration point processing of the schedule table
  */
 #ifdef TOPPERS_schtbl_exppoint_process
 
@@ -630,7 +631,7 @@ schtbl_exppoint_process(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb)
 	index = p_schtblcb->expptindex;
 	p_exppoint = &(pp_exppoint[index]);
 
-	/* 満了処理の実行 */
+	/* Execution of expiration processing */
 	LOG_SCHTBL_ENTER(p_schtblcb);
 	p_runosap_saved = p_runosap;
 	p_runosap = p_schtblcb->p_schtblinib->p_osapcb;
@@ -640,30 +641,30 @@ schtbl_exppoint_process(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb)
 	p_runosap = p_runosap_saved;
 
 	LOG_SCHTBL_LEAVE(p_schtblcb);
-	/* 現在時間の退避 */
+	/* Save the current time */
 	currtime = p_exppoint->offset;
-	/* 次の満了点へ */
+	/* To the next expiration point */
 	index++;
 	p_schtblcb->expptindex = index;
 
 	if (p_schtblcb->expptindex == p_schtblcb->p_schtblinib->tnum_exppt) {
-		/* 現在が周期の最後の満了点の場合 */
+		/* If the current is the last point of the expiration period */
 		if (p_schtblcb->p_schtblinib->length == currtime) {
 			/*
-			 *  単発スケジュールテーブル最終遅延値が0の場合，Nextが存在するかもしれないため，
-			 *  スケジュールテーブルの最後タイミング処理をする
+			 *  If one-shot schedule table final delay value is 0, for that might Next exists,
+			 * the last timing processing of the schedule table
 			 */
 			loopcont = TRUE;
 		}
 		else {
-			/* 最終遅延処理のため，満了時間の設定 */
+			/* For final delay processing, set the expiration time */
 			p_schtblcb->cntexpinfo.expiretick = add_tick(p_schtblcb->cntexpinfo.expiretick,
 														 (p_schtblcb->p_schtblinib->length - currtime), p_cntcb->p_cntinib->maxval2);
 		}
 	}
 	else {
 		p_exppoint = &(pp_exppoint[index]);
-		/* 次の満了点の満了時間の設定 */
+		/* Setting the expiration time of the next expiration point */
 		p_schtblcb->cntexpinfo.expiretick = add_tick(p_schtblcb->cntexpinfo.expiretick,
 													 (p_exppoint->offset - currtime), p_cntcb->p_cntinib->maxval2);
 	}
@@ -674,7 +675,7 @@ schtbl_exppoint_process(SCHTBLCB *p_schtblcb, const CNTCB *p_cntcb)
 #endif /* TOPPERS_schtbl_exppoint_process */
 
 /*
- *  スケジュールテーブルの終端処理
+ *  Termination of the schedule table
  */
 #ifdef TOPPERS_schtbl_tail
 
@@ -685,55 +686,56 @@ schtbl_tail(SCHTBLCB *p_schtblcb, SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p
 	SCHTBLCB			*p_nextcb;
 	const SCHTBLEXPPTCB	*p_exppoint;
 
-	/* 周期の最後にてNextが存在するかチェック */
+	/* Finally at check Next to the presence of a cycle */
 	if (p_schtblcb->p_nextschtblcb != NULL) {
 		p_nextcb = p_schtblcb->p_nextschtblcb;
 
 		/*
-		 *  スケジュールテーブルの切り替え
+		 *  Switching of schedule table
 		 *
-		 *  暗黙同期同士の切替を考慮し，状態の引継ぎが必要
-		 *  NextScheduleTableで同期方法チェックしているので，
-		 *  同期方法の不整合がない
+		 *  In consideration of the switching of implicit synchronization 
+		 * with each other, because the state of the takeover is synchronization 
+		 * method check in need NextScheduleTable, there is no mismatch of synchronization method
 		 */
 		p_nextcb->status = p_schtblcb->status;
 		p_nextcb->expptindex = EXPPTINDEX_INITIAL;
 
-		/* Nextの満了点設定基準は，Prevの満了時刻となる */
+		/* Expiration point setting standards for Next becomes the expiration time of Prev */
 		p_nextcb->cntexpinfo.expiretick = p_schtblcb->cntexpinfo.expiretick;
 		p_nextcb->p_prevschtblcb = NULL;
 
-		/* 今まで実行状態のスケジュールテーブルに対して終了処理 */
+		/* The end processing for scheduled table of execution state until now */
 		p_schtblcb->status = SCHEDULETABLE_STOPPED;
 		p_schtblcb->p_nextschtblcb = NULL;
 
 		/*
-		 *  上流側よりNextの初期満了点をカウンタ満了キューに追加する時，
-		 *  使用される
+		 *  When you add the initial expiration point of Next to the counter
+		 * expiration queue from the upstream side, and is used
 		 */
 		p_schtblexpinfo->p_schtblcb = p_nextcb;
 
 		loopcont = TRUE;
 	}
 	else {
-		/* 周期制御の有無チェック */
+		/* The presence or absence check of cycle control */
 		if (p_schtblcb->p_schtblinib->repeat != FALSE) {
 
 			p_schtblcb->expptindex = EXPPTINDEX_TOP;
 			p_exppoint = &(p_schtblcb->p_schtblinib->p_exppt[EXPPTINDEX_TOP]);
 
 			if (p_exppoint->offset == 0U) {
-				/* 初期オフセット0の場合，今回満了処理内で1個目の満了点処理を行う */
+				/* If the initial offset 0, and performs one second of expiration 
+				 * point processing within this time expiration processing */
 				loopcont = TRUE;
 			}
 			else {
-				/* 最終遅延処理のため，満了時間の設定 */
+				/* For final delay processing, set the expiration time */
 				p_schtblcb->cntexpinfo.expiretick = add_tick(p_schtblcb->cntexpinfo.expiretick,
 															 p_exppoint->offset, p_cntcb->p_cntinib->maxval2);
 			}
 		}
 		else {
-			/* 周期起動しないので，終了処理 */
+			/* Because it does not cycle start, end processing */
 			p_schtblcb->status = SCHEDULETABLE_STOPPED;
 			p_schtblexpinfo->p_schtblcb = NULL;
 			p_schtblcb->p_prevschtblcb = NULL;
@@ -747,7 +749,7 @@ schtbl_tail(SCHTBLCB *p_schtblcb, SCHTBLEXPINFO *p_schtblexpinfo, const CNTCB *p
 #endif /* TOPPERS_schtbl_tail */
 
 /*
- *  OSAP所属するスケジュールテーブルの強制終了
+ *  Forced termination of SAP belongs to schedule table
  */
 #ifdef TOPPERS_force_term_osap_schtbl
 
@@ -762,8 +764,8 @@ force_term_osap_schtbl(OSAPCB *p_osapcb)
 		if (schtblinib_table[i].p_osapcb == p_osapcb) {
 			p_schtblcb = &schtblcb_table[i];
 			/*
-			 *  指定されたスケジュールテーブルがSCHEDULETABLE_NEXTの場合,
-			 *  自分をNextにしたスケジュールテーブルから，自分を外す
+			 *  If the specified schedule table is SCHEDULETABLE_NEXT, 
+			 * from the schedule table that yourself to Next, remove yourself
 			 */
 			if (p_schtblcb->status == SCHEDULETABLE_NEXT) {
 				p_schtblcb->p_prevschtblcb->p_nextschtblcb = NULL;
@@ -773,8 +775,8 @@ force_term_osap_schtbl(OSAPCB *p_osapcb)
 			else if ((p_schtblcb->status == SCHEDULETABLE_RUNNING) ||
 					 (p_schtblcb->status == SCHEDULETABLE_RUNNING_AND_SYNCHRONOUS)) {
 				/*
-				 *  Nextスケジュールテーブルが存在する場合,
-				 *  Nextスケジュールテーブルの予約をキャンセルする
+				 *  If the Next schedule table exists, 
+				 * to cancel the reservation of Next schedule table
 				 */
 				p_nextcb = p_schtblcb->p_nextschtblcb;
 				if (p_nextcb != NULL) {
@@ -783,13 +785,13 @@ force_term_osap_schtbl(OSAPCB *p_osapcb)
 					p_schtblcb->p_nextschtblcb = NULL;
 				}
 
-				/* カウンタ満了キューから既に登録した満了処理を削除 */
+				/* Remove already registered expiration processing from the counter expiration queue */
 				delete_cnt_expr_que(&(p_schtblcb->cntexpinfo),
 									p_schtblcb->p_schtblinib->p_cntcb);
 				p_schtblcb->status = SCHEDULETABLE_STOPPED;
 			}
 			else {
-				/* 実施すべきことがない */
+				/* Never to be implemented */
 			}
 		}
 	}

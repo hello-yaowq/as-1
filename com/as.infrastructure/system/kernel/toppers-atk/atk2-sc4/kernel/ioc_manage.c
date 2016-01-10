@@ -66,13 +66,13 @@
  */
 
 /*
- *		IOCモジュール
+ *		IOC module
  */
 #include "ioc_impl.h"
 #include "check.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_IOCSEND_ENTER
 #define LOG_IOCSEND_ENTER(senderid)
@@ -115,12 +115,12 @@
 #endif /* LOG_IOCEMPTUQUEUE_LEAVE */
 
 
-/* 内部関数のプロトタイプ宣言 */
+/* Prototype declaration of internal functions */
 LOCAL_INLINE void ioc_memcpy(void *p_dst, const void *p_src, uint32 sz);
 
 
 /*
- *  初期化関数
+ *  Initialization function
  */
 void
 ioc_initialize(void)
@@ -129,7 +129,7 @@ ioc_initialize(void)
 	IOCCB			*p_ioccb;
 	const IOCINIB	*p_iocinib;
 
-	/* キューの初期化 */
+	/* Queue initialization */
 	for (i = 0U; i < tnum_queueioc; i++) {
 		p_ioccb = &ioccb_table[i];
 		p_ioccb->quecnt = 0U;
@@ -138,7 +138,7 @@ ioc_initialize(void)
 		p_ioccb->lostflg = FALSE;
 	}
 
-	/* 各IOCのバッファ初期化 */
+	/* Buffer initialization of each IOC */
 	for (i = 0U; i < tnum_ioc; i++) {
 		if (ioc_inival_table[i] != NULL) {
 			p_iocinib = &iocinib_table[i];

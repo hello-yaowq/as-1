@@ -66,7 +66,7 @@
  */
 
 /*
- *		OS制御モジュール
+ *		OS control module
  */
 
 #include "kernel_impl.h"
@@ -74,7 +74,7 @@
 #include "task.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 
 #ifndef LOG_ERRHOOK_ENTER
@@ -111,7 +111,7 @@
 
 #ifdef CFG_USE_ERRORHOOK
 /*
- *  エラーフックに渡す情報を格納する変数
+ *  Variable to store the information to be passed to the error hook
  */
 #ifdef TOPPERS_internal_call_errorhook
 
@@ -129,7 +129,7 @@ DEFINE_VAR_SEC_NOBITS(_ErrorHook_Par, errorhook_par3, ".srpw_bss_kernel");
 #endif /* CFG_USE_PARAMETERACCESS */
 
 /*
- *  エラーフックの呼び出し
+ *  Call of error hook
  */
 void
 internal_call_errorhook(StatusType ercd, OSServiceIdType svcid)
@@ -166,7 +166,7 @@ internal_call_errorhook(StatusType ercd, OSServiceIdType svcid)
 
 #ifdef CFG_USE_POSTTASKHOOK
 /*
- *  ポストタスクフックの呼び出し
+ *  Call of post task hook
  */
 #ifdef TOPPERS_call_posttaskhook
 
@@ -192,7 +192,7 @@ call_posttaskhook(void)
 
 #ifdef CFG_USE_PRETASKHOOK
 /*
- *  プレタスクフックの呼び出し
+ *  Call of the pre-task hook
  */
 #ifdef TOPPERS_call_pretaskhook
 
@@ -221,8 +221,8 @@ call_pretaskhook(void)
 #ifdef TOPPERS_init_stack_magic_region
 
 /*
- *  スタックモニタリング機能の初期化
- *  スタックモニタリング機能のためのマジックナンバー領域の初期化
+ *  Initialization of stack monitoring function
+ *  Initialization of the magic number area for stack monitoring function
  */
 void
 init_stack_magic_region(void)
@@ -230,8 +230,8 @@ init_stack_magic_region(void)
 	StackType *p_stack_magic_region;
 
 	/*
-	 *  スタックモニタリング機能のため，スタック成長方向考慮した
-	 *  非タスクスタックのマジックナンバー領域の初期化
+	 *  For stack monitoring function, the initialization of the magic number 
+	 * area of the stack growth direction taking into account the non-task stack
 	 */
 	p_stack_magic_region = TOPPERS_ISTK_MAGIC_REGION(_ostk, _ostksz);
 	*p_stack_magic_region = STACK_MAGIC_NUMBER;
@@ -242,8 +242,8 @@ init_stack_magic_region(void)
 #endif /* CFG_USE_STACKMONITORING */
 
 /*
- *  プロテクションフックの呼び出し
- *  引数の最上位ビットは，呼び出し箇所を示す役割がある
+ *  Call of protection hook
+ *  Most significant bits of the arguments, a role indicating a call points
  */
 #ifdef TOPPERS_call_protectionhk_main
 
@@ -257,12 +257,12 @@ call_protectionhk_main(StatusType protection_error)
 
 	ProtectionReturnType	pret;
 
-	/* プロテクションフック実行中に保護違反が発生した場合 */
+	/* If a protection violation occurs during the execution protection hook */
 	if ((callevel_stat & TCL_PROTECT) == TCL_PROTECT) {
 		internal_shutdownos(E_OS_PROTECTION_FATAL);
 	}
 
-	/* 以下 プロテクションフックを呼出す処理 */
+	/* Processing to call the following protection hook */
 	ENTER_CALLEVEL(TCL_PROTECT);
 	saved_run_trusted = run_trusted;
 
@@ -274,18 +274,18 @@ call_protectionhk_main(StatusType protection_error)
 
 	LEAVE_CALLEVEL(TCL_PROTECT);
 
-	/* 以下 ProtectionHook 実行後の処理 */
+	/* Treatment after the following ProtectionHook run*/
 	switch (pret) {
 	case PRO_SHUTDOWN:
 		internal_shutdownos(protection_error);
 		break;
 	case PRO_TERMINATETASKISR:
 		if ((p_runtsk == NULL) || (pre_protection_supervised != FALSE)) {
-			/* 信頼領域からのフック時はシャットダウン */
+			/* Hook at the time of shutdown from the trust region */
 			internal_shutdownos(E_OS_PROTECTION_FATAL);
 		}
 		else {
-			/* タスクの場合 */
+			/* For tasks */
 			force_terminate_task(p_runtsk);
 		}
 		break;
@@ -311,7 +311,7 @@ call_protectionhk_main(StatusType protection_error)
 		}
 		break;
 	default:
-		/* ProtectionHookから不正な値が返った場合 */
+		/* If an invalid value was returned from ProtectionHook */
 		internal_shutdownos(E_OS_PROTECTION_FATAL);
 		break;
 	}
@@ -319,11 +319,11 @@ call_protectionhk_main(StatusType protection_error)
 #else /* CFG_USE_PROTECTIONHOOK */
 
 	/*
-	 *  プロテクションフックがコンフィギュレーション時に無効と
-	 *  されている場合，OSは保護違反時処理としてOSシャットダウンを
-	 *  行う
-	 *  このとき，OSシャットダウンのパラメータとして，
-	 *  違反の区別を示すエラーコードを指定する
+	 *  If the protection hooks have been disabled during configuration, 
+	 * OS performs the OS shut down as the time of processing protection violation
+	 *
+	 *  In this case, as a parameter of OS shutdown, specify an error code 
+	 * indicating the distinction of violation
 	 */
 	internal_shutdownos(protection_error);
 #endif /* CFG_USE_PROTECTIONHOOK */
@@ -333,7 +333,7 @@ call_protectionhk_main(StatusType protection_error)
 #endif /* TOPPERS_call_protectionhk_main */
 
 /*
- *  OS内部からのShutdownOSの呼び出し
+ *  Call of ShutdownOS from internal OS
  */
 #ifdef TOPPERS_internal_shutdownos
 
@@ -348,20 +348,20 @@ internal_shutdownos(StatusType ercd)
 	call_shutdownhook(ercd);
 #endif /* CFG_USE_SHUTDOWNHOOK */
 
-	/* 各モジュールの終了処理 */
+	/* End processing of each module */
 	object_terminate();
 
-	/* 全割込み禁止状態に移行 */
+	/* The transition to all interrupt disabled state */
 	x_lock_all_int();
 
 	LOG_STUTOS_LEAVE();
 
-	/* ターゲット依存の終了処理 */
+	/* End processing of target-dependent */
 	target_exit();
 
 	/*
-	 * ターゲット依存部から処理が返ってきた場合，
-	 * 無限ループを行う
+	 * If the process is returned from the target-dependent module,
+	 * Do an infinite loop
 	 */
 	while (1) {
 	}
@@ -379,15 +379,14 @@ internal_call_shtdwnhk(StatusType ercd)
 {
 
 	/*
-	 *  シャットダウンフック中のシャットダウンではシャットダウンフック
-	 *  は呼び出さない
+	 *  Shutdown hook is not called a shutdown in shutdown hook
 	 */
 	if ((callevel_stat & TCL_SHUTDOWN) == TCL_NULL) {
 
 		p_runosap = NULL;
 
 		/*
-		 *  ShutdownHook の呼び出し
+		 *  ShutdownHook callout
 		 */
 		ENTER_CALLEVEL(TCL_SHUTDOWN);
 		run_trusted = TRUE;

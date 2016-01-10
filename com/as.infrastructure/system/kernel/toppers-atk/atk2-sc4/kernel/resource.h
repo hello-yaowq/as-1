@@ -66,56 +66,56 @@
  */
 
 /*
- *		リソース管理機能
+ *		Resource management function
  */
 
 #ifndef TOPPERS_RESOURCE_H
 #define TOPPERS_RESOURCE_H
 
 /*
- *  リソース管理初期化ブロック（Os_Lcfg.c）
+ *  Resource management initialization block
  */
 typedef struct resource_initialization_block {
 	PriorityType	ceilpri;
-	uint32			acsbtmp;                /* アクセス許可OSアプリケーション ビットマップ */
-	TickType		res_lockbudget;         /* リソース占有時間バジェット */
+	uint32			acsbtmp;                /* Permissions OS application bitmap*/
+	TickType		res_lockbudget;         /* Resource occupation time budget */
 } RESINIB;
 
 /*
- *  リソース管理ブロック（Os_Lcfg.c）
+ *  Resource management block
  */
 typedef struct resource_control_block {
-	const RESINIB					*p_resinib;             /* 初期化ブロックへのポインタ */
-	PriorityType					prevpri;                /* リソース獲得前の優先度 */
-	struct resource_control_block	*p_prevrescb;           /* 前に獲得したリソース管理ブロックへのポインタ */
-	boolean							lockflg;                /* リソースが取得されていればTRUE */
-	MonitoringType					res_saved_watchtype;    /* 一つ前の監視項目 */
-	TickType						res_difftime;           /* リソース占有時間と元の監視項目との差分 */
+	const RESINIB					*p_resinib;             /* A pointer to the initialization block */
+	PriorityType					prevpri;                /* Resource acquisition before the priority */
+	struct resource_control_block	*p_prevrescb;           /* A pointer to the acquired resource management block before */
+	boolean							lockflg;                /* TRUE if the resource is acquired */
+	MonitoringType					res_saved_watchtype;    /* Previous monitoring items */
+	TickType						res_difftime;           /* The difference between the resource occupation time and original monitoring items */
 
 } RESCB;
 
 /*
- *  リソース数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of resources
  */
-extern const ResourceType	tnum_stdresource;           /* 内部リソースを除くリソース数 */
+extern const ResourceType	tnum_stdresource;           /* The number of resources with the exception of internal resources */
 
 /*
- *  リソース初期化ブロックのエリア（Os_Lcfg.c）
+ *  Of resource initialization block area 
  */
 extern const RESINIB		resinib_table[];
 
 /*
- *  リソース管理ブロックのエリア（Os_Lcfg.c）
+ *  Of resource management block area
  */
 extern RESCB				rescb_table[];
 
 /*
- *  リソース管理機能の初期化
+ *  Initialization of the resource management function
  */
 extern void resource_initialize(void);
 
 /*
- *  リソースID から リソース管理ブロックを取り出すためのマクロ
+ *  Macro to extract the resource control blocks from a resource ID
  */
 #define get_rescb(resid)	(&(rescb_table[(resid)]))
 

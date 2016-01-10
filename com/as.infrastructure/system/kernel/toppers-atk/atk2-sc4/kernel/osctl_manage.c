@@ -66,7 +66,7 @@
  */
 
 /*
- *		OS管理モジュール
+ *		OS management module
  */
 
 #include "kernel_impl.h"
@@ -74,7 +74,7 @@
 #include "interrupt.h"
 
 /*
- *  トレースログマクロのデフォルト定義
+ *  The default definition of the trace log macro
  */
 #ifndef LOG_GETAAM_ENTER
 #define LOG_GETAAM_ENTER()
@@ -103,31 +103,31 @@
 #ifdef TOPPERS_StartOS
 
 /*
- *  OS実行制御のための変数
+ *  Variable for OS execution control
  */
-uint16		callevel_stat = 0U;             /* 実行中のコンテキスト */
-AppModeType	appmodeid;                      /* アプリケーションモードID */
+uint16		callevel_stat = 0U;             /* Context of running */
+AppModeType	appmodeid;                      /* Application mode ID */
 
 /*
- *  カーネル動作状態フラグ
+ *  Kernel operating state flag
  */
 boolean		kerflg = FALSE;
 
 /*
- *  特権モードで動作中かを示すフラグ
+ *  Flag indicating whether running in privileged mode
  */
 boolean		run_trusted;
 
 boolean		pre_protection_supervised;
 
 /*
- *  ファイル名，行番号の参照用の変数
+ *  File name, variable for the reference line number
  */
-const char8	*fatal_file_name = NULL;                    /* ファイル名 */
-sint32		fatal_line_num = 0;                         /* 行番号 */
+const char8	*fatal_file_name = NULL;                    /* file name */
+sint32		fatal_line_num = 0;                         /* line number */
 
 /*
- *  OSの起動
+ *  Starting the OS
  */
 
 void
@@ -136,7 +136,7 @@ StartOS(AppModeType Mode)
 
 	LOG_STAOS_ENTER(Mode);
 	if (kerflg != FALSE) {
-		/* OS起動中はエラーフックを呼ぶ */
+		/* During OS boot it calls the error hook */
 #ifdef CFG_USE_ERRORHOOK
 		x_nested_lock_os_int();
 #ifdef CFG_USE_PARAMETERACCESS
@@ -148,41 +148,41 @@ StartOS(AppModeType Mode)
 	}
 	else {
 
-		/* 全割込み禁止状態に移行 */
+		/* The transition to all interrupt disabled state */
 		x_lock_all_int();
 
 #ifdef CFG_USE_STACKMONITORING
 		/*
-		 *  スタックモニタリング機能の初期化
-		 *  スタックモニタリング機能のためのマジックナンバー領域の初期化
+		 *  Initialization of stack monitoring function
+		 *  Initialization of the magic number area for stack monitoring function
 		 */
 		init_stack_magic_region();
 #endif /* CFG_USE_STACKMONITORING */
 
-		/* アプリケーションモードの設定 */
+		/* Setting the application mode */
 		appmodeid = Mode;
 
-		/* ターゲット依存の初期化 */
+		/* Initialization of target-dependent */
 		target_initialize();
 
-		/* 各モジュールの初期化 */
+		/* Initialization of each module */
 		object_initialize();
 
 		callevel_stat = TCL_NULL;
 
-		/* カーネル動作中 */
+		/* Kernel running */
 		kerflg = TRUE;
 
 		run_trusted = TRUE;
 
 		/*
-		 *  Modeが不正であった場合，OSシャットダウンを行う
-		 *  この時，スタートアップフックは呼び出されない
+		 *  If Mode was incorrect, this time to perform the OS 
+		 * shutdown, start-up hook is not called
 		 */
 		if (Mode >= tnum_appmode) {
 			/*
-			 *  internal_shutdownosを呼ぶ前にOS割込み禁止状態へ
-			 *  全割込み禁止状態解除
+			 *  and release all interrupts disabled state to the OS interrupt
+			 * disable state before calling internal_shutdownos
 			 */
 			x_nested_lock_os_int();
 			x_unlock_all_int();
@@ -190,12 +190,12 @@ StartOS(AppModeType Mode)
 		}
 
 #ifdef CFG_USE_STARTUPHOOK
-		/* OS割込み禁止状態にし，全割込み禁止状態解除 */
+		/* The OS interrupt disable state, release all interrupt disabled state */
 		x_nested_lock_os_int();
 		x_unlock_all_int();
 
 		/*
-		 *  StartupHook の呼び出し
+		 *  StartupHook callout
 		 */
 		ENTER_CALLEVEL(TCL_STARTUP);
 		LOG_STAHOOK_ENTER();
@@ -203,7 +203,7 @@ StartOS(AppModeType Mode)
 		LOG_STAHOOK_LEAVE();
 		LEAVE_CALLEVEL(TCL_STARTUP);
 
-		/* 元の割込みマスク優先度と全割込み禁止状態に */
+		/* Original interrupt mask priority and to all the interrupt disable state */
 		x_lock_all_int();
 		x_nested_unlock_os_int();
 #endif /* CFG_USE_STARTUPHOOK */
@@ -219,7 +219,7 @@ StartOS(AppModeType Mode)
 #endif /* TOPPERS_StartOS */
 
 /*
- *  現在のアプリケーションモードの取得
+ *  Acquisition of the current application mode
  */
 #ifdef TOPPERS_GetActiveApplicationMode
 
@@ -243,8 +243,9 @@ GetActiveApplicationMode(void)
   exit_errorhook:
 	x_nested_lock_os_int();
 	/*
-	 *  エラー発生時はINVALID_APPMODETYPEが返るが，エラーが発生したのか実行中の
-	 *  C2ISRが存在しないのか区別するため，エラーフックを呼ぶ
+	 *  When an error occurs but INVALID_APPMODETYPE is returned, 
+	 * in order to distinguish whether the error does not exist 
+	 * C2ISR running what has occurred, it is referred to as the error hook
 	 */
 	call_errorhook(ercd, OSServiceId_GetActiveApplicationMode);
 	x_nested_unlock_os_int();
@@ -258,7 +259,7 @@ GetActiveApplicationMode(void)
 #endif /* TOPPERS_GetActiveApplicationMode */
 
 /*
- *  OSの終了
+ *  The end of the OS
  */
 #ifdef TOPPERS_ShutdownOS
 
@@ -268,12 +269,11 @@ ShutdownOS(StatusType Error)
 	StatusType ercd = Error;
 
 	/*
-	 *  呼出し元所属 OSアプリケーションの信頼/非信頼のチェック
-	 *  呼出し元が信頼関数，フックである場合は
-	 *  ShutdownOS() を実行する
+	 *  If the caller belongs OS application of trust / untrusted check caller 
+	 * reliable function is a hook I run ShutdownOS ()
 	 */
 	if (run_trusted == FALSE) {
-		/* 非信頼から呼ばれた場合はエラーフックを呼ぶ */
+		/* It is called an error hook when it is called from the untrusted */
 #ifdef CFG_USE_ERRORHOOK
 		x_nested_lock_os_int();
 #ifdef CFG_USE_PARAMETERACCESS
@@ -286,16 +286,18 @@ ShutdownOS(StatusType Error)
 	else {
 
 		/*
-		 *  不正な処理単位から呼び出した場合も，ErrorをE_OS_SHUTDOWN_FATALとして
-		 *  ShutdownOSを呼び出したものとして，シャットダウン処理を行う
+		 *  Even if you call from unauthorized processing unit, 
+		 * as those that called ShutdownOS the Error as E_OS_SHUTDOWN_FATAL, 
+		 * to perform the shutdown process
 		 */
 		if (((callevel_stat & TCLMASK) | (CALLEVEL_SHUTDOWNOS)) != (CALLEVEL_SHUTDOWNOS)) {
 			ercd = E_OS_SHUTDOWN_FATAL;
 		}
 
 		/*
-		 *  OSで定義されていないエラーコードが指定された場合，ErrorをE_OS_SHUTDOWN_FATALとして
-		 *  ShutdownOSを呼び出したものとして，シャットダウン処理を行う
+		 *  If the error code that is not defined by the OS is specified, 
+		 * as that called ShutdownOS the Error as E_OS_SHUTDOWN_FATAL, 
+		 * it does shutdown process
 		 */
 		if (ercd > ERRCODE_NUM) {
 			ercd = E_OS_SHUTDOWN_FATAL;
@@ -307,7 +309,7 @@ ShutdownOS(StatusType Error)
 #endif /* TOPPERS_ShutdownOS */
 
 /*
- *  保護違反を起こした処理単位の取得
+ *  Acquisition of a processing unit that caused the protection violation
  */
 #ifdef TOPPERS_GetFaultyContext
 
@@ -319,15 +321,15 @@ GetFaultyContext(void)
 #ifdef CFG_USE_PROTECTIONHOOK
 	if ((callevel_stat & CALLEVEL_GETFAULTYCONTEXT) != 0U) {
 
-		/* C1ISR以外で発生 */
+		/* Occur outside C1ISR */
 		if ((callevel_stat & TSYS_ISR1) == 0U) {
 			if ((callevel_stat & (TCL_ERROR | TCL_PREPOST | TCL_STARTUP | TCL_SHUTDOWN)) != 0U) {
-				/* フック中に発生 */
+				/* Raised in the hook */
 				faultycontext = FC_SYSTEM_HOOK;
 			}
 			else if ((callevel_stat & TCL_ISR2) != 0U) {
 				if (p_runisr->calltfn != FALSE) {
-					/* C2ISRから呼出した信頼関数中に発生 */
+					/* Raised in trust function you call from C2ISR */
 					faultycontext = FC_TRUSTED_FUNC;
 				}
 				else {
@@ -336,7 +338,7 @@ GetFaultyContext(void)
 			}
 			else if ((callevel_stat & TCL_TASK) != 0U) {
 				if (p_runtsk->calltfn != FALSE) {
-					/* タスクから呼出した信頼関数中に発生 */
+					/* Raised in trust function you call from the task */
 					faultycontext = FC_TRUSTED_FUNC;
 				}
 				else {
@@ -344,7 +346,7 @@ GetFaultyContext(void)
 				}
 			}
 			else {
-				/* 上記以外の場合，処理は行わない(戻り値：FC_INVALID) */
+				/* Otherwise, it does not perform processing (return value: FC_INVALID) */
 			}
 		}
 	}

@@ -66,30 +66,30 @@
  */
 
 /*
- *		OSアプリケーション管理機能
+ *		OS application management function
  */
 
 #ifndef TOPPERS_OSAP_H
 #define TOPPERS_OSAP_H
 
 /*
- *  OSアプリケーションの属性
+ *  OS application attributes
  */
 #define TA_NONTRUSTED			(FALSE)
 #define TA_TRUSTED				(TRUE)
 
 /*
- *  OSアプリケーションIDからOSAPINIBを取り出すためのマクロ
+ *  Macro for extracting OSAPINIB from OS application ID
  */
 #define get_osapinib(osapid)	(&(osapinib_table[(osapid)]))
 
 /*
- *  OSAPIDからOSAPCBを取り出すためのマクロ
+ *  Macro for extracting OSAPCB from OSAPID
  */
 #define get_osapcb(osapid)		(&(osapcb_table[(osapid)]))
 
 /*
- *  OSAPCBからOSアプリケーションIDを取り出すためのマクロ
+ *  Macro for taking out the OS application ID from OSAPCB
  */
 #define OSAPID(p_osapcb)	((ApplicationType) ((p_osapcb) - osapcb_table))
 
@@ -99,82 +99,82 @@ typedef struct os_application_control_block OSAPCB;
 #include "task.h"
 
 /*
- *  OSアプリケーション初期化ブロック
+ *  OS application initialization block
  *
- *  OSアプリケーションに関する情報を，OSアプリケーション制御ブロックと
- *  して定義する
- *  他のオブジェクトは，ROMに置く初期化ブロックとRAMに置く制御ブロック
- *  で構成されているが，OSアプリケーションに関する情報は実行時に変更さ
- *  れることがないため，初期化ブロックを制御ブロックとして使用する
+ *  Information about the OS applications, it is defined as the OS application 
+ * control block
+ *  The other object is constituted by a control block placed in the initialization 
+ * block and RAM put in ROM, since the information on the OS application not be 
+ * changed at runtime, using the initialization block as a control block
  *
- *  ATK2-SC3では，メモリプロテクション機能のための情報を持たせるが，
- *  メモリプロテクション実装はCPUに依存するため，メモリプロテクション
- *  情報の本体は機種依存部に持たせる
+ *  In ATK2-SC3, but to have the information for memory protection function,
+ * since the memory protection implementation is dependent on the CPU, the
+ * main body of the memory protection information is to have the machine-dependent parts
  */
 typedef struct os_application_initialization_block {
-	TCB		*p_restart_tcb;                             /* OSAPのリスタートタスク管理ブロックへのポインタ */
-	boolean	osap_trusted;                               /* OSアプリケーションの属性 */
-	uint32	btptn;                                      /* 非信頼OSアプリケーションのビットパターン */
+	TCB		*p_restart_tcb;                             /* A pointer to the restart task management block of OSAP */
+	boolean	osap_trusted;                               /* OS application attributes */
+	uint32	btptn;                                      /* Of non-confidence OS application bit pattern */
 #ifndef OMIT_OSAPMPUINFOB
-	OSAPMPUINFOB osap_mpu;                              /* OSアプリケーションのMPU情報 */
+	OSAPMPUINFOB osap_mpu;                              /* CPU information of OS applications */
 #endif
 
 } OSAPINIB;
 
 /*
- *  OSアプリケーション管理ブロック
+ *  OS application management block
  */
 struct os_application_control_block {
-	const OSAPINIB			*p_osapinib;                /* 初期化ブロックへのポインタ */
-	ApplicationStateType	osap_stat;                  /* OSAP状態 */
+	const OSAPINIB			*p_osapinib;                /* A pointer to the initialization block */
+	ApplicationStateType	osap_stat;                  /* OSAP state */
 };
 
 /*
- *  OSアプリケーション数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of OS application
  */
-extern const ApplicationType			tnum_osap;      /* OSアプリケーションの数 */
+extern const ApplicationType			tnum_osap;      /* The number of OS applications */
 
-extern const TrustedFunctionIndexType	tnum_tfn;       /* 信頼関数の数 */
+extern const TrustedFunctionIndexType	tnum_tfn;       /* The number of trust function */
 
 typedef StatusType (*TrustedFunctionRefType)(TrustedFunctionIndexType FunctionIndex,
 											 TrustedFunctionParameterRefType FunctionParams);
 
 /*
- *  信頼関数初期化ブロック
+ *  Trust function initialization block
  */
 typedef struct trusted_function_initialization_block {
-	TrustedFunctionRefType	trs_func;   /* 信頼関数の起動番地 */
-	MemorySizeType			tf_stksz;   /* スタックサイズ */
-	TickType				tf_budget;  /* 信頼関数実行時間バジェット */
+	TrustedFunctionRefType	trs_func;   /* Start address of the trust function */
+	MemorySizeType			tf_stksz;   /* Stack size */
+	TickType				tf_budget;  /* Trust function execution time budget */
 } TFINIB;
 
 /*
- *  OSAPCBのエリア（Os_Lcfg.c）
+ *  OSAPCB area 
  */
 extern OSAPCB			osapcb_table[];
 
 /*
- *  実行中のOSアプリケーション
+ *  OS application running
  */
 extern OSAPCB			*p_runosap;
 
 /*
- *  OSAPINIBの外部参照（kernel_mem.c）
+ *  External references OSAPINIB (kernel_mem.c）
  */
 extern const OSAPINIB	osapinib_table[];
 
 /*
- *  TFINIBの外部参照（Os_Lcfg.c）
+ *  External references TFINIB
  */
 extern const TFINIB		tfinib_table[];
 
 /*
- *  指定OSAPを終了/再起動する関数(プロテクションフックからも呼ばれる)
+ *  Function to terminate / restart the specified OSAP (also called from the protection hook)
  */
 extern void force_term_osap(OSAPCB *p_osapcb, RestartType RestartOption);
 
 /*
- *  OSアプリケーション管理モジュールの初期化
+ *  Initialization of OS application management module
  */
 extern void osap_initialize(void);
 

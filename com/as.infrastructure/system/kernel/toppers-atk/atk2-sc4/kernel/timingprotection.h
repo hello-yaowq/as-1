@@ -66,7 +66,7 @@
  */
 
 /*
- *  タイミング保護機能
+ *  Timing protection
  */
 
 #ifndef TOPPERS_TIMINGPROTECTION_H
@@ -76,11 +76,11 @@ extern volatile boolean	is_tp_timer_running;
 extern volatile uint32	tp_time_count;
 
 /*
- *  到着間隔保護管理ブロック（Os_Lcfg.c）
+ *  Arrival interval protection management block
  */
 typedef struct timing_arrival_control_block {
-	TFTIME	lastarrival;                    /* 前回の到着時間 */
-	boolean	is_not_first;                   /* 初回起動フラグ */
+	TFTIME	lastarrival;                    /* The last arrival time */
+	boolean	is_not_first;                   /* Initial start-up flag */
 } TPACB;
 
 void tp_initialize(void);
@@ -93,7 +93,7 @@ boolean tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context);
 void tp_fault_handler(void);
 void tp_timer_handler(void);
 
-#define BITMAP_OSINTLOCK		((uint8) (0x01U))       /* OS割込み禁止時間監視設定 */
-#define BITMAP_RESLOCK			((uint8) (0x02U))       /* リソース占有時間監視設定 */
+#define BITMAP_OSINTLOCK		((uint8) (0x01U))       /* OS interrupt disable time monitoring settings */
+#define BITMAP_RESLOCK			((uint8) (0x02U))       /* Resource occupation time monitoring settings */
 
 #endif /* TOPPERS_TIMINGPROTECTION_H */
