@@ -14,6 +14,16 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#define __KERNEL_NO_STACK_DECLARE__
+#include "kernel_impl.h"
+#include "osap.h"
+#include "counter.h"
+#include "interrupt.h"
+#include "scheduletable.h"
+#include "task.h"
+#include "alarm.h"
+#include "ioc_impl.h"
+#include "memory.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -40,12 +50,12 @@ void x_nested_lock_os_int(void){}
 void x_nested_unlock_os_int(void){}
 void x_lock_all_int(void){}
 void x_unlock_all_int(void){}
-void x_config_int(uint32 intno,uint32 attr,sint32 prio){}
+void x_config_int(InterruptNumberType intno,AttributeType attr,PriorityType prio){}
 boolean x_is_called_in_c1isr(void) {}
 void    x_set_ipm_c2isr_disable(void) {}
-boolean target_is_int_controllable(uint32 intno) {}
-void    x_enable_int(uint32 intno) {}
-void    x_disable_int(uint32 intno) {}
+boolean target_is_int_controllable(InterruptNumberType intno) {}
+void    x_enable_int(InterruptNumberType intno) {}
+void    x_disable_int(InterruptNumberType intno) {}
 
 void target_initialize(void) {}
 void target_exit(void)       {}
@@ -59,17 +69,17 @@ TickType target_tp_get_remaining_ticks(void){}
 TickType target_tp_get_elapsed_ticks(void){}
 boolean  target_tp_sense_interrupt(void){}
 
-void x_set_ipm(sint32 prio){}
-sint32 x_get_ipm(void){}
+void x_set_ipm(PriorityType prio){}
+PriorityType x_get_ipm(void){}
 
 void dispatch(void){}
 void start_dispatch(void){}
 void exit_and_dispatch(void){}
 void exit_and_dispatch_nohook(void){}
-void activate_force_term_osap_main(void* tcb){}
-void activate_context(void* tcb) {}
-StatusType trustedfunc_stack_check(uintptr sz){}
-AccessType probe_trusted_osap_mem(void* sadr, void* eadr) {}
+void activate_force_term_osap_main(TCB* tcb){}
+void activate_context(TCB* tcb) {}
+StatusType trustedfunc_stack_check(MemorySizeType sz){}
+AccessType probe_trusted_osap_mem(MemoryStartAddressType sadr, MemoryStartAddressType eadr) {}
 
 TickType GetOsTick( void )
 {

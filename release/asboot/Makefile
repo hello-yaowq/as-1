@@ -17,7 +17,7 @@ target-y = $(board)
 obj-dir = $(CURDIR)/obj/$(board)-$(compiler)
 exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src/$(board)-$(compiler)
-inc-dir = $(CURDIR)/include/$(board)-$(compiler)/include
+inc-dir = $(CURDIR)/src/$(board)-$(compiler)/include
 
 prj-dir = $(subst /release/asboot,,$(CURDIR))
 

@@ -17,7 +17,7 @@ target-y = $(board)
 obj-dir = $(CURDIR)/obj/$(board)-$(rtos)-$(compiler)
 exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src/$(board)-$(rtos)-$(compiler)
-inc-dir = $(CURDIR)/include/$(board)-$(rtos)-$(compiler)/include
+inc-dir = $(CURDIR)/src/$(board)-$(rtos)-$(compiler)/include
 
 prj-dir = $(subst /release/ascore,,$(CURDIR))
 

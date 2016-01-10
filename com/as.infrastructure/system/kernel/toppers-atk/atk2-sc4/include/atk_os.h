@@ -104,6 +104,7 @@
 /*
  *  Type definiton
  */
+typedef uint8 	StatusType;						/* return status of OS API call */
 typedef uint8	TaskStateType;                  /* task state */
 typedef uint32	EventMaskType;                  /* event mask */
 typedef uint32	TickType;                       /* counter value in tick */

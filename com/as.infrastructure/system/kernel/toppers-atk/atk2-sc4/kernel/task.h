@@ -3,9 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  *      Automotive Kernel Version 2
  *
- *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
- *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2015 by Center for Embedded Computing Systems
+ *  Copyright (C) 2011-2015 by Center for Embedded Computing Systems
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *  Copyright (C) 2011-2015 by FUJI SOFT INCORPORATED, JAPAN
  *  Copyright (C) 2011-2013 by Spansion LLC, USA
@@ -14,51 +12,61 @@
  *  Copyright (C) 2011-2014 by Renesas Electronics Corporation, JAPAN
  *  Copyright (C) 2011-2015 by Sunny Giken Inc., JAPAN
  *  Copyright (C) 2011-2015 by TOSHIBA CORPORATION, JAPAN
- *  Copyright (C) 2004-2015 by Witz Corporation
+ *  Copyright (C) 2011-2015 by Witz Corporation
  *  Copyright (C) 2014-2015 by AISIN COMCRUISE Co., Ltd., JAPAN
  *  Copyright (C) 2014-2015 by eSOL Co.,Ltd., JAPAN
  *  Copyright (C) 2014-2015 by SCSK Corporation, JAPAN
  *  Copyright (C) 2015 by SUZUKI MOTOR CORPORATION
+ *  Copyright (C) 2016 by Fan Wang(parai@foxmail.com), China
+ * 
+ * The above copyright holders grant permission gratis to use,
+ * duplicate, modify, or redistribute (hereafter called use) this
+ * software (including the one made by modifying this software),
+ * provided that the following four conditions (1) through (4) are
+ * satisfied.
+ * 
+ * (1) When this software is used in the form of source code, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be retained in the source code without modification.
  *
- *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
- *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
- *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
- *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
- *      権表示，この利用条件および下記の無保証規定が，そのままの形でソー
- *      スコード中に含まれていること．
- *  (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
- *      用できる形で再配布する場合には，再配布に伴うドキュメント（利用
- *      者マニュアルなど）に，上記の著作権表示，この利用条件および下記
- *      の無保証規定を掲載すること．
- *  (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
- *      用できない形で再配布する場合には，次のいずれかの条件を満たすこ
- *      と．
- *    (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
- *        作権表示，この利用条件および下記の無保証規定を掲載すること．
- *    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
- *        報告すること．
- *  (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
- *      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
- *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
- *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
- *      免責すること．
+ * (2) When this software is redistributed in the forms usable for the
+ *    development of other software, such as in library form, the above
+ *    copyright notice, this use conditions, and the disclaimer shown
+ *    below must be shown without modification in the document provided
+ *    with the redistributed software, such as the user manual.
  *
- *  本ソフトウェアは，AUTOSAR（AUTomotive Open System ARchitecture）仕
- *  様に基づいている．上記の許諾は，AUTOSARの知的財産権を許諾するもので
- *  はない．AUTOSARは，AUTOSAR仕様に基づいたソフトウェアを商用目的で利
- *  用する者に対して，AUTOSARパートナーになることを求めている．
+ * (3) When this software is redistributed in the forms unusable for the
+ *    development of other software, such as the case when the software
+ *    is embedded in a piece of equipment, either of the following two
+ *    conditions must be satisfied:
  *
- *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
- *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
- *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
- *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
- *  の責任を負わない．
+ *  (a) The above copyright notice, this use conditions, and the
+ *      disclaimer shown below must be shown without modification in
+ *      the document provided with the redistributed software, such as
+ *      the user manual.
+ *
+ *  (b) How the software is to be redistributed must be reported to the
+ *      TOPPERS Project according to the procedure described
+ *      separately.
+ *
+ * (4) The above copyright holders and the TOPPERS Project are exempt
+ *    from responsibility for any type of damage directly or indirectly
+ *    caused from the use of this software and are indemnified by any
+ *    users or end users of this software from any and all causes of
+ *    action whatsoever.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS." THE ABOVE COPYRIGHT HOLDERS AND
+ * THE TOPPERS PROJECT DISCLAIM ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, ITS APPLICABILITY TO A PARTICULAR
+ * PURPOSE. IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS AND THE
+ * TOPPERS PROJECT BE LIABLE FOR ANY TYPE OF DAMAGE DIRECTLY OR
+ * INDIRECTLY CAUSED FROM THE USE OF THIS SOFTWARE.
  *
  *  $Id: task.h 504 2015-12-24 01:22:56Z witz-itoyo $
  */
 
 /*
- *		タスク管理機能
+ *		Task management function
  */
 
 #ifndef TOPPERS_TASK_H
@@ -73,35 +81,35 @@ typedef struct task_control_block TCB;
 #include "timingprotection.h"
 
 /*
- *  イベントマスク値の定義
+ *  The definition of the event mask value
  */
-#define EVTMASK_NONE	((EventMaskType) 0) /* イベントなし */
+#define EVTMASK_NONE	((EventMaskType) 0) /* None Event */
 
 /*
- *  優先度の範囲（外部表現）
+ *  Range of priority (external representation)
  */
-#define TMIN_TPRI		UINT_C(0)       /* タスク優先度の最小値（最低値）*/
-#define TMAX_TPRI		UINT_C(15)      /* タスク優先度の最大値（最高値）*/
+#define TMIN_TPRI		UINT_C(0)       /* The minimum value of the task priority (the lowest value) */
+#define TMAX_TPRI		UINT_C(15)      /* The maximum value of the task priority (maximum value) */
 
 /*
- *  優先度の段階数の定義
+ *  Definition of the number of stages of priority
  */
 #define TNUM_TPRI		((TMAX_TPRI - TMIN_TPRI) + 1U)
 
 /*
- *  優先度値の定義（内部表現）
+ *  Definition of priority values (internal representation)
  */
-#define TPRI_MINTASK	((PriorityType) (TNUM_TPRI - 1U))               /* 最低タスク優先度 */
-#define TPRI_MAXTASK	((PriorityType) (0))                            /* 最高タスク優先度 */
+#define TPRI_MINTASK	((PriorityType) (TNUM_TPRI - 1U))               /* Lowest task priority */
+#define TPRI_MAXTASK	((PriorityType) (0))                            /* Highest task priority */
 
 /*
- *  タスクIDからTCBを取り出すためのマクロ
+ *  Macro for taking out the TCB from the task ID
  */
 #define get_tcb(tskid)		(&(tcb_table[(tskid)]))
 
 /*
- *  TCBからタスクIDを取り出すためのマクロ
- *  p_tcb がNULLの場合は使えない
+ *  Macro for taking out the task ID from the TCB
+ *  p_tcb There can not be used in the case of NULL
  */
 #define TSKID(p_tcb)	((TaskType) ((p_tcb) - tcb_table))
 
@@ -110,234 +118,239 @@ typedef struct task_control_block TCB;
 #endif /* OMIT_BITMAP_SEARCH */
 
 /*
- *  タスク数を保持する変数の宣言（Os_Lcfg.c）
+ *  Declaration of the variable to hold the number of tasks
  */
-extern const TaskType	tnum_task;          /* タスクの数 */
-extern const TaskType	tnum_exttask;       /* 拡張タスクの数 */
+extern const TaskType	tnum_task;          /* The number of tasks */
+extern const TaskType	tnum_exttask;       /* The number of extension task */
 
 
 /*
- *  タスク初期化ブロック
+ *  Task initialization block
  *
- *  タスクに関する情報を，値が変わらないためにROMに置ける部分（タスク
- *  初期化ブロック）と，値が変化するためにRAMに置かなければならない部
- *  分（タスク管理ブロック，TCB）に分離し，TCB内に対応するタスク初期化
- *  ブロックを指すポインタを入れる
- *  タスク初期化ブロック内に対応するTCBを指すポインタを入れる方法の方が，
- *  RAMの節約の観点からは望ましいが，実行効率が悪くなるために採用
- *  していない
- *  他のオブジェクトについても同様に扱う
+ *  The information about the task, and the part that can be placed in ROM 
+ * in order to value does not change (task initialization block), part of 
+ * the value must be placed in RAM in order to change (task control block, TCB) 
+ * separated into, in the TCBPut a pointer to the corresponding task 
+ * initialization block
+ *  Person how to put a pointer to the TCB corresponding to the task 
+ * initialization block, is desirable from the viewpoint of saving the 
+ * RAM, are not employed for the execution efficiency deteriorates
+ *  It treated similarly for the other objects
  */
 typedef struct task_initialization_block {
-	FunctionRefType	task;       /* タスクの起動番地 */
+	FunctionRefType	task;       /* Start address of the task */
 
 #ifdef USE_TSKINICTXB
-	TSKINICTXB tskinictxb;           /* タスク初期化コンテキストブロック */
+	TSKINICTXB tskinictxb;           /* Task initialization context block */
 #else /* USE_TSKINICTXB */
-	MemorySizeType	sstksz;         /* システムスタック領域のサイズ（丸めた値） */
-	void			*sstk;          /* システムスタック領域のボトム番地(SC3) */
-	MemorySizeType	ustksz;         /* スタック領域のサイズ（丸めた値） */
-	void			*ustk;          /* スタック領域のボトム番地(SC3) */
+	MemorySizeType	sstksz;         /* The size of the system stack area (rounded value) */
+	void			*sstk;          /* Bottom address of the system stack area(SC3) */
+	MemorySizeType	ustksz;         /* The size of the stack area (rounded value) */
+	void			*ustk;          /* Bottom address of the stack area(SC3) */
 #endif /* USE_TSKINICTXB */
-	OSAPCB			*p_osapcb;      /* 所属するOSアプリケーションの管理ブロック */
-	uint32			acsbtmp;        /* アクセス許可OSアプリケーション ビットマップ */
-	PriorityType	inipri;         /* 初期優先度 （内部表現）*/
-	PriorityType	exepri;         /* 実行開始時の優先度 （内部表現）*/
-	uint8			maxact;         /* 多重起動要求の最大数 */
-	AppModeType		autoact;        /* 起動するモード */
+	OSAPCB			*p_osapcb;      /* Management block belongs to OS application */
+	uint32			acsbtmp;        /* Permissions OS application bitmap*/
+	PriorityType	inipri;         /* Initial priority (internal representation) */
+	PriorityType	exepri;         /* Run at the start priority of (internal representation) */
+	uint8			maxact;         /* The maximum number of multiple start-up request */
+	AppModeType		autoact;        /* Starting up for the mode */
 #ifndef OMIT_STKMPUINFOB
-	STKMPUINFOB	stkmpu;             /* スタックのMPU情報 */
+	STKMPUINFOB	stkmpu;             /* MPU information of the stack */
 #endif
-	TFTIME		time_frame;                     /* 最小到着時間 */
-	TickType	execution_budget;               /* 実行時間バジェット */
-	uint8		monitoring;                     /* 時間監視ビットマップ */
+	TFTIME		time_frame;                     /* Minimum arrival time */
+	TickType	execution_budget;               /* Run time budget */
+	uint8		monitoring;                     /* Time monitoring bitmap */
 } TINIB;
 
 /*
- *  タスク管理ブロック（Os_Lcfg.c）
+ *  Task management block
  */
 struct task_control_block {
-	QUEUE			task_queue;             /* タスクキュー(構造体の先頭に入る必要) */
-	const TINIB		*p_tinib;               /* 初期化ブロックへのポインタ */
-	PriorityType	curpri;                 /* 現在の優先度（内部表現）*/
-	TaskStateType	tstat;                  /* タスク状態（内部表現）*/
-	uint8			actcnt;                 /* 多重起動要求数 */
-	EventMaskType	curevt;                 /* イベントの現在値 */
-	EventMaskType	waievt;                 /* 待っているイベント */
-	RESCB			*p_lastrescb;           /* 最後に獲得したリソース管理ブロックへのポインタ */
-	CNTCB			*p_lastcntcb;           /* 最後に操作したカウンタ管理ブロックへのポインタ */
-	TSKCTXB			tskctxb;                /* タスクコンテキストブロック */
-	TickType		remaining_execution;    /* 残り実行時間 */
-	MonitoringType	watchtype;              /* 現在監視中項目 */
-	TPACB			tpacb;                  /* 到着間隔保護保護管理ブロック */
+	QUEUE			task_queue;             /* Task queue (need to enter at the top of the structure) */
+	const TINIB		*p_tinib;               /* A pointer to the initialization block */
+	PriorityType	curpri;                 /* The current priority (internal representation)*/
+	TaskStateType	tstat;                  /* Task state (internal representation)*/
+	uint8			actcnt;                 /* Multiple activation request number */
+	EventMaskType	curevt;                 /* The current value of the event */
+	EventMaskType	waievt;                 /* Events waiting */
+	RESCB			*p_lastrescb;           /* A pointer to the last acquired resource management block */
+	CNTCB			*p_lastcntcb;           /* Finally, a pointer to the operation to counter management block */
+	TSKCTXB			tskctxb;                /* Task context block */
+	TickType		remaining_execution;    /* The remaining run time */
+	MonitoringType	watchtype;              /* Current monitoring in item */
+	TPACB			tpacb;                  /* Arrival interval protection protection management block */
 #ifdef CFG_USE_PROTECTIONHOOK
-	boolean			calltfn;                /* 信頼関数呼び出し中フラグ */
+	boolean			calltfn;                /* Trust function call in the flag */
 #endif /* CFG_USE_PROTECTIONHOOK */
 };
 
 /*
- *  実行状態のタスク
+ *  Of the execution state task
  *
- *  実行状態のタスクがない場合には，NULL にする
+ *  If there is no task in the RUNNING state, it wants to NULL
  */
 extern TCB			*p_runtsk;
 
 /*
- *  最高優先順位タスク
+ *  Highest priority task
  *
- *  タスク実行中は，runtsk と一致する
- *  実行できる状態（実行状態または実行可能状態）のタスクがない場合には，
- *  NULL にする
+ *  During task execution is consistent with runtask
+ *  To, I want to NULL if there is no task of execution can state 
+ * (execution state or executable state)
  */
 extern TCB			*p_schedtsk;
 
 /*
- *  レディキュー中の最高優先度
+ *  Highest priority in the ready queue
  *
- *  レディキューには実行可能状態のタスクのみを含むので，実行可能状態の
- *  タスクの中での最高優先度を保持する
- *  レディキューが空の時（実行可能状態のタスクが無い時）は TPRI_MINTASKにする
+ *  Since the ready queue contains only executable state task, 
+ * to hold the highest priority in the executable state task
+ *  When ready queue is empty (when there is no executable state tasks) you want to TPRI_MINTASK
  */
 extern PriorityType	nextpri;
 
 /*
- *  レディキュー
+ *  Ready queue
  *
- *  レディキューは，実行できる状態のタスクを管理するためのキューである
- *  レディキューは，優先度ごとのタスクキューで構成されている
- *  タスクのTCBは，該当する優先度のキューに登録される
+ *  Ready queue is ready queue is a queue for managing the tasks ready for execution, 
+ * TCB of a task that consists of the task queue for each priority level is 
+ * registered in the priority relevant queue
  */
 extern QUEUE		ready_queue[TNUM_TPRI];
 
 /*
- *  レディキューサーチのためのビットマップ
+ *  Bit map for the ready queue search
  *
- *  レディキューのサーチを効率よく行うために，優先度ごとのタスクキュー
- *  にタスクが入っているかどうかを示すビットマップを用意している
- *  ビットマップを使うことで，メモリアクセスの回数を減らすことができるが，
- *  ビット操作命令が充実していないプロセッサで，優先度の段階数が少ない
- *  場合には，ビットマップ操作のオーバーヘッドのために，逆に効率が落ち
- *  る可能性もある
+ *  To perform the search of the ready queue efficiently, and provides a bitmap 
+ * indicating whether the entered tasks in the task queue for each priority
+ *  By using the bit map, it is possible to reduce the number of memory accesses, 
+ * the processor bit manipulation instruction is not substantial, if the number 
+ * of stages of priority is low, because of the overhead of the bitmap operation, 
+ * reverse there is also a possibility that the efficiency falls
  *
- *  優先度が16段階であることを仮定しているため，uint16型としている
+ *  Because the priority is assumed to be a 16 phase, it is as uint16 type
  */
 extern uint16		ready_primap;
 
 /*
- *  タスク初期化ブロックのエリア（kernel_mem.c）
+ *  Task initialization block area (kernel_mem.c)
  */
 extern const TINIB	tinib_table[];
 
 /*
- *  TCBのエリア（Os_Lcfg.c）
+ *  TCB of area
  */
 extern TCB			tcb_table[];
 
 /*
- *  タスク管理モジュールの初期化
+ *  Initialization of the task management module
  */
 extern void task_initialize(void);
 
 /*
- *  タスクの起動
+ *  Activation of a task
  *
- *  対象タスク（p_tcbで指定したタスク）を起動する
- *  （休止状態から実行できる状態に遷移させる）
- *  タスクの起動時に必要な初期化を行う
+ *  And performs initialization required for startup of the starting 
+ * (and task specified by p_tcb) (cell transition to a state that can be 
+ * performed from hibernation) task the task
  */
 extern boolean make_active(TCB *p_tcb);
 
 /*
- *  実行できる状態への移行
+ *  Transition to a state that can be executed
  *
- *  対象タスク（p_tcbで指定したタスク）を実行できる状態に遷移させる
- *  対象タスクの優先度が，最高優先度タスク（schedtsk）の優先度よりも高
- *  い場合には，対象タスクを新しい最高優先度タスクとし，それまでの最高
- *  優先度タスクをレディキューの先頭に入れる
- *  そうでない場合には，対象タスクをレディキューの末尾に入れる
- *  対象タスクを最高優先度タスクとした場合に，TRUE を返す
+ *  Priority of the task for transitioning to a state that can perform the task 
+ * (task specified in the p_tcb) is higher than the priority of the highest 
+ * priority task (schedtsk) is to the target task and the new highest priority 
+ * task,It puts the highest priority task until it to the top of the ready queue
+ *  Otherwise, when the target task to put the target task to the end of the 
+ * ready queue with the highest priority task, returns TRUE
  */
 extern boolean make_runnable(TCB *p_tcb);
 
 /*
- *  実行できる状態から他の状態への遷移
+ *  The transition from the state that can be run to another state
  */
 extern void make_non_runnable(void);
 
 /*
- *  最高優先順位タスクのサーチ
+ *  Search for the highest priority task
  *
- *  レディキュー中の最高優先順位のタスクをサーチする
- *  レディキューが空の場合には，この関数を呼び出してはならない
+ *  Search for the task of highest priority in the ready queue
+ *  If the ready queue is empty, do not call this function
  */
 extern void search_schedtsk(void);
 
 /*
- *  タスクのプリエンプト
+ *  Task preemption
  *
- *  自タスクを実行可能状態に移行させ，最高優先度タスクを実行状態にする
- *  この関数から戻った後に，dispatch を呼び出して他のタスクへ切り替える
- *  ことを想定している
+ *  Moves the current task to the READY state, after returning from the function 
+ * to the highest priority task in the running state, it is assumed to switch 
+ * calls the dispatch to other tasks
  */
 extern void preempt(void);
 
 /*
- *  実行中のタスクをSUSPENDED状態にする
+ *  It will be a running task in SUSPENDED state
  */
 extern void suspend(void);
 
 /*
- *  リソース全解放
+ *  Release of resources
  */
 extern void release_taskresources(TCB *p_tcb);
 
 /*
- *  カウンタ全初期化
+ *  Initialization of the counter
  */
 extern void cancel_taskcounters(TCB *p_tcb);
 
 /*
- *  満了処理専用タスクの起動
+ *  Starting the expiration processing dedicated task
  *
- *  条件：OS割込み禁止状態で呼ばれる
+ *  Conditions: it is called by the OS interrupt disable state
  */
 extern StatusType activate_task_action(OSAPCB *p_expire_osapcb, TaskType TaskID);
 
 /*
- *  満了処理専用イベントのセット
+ *  Set of expiration processing dedicated event
  *
- *  条件：OS割込み禁止状態で呼ばれる
+ *  Conditions: it is called by the OS interrupt disable state
  */
 extern StatusType set_event_action(OSAPCB *p_expire_osapcb, TaskType TaskID, EventMaskType Mask);
 
 /*
- *  レディキューからタスクを削除する
+ *  You want to delete a task from the ready queue
  */
 extern void remove_task_from_queue(TCB *p_tcb, PriorityType remove_task_pri);
 
 /*
- *  レディキューに入っているタスクを休止状態にする
+ *  It will be a task that has entered the ready queue in hibernation
  */
 extern void suspend_ready_task(TCB *p_tcb, PriorityType remove_task_pri);
 
 /*
- *  自タスクの強制終了
+ *  Forced termination of its own task
  */
 extern void force_terminate_task(TCB *p_tcb);
 
 /*
- *  タスク不正終了時に呼ぶ関数
+ *  Function to call when the task unauthorized end
  */
 extern void exit_task(void);
 
 /*
- *  OSAP所属するタスクの強制終了
+ *  Forced termination of SAP belongs to the task
  */
 extern void force_term_osap_task(OSAPCB *p_osapcb);
 
 /*
- *  p_schedtskをレディキューの先頭に退避
+ *  to save the p_schedtsk to the top of the ready queue
  */
 extern void move_schedtsk(void);
+
+/* target dependent TCB processing */
+extern void activate_force_term_osap_main(TCB* tcb);
+extern void activate_context(TCB* tcb);
 
 #endif /* TOPPERS_TASK_H_ */

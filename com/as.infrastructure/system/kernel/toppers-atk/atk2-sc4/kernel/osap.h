@@ -159,7 +159,7 @@ extern OSAPCB			osapcb_table[];
 extern OSAPCB			*p_runosap;
 
 /*
- *  External references OSAPINIB (kernel_mem.c）
+ *  External references OSAPINIB (kernel_mem.c)
  */
 extern const OSAPINIB	osapinib_table[];
 
@@ -177,6 +177,10 @@ extern void force_term_osap(OSAPCB *p_osapcb, RestartType RestartOption);
  *  Initialization of OS application management module
  */
 extern void osap_initialize(void);
+
+/* target dependent statck and memory check */
+extern StatusType trustedfunc_stack_check(MemorySizeType sz);
+extern AccessType probe_trusted_osap_mem(MemoryStartAddressType sadr, MemoryStartAddressType eadr);
 
 #endif /* TOPPERS_MACRO_ONLY */
 

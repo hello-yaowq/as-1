@@ -174,7 +174,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 /*
  *  Definition of application mode value
  */
-#define APPMODE_NONE	((AppModeType) 0)   /* モードなし */
+#define APPMODE_NONE	((AppModeType) 0)   /* None mode */
 
 /*
  *  At the time of the definition TCL_NULL of the value of the context of the 
@@ -185,7 +185,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 #define TCL_TASK			UINT_C(0x0001)                          /* task */
 #define TCL_ISR2			UINT_C(0x0002)                          /* C2ISR */
 #define TCL_PROTECT			UINT_C(0x0004)                          /* ProtectionHook */
-#define TCL_PREPOST			UINT_C(0x0008)                          /* PreTaskHook，PostTaskHook */
+#define TCL_PREPOST			UINT_C(0x0008)                          /* PreTaskHook锛孭ostTaskHook */
 #define TCL_STARTUP			UINT_C(0x0010)                          /* StartupHook */
 #define TCL_SHUTDOWN		UINT_C(0x0020)                          /* ShutdownHook */
 #define TCL_ERROR			UINT_C(0x0040)                          /* ErrorHook */
@@ -209,7 +209,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
  *  Definition of the magic number for the stack monitoring
  *  Definition of the target-dependent portion is priority
  */
-#define STACK_MAGIC_NUMBER	0x4E434553      /* NCESのASCIIコード(0x4E434553) */
+#define STACK_MAGIC_NUMBER	0x4E434553      /* NCES ASCII code of(0x4E434553) */
 #endif /* STACK_MAGIC_NUMBER */
 
 #ifndef TOPPERS_ISTK_MAGIC_REGION
@@ -375,6 +375,7 @@ extern void object_initialize(void);
  */
 extern void object_terminate(void);
 
+#ifndef __KERNEL_NO_STACK_DECLARE__
 /*
  *  Stack area for the non-task context
  */
@@ -383,7 +384,7 @@ extern StackType * const	_ostk;          /* The start address of the stack area 
 #ifdef TOPPERS_OSTKPT
 extern StackType * const	_ostkpt;        /* The initial value of the stack pointer */
 #endif /* TOPPERS_OSTKPT */
-
+#endif
 /*
  *  Timing protection for time of frame
  */

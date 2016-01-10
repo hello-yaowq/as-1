@@ -93,6 +93,17 @@ boolean tp_check_arrival_time(TFTIME time_frame, TPACB *p_tpacb, uint8 context);
 void tp_fault_handler(void);
 void tp_timer_handler(void);
 
+/* tartget dependent tp implementation */
+void target_tp_initialize(void);
+void target_tp_terminate(void);
+void target_tp_start_timer(TickType tick);
+TickType target_tp_stop_timer(void);
+void target_clear_tp_fault_status(void);
+void target_clear_tp_timer_status(void);
+TickType target_tp_get_remaining_ticks(void);
+TickType target_tp_get_elapsed_ticks(void);
+boolean  target_tp_sense_interrupt(void);
+
 #define BITMAP_OSINTLOCK		((uint8) (0x01U))       /* OS interrupt disable time monitoring settings */
 #define BITMAP_RESLOCK			((uint8) (0x02U))       /* Resource occupation time monitoring settings */
 

@@ -212,4 +212,19 @@ extern void release_interrupts(OSServiceIdType serviceId);
  */
 extern void exit_isr2(void);
 
+/* target dependent interrupt access */
+extern void x_nested_lock_os_int(void);
+extern void x_nested_unlock_os_int(void);
+extern void x_lock_all_int(void);
+extern void x_unlock_all_int(void);
+extern void x_config_int(InterruptNumberType intno,AttributeType attr,PriorityType prio);
+extern boolean x_is_called_in_c1isr(void);
+extern void    x_set_ipm_c2isr_disable(void);
+extern boolean target_is_int_controllable(InterruptNumberType intno);
+extern void    x_enable_int(InterruptNumberType intno);
+extern void    x_disable_int(InterruptNumberType intno);
+
+extern void x_set_ipm(PriorityType prio);
+extern PriorityType x_get_ipm(void);
+
 #endif /* TOPPERS_INTERRUPT_H */
