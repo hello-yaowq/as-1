@@ -203,7 +203,7 @@ GetAlarmBase(AlarmType AlarmID, AlarmBaseRefType Info)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_GETALB_LEAVE(ercd, Info);
 	return(ercd);
 
@@ -265,7 +265,7 @@ GetAlarm(AlarmType AlarmID, TickRefType Tick)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_GETALM_LEAVE(ercd, Tick);
 	return(ercd);
 
@@ -327,7 +327,7 @@ SetRelAlarm(AlarmType AlarmID, TickType increment, TickType cycle)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_SETREL_LEAVE(ercd);
 	return(ercd);
 
@@ -390,7 +390,7 @@ SetAbsAlarm(AlarmType AlarmID, TickType start, TickType cycle)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_SETABS_LEAVE(ercd);
 	return(ercd);
 
@@ -442,7 +442,7 @@ CancelAlarm(AlarmType AlarmID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_CANALM_LEAVE(ercd);
 	return(ercd);
 

@@ -208,7 +208,7 @@ GetResource(ResourceType ResID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+  /* exit_no_errorhook: */
 	LOG_GETRES_LEAVE(ercd);
 	return(ercd);
 
@@ -314,7 +314,7 @@ ReleaseResource(ResourceType ResID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_RELRES_LEAVE(ercd);
 	return(ercd);
 

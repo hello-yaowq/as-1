@@ -132,7 +132,7 @@ DEFINE_VAR_SEC_NOBITS(_ErrorHook_Par, errorhook_par3, ".srpw_bss_kernel");
  *  Call of error hook
  */
 void
-internal_call_errorhook(StatusType ercd, OSServiceIdType svcid)
+call_errorhook(StatusType ercd, OSServiceIdType svcid)
 {
 	boolean	saved_run_trusted = run_trusted;
 
@@ -215,6 +215,23 @@ call_pretaskhook(void)
 #endif /* TOPPERS_call_pretaskhook */
 
 #endif /* CFG_USE_PRETASKHOOK */
+
+#ifdef CFG_USE_SHUTDOWNHOOK
+void call_shutdownhook(StatusType ercd)
+{
+	boolean saved_run_trusted;
+
+	ENTER_CALLEVEL(TCL_SHUTDOWN);
+	saved_run_trusted = run_trusted;
+	run_trusted = TRUE;
+
+	ShutdownHook(ercd);
+
+	run_trusted = saved_run_trusted;
+
+	LEAVE_CALLEVEL(TCL_SHUTDOWN);
+}
+#endif /* CFG_USE_SHUTDOWNHOOK */
 
 #ifdef CFG_USE_STACKMONITORING
 

@@ -165,7 +165,7 @@ SetEvent(TaskType TaskID, EventMaskType Mask)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_SETEVT_LEAVE(ercd);
 	return(ercd);
 
@@ -204,7 +204,7 @@ ClearEvent(EventMaskType Mask)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_CLREVT_LEAVE(ercd);
 	return(ercd);
 
@@ -257,7 +257,7 @@ GetEvent(TaskType TaskID, EventMaskRefType Event)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_GETEVT_LEAVE(ercd, TaskID, Event);
 	return(ercd);
 
@@ -318,7 +318,7 @@ WaitEvent(EventMaskType Mask)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_WAIEVT_LEAVE(ercd);
 	return(ercd);
 

@@ -251,7 +251,7 @@ GetActiveApplicationMode(void)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	appmode = INVALID_APPMODETYPE;
 	goto exit_finish;
 }

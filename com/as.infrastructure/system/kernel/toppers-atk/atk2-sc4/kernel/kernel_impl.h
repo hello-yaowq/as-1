@@ -174,7 +174,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 /*
  *  Definition of application mode value
  */
-#define APPMODE_NONE	((AppModeType) 0)   /* None mode */
+#define APPMODE_NONE	((AppModeType) 0)   /* 銉€兗銉夈仾銇� */
 
 /*
  *  At the time of the definition TCL_NULL of the value of the context of the 
@@ -209,7 +209,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
  *  Definition of the magic number for the stack monitoring
  *  Definition of the target-dependent portion is priority
  */
-#define STACK_MAGIC_NUMBER	0x4E434553      /* NCES ASCII code of(0x4E434553) */
+#define STACK_MAGIC_NUMBER	0x4E434553      /* NCES銇瓵SCII銈炽兗銉�(0x4E434553) */
 #endif /* STACK_MAGIC_NUMBER */
 
 #ifndef TOPPERS_ISTK_MAGIC_REGION
@@ -344,7 +344,7 @@ extern boolean				pre_protection_supervised;
  *  Declaration for error hook call (ioctl.c)
  */
 #ifdef CFG_USE_ERRORHOOK
-extern void internal_call_errorhook(StatusType ercd, OSServiceIdType svcid);
+extern void call_errorhook(StatusType ercd, OSServiceIdType svcid);
 #endif /* CFG_USE_ERRORHOOK */
 
 /*
@@ -364,6 +364,7 @@ extern void init_stack_magic_region(void);
 #endif /* CFG_USE_STACKMONITORING */
 
 extern void call_protectionhk_main(StatusType protection_error);
+#define call_protectionhk_main_stkchg call_protectionhk_main
 
 /*
  *  Initialization of each module

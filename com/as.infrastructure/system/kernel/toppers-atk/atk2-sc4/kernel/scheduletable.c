@@ -228,7 +228,7 @@ StartScheduleTableRel(ScheduleTableType ScheduleTableID, TickType Offset)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_STASCHTBLREL_LEAVE(ercd);
 	return(ercd);
 
@@ -294,7 +294,7 @@ StartScheduleTableAbs(ScheduleTableType ScheduleTableID, TickType Start)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_STASCHTBLABS_LEAVE(ercd);
 	return(ercd);
 
@@ -372,7 +372,7 @@ StopScheduleTable(ScheduleTableType ScheduleTableID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_STPSCHTBL_LEAVE(ercd);
 	return(ercd);
 
@@ -452,7 +452,7 @@ NextScheduleTable(ScheduleTableType ScheduleTableID_From,
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_NXTSCHTBL_LEAVE(ercd);
 	return(ercd);
 

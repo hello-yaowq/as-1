@@ -137,7 +137,7 @@ IncrementCounter(CounterType CounterID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	return(ercd);
 
 #ifdef CFG_USE_ERRORHOOK
@@ -214,7 +214,7 @@ GetCounterValue(CounterType CounterID, TickRefType Value)
 #endif /* CFG_USE_PARAMETERACCESS */
 	call_errorhook(ercd, OSServiceId_GetCounterValue);
 #endif /* CFG_USE_ERRORHOOK */
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
 	goto exit_no_errorhook;
 }
@@ -284,7 +284,7 @@ GetElapsedValue(CounterType CounterID, TickRefType Value, TickRefType ElapsedVal
 #endif /* CFG_USE_PARAMETERACCESS */
 	call_errorhook(ercd, OSServiceId_GetElapsedValue);
 #endif /* CFG_USE_ERRORHOOK */
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
 	goto exit_no_errorhook;
 }

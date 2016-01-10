@@ -277,7 +277,7 @@ GetApplicationID(void)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	id = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -484,7 +484,7 @@ CheckTaskAccess(ApplicationType ApplID, TaskType TaskID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -529,7 +529,7 @@ CheckISRAccess(ApplicationType ApplID, ISRType ISRID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -574,7 +574,7 @@ CheckAlarmAccess(ApplicationType ApplID, AlarmType AlarmID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -618,7 +618,7 @@ CheckResourceAccess(ApplicationType ApplID, ResourceType ResID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -663,7 +663,7 @@ CheckCounterAccess(ApplicationType ApplID, CounterType CounterID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -708,7 +708,7 @@ CheckScheduleTableAccess(ApplicationType ApplID, ScheduleTableType ScheduleTable
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = NO_ACCESS;
 	goto exit_finish;
 }
@@ -754,7 +754,7 @@ CheckTaskOwnership(TaskType TaskID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	owner = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -796,7 +796,7 @@ CheckISROwnership(ISRType ISRID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	owner = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -838,7 +838,7 @@ CheckAlarmOwnership(AlarmType AlarmID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	owner = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -880,7 +880,7 @@ CheckCounterOwnership(CounterType CounterID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	owner = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -922,7 +922,7 @@ CheckScheduleTableOwnership(ScheduleTableType ScheduleTableID)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	owner = INVALID_OSAPPLICATION;
 	goto exit_finish;
 }
@@ -952,7 +952,7 @@ AllowAccess(void)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_ALLOWACCESS_LEAVE(ercd);
 	return(ercd);
 
@@ -998,7 +998,7 @@ TerminateApplication(ApplicationType Application, RestartType RestartOption)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_TERMINATEAPPLICATION_LEAVE(ercd);
 	return(ercd);
 

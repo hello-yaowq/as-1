@@ -97,7 +97,7 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
-#if defined(__FREERTOS__) || defined(__FREEOSEK__) || defined(__SMALL_OS__)
+#if defined(__FREERTOS__) || defined(__FREEOSEK__) || defined(__SMALL_OS__) || defined(__TOPPERS_ATK2_SC4__)
 void PreTaskHook(void)
 {
 }
@@ -108,11 +108,11 @@ void PostTaskHook(void)
 extern TaskType	runtsk;
 void PreTaskHook(void)
 {
-	//ASLOG(OS,"PreTaskHook(%d)\n",runtsk);
+	ASLOG(OS,"PreTaskHook(%d)\n",runtsk);
 }
 void PostTaskHook(void)
 {
-	//ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
+	ASLOG(OS,"PostTaskHook(%d)\n",runtsk);
 }
 #endif
 void ShutdownHook(StatusType ercd)
@@ -120,3 +120,11 @@ void ShutdownHook(StatusType ercd)
 	printf("ShutdownHook(%X)\n",ercd);
 }
 
+#if defined(__TOPPERS_ATK2_SC4__)
+ProtectionReturnType ProtectionHook(StatusType FatalError)
+{
+	printf("ProtectionHook(%X)\n",FatalError);
+
+	return PRO_SHUTDOWN;
+}
+#endif

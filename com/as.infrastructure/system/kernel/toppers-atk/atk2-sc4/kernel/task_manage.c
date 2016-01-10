@@ -179,7 +179,7 @@ ActivateTask(TaskType TaskID)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_ACTTSK_LEAVE(ercd);
 	return(ercd);
 
@@ -231,7 +231,7 @@ TerminateTask(void)
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_TERTSK_LEAVE(ercd);
 	return(ercd);
 }
@@ -314,9 +314,9 @@ ChainTask(TaskType TaskID)
 	call_errorhook(ercd, OSServiceId_ChainTask);
 #endif /* CFG_USE_ERRORHOOK */
 
-  d_exit_no_errorhook:
+  /* d_exit_no_errorhook: */
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_CHNTSK_LEAVE(ercd);
 	return(ercd);
 }
@@ -352,7 +352,7 @@ Schedule(void)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_SCHED_LEAVE(ercd);
 	return(ercd);
 
@@ -431,7 +431,7 @@ GetTaskState(TaskType TaskID, TaskStateRefType State)
 
   d_exit_no_errorhook:
 	x_nested_unlock_os_int();
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	LOG_GETTST_LEAVE(ercd, State);
 	return(ercd);
 

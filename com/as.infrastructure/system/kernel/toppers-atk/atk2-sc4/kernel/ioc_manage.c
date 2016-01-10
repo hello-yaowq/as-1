@@ -190,7 +190,7 @@ ioc_send_generic(IocType IocWrapperId, const void *in)
 		p_ioccb->tail = 0U;
 	}
 
-  d_exit_no_errorhook:
+ /* d_exit_no_errorhook: */
 	x_nested_unlock_os_int();
   exit_no_errorhook:
 	LOG_IOCSEND_LEAVE(ercd);
@@ -239,14 +239,14 @@ ioc_write_generic(IocType IocWrapperId, const void *in)
 
 	ioc_memcpy((void *) (p_iocinib->p_iocmb), in, p_iocinib->datasz);
 
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
   exit_no_errorhook:
 	LOG_IOCWRITE_LEAVE(ercd);
 	return(ercd);
 
 #ifdef CFG_USE_ERRORHOOK
-  d_exit_errorhook:
+ /* d_exit_errorhook: */
 	goto errorhook_start;
 
   exit_errorhook:
@@ -297,7 +297,7 @@ ioc_receive_generic(IocType IocId, void *out)
 
 	S_D_CHECK_IOC_LOST(p_ioccb->lostflg == FALSE);
 
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
   exit_no_errorhook:
 	LOG_IOCRECEIVE_LEAVE(ercd);
@@ -343,14 +343,14 @@ ioc_read_generic(IocType IocId, void *out)
 
 	ioc_memcpy(out, (void *) (p_iocinib->p_iocmb), p_iocinib->datasz);
 
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
   exit_no_errorhook:
 	LOG_IOCREAD_LEAVE(ercd);
 	return(ercd);
 
 #ifdef CFG_USE_ERRORHOOK
-  d_exit_errorhook:
+  /*d_exit_errorhook:*/
 	goto errorhook_start;
 
   exit_errorhook:
@@ -391,14 +391,14 @@ ioc_empty_queue_generic(IocType IocId)
 	p_ioccb->tail = 0U;
 	p_ioccb->lostflg = FALSE;
 
-  d_exit_no_errorhook:
+  /*d_exit_no_errorhook:*/
 	x_nested_unlock_os_int();
   exit_no_errorhook:
 	LOG_IOCREAD_LEAVE(ercd);
 	return(ercd);
 
 #ifdef CFG_USE_ERRORHOOK
-  d_exit_errorhook:
+  /*d_exit_errorhook:*/
 	goto errorhook_start;
 
   exit_errorhook:

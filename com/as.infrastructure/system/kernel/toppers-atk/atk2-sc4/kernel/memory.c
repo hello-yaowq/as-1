@@ -148,7 +148,7 @@ CheckTaskMemoryAccess(TaskType TaskID, MemoryStartAddressType Address, MemorySiz
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = AP_NoAccess;
 	goto exit_finish;
 }
@@ -197,7 +197,7 @@ CheckISRMemoryAccess(ISRType ISRID, MemoryStartAddressType Address, MemorySizeTy
 	x_nested_unlock_os_int();
 #endif /* CFG_USE_ERRORHOOK */
 
-  exit_no_errorhook:
+	/* exit_no_errorhook: */
 	access = AP_NoAccess;
 	goto exit_finish;
 }
