@@ -15,6 +15,7 @@ __header = '''/**
 '''
 
 from .util import *
+from .GCF import *
 
 __all__ = ['gen_toppers_atk2_sc4']
 
@@ -38,18 +39,18 @@ def genH(gendir,os_list):
     fp.write('\n')
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
+        fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(task.attrib['name'],task.attrib['priority']))
+        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
     fp.write('\n')
     for id,task in enumerate(task_list):
-        for mask,ev in enumerate(task):
-            if(ev.attrib['mask']=='auto'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            if(GAGet(ev,'Mask')=='AUTO'):
                 mask = '(1<<%s)'%(mask)
             else:
-                mask = ev.attrib['mask']
-            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(task.attrib['name'],ev.attrib['name']),mask))
+                mask = GAGet(ev,'Mask')
+            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
     fp.write('\n')
     isr_list = ScanFrom(os_list,'ISR')
     isr_num = len(isr_list)
@@ -60,11 +61,11 @@ def genH(gendir,os_list):
     
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
-        fp.write('#define COUNTER_ID_%-32s %s\n'%(counter.attrib['name'],id))
+        fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
-        fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
+        fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('\n#define ALARM(a)  void AlarmMain##a(void)\n\n')
     
@@ -77,10 +78,10 @@ def genH(gendir,os_list):
     fp.write('extern void object_initialize(void);\n')
     fp.write('extern void object_terminate(void);\n\n')
     for id,task in enumerate(task_list):
-        fp.write('extern TASK(%s);\n'%(task.attrib['name']))
+        fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
     fp.write('\n\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('extern ALARM(%s);\n'%(alarm.attrib['name']))
+        fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n#endif /* OS_CFG_H_ */\n\n')
     fp.close()
 
@@ -179,7 +180,12 @@ def genC(gendir,os_list):
     fp.write('const BSSSECINIB    bsssecinib_table[1];\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    fp.write('void object_initialize(void) {}\n')
+    fp.write('void object_initialize(void)\n')
+    fp.write('{\n')
+    fp.write('\ttask_initialize();\n')
+    fp.write('\talarm_initialize();\n')
+    fp.write('\tresource_initialize();\n')
+    fp.write('}\n')
     fp.write('void object_terminate(void)  {}\n')
     fp.write('\n')
 

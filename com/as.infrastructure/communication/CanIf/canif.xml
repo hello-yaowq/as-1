@@ -1,9 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <AS>
 	<Os>
-		<Task name='TaskCanIf' priority='9' exe-priority='9'  max-activation='5'
-              auto-start='false'         
-              app-mode='OSDEFAULTAPPMODE' stack-size='512' />
+		<Task Name="TaskCanIf"  
+    		Activation="5" 
+			Autostart="True" 
+			Priority="9" 
+			Schedule="FULL" 
+			StackSize="512"
+     		Comment="*" />
 	</Os>
 	<KSM> <CANIdle><Running/></CANIdle> </KSM>
 </AS>

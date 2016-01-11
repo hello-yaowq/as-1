@@ -1,9 +1,23 @@
 <?xml version='1.0' encoding='utf-8'?>
 <AS>
 	<Os>
-		<Task name='Rte_Runnable' priority='10'  exe-priority='10' max-activation='5'
-              auto-start='false'   		
-		      app-mode='OSDEFAULTAPPMODE' stack-size='512' />
-        <Alarm name='Alarm_Rte_Runnable' counter='OsClock' auto-start='false' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />
+		<Task Name="Rte_Runnable"  
+			Activation="5" 
+			Autostart="False" 
+			Priority="10" 
+			Schedule="FULL" 
+			StackSize="512"
+			Comment="*" />
+
+		<Alarm Name="Alarm_Rte_Runnable" 
+				Autostart="False" 
+				Period="5" 
+				StartTime="5"
+				Counter="OsClock"
+				Action="ActivateTask"	
+				Task="Rte_Runnable"				
+				Event="TBD"  
+				Callback="TBD" 
+				Comment="*" />
 	</Os>
 </AS>

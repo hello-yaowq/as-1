@@ -15,6 +15,7 @@ __header = '''/**
 '''
 
 from .util import *
+from .GCF import *
 
 __all__ = ['gen_freeosek']
 
@@ -33,55 +34,55 @@ def toFreeOSEK_OIL(os_list,file):
     fp.write('};\n\n')
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('TASK %s {\n'%(task.attrib['name']))
-        fp.write('\tPRIORITY = %s;\n'%(task.attrib['priority']))
+        fp.write('TASK %s {\n'%(GAGet(task,'Name')))
+        fp.write('\tPRIORITY = %s;\n'%(GAGet(task,'Priority')))
         fp.write('\tSCHEDULE = FULL;\n')
-        fp.write('\tACTIVATION = %s;\n'%(task.attrib['max-activation']))
+        fp.write('\tACTIVATION = %s;\n'%(GAGet(task,'Activation')))
         if(task.attrib['auto-start']=='true'):
             fp.write('\tAUTOSTART = TRUE {\n')
-            fp.write('\t\tAPPMODE = %s;\n'%(task.attrib['app-mode']))
+            fp.write('\t\tAPPMODE = %s;\n'%('OSDEFAULTAPPMODE'))
             fp.write('\t};\n')
         else:
             fp.write('\tAUTOSTART = FALSE;\n')
-        fp.write('\tSTACK = %s;\n'%(task.attrib['stack-size']))
+        fp.write('\tSTACK = %s;\n'%(GAGet(task,'StackSize')))
         basic = True
-        for mask,ev in enumerate(task):
+        for mask,ev in GLGet(task,'EventList'):
             basic = False            
         if(basic): 
             fp.write('\tTYPE = BASIC;\n')
         else:
             fp.write('\tTYPE = EXTENDED;\n')
-        for mask,ev in enumerate(task):
-            fp.write('\tEVENT = %s;\n'%(ev.attrib['name']))
+        for mask,ev in GLGet(task,'EventList'):
+            fp.write('\tEVENT = %s;\n'%(GAGet(ev,'Name')))
         fp.write('};\n\n')
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
-        fp.write('COUNTER %s {\n'%(counter.attrib['name']))
-        fp.write('\tMAXALLOWEDVALUE = %s;\n'%(counter.attrib['max-value']))
-        fp.write('\tTICKSPERBASE = %s;\n'%(counter.attrib['ticks-per-base']))
-        fp.write('\tMINCYCLE = %s;\n'%(counter.attrib['min-value']))
+        fp.write('COUNTER %s {\n'%(GAGet(counter,'Name')))
+        fp.write('\tMAXALLOWEDVALUE = %s;\n'%(GAGet(counter,'MaxAllowed')))
+        fp.write('\tTICKSPERBASE = %s;\n'%(GAGet(counter,'TicksPerBase')))
+        fp.write('\tMINCYCLE = %s;\n'%(GAGet(counter,'MinCycle')))
         fp.write('\tTYPE = HARDWARE;\n')
         fp.write('\tCOUNTER = HWCOUNTER0;\n')
         fp.write('};\n\n')
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
-        fp.write('ALARM %s {\n'%(alarm.attrib['name']))
-        fp.write('\tCOUNTER = %s;\n'%(alarm.attrib['counter']))
+        fp.write('ALARM %s {\n'%(GAGet(alarm,'Name')))
+        fp.write('\tCOUNTER = %s;\n'%(GAGet(alarm,'Counter')))
         if(alarm.attrib['auto-start']=='true'):
             fp.write('\tAUTOSTART = TRUE {\n')
-            fp.write('\t\tAPPMODE = %s;\n'%(alarm.attrib['app-mode']))
-            fp.write('\t\tALARMTIME = %s;\n'%(alarm.attrib['offset']))
-            fp.write('\t\tCYCLETIME = %s;\n'%(alarm.attrib['period']))
+            fp.write('\t\tAPPMODE = %s;\n'%('OSDEFAULTAPPMODE'))
+            fp.write('\t\tALARMTIME = %s;\n'%(GAGet(alarm,'StartTime')))
+            fp.write('\t\tCYCLETIME = %s;\n'%(GAGet(alarm,'Period')))
             fp.write('\t};\n')
         else:
             fp.write('\tAUTOSTART = FALSE;\n')
         fp.write('\tACTION = ALARMCALLBACK {\n')
-        fp.write('\t\tCALLBACK = %s;\n'%(alarm.attrib['name']))
+        fp.write('\t\tCALLBACK = %s;\n'%(GAGet(alarm,'Name')))
         fp.write('\t};\n')
         fp.write('};\n\n')
     for id,task in enumerate(task_list):
-        for mask,ev in enumerate(task):
-            fp.write('EVENT %s;\n\n'%(ev.attrib['name']))
+        for mask,ev in GLGet(task,'EventList'):
+            fp.write('EVENT %s;\n\n'%(GAGet(ev,'Name')))
     fp.write('APPMODE OSDEFAULTAPPMODE;\n\n')
     fp.write('};\n\n')
     fp.close()
@@ -106,11 +107,11 @@ def gen_freeosek(gendir,os_list):
     fp.write("#define OS_TICKS2MS(a) (a)\n\n")
 #     task_list = ScanFrom(os_list,'Task')
 #     for id,task in enumerate(task_list):
-#         fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],task.attrib['name']))
+#         fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Name')))
 #     fp.write('\n\n')
 #     alarm_list = ScanFrom(os_list,'Alarm')
 #     for id,alarm in enumerate(alarm_list):
-#         fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],alarm.attrib['name']))
+#         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')

@@ -15,6 +15,7 @@ __header = '''/**
 '''
 
 from .util import *
+from .GCF import *
 
 __all__ = ['gen_toppers_osek']
 
@@ -90,18 +91,18 @@ def genForToppersOSEK_H(gendir,os_list):
     fp.write("#define OS_TICKS2MS(a) (a)\n\n")
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
+        fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(task.attrib['name'],task.attrib['priority']))
+        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
     fp.write('\n')
     for id,task in enumerate(task_list):
-        for mask,ev in enumerate(task):
-            if(ev.attrib['mask']=='auto'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            if(GAGet(ev,'Mask')=='AUTO'):
                 mask = '(1<<%s)'%(mask)
             else:
-                mask = ev.attrib['mask']
-            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(task.attrib['name'],ev.attrib['name']),mask))
+                mask = GAGet(ev,'Mask')
+            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
     fp.write('\n')
     
     isr_list = ScanFrom(os_list,'ISR')
@@ -113,11 +114,11 @@ def genForToppersOSEK_H(gendir,os_list):
     
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
-        fp.write('#define COUNTER_ID_%-32s %s\n'%(counter.attrib['name'],id))
+        fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
-        fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
+        fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     
     fp.write('%s\n'%(__for_toppers_osek_macro))
@@ -127,10 +128,10 @@ def genForToppersOSEK_H(gendir,os_list):
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     for id,task in enumerate(task_list):
-        fp.write('extern TASK(%s);\n'%(task.attrib['name']))
+        fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
     fp.write('\n\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('extern ALARM(%s);\n'%(alarm.attrib['name']))
+        fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
     fp.write('#endif /* OS_CFG_H */\n\n')
     fp.close()
@@ -158,33 +159,33 @@ def genForToppersOSEK_C(gendir,os_list):
     task_list = ScanFrom(os_list,'Task')
     fp.write('const Priority  tinib_inipri[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s, /* %s */\n'%(task.attrib['priority'],task.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%(GAGet(task,'Priority'),GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('const Priority  tinib_exepri[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s, /* %s */\n'%(task.attrib['exe-priority'],task.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%(GAGet(task,'Priority'),GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('const UINT8  tinib_maxact[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s, /* %s */\n'%(task.attrib['max-activation'],task.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%(GAGet(task,'Activation'),GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('const AppModeType  tinib_autoact[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s, /* %s */\n'%(task.attrib['app-mode'],task.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%('OSDEFAULTAPPMODE',GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('const FP  tinib_task[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\tTASKNAME(%s),\n'%(task.attrib['name']))
+        fp.write('\tTASKNAME(%s),\n'%(GAGet(task,'Name')))
     fp.write('};\n\n')
     for id,task in enumerate(task_list):
-        fp.write('static UINT8  %s_stk[ %s ];\n'%(task.attrib['name'],task.attrib['stack-size']))
+        fp.write('static UINT8  %s_stk[ %s ];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
     fp.write('const VP  tinib_stk[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s_stk,\n'%(task.attrib['name']))
+        fp.write('\t%s_stk,\n'%(GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('const UINT16  tinib_stksz[TASK_NUM] = {\n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s,/* %s */\n'%(task.attrib['stack-size'],task.attrib['name']))
+        fp.write('\t%s,/* %s */\n'%(GAGet(task,'StackSize'),GAGet(task,'Name')))
     fp.write('};\n\n')
     
     fp.write('const IPL       ipl_maxisr2 = 1;\n')
@@ -211,19 +212,19 @@ def genForToppersOSEK_C(gendir,os_list):
     counter_list = ScanFrom(os_list,'Counter')
     fp.write('const TickType  cntinib_maxval[COUNTER_NUM] = {\n')
     for id,counter in enumerate(counter_list):
-        fp.write('\t%s,/* %s */\n'%(counter.attrib['max-value'],counter.attrib['name']))
+        fp.write('\t%s,/* %s */\n'%(GAGet(counter,'MaxAllowed'),GAGet(counter,'Name')))
     fp.write('};\n\n')
     fp.write('const TickType  cntinib_maxval2[COUNTER_NUM] = {\n')
     for id,counter in enumerate(counter_list):
-        fp.write('\t%s*2+1,/* %s */\n'%(counter.attrib['max-value'],counter.attrib['name']))
+        fp.write('\t%s*2+1,/* %s */\n'%(GAGet(counter,'MaxAllowed'),GAGet(counter,'Name')))
     fp.write('};\n\n')
     fp.write('const TickType  cntinib_mincyc[COUNTER_NUM] = {\n')
     for id,counter in enumerate(counter_list):
-        fp.write('\t%s,/* %s */\n'%(counter.attrib['min-value'],counter.attrib['name']))
+        fp.write('\t%s,/* %s */\n'%(GAGet(counter,'MinCycle'),GAGet(counter,'Name')))
     fp.write('};\n\n')
     fp.write('const TickType  cntinib_tickbase[COUNTER_NUM] = {\n')
     for id,counter in enumerate(counter_list):
-        fp.write('\t%s,/* %s */\n'%(counter.attrib['ticks-per-base'],counter.attrib['name']))
+        fp.write('\t%s,/* %s */\n'%(GAGet(counter,'TicksPerBase'),GAGet(counter,'Name')))
     fp.write('};\n\n')
     fp.write('/*\n')
     fp.write(' *  counter control block\n')
@@ -236,26 +237,26 @@ def genForToppersOSEK_C(gendir,os_list):
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('const CounterType alminib_cntid[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\tCOUNTER_ID_%s, /* %s */\n'%(alarm.attrib['counter'],alarm.attrib['name']))
+        fp.write('\tCOUNTER_ID_%s, /* %s */\n'%(GAGet(alarm,'Counter'),GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('const FP             alminib_cback[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\tALARMCALLBACKNAME(%s),\n'%(alarm.attrib['name']))
+        fp.write('\tALARMCALLBACKNAME(%s),\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('const AppModeType alminib_autosta[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
         if(alarm.attrib['auto-start']=='true'):
-            fp.write('\t%s, /* %s */\n'%(alarm.attrib['app-mode'],alarm.attrib['name']))
+            fp.write('\t%s, /* %s */\n'%('OSDEFAULTAPPMODE',GAGet(alarm,'Name')))
         else:
-            fp.write('\t0, /* %s */\n'%(alarm.attrib['name']))
+            fp.write('\t0, /* %s */\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('const TickType   alminib_almval[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\t%s, /* %s */\n'%(alarm.attrib['offset'],alarm.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%(GAGet(alarm,'StartTime'),GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('const TickType   alminib_cycle[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\t%s, /* %s */\n'%(alarm.attrib['period'],alarm.attrib['name']))
+        fp.write('\t%s, /* %s */\n'%(GAGet(alarm,'Period'),GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('/*\n')
     fp.write(' *  alarm control block\n')

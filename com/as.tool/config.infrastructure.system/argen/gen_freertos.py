@@ -15,6 +15,7 @@ __header = '''/**
 '''
 
 from .util import *
+from .GCF import *
 
 __all__ = ['gen_freertos']
 
@@ -201,10 +202,10 @@ def genForFreeRTOS_H(gendir,os_list):
     fp.write('%s\n'%(__for_freertos_macros))
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_ID_%-32s %s\n'%(task.attrib['name'],id))
+        fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(task.attrib['name'],task.attrib['priority']))
+        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),task.attrib['priority']))
     fp.write('\n')
     fp.write('#define OS_EVENT_TASK_ACTIVATION                            ( 0x00800000u )\n')
     for id,task in enumerate(task_list):
@@ -213,13 +214,13 @@ def genForFreeRTOS_H(gendir,os_list):
                 mask = '(1<<%s)'%(mask)
             else:
                 mask = ev.attrib['mask']
-            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(task.attrib['name'],ev.attrib['name']),mask))
+            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),ev.attrib['name']),mask))
     fp.write('\n')
     fp.write('#define TASK(TaskName)  void OsTaskMain##TaskName (void)\n')
     fp.write('\n')
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
-        fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
+        fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('#define ALARM(AlarmName)  void OsAlarmMain##AlarmName (void)\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
@@ -239,10 +240,10 @@ def genForFreeRTOS_H(gendir,os_list):
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     for id,task in enumerate(task_list):
-        fp.write('extern TASK(%s);\n'%(task.attrib['name']))
+        fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
     fp.write('\n\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('extern ALARM(%s);\n'%(alarm.attrib['name']))
+        fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
     fp.write('#endif /* OS_CFG_H */\n')
     fp.close()
@@ -266,15 +267,15 @@ def genForFreeRTOS_C(gendir,os_list):
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('static const void_function_void_t os_task_entrys[TASK_NUM] = { \n')
     for id,task in enumerate(task_list):
-        fp.write('\tOsTaskMain%s,\n'%(task.attrib['name']))
+        fp.write('\tOsTaskMain%s,\n'%(GAGet(task,'Name')))
     fp.write('};\n\n')
     fp.write('static const char os_task_names[TASK_NUM][32] = { \n')
     for id,task in enumerate(task_list):
-        fp.write('\t"%s",\n'%(task.attrib['name']))
+        fp.write('\t"%s",\n'%(GAGet(task,'Name')))
     fp.write('};\n\n')   
     fp.write('static const uint16 os_task_stack_size[TASK_NUM] = { \n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s,\n'%(task.attrib['stack-size']))
+        fp.write('\t%s,\n'%(GAGet(task,'StackSize')))
     fp.write('};\n\n')  
     fp.write('static const uint8 os_task_prioritys[TASK_NUM] = { \n')
     for id,task in enumerate(task_list):
@@ -282,20 +283,20 @@ def genForFreeRTOS_C(gendir,os_list):
     fp.write('};\n\n')  
     fp.write('static const void_function_void_t os_alarm_entrys[ALARM_NUM] = { \n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\tOsAlarmMain%s,\n'%(alarm.attrib['name']))
+        fp.write('\tOsAlarmMain%s,\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('static const char os_alarm_names[ALARM_NUM][32] = { \n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\t"%s",\n'%(alarm.attrib['name']))
+        fp.write('\t"%s",\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')  
     str_activate_task = ''
     for id,task in enumerate(task_list):
         if(task.attrib['auto-start']=='true'):
-            str_activate_task += '\tOsActivateTask(%s);\n'%(task.attrib['name'])
+            str_activate_task += '\tOsActivateTask(%s);\n'%(GAGet(task,'Name'))
     str_active_alarm  = ''
     for id,alarm in enumerate(alarm_list):
         if(alarm.attrib['auto-start']=='true'):
-            str_active_alarm += '\tOsSetRelAlarm(%s,%s,%s);\n'%(alarm.attrib['name'],alarm.attrib['offset'],alarm.attrib['period'])    
+            str_active_alarm += '\tOsSetRelAlarm(%s,%s,%s);\n'%(GAGet(alarm,'Name'),GAGet(alarm,'StartTime'),GAGet(alarm,'Period'))    
     fp.write(__for_freertos_functions%(str_activate_task,str_active_alarm))           
     fp.close()
 

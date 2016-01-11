@@ -16,6 +16,7 @@ __header = '''/**
 '''
 
 from .util import *
+from .GCF import *
 
 __all__ = ['gen_smallos']
 def SmallOS_TaskList(os_list):
@@ -26,10 +27,10 @@ def SmallOS_TaskList(os_list):
         if(length == 0):
             ret_list.append(task)
         else:
-            prio = int(task.attrib['priority'])
+            prio = int(GAGet(task,'Priority'))
             flag = False
             for it in ret_list:
-                iprio = int(it.attrib['priority'])
+                iprio = int(GAGet(it,'Priority'))
                 if(prio < iprio):
                     ret_list.insert(0, task)
                     flag = True
@@ -50,15 +51,15 @@ def genForSmallOS_H(gendir,os_list):
     fp.write("#define OS_TICKS2MS(a) (a)\n\n")
     task_list = SmallOS_TaskList(os_list)
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(task.attrib['name'],id,task.attrib['priority']))
+        fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
-        for mask,ev in enumerate(task):
-            if(ev.attrib['mask']=='auto'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            if(GAGet(ev,'Mask')=='auto'):
                 mask = '(1<<%s)'%(mask)
             else:
-                mask = ev.attrib['mask']
-            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(task.attrib['name'],ev.attrib['name']),mask))
+                mask = GAGet(ev,'Mask')
+            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
     fp.write('\n')
     
     res_list = ScanFrom(os_list, 'Resource')
@@ -68,7 +69,7 @@ def genForSmallOS_H(gendir,os_list):
     
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
-        fp.write('#define ALARM_ID_%-32s %s\n'%(alarm.attrib['name'],id))
+        fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
@@ -81,10 +82,10 @@ def genForSmallOS_H(gendir,os_list):
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     for id,task in enumerate(task_list):
-        fp.write('extern TASK(%s);\n'%(task.attrib['name']))
+        fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
     fp.write('\n\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('extern ALARM(%s);\n'%(alarm.attrib['name']))
+        fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
     fp.write('#endif /* OS_CFG_H */\n\n')
     fp.close()
@@ -102,13 +103,13 @@ def genForSmallOS_C(gendir,os_list):
     task_list = SmallOS_TaskList(os_list)
     fp.write('CONST(task_declare_t,AUTOMATIC)  TaskList[TASK_NUM] = \n{\n')
     for id,task in enumerate(task_list):
-        fp.write('\tDeclareTask(%-32s, %-5s, %s    ),\n'%(task.attrib['name'],task.attrib['auto-start'].upper(),task.attrib['app-mode']))
+        fp.write('\tDeclareTask(%-32s, %-5s, %s    ),\n'%(GAGet(task,'Name'),GAGet(task,'Autostart').upper(),'OSDEFAULTAPPMODE'))
     fp.write('};\n\n')
     
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM] = \n{\n')
     for id,alarm in enumerate(alarm_list):
-        fp.write('\tDeclareAlarm(%s),\n'%(alarm.attrib['name']))
+        fp.write('\tDeclareAlarm(%s),\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
     fp.write('\n\n')
     fp.close()

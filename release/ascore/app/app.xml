@@ -1,14 +1,31 @@
 <?xml version='1.0' encoding='utf-8'?>
 <AS>
-	<Os>		
-		<Task name='TaskApp' priority='5' exe-priority='5' max-activation='1'
-              auto-start='true'   
-		      app-mode='OSDEFAULTAPPMODE' stack-size='512' >
-		    <!-- put auot mask event firstly and then those non auto mask event -->
-		    <!-- note: the auto mask start from 0x00000001,0x00000002, (1<<index) ... -->
-    		<Event name='Event1' mask='auto'/>
-    		<Event name='Event2' mask='auto'/>
+	<Os>	
+		<Task Name="TaskApp"  
+	    		Activation="1" 
+				Autostart="True" 
+				Priority="5" 
+				Schedule="FULL" 
+				StackSize="512"
+	     		Comment="*" >
+			<EventList Max="TBD">
+				<Event Comment="*" Mask="0x01" Name="Event1" />
+				<Event Comment="*" Mask="0x02" Name="Event2" />
+				<Event Comment="*" Mask="0x04" Name="Event3" />
+				<Event Comment="*" Mask="0x08" Name="Event4" />
+				<Event Comment="*" Mask="0x10" Name="Event5" />
+			</EventList>
 		</Task>
-		<Alarm name='AlarmApp' counter='OsClock' auto-start='true' app-mode='OSDEFAULTAPPMODE' offset='5' period='5' />	
+		
+		<Alarm Name="AlarmApp" 
+			Autostart="False" 
+			Period="5" 
+			StartTime="5"
+			Counter="OsClock"
+			Action="ActivateTask"	
+			Task="TaskApp"				
+			Event="TBD"  
+			Callback="TBD" 
+			Comment="*" />
  	</Os>
 </AS>
