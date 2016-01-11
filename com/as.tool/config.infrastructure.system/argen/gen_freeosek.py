@@ -16,6 +16,7 @@ __header = '''/**
 
 from .util import *
 from .GCF import *
+import glob,os
 
 __all__ = ['gen_freeosek']
 
@@ -38,7 +39,7 @@ def toFreeOSEK_OIL(os_list,file):
         fp.write('\tPRIORITY = %s;\n'%(GAGet(task,'Priority')))
         fp.write('\tSCHEDULE = FULL;\n')
         fp.write('\tACTIVATION = %s;\n'%(GAGet(task,'Activation')))
-        if(task.attrib['auto-start']=='true'):
+        if(GAGet(task,'Autostart').upper()=='TRUE'):
             fp.write('\tAUTOSTART = TRUE {\n')
             fp.write('\t\tAPPMODE = %s;\n'%('OSDEFAULTAPPMODE'))
             fp.write('\t};\n')
@@ -46,13 +47,13 @@ def toFreeOSEK_OIL(os_list,file):
             fp.write('\tAUTOSTART = FALSE;\n')
         fp.write('\tSTACK = %s;\n'%(GAGet(task,'StackSize')))
         basic = True
-        for mask,ev in GLGet(task,'EventList'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
             basic = False            
         if(basic): 
             fp.write('\tTYPE = BASIC;\n')
         else:
             fp.write('\tTYPE = EXTENDED;\n')
-        for mask,ev in GLGet(task,'EventList'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
             fp.write('\tEVENT = %s;\n'%(GAGet(ev,'Name')))
         fp.write('};\n\n')
     counter_list = ScanFrom(os_list,'Counter')
@@ -68,7 +69,7 @@ def toFreeOSEK_OIL(os_list,file):
     for id,alarm in enumerate(alarm_list):
         fp.write('ALARM %s {\n'%(GAGet(alarm,'Name')))
         fp.write('\tCOUNTER = %s;\n'%(GAGet(alarm,'Counter')))
-        if(alarm.attrib['auto-start']=='true'):
+        if(GAGet(alarm,'Autostart').upper()=='TRUE'):
             fp.write('\tAUTOSTART = TRUE {\n')
             fp.write('\t\tAPPMODE = %s;\n'%('OSDEFAULTAPPMODE'))
             fp.write('\t\tALARMTIME = %s;\n'%(GAGet(alarm,'StartTime')))
@@ -81,7 +82,7 @@ def toFreeOSEK_OIL(os_list,file):
         fp.write('\t};\n')
         fp.write('};\n\n')
     for id,task in enumerate(task_list):
-        for mask,ev in GLGet(task,'EventList'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
             fp.write('EVENT %s;\n\n'%(GAGet(ev,'Name')))
     fp.write('APPMODE OSDEFAULTAPPMODE;\n\n')
     fp.write('};\n\n')

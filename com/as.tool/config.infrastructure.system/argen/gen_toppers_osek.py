@@ -245,7 +245,7 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('};\n\n')
     fp.write('const AppModeType alminib_autosta[ALARM_NUM] = {\n')
     for id,alarm in enumerate(alarm_list):
-        if(alarm.attrib['auto-start']=='true'):
+        if(GAGet(alarm,'Autostart').upper()=='TRUE'):
             fp.write('\t%s, /* %s */\n'%('OSDEFAULTAPPMODE',GAGet(alarm,'Name')))
         else:
             fp.write('\t0, /* %s */\n'%(GAGet(alarm,'Name')))

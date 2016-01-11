@@ -205,16 +205,16 @@ def genForFreeRTOS_H(gendir,os_list):
         fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),task.attrib['priority']))
+        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
     fp.write('\n')
     fp.write('#define OS_EVENT_TASK_ACTIVATION                            ( 0x00800000u )\n')
     for id,task in enumerate(task_list):
-        for mask,ev in enumerate(task):
-            if(ev.attrib['mask']=='auto'):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            if(GAGet(ev,'Mask')=='AUOT'):
                 mask = '(1<<%s)'%(mask)
             else:
-                mask = ev.attrib['mask']
-            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),ev.attrib['name']),mask))
+                mask = GAGet(ev,'Mask')
+            fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
     fp.write('\n')
     fp.write('#define TASK(TaskName)  void OsTaskMain##TaskName (void)\n')
     fp.write('\n')
@@ -279,7 +279,7 @@ def genForFreeRTOS_C(gendir,os_list):
     fp.write('};\n\n')  
     fp.write('static const uint8 os_task_prioritys[TASK_NUM] = { \n')
     for id,task in enumerate(task_list):
-        fp.write('\t%s,\n'%(task.attrib['priority']))
+        fp.write('\t%s,\n'%(GAGet(task,'Priority')))
     fp.write('};\n\n')  
     fp.write('static const void_function_void_t os_alarm_entrys[ALARM_NUM] = { \n')
     for id,alarm in enumerate(alarm_list):
@@ -291,11 +291,11 @@ def genForFreeRTOS_C(gendir,os_list):
     fp.write('};\n\n')  
     str_activate_task = ''
     for id,task in enumerate(task_list):
-        if(task.attrib['auto-start']=='true'):
+        if(GAGet(task,'Autostart').upper()=='TRUE'):
             str_activate_task += '\tOsActivateTask(%s);\n'%(GAGet(task,'Name'))
     str_active_alarm  = ''
     for id,alarm in enumerate(alarm_list):
-        if(alarm.attrib['auto-start']=='true'):
+        if(GAGet(alarm,'Autostart').upper()=='TRUE'):
             str_active_alarm += '\tOsSetRelAlarm(%s,%s,%s);\n'%(GAGet(alarm,'Name'),GAGet(alarm,'StartTime'),GAGet(alarm,'Period'))    
     fp.write(__for_freertos_functions%(str_activate_task,str_active_alarm))           
     fp.close()

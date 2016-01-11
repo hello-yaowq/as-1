@@ -506,7 +506,7 @@ clean:
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=freeosek
 92:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=true
 93:
