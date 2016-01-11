@@ -174,7 +174,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
 /*
  *  Definition of application mode value
  */
-#define APPMODE_NONE	((AppModeType) 0)   /* 銉€兗銉夈仾銇� */
+#define APPMODE_NONE	((AppModeType) 0)   /* None Mode */
 
 /*
  *  At the time of the definition TCL_NULL of the value of the context of the 
@@ -209,7 +209,7 @@ extern void internal_call_shtdwnhk(StatusType ercd);
  *  Definition of the magic number for the stack monitoring
  *  Definition of the target-dependent portion is priority
  */
-#define STACK_MAGIC_NUMBER	0x4E434553      /* NCES銇瓵SCII銈炽兗銉�(0x4E434553) */
+#define STACK_MAGIC_NUMBER	0x4E434553      /* NCES ASCII code (0x4E434553) */
 #endif /* STACK_MAGIC_NUMBER */
 
 #ifndef TOPPERS_ISTK_MAGIC_REGION
