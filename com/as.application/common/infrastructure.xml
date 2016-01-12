@@ -31,7 +31,7 @@
 				
 		<Task Name="TaskIdle"  
 	    		Activation="1" 
-				Autostart="False" 
+				Autostart="True" 
 				Priority="0" 
 				Schedule="FULL" 
 				StackSize="512"
