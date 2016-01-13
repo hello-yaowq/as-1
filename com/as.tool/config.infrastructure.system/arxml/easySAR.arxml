@@ -10,6 +10,12 @@
 		PostTaskHook="Text Default=PostTaskHook Comment=(if NULL,no PostTaskHook) PosGUI=5"
 		Comment="TextArea Default=* PosGUI=6"
 	/>
+	<ApplicationModeList Max="32">
+		<ApplicationMode 
+			Name="Text Comment=(Application Mode Name) PosGUI=0" 
+			Comment="TextArea Default=* PosGUI=1"
+			/>
+	</ApplicationModeList>
 	<TaskList Max="255">
 		<Task  
 			Name="Text Comment=(Task Name) PosGUI=0" 
@@ -21,13 +27,19 @@
 			Comment="TextArea Default=* PosGUI=6"
 			>
 		<EventList Max="32">
-		<Event 
-			Name="Text PosGUI=0" 
-			Mask="Text Comment=(if TBD, then a unique mask will be calculated out when generate OS) PosGUI=1"
-			Comment="TextArea Default=* PosGUI=2"
-			>
-		</Event>
+			<Event 
+				Name="Text PosGUI=0" 
+				Mask="Text Comment=(if TBD, then a unique mask will be calculated out when generate OS) PosGUI=1"
+				Comment="TextArea Default=* PosGUI=2"
+				>
+			</Event>
 		</EventList>
+		<ApplicationModeList Max="32">
+			<ApplicationMode 
+				Name="EnumRef=OS.ApplicationModeList PosGUI=0" 
+				Comment="TextArea Default=* PosGUI=1"
+			/>
+		</ApplicationModeList>
 		</Task>
 	</TaskList>
 	<AlarmList Max="255">
@@ -58,10 +70,24 @@
 	<ResourceList Max="255">
 		<Resource 
 			Name="Text PosGUI=0"
-			Comment="TextArea Default=* PosGUI=1"
+			Priority="Integer Default=15 Range=1~255 PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
 			>
 		</Resource>
 	</ResourceList>
+	<InternalResourceList Max="255">
+		<InternalResource
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1"
+			>
+			<TaskList Max="255">
+				<Task 
+					Name="EnumRef=OS.TaskList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</TaskList>
+		</InternalResource>
+	</InternalResourceList>
 </OS>
 <EcuC>
 	<PduList Max="65535">

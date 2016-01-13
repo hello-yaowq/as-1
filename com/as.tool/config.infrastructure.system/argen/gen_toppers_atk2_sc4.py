@@ -28,8 +28,6 @@ def genH(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __TOPPERS_ATK2_SC4__\n\n')
     fp.write('#define ALLFUNC\n\n')
-    fp.write('#define RES_SCHEDULER 0 \n\n')
-    fp.write('#define OSDEFAULTAPPMODE 0 \n\n')
     fp.write('#define CFG_USE_ERRORHOOK\n')
     fp.write('#define CFG_USE_POSTTASKHOOK\n')
     fp.write('#define CFG_USE_PRETASKHOOK\n')
@@ -37,12 +35,29 @@ def genH(gendir,os_list):
     fp.write('#define CFG_USE_PROTECTIONHOOK\n')
     fp.write('#define CFG_USE_SHUTDOWNHOOK\n')
     fp.write('\n')
+    appmode_list = ScanFrom(os_list,'ApplicationMode')
+    for id,appmode in enumerate(appmode_list):
+        fp.write('#define %-32s %s\n'%(GAGet(appmode,'Name'),id))
+    fp.write('#define APP_MODE_NUM%-20s %s\n\n'%(' ',id+1))
+    
+    res_list = ScanFrom(os_list,'Resource')
+    for id,res in enumerate(res_list):
+        fp.write('#define %-32s %s\n'%(GAGet(res,'Name'),id))
+    fp.write('#define RES_NUM%-25s %s\n\n'%(' ',id+1))
+        
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
     for id,task in enumerate(task_list):
         fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
+    fp.write('\n')
+    for id,task in enumerate(task_list):
+        cstr = '( 0'
+        for appmode in GLGet(task,'ApplicationModeList'):
+            cstr += ' | (1<<%s)'%(GAGet(appmode,'Name'))
+        cstr += ' )'
+        fp.write('#define TASK_APPMODE_MASK_%-32s %s\n'%(GAGet(task,'Name'),cstr))
     fp.write('\n')
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
@@ -132,24 +147,34 @@ def genC(gendir,os_list):
         fp.write('\t\t.inipri=%s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t.exepri=%s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t.maxact=%s,\n'%(GAGet(task,'Activation')))
-        if (GAGet(task,'Autostart').upper() == 'TRUE'):
-            fp.write('\t\t.autoact=%s,\n'%('OSDEFAULTAPPMODE'))
-        else:
-            fp.write('\t\t.autoact=%s,\n'%('0'))
+        fp.write('\t\t.autoact=TASK_APPMODE_MASK_%s,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.time_frame.tfcount=%s,\n'%('0'))
         fp.write('\t\t.time_frame.tftick=%s,\n'%('0'))
         fp.write('\t\t.execution_budget=%s,\n'%('1'))
         fp.write('\t\t.monitoring=%s,\n'%('1'))
         fp.write('\t},\n')
     fp.write('};\n\n')
-    fp.write('const AppModeType    tnum_appmode = 1;\n')
+    fp.write('const AppModeType    tnum_appmode = APP_MODE_NUM;\n')
     fp.write('\n')
     fp.write('const InterruptNumberType    tnum_intno = 0;\n')
     fp.write('const INTINIB                intinib_table[1];\n')
     fp.write('\n')
+    
+    counter_list = ScanFrom(os_list,'Counter')
+    fp.write('const CounterType    tnum_counter=COUNTER_NUM;\n')
+    fp.write('const CNTINIB        cntinib_table[COUNTER_NUM] = \n{\n')
+    for counter in counter_list:
+        fp.write('\t{ /* %s */\n'%(GAGet(counter,'Name')))
+        fp.write('\t\t.maxval=%s,\n'%(GAGet(counter,'MaxAllowed')))
+        fp.write('\t\t.maxval2=(%s*2)+1,\n'%(GAGet(counter,'MaxAllowed')))
+        fp.write('\t\t.tickbase=%s,\n'%(GAGet(counter,'TicksPerBase')))
+        fp.write('\t\t.mincyc=%s,\n'%(GAGet(counter,'MinCycle')))
+        fp.write('\t\t.p_osapcb=%s,\n'%('NULL'))
+        fp.write('\t\t.acsbtmp=%s,\n'%('0'))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
+    
     fp.write('const CounterType    tnum_hardcounter=0;\n')
-    fp.write('const CounterType    tnum_counter=0;\n')
-    fp.write('const CNTINIB        cntinib_table[1];\n')
     fp.write('CNTCB                cntcb_table[1];\n')
     fp.write('const HWCNTINIB        hwcntinib_table[1];\n')
     fp.write('\n')
@@ -190,7 +215,7 @@ def genC(gendir,os_list):
     fp.write('const IOCWRPINIB    iocwrpinib_table[1];\n')
     fp.write('void                *ioc_inival_table[1];\n')
     fp.write('\n')
-    fp.write('const ResourceType    tnum_stdresource=0;\n')
+    fp.write('const ResourceType    tnum_stdresource=RES_NUM;\n')
     fp.write('const RESINIB        resinib_table[1];\n')
     fp.write('RESCB                rescb_table[1];\n')
     fp.write('\n')

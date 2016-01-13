@@ -12,14 +12,26 @@
 	    		ShutdownHook="ShutdownHook" 
 	    		StartupHook="StartupHook" 
 	    		Comment="Not Used" />
-
+		
+		<ApplicationMode Name="OSDEFAULTAPPMODE" Comment="*" />
+		
+		<Resource Name="RES_SCHEDULER" Priority="Highest" Comment="*" />
+		
+		<!-- ApplicationModeList only valid if Autostart is True -->
 	    <Task Name="SchM_Startup"  
 	    		Activation="1" 
 				Autostart="True" 
 				Priority="7" 
 				Schedule="FULL" 
 				StackSize="512"
-	     		Comment="*" />
+	     		Comment="*" >
+			<ApplicationModeList Max="32">
+				<ApplicationMode 
+					Name="OSDEFAULTAPPMODE" 
+					Comment="start if mode is OSDEFAULTAPPMODE"
+				/>
+			</ApplicationModeList>
+		</Task>
 				
 		<Task Name="SchM_BswService"  
 	    		Activation="5" 
@@ -35,7 +47,14 @@
 				Priority="0" 
 				Schedule="FULL" 
 				StackSize="512"
-	     		Comment="*" />
+	     		Comment="*" >
+			<ApplicationModeList Max="32">
+				<ApplicationMode 
+					Name="OSDEFAULTAPPMODE" 
+					Comment="should start in all the modes"
+				/>
+			</ApplicationModeList>
+		</Task>
 				
 		<Counter Name="OsClock" 
 					MaxAllowed="0xFFFF" 
