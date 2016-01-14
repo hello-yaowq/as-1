@@ -54,8 +54,9 @@ def genH(gendir,os_list):
     fp.write('\n')
     for id,task in enumerate(task_list):
         cstr = '( 0'
-        for appmode in GLGet(task,'ApplicationModeList'):
-            cstr += ' | (1<<%s)'%(GAGet(appmode,'Name'))
+        if(GAGet(task,'Autostart').upper() == 'TRUE'):
+            for appmode in GLGet(task,'ApplicationModeList'):
+                cstr += ' | (1<<%s)'%(GAGet(appmode,'Name'))
         cstr += ' )'
         fp.write('#define TASK_APPMODE_MASK_%-32s %s\n'%(GAGet(task,'Name'),cstr))
     fp.write('\n')
@@ -82,6 +83,14 @@ def genH(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
+    for id,alarm in enumerate(alarm_list):
+        cstr = '( 0'
+        if(GAGet(alarm,'Autostart').upper() == 'TRUE'):
+            for appmode in GLGet(alarm,'ApplicationModeList'):
+                cstr += ' | (1<<%s)'%(GAGet(appmode,'Name'))
+        cstr += ' )'
+        fp.write('#define ALARM_APPMODE_MASK_%-32s %s\n'%(GAGet(alarm,'Name'),cstr))
+    fp.write('\n')
     fp.write('\n#define ALARM(a)  void AlarmMain##a(void)\n\n')
     
     fp.write('#include "atk_os.h"\n')
@@ -173,9 +182,9 @@ def genC(gendir,os_list):
         fp.write('\t\t.acsbtmp=%s,\n'%('0'))
         fp.write('\t},\n')
     fp.write('};\n\n')
+    fp.write('CNTCB                cntcb_table[COUNTER_NUM];\n')
     
     fp.write('const CounterType    tnum_hardcounter=0;\n')
-    fp.write('CNTCB                cntcb_table[1];\n')
     fp.write('const HWCNTINIB        hwcntinib_table[1];\n')
     fp.write('\n')
     fp.write('const ISRType    tnum_isr2=0;\n')
@@ -203,9 +212,21 @@ def genC(gendir,os_list):
     fp.write('const TFINIB        tfinib_table[1];\n')
     fp.write('\n')
     fp.write('\n')
-    fp.write('const AlarmType    tnum_alarm=0;\n')
-    fp.write('const ALMINIB    alminib_table[1];\n')
-    fp.write('ALMCB            almcb_table[1];\n')
+    alarm_list = ScanFrom(os_list,'Alarm')
+    fp.write('const AlarmType    tnum_alarm=ALARM_NUM;\n')
+    fp.write('const ALMINIB    alminib_table[ALARM_NUM] = \n{\n')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('\t{ /* %s */\n'%(GAGet(alarm,'Name')))
+        fp.write('\t\t.p_cntcb=&cntcb_table[COUNTER_ID_%s],\n'%(GAGet(alarm,'Counter')))
+        fp.write('\t\t.action=AlarmMain%s,\n'%(GAGet(alarm,'Name')))
+        fp.write('\t\t.autosta=ALARM_APPMODE_MASK_%s,\n'%(GAGet(alarm,'Name')))
+        fp.write('\t\t.almval=%s,\n'%(GAGet(alarm,'StartTime')))
+        fp.write('\t\t.cycle=%s,\n'%(GAGet(alarm,'Period')))
+        fp.write('\t\t.p_osapcb=%s,\n'%('NULL'))
+        fp.write('\t\t.acsbtmp=%s,\n'%(0))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
+    fp.write('ALMCB            almcb_table[ALARM_NUM];\n')
     fp.write('\n')
     fp.write('const IocType    tnum_ioc=0;\n')
     fp.write('const IocType    tnum_queueioc=0;\n')
