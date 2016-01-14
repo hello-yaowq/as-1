@@ -72,6 +72,7 @@
 #include "kernel_impl.h"
 #include "task.h"
 #include "counter.h"
+#include "interrupt.h"
 
 /*
  *  The default definition of the trace log macro

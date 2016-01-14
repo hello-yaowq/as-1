@@ -376,7 +376,6 @@ extern void object_initialize(void);
  */
 extern void object_terminate(void);
 
-#ifndef __KERNEL_NO_STACK_DECLARE__
 /*
  *  Stack area for the non-task context
  */
@@ -385,7 +384,6 @@ extern StackType * const	_ostk;          /* The start address of the stack area 
 #ifdef TOPPERS_OSTKPT
 extern StackType * const	_ostkpt;        /* The initial value of the stack pointer */
 #endif /* TOPPERS_OSTKPT */
-#endif
 /*
  *  Timing protection for time of frame
  */
