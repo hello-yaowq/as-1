@@ -147,7 +147,16 @@ static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 	(void)pthread_mutex_lock(&canbusH.q_lock);
 	STAILQ_FOREACH(l,&b->head,entry)
 	{
-		if(l->id == canid)
+		if((uint32_t)-1 == canid)
+		{
+			if(FALSE == STAILQ_EMPTY(&l->head))
+			{
+				printf("can lua get any rx message\n");
+				L = l;
+				break;
+			}
+		}
+		else if(l->id == canid)
 		{
 			L = l;
 			break;
@@ -489,6 +498,7 @@ int luai_can_read  (lua_State *L)
 		{
 			 return luaL_error(L,"bus(%d) is not on-line 'can_read'",busid);
 		}
+		/* if canid is -1, return any of the message received */
 		pdu = getPdu(b,canid);
 		if(NULL == pdu)
 		{
