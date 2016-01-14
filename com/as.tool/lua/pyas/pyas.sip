@@ -14,7 +14,7 @@ public:
     /* example: can.open(0,'peak'.encode('utf-8'),0,1000000) */
     int open(unsigned long busid,const char* device,unsigned long port, unsigned long baudrate);
     int write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
-    int read(unsigned long busid,unsigned long canid,unsigned long *dlc /Out/,unsigned char** data /Out/);
+    int read(unsigned long busid,unsigned long canid,unsigned long* p_canid /Out/,unsigned long *dlc /Out/,unsigned char** data /Out/);
 };  
 
 

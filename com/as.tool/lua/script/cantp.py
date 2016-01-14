@@ -182,8 +182,8 @@ class cantp():
         data=None
         pre = time.time()
         while ( ((time.time() -pre) < 1) and (ercd == False)): # 1s timeout
-            result,data= can_read(self.canbus,self.rxid)
-            if(True == result):
+            result,canid,data= can_read(self.canbus,self.rxid)
+            if((True == result) and (self.rxid == canid)):
                 ercd = True
                 break
             else:

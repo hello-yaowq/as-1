@@ -38,7 +38,7 @@ def can_write(busid,canid,data):
 
 def can_read(busid,canid):
     ''' can request read a can frame from <canid> queue of <busid>'''
-    result,dlc,cstr= __can__.read(busid,canid)
+    result,canid,dlc,cstr= __can__.read(busid,canid)
     
     if(result):
         data = []
@@ -48,6 +48,6 @@ def can_read(busid,canid):
     else:
         data = None
 
-    return result,data
+    return result,canid,data
 
     

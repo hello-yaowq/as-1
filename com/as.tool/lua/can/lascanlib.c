@@ -649,7 +649,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	fflush(stdout);
 	return rv;
 }
-int can_read(unsigned long busid,unsigned long canid,unsigned long *dlc,unsigned char** data)
+int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char** data)
 {
 	int rv = FALSE;
 	struct Can_Pdu_s* pdu;
@@ -672,6 +672,7 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long *dlc,unsigned
 		else
 		{
 			size_t size = 0;
+			*p_canid = pdu->msg.id;
 			*dlc = pdu->msg.length;
 			*data = malloc((*dlc)*2+1);
 			asAssert(*data);

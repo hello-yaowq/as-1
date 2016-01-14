@@ -16,8 +16,8 @@ target-y = $(board)
 
 obj-dir = $(CURDIR)/obj
 exe-dir = $(CURDIR)/out
-src-dir = $(CURDIR)/src
-inc-dir = $(CURDIR)/include
+src-dir = $(CURDIR)/src/$(board)
+inc-dir = $(CURDIR)/src/$(board)/include
 
 prj-dir = $(subst release/aslua,,$(CURDIR))
 
