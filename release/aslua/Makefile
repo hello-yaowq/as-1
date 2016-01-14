@@ -14,7 +14,7 @@
 # */
 target-y = $(board)
 
-obj-dir = $(CURDIR)/obj
+obj-dir = $(CURDIR)/obj/$(board)
 exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src/$(board)
 inc-dir = $(CURDIR)/src/$(board)/include
