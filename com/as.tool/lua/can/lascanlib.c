@@ -151,7 +151,6 @@ static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 		{
 			if(FALSE == STAILQ_EMPTY(&l->head))
 			{
-				printf("can lua get any rx message\n");
 				L = l;
 				break;
 			}
