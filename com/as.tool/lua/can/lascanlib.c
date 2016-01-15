@@ -23,7 +23,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
-#define CAN_BUS_PDU_NUM   16
+#define CAN_BUS_PDU_NUM   65535
 
 #define AS_LOG_LUA 0
 /* ============================ [ TYPES     ] ====================================================== */
@@ -38,7 +38,8 @@ typedef struct {
 } Can_PduType;
 struct Can_Pdu_s {
 	Can_PduType msg;
-	STAILQ_ENTRY(Can_Pdu_s) entry;
+	STAILQ_ENTRY(Can_Pdu_s) entry;	/* entry for Can_PduQueue_s, sort by CANID queue*/
+	STAILQ_ENTRY(Can_Pdu_s) entry2; /* entry for Can_Bus_s, sort by CANID queue*/
 };
 struct Can_PduQueue_s {
 	uint32_t id;	/* can_id of this list */
@@ -49,7 +50,9 @@ struct Can_PduQueue_s {
 struct Can_Bus_s {
 	uint32_t busid;
 	Can_DeviceType  device;
-	STAILQ_HEAD(,Can_PduQueue_s) head;
+	STAILQ_HEAD(,Can_PduQueue_s) head;	/* sort message by CANID queue */
+	STAILQ_HEAD(,Can_Pdu_s) head2;	/* for all the message received by this bus */
+	uint32_t                size2;
 	STAILQ_ENTRY(Can_Bus_s) entry;
 };
 
@@ -145,17 +148,25 @@ static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 	struct Can_Pdu_s* pdu = NULL;
 	struct Can_PduQueue_s* l;
 	(void)pthread_mutex_lock(&canbusH.q_lock);
+
+	if((uint32_t)-1 == canid)
+	{	/* id is -1, means get the first of queue from b->head2 */
+		if(FALSE == STAILQ_EMPTY(&b->head2))
+		{
+			pdu = STAILQ_FIRST(&b->head2);
+			/* get the first message canid, and then search CANID queue L */
+			canid = pdu->msg.id;
+		}
+		else
+		{
+			/* no message all is empty */
+		}
+	}
+	/* search queue specified by canid */
 	STAILQ_FOREACH(l,&b->head,entry)
 	{
-		if((uint32_t)-1 == canid)
-		{
-			if(FALSE == STAILQ_EMPTY(&l->head))
-			{
-				L = l;
-				break;
-			}
-		}
-		else if(l->id == canid)
+
+		if(l->id == canid)
 		{
 			L = l;
 			break;
@@ -164,7 +175,10 @@ static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 	if(L && (FALSE == STAILQ_EMPTY(&L->head)))
 	{
 		pdu = STAILQ_FIRST(&L->head);
+		/* when remove, should remove from the both queue */
 		STAILQ_REMOVE_HEAD(&L->head,entry);
+		STAILQ_REMOVE_HEAD(&b->head2,entry2);
+		b->size2 --;
 		L->size --;
 	}
 	(void)pthread_mutex_unlock(&canbusH.q_lock);
@@ -203,9 +217,11 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 
 	if(L)
 	{
-		if(L->size < CAN_BUS_PDU_NUM)
+		if(b->size2 < CAN_BUS_PDU_NUM)
 		{
 			STAILQ_INSERT_TAIL(&L->head,pdu,entry);
+			STAILQ_INSERT_TAIL(&b->head2,pdu,entry2);
+			b->size2 ++;
 			L->size ++;
 		}
 		else
@@ -214,12 +230,13 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 			free(pdu);
 		}
 	}
+
 	(void)pthread_mutex_unlock(&canbusH.q_lock);
 }
 static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
-	if(busid < CAN_BUS_NUM)
-	{
+	if((busid < CAN_BUS_NUM) && ((uint32_t)-1 != canid))
+	{	/* canid -1 reserved for can_read get the first received CAN message on bus */
 		struct Can_Bus_s* b = getBus(busid);
 		if(NULL != b)
 		{
@@ -348,6 +365,8 @@ int luai_can_open  (lua_State *L)
 				if(rv)
 				{
 					STAILQ_INIT(&b->head);
+					STAILQ_INIT(&b->head2);
+					b->size2 = 0;
 					pthread_mutex_lock(&canbusH.q_lock);
 					STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
 					pthread_mutex_unlock(&canbusH.q_lock);
@@ -594,6 +613,8 @@ int can_open(unsigned long busid,const char* device_name,unsigned long port, uns
 			if(rv)
 			{
 				STAILQ_INIT(&b->head);
+				STAILQ_INIT(&b->head2);
+				b->size2 = 0;
 				pthread_mutex_lock(&canbusH.q_lock);
 				STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
 				pthread_mutex_unlock(&canbusH.q_lock);
