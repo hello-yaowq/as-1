@@ -19,6 +19,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <entry.h>
+
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -55,6 +56,7 @@ arCan::~arCan()
 
 void arCan::on_btnClearTrace_clicked(void)
 {
+#if (cfgDISPLAY_BY_TABLE == 1)
     QStringList  list;
     tableTrace->clear();
     if(displayTimeInReal)
@@ -79,6 +81,10 @@ void arCan::on_btnClearTrace_clicked(void)
     }
     tableTrace->setRowCount(0);
     tableTrace->setHorizontalHeaderLabels(list);
+#else
+    textTrace->clear();
+    rxSize = 0;
+#endif
 }
 
 void arCan::on_btnSaveTrace_clicked(void)
@@ -88,6 +94,7 @@ void arCan::on_btnSaveTrace_clicked(void)
 
     if(file.open(QFile::WriteOnly))
     {
+        #if (cfgDISPLAY_BY_TABLE == 1)
         int size = tableTrace->rowCount();
         for(int i=0;i<size;i++)
         {
@@ -114,7 +121,9 @@ void arCan::on_btnSaveTrace_clicked(void)
                      b4.toStdString().c_str(),b5.toStdString().c_str(),b6.toStdString().c_str(),b7.toStdString().c_str());
             file.write(text);
         }
-
+        #else
+        file.write(textTrace->toPlainText().toStdString().c_str());
+        #endif
     	file.close();
     }
 }
@@ -140,6 +149,7 @@ void arCan::on_btnAbsRelTime_clicked(void)
     {
         displayTimeInReal = true;
         btnAbsRelTime->setText("Absolute Time");
+        #if (cfgDISPLAY_BY_TABLE == 1)
         int size = tableTrace->rowCount();
         TickType pre;
         for(int i=0;i<size;i++)
@@ -160,11 +170,13 @@ void arCan::on_btnAbsRelTime_clicked(void)
         list<<"from"<<"Bus"<<"Rel(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
         tableTrace->setColumnCount(list.size());
         tableTrace->setHorizontalHeaderLabels(list);
+        #endif
     }
     else
     {
         displayTimeInReal = false;
         btnAbsRelTime->setText("Realated Time");
+        #if (cfgDISPLAY_BY_TABLE == 1)
         int size = tableTrace->rowCount();
         TickType pre;
         for(int i=0;i<size;i++)
@@ -184,11 +196,13 @@ void arCan::on_btnAbsRelTime_clicked(void)
         list<<"from"<<"Bus"<<"Abs(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
         tableTrace->setColumnCount(list.size());
         tableTrace->setHorizontalHeaderLabels(list);
+        #endif
     }
 }
 void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx)
 {
-    TickType disTime;
+    static TickType disTime = -1;
+    #if (cfgDISPLAY_BY_TABLE == 1)
     quint32 index = tableTrace->rowCount();
     tableTrace->setRowCount(index+1);
     tableTrace->setItem(index,0,new QTableWidgetItem(from));
@@ -229,6 +243,36 @@ void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* da
         tableTrace->setItem(index,6+i,new QTableWidgetItem(QString("%1").arg((uint)data[i],2,16,QLatin1Char('0')).toUpper()));
     }
     tableTrace->setCurrentCell(index,0);
+    #else
+    if((TickType)-1 == disTime)
+    {
+        preTime   = GetOsTick();
+        startTime = preTime;
+        disTime = 0;
+    }
+    else
+    {
+        if(displayTimeInReal)
+        {
+            TickType now = GetOsTick();
+            disTime = now - preTime;
+            preTime = GetOsTick();
+        }
+        else
+        {
+            preTime = GetOsTick();
+            disTime = preTime - startTime;
+        }
+    }
+    char text[512];
+    snprintf(text,512,"bus(%d) %2s id=0x%04d dlc=%d data=[%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x] @ %dms from %s & %d",
+             busid,isRx?"rx":"tx",canid,dlc,
+             data[0],data[1],data[2],data[3],
+             data[4],data[5],data[6],data[7],
+             disTime,from.toStdString().c_str(),rxSize);
+    textTrace->append(QString(text));
+    rxSize ++;
+    #endif
 }
 
 void arCan::RxIndication(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data)
@@ -296,7 +340,8 @@ void arCan::createGui(void)
     QWidget* widget= new QWidget(this);
     QVBoxLayout* vbox = new QVBoxLayout();
 
-    {   // create trace
+    {   /* create trace */
+        #if (cfgDISPLAY_BY_TABLE == 1)
         tableTrace = new QTableWidget();
         QStringList  list;
         list<<"from"<<"Bus"<<"Rel(ms)"<<"Dir"<<"Id"<<"dlc"<<"B0"<<"B1"<< "B2"<< "B3"<< "B4"<< "B5"<< "B6"<< "B7";
@@ -313,6 +358,12 @@ void arCan::createGui(void)
             tableTrace->setColumnWidth(i,60);
         }
         vbox->addWidget(tableTrace);
+        #else
+        textTrace = new QTextEdit();
+        textTrace->setReadOnly(true);
+        vbox->addWidget(textTrace);
+        rxSize = 0;
+        #endif
     }
 
     {   // create control
@@ -335,6 +386,10 @@ void arCan::createGui(void)
         btnAbsRelTime = new QPushButton("Absolute Time");
         this->connect(btnAbsRelTime,SIGNAL(clicked()),this,SLOT(on_btnAbsRelTime_clicked()));
         hbox->addWidget(btnAbsRelTime);
+        #if (cfgDISPLAY_BY_TABLE == 1)
+        #else
+        btnAbsRelTime->setDisabled(true);
+        #endif
         displayTimeInReal = true;
         hbox->setSpacing(20);
 

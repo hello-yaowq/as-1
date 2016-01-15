@@ -16,10 +16,14 @@
 #define ARCAN_H
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "ardevice.h"
+#include <QTextEdit>
 /* ============================ [ MACROS    ] ====================================================== */
 #define TICK_MAX (TickType)-1
 #define CAN_DEVICE_NAME   "Can"
 #define CAN_CTRL_NUM   1
+
+/* 1 : display CAN message by QTableWidget; 0 : display by QTextEdit */
+#define cfgDISPLAY_BY_TABLE  0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef quint32 TickType;
 /* ============================ [ CLASS     ] ====================================================== */
@@ -36,7 +40,12 @@ private:
     QComboBox*   cbBus;
     QLineEdit*   leId;
     QLineEdit*   leData;
+    #if (cfgDISPLAY_BY_TABLE == 1)
     QTableWidget* tableTrace;
+    #else
+    QTextEdit*    textTrace;
+    quint32       rxSize;
+    #endif
     bool displayTimeInReal;
     TickType preTime;
     TickType startTime;
