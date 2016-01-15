@@ -16,7 +16,7 @@
 #include "Ipc.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define AS_LOG_IPC 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 
@@ -71,7 +71,7 @@ void Qt_SetIpcBaseAddress(unsigned long base)
 	if(0==Ipc_BaseAddress)
 	{
 		Ipc_BaseAddress = base;
-		ASLOG(OFF,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
+		ASLOG(IPC,"Virtual Address Base = %X00000000h\n",(uint32_t)(base>>32));
 	}
 	else
 	{

@@ -284,6 +284,7 @@ public:
             vr.avail->ring[free_head] = free_head;
             num_added ++;
             added = true;
+            ASLOG(VRING,"add_buf(%X) vr.avail->idx=%d\n",(int)data,vr.avail->idx);
         }
         else
         {

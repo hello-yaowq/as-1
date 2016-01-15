@@ -17,7 +17,7 @@
 #include "Ipc.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define AS_LOG_VIRTQ 0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -35,8 +35,11 @@ static virtq_t virtq =
 static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, uint16 *len)
 {
 	void* buf;
-	ASLOG(OFF,"VirtQ get buf last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
+#if defined(__LINUX__) || defined(__WINDOWS__)
+    try_next:
+#endif
     /* There's nothing available? */
+	ASLOG(VIRTQ,"VirtQ get last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
     if (vq->last_avail_idx == vq->vring.avail->idx) {
         /* We need to know about added buffers */
         vq->vring.used->flags &= ~VRING_USED_F_NO_NOTIFY;
@@ -54,7 +57,14 @@ static void *virtqueue_get_avail_buf(VirtQ_QueueType *vq, VirtQ_IdxType *idx, ui
 		buf = IPC_MAP_PA_TO_VA(vq->vring.desc[*idx].addr);
 		*len = (uint16)vq->vring.desc[*idx].len;
     }
-
+#if defined(__LINUX__) || defined(__WINDOWS__)
+    if( ((uint32_t)buf < 0xFFFF) && (buf != NULL) )
+    {	 /* TODO: sometimes, the buffer pointer is abnormal */
+    	ASWARNING("VirtQ get buf(%X) len(%X) idx(%d), the pointer is abnormal\n",(uint32_t)buf,*len,*idx);
+    	ASLOG(STDOUT,"VirtQ get last_avail_idx=%d vring.avail->idx=%d\n",vq->last_avail_idx, vq->vring.avail->idx);
+    	goto try_next;
+    }
+#endif
     return buf;
 }
 

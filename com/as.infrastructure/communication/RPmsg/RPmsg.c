@@ -142,7 +142,7 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 		}
 		else
 		{
-			asAssert(0);
+			/* asAssert(0); */
 			ASLOG(OFF,"invalid RPmsg_RxNotification\n");
 		}
 	}
