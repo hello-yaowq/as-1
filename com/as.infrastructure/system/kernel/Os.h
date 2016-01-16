@@ -26,6 +26,11 @@
 #define OsSetAbsAlarm(x,a,b)	SetAbsAlarm(ALARM_ID_##x,a,b)
 #define OsCancelAlarm(x)		CancelAlarm(ALARM_ID_##x)
 
+#define OsSetEvent(task,event)    SetEvent(TASK_ID_##task,EVENT_MASK_##task##_##event)
+#define OsGetEvent(task,event)    GetEvent(TASK_ID_##task,EVENT_MASK_##task##_##event)
+#define OsClearEvent(task,event)  ClearEvent(EVENT_MASK_##task##_##event)
+#define OsWaitEvent(task,event)   WaitEvent(EVENT_MASK_##task##_##event)
+
 #if defined(__FREEOSEK__)
 #define ALARM(AlarmName)  ALARMCALLBACK(AlarmName)
 #endif

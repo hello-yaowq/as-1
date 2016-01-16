@@ -3,9 +3,15 @@
 <AUTOSAR>
 <OS>
 <General Comment="Not Used" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" />
+<ApplicationModeList Max="TBD">
+<ApplicationMode Comment="*" Name="OSDEFAULTAPPMODE" />
+</ApplicationModeList>
+<ApplicationList Max="TBD">
+<Application Comment="*" Name="OsDefaultApp" RestartTask="SchM_Startup" Trusted="True" UseRestartTask="True" />
+</ApplicationList>
 <TaskList Max="TBD">
-<Task Activation="1" Autostart="False" Comment="*" Name="Task100ms" Priority="5" Schedule="FULL" StackSize="512" />
-<Task Activation="1" Autostart="False" Comment="*" Name="Task1000ms" Priority="5" Schedule="FULL" StackSize="512">
+<Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="Task100ms" Priority="5" Schedule="FULL" StackSize="512" />
+<Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="Task1000ms" Priority="5" Schedule="FULL" StackSize="512">
 <EventList Max="TBD">
 <Event Comment="*" Mask="0x01" Name="Event1" />
 <Event Comment="*" Mask="0x02" Name="Event2" />
@@ -15,22 +21,25 @@
 <Event Comment="*" Mask="0x20" Name="Event1000ms" />
 </EventList>
 </Task>
-<Task Activation="1" Autostart="True" Comment="*" Name="SchM_Startup" Priority="15" Schedule="NON" StackSize="512" />
-<Task Activation="1" Autostart="False" Comment="*" Name="SchM_BswService" Priority="10" Schedule="FULL" StackSize="512" />
-<Task Activation="1" Autostart="False" Comment="*" Name="Task10ms" Priority="5" Schedule="FULL" StackSize="512" />
-<Task Activation="1" Autostart="False" Comment="*" Name="Task20ms" Priority="5" Schedule="FULL" StackSize="512" />
+<Task Activation="1" Application="OsDefaultApp" Autostart="True" Comment="*" Name="SchM_Startup" Priority="15" Schedule="NON" StackSize="512" />
+<Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="SchM_BswService" Priority="10" Schedule="FULL" StackSize="512" />
+<Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="Task10ms" Priority="5" Schedule="FULL" StackSize="512" />
+<Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="Task20ms" Priority="5" Schedule="FULL" StackSize="512" />
 </TaskList>
 <AlarmList Max="TBD">
-<Alarm Action="ActivateTask" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm10ms" Period="10" StartTime="10" Task="Task10ms" />
-<Alarm Action="ActivateTask" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm20ms" Period="20" StartTime="10" Task="Task20ms" />
-<Alarm Action="ActivateTask" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm100ms" Period="100" StartTime="10" Task="Task100ms" />
-<Alarm Action="ActivateTask" Autostart="False" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm_BswService" Period="100" StartTime="0" Task="SchM_BswService" />
-<Alarm Action="ActivateTask" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm1000ms" Period="1000" StartTime="10" Task="Task1000ms" />
+<Alarm Action="ActivateTask" Application="OsDefaultApp" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm10ms" Period="10" StartTime="10" Task="Task10ms" />
+<Alarm Action="ActivateTask" Application="OsDefaultApp" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm20ms" Period="20" StartTime="10" Task="Task20ms" />
+<Alarm Action="ActivateTask" Application="OsDefaultApp" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm100ms" Period="100" StartTime="10" Task="Task100ms" />
+<Alarm Action="ActivateTask" Application="OsDefaultApp" Autostart="False" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm_BswService" Period="100" StartTime="0" Task="SchM_BswService" />
+<Alarm Action="ActivateTask" Application="OsDefaultApp" Autostart="Relative" Callback="TBD" Comment="*" Counter="SystemCounter" Event="TBD" Name="Alarm1000ms" Period="1000" StartTime="10" Task="Task1000ms" />
 </AlarmList>
 <CounterList Max="TBD">
-<Counter Comment="*" MaxAllowed="0xFFFF" MinCycle="1" Name="SystemCounter" TicksPerBase="1" />
+<Counter Application="OsDefaultApp" Comment="*" MaxAllowed="0xFFFF" MinCycle="1" Name="SystemCounter" TicksPerBase="1" />
 </CounterList>
-<ResourceList Max="TBD" />
+<ResourceList Max="TBD">
+<Resource Application="TBD" Comment="*" Name="RES_SCHEDULER" Priority="15" />
+</ResourceList>
+<InternalResourceList Max="TBD" />
 </OS>
 <EcuC>
 <PduList Max="TBD">

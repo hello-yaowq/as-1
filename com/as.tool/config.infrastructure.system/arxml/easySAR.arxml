@@ -16,6 +16,16 @@
 			Comment="TextArea Default=* PosGUI=1"
 			/>
 	</ApplicationModeList>
+	<ApplicationList Max="255">
+		<Application 
+			Name="Text PosGUI=0"
+			Trusted="Boolean Default=False PosGUI=1"
+			UseRestartTask="Boolean Default=False PosGUI=2"
+			RestartTask="EnumRef=OS.TaskList Enabled=(Self.UseRestartTask==True) PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+		</Application>
+	</ApplicationList>
 	<TaskList Max="255">
 		<Task  
 			Name="Text Comment=(Task Name) PosGUI=0" 
@@ -24,7 +34,8 @@
 			StackSize="Integer Range=0~65535 Default=512 PosGUI=3" 
 			Activation="Integer Range=1~255 Default=1 PosGUI=4" 
 			Autostart="Boolean Default=True PosGUI=5" 
-			Comment="TextArea Default=* PosGUI=6"
+			Application="EnumRef=OS.ApplicationList PosGUI=6"
+			Comment="TextArea Default=* PosGUI=7"
 			>
 		<EventList Max="32">
 			<Event 
@@ -35,11 +46,17 @@
 			</Event>
 		</EventList>
 		<ApplicationModeList Max="32">
-			<ApplicationMode 
+			<Application 
 				Name="EnumRef=OS.ApplicationModeList PosGUI=0" 
 				Comment="TextArea Default=* PosGUI=1"
 			/>
 		</ApplicationModeList>
+		<ApplicationList Max="32">
+			<Application
+				Name="EnumRef=OS.ApplicationList PosGUI=0" 
+				Comment="TextArea Default=* PosGUI=1"
+			/>
+		</ApplicationList>
 		</Task>
 	</TaskList>
 	<AlarmList Max="255">
@@ -53,8 +70,15 @@
 			Autostart="Enum=(False,Absolute,Relative) Default=False PosGUI=6"
 			StartTime="Integer Range=0~65525 Enabled=(Self.Autostart!=False) Default=0 PosGUI=7"
 			Period="Integer Range=0~65535 Enabled=(Self.Autostart!=False) Default=100 PosGUI=8"
-			Comment="TextArea Default=* PosGUI=9"
+			Application="EnumRef=OS.ApplicationList PosGUI=9"
+			Comment="TextArea Default=* PosGUI=10"
 			>
+			<ApplicationList Max="32">
+				<Application
+					Name="EnumRef=OS.ApplicationList PosGUI=0" 
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</ApplicationList>
 		</Alarm>
 	</AlarmList>
 	<CounterList Max="255">
@@ -63,16 +87,30 @@
 			MaxAllowed="Integer Range=0~0xFFFFFFFF Default=0xFFFF PosGUI=1"
 			TicksPerBase="Integer Range=0~0xFFFF Default=1 Enabled=(False) PosGUI=2"
 			MinCycle="Integer Range=0~0xFFFF Default=1 PosGUI=3"
-			Comment="TextArea Default=* PosGUI=4"
+			Application="EnumRef=OS.ApplicationList PosGUI=4"
+			Comment="TextArea Default=* PosGUI=5"
 			>
+			<ApplicationList Max="32">
+				<Application
+					Name="EnumRef=OS.ApplicationList PosGUI=0" 
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</ApplicationList>
 		</Counter>
 	</CounterList>
 	<ResourceList Max="255">
 		<Resource 
 			Name="Text PosGUI=0"
 			Priority="Integer Default=15 Range=1~255 PosGUI=1"
-			Comment="TextArea Default=* PosGUI=2"
+			Application="EnumRef=OS.ApplicationList PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3"
 			>
+			<ApplicationList Max="32">
+				<Application
+					Name="EnumRef=OS.ApplicationList PosGUI=0" 
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</ApplicationList>
 		</Resource>
 	</ResourceList>
 	<InternalResourceList Max="255">
@@ -80,12 +118,7 @@
 			Name="Text PosGUI=0"
 			Comment="TextArea Default=* PosGUI=1"
 			>
-			<TaskList Max="255">
-				<Task 
-					Name="EnumRef=OS.TaskList PosGUI=0"
-					Comment="TextArea Default=* PosGUI=1"
-					/>
-			</TaskList>
+			<TaskList Max="255"> <Task Name="EnumRef=OS.TaskList PosGUI=0" Comment="TextArea Default=* PosGUI=1"/> </TaskList>
 		</InternalResource>
 	</InternalResourceList>
 </OS>

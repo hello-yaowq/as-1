@@ -34,12 +34,16 @@ def genH(gendir,os_list):
     fp.write('#define CFG_USE_STACKMONITORING\n')
     fp.write('#define CFG_USE_PROTECTIONHOOK\n')
     fp.write('#define CFG_USE_SHUTDOWNHOOK\n')
+    fp.write('#define CFG_USE_STARTUPHOOK\n')
     fp.write('\n')
     appmode_list = ScanFrom(os_list,'ApplicationMode')
     for id,appmode in enumerate(appmode_list):
         fp.write('#define %-32s %s\n'%(GAGet(appmode,'Name'),id))
     fp.write('#define APP_MODE_NUM%-20s %s\n\n'%(' ',id+1))
-    
+    app_list = ScanFrom(os_list,'Application')
+    for id,app in enumerate(app_list):
+        fp.write('#define APP_ID_%-32s %s\n'%(GAGet(app,'Name'),id))
+    fp.write('#define APP_NUM%-32s %s\n\n'%(' ',id+1))
     res_list = ScanFrom(os_list,'Resource')
     for id,res in enumerate(res_list):
         fp.write('#define %-32s %s\n'%(GAGet(res,'Name'),id))
@@ -49,8 +53,16 @@ def genH(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %s\n'%(GAGet(task,'Name'),id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
+    fp.write('/*0 is the highest priority, TMAX_TPRI is the lowest */\n')
     for id,task in enumerate(task_list):
-        fp.write('#define TASK_PRIORITY_%-32s %s\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
+        fp.write('#define TASK_PRIORITY_%-32s (TMAX_TPRI-%s)\n'%(GAGet(task,'Name'),GAGet(task,'Priority')))
+    fp.write('\n')
+    for id,task in enumerate(task_list):
+        cstr = '( 0 | (1<<APP_ID_%s)'%(GAGet(task,'Application'))
+        for app in GLGet(task,'ApplicationList'):
+                cstr += ' | (1<<APP_ID_%s)'%(GAGet(app,'Name'))
+        cstr += ' )'
+        fp.write('#define TASK_APP_ACCESS_MASK_%-32s %s\n'%(GAGet(task,'Name'),cstr))
     fp.write('\n')
     for id,task in enumerate(task_list):
         cstr = '( 0'
@@ -79,6 +91,13 @@ def genH(gendir,os_list):
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
+    for id,counter in enumerate(counter_list):
+        cstr = '( 0 | (1<<APP_ID_%s)'%(GAGet(counter,'Application'))
+        for app in GLGet(counter,'ApplicationList'):
+                cstr += ' | (1<<APP_ID_%s)'%(GAGet(app,'Name'))
+        cstr += ' )'
+        fp.write('#define COUNTER_APP_ACCESS_MASK_%-32s %s\n'%(GAGet(counter,'Name'),cstr))
+    fp.write('\n')
     alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
@@ -91,6 +110,14 @@ def genH(gendir,os_list):
         cstr += ' )'
         fp.write('#define ALARM_APPMODE_MASK_%-32s %s\n'%(GAGet(alarm,'Name'),cstr))
     fp.write('\n')
+    for id,alarm in enumerate(alarm_list):
+        cstr = '( 0 | (1<<APP_ID_%s)'%(GAGet(alarm,'Application'))
+        for app in GLGet(alarm,'ApplicationList'):
+                cstr += ' | (1<<APP_ID_%s)'%(GAGet(app,'Name'))
+        cstr += ' )'
+        fp.write('#define ALARM_APP_ACCESS_MASK_%-32s %s\n'%(GAGet(alarm,'Name'),cstr))
+    fp.write('\n')
+    
     fp.write('\n#define ALARM(a)  void AlarmMain##a(void)\n\n')
     
     fp.write('#include "atk_os.h"\n')
@@ -151,10 +178,10 @@ def genC(gendir,os_list):
         fp.write('\t\t.sstk=(void*)%s_stk,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.ustksz=%s, /* TODO: ?? */\n'%(GAGet(task,'StackSize')))
         fp.write('\t\t.ustk=(void*)%s_stk, /* TODO: ?? */\n'%(GAGet(task,'Name')))
-        fp.write('\t\t.p_osapcb=NULL,\n')
-        fp.write('\t\t.acsbtmp=0,\n')
-        fp.write('\t\t.inipri=%s,\n'%(GAGet(task,'Priority')))
-        fp.write('\t\t.exepri=%s,\n'%(GAGet(task,'Priority')))
+        fp.write('\t\t.p_osapcb=&osapcb_table[APP_ID_%s],\n'%(GAGet(task,'Application')))
+        fp.write('\t\t.acsbtmp=TASK_APP_ACCESS_MASK_%s,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t.inipri=TASK_PRIORITY_%s,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t.exepri=TASK_PRIORITY_%s,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.maxact=%s,\n'%(GAGet(task,'Activation')))
         fp.write('\t\t.autoact=TASK_APPMODE_MASK_%s,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.time_frame.tfcount=%s,\n'%('0'))
@@ -178,8 +205,8 @@ def genC(gendir,os_list):
         fp.write('\t\t.maxval2=(%s*2)+1,\n'%(GAGet(counter,'MaxAllowed')))
         fp.write('\t\t.tickbase=%s,\n'%(GAGet(counter,'TicksPerBase')))
         fp.write('\t\t.mincyc=%s,\n'%(GAGet(counter,'MinCycle')))
-        fp.write('\t\t.p_osapcb=%s,\n'%('NULL'))
-        fp.write('\t\t.acsbtmp=%s,\n'%('0'))
+        fp.write('\t\t.p_osapcb=&osapcb_table[APP_ID_%s],\n'%(GAGet(counter,'Application')))
+        fp.write('\t\t.acsbtmp=COUNTER_APP_ACCESS_MASK_%s,\n'%(GAGet(counter,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('CNTCB                cntcb_table[COUNTER_NUM];\n')
@@ -219,11 +246,23 @@ def genC(gendir,os_list):
     fp.write('SCHTBLCB                    schtblcb_table[1];\n')
     fp.write('\n')
     fp.write('\n')
-    fp.write('const ApplicationType            tnum_osap=0;\n')
+    app_list = ScanFrom(os_list,'Application')
+    fp.write('const ApplicationType            tnum_osap=APP_NUM;\n')
+    fp.write('const OSAPINIB    osapinib_table[APP_NUM] = \n{\n')
+    for app in app_list:
+        fp.write('\t{ /* %s*/\n'%(GAGet(app,'Name')))
+        if(GAGet(app,'UseRestartTask').upper()=='TRUE'):
+            fp.write('\t\t.p_restart_tcb=&tcb_table[TASK_ID_%s],\n'%(GAGet(app,'RestartTask')))
+        else:
+            fp.write('\t\t.p_restart_tcb=%s,\n'%(NULL))
+        fp.write('\t\t.osap_trusted=%s,\n'%(GAGet(app,'UseRestartTask').upper()))
+        fp.write('\t\t.btptn=%s,/* TODO */\n'%(0))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
     fp.write('const TrustedFunctionIndexType    tnum_tfn=0;\n')
-    fp.write('OSAPCB            osapcb_table[1];\n')
+    fp.write('OSAPCB            osapcb_table[APP_NUM];\n')
     fp.write('OSAPCB            *p_runosap;\n')
-    fp.write('const OSAPINIB    osapinib_table[1];\n')
+    
     fp.write('const TFINIB        tfinib_table[1];\n')
     fp.write('\n')
     fp.write('\n')
@@ -237,8 +276,8 @@ def genC(gendir,os_list):
         fp.write('\t\t.autosta=ALARM_APPMODE_MASK_%s,\n'%(GAGet(alarm,'Name')))
         fp.write('\t\t.almval=%s,\n'%(GAGet(alarm,'StartTime')))
         fp.write('\t\t.cycle=%s,\n'%(GAGet(alarm,'Period')))
-        fp.write('\t\t.p_osapcb=%s,\n'%('NULL'))
-        fp.write('\t\t.acsbtmp=%s,\n'%(0))
+        fp.write('\t\t.p_osapcb=&osapcb_table[APP_ID_%s],\n'%(GAGet(alarm,'Application')))
+        fp.write('\t\t.acsbtmp=ALARM_APP_ACCESS_MASK_%s,\n'%(GAGet(alarm,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('ALMCB            almcb_table[ALARM_NUM];\n')
@@ -268,8 +307,10 @@ def genC(gendir,os_list):
     fp.write('void object_initialize(void)\n')
     fp.write('{\n')
     fp.write('\ttask_initialize();\n')
+    fp.write('\tcounter_initialize();\n')
     fp.write('\talarm_initialize();\n')
     fp.write('\tresource_initialize();\n')
+    fp.write('\tosap_initialize();\n')
     fp.write('}\n')
     fp.write('void object_terminate(void)  {}\n')
     fp.write('\n')

@@ -295,8 +295,8 @@ make_runnable(TCB *p_tcb)
 		schedpri = p_schedtsk->curpri;
 		if (pri >= schedpri) {
 			/*
-			 *  If more of schedtsk has a higher priority, 
-			 * I put p_tcb to the end of the ready queue
+			 *  If schedtsk has a higher priority,
+			 * put p_tcb to the end of the ready queue
 			 */
 			queue_insert_prev(&(ready_queue[pri]), &(p_tcb->task_queue));
 			primap_set(pri);
@@ -307,8 +307,8 @@ make_runnable(TCB *p_tcb)
 		}
 		else {
 			/*
-			 *  If more of p_tcb has a higher priority, place the schedtsk to 
-			 * the top of the ready queue, and the p_tcb and new schedtsk
+			 *  If p_tcb has a higher priority, place the schedtsk to
+			 * the start of the ready queue, and the p_tcb becomes the new schedtsk
 			 */
 			queue_insert_next(&(ready_queue[schedpri]), &(p_schedtsk->task_queue));
 			primap_set(schedpri);

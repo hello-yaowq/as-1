@@ -17,6 +17,13 @@
 		
 		<Resource Name="RES_SCHEDULER" Priority="Highest" Comment="*" />
 		
+		<Application Name="OsDefaultApp"
+			Trusted="True"
+			UseRestartTask="True"
+			RestartTask="SchM_Startup"
+			Comment="*"
+			/>
+		
 		<!-- ApplicationModeList only valid if Autostart is True -->
 	    <Task Name="SchM_Startup"  
 	    		Activation="1" 
@@ -24,6 +31,7 @@
 				Priority="7" 
 				Schedule="FULL" 
 				StackSize="512"
+				Application="OsDefaultApp"
 	     		Comment="*" >
 			<ApplicationModeList Max="32">
 				<ApplicationMode 
@@ -39,6 +47,7 @@
 				Priority="8" 
 				Schedule="FULL" 
 				StackSize="512"
+				Application="OsDefaultApp"
 	     		Comment="*" />
 				
 		<Task Name="TaskIdle"  
@@ -47,6 +56,7 @@
 				Priority="0" 
 				Schedule="FULL" 
 				StackSize="512"
+				Application="OsDefaultApp"
 	     		Comment="*" >
 			<ApplicationModeList Max="32">
 				<ApplicationMode 
@@ -60,6 +70,7 @@
 					MaxAllowed="0xFFFF" 
 					MinCycle="1"  
 					TicksPerBase="1" 
+					Application="OsDefaultApp"
 					Comment="*" />	
 	    
 		<Alarm Name="Alarm_BswService" 
@@ -71,6 +82,7 @@
 				Task="SchM_BswService"				
 				Event="TBD"  
 				Callback="TBD" 
+				Application="OsDefaultApp"
 				Comment="*" />
  	</Os>
 </AS>
