@@ -187,9 +187,24 @@ def genC(gendir,os_list):
     fp.write('const CounterType    tnum_hardcounter=0;\n')
     fp.write('const HWCNTINIB        hwcntinib_table[1];\n')
     fp.write('\n')
-    fp.write('const ISRType    tnum_isr2=0;\n')
-    fp.write('const ISRINIB    isrinib_table[1];\n')
-    fp.write('ISRCB            isrcb_table[1];\n')
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    fp.write('const ISRType    tnum_isr2=%s;\n'%(isr_num))
+    fp.write('const ISRINIB    isrinib_table[%s];\n'%(isr_num))
+    for isr in isr_list:
+        if((int(isr.attrib['vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['vector'],10)+1
+    if(isr_num > 0):
+        fp.write('const FunctionRefType tisr_pc[ %s ] = {\n'%(isr_num))
+        for iid in range(isr_num):
+            iname = 'NULL'
+            for isr in isr_list:
+                if(iid == int(isr.attrib['vector'])):
+                    iname = isr.attrib['name']
+                    break
+            fp.write('\t%s, /* %s */\n'%(iname,iid))
+        fp.write('};\n\n')
+    fp.write('ISRCB            isrcb_table[ISR_NUM];\n')
     fp.write('ISRCB            *p_runisr;\n')
     fp.write('uint8            sus_all_cnt;\n')
     fp.write('uint8            sus_os_cnt;\n')

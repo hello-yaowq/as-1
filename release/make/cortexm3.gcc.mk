@@ -52,9 +52,18 @@ inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))
 	
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
 obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))		
-
+ofj-y += $(patsubst %.of,$(src-dir)/%.h,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.of)))))
 #common rules	
 
+# used to generate member offset in a struct 
+$(src-dir)/%.h:%.of
+	@echo
+	@echo "  >> CC $(notdir $<)"
+	@cp -v $< $(patsubst %.h,%.c,$@)
+	@$(CC) -S $(patsubst %.h,%.c,$@) -o $@h $(cflags-y) $(inc-y) $(def-y)
+	@sed -n '/#define/p' $@h > $@
+	@rm $@h $(patsubst %.h,%.c,$@)
+	
 $(obj-dir)/%.o:%.s
 	@echo
 	@echo "  >> AS $(notdir $<)"	
@@ -84,7 +93,7 @@ $(exe-dir):
 
 include $(wildcard $(obj-dir)/*.d)
 
-exe:$(obj-dir) $(exe-dir) $(obj-y)
+exe:$(obj-dir) $(exe-dir) $(ofj-y) $(obj-y) 
 	@echo "  >> LD $(target-y).exe"
 	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@$(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19

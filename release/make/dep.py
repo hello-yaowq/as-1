@@ -55,6 +55,7 @@ def abs_dep(dep):
 
 def Dep(obj_dir,dep):
     fd = open(dep,'w')
+    obj_dir = os.path.abspath(obj_dir).replace('\\','/')
     for d in glob.glob('%s/*.d'%(obj_dir)):
         fp = open(d,'r')
         cstr = ''
@@ -62,11 +63,15 @@ def Dep(obj_dir,dep):
             cstr += el
         fd.write('%s\n\n'%(abs_dep(cstr)))
         fp.close()
-    src_dir = os.path.abspath('%s/../src'%(obj_dir))
+    src_dir = os.path.abspath('%s/../../src/%s'%(obj_dir,os.path.basename(obj_dir))).replace('\\','/')
     if(os.path.exists(src_dir)):
         for ss in glob.glob('%s/*.s'%(src_dir)):
             ss = os.path.basename(ss)[:-2]
-            fd.write('%s\n\n'%(abs_dep('obj/%s.o:src/%s.s'%(ss,ss))))
+            fd.write('%s/%s.o:%s\n\n'%(obj_dir,ss,get_abs('%s/%s.s'%(src_dir,ss))))
+    if(os.path.exists(src_dir)):
+        for ss in glob.glob('%s/*.of'%(src_dir)):
+            ss = os.path.basename(ss)[:-3]
+            fd.write('%s/%s.h:%s\n\n'%(src_dir,ss,get_abs('%s/%s.of'%(src_dir,ss))))
     fd.close()
     print("  >> CC DEPC DOEN")
     os.system('rm .deps')

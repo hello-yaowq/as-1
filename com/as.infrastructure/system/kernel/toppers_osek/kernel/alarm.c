@@ -464,11 +464,14 @@ SignalCounter(CounterType cntid)
 
 	lock_cpu();
 
-	OsTickCounter ++;
-
-	if(0 == OsTickCounter)
+	if(0 == cntid)
 	{
-		OsTickCounter = 1;
+		OsTickCounter ++;
+
+		if(0 == OsTickCounter)
+		{
+			OsTickCounter = 1;
+		}
 	}
 
 	/*

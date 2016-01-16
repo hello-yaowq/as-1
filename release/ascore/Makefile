@@ -256,7 +256,9 @@ ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
 endif
 ifeq ($(rtos),atk2-sc4)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/$(rtos) TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/posix FALSE)
 endif
 ifeq ($(rtos),freeosek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/inc TRUE)
@@ -333,7 +335,7 @@ ifeq ($(compiler),arm-none-eabi-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)	
 else
-	$(error for small os, on-gcc compiler is not supported)
+	$(error for small os, non-gcc compiler is not supported)
 endif
 endif
 ifeq ($(rtos),freertos)
@@ -360,7 +362,16 @@ ifeq ($(compiler),iccarm)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
 endif
 endif
-
+ifeq ($(rtos),atk2-sc4)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/armv7_m FALSE)
+ifeq ($(compiler),arm-none-eabi-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/armv7_m/gcc TRUE)
+else
+	$(error for atk2-sc4 os, non-gcc compiler is not supported)
+endif
+endif
 ifeq ($(compiler),arm-none-eabi-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 endif
@@ -460,12 +471,12 @@ clean:
 	make all board=at91sam3s compiler=iccarm debug=false	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek
+	make dep board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4
 12:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek debug=true
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=true
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 13:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=toppers_osek debug=false	
+	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=false	
 
 15:
 	make dep board=stm32f107vc compiler=iccarm

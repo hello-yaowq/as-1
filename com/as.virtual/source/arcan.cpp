@@ -265,7 +265,7 @@ void arCan::putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* da
         }
     }
     char text[512];
-    snprintf(text,512,"bus(%d) %2s id=0x%04d dlc=%d data=[%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x] @ %dms from %s & %d",
+    snprintf(text,512,"bus(%d) %2s id=0x%04x dlc=%d data=[%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x] @ %dms from %s & %d",
              busid,isRx?"rx":"tx",canid,dlc,
              data[0],data[1],data[2],data[3],
              data[4],data[5],data[6],data[7],
