@@ -156,8 +156,13 @@ ifeq ($(board),stm32f107vc)
 #rtos?=freertos
 rtos?=toppers_osek
 #rtos?=smallos
+use-boot?=no
 ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
+else
+link-script = $(src-dir)/linker-common.lds
+endif
 endif
 ifeq ($(compiler),iccarm)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
@@ -474,7 +479,9 @@ clean:
 	make dep board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4
 12:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=true
+ifeq ($(use-boot),yes)
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
+endif
 13:
 	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=false	
 

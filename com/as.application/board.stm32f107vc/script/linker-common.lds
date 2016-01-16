@@ -7,29 +7,23 @@
  */
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K
-    RAM (rwx)  : ORIGIN = 0x20001000, LENGTH = 60K
+    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 256K
+    RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
-/* application address */
-application_main = 0x00010001;
-
-FlashHeader = 0x20000000;
-
-FlashDriverRam = 0x20000000;
-
-knl_system_stack_size = 1024;
 
 ENTRY(reset_handler)
+
+knl_system_stack_size = 1024;
 
 SECTIONS
 {
 	.text :
 	{
-		KEEP(*(.isr_vector))
-		*(.startup*)
-		*(.text*)
-		*(.rodata*)
+	   KEEP(*(.isr_vector))
+	   *(.startup*)
+        *(.text*)
+        *(.rodata*)
 	} > FLASH
 
 	__etext = .;

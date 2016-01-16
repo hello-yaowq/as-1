@@ -20,7 +20,7 @@
 
     .extern runtsk, schedtsk, knl_taskindp
     .extern callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
-    .extern knl_system_stack
+    .extern knl_system_stack_top
 
     .section .text
     .global Irq_Restore
@@ -129,7 +129,7 @@ EnterISR:
     ldr     r12, =knl_dispatch_r
     str     r12, [r3,r4, lsl #2]
     /* and then load isr system stack */
-    ldr     sp, =knl_system_stack  /* Set system stack */
+    ldr     sp, =knl_system_stack_top  /* Set system stack */
 
 l_nosave:
     push    {r0}    /* push {lr} */

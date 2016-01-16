@@ -14,6 +14,8 @@ MEMORY
 
 ENTRY(reset_handler)
 
+knl_system_stack_size = 1024;
+
 SECTIONS
 {
 	.text :
@@ -44,9 +46,10 @@ SECTIONS
 		__bss_end__ = .;
 	} > RAM
 	
-	.init_stack ALIGN(16) (NOLOAD) : 
-	{	
-		. = . + 1024; 	
-		knl_system_stack	= .; 
-	} > RAM
+    .init_stack ALIGN(16) (NOLOAD) : 
+    {   
+       knl_system_stack    = .; 
+       . = . + knl_system_stack_size;   
+       knl_system_stack_top = .;
+    } > RAM
 }

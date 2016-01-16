@@ -23,7 +23,7 @@
 
 	.extern knl_start_dispatch
 	.extern knl_dispatch_entry
-	.extern knl_system_tick
+	.extern knl_system_stack_top
 	.extern knl_isr_process
 	.extern nmi_handler
 	.extern hard_fault_handler
@@ -39,7 +39,7 @@
  	.type	__vector_table, %object
 __vector_table:
      /*    Internal Exceptions Vector Define                                          */
-    .word     knl_system_stack   				   /* 00: Top of Main Stack           */
+    .word     knl_system_stack_top   			   /* 00: Top of Main Stack           */
     .word     reset_handler                        /* 01: Reset Handler               */
     .word     nmi_handler                      	   /* 02: NMI Handler                 */
     .word     hard_fault_handler                   /* 03: Hard Fault Handler          */
@@ -310,7 +310,7 @@ __vector_table:
 	.weak	reset_handler
 	.type	reset_handler, %function
 reset_handler:
-    ldr sp, =knl_system_stack
+    ldr sp, =knl_system_stack_top
     /* Copy the data segment initializers from flash to SRAM */
     ldr	r0, =__data_start__  /* r0 holds start of data in ram */
     ldr	r3, =__data_end__    /* r3 holds end of data in ram */

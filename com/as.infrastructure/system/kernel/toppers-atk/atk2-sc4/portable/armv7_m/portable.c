@@ -23,19 +23,28 @@
 #include "alarm.h"
 #include "ioc_impl.h"
 #include "memory.h"
+#include "Mcu.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void knl_activate_r(void);
-extern const FunctionRefType tisr_pc[];
+#if (ISR_NUM > 0)
+extern const FunctionRefType tisr_pc[ISR_NUM];
+#endif
+extern const uint32 __vector_table[];
+extern uint32_t knl_system_stack;
+#ifdef TOPPERS_OSTKPT
+extern uint32_t knl_system_stack_top;
+#endif
+extern const uint32_t  knl_system_stack_size;
 /* ============================ [ DATAS     ] ====================================================== */
 TickType OsTickCounter;
-static StackType knl_system_stack[1024];
-StackType * const	_ostk = knl_system_stack;
-const MemorySizeType	_ostksz = sizeof(knl_system_stack);
+uint32 knl_taskindp;
+StackType * const	_ostk = (StackType *)&knl_system_stack;
+const MemorySizeType	_ostksz = (MemorySizeType)&knl_system_stack_size;
 #ifdef TOPPERS_OSTKPT
-StackType	_ostkpt[1024];
+StackType * const	_ostkpt[1024] = (StackType *)&knl_system_stack_top;
 #endif /* TOPPERS_OSTKPT */
 uint32 knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -74,8 +83,29 @@ void    x_disable_int(InterruptNumberType intno) {
 }
 
 void target_initialize(void) {
-	knl_dispatch_started = FALSE;
+	const uint32_t* pSrc;
+
+	pSrc = __vector_table ;
+
+#if defined(CHIP_AT91SAM3S)
+	SCB->VTOR = ( (uint32_t)pSrc & SCB_VTOR_TBLOFF_Msk ) ;
+	if ( ((uint32_t)pSrc >= IRAM_ADDR) && ((uint32_t)pSrc < IRAM_ADDR+IRAM_SIZE) )
+	{
+		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
+	}
+
+	WDT_Disable(WDT);
+	/* Low level Initialize */
+	LowLevelInit() ;
+#else
+	SCB->VTOR = (uint32_t)pSrc;
+#endif
+
 	OsTickCounter = 1;
+	knl_taskindp = 0;
+	knl_dispatch_started = FALSE;
+
+	if (SysTick_Config(McuE_GetSystemClock() / 1000)) { /* Capture error */ while (1); }
 }
 void target_exit(void)       {}
 void target_tp_initialize(void) {}

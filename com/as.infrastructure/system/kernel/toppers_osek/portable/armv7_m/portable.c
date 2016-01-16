@@ -238,7 +238,7 @@ void __naked EnterISR(void)
 	__asm__ volatile("ldr     r12, =knl_dispatch_r	");
 	__asm__ volatile("str     r12, [r3,r4, LSL #2]	");
     /* and then load isr system stack */
-	__asm__ volatile("ldr     sp, =knl_system_stack ");  /* Set system stack*/
+	__asm__ volatile("ldr     sp, =knl_system_stack_top ");  /* Set system stack*/
 
 	__asm__ volatile("l_nosave: 					");
 	__asm__ volatile("push    {r0}					");    /* push {lr} */
