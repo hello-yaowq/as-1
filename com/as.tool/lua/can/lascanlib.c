@@ -547,6 +547,59 @@ int luai_can_read  (lua_State *L)
 		return luaL_error(L, "can_read (bus_id, can_id) API should has 2 arguments");
 	}
 }
+int luai_can_log  (lua_State *L)
+{
+	int n = lua_gettop(L);  /* number of arguments */
+	if(0==n)
+	{
+		if(canLog != NULL)
+		{
+			fclose(canLog);
+			canLog = NULL;
+		}
+
+		return 0;
+	}
+	else if(1==n)
+	{
+		const char* file;
+		size_t ls;
+
+		file = lua_tolstring(L, 1, &ls);
+		if(0 == ls)
+		{
+			 return luaL_error(L,"incorrect argument file name to function 'can_log'");
+		}
+
+		if(canLog != NULL)
+		{
+			fclose(canLog);
+			canLog = NULL;
+			ASWARNING("can_log re-log without previous one closed\n");
+		}
+
+		time_t t = time(0);
+		struct tm* lt = localtime(&t);
+
+		canLog = fopen(file,"w+");
+		if(NULL != canLog)
+		{
+			ASLOG(STDOUT,"can trace log to file < %s >\n\n",file);
+			fprintf(canLog,"lascan log %04d-%02d-%02d %02d:%02d:%02d\n\n",lt->tm_year+1900,lt->tm_mon+1,lt->tm_mday,
+					lt->tm_hour,lt->tm_min,lt->tm_sec);
+		}
+		else
+		{
+			return luaL_error(L,"'can_log' open file <%s> failed\n",file);
+		}
+
+		return 0;
+	}
+	else
+	{
+		return luaL_error(L, "can_open ( [\"file name\"]) API should has no parameter for close log file, else open!");
+	}
+}
 #endif /* __AS_PY_CAN__ */
 void luai_canlib_open(void)
 {
@@ -557,17 +610,7 @@ void luai_canlib_open(void)
 	canbusH.initialized = TRUE;
 	STAILQ_INIT(&canbusH.head);
 
-	time_t t = time(0);
-	struct tm* lt = localtime(&t);
-
-	char name[512];
-	snprintf(name,512,"lascan-%d-%d-%d-%d-%d-%d.asc",lt->tm_year+1900,lt->tm_mon+1,lt->tm_mday,
-			lt->tm_hour,lt->tm_min,lt->tm_sec);
-	canLog = fopen(name,"w+");
-	if(NULL != canLog)
-	{
-		printf("can trace log to file < %s >\n\n",name);
-	}
+	canLog=NULL;
 }
 void luai_canlib_close(void)
 {

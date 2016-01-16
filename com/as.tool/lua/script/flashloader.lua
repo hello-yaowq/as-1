@@ -17,6 +17,7 @@ require("dcm")
 require("as")
 require("s19")
 require("math")
+require("os")
 -- ===================== [ MACRO    ] ================================
 
 -- ===================== [ LOCAL    ] ================================
@@ -433,12 +434,16 @@ operation_list = {enter_extend_session, security_extds_access,
 				          routine_test_jump_to_application
 }
 
-function main()
+function main(argc,argv)
   data = {}
-  -- as.can_open(can_bus,"rpmsg",0,1000000)
-  as.can_open(can_bus,"serial",3,115200)	-- COM4
+  if argc == 0 then
+	as.can_open(can_bus,"rpmsg",0,1000000)
+  else
+	as.can_open(can_bus,"serial",3,115200)	-- COM4
+  end
+  -- os.execute("mkdir laslog")
+  as.can_log("laslog/flash-loader.asc")
   dcm.init(dcm_chl,can_bus,0x732,0x731)
-  
   
   for i=1,rawlen(operation_list),1 do
     ercd = operation_list[i]()
@@ -446,7 +451,7 @@ function main()
       break
     end
   end
-  
+  as.can_log() -- no paramter close the file
 end
 
-main()
+main(rawlen(arg),arg)

@@ -27,6 +27,7 @@ static const luaL_Reg aslib[] = {
 		{"can_write",luai_can_write},
 		{"can_read", luai_can_read},
 		{"can_open", luai_can_open},
+		{"can_log",  luai_can_log},
 		{NULL,NULL}
 };
 static const luaL_open_t open_ops[] =

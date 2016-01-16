@@ -60,6 +60,7 @@ extern const Can_DeviceOpsType can_socket_ops;
 int luai_can_write (lua_State *L);
 int luai_can_read  (lua_State *L);
 int luai_can_open  (lua_State *L);
+int luai_can_log   (lua_State *L);
 void luai_canlib_open(void);
 void luai_canlib_close(void);
 #endif
