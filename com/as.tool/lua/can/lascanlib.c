@@ -23,7 +23,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
-#define CAN_BUS_PDU_NUM   65535
+#define CAN_BUS_PDU_NUM   16
 
 #define AS_LOG_LUA 0
 /* ============================ [ TYPES     ] ====================================================== */
@@ -217,7 +217,8 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 
 	if(L)
 	{
-		if(b->size2 < CAN_BUS_PDU_NUM)
+		/* limit by CANID queue is better than the whole bus one */
+		if(L->size < CAN_BUS_PDU_NUM)
 		{
 			STAILQ_INSERT_TAIL(&L->head,pdu,entry);
 			STAILQ_INSERT_TAIL(&b->head2,pdu,entry2);
