@@ -54,12 +54,7 @@ void    x_enable_int(InterruptNumberType intno) {}
 void    x_disable_int(InterruptNumberType intno) {}
 
 void target_initialize(void) {}
-void target_exit(void)       {
-	while(1)
-	{
-		printf("target_exit()\n");
-	}
-}
+void target_exit(void)       {}
 void target_tp_initialize(void) {}
 void target_tp_terminate(void) {}
 void target_tp_start_timer(TickType tick) {}
