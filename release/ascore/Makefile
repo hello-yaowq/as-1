@@ -60,7 +60,7 @@ COMPILER_DIR =
 include ../make/posix.mk
 endif
 
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 CMSIS = $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS
 ifeq ($(host), Linux)
 #COMPILER_PREFIX = arm-linux-gnueabi-
@@ -77,9 +77,24 @@ inc-y += -I$(inc-dir)/CMSIS/Include
 include ../make/cortexm3.gcc.mk
 endif
 
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 COMPILER_DIR = C:/IAR
 include ../make/cortexm3.iar.mk
+endif
+
+ifeq ($(compiler),arm920t-gcc)
+ifeq ($(host), Linux)
+#COMPILER_PREFIX = arm-linux-gnueabi-
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = /usr
+else
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+
+#COMPILER_PREFIX = arm-linux-gnueabihf-
+#COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
+endif
+include ../make/arm920t.gcc.mk
 endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
@@ -157,14 +172,14 @@ ifeq ($(board),stm32f107vc)
 rtos?=toppers_osek
 #rtos?=smallos
 use-boot?=no
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
 else
 link-script = $(src-dir)/linker-common.lds
 endif
 endif
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
@@ -181,7 +196,7 @@ ifeq ($(board),lm3s6965evb)
 #rtos?=freertos
 rtos?=toppers_osek
 #rtos?=smallos
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 link-script = $(src-dir)/linker.lds
 else
 $(error compiler arm gcc not supported for board lm3s6965evb)
@@ -190,6 +205,22 @@ def-y += -DCHIP_LM3S6965
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 inc-y += -I$(src-dir)/library -I$(src-dir)/library/src
 ldflags-y += -L$(src-dir)/library -llm3sdriver
+endif	# lm3s6965evb end
+
+ifeq ($(board),s3c2440a)
+#rtos?=freeosek
+#rtos?=freertos
+#rtos?=toppers_osek
+#rtos?=smallos
+rtos?=atk2-sc4
+ifeq ($(compiler),arm920t-gcc)
+link-script = $(src-dir)/linker-common.lds
+else
+$(error compiler arm gcc not supported for board lm3s6965evb)
+endif
+def-y += -DCHIP_S3C2440A
+def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
+def-y += -DTEXT_BASE=0x30000000
 endif	# lm3s6965evb end
 
 def-y += -D__AS_BY_PARAI__	 
@@ -336,7 +367,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)	
 else
@@ -347,10 +378,10 @@ ifeq ($(rtos),freertos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/include FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MemMang FALSE)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/GCC/ARM_CM3 FALSE)
 endif
-ifeq ($(compiler),iccarm)	
+ifeq ($(compiler),cortexm3-icc)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/IAR/ARM_CM3 FALSE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
@@ -360,10 +391,10 @@ ifeq ($(rtos),toppers_osek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m FALSE)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc FALSE)
 endif
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
 endif
 endif
@@ -371,13 +402,13 @@ ifeq ($(rtos),atk2-sc4)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/armv7_m FALSE)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/armv7_m/gcc TRUE)
 else
 	$(error for atk2-sc4 os, non-gcc compiler is not supported)
 endif
 endif
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
@@ -414,11 +445,11 @@ dep-lm3s6965evb:dep-lm3s6965evb-library
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/kernel TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m FALSE)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
 endif
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
 endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
@@ -456,6 +487,38 @@ dep-at91sam3s:
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(echo "  >> prepare link for AT91SAM3S done")
 
+dep-s3c2440a:
+	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
+	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
+	@(cd $(src-dir); rm infrastructure.xml)	
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)
+	@(cd $(src-dir);rm -f widget_refresh.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h Os.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/s3c2440a/mcal TRUE)
+ifeq ($(compiler),arm920t-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib TRUE)
+endif
+ifeq ($(rtos),atk2-sc4)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/arm920t FALSE)
+ifeq ($(compiler),arm920t-gcc)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/arm920t/gcc TRUE)
+else
+	$(error for atk2-sc4 os, non-gcc compiler is not supported)
+endif
+endif
+	@(cd $(src-dir);rm -f Dcm* Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
+	@(echo "  >> prepare link for S3C2440A done")
+	
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
@@ -469,36 +532,36 @@ clean:
 
 # ---------------------------------- [ AT91SAM3S   ] ---------------------------------- #
 01:
-	make dep board=at91sam3s compiler=iccarm
+	make dep board=at91sam3s compiler=cortexm3-icc
 02:
-	make all board=at91sam3s compiler=iccarm debug=true
+	make all board=at91sam3s compiler=cortexm3-icc debug=true
 03:
-	make all board=at91sam3s compiler=iccarm debug=false	
+	make all board=at91sam3s compiler=cortexm3-icc debug=false	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4
+	make dep board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4
 12:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=true
+	make all board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4 debug=true
 ifeq ($(use-boot),yes)
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 endif
 13:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc rtos=atk2-sc4 debug=false	
+	make all board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4 debug=false	
 
 15:
-	make dep board=stm32f107vc compiler=iccarm
+	make dep board=stm32f107vc compiler=cortexm3-icc
 16:
-	make all board=stm32f107vc compiler=iccarm debug=true
+	make all board=stm32f107vc compiler=cortexm3-icc debug=true
 17:
-	make all board=stm32f107vc compiler=iccarm debug=false
+	make all board=stm32f107vc compiler=cortexm3-icc debug=false
 	
 # ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
 21:
-	make dep board=lm3s6965evb compiler=arm-none-eabi-gcc
+	make dep board=lm3s6965evb compiler=cortexm3-gcc
 22:
-	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=true
+	make all board=lm3s6965evb compiler=cortexm3-gcc debug=true
 23:
-	make all board=lm3s6965evb compiler=arm-none-eabi-gcc debug=false
+	make all board=lm3s6965evb compiler=cortexm3-gcc debug=false
 		
 		
 29:
@@ -521,6 +584,14 @@ endif
 	@echo "qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -kernel out/lm3s6965evb.exe" >> run.sh
 	@echo "echo end of running" >> run.sh
 	@chmod +x run.sh
+
+# ---------------------------------- [ s3c2440a    ] ---------------------------------- #
+31:
+	make dep board=s3c2440a compiler=arm920t-gcc rtos=atk2-sc4
+32:
+	make all board=s3c2440a compiler=arm920t-gcc rtos=atk2-sc4 debug=true
+33:
+	make all board=s3c2440a compiler=arm920t-gcc rtos=atk2-sc4 debug=false	
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:

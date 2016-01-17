@@ -205,6 +205,12 @@ local function handleFC(channel,request)
   return ercd
 end
 
+local function waitms(timeout)
+	pre = os.clock()
+	while (os.clock()-pre)<(timeout/1000) do
+	end
+end
+
 local function ScheduleTx(channel,request)
 
   length = rawlen(request)
@@ -217,7 +223,8 @@ local function ScheduleTx(channel,request)
         ercd = handleFC(channel,request);
       elseif runtime[channel]["state"] == CANTP_ST_SEND_CF then
         if runtime[channel]["STmin"] > 0 then
-          runtime[channel]["STmin"] = runtime[channel]["STmin"] - 1
+		  waitms(runtime[channel]["STmin"]);
+		  runtime[channel]["STmin"] = 0
         end
         if runtime[channel]["STmin"] == 0 then
           ercd = sendCF(channel,request);

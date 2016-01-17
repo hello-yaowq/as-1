@@ -60,7 +60,7 @@ COMPILER_DIR =
 include ../make/posix.mk
 endif
 
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 CMSIS = $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS
 ifeq ($(host), Linux)
 #COMPILER_PREFIX = arm-linux-gnueabi-
@@ -77,7 +77,7 @@ inc-y += -I$(inc-dir)/CMSIS/Include
 include ../make/cortexm3.gcc.mk
 endif
 
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 COMPILER_DIR = C:/IAR
 include ../make/cortexm3.iar.mk
 endif
@@ -110,10 +110,10 @@ dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
 ifeq ($(board),stm32f107vc)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 link-script = $(src-dir)/linker-boot.lds
 endif
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
@@ -127,10 +127,10 @@ def-y += -DUSE_SIMUL_CAN
 endif
 
 ifeq ($(board),stm32f107vc-flsdrv)
-ifeq ($(compiler),arm-none-eabi-gcc)
+ifeq ($(compiler),cortexm3-gcc)
 link-script = $(src-dir)/linker-flsdrv.lds
 endif
-ifeq ($(compiler),iccarm)
+ifeq ($(compiler),cortexm3-icc)
 link-script = $(COMPILER_DIR)/arm/config/linker/ST/stm32f107xC.icf
 endif
 def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
@@ -288,33 +288,33 @@ clean:
 	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=arm-none-eabi-gcc
+	make dep board=stm32f107vc compiler=cortexm3-gcc
 12:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=true
+	make all board=stm32f107vc compiler=cortexm3-gcc debug=true
 13:
-	make all board=stm32f107vc compiler=arm-none-eabi-gcc debug=false	
+	make all board=stm32f107vc compiler=cortexm3-gcc debug=false	
 	
 15:
-	make dep board=stm32f107vc compiler=iccarm
+	make dep board=stm32f107vc compiler=cortexm3-icc
 16:
-	make all board=stm32f107vc compiler=iccarm debug=true
+	make all board=stm32f107vc compiler=cortexm3-icc debug=true
 17:
-	make all board=stm32f107vc compiler=iccarm debug=false
+	make all board=stm32f107vc compiler=cortexm3-icc debug=false
 	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 21:
-	make dep board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc
+	make dep board=stm32f107vc-flsdrv compiler=cortexm3-gcc
 22:
-	make all board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc debug=true
+	make all board=stm32f107vc-flsdrv compiler=cortexm3-gcc debug=true
 23:
-	make all board=stm32f107vc-flsdrv compiler=arm-none-eabi-gcc debug=false	
+	make all board=stm32f107vc-flsdrv compiler=cortexm3-gcc debug=false	
 	
 25:
-	make dep board=stm32f107vc-flsdrv compiler=iccarm
+	make dep board=stm32f107vc-flsdrv compiler=cortexm3-icc
 26:
-	make all board=stm32f107vc-flsdrv compiler=iccarm debug=true
+	make all board=stm32f107vc-flsdrv compiler=cortexm3-icc debug=true
 27:
-	make all board=stm32f107vc-flsdrv compiler=iccarm debug=false
+	make all board=stm32f107vc-flsdrv compiler=cortexm3-icc debug=false
 	
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
