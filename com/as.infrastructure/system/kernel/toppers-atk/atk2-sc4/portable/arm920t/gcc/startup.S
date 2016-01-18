@@ -133,23 +133,23 @@ _bss_end:
 /* IRQ stack memory (calculated at run-time)                        */
 .globl IRQ_STACK_START
 IRQ_STACK_START:
-    .word _irq_stack_start
+    .word knl_irq_stack_top
 
 .globl FIQ_STACK_START
 FIQ_STACK_START:
-    .word _fiq_stack_start
+    .word knl_fiq_stack_top
 
 .globl UNDEFINED_STACK_START
 UNDEFINED_STACK_START:
-    .word _undefined_stack_start
+    .word knl_undefined_stack_top
 
 .globl ABORT_STACK_START
 ABORT_STACK_START:
-    .word _aboknl_stack_start
+    .word knl_aboknl_stack_top
 
 .globl _STACK_START
 _STACK_START:
-    .word _svc_stack_start
+    .word knl_system_stack_top
 
 /* ----------------------------------entry------------------------------*/
 .globl reset_handler

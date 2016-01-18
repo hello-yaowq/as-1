@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 
-
+#include "portoffset.h"
 #define NOINT           0xc0
 
     .extern p_runtsk, p_schedtsk, knl_taskindp
@@ -38,10 +38,23 @@ __Irq_Save:
     msr cpsr_c, r1
     mov pc, lr
 
-    .global knl_activate_r
-    .type   knl_activate_r, %function
-knl_activate_r:
+/* void x_lock_all_int(void)   */
+    .global x_lock_all_int
+    .type   x_lock_all_int, %function
+x_lock_all_int:
+    mrs r0, cpsr
+    orr r0, r0, #NOINT
+    msr cpsr_c, r0
+    mov pc, lr
 
+/* void x_unlock_all_int(void) */
+    .global x_unlock_all_int
+    .type   x_unlock_all_int, %function
+x_unlock_all_int:
+    mrs r0, cpsr
+    bic r0, r0, #NOINT
+    msr cpsr_c, r0
+    mov pc, lr
 
     .global  knl_dispatch_r
     .type   knl_dispatch_r, %function
@@ -49,13 +62,20 @@ knl_dispatch_r:
 
 
 dispatch_task:
-
+    ldr     r2,[r0,TCB_PC_OFFSET]
+    mov     pc,r2
 
     .global knl_start_dispatch
     .type   knl_start_dispatch, %function
 knl_dispatch_ret_int:
 knl_start_dispatch:
+    ldr     r0, =p_schedtsk
+    ldr     r0, [r0]
+    ldr     r1, =p_runtsk
+    str     r0, [r1]
 
+    ldr     sp, [r0, TCB_SP_OFFSET ]
+    b       dispatch_task
 
     .global knl_dispatch_entry
     .type   knl_dispatch_entry, %function

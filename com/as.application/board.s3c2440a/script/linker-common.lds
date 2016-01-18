@@ -53,18 +53,25 @@ SECTIONS
 	
 	.init_stack ALIGN(16) (NOLOAD) : 
 	{	
-	   . = . + 1024;  
-	    _irq_stack_start = .;
+		knl_irq_stack_start = .;
+	    . = . + 1024;  
+	    knl_irq_stack_top = .;
+		
+		knl_fiq_stack_start = .; 
 		. = . + 1024; 	
-		_fiq_stack_start = .; 
+		knl_fiq_stack_top = .;
+		
+		knl_undefined_stack_start = .;
         . = . + 512;   
-        _undefined_stack_start = .;
+        knl_undefined_stack_top = .;
+		
+		knl_aboknl_stack_start = .;
         . = . + 512;   
-        _aboknl_stack_start = .;
-        . = . + 4096; 
-        _svc_stack_start = .;
-       knl_system_stack    = .; 
-       . = . + knl_system_stack_size;   
-       knl_system_stack_top = .;
+        knl_aboknl_stack_top = .;
+		
+		/* svc stack */
+        knl_system_stack    = .;
+        . = . + knl_system_stack_size;   
+        knl_system_stack_top = .;
 	} > RAM
 }

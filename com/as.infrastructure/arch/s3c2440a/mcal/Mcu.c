@@ -300,7 +300,7 @@ void Mcu_SetMode( Mcu_ModeType McuMode ) {
  */
 uint32_t McuE_GetSystemClock(void)
 {
-  return 0;
+  return vPCLK_OUT;
 }
 Std_ReturnType Mcu_InitClock( const Mcu_ClockType ClockSetting ) {
 	(void)ClockSetting;
