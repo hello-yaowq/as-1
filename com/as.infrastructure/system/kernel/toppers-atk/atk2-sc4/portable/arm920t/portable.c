@@ -112,6 +112,7 @@ void dispatch(void){
 
 }
 void start_dispatch(void){
+	knl_dispatch_started = TRUE;
 	knl_start_dispatch();
 }
 void exit_and_dispatch(void){
@@ -149,27 +150,20 @@ AccessType probe_trusted_osap_mem(MemoryStartAddressType sadr, MemoryStartAddres
 
 TickType GetOsTick( void )
 {
-	return 0;
+	return OsTickCounter;
+}
+
+void knl_isr_handler(void)
+{
+	OsTickCounter ++;
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
+	IncrementCounter(0);
 }
 
 void __ffssi2(void)
 {
 	return;
 }
-
-void knl_hw_trap_udef(void* regs)
-{
-
-}
-void knl_hw_trap_swi(void* regs)
-{
-
-}
-void knl_hw_trap_pabt(void* regs)
-{
-
-}
-void knl_hw_trap_dabt(void) {}
-void knl_hw_trap_resv(void) {}
-void knl_hw_trap_irq(void) {}
-void knl_hw_trap_fiq(void) {}

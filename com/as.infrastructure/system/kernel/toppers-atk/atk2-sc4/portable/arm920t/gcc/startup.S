@@ -238,114 +238,27 @@ _load_address:
 /* exception handlers               */
     .align  5
 vector_undef:
-    sub     sp, sp, #S_FRAME_SIZE
-    stmia   sp, {r0 - r12}          /* Calling r0-r12                   */
-    add     r8, sp, #S_PC
-    stmdb   r8, {sp, lr}^           /* Calling SP, LR                   */
-    str     lr, [r8, #0]            /* Save calling PC                  */
-    mrs     r6, spsr
-    str     r6, [r8, #4]            /* Save CPSR                        */
-    str     r0, [r8, #8]            /* Save OLD_R0                      */
-    mov     r0, sp
-
-    bl      knl_hw_trap_udef
+    b vector_undef
 
     .align  5
 vector_swi:
-    bl      knl_hw_trap_swi
+    b vector_swi
 
     .align  5
 vector_pabt:
-    bl      knl_hw_trap_pabt
+    b vector_pabt
 
     .align  5
 vector_dabt:
-    sub     sp, sp, #S_FRAME_SIZE
-    stmia   sp, {r0 - r12}          /* Calling r0-r12                   */
-    add     r8, sp, #S_PC
-    stmdb   r8, {sp, lr}^           /* Calling SP, LR                   */
-    str     lr, [r8, #0]            /* Save calling PC                  */
-    mrs     r6, spsr
-    str     r6, [r8, #4]            /* Save CPSR                        */
-    str     r0, [r8, #8]            /* Save OLD_R0                      */
-    mov     r0, sp
-
-    bl      knl_hw_trap_dabt
+    b vector_dabt
 
     .align  5
 vector_resv:
-    bl      knl_hw_trap_resv
-
-.globl      knl_interrupt_enter
-.globl      knl_interrupt_leave
-.globl      knl_thread_switch_interrupt_flag
-.globl      knl_interrupt_from_thread
-.globl      knl_interrupt_to_thread
-vector_irq:
-    stmfd   sp!, {r0-r12,lr}
-    /*
-    bl      knl_interrupt_enter
-    bl      knl_hw_trap_irq
-    bl      knl_interrupt_leave
-    */
-
-    /* if knl_thread_switch_interrupt_flag set, jump to _interrupt_thread_switch and don't return */
-    //ldr     r0, =knl_thread_switch_interrupt_flag
-    ldr     r1, [r0]
-    cmp     r1, #1
-    beq     _interrupt_thread_switch
-
-    ldmfd   sp!, {r0-r12,lr}
-    subs    pc, lr, #4
+    b vector_resv
 
     .align  5
 vector_fiq:
-    stmfd   sp!,{r0-r7,lr}
-    bl      knl_hw_trap_fiq
-    ldmfd   sp!,{r0-r7,lr}
-    subs    pc,lr,#4
-
-_interrupt_thread_switch:
-    mov     r1,  #0                 /* clear knl_thread_switch_interrupt_flag*/
-    str     r1,  [r0]
-
-    ldmfd   sp!, {r0-r12,lr}        /* reload saved registers           */
-    stmfd   sp!, {r0-r3}            /* save r0-r3                       */
-    mov     r1,  sp
-    add     sp,  sp, #16            /* restore sp                       */
-    sub     r2,  lr, #4             /* save old task's pc to r2         */
-
-    mrs     r3,  spsr               /* disable interrupt                */
-    orr     r0,  r3, #NOINT
-    msr     spsr_c, r0
-
-    ldr     r0,  =.+8               /* switch to interrupted task's stack*/
-    movs    pc,  r0
-
-    stmfd   sp!, {r2}               /* push old task's pc               */
-    stmfd   sp!, {r4-r12,lr}        /* push old task's lr,r12-r4        */
-    mov     r4,  r1                 /* Special optimised code below     */
-    mov     r5,  r3
-    ldmfd   r4!, {r0-r3}
-    stmfd   sp!, {r0-r3}            /* push old task's r3-r0            */
-    stmfd   sp!, {r5}               /* push old task's psr              */
-    mrs     r4,  spsr
-    stmfd   sp!, {r4}               /* push old task's spsr             */
-
-    //ldr     r4,  =knl_interrupt_from_thread
-    ldr     r5,  [r4]
-    str     sp,  [r5]               /* store sp in preempted tasks's TCB*/
-
-    //ldr r6,  =knl_interrupt_to_thread
-    ldr r6,  [r6]
-    ldr sp,  [r6]                   /* get new task's stack pointer     */
-
-    ldmfd   sp!, {r4}               /* pop new task's spsr              */
-    msr     SPSR_cxsf, r4
-    ldmfd   sp!, {r4}               /* pop new task's psr               */
-    msr     CPSR_cxsf, r4
-
-    ldmfd   sp!, {r0-r12,lr,pc}     /* pop new task's r0-r12,lr & pc    */
+   b vector_fiq
 
 stack_setup:
     mrs     r0, cpsr
