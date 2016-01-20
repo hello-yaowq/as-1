@@ -101,7 +101,7 @@ knl_system_tick:
     .type   vector_irq, %function
 vector_irq:
     /* Save Context To task SVC stack */
-    stmfd   sp!, {r0-r2}
+    stmfd   sp, {r0-r2}
 EnterISR:
     ldr     r0, = knl_dispatch_started
     ldr     r0, [r0]
@@ -124,7 +124,7 @@ EnterISR:
     /*   R2--SPSR                                                               */
     /*------------------------------------------------------------------------  */
 
-    mov     r0, sp
+    sub     r0, sp, #12
     sub     r1, lr, #4              /* Adjust PC for return address to task */
     mrs     r2, spsr                /* Copy SPSR (Task CPSR) */
     msr     cpsr_c, #SVCMODE|NOINT /* Change to SVC mode,that is task's mode */
@@ -150,6 +150,7 @@ l_nosave:
     stmfd   sp!, {r3}
     mov     r3, #2   /* callevel = TCL_ISR2 */
     strh    r3,[r1]
+
     //mrs r0, cpsr
     //bic r0, r0, #NOINT  /* interrupt enable */
     //msr cpsr_c, r0
@@ -182,7 +183,4 @@ ExitISR:
     b     knl_dispatch_ret_int                 /* To dispatch processing */
 
 l_nodispatch:
-    mrs r0, cpsr
-    bic r0, r0, #NOINT  /* interrupt enable */
-    msr cpsr_c, r0
-    mov pc, lr
+    subs pc, lr, #4

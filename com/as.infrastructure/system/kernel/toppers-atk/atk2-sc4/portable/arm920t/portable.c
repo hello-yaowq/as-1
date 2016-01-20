@@ -155,12 +155,23 @@ TickType GetOsTick( void )
 
 void knl_isr_handler(void)
 {
-	OsTickCounter ++;
-	if(0 == OsTickCounter)
+	 uint32_t irq;
+
+	irq = INTOFFSET;
+	if(irq < 32)
 	{
-		OsTickCounter = 1;
+		if(irq == 14)
+		{	/* system timer 4 tick */
+			OsTickCounter ++;
+			if(0 == OsTickCounter)
+			{
+				OsTickCounter = 1;
+			}
+			IncrementCounter(0);
+		}
+
+		ClearPending(1 << irq);
 	}
-	IncrementCounter(0);
 }
 
 void __ffssi2(void)
