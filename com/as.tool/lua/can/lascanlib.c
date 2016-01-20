@@ -290,22 +290,31 @@ static const Can_DeviceOpsType* search_ops(const char* name)
 }
 static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
-	static clock_t m0;
-	static bool mflg = FALSE;
+	static struct timeval m0 = { -1 , -1 };
 
-	if(FALSE == mflg)
+	if(-1 == m0.tv_sec)
 	{
-		m0 = clock();
-		mflg = TRUE;
+		gettimeofday(&m0,NULL);
 	}
-
 	if(NULL != canLog)
 	{
-		clock_t m1;
-		m1 = clock();
-		fprintf(canLog,"busid=%d, %s canid=%04X dlc=%d data=[ %02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X ] @ %fs\n",
+		static struct timeval m1;
+		gettimeofday(&m1,NULL);
+
+		float rtim = m1.tv_sec-m0.tv_sec;
+
+		if(m1.tv_usec > m0.tv_usec)
+		{
+			rtim += (float)(m1.tv_usec-m0.tv_usec)/1000000.0;
+		}
+		else
+		{
+			rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
+		}
+		gettimeofday(&m0,NULL);
+		fprintf(canLog,"busid=%d, %s canid=%04X dlc=%d data=[ %02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X ] @ %f s\n",
 				busid,isRx?"rx":"tx",canid,dlc,data[0],data[1],data[2],data[3],
-						data[4],data[5],data[6],data[7],(float)(m1-m0)/(float)CLOCKS_PER_SEC);
+						data[4],data[5],data[6],data[7],rtim);
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
