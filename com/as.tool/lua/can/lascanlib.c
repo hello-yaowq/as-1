@@ -311,7 +311,7 @@ static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t*
 		{
 			rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
 		}
-		gettimeofday(&m0,NULL);
+		/* gettimeofday(&m0,NULL); */ /* use absolute time */
 		fprintf(canLog,"busid=%d, %s canid=%04X dlc=%d data=[ %02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X ] @ %f s\n",
 				busid,isRx?"rx":"tx",canid,dlc,data[0],data[1],data[2],data[3],
 						data[4],data[5],data[6],data[7],rtim);
