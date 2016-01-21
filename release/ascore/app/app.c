@@ -36,6 +36,8 @@ void StartupHook(void)
 	Sg_Init();
 	OsSetRelAlarm(AlarmApp, 10, 100);
 #endif
+	void Lcd_Init( void );
+	Lcd_Init();
 }
 
 TASK(TaskApp)

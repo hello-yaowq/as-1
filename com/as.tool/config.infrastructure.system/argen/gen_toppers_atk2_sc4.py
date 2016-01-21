@@ -83,8 +83,8 @@ def genH(gendir,os_list):
     isr_list = ScanFrom(os_list,'ISR')
     isr_num = len(isr_list)
     for isr in isr_list:
-        if((int(isr.attrib['vector'],10)+1)>isr_num):
-            isr_num = int(isr.attrib['vector'],10)+1
+        if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
+            isr_num = int(GAGet(isr,'Vector'),10)+1
     fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     
     counter_list = ScanFrom(os_list,'Counter')
@@ -157,7 +157,7 @@ def genC(gendir,os_list):
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     isr_list = ScanFrom(os_list,'ISR')
     for isr in isr_list:
-        fp.write('extern void %s (void);\n'%(isr.attrib['name']))
+        fp.write('extern void %s (void);\n'%(GAGet(isr,'Name')))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('const TaskType tnum_task    = TASK_NUM;\n')
     fp.write('const TaskType tnum_exttask = TASK_NUM;\n')
@@ -219,15 +219,15 @@ def genC(gendir,os_list):
     fp.write('const ISRType    tnum_isr2=%s;\n'%(isr_num))
     fp.write('const ISRINIB    isrinib_table[%s];\n'%(isr_num))
     for isr in isr_list:
-        if((int(isr.attrib['vector'],10)+1)>isr_num):
-            isr_num = int(isr.attrib['vector'],10)+1
+        if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
+            isr_num = int(GAGet(isr,'Vector'),10)+1
     if(isr_num > 0):
         fp.write('const FunctionRefType tisr_pc[ %s ] = {\n'%(isr_num))
         for iid in range(isr_num):
             iname = 'NULL'
             for isr in isr_list:
-                if(iid == int(isr.attrib['vector'])):
-                    iname = isr.attrib['name']
+                if(iid == int(GAGet(isr,'Vector'))):
+                    iname = GAGet(isr,'Name')
                     break
             fp.write('\t%s, /* %s */\n'%(iname,iid))
         fp.write('};\n\n')

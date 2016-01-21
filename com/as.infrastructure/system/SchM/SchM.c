@@ -426,8 +426,7 @@ TASK(SchM_Startup){
 TASK(SchM_BswService) {
 	EcuM_StateType state;
 
-	ASLOG(STDOUT,"SchM_BswService is running\n");
-	printf("SchM_BswService is running\r\n");
+	ASLOG(OFF,"SchM_BswService is running\n");
 	EcuM_GetState(&state);
 
 	switch( state ) {

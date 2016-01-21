@@ -153,6 +153,16 @@ TickType GetOsTick( void )
 	return OsTickCounter;
 }
 
+void TIMER4_IrqHandler(void)
+{
+	OsTickCounter ++;
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
+	IncrementCounter(0);
+}
+
 void knl_isr_handler(void)
 {
 	 uint32_t irq;
@@ -160,14 +170,13 @@ void knl_isr_handler(void)
 	irq = INTOFFSET;
 	if(irq < 32)
 	{
-		if(irq == 14)
-		{	/* system timer 4 tick */
-			OsTickCounter ++;
-			if(0 == OsTickCounter)
-			{
-				OsTickCounter = 1;
-			}
-			IncrementCounter(0);
+		if(tisr_pc[irq] != NULL)
+		{
+			tisr_pc[irq]();
+		}
+		else
+		{
+			internal_shutdownos(0xFF);
 		}
 
 		ClearPending(1 << irq);

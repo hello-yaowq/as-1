@@ -202,7 +202,8 @@ else
 $(error compiler arm gcc not supported for board lm3s6965evb)
 endif
 def-y += -DCHIP_LM3S6965
-def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
+def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU 
+def-y += -DUSE_DET
 inc-y += -I$(src-dir)/library -I$(src-dir)/library/src
 ldflags-y += -L$(src-dir)/library -llm3sdriver
 endif	# lm3s6965evb end
