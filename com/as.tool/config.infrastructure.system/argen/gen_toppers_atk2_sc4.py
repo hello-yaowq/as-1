@@ -85,8 +85,19 @@ def genH(gendir,os_list):
     for isr in isr_list:
         if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
             isr_num = int(GAGet(isr,'Vector'),10)+1
-    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
-    
+    for id,isr in enumerate(isr_list):
+        fp.write('#define ISR_ID_%-32s %s\n'%(GAGet(isr,'Name'),id))
+    fp.write('#define ISR_MAX%-32s %s\n\n'%(' ',len(isr_list)))
+    for id,isr in enumerate(isr_list):
+        fp.write('#define ISR_VECTOR_%-32s %s\n'%(GAGet(isr,'Name'),GAGet(isr,'Vector')))
+    fp.write('#define ISR_NUM%-35s  %s\n\n'%(' ',isr_num))
+    for id,isr in enumerate(isr_list):
+        cstr = '( 0 | (1<<APP_ID_%s)'%(GAGet(isr,'Application'))
+        for app in GLGet(isr,'ApplicationList'):
+                cstr += ' | (1<<APP_ID_%s)'%(GAGet(app,'Name'))
+        cstr += ' )'
+        fp.write('#define ISR_APP_ACCESS_MASK_%-32s %s\n'%(GAGet(isr,'Name'),cstr)) 
+    fp.write('\n')   
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
@@ -157,7 +168,7 @@ def genC(gendir,os_list):
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     isr_list = ScanFrom(os_list,'ISR')
     for isr in isr_list:
-        fp.write('extern void %s (void);\n'%(GAGet(isr,'Name')))
+        fp.write('extern ISR(%s);\n'%(GAGet(isr,'Name')))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('const TaskType tnum_task    = TASK_NUM;\n')
     fp.write('const TaskType tnum_exttask = TASK_NUM;\n')
@@ -192,9 +203,6 @@ def genC(gendir,os_list):
     fp.write('};\n\n')
     fp.write('const AppModeType    tnum_appmode = APP_MODE_NUM;\n')
     fp.write('\n')
-    fp.write('const InterruptNumberType    tnum_intno = 0;\n')
-    fp.write('const INTINIB                intinib_table[1];\n')
-    fp.write('\n')
     
     counter_list = ScanFrom(os_list,'Counter')
     fp.write('const CounterType    tnum_counter=COUNTER_NUM;\n')
@@ -216,21 +224,51 @@ def genC(gendir,os_list):
     fp.write('\n')
     isr_list = ScanFrom(os_list,'ISR')
     isr_num = len(isr_list)
-    fp.write('const ISRType    tnum_isr2=%s;\n'%(isr_num))
-    fp.write('const ISRINIB    isrinib_table[%s];\n'%(isr_num))
+    
+    fp.write('const InterruptNumberType    tnum_intno = %s;\n'%('ISR_MAX'))
+    fp.write('const ISRType    tnum_isr2=%s;\n'%('ISR_MAX'))
+    fp.write('const INTINIB    intinib_table[%s] = \n{\n'%('ISR_MAX'))
+    for isr in isr_list:
+        fp.write('\t{ /* %s */\n'%(GAGet(isr,'Name')))
+        fp.write('\t\t.intno=%s,\n'%(GAGet(isr,'Vector')))
+        fp.write('\t\t.intatr=%s,\n'%(0))
+        fp.write('\t\t.intpri=%s,\n'%(0))
+        fp.write('\t\t#if defined(TOPPERS_CFG1_OUT) || defined(CFG_USE_STACKMONITORING)\n')
+        fp.write('\t\t.remain_stksz=%s,\n'%(0))
+        fp.write('\t\t#endif\n')
+        fp.write('\t},\n')
+    fp.write('};\n\n')
+    fp.write('const ISRINIB    isrinib_table[%s] = \n{\n'%('ISR_MAX'))
+    for isr in isr_list:
+        fp.write('\t{ /* %s */\n'%(GAGet(isr,'Name')))
+        fp.write('\t\t.p_intinib=&isrinib_table[ISR_ID_%s],\n'%(GAGet(isr,'Name')))
+        fp.write('\t\t.p_osapcb=&osapcb_table[APP_ID_%s],\n'%(GAGet(isr,'Application')))
+        fp.write('\t\t.acsbtmp=ISR_APP_ACCESS_MASK_%s,\n'%(GAGet(isr,'Name')))
+        fp.write('\t\t.time_frame=%s,\n'%(0))
+        fp.write('\t},\n')
+    fp.write('};\n\n')    
     for isr in isr_list:
         if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
             isr_num = int(GAGet(isr,'Vector'),10)+1
     if(isr_num > 0):
-        fp.write('const FunctionRefType tisr_pc[ %s ] = {\n'%(isr_num))
+        fp.write('const FunctionRefType tisr_pc[ %s ] = {\n'%('ISR_NUM'))
         for iid in range(isr_num):
             iname = 'NULL'
             for isr in isr_list:
                 if(iid == int(GAGet(isr,'Vector'))):
-                    iname = GAGet(isr,'Name')
+                    iname = 'ISRMain%s'%(GAGet(isr,'Name'))
                     break
             fp.write('\t%s, /* %s */\n'%(iname,iid))
         fp.write('};\n\n')
+        fp.write('const ISRType tisr_id[ %s ] = {\n'%(isr_num))
+        for iid in range(isr_num):
+            iname = 'INVALID_ISR'
+            for isr in isr_list:
+                if(iid == int(GAGet(isr,'Vector'))):
+                    iname = 'ISR_ID_%s'%(GAGet(isr,'Name'))
+                    break
+            fp.write('\t%s, /* %s */\n'%(iname,iid))
+        fp.write('};\n\n')        
     fp.write('ISRCB            isrcb_table[ISR_NUM];\n')
     fp.write('ISRCB            *p_runisr;\n')
     fp.write('uint8            sus_all_cnt;\n')

@@ -123,6 +123,11 @@ static void rx_notifiy( void )
 	r_size = 0;
 }
 
+ISR(UART0_RX)
+{
+
+}
+
 void Can_Init( const Can_ConfigType *Config )
 {
   // Do initial configuration of layer here

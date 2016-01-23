@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "s3c2440.h"
 #include "Mcu.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -53,7 +54,9 @@ uint32 knl_dispatch_started;
 
 void x_nested_lock_os_int(void){}
 void x_nested_unlock_os_int(void){}
-void x_config_int(InterruptNumberType intno,AttributeType attr,PriorityType prio){}
+void x_config_int(InterruptNumberType intno,AttributeType attr,PriorityType prio){
+
+}
 boolean x_is_called_in_c1isr(void) {
 	return FALSE;
 }
@@ -75,6 +78,7 @@ void    x_enable_int(InterruptNumberType intno) {
 		asAssert(0);
 	}
 }
+
 void    x_disable_int(InterruptNumberType intno) {
 	if(intno < 32)
 	{
@@ -83,6 +87,23 @@ void    x_disable_int(InterruptNumberType intno) {
 	else if(intno < 46)
 	{
 		INTSUBMSK |= (1<<(intno-32));
+	}
+	else
+	{
+		asAssert(0);
+	}
+}
+
+void x_clear_int(InterruptNumberType intno)
+{
+	if(intno < 32)
+	{
+		SRCPND |= (1<<intno);
+		INTPND = INTPND;
+	}
+	else if(intno < 46)
+	{
+		SUBSRCPND |= (1<<(intno-32));
 	}
 	else
 	{
@@ -179,7 +200,7 @@ TickType GetOsTick( void )
 	return OsTickCounter;
 }
 
-void TIMER4_IrqHandler(void)
+ISR(TIMER4)
 {
 	OsTickCounter ++;
 	if(0 == OsTickCounter)
@@ -191,21 +212,23 @@ void TIMER4_IrqHandler(void)
 
 void knl_isr_handler(void)
 {
-	 uint32_t irq;
+	 uint32_t intno;
 
-	irq = INTOFFSET;
-	if(irq < 32)
+	intno = INTOFFSET;
+	if(intno < ISR_NUM)
 	{
-		if(tisr_pc[irq] != NULL)
+		if(tisr_pc[intno] != NULL)
 		{
-			tisr_pc[irq]();
+			x_disable_int(intno);
+			tisr_pc[intno]();
+			x_enable_int(intno);
 		}
 		else
 		{
 			internal_shutdownos(0xFF);
 		}
 
-		ClearPending(1 << irq);
+		x_clear_int(intno);
 	}
 	else
 	{
