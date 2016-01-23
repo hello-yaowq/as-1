@@ -42,6 +42,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+	ASLOG(OS,"TaskApp is running\n");
 #ifdef USE_GUI
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();

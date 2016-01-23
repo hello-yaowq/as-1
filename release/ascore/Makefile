@@ -221,6 +221,10 @@ $(error compiler arm gcc not supported for board lm3s6965evb)
 endif
 def-y += -DCHIP_S3C2440A
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
+# network of CAN
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM
+def-y += -DUSE_DET
 def-y += -DTEXT_BASE=0x30000000
 endif	# lm3s6965evb end
 
@@ -501,6 +505,8 @@ dep-s3c2440a:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/s3c2440a/mcal TRUE)
@@ -517,7 +523,8 @@ else
 	$(error for atk2-sc4 os, non-gcc compiler is not supported)
 endif
 endif
-	@(cd $(src-dir);rm -f Dcm* Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
+	@(make BSW)
+	@(cd  $(src-dir); rm -fv Dem* J1939Tp* Lin* NvM* Fee* Ea* Eep* Fls* RPmsg* Ipc* VirtQ* Rproc*)
 	@(echo "  >> prepare link for S3C2440A done")
 	
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS

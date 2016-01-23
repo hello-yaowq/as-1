@@ -439,7 +439,8 @@ function main(argc,argv)
   if argc == 0 then
 	as.can_open(can_bus,"rpmsg",0,1000000)
   else
-	as.can_open(can_bus,"serial",3,115200)	-- COM4
+	--as.can_open(can_bus,"serial",3,115200)	-- COM4
+	as.can_open(can_bus,"serial",3,57600)
   end
   -- os.execute("mkdir laslog")
   as.can_log("laslog/flash-loader.asc")

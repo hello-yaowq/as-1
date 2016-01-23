@@ -61,8 +61,34 @@ void    x_set_ipm_c2isr_disable(void) {}
 boolean target_is_int_controllable(InterruptNumberType intno) {
 	return FALSE;
 }
-void    x_enable_int(InterruptNumberType intno) {}
-void    x_disable_int(InterruptNumberType intno) {}
+void    x_enable_int(InterruptNumberType intno) {
+	if(intno < 32)
+	{
+		INTMSK &= ~(1<<intno);
+	}
+	else if(intno < 46)
+	{
+		INTSUBMSK &= ~(1<<(intno-32));
+	}
+	else
+	{
+		asAssert(0);
+	}
+}
+void    x_disable_int(InterruptNumberType intno) {
+	if(intno < 32)
+	{
+		INTMSK |= (1<<intno);
+	}
+	else if(intno < 46)
+	{
+		INTSUBMSK |= (1<<(intno-32));
+	}
+	else
+	{
+		asAssert(0);
+	}
+}
 
 void target_initialize(void) {
 	OsTickCounter = 1;
@@ -180,6 +206,10 @@ void knl_isr_handler(void)
 		}
 
 		ClearPending(1 << irq);
+	}
+	else
+	{
+		internal_shutdownos(0xFF);
 	}
 }
 

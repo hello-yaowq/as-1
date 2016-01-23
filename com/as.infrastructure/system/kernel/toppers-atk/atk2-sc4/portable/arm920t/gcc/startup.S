@@ -188,8 +188,28 @@ copy_loop:
     /* setup stack */
     bl      stack_setup
 
+     /* Copy the data segment initializers from flash to SRAM */
+    ldr r0, =__data_start__  /* r0 holds start of data in ram */
+    ldr r3, =__data_end__    /* r3 holds end of data in ram */
+    ldr r5, =__etext         /* r5 start of data in flash */
+    movs    r1, #0
+    b   LoopCopyDataInit
+
+CopyDataInit:
+    ldr r4, [r5, r1]          /* read current position in flash */
+    str r4, [r0, r1]          /* store current position in ram */
+    adds    r1, r1, #4        /* increment counter */
+
+LoopCopyDataInit:
+    adds    r2, r0, r1        /* are we at the final position? */
+    cmp r2, r3                /* ... */
+    bcc CopyDataInit          /* nope, continue */
+    ldr r2, =__bss_start__
+    b   LoopFillZerobss
+
+LoopFillZerobss:
     /* clear .bss */
-    mov     r0,#0                   /* get a zero                       */
+    mov     r0,#0                    /* get a zero                       */
     ldr     r1,=__bss_start__        /* bss start                        */
     ldr     r2,=__bss_end__           /* bss end                          */
 
