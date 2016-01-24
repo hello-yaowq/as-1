@@ -5,13 +5,7 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
-2015-July-28: Till now, FreeRTOS on MINGW for the purpose to simulate OSEK ECC2 OS partially OK. Toppers_osek is the real OSEK ECC2 RTOS for real hardware boards. By this OS simulation strategy, application can be developed without the real board ready. And as my power is very limited, I start to integrated ArcCore BSW(AUTOSAR 4.x).
-2015-July-28: For the purpose to validate ArcCore, all of MCAL will be abstracted on the simulation platform FreeRTOS MINGW.
-2015-Sep-18: roll back to accore 3.x as I found out the the arccore 4.x is not free to be used in product.
-
-
-## Idea
-2015-Aug-17: I came up with an idea for how to implement the simulation of AUTOSAR BSW. That is compiling the AS core package software to the format of DLL and then load the dll by the simulator. The simulator which should have rich feature to provide GUI or network connection, I think QT is perfect, even more, maybe I can integrated it with pyQt, much more wonderful, isn't it. Let's start.
+2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
 
 ## Key Point
 
@@ -25,6 +19,7 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [toppers_osek](https://www.toppers.jp/osek-os.html)
 * [FreeOSEK](http://opensek.sourceforge.net/)
 * [FreeRTOS](http://www.freertos.org/)
+* [toppers-atk2](https://www.toppers.jp/atk2.html)
 * small : this OS is developed by me, OSEK BCC1 conformed
 
 ## 3. BSW configuration tool
@@ -39,7 +34,7 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [README](./com/as.infrastructure/system/vm/readme.md)
 
 ## 5. Lua Script Integrated
-* support can, going to support Peak-CAN and Vector CanCase
+* support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
 
 ## Clone
 > git clone https://github.com/sics-sse/moped.git
