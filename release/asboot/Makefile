@@ -106,6 +106,7 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 ifeq ($(use_nvm),yes)
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 endif
+def-y += -D__AS_PY_CAN__
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
@@ -215,6 +216,7 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/simulator TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
