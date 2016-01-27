@@ -5,12 +5,12 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.mingw.base.6909538" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -77,12 +77,12 @@
 									<listOptionValue builtIn="false" value="USE_MEMIF"/>
 									<listOptionValue builtIn="false" value="USE_NVM"/>
 									<listOptionValue builtIn="false" value="LUA_COMPAT_APIINTCASTS"/>
-									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__AS_BOOTLOADER__"/>
 									<listOptionValue builtIn="false" value="USE_DCM"/>
 									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 									<listOptionValue builtIn="false" value="USE_SIMUL_CAN"/>
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
+									<listOptionValue builtIn="false" value="__LINUX__"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
