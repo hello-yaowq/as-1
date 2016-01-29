@@ -16,6 +16,7 @@
 #include "Os.h"
 #if defined(__SMALL_OS__)
 #include <sys/time.h>
+#include <time.h>
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -44,7 +45,8 @@ KSM(Simulator,Running)
 	Can_SimulatorRunning();
 
 #if defined(__SMALL_OS__)
-	if(clock() != previous)
+	clock_t now = clock();
+	if( (0u == (now%(CLOCKS_PER_SEC/1000))) &&  (now != previous) )
 	{
 		previous = clock();
 		OsTick();

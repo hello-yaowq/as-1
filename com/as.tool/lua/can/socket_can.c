@@ -37,7 +37,6 @@
  * sudo ip link add dev vcan0 type vcan
  * sudo ip link set up vcan0
  */
-#define SOCKET_CAN_VIRTUAL_CAN_START_PORT  32
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SocketHandle_s
 {
@@ -124,14 +123,7 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 
 		if( rv )
 		{
-			if(port < SOCKET_CAN_VIRTUAL_CAN_START_PORT)
-			{
-				snprintf(ifr.ifr_name,IFNAMSIZ - 1,"can%d", port);
-			}
-			else
-			{
-				snprintf(ifr.ifr_name,IFNAMSIZ - 1,"vcan%d", (port-SOCKET_CAN_VIRTUAL_CAN_START_PORT));
-			}
+			snprintf(ifr.ifr_name,IFNAMSIZ - 1,"can%d", port);
 			ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 			ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
 			if (!ifr.ifr_ifindex) {

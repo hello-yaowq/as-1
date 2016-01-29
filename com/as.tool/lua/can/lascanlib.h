@@ -16,7 +16,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
-#ifndef __AS_PY_CAN__
+#if !defined(__AS_PY_CAN__) && !defined(__AS_CAN_BUS__)
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -56,7 +56,7 @@ extern const Can_DeviceOpsType can_socket_ops;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#ifndef __AS_PY_CAN__
+#if !defined(__AS_PY_CAN__) && !defined(__AS_CAN_BUS__)
 int luai_can_write (lua_State *L);
 int luai_can_read  (lua_State *L);
 int luai_can_open  (lua_State *L);

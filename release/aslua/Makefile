@@ -182,8 +182,8 @@ depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
 clean: 
-	@rm -fv $(obj-dir)/*
-	@rm -fv $(exe-dir)/*
+	@rm -frv $(obj-dir)/*
+	@rm -frv $(exe-dir)/*
 
 clean-dist:clean
 	@rm -fv $(src-dir)/*
@@ -211,5 +211,9 @@ clean-dist:clean
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
 	@(cd $(exe-dir);make all)
+ifeq ($(host), Linux)	
+	@(cp -v $(exe-dir)/*.so $(prj-dir)/com/as.tool/lua/script)
+else
 	@(cp -v $(exe-dir)/*.pyd $(prj-dir)/com/as.tool/lua/script)
+endif
 	@(cd $(prj-dir)/com/as.tool/as.one.py; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)

@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include "RPmsg.h"
 #include "asdebug.h"
-#ifdef __AS_PY_CAN__
+#ifdef __AS_CAN_BUS__
 #include "lascanlib.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
@@ -167,7 +167,7 @@ typedef struct {
 
   // Data stored for Txconfirmation callbacks to CanIf
   PduIdType swPduHandle; //
-#ifndef __AS_PY_CAN__
+#ifndef __AS_CAN_BUS__
   struct Can_RPmsgPduQueue_s rQ;
 #endif
 } Can_UnitType;
@@ -177,31 +177,31 @@ Can_UnitType CanUnit[CAN_CONTROLLER_CNT] =
 {
   {
     .state = CANIF_CS_UNINIT,
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
 	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
 	#endif
   },
   {
     .state = CANIF_CS_UNINIT,
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
 	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
 	#endif
   },
   {
     .state = CANIF_CS_UNINIT,
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
 	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
 	#endif
   },
   {
     .state = CANIF_CS_UNINIT,
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
 	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
 	#endif
   },
   {
     .state = CANIF_CS_UNINIT,
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
 	.rQ.w_lock = PTHREAD_MUTEX_INITIALIZER
 	#endif
   },
@@ -212,10 +212,12 @@ Can_GlobalType Can_Global =
   .initRun = CAN_UNINIT,
 };
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifdef __AS_PY_CAN__
+#ifdef __AS_CAN_BUS__
 extern int can_open(unsigned long busid,const char* device_name,unsigned long port, unsigned long baudrate);
 extern int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
-extern int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char** data);
+extern int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char* data);
+extern void luai_canlib_open(void);
+extern void luai_canlib_close(void);
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -265,6 +267,9 @@ void Can_Init( const Can_ConfigType *config ) {
   Can_Global.config = config;
   Can_Global.initRun = CAN_READY;
 
+	#ifdef __AS_CAN_BUS__
+	luai_canlib_open();
+	#endif
 
   for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
     canHwConfig = GET_CONTROLLER_CONFIG(configId);
@@ -279,12 +284,12 @@ void Can_Init( const Can_ConfigType *config ) {
 
     canUnit->lock_cnt = 0;
     canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;	/* 0xFFFF marked as Empty and invalid */
-	#ifndef __AS_PY_CAN__
+	#ifndef __AS_CAN_BUS__
     (void)pthread_mutex_lock(&canUnit->rQ.w_lock);
 	STAILQ_INIT(&canUnit->rQ.pduHead);
 	(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
 	#else
-	if(FALSE == can_open(configId,"socket",32+configId,canHwConfig->CanControllerBaudRate*1000))
+	if(FALSE == can_open(configId,"socket",configId,canHwConfig->CanControllerBaudRate*1000))
 	{
 		asAssert(0);
 	}
@@ -338,6 +343,10 @@ void Can_DeInit()
     memset(&canUnit->stats, 0, sizeof(Can_Arc_StatisticsType));
 #endif
   }
+
+	#ifdef __AS_CAN_BUS__
+	luai_canlib_close();
+	#endif
 
   Can_Global.config = NULL;
   Can_Global.initRun = CAN_UNINIT;
@@ -482,10 +491,12 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 
   Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
 
+  #ifndef __AS_CAN_BUS__
   while(FALSE == RPmsg_IsOnline())
   {
 	  return CAN_NOT_OK;;	/* make sure rpmsg is online */
   }
+  #endif
 
   for (busid=0; busid < CAN_CTRL_CONFIG_CNT; busid++)
   {
@@ -503,7 +514,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 	  Irq_Save(irq_state);
 	  if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 	  {
-		#ifndef __AS_PY_CAN__
+		#ifndef __AS_CAN_BUS__
 		  Can_RPmsgPduType rpmsg;
 		  Std_ReturnType ercd;
 		  rpmsg.bus = busid;
@@ -521,7 +532,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 		  {
 			  asAssert(0);
 		  }
-		#endif	/* __AS_PY_CAN__ */
+		#endif	/* __AS_CAN_BUS__ */
 
 		  canUnit->swPduHandle = pduInfo->swPduHandle;
 		  // Increment statistics
@@ -542,14 +553,14 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 }
 
 void Can_MainFunction_Read( void ) {
-	#ifdef __AS_PY_CAN__
+	#ifdef __AS_CAN_BUS__
 	unsigned long busid,canid,dlc;
-	unsigned char* data;
+	unsigned char data[8];
 	int ercd;
 
 	for(busid=0;busid<CAN_CTRL_CONFIG_CNT;busid++)
 	{
-		ercd = can_read(busid,-1,&canid,&dlc,&data);
+		ercd = can_read(busid,-1,&canid,&dlc,data);
 		if(TRUE == ercd)
 		{
 			uint16 Hrh = 0xFFFF;
@@ -567,7 +578,6 @@ void Can_MainFunction_Read( void ) {
 			asAssert(0xFFFF != Hrh);
 			asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
 			Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(Hrh,(Can_IdType)canid,(uint8)dlc,(uint8*)data);
-			free(data);
 		}
 	}
 	#endif
@@ -636,7 +646,7 @@ void Can_SimulatorRunning(void)
 				canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 			}
 		}
-		#ifndef __AS_PY_CAN__
+		#ifndef __AS_CAN_BUS__
 		/* Rx Process */
 		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++)
 		{
@@ -677,7 +687,7 @@ void Can_SimulatorRunning(void)
 		#endif
 	}
 }
-#ifndef __AS_PY_CAN__
+#ifndef __AS_CAN_BUS__
 void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
 	Can_UnitType *canUnit;

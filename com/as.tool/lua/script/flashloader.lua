@@ -26,6 +26,13 @@ local dcm_chl = 0
 
 local FLASH_WRITE_SIZE = 512
 local FLASH_READ_SIZE  = 512
+
+-- local l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+-- local l_app = "D:/repository/as/release/asboot/out/stm32f107vc.s19"
+
+local l_bootloader = "/home/parai/workspace/as/release/asboot/out/posix.exe &"
+local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+local l_app = "/home/parai/workspace/as/release/asboot/out/stm32f107vc.s19"
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
@@ -283,7 +290,7 @@ function upload_one_record(addr,size,mem)
 end
 
 function download_flash_driver()
-  srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
+  srecord = s19.open(l_flsdrv)
   
   if( nil == srecord ) then
     print("  >> invalid flash driver srecord file!")
@@ -324,7 +331,7 @@ function fl_compare(s1,s2)
 end
 
 function check_flash_driver()
-  srecord = s19.open("D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19")
+  srecord = s19.open(l_flsdrv)
   
   if( nil == srecord ) then
     print("  >> invalid flash driver srecord file!")
@@ -357,7 +364,7 @@ end
 
 function download_application()
 
-  srecord = s19.open("D:/repository/as/release/ascore/out/stm32f107vc.s19")
+  srecord = s19.open(l_app)
   
   if( nil == srecord ) then
     print("  >> invalid application srecord file!")
@@ -384,7 +391,7 @@ function download_application()
 end
 
 function check_application()
-  srecord = s19.open("D:/repository/as/release/ascore/out/stm32f107vc.s19")
+  srecord = s19.open(l_app)
   
   if( nil == srecord ) then
     print("  >> invalid application srecord file!")
@@ -440,7 +447,14 @@ function main(argc,argv)
 	as.can_open(can_bus,"rpmsg",0,1000000)
   else
 	--as.can_open(can_bus,"serial",3,115200)	-- COM4
-	as.can_open(can_bus,"serial",3,57600)
+	--as.can_open(can_bus,"serial",3,57600)
+	os.execute("sudo modprobe vcan")
+	os.execute("sudo ip link add dev can0 type vcan")
+	os.execute("sudo ip link set up can0")
+	as.can_open(can_bus,"socket",0,1000000)
+
+	os.execute(l_bootloader)
+	os.usleep(1000)
   end
   -- os.execute("mkdir laslog")
   as.can_log("laslog/flash-loader.asc")
@@ -453,6 +467,7 @@ function main(argc,argv)
     end
   end
   as.can_log() -- no paramter close the file
+  os.execute("pgrep .exe|xargs -i kill -9 {}")
 end
 
 main(rawlen(arg),arg)

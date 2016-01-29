@@ -537,7 +537,7 @@ void DslMain(void) {
 				if( TRUE == runtime->S3ServerStarted ) {
 					DECREMENT(runtime->S3ServerTimeoutCount);
 					if (runtime->S3ServerTimeoutCount == 0) {
-						ASLOG(DCM,"S3Server Timeout!\n");
+						ASLOG(STDOUT,"\n\n S3Server Timeout!\n\n");
 						changeDiagnosticSession(runtime, DCM_DEFAULT_SESSION); /** @req DCM140 */
 						runtime->protocolStarted = FALSE;
 						if( (NULL != DcmDslRunTimeData.activeProtocol) &&
@@ -863,7 +863,7 @@ void DslRxIndicationFromPduR(PduIdType dcmRxPduId, NotifResultType result) {
 						runtime->diagnosticResponseFromDsd.SduLength = protocolRow->DslProtocolTxBufferID->pduInfo.SduLength;
 						ASLOG( DCM, "DsdDslDataIndication(DcmDslProtocolTxPduId=%d, dcmRxPduId=%d)\n", mainConnection->DslProtocolTx->DcmDslProtocolTxPduId, dcmRxPduId);
 						runtime->diagReqestRxPduId = dcmRxPduId;
-						ASLOG(DCM,"\n\n runtime->diagnosticRequestFromTester.SduDataPtr[2]  %x\n\n ",runtime->diagnosticRequestFromTester.SduDataPtr[2]);
+						ASLOG(OFF,"\n\n runtime->diagnosticRequestFromTester.SduDataPtr[0]  %x\n\n ",runtime->diagnosticRequestFromTester.SduDataPtr[0]);
 						DsdDslDataIndication(  // qqq: We are inside a critical section.
 								&(runtime->diagnosticRequestFromTester),
 								protocolRow->DslProtocolSIDTable,	/** @req DCM035 */

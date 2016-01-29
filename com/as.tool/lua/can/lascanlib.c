@@ -26,6 +26,7 @@
 #define CAN_BUS_PDU_NUM   16
 
 #define AS_LOG_LUA 0
+#define AS_LOG_CAN 0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct {
     /* the CAN ID, 29 or 11-bit */
@@ -318,7 +319,7 @@ static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t*
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#ifndef __AS_PY_CAN__
+#if !defined(__AS_PY_CAN__) && !defined(__AS_CAN_BUS__)
 int luai_can_open  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
@@ -476,6 +477,8 @@ int luai_can_write (lua_State *L)
 			if(b->device.ops->write)
 			{
 				boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
+				ASLOG(CAN,"can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+										busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);
 				logCan(FALSE,busid,canid,dlc,data);
 				if(rv)
 				{
@@ -538,6 +541,10 @@ int luai_can_read  (lua_State *L)
 		{
 			int table_index,i;
 
+			ASLOG(CAN,"can_read(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+									busid,pdu->msg.id,pdu->msg.length,
+									pdu->msg.sdu[0],pdu->msg.sdu[1],pdu->msg.sdu[2],pdu->msg.sdu[3],
+									pdu->msg.sdu[4],pdu->msg.sdu[5],pdu->msg.sdu[6],pdu->msg.sdu[7]);
 			lua_pushboolean(L, TRUE);
 			lua_pushinteger(L,pdu->msg.id);
 			lua_newtable(L);
@@ -639,7 +646,7 @@ void luai_canlib_close(void)
 		fclose(canLog);
 	}
 }
-#ifdef __AS_PY_CAN__
+#if defined(__AS_PY_CAN__) || defined(__AS_CAN_BUS__)
 int can_open(unsigned long busid,const char* device_name,unsigned long port, unsigned long baudrate)
 {
 	int rv;
@@ -723,7 +730,11 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	fflush(stdout);
 	return rv;
 }
+#if defined(__AS_CAN_BUS__)
 int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char** data)
+#else
+int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char* data)
+#endif
 {
 	int rv = FALSE;
 	struct Can_Pdu_s* pdu;
@@ -748,6 +759,10 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 			size_t size = 0;
 			*p_canid = pdu->msg.id;
 			*dlc = pdu->msg.length;
+			#if defined(__AS_CAN_BUS__)
+			asAssert(data);
+			memcpy(data,pdu->msg.sdu,*dlc);
+			#else
 			*data = malloc((*dlc)*2+1);
 			asAssert(*data);
 			for(unsigned long i=0;i<*dlc;i++)
@@ -755,6 +770,7 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 				size += snprintf((char*)&((*data)[size]),(*dlc)*2+1-size,"%02X",pdu->msg.sdu[i]);
 			}
 			(*data)[size] = '\0';
+			#endif
 			free(pdu);
 			rv = TRUE;
 		}

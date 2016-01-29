@@ -106,7 +106,7 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 ifeq ($(use_nvm),yes)
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 endif
-def-y += -D__AS_PY_CAN__
+def-y += -D__AS_CAN_BUS__
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
@@ -303,7 +303,7 @@ clean:
 17:
 	make all board=stm32f107vc compiler=cortexm3-icc debug=false
 	
-# ---------------------------------- [ STM32F107VC ] ---------------------------------- #
+# ---------------------------------- [ STM32F107VC-FLSDRV ] ---------------------------------- #
 21:
 	make dep board=stm32f107vc-flsdrv compiler=cortexm3-gcc
 22:

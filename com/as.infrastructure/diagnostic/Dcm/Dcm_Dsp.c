@@ -496,7 +496,7 @@ boolean DspCheckSessionLevel(Dcm_DspSessionRowType const* const* sessionLevelRef
 		}
 	}
 
-	ASLOG(DCM,"DspCheckSessionLevel()=%s\n",(TRUE==levelFound)?"True":"False");
+	ASLOG(DCM,"DspCheckSessionLevel(%d)=%s\n",currentSession,(TRUE==levelFound)?"True":"False");
 	return levelFound;
 }
 
