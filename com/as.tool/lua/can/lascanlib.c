@@ -731,9 +731,9 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	return rv;
 }
 #if defined(__AS_CAN_BUS__)
-int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char** data)
-#else
 int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char* data)
+#else
+int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char** data)
 #endif
 {
 	int rv = FALSE;

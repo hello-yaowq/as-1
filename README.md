@@ -36,6 +36,16 @@ because I am not powerful so I decided to develop small but smart part of automo
 ## 5. Lua Script Integrated
 * support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
 
+## Setup Environment
+sudo apt-get install git
+sudo apt-get install libxext6 libxext-dev libqt4-dev libqt4-gui libqt4-sql qt4-dev-tools qt4-doc qt4-designer qt4-qtconfig "python-qt4-*" python-qt4
+sudo apt-get install pyqt5-dev pyqt5-dev-tools
+sudo apt-get install libreadline6 libreadline6-dev
+sudo apt-get install openjdk-7-jre
+sudo apt-get install build-essential
+sudo apt-get install gcc-arm-none-eabi
+sudo apt-get install gcc-arm-linux-gnueabi
+
 ## Clone
 > git clone https://github.com/sics-sse/moped.git
 
