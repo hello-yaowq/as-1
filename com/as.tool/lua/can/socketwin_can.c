@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef __LINUX__
+#ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "lascanlib.h"
@@ -24,20 +24,34 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
 #include "asdebug.h"
 
-#include <linux/can.h>
-#include <linux/can/raw.h>
+/* Link with ws2_32.lib */
+#ifndef __GNUC__
+#pragma comment(lib, "Ws2_32.lib")
+#else
+/* -lwsock32 */
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
-/* virtual socket can
- * sudo modprobe vcan
- * sudo ip link add dev vcan0 type vcan
- * sudo ip link set up vcan0
- */
+#define CAN_MAX_DLEN 8
+#define CAN_MTU sizeof(struct can_frame)
 /* ============================ [ TYPES     ] ====================================================== */
+/**
+ * struct can_frame - basic CAN frame structure
+ * @can_id:  CAN ID of the frame and CAN_*_FLAG flags, see canid_t definition
+ * @can_dlc: frame payload length in byte (0 .. 8) aka data length code
+ *           N.B. the DLC field from ISO 11898-1 Chapter 8.4.2.3 has a 1:1
+ *           mapping of the 'data length code' to the real payload length
+ * @data:    CAN frame payload (up to 8 byte)
+ */
+struct can_frame {
+	uint32_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
+	uint8_t    can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
+	uint8_t    data[CAN_MAX_DLEN] __attribute__((aligned(8)));
+};
 struct Can_SocketHandle_s
 {
 	uint32_t busid;
@@ -45,8 +59,7 @@ struct Can_SocketHandle_s
 	uint32_t baudrate;
 	can_device_rx_notification_t rx_notification;
 	int s; /* can raw socket */
-	struct sockaddr_can addr;
-	struct ifreq ifr;
+	struct sockaddr_in addr;
 	STAILQ_ENTRY(Can_SocketHandle_s) entry;
 };
 struct Can_SocketHandleList_s
@@ -99,6 +112,9 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		STAILQ_INIT(&socketH->head);
 
 		socketH->terminated = TRUE;
+
+		WSADATA wsaData;
+		WSAStartup(MAKEWORD(2, 2), &wsaData);
 	}
 
 	handle = getHandle(port);
@@ -111,10 +127,12 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 	else
 	{
 		int s;
-		struct sockaddr_can addr;
-		struct ifreq ifr;
+		struct sockaddr_in addr;
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+		addr.sin_port = htons(port);
 		/* open socket */
-		if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+		if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
 			perror("CAN socket : ");
 			ASWARNING("CAN Socket port=%d open failed!\n",port);
 			rv = FALSE;
@@ -122,31 +140,14 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 
 		if( rv )
 		{
-			snprintf(ifr.ifr_name,IFNAMSIZ - 1,"can%d", port);
-			ifr.ifr_name[IFNAMSIZ - 1] = '\0';
-			ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
-			if (!ifr.ifr_ifindex) {
-				perror("CAN socket if_nametoindex");
-				ASWARNING("CAN Socket port=%d if_nametoindex failed!\n",port);
-				rv = FALSE;
-			}
-		}
-
-		if( rv )
-		{
-			addr.can_family = AF_CAN;
-			addr.can_ifindex = ifr.ifr_ifindex;
-
-			/* disable default receive filter on this RAW socket */
-			/* This is obsolete as we do not read from the socket at all, but for */
-			/* this reason we can remove the receive list in the Kernel to save a */
-			/* little (really a very little!) CPU usage.                          */
-			/* setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0); */
-
-			if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-				perror("CAN socket bind");
-				ASWARNING("CAN Socket port=%d bind failed!\n",port);
-				rv = FALSE;
+			/* Connect to server. */
+			int ercd = connect(s, (SOCKADDR *) & addr, sizeof (SOCKADDR));
+			if (ercd == SOCKET_ERROR) {
+				printf("connect function failed with error: %d\n", WSAGetLastError());
+				ercd = closesocket(s);
+				if (ercd == SOCKET_ERROR){
+					printf("closesocket function failed with error: %d\n", WSAGetLastError());
+				}
 			}
 		}
 
@@ -160,7 +161,6 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			handle->rx_notification = rx_notification;
 			handle->s = s;
 			memcpy(&(handle->addr),&addr,sizeof(addr));
-			memcpy(&(handle->ifr),&ifr,sizeof(ifr));
 			STAILQ_INSERT_TAIL(&socketH->head,handle,entry);
 		}
 		else
@@ -257,5 +257,5 @@ static void * rx_daemon(void * param)
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#endif /* __LINUX__ */
+#endif /* __WINDOWS__ */
 
