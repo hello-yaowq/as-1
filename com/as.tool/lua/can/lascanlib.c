@@ -293,13 +293,13 @@ static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t*
 {
 	static struct timeval m0 = { -1 , -1 };
 
-	if(-1 == m0.tv_sec)
+	if( (-1 == m0.tv_sec) && (-1 == m0.tv_usec) )
 	{
 		gettimeofday(&m0,NULL);
 	}
 	if(NULL != canLog)
 	{
-		static struct timeval m1;
+		struct timeval m1;
 		gettimeofday(&m1,NULL);
 
 		float rtim = m1.tv_sec-m0.tv_sec;

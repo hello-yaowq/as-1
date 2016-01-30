@@ -103,7 +103,7 @@ end
 
 local function elapsed(pre)
 
-  gap = os.clock() -pre
+  gap = as.time() -pre
 
   return gap
 end
@@ -113,7 +113,7 @@ local function waitRF(channel)
   ercd = false
   data=nil
   rxid = runtime[channel]["rxid"]
-  pre = os.clock()
+  pre = as.time()
   while (elapsed(pre) < 5.0) and (ercd == false) do   -- 1s timeout
     result,canid,data = as.can_read(channel,rxid)
     if result and (canid == rxid) then

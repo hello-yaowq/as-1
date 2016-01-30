@@ -1,4 +1,4 @@
-#! /bin/python
+#! /usr/bin/python3
 __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai

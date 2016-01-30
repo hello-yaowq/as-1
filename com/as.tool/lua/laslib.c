@@ -21,13 +21,14 @@
 typedef void (*luaL_open_t)(void);
 typedef void (*luaL_close_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
-
+static int luai_as_time (lua_State *L);
 /* ============================ [ DATAS     ] ====================================================== */
 static const luaL_Reg aslib[] = {
 		{"can_write",luai_can_write},
 		{"can_read", luai_can_read},
 		{"can_open", luai_can_open},
 		{"can_log",  luai_can_log},
+		{"time",     luai_as_time},
 		{NULL,NULL}
 };
 static const luaL_open_t open_ops[] =
@@ -40,8 +41,26 @@ static const luaL_open_t close_ops[] =
 	luai_canlib_close,
 	NULL
 };
-/* ============================ [ LOCALS    ] ====================================================== */
+static struct timeval m0;
 
+/* ============================ [ LOCALS    ] ====================================================== */
+static int luai_as_time (lua_State *L) {
+	struct timeval m1;
+
+	gettimeofday(&m1,NULL);
+	lua_Number rtim = m1.tv_sec-m0.tv_sec;
+
+	if(m1.tv_usec > m0.tv_usec)
+	{
+		rtim += (lua_Number)(m1.tv_usec-m0.tv_usec)/1000000.0;
+	}
+	else
+	{
+		rtim = rtim - 1 + (lua_Number)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
+	}
+    lua_pushnumber(L, rtim);
+    return 1;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 LUAMOD_API int luaopen_as (lua_State *L)
 {
@@ -52,6 +71,9 @@ LUAMOD_API int luaopen_as (lua_State *L)
 		libopen ++;
 	}
 	luaL_newlib(L, aslib);
+
+	gettimeofday(&m0,NULL);
+
 	return 1;
 }
 
