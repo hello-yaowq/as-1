@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Sg w='320' h='480'>
+<Sg w='320' h='480' p='1'>
 <!-- Sg Configuration File -->
 <!-- name: name of the widget or the resource -->
 <!-- SgBMP{n}: n static SgBMP resources -->
@@ -13,7 +13,7 @@
 	x        = '0'
 	y        = '0'
 	w        = '320'	
-	h        = '480'				
+	h        = '480'
 	layer    = '0'
 	refresh  = 'NULL'
 	>

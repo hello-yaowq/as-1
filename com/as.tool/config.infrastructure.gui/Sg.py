@@ -255,6 +255,7 @@ def GenerateSg(file):
     fph.write('\n#ifndef SGRES_H\n#define SGRES_H\n\n')
     fph.write('#define __SG_WIDTH__ %s\n'%(root.attrib['w']))
     fph.write('#define __SG_HEIGHT__ %s\n\n'%(root.attrib['h']))
+    fph.write('#define __SG_PIXEL__ %s\n\n'%(root.attrib['p']))
     
     fpc.write('SgWidget SGWidget[%s] = \n{\n'%(len(widgets)))
     for w in widgets:

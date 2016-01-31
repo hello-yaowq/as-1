@@ -25,11 +25,6 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-/* Lcd_Init
- * width  : width  of the LCD screen
- * height : height of the LCD screen
- * pixel  : pixel size of the LCD screen
- */
-void Lcd_Init(uint32 width,uint32 height,uint8 pixel);
+void Lcd_Init(void);
 void LCD_DrawPixel( uint32 x, uint32 y, uint32 color );
 #endif /* COM_CLANG_INCLUDE_LCD_H_ */

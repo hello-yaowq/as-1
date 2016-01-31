@@ -264,7 +264,7 @@ studio:
 dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
 	
-dep-posix: $(ASCORE)/SgDesign/SgRes/SgRes.h dep-as-virtual
+dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)

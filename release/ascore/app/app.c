@@ -32,7 +32,7 @@ void StartupHook(void)
 {
 	printf(" start application BUILD @ %s %s\n",__DATE__,__TIME__);
 #ifdef USE_GUI
-	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
+	Lcd_Init();
 	Sg_Init();
 	OsSetRelAlarm(AlarmApp, 10, 100);
 #endif
@@ -40,7 +40,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
-	ASLOG(OS,"TaskApp is running\n");
+	ASLOG(OFF,"TaskApp is running\n");
 #ifdef USE_GUI
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();

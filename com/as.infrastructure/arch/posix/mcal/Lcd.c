@@ -393,13 +393,13 @@ static DWORD Lcd_Thread(LPVOID param)
 #endif /* GUI_USE_GTK */
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Lcd_Init(uint32 width,uint32 height,uint8 pixel)
+void Lcd_Init(void)
 {
 	if(NULL == lcdThread)
 	{
-		lcdWidth  = width;
-		lcdHeight = height;
-		lcdPixel  = pixel;
+		lcdWidth  = __SG_WIDTH__;
+		lcdHeight = __SG_HEIGHT__;
+		lcdPixel  = __SG_PIXEL__;
 
 		asAssert(lcdPixel);
 
