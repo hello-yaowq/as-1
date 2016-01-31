@@ -35,17 +35,16 @@ private:
     void* hxDll;
     PF_MAIN pfMain;
     QString name;
-#ifndef __AS_CAN_BUS__
     Virtio* virtio;
-#endif
+
 public:
     explicit vEcu ( QString dll, QObject *parent = 0);
     ~vEcu ( );
     QString Name(void) { return name; }
 #ifndef __AS_CAN_BUS__
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
-    void Shell_Write(QString cmd);
 #endif
+    void Shell_Write(QString cmd);
 private slots:
 #ifndef __AS_CAN_BUS__
     void On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* data);

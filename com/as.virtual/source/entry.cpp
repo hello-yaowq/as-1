@@ -36,9 +36,7 @@ Entry::Entry ( QWidget *parent )
     this->setGeometry(50,50,600,20);
 
     registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
-#ifndef __AS_CAN_BUS__
     registerDevice(new arShell(SHELL_DEVICE_NAME,this));
-#endif
 
     loadEcu();
 }
@@ -200,13 +198,13 @@ void Entry::On_Can_RxIndication(vEcu* fromEcu,quint8 busid,quint32 canid,quint8 
         }
     }
 }
+#endif
 void Entry::Shell_Write(QString ecu_name,QString cmd)
 {
     vEcu* ecu = getEcu(ecu_name);
     assert(ecu);
     ecu->Shell_Write(cmd);
 }
-#endif
 // ==================== [ SIGNALS       ] =====================================
 
 // ==================== [ PRIVATE SLOTS ] ======================================

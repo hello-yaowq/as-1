@@ -80,7 +80,5 @@ void arShell::createGui(void)
 
 void arShell::on_btnSendCommand_clicked(void)
 {
-#ifndef __AS_CAN_BUS__
     Entry::Self()->Shell_Write(cbEcu->currentText(),leCmd->text());
-#endif
 }
