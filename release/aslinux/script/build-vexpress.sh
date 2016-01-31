@@ -27,9 +27,9 @@ if [ ! -f .config ] ; then
   cp arch/arm/configs/vexpress_defconfig .config
   make menuconfig O=.
 fi
-make uImage -j2 LOADADDR=0x60003000
+#make uImage -j2 LOADADDR=0x60003000
+make all
 cd ..
-cp -fv linux-3.18/arch/arm/boot/zImage out/zImage
 cp -fv linux-3.18/arch/arm/boot/zImage out/rootfs/zImage
 cp -fv linux-3.18/vmlinux out/rootfs/vmlinux
 
@@ -84,6 +84,11 @@ mkdir -pv tmp
 sudo mount -t ext3 sdcard.ext3 tmp/ -o loop
 
 sudo cp rootfs/* tmp/ -rvf
+sudo mkdir tmp/dev
+sudo mknod tmp/dev/tty1 c 4 1
+sudo mknod tmp/dev/tty2 c 4 2
+sudo mknod tmp/dev/tty3 c 4 3
+sudo mknod tmp/dev/tty4 c 4 4
 
 sudo umount tmp
 rm tmp -fr
