@@ -49,14 +49,8 @@ sudo apt-get insatll g++-arm-linux-gnueabi
 sudo apt-get install libncurses5-dev
 sudo apt-get install gawk autoconf
 sudo apt-get install zlib1g-dev libglib2.0-0 libglib2.0-dev
-
-wget http://wiki.qemu-project.org/download/qemu-2.0.2.tar.bz2
-bzip2 -dvk qemu-2.0.2.tar.bz2
-tar -xvf qemu-2.0.2.tar
-cd qemu-2.0.2
-./configure --target-list=arm-softmmu --audio-drv-list=
-make 
-make install
+sudo apt-get install libsdl-dev
+sudo apt-get install libgtk2.0-dev libgtk-3-dev
 
 
 ## Clone

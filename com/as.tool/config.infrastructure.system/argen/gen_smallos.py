@@ -64,7 +64,7 @@ def genForSmallOS_H(gendir,os_list):
     
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
-        fp.write('#define RES_ID_%-32s %s\n'%(res.attrib['name'],id+1))
+        fp.write('#define RES_ID_%-32s %s\n'%(GAGet(res,'Name'),id+1))
     fp.write('#define RES_NUMBER %s\n\n'%(len(res_list)+1))
     
     alarm_list = ScanFrom(os_list,'Alarm')

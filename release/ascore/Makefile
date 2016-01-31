@@ -603,13 +603,13 @@ endif
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=atk2-sc4 debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 
