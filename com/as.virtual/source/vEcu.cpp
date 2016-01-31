@@ -69,12 +69,14 @@ vEcu::vEcu ( QString dll, QObject *parent )
      assert(pfMain);
      assert(p_setlog);
      p_setlog(dll.toStdString().c_str(),(aslog_t)aslog);
-
+#ifndef __AS_CAN_BUS__
      virtio = new Virtio(hxDll,this);
 
      connect(virtio,SIGNAL(Can_RxIndication(quint8,quint32,quint8,quint8*)),this,
              SLOT(On_Can_RxIndication(quint8,quint32,quint8,quint8*)));
+#endif
 }
+#ifndef __AS_CAN_BUS__
 void vEcu::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     virtio->Can_Write(busid,canid,dlc,data);
@@ -89,7 +91,7 @@ void vEcu::On_Can_RxIndication(quint8 busid,quint32 canid,quint8 dlc,quint8* dat
 {
     emit Can_RxIndication(this,busid,canid,dlc,data);
 }
-
+#endif
 vEcu::~vEcu ( )
 {
 #ifdef __WINDOWS__
@@ -97,14 +99,17 @@ vEcu::~vEcu ( )
 #else
     dlclose(hxDll);
 #endif
+#ifndef __AS_CAN_BUS__
     delete virtio;
-    exit(0);
+#endif
 }
 
 void vEcu::run(void)
 {
     ASLOG(VECU,"starting the Ecu<%s>\n",name.toStdString().c_str());
+#ifndef __AS_CAN_BUS__
     virtio->start();
+#endif
     const char* argv[1];
     argv[0] = name.toStdString().c_str();
     pfMain(1,argv);

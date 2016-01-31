@@ -36,7 +36,9 @@ Entry::Entry ( QWidget *parent )
     this->setGeometry(50,50,600,20);
 
     registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
+#ifndef __AS_CAN_BUS__
     registerDevice(new arShell(SHELL_DEVICE_NAME,this));
+#endif
 
     loadEcu();
 }
@@ -113,10 +115,10 @@ void Entry::registerEcu ( vEcu* ecu )
         vmEcu * action = new vmEcu(ecu,this);
         connect(startAllEcu,SIGNAL(triggered()),action,SLOT(start()));
         toolbar->addAction(action);
-
+#ifndef __AS_CAN_BUS__
         connect(ecu,SIGNAL(Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)),this,
                 SLOT(On_Can_RxIndication(vEcu*,quint8,quint32,quint8,quint8*)));
-
+#endif
         arShell* sh = (arShell*)getDevice(SHELL_DEVICE_NAME);
         if(sh != NULL)
         {
@@ -165,6 +167,7 @@ vEcu* Entry::getEcu ( QString name )
         return NULL;
     }
 }
+#ifndef __AS_CAN_BUS__
 void Entry::Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     vEcu* ecu;
@@ -203,7 +206,7 @@ void Entry::Shell_Write(QString ecu_name,QString cmd)
     assert(ecu);
     ecu->Shell_Write(cmd);
 }
-
+#endif
 // ==================== [ SIGNALS       ] =====================================
 
 // ==================== [ PRIVATE SLOTS ] ======================================

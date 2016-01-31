@@ -217,3 +217,4 @@ else
 	@(cp -v $(exe-dir)/*.pyd $(prj-dir)/com/as.tool/lua/script)
 endif
 	@(cd $(prj-dir)/com/as.tool/as.one.py; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)
+	@(cp -v $(exe-dir)/libpyas.a $(VIRTUAL)/source/libpyas.so)

@@ -12,11 +12,12 @@ TARGET = AsVitrual
 TEMPLATE = app
 
 ##@Linux Flags
-#DEFINES += __LINUX__
-#LIBS += -L/lib64 -l:libdl.so.2
+DEFINES += __LINUX__ __AS_CAN_BUS__
+LIBS += -L/lib64 -l:libdl.so.2
+LIBS += -L/home/parai/workspace/as/com/as.virtual/source -l:libpyas.so
 
 ##@Windows Flags
-DEFINES += __WINDOWS__
+#DEFINES += __WINDOWS__
 
 DEFINES += USE_OPENCAN_DIRECTLY DYNAMIC_XLDRIVER_DLL
 

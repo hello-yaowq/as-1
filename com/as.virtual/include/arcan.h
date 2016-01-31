@@ -60,6 +60,9 @@ private slots:
     void on_btnHexlDeci_clicked(void);
     void on_btnAbsRelTime_clicked(void);
     void on_btnTriggerTx_clicked(void);
+#ifdef __AS_CAN_BUS__
+    void timerEvent(QTimerEvent* e);
+#endif
 private:
     void createGui(void);
     void putMsg(QString from,quint8 busid,quint32 canid,quint8 dlc,quint8* data,bool isRx=true);

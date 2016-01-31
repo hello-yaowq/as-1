@@ -24,20 +24,39 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef __AS_CAN_BUS__
+extern "C" int can_open(unsigned long busid,const char* device_name,unsigned long port, unsigned long baudrate);
+extern "C" int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
+extern "C" int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char* data);
+extern "C" void luai_canlib_open(void);
+extern "C" void luai_canlib_close(void);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 TickType GetOsTick(void)
 {
-    return (TickType)clock();
-}
-TickType  GetOsElapsedTick  ( TickType prevTick )
-{
-    if ((TickType)clock() >= prevTick) {
-        return((TickType)clock() - prevTick);
+    static struct timeval m0 = { -1 , -1 };
+
+    if( (-1 == m0.tv_sec) && (-1 == m0.tv_usec) )
+    {
+        gettimeofday(&m0,NULL);
     }
-    else {
-        return(prevTick - (TickType)clock() + (TICK_MAX + 1));
+
+    struct timeval m1;
+    gettimeofday(&m1,NULL);
+
+    float rtim = m1.tv_sec-m0.tv_sec;
+
+    if(m1.tv_usec > m0.tv_usec)
+    {
+        rtim += (float)(m1.tv_usec-m0.tv_usec)/1000000.0;
     }
+    else
+    {
+        rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
+    }
+
+    return (TickType)(rtim*1000);
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -46,12 +65,42 @@ arCan::arCan(QString name,unsigned long channelNumber, QWidget *parent) : arDevi
     this->channelNumber = channelNumber;
     this->createGui();
     this->setGeometry(50,150,1200,500);
-
+#ifdef __AS_CAN_BUS__
+    luai_canlib_open();
+    for(int i=0;i<channelNumber;i++)
+    {
+        if(!can_open(i,"socket",i,1000000))
+        {
+            assert(0);
+        }
+    }
+    startTimer(1);
+#endif
     setVisible(true);
+
 }
 
+#ifdef __AS_CAN_BUS__
+void arCan::timerEvent(QTimerEvent* e)
+{
+    unsigned long canid,dlc;
+    unsigned char data[8];
+    int ercd;
+    for(int i=0;i<channelNumber;i++)
+    {
+        ercd = can_read(i,-1,&canid,&dlc,data);
+        if(ercd)
+        {
+            RxIndication("socket",i,canid,dlc,data);
+        }
+    }
+}
+#endif
 arCan::~arCan()
 {
+#ifdef __AS_CAN_BUS__
+    luai_canlib_close();
+#endif
 }
 
 void arCan::on_btnClearTrace_clicked(void)
@@ -284,8 +333,14 @@ void arCan::Transmit(quint8 busid,quint32 canid,quint8 dlc,quint8* data)
 {
     (void)time;
     putMsg("Qt",busid,canid,dlc,data,false);
-
+#ifndef __AS_CAN_BUS__
     Entry::Self()->Can_Write(busid,canid,dlc,data);
+#else
+    if(!can_write(busid,canid,dlc,data))
+    {
+        assert(0);
+    }
+#endif
 }
 
 void arCan::on_btnTriggerTx_clicked(void)

@@ -49,9 +49,10 @@ public:
     void registerEcu ( vEcu* ecu );
     void deleteEcu ( QString name );
     vEcu* getEcu ( QString name );
-
+#ifndef __AS_CAN_BUS__
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
     void Shell_Write(QString ecu_name,QString cmd);
+#endif
 signals:
 
 protected:
@@ -59,7 +60,9 @@ protected:
 private slots:
 	void save ( void );
 	void open ( void );
+#ifndef __AS_CAN_BUS__
     void On_Can_RxIndication(vEcu*,quint8 busid,quint32 canid,quint8 dlc,quint8* data);
+#endif
 private:
 	void createMenuAndToolbar ( void );
     void loadEcu(void);
