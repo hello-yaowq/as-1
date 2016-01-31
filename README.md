@@ -45,6 +45,9 @@ sudo apt-get install openjdk-7-jre
 sudo apt-get install build-essential
 sudo apt-get install gcc-arm-none-eabi
 sudo apt-get install gcc-arm-linux-gnueabi
+sudo apt-get insatll g++-arm-linux-gnueabi
+sudo apt-get install libncurses5-dev
+sudo apt-get install gawk
 
 ## Clone
 > git clone https://github.com/sics-sse/moped.git
