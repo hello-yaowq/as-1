@@ -1,166 +1,23 @@
-<!DOCTYPE html>
-<html>
+---
+layout: default
+---
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="as : automotive software(OSEK &amp; AUTOSAR) and its tool-chain">
+<div class="home">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+  <h1 class="page-heading">Posts</h1>
 
-    <title>as</title>
-  </head>
+  <ul class="post-list">
+    {% for post in site.posts %}
+      <li>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
 
-  <body>
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+      </li>
+    {% endfor %}
+  </ul>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/parai/as">View on GitHub</a>
+  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
 
-          <h1 id="project_title">as</h1>
-          <h2 id="project_tagline">automotive software(OSEK &amp; AUTOSAR) and its tool-chain</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/parai/as/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/parai/as/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>
-<a id="as" class="anchor" href="#as" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>as</h1>
-
-<p>automotive software and its tool-chain</p>
-
-<h2>
-<a id="why-this-repository" class="anchor" href="#why-this-repository" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>why this repository</h2>
-
-<p>because I am not powerful so I decided to develop small but smart part of automotive software.</p>
-
-<h2>
-<a id="status" class="anchor" href="#status" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Status</h2>
-
-<p>2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. </p>
-
-<h2>
-<a id="key-point" class="anchor" href="#key-point" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Key Point</h2>
-
-<h3>
-<a id="1-integrated-arccore-autosar-31-bsw" class="anchor" href="#1-integrated-arccore-autosar-31-bsw" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1. Integrated ArcCore AUTOSAR 3.1 BSW</h3>
-
-<ul>
-<li>Communication: Can CanIf PduR Com </li>
-<li>Diagnostic: CanTp Dcm</li>
-<li>System: EcuM SchM</li>
-<li>Memory: Fls Fee Eep Ea NvM MemIf</li>
-</ul>
-
-<h3>
-<a id="2-os" class="anchor" href="#2-os" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. OS</h3>
-
-<ul>
-<li><a href="https://www.toppers.jp/osek-os.html">toppers_osek</a></li>
-<li><a href="http://opensek.sourceforge.net/">FreeOSEK</a></li>
-<li><a href="http://www.freertos.org/">FreeRTOS</a></li>
-<li><a href="https://www.toppers.jp/atk2.html">toppers-atk2</a></li>
-<li>small : this OS is developed by me, OSEK BCC1 conformed</li>
-</ul>
-
-<h2>
-<a id="3-bsw-configuration-tool" class="anchor" href="#3-bsw-configuration-tool" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3. BSW configuration tool</h2>
-
-<blockquote>
-<p>This GUI tool is the one from <a href="https://github.com/parai/OpenSAR.git">OpenSAR</a> which is also developed by me, the GUI can be automatically created from xml.</p>
-</blockquote>
-
-<h2>
-<a id="4-virtual-simulation-of-autosar" class="anchor" href="#4-virtual-simulation-of-autosar" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>4. Virtual Simulation of AUTOSAR</h2>
-
-<blockquote>
-<p>Qt simulator, rpmsg strategy for the ECUs(dll) connectivity simulation </p>
-
-<ul>
-<li><a href="http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf">virtio</a></li>
-<li><a href="https://www.kernel.org/doc/Documentation/remoteproc.txt">remoteproc</a></li>
-<li><a href="https://www.kernel.org/doc/Documentation/rpmsg.txt">rpmsg</a></li>
-<li><a href="http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/">virtio ring buffer</a></li>
-<li><a href="./com/as.infrastructure/system/vm/readme.md">README</a></li>
-</ul>
-</blockquote>
-
-<h2>
-<a id="5-lua-script-integrated" class="anchor" href="#5-lua-script-integrated" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>5. Lua Script Integrated</h2>
-
-<ul>
-<li>support CAN device: CANcaseXL, <a href="http://www.peak-system.com/PCAN-USB.199.0.html?L=1">PeakCAN</a>, <a href="https://en.wikipedia.org/wiki/SocketCAN">SocketCAN</a>,also provide a kind of python library for CAN access.</li>
-</ul>
-
-<h2>
-<a id="setup-environment" class="anchor" href="#setup-environment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup Environment</h2>
-
-<p>sudo apt-get install git
-sudo apt-get install libxext6 libxext-dev libqt4-dev libqt4-gui libqt4-sql qt4-dev-tools qt4-doc qt4-designer qt4-qtconfig "python-qt4-*" python-qt4
-sudo apt-get install pyqt5-dev pyqt5-dev-tools
-sudo apt-get install libreadline6 libreadline6-dev
-sudo apt-get install openjdk-7-jre
-sudo apt-get install build-essential
-sudo apt-get install gcc-arm-none-eabi
-sudo apt-get install gcc-arm-linux-gnueabi
-sudo apt-get insatll g++-arm-linux-gnueabi
-sudo apt-get install libncurses5-dev
-sudo apt-get install gawk autoconf
-sudo apt-get install zlib1g-dev libglib2.0-0 libglib2.0-dev
-sudo apt-get install libsdl-dev
-sudo apt-get install libgtk2.0-dev libgtk-3-dev</p>
-
-<h2>
-<a id="clone" class="anchor" href="#clone" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Clone</h2>
-
-<blockquote>
-<p>git clone <a href="https://github.com/sics-sse/moped.git">https://github.com/sics-sse/moped.git</a></p>
-
-<p>git clone <a href="https://github.com/openxc/bitfield-c.git">https://github.com/openxc/bitfield-c.git</a></p>
-
-<p>git clone git://git.omapzoom.org/repo/sysbios-rpmsg.git</p>
-
-<p>git clone <a href="https://github.com/parai/freertos-multicore.git">https://github.com/parai/freertos-multicore.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/isotp-c.git">https://github.com/parai/isotp-c.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/GainOS.git">https://github.com/parai/GainOS.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/GainOS_Studio.git">https://github.com/parai/GainOS_Studio.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/OpenOSEK.git">https://github.com/parai/OpenOSEK.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/OpenSAR.git">https://github.com/parai/OpenSAR.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/WhatsApp.git">https://github.com/parai/WhatsApp.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/as.git">https://github.com/parai/as.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/GaInOS_Based_On_uTenux-tkernel.git">https://github.com/parai/GaInOS_Based_On_uTenux-tkernel.git</a></p>
-
-<p>git clone <a href="https://github.com/parai/gainos-tk.git">https://github.com/parai/gainos-tk.git</a></p>
-
-<p>git clone <a href="https://github.com/lua/lua.git">https://github.com/lua/lua.git</a></p>
-</blockquote>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">as maintained by <a href="https://github.com/parai">parai</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-    
-
-  </body>
-</html>
+</div>
