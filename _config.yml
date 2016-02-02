@@ -110,7 +110,7 @@ customLinks:
 #comment config
 disqus:
   config: false
-  id: minixalpha
+  id: parai
 
 
 #################################### global configure #######################################
@@ -123,7 +123,8 @@ highlighter: pygments
 title: AS
 description: Automotive Software collection, such as AUTOSAR&OSEK and its toolchain
 theme: kunka
-disqusname: minixalpha
+# TODO: regiter a id on https://disqus.com/
+disqusname: parai
 
 # theme can be: hack, leap-day, merlot, midnight, minimal, modernist, slate, time-machine, kunka
 # those themes are all come from GitHub Pages Themes
