@@ -97,9 +97,9 @@ customLinks:
       url: https://gitcafe.com/parai/as
     - text: as github
       url: https://github.com/parai/as
-      text: ArcCore
+    - text: ArcCore
       url: http://www.arccore.com/
-      text: toppers
+    - text: toppers
       url: https://www.toppers.jp
     message: Friends
   - item:
