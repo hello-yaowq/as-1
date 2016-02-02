@@ -1,22 +1,129 @@
-# Welcome to Jekyll!
-#
-# This config file is meant for settings that affect your whole blog, values
-# which you are expected to set up once and rarely need to edit after that.
-# For technical reasons, this file is *NOT* reloaded automatically when you use
-# 'jekyll serve'. If you change this file, please restart the server process.
 
-# Site settings
-title: Automotive Software
-email: parai@foxmail.com
-description: > # this means to ignore newlines until "baseurl:"
-  This github repository https://github.com/parai/as is dedicated for 
-  a collection of open source software for automotive, only some of them are
-  written by me directly, most of job is to do the integration and create
-  a configuraton tool and a validation tool, such as the easySAR configuration 
-  studio and the aslua script, also, this repository is for study purpose by me.
-baseurl: "/"
-#url: "http://parai.github.io/as" # the base hostname & protocol for your site
-github_username:  parai
+gems: [jekyll-paginate]
 
-# Build settings
-markdown: kramdown
+######################### theme kunka condigure ##############################################
+# Where things are
+source:       .
+destination:  ./_site
+#plugins:      ./_plugins
+#layouts:      ./_layouts
+paginate:     8
+
+# Handling Reading
+safe:         false
+include:      [".htaccess"]
+exclude:      []
+keep_files:   [".git", ".svn"]
+encoding:     "utf-8"
+markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+textile_ext:  "textile"
+
+# Filtering Content
+show_drafts:  null
+limit_posts:  0
+future:       true
+unpublished:  false
+
+# Conversion
+markdown:     kramdown
+highlighter:  pygments
+lsi:          false
+excerpt_separator: "\n\n"
+
+# Serving
+detach:       false
+port:         4000
+host:         127.0.0.1
+baseurl:      "" # does not include hostname
+
+# Outputting
+permalink:     date
+paginate_path: /page:num
+timezone:      null
+
+
+#Site config
+title: Jekyll Theme
+description: Just another Jekyll theme design and code by zhanxin.info.
+keywords: Jekyll Theme
+url: /as
+feed: /atom.xml
+favicon: http://jekyllrb.com/favicon.png
+
+#Nav config
+nav:
+  - text: Home
+    url: index.html
+  - text: Categories
+    url: navigations/categories.html
+  - text: Archives
+    url: navigations/archives.html
+  - text: Contact
+    url: navigations/contact.html
+  - text: Links
+    url: navigations/links.html
+
+#Author config
+author:
+    name: Parai
+    email: parai@foxmail.com
+    imageLink: https://avatars.githubusercontent.com/minixalpha
+    simpleIntro: parai.wang
+    detailIntro:
+      <p>Jekyll 是一个简洁的、特别针对博客平台的 静态网站 生成器。它使用一个模板目录作为网站布局的基础框架，并在其上运行 Textile 、 Markdown 或 Liquid 标记语言的转换器，最终生成一个完整的静态Web站点，可以被放置在Apache或者你喜欢的其他任何Web服务器上。它同时也是 GitHub Pages 、一个由 GitHub 提供的用于托管项目主页或博客的服务，在后台所运行的引擎。</p>
+      <p>很早之前，使用过 wordpress 来写博客。但是还要处理很多的底层问题。而使用 Jekyll 来写博客，可以很简单，写 Markdown 就好。然而，Jekyll 还很年轻，没有很多主题的支持。这里的主题，就是为 Jekyll 而写的。希望你能喜欢。</p>
+
+#Follow me, you can choose your icon by http://fortawesome.github.io/Font-Awesome/icons/#brand
+follow:
+  - class: icon-rss
+    url: /atom.xml
+  - class: icon-weibo
+    url: http://weibo.com
+  - class: icon-renren
+    url: http://renren.com
+  - class: icon-github-alt
+    url: http://github.com
+  - class: icon-twitter
+    url: http://twitter.com
+  - class: icon-google-plus
+    url: http://google.com
+
+#Links
+customLinks:
+  - item:
+    - text: Zhang Xin
+      url: http://www.zhanxin.info
+    - text: Jekyll
+      url: http://jekyllrb.com
+    - text: Jekyll Theme
+      url: http://www.zhanxin.info/themes.html
+    message: Friends
+  - item:
+    - text: Font Awesome
+      url: http://fortawesome.github.io/Font-Awesome/
+    - text: Google Font
+      url: http://www.google.com/fonts/
+    - text: jQuery
+      url: http://jquery.com/
+    message: others links
+
+#comment config
+disqus:
+  config: false
+  id: minixalpha
+
+
+#################################### global configure #######################################
+
+username: parai
+baseurl: /as
+markdown: redcarpet
+safe: false
+highlighter: pygments
+title: AS
+description: Automotive Software collection, such as AUTOSAR&OSEK and its toolchain
+theme: kunka
+disqusname: minixalpha
+
+# theme can be: hack, leap-day, merlot, midnight, minimal, modernist, slate, time-machine, kunka
+# those themes are all come from GitHub Pages Themes
