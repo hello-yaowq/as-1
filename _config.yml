@@ -67,7 +67,7 @@ nav:
 author:
     name: Parai
     email: parai@foxmail.com
-    imageLink: https://github.com/parai/as/blob/gh-pages/images/my_photo.jpg
+    imageLink: https://raw.githubusercontent.com/parai/as/gh-pages/images/my_photo.jpg
     simpleIntro: parai.wang
     detailIntro:
       <p> Automotive software and its tool-chain, mainly about AUTOSAR, now I have done the integration of ArcCore AUTOSAR 3.1 memory stack and communication stack, and I have design a configuration tool named easySAR studio to do the BSW configuration job. For the RTOS part, I have integrated freertos/toppers-osek and toppers-atk2-sc4, and I have designed a small OSEK BCC1 OS to run bootloader applicaiton.</p>
