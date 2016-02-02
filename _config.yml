@@ -91,12 +91,16 @@ follow:
 #Links
 customLinks:
   - item:
-    - text: Zhang Xin
-      url: http://www.zhanxin.info
-    - text: Jekyll
-      url: http://jekyllrb.com
-    - text: Jekyll Theme
-      url: http://www.zhanxin.info/themes.html
+    - text: AUTOSAR
+      url: http://www.autosar.org/
+    - text: as gitcafe
+      url: https://gitcafe.com/parai/as
+    - text: as github
+      url: https://github.com/parai/as
+      text: ArcCore
+      url: http://www.arccore.com/
+      text: toppers
+      url: https://www.toppers.jp
     message: Friends
   - item:
     - text: Font Awesome
