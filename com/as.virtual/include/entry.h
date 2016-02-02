@@ -51,8 +51,8 @@ public:
     vEcu* getEcu ( QString name );
 #ifndef __AS_CAN_BUS__
     void Can_Write(quint8 busid,quint32 canid,quint8 dlc,quint8* data);
-    void Shell_Write(QString ecu_name,QString cmd);
 #endif
+    void Shell_Write(QString ecu_name,QString cmd);
 signals:
 
 protected:
