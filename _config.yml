@@ -114,7 +114,7 @@ customLinks:
 #comment config
 disqus:
   config: false
-  id: autosar
+  id: parai_wang
 
 
 #################################### global configure #######################################
