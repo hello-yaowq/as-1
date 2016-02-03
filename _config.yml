@@ -114,7 +114,7 @@ customLinks:
 #comment config
 disqus:
   config: false
-  id: parai_wang
+  id: autosar
 
 
 #################################### global configure #######################################
@@ -128,7 +128,7 @@ title: AS
 description: Automotive Software collection, such as AUTOSAR&OSEK and its toolchain
 theme: kunka
 # an id on https://disqus.com/
-disqusname: parai_wang
+disqusname: autosar
 
 # theme can be: hack, leap-day, merlot, midnight, minimal, modernist, slate, time-machine, kunka
 # those themes are all come from GitHub Pages Themes
