@@ -121,14 +121,14 @@ disqus:
 
 username: parai
 baseurl: /as
-markdown: redcarpet
+markdown: kramdown
 safe: false
-highlighter: pygments
+highlighter: rouge
 title: AS
 description: Automotive Software collection, such as AUTOSAR&OSEK and its toolchain
 theme: kunka
-# TODO: regiter a id on https://disqus.com/
-disqusname: parai
+# an id on https://disqus.com/
+disqusname: parai_wang
 
 # theme can be: hack, leap-day, merlot, midnight, minimal, modernist, slate, time-machine, kunka
 # those themes are all come from GitHub Pages Themes
