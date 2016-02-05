@@ -16,3 +16,24 @@ check the startup image as below, now only 4 packages used: u-boot linux busybox
 ![qemu-vexpress-a9](/as/images/vexpress-a9/qemu-vexpress-a9-startup.png)
 As you see there is something wrong as no file "/etc/init.d/rcS" to specify the initialization job, so the next step for me is that I will study the linux initialization system and fix the issue above.
 
+OK, let's see how a simple "hello world" program run on the vexpress-a9 linux.
+
+```c
+#include <stdio.h>
+int main(int argc,char* argv[])
+{
+	printf("hello world\n");
+	return 0;
+}
+```
+
+save the code as main.c, and compiler it.
+
+```sh
+$ arm-linux-gnueabi-gcc main.c -o helloworld
+```
+
+then copy the bin file to the sdcard and invoke "make sdcard" to generate the sdcard image again, and then start the qemu emulator, on the shell of linux, run "./helloworld", you would see the print message "hello world", it is wonderfull, isn't it?
+
+Now on we have a wonderfull emulator to take a deep look of the linux world, let's start together.
+

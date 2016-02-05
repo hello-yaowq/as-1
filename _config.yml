@@ -121,7 +121,8 @@ disqus:
 
 username: parai
 baseurl: /as
-markdown: kramdown
+#markdown: kramdown
+markdown: redcarpet
 safe: false
 highlighter: rouge
 title: AS
