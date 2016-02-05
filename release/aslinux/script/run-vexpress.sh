@@ -18,6 +18,6 @@ if [ $debug -eq 1 ] ; then
     #qemu-system-arm -kernel u-boot -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio -s -S
     qemu-system-arm -kernel rootfs/zImage -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio -s -S
 else
-    #qemu-system-arm -kernel u-boot -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio
+    #qemu-system-arm -kernel rootfs/u-boot -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio
     qemu-system-arm -kernel rootfs/zImage -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio
 fi

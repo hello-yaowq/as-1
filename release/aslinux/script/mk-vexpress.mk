@@ -41,6 +41,7 @@ u-boot:
 uboot:u-boot
 	@(cd u-boot;make vexpress_ca9x4_defconfig)
 	@(cd u-boot;make all)
+	@(cd u-boot;cp -v u-boot $(rootfs))
 
 extract-busybox:
 	@bzip2 -dvk $(download)/busybox-1.24.0.tar.bz2
