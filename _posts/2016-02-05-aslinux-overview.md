@@ -37,3 +37,47 @@ then copy the bin file to the sdcard and invoke "make sdcard" to generate the sd
 
 Now on we have a wonderfull emulator to take a deep look of the linux world, let's start together.
 
+First, create a simple rcS file do initialization job to fix the error that no file "/etc/init.d/rcS".
+
+```sh
+echo "  >> welcome to the world of aslinux <<"
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:
+```
+
+OK, then on, let's see how to write a module driver that would say "hello world" when do insmod, the below is the module source code.
+
+```c
+#include <linux/kernel.h>
+#include <linux/module.h>
+MODULE_LICENSE("GPL");
+static int __init aslinux_hello_module_init(void)
+{
+	printk("Hello, aslinux hello module is installed !\n");
+	return 0;
+}
+static void __exit aslinux_hello_module_cleanup(void)
+{
+	printk("Good-bye, aslinux hello module was removed!\n");
+}
+module_init(aslinux_hello_module_init);
+module_exit(aslinux_hello_module_cleanup);
+```
+
+save it as kernel/drivers/char/aslinux_hello.c and add it to kernel menuconfig, edit kernel/drivers/char/Kconfig, add a item as below
+
+```sh
+config ASLNUX_HELLO_MODULE
+	tristate "aslinux hello world module sample"
+	depends on ARCH_VEXPRESS
+	help
+	  aslinux hello world module sample
+```
+
+then do menuconfig, under menu Device Drivers/Charactor devices, select the new add item as option \<M\>. and modify the kernel/drivers/char/Makefile, add "obj-$(CONFIG_ASLNUX_HELLO_MODULE)	+= aslinux_hello.o", then rebuild the kernel, then you would find out the moudle file by command 'find . -name "*.ko"', copy to rootfs, then when you do insmod, you would see the related print out infromation.(note, the directory "rootfs/lib/modules/3.18.0+" should be created manually)
+
+```sh
+/example # insmod aslinux_hello.ko
+Hello, aslinux hello module is installed !
+/example # rmmod aslinux_hello.ko
+Good-bye, aslinux hello module was removed!
+```
