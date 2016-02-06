@@ -1,6 +1,6 @@
-# make file to build the platform for vexpress-a9
+# make file to build the platform for vexpress-ca9
 # start from a clean directory, 
-# ln -fs /as/release/aslinux/script/mk-vexpress.mk makefile
+# ln -fs /as/release/aslinux/script/vexpress-ca9.mk makefile
 
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
@@ -41,7 +41,8 @@ askernel:$(download)/linux-3.18.tar.xz kernel/.config
 	@(cd kernel;make all)
 	@cp -fv kernel/arch/arm/boot/zImage $(rootfs)/zImage
 	@cp -fv kernel/vmlinux $(rootfs)/vmlinux
-	@find ./kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
+	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
+	@cp -fv kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
 
 u-boot:
 	@git clone git://git.denx.de/u-boot.git
@@ -64,9 +65,9 @@ $(download)/busybox-1.24.0.tar.bz2:
 busybox-menuconfig:
 	@(cd busybox;make menuconfig)
 
-busybox/.config:busybox-menuconfig
+busybox/.config:
 
-busybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
+asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make all)
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
 
