@@ -9,8 +9,15 @@ out=$(CURDIR)/out
 rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
+# first default make
+all:$(rootfs) askernel asuboot asglibc asbusybox sdcard
+	@echo "  >> build vexpress-a9 done <<"
+
 $(rootfs):
 	@mkdir -p $(rootfs)
+	@mkdir -p $(rootfs)/lib/modules
+	@mkdir -p $(rootfs)/lib/modules/3.18.0+
+	@mkdir -p $(rootfs)/example
 
 extract-kernel:
 	@xz -vdk $(download)/linux-3.18.tar.xz
@@ -29,16 +36,17 @@ kernel/.config:
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
 
-kernel:$(download)/linux-3.18.tar.xz kernel/.config
+askernel:$(download)/linux-3.18.tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
 	@cp -fv kernel/arch/arm/boot/zImage $(rootfs)/zImage
 	@cp -fv kernel/vmlinux $(rootfs)/vmlinux
+	@find ./kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
 
 u-boot:
 	@git clone git://git.denx.de/u-boot.git
 
-uboot:u-boot
+asuboot:u-boot
 	@(cd u-boot;make vexpress_ca9x4_defconfig)
 	@(cd u-boot;make all)
 	@(cd u-boot;cp -v u-boot $(rootfs))
@@ -72,7 +80,7 @@ $(download)/glibc-2.22.tar.bz2:
 	@(cd $(download;wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
 	@make extract-glibc
 
-glibc:$(download)/glibc-2.22.tar.bz2
+asglibc:$(download)/glibc-2.22.tar.bz2
 	@(cd glibc;mkdir -pv build;	\
 		cd build;	\
 		../configure arm-linux-gnueabi --target=arm-linux-gnueabi --build=i686-pc-linux-gnu --prefix= --enable-add-ons;	\
@@ -83,7 +91,10 @@ $(out)/sdcard.ext3:
 	@dd if=/dev/zero of=$@ bs=1G count=2
 	@sudo mkfs.ext3 $@
 
-sdcard:$(out)/sdcard.ext3
+asrootfs:
+	@cp aslinux/rootfs/* $(rootfs) -frv
+
+sdcard:$(out)/sdcard.ext3 asrootfs
 	@(cd $(out);mkdir -pv tmp;	\
 		sudo mount -t ext3 $< tmp/ -o loop;	\
 		sudo cp $(rootfs)/* tmp/ -rvf;	\
@@ -92,15 +103,16 @@ sdcard:$(out)/sdcard.ext3
 		sudo mknod tmp/dev/tty2 c 4 2;	\
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
+		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
 
-all:$(rootfs) kernel u-boot glibc busybox sdcard
-	@echo "  >> build vexpress-a9 done <<"
-
+example:
+	@(cd example;make all)
 
 clean:
 	@(cd kernel;make clean)
 	@(cd u-boot;make clean)
 	@(cd busybox;make clean)
 	@(cd glibc/build;make clean)
+	@(cd example;make clean)
