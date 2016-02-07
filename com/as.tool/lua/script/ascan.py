@@ -24,6 +24,7 @@ import sys
 __all__ = ['UICan']
 
 class UICan(QWidget):
+    bus_num = 4
     def __init__(self, parent=None):
         super(QWidget, self).__init__(parent)
         
@@ -36,10 +37,11 @@ class UICan(QWidget):
         self.cmbxCanPort = []
         self.cmbxCanBaud = []
         self.btnOpen = []
+        self.online=[]
         
         opens = [self.on_btnOpenClicked_0,self.on_btnOpenClicked_1,self.on_btnOpenClicked_2,self.on_btnOpenClicked_3]
         
-        for i in range(4):
+        for i in range(self.bus_num):
             self.cmbxCanBus.append(QComboBox())
             self.cmbxCanDevice.append(QComboBox())
             self.cmbxCanPort.append(QComboBox())
@@ -47,7 +49,7 @@ class UICan(QWidget):
             self.btnOpen.append(QPushButton('Open'))
             
             self.cmbxCanBus[i].addItems(['bus 0','bus 1','bus 2','bus 3','bus 4','bus 5','bus 6','bus 7'])
-            self.cmbxCanDevice[i].addItems(['serial','vxl','peak','socket'])
+            self.cmbxCanDevice[i].addItems(['socket','serial','vxl','peak'])
             self.cmbxCanPort[i].addItems(['port 0','port 1','port 2','port 3','port 4','port 5','port 6','port 7'])
             self.cmbxCanBaud[i].addItems(['125000','250000','500000','1000000','115200'])
         
@@ -57,7 +59,7 @@ class UICan(QWidget):
             
             self.cmbxCanBus[i].setCurrentIndex(i)
             self.cmbxCanDevice[i].setCurrentIndex(i)
-            if(i==0):
+            if(i==1):
                 self.cmbxCanBaud[i].setCurrentIndex(4)
             else:
                 self.cmbxCanBaud[i].setCurrentIndex(3)
@@ -68,19 +70,49 @@ class UICan(QWidget):
             grid.addWidget(self.cmbxCanBaud[i],i,3)
             grid.addWidget(self.btnOpen[i],i,4) 
             
-            self.btnOpen[i].clicked.connect(opens[i])                   
-
-
+            self.btnOpen[i].clicked.connect(opens[i])
+            self.online.append(False)
+        self.canTrace = QTextEdit()
+        self.canTrace.setReadOnly(True)
+        self.canTraceEnable = QCheckBox("CAN trace log enable")
+        self.canTraceEnable.setChecked(False)
         vbox.addLayout(grid)
+        vbox.addWidget(self.canTraceEnable)
+        vbox.addWidget(self.canTrace)
         self.setLayout(vbox)
+        self.startTimer(1)
+        self.timeTick = 0
+    
+    def timerEvent(self,ev):
+        self.timeTick += 1
+        if(self.canTraceEnable.isChecked()==False):
+            return
+        for bus in range(self.bus_num):
+            if(self.online[bus]):
+                ercd = True
+                while(ercd):
+                    ercd,canid,data = can_read(bus,-1)
+                    if(ercd):
+                        cstr = 'bus=%s canid=%03X data=['%(bus,canid)
+                        for d in data:
+                            cstr += ' %02X'%(d)
+                        cstr += '] @ %d ms'%(self.timeTick)
+                        self.canTrace.append(cstr)
     
     def on_btnOpen(self,id):
-        bus = int(str(self.cmbxCanBus[id].currentText().replace('bus','')))
-        device = str(self.cmbxCanDevice[id].currentText())
-        port = int(str(self.cmbxCanPort[id].currentText().replace('port','')))
-        baud = int(str(self.cmbxCanBaud[id].currentText()))
-        can_open(bus,device,port,baud)
-        self.btnOpen[id].setEnabled(False)
+        if(str(self.btnOpen[id].text())=='Open'):
+            bus = int(str(self.cmbxCanBus[id].currentText().replace('bus','')))
+            device = str(self.cmbxCanDevice[id].currentText())
+            port = int(str(self.cmbxCanPort[id].currentText().replace('port','')))
+            baud = int(str(self.cmbxCanBaud[id].currentText()))
+            can_open(bus,device,port,baud)
+            self.btnOpen[id].setText('Close')
+            self.online[id] = True
+        else:
+            bus = int(str(self.cmbxCanBus[id].currentText().replace('bus','')))
+            can_close(bus)
+            self.btnOpen[id].setText('Open')
+            self.online[id] = False
     
     def on_btnOpenClicked_0(self):
         self.on_btnOpen(0)

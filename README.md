@@ -51,7 +51,7 @@ sudo apt-get install gawk autoconf
 sudo apt-get install zlib1g-dev libglib2.0-0 libglib2.0-dev
 sudo apt-get install libsdl-dev
 sudo apt-get install libgtk2.0-dev libgtk-3-dev
-
+sudo apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 lib32stdc++6
 
 ## Clone
 > git clone https://github.com/sics-sse/moped.git
