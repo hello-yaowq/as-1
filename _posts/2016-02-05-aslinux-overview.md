@@ -6,16 +6,20 @@ comments: true
 ---
 
 ## Automotive Software on Linux -- [aslinux](https://github.com/parai/as/release/aslinux)
+
+### 1. prelog
 Yes, there is AGL(Auto-Graded-Linux) and GENIVI(General In Vehivle Infortainment system based on linux), so it's better to study AGL or GENIVI dirctly, but as an infrastructure software developer, I choose to new the aslinux release for the purpose to study linux system deeply and learn a way how to use linux as Automotive Software platform.
 
+### 2. simulation environment for study -- qemu vexpress ca9
 Now I almost has no idea of linux operating system, but as I think I have a very good knowledge of RTOS, I think it should be easy to know how linux operating system works if I am willing to read the fucking source code directly. I have done some basic research and I have found out that the qemu can simulate arm machine vexpress-a9 very well, and there is already some articles to teach us how to setup the software environment and build the rootfs and create a sdcard image and then the qemu could run the linux with that sdcard as file system. I think this is good for me, I can do research without buying a real board.
 
-So I following the instructions on net, and create a simple makefile [mk-vexpress.mk](https://github.com/parai/as/release/aslinux/script/mk-vexpress.mk) that can download the necessay packages and then do build job and generate the rootfs. And now I have successfully use the sacard image with the rootfs to start the qemu machine.
+So I following the instructions on net, and create a simple makefile [vexpress-ca9.mk](https://github.com/parai/as/release/aslinux/script/vexpress-ca9.mk) that can download the necessay packages and then do build job and generate the rootfs. And now I have successfully use the sacard image with the rootfs to start the qemu machine.
 
 check the startup image as below, now only 4 packages used: u-boot linux busybox and glibc.
 ![qemu-vexpress-a9](/as/images/vexpress-a9/qemu-vexpress-a9-startup.png)
 As you see there is something wrong as no file "/etc/init.d/rcS" to specify the initialization job, so the next step for me is that I will study the linux initialization system and fix the issue above.
 
+### 3. first hello world program
 OK, let's see how a simple "hello world" program run on the vexpress-a9 linux.
 
 ```c
@@ -44,6 +48,7 @@ echo "  >> welcome to the world of aslinux <<"
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:
 ```
 
+### 4. first hello world module driver
 OK, then on, let's see how to write a module driver that would say "hello world" when do insmod, the below is the module source code.
 
 ```c
@@ -81,3 +86,21 @@ Hello, aslinux hello module is installed !
 /example # rmmod aslinux_hello.ko
 Good-bye, aslinux hello module was removed!
 ```
+
+### 4. debug kernel with eclipse
+eclipse is a very wonderfull IDE for software development, with the version luna and gnuarmeclipse plugin installed, you can use it to debug the kernel with qemu. check the backend [run script](https://github.com/parai/as/release/aslinux/script/run-vexpress.sh), some code as below:
+
+```sh
+qemu-system-arm -kernel rootfs/zImage -dtb rootfs/vexpress-v2p-ca9.dtb \
+	-M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0"	\
+	-sd sdcard.ext3 -serial stdio -s -S
+```
+
+then run the eclipse to debug the kernel step by step, as the belwo picture shows.
+![qemu-vexpress-a9](/as/images/vexpress-a9/debug-kernel-with-eclipse.png)
+that's very wonderfull, isn't it?
+
+### 5. the end
+OK, by this simulation environment, I will continue to install package by package on the linux, to make the aslinux becomes a whole system with GUI/Audio/Video support. The next step for me is to research how to simulate a LCD and integrate the embededed Qt as GUI system.
+
+
