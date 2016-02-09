@@ -71,6 +71,9 @@ class Window(QMainWindow):
         self.setCentralWidget(wid)
         self.creMenu()
         
+        self.onAction('Can')
+        self.onAction('Flashloader')
+        
         self.setMinimumSize(1200, 600)
 
 def main():

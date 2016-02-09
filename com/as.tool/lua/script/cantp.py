@@ -63,14 +63,14 @@ class cantp():
         data.append(ISO15765_TPCI_SF | (length&0x0F))
         for i,c in enumerate(request):
             data.append(c&0xFF)
-        i += 2
+        i = len(data)
         while(i<8):
             data.append(self.padding)
             i += 1
         return can_write(self.canbus,self.txid,data)
     
     def __sendFF__(self,data):
-        length = rawlen(data)
+        length = len(data)
         pdu = []
         pdu.append(ISO15765_TPCI_FF | ((length>>8)&0x0F))
         pdu.append(length&0xFF)
@@ -82,7 +82,7 @@ class cantp():
         self.t_size = 6
         self.state = CANTP_ST_WAIT_FC
   
-        return can_write(self.can_bus,self.txid,pdu)
+        return can_write(self.canbus,self.txid,pdu)
     
     def __sendCF__(self,request): 
         sz = len(request)
@@ -142,15 +142,15 @@ class cantp():
                 else:
                     print("FC error as reason %X,invalid flow status"%(data[1]))
                     ercd = False
-        else:
-            print("FC error as reason %X,invalid PCI"%(data[1]))
-            ercd = False 
+            else:
+                print("FC error as reason %X,invalid PCI"%(data[1]))
+                ercd = False 
         return ercd
     
     def __schedule_tx__(self,request):
         length = len(request)
 
-        ercd = self.sendFF(request[:6])  # FF sends 6 bytes
+        ercd = self.__sendFF__(request[:6])  # FF sends 6 bytes
   
         if (True == ercd):
             while(self.t_size < length):
@@ -200,8 +200,8 @@ class cantp():
         if (True == ercd):
             if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_SF):
                 lsize = data[0]&ISO15765_TPCI_DL
-                for d in data[1:]:
-                    response.append(d)
+                for i in range(lsize):
+                    response.append(data[1+i])
                 ercd = True
                 finished = True
             elif ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FF):
@@ -282,7 +282,7 @@ class cantp():
   
         ercd,finished = self.__waitSForFF__(response)
 
-        while ((True == ercd) and (false == finished)):
+        while ((True == ercd) and (False == finished)):
             if (self.state == CANTP_ST_SEND_FC):
                 ercd = self.__sendFC__()
             elif (self.state == CANTP_ST_WAIT_CF):

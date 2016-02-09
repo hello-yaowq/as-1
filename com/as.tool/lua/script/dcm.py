@@ -63,8 +63,8 @@ class dcm():
 
     def __show_negative_response__(self,res):
         if((res[0] == 0x7f) and (len(res) == 3)):
-            service = __get_service_name__(res[1])
-            nrc = __get_nrc_name__(res[2])
+            service = self.__get_service_name__(res[1])
+            nrc = self.__get_nrc_name__(res[2])
             print("  >> service '%s' negative response '%s' "%(service,nrc))
         else:
             print("unknown response")

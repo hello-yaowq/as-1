@@ -453,7 +453,7 @@ function main(argc,argv)
 	os.execute("sudo ip link set up can0")
 	as.can_open(can_bus,"socket",0,1000000)
 
-	os.execute(l_bootloader)
+	--os.execute(l_bootloader)
 	os.usleep(1000)
   end
   -- os.execute("mkdir laslog")

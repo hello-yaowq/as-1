@@ -38,6 +38,8 @@ class AsFlashloader(QThread):
         self.enable = []
         for s in self.steps:
             self.enable.append(True)
+        self.dcm = dcm(0,0x732,0x731)
+        self.progress_value = 0
 
     def GetSteps(self):
         ss = []
@@ -50,25 +52,56 @@ class AsFlashloader(QThread):
             if(step == s.__name__.replace('_',' ')):
                 self.enable[id] = enable
 
+    def transmit(self,req,exp):
+        ercd,res = self.dcm.transmit(req)
+        if(ercd == True):
+            if(len(res)>=len(exp)):
+                for i in range(len(exp)):
+                    if((res[i]!=exp[i]) and (exp[i]!=-1)):
+                        ercd = False
+                        break
+            else:
+                ercd = False
+        if(ercd == True): 
+            self.infor.emit('  success')
+            self.progress.emit(self.progress_value)
+        else:
+            self.infor.emit('  failed')
+        return ercd,res
     def enter_extend_session(self):
-        pass
+        return self.transmit([0x10,0x03], [0x50,0x03])
     def security_extds_access(self):
-        pass
+        ercd,res = self.transmit([0x27,0x01], [0x67,0x01,-1,-1,-1,-1])
+        if(ercd):
+            seed = (res[2]<<24) + (res[3]<<16) + (res[4]<<8) +(res[5]<<0)
+            key = (seed^0x78934673)
+            self.infor.emit(' send key %X from seed %X'%(key,seed))
+            ercd,res = self.transmit([0x27,0x02,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF],[0x67,0x02])
+        return ercd
     def enter_program_session(self):
-        pass
+        return self.transmit([0x10,0x02], [0x50,0x02])
     def security_prgs_access(self):
-        pass
+        ercd,res = self.transmit([0x27,0x03], [0x67,0x03,-1,-1,-1,-1])
+        if(ercd):
+            seed = (res[2]<<24) + (res[3]<<16) + (res[4]<<8) +(res[5]<<0)
+            key = (seed^0x94586792)
+            self.infor.emit(' send key %X from seed %X'%(key,seed))
+            ercd,res = self.transmit([0x27,0x04,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF],[0x67,0x04])
+        return ercd
     def routine_erase_flash(self):
-        pass
+        return self.transmit([0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0xFF],[0x71,0x01,0xFF,0x01])
     def download_application(self):
-        pass
+        return False
     
     def run(self):
         self.infor.emit("starting ... ")
+        self.progress_value = 0
         for id,s in enumerate(self.steps):
             if(self.enable[id] == True):
-                self.infor.emit('  '+s.__name__.replace('_',' '))
-                s()
+                self.progress_value += 50/(len(self.steps))
+                self.infor.emit('>> '+s.__name__.replace('_',' '))
+                ercd = s()
+                if(ercd == False):return
         self.progress.emit(100)
 
 class AsStepEnable(QCheckBox):
@@ -123,7 +156,10 @@ class UIFlashloader(QWidget):
         self.btnOpen.clicked.connect(self.on_btnOpen_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         
-        self.app = ''
+        default_app = '/home/parai/workspace/as/release/ascore/out/s3c2440a.s19'
+        if(os.path.exists(default_app)):
+            self.app = default_app
+            self.leApplication.setText(default_app)
 
     def on_enableChanged(self,step,enable):
         self.loader.SetEnable(step, enable)
@@ -144,5 +180,5 @@ class UIFlashloader(QWidget):
             self.pgbProgress.setValue(1)
             self.loader.start()
         else:
-            QMessageBox.information(self, 'Tips', 'Please load application first!')
+            QMessageBox.information(self, 'Tips', 'Please load a valid application first!')
         

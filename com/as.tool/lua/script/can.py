@@ -29,10 +29,7 @@ def can_write(busid,canid,data):
     '''can request write on can bus <busid>'''
     sd = ''
     for i,c in enumerate(data):
-        sd += '%c'%(c&0xFF)
-    while(i<8):
-        sd += '%c'%(0x55) # default padding with 0x55
-        i += 1
+        sd += '%02X'%(c&0xFF)
     dlc = len(data)
     return __can__.write(busid,canid,dlc,sd.encode('utf-8'))
 
