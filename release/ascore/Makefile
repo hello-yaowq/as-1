@@ -171,7 +171,7 @@ ifeq ($(board),stm32f107vc)
 #rtos?=freertos
 rtos?=toppers_osek
 #rtos?=smallos
-use-boot?=no
+use-boot?=yes
 ifeq ($(compiler),cortexm3-gcc)
 ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
