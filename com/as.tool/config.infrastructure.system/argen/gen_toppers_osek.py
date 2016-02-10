@@ -286,15 +286,15 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('ResourceType        isrcb_lastres[1];\n\n')
     isr_num = len(isr_list)
     for isr in isr_list:
-        if((int(isr.attrib['vector'],10)+1)>isr_num):
-            isr_num = int(isr.attrib['vector'],10)+1
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
     if(isr_num > 0):
         fp.write('const FP tisr_pc[ %s ] = {\n'%(isr_num))
         for iid in range(isr_num):
             iname = 'NULL'
             for isr in isr_list:
-                if(iid == int(isr.attrib['vector'])):
-                    iname = isr.attrib['name']
+                if(iid == int(isr.attrib['Vector'])):
+                    iname = isr.attrib['Name']
                     break
             fp.write('\t%s, /* %s */\n'%(iname,iid))
         fp.write('};\n\n')

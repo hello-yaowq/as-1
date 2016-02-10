@@ -29,7 +29,6 @@
 #endif
 #include <core_cm3.h>
 #endif
-#include "portoffset.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define OMIT_STKMPUINFOB
 #define OMIT_OSAPMPUINFOB
