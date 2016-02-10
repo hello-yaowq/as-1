@@ -28,11 +28,11 @@ local FLASH_WRITE_SIZE = 512
 local FLASH_READ_SIZE  = 512
 
 -- local l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
--- local l_app = "D:/repository/as/release/asboot/out/stm32f107vc.s19"
+-- local l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
 
 local l_bootloader = "/home/parai/workspace/as/release/asboot/out/posix.exe &"
 local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
-local l_app = "/home/parai/workspace/as/release/asboot/out/stm32f107vc.s19"
+local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
@@ -205,7 +205,8 @@ function download_one_record(addr,size,data,mem)
   -- download application
   blockSequenceCounter = 1
   left_size = size
-  pos = 1
+  pos = 0
+
   ability = math.floor((4096-4)/FLASH_WRITE_SIZE) * FLASH_WRITE_SIZE
 
   while (left_size > 0) and (true== ercd) do
@@ -215,24 +216,33 @@ function download_one_record(addr,size,data,mem)
     req[3] = 0
     req[4] = mem
     
-    if (left_size > ability) then
-      sz = ability
+    sz = ability
+    if (left_size > ability) then      
       left_size = left_size - ability
     else
       sz = math.floor((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
       left_size = 0
     end
-    for i=pos,size,1 do
-      req[5+i-pos] = data[i]
-      
-      if((i-pos+1) >= sz) then
-        break
+
+    --print(string.format("next pos=%X,sz=%X,ability=%X",pos,sz,ability))
+
+    for i=1,sz,1 do
+      if(pos+i <= size) then
+        req[4+i] = data[pos+i]
+      else
+        req[4+i] = 0xFF
       end
     end
 
     ercd,res = dcm.transmit(dcm_chl,req)
     
-    pos = pos + sz
+    -- TODO: I don't know why sz becomes sz+4
+    --if(sz > ability) then
+    --  print("somehow bug here")
+    --  sz = ability
+    --end
+    -- pos = pos + sz
+    pos = pos + ability
 
     blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
  
@@ -275,6 +285,8 @@ function upload_one_record(addr,size,mem)
     for i=1,sz,1 do
       record[pos+i] = res[2+i]
     end
+
+    assert(sz == rawlen(res) - 2)
     
     pos = pos + sz
 
@@ -300,8 +312,8 @@ function download_flash_driver()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr']-srecord[1]['addr']
-    ercd =  download_one_record(addr,ss['size'],ss['data'],0xFD)
+    addr =  ss["addr"]-srecord[1]["addr"]
+    ercd =  download_one_record(addr,ss["size"],ss["data"],0xFD)
     if (false == ercd) then
       break
     end
@@ -322,6 +334,7 @@ function fl_compare(s1,s2)
   length = rawlen(s1)
   for i=1,length,1 do
     if s1[i] ~= s2[i] then
+      print(string.format("fl_compare: not equal @ %X %02X != %02X",i,s1[i],s2[i]))
       ercd = false
       break
     end
@@ -338,21 +351,25 @@ function check_flash_driver()
     return false
   end
   -- flash driver mapped to address 0
+  flsdrv = s19.new()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr']-srecord[1]['addr']
-    ercd,record =  upload_one_record(addr,ss['size'],0xFD)
+    addr =  ss["addr"]-srecord[1]["addr"]
+    ercd,record =  upload_one_record(addr,ss["size"],0xFD)
     if (false == ercd) then
       break
     else
-      ercd = fl_compare(srecord[i]['data'],record)
+      s19.append(flsdrv,srecord[1]["addr"],record)
+      ercd = fl_compare(srecord[i]["data"],record)
       if (false == ercd) then
+        s19.dump(flsdrv,"flsdrv_dump.s19")
         break
       end
     end
   end
  
+  s19.dump(flsdrv,"flsdrv_dump.s19")
   if (false == ercd) then
     print("  >> check flash driver failed!")
   else
@@ -374,8 +391,8 @@ function download_application()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr']
-    ercd =  download_one_record(addr,ss['size'],ss['data'],0xFF)
+    addr =  ss["addr"]
+    ercd =  download_one_record(addr,ss["size"],ss["data"],0xFF)
     if (false == ercd) then
       break
     end
@@ -397,21 +414,24 @@ function check_application()
     print("  >> invalid application srecord file!")
     return false
   end
+  app = s19.new()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-    addr =  ss['addr']
-    ercd,record =  upload_one_record(addr,ss['size'],0xFF)
+    addr =  ss["addr"]
+    ercd,record =  upload_one_record(addr,ss["size"],0xFF)
     if (false == ercd) then
       break
     else
-      ercd = fl_compare(srecord[i]['data'],record)
+      s19.append(app,srecord[i]["addr"],record)
+      ercd = fl_compare(srecord[i]["data"],record)
       if (false == ercd) then
+        s19.dump(app,"application_dump.s19")
         break
       end
     end
   end
- 
+  s19.dump(app,"application_dump.s19")
   if (false == ercd) then
     print("  >> check application failed!")
   else
@@ -467,7 +487,7 @@ function main(argc,argv)
     end
   end
   as.can_log() -- no paramter close the file
-  os.execute("pgrep .exe|xargs -i kill -9 {}")
+  --os.execute("pgrep .exe|xargs -i kill -9 {}")
 end
 
 main(rawlen(arg),arg)

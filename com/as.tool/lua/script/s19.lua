@@ -45,7 +45,7 @@ local function b2h(b)
   elseif(string.byte(b)>=string.byte("A") and string.byte(b)<=string.byte("F")) then
     v = string.byte(b) - string.byte("A") + 10
   else
-    print(string.format("%s::encounter invalid character @ line %d '%s'",l_file,l_lineno,b))
+    print(string.format("%s::encounter invalid character @ line %d "%s"",l_file,l_lineno,b))
     l_error = true
   end
   
@@ -75,8 +75,45 @@ local function s19s0(line)
   l_s19 = {}  -- initialize section codes
 end
 
+function M.new()
+	return {}
+end
+
+function M.append(record,address,data)
+  sz = rawlen(record)
+  bytes = rawlen(data)
+  if sz > 0 then
+    ss = record[sz]
+  else
+    sz = 1
+    record[sz] = {}
+    ss = record[sz]
+    ss["addr"] = address
+    ss["size"] = 0
+    ss["data"] = {}
+  end
+
+  if address == ss["addr"]+ss["size"] then
+    -- same section
+  else
+    -- new section
+    sz = sz + 1
+    record[sz] = {}
+    ss = record[sz]
+    ss["addr"] = address
+    ss["size"] = 0
+    ss["data"] = {}
+  end
+
+  dl = rawlen(ss["data"])
+  for i=1,bytes,1 do
+    ss["data"][dl+i] = data[i]
+  end
+  ss["size"] = ss["size"] + bytes
+end
+
 local function s19s3(line)
-  sz = rawlen(l_s19)
+  
   bytes  = s19byte(line,3) - 5
   address= s19long(line,5)  
   data = {}
@@ -96,34 +133,36 @@ local function s19s3(line)
     l_error = true
     return
   end
-  if sz > 0 then
-    ss = l_s19[sz]
-  else
-    sz = 1
-    l_s19[sz] = {}
-    ss = l_s19[sz]
-    ss['addr'] = address
-    ss['size'] = 0
-    ss['data'] = {}
-  end
-  
-  if address == ss['addr']+ss['size'] then
-    -- same section
-  else
-    -- new section
-    sz = sz + 1
-    l_s19[sz] = {}
-    ss = l_s19[sz]
-    ss['addr'] = address
-    ss['size'] = 0
-    ss['data'] = {}
-  end
+  M.append(l_s19,address,data)
+end
 
-  dl = rawlen(ss['data'])
-  for i=1,bytes,1 do
-    ss['data'][dl+i] = data[i]
+function M.dump(srecord,f)
+  fp = io.open(f,"w")
+  sz = rawlen(srecord)
+  for i=1,sz,1 do
+	  ss = srecord[i]
+	  address = ss["addr"]
+    size = ss["size"]
+	  data = ss["data"]
+    cstr = ""
+    last_j = 0
+    checksum = 0
+	  for j=1,size,1 do
+	    checksum = checksum + data[j]
+	    cstr = string.format("%s%02X",cstr,data[j])
+	    if( ((j%32) == 0) or (j == size)) then
+		    sz = j - last_j
+        addr = address + last_j
+        checksum = checksum + sz + 5
+        checksum = checksum + ((addr>>24)&0xFF) + ((addr>>16)&0xFF) + ((addr>>8)&0xFF) +((addr>>0)&0xFF)
+        fp:write(string.format("S3%02X%08X%s%02X\n",sz+5,addr,cstr,0xFF-(checksum&0xFF)))
+        last_j = j
+        cstr = ""
+        checksum = 0
+	    end
+	  end
   end
-  ss['size'] = ss['size'] + bytes
+  io.close(fp)
 end
 
 function M.open(f)
