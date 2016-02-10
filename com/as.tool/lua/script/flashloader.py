@@ -1,3 +1,4 @@
+from email._header_value_parser import Address
 __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
@@ -96,14 +97,117 @@ class AsFlashloader(QThread):
             self.infor.emit(' send key %X from seed %X'%(key,seed))
             ercd,res = self.transmit([0x27,0x04,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF],[0x67,0x04])
         return ercd,res
+    def request_download(self,address,size,identifier):
+        self.infor.emit(' request download')
+        return self.transmit([0x34,0x00,0x44,     \
+                            (address>>24)&0xFF,(address>>16)&0xFF,(address>>8)&0xFF,(address>>0)&0xFF,   \
+                            (size>>24)&0xFF,(size>>16)&0xFF,(size>>8)&0xFF,(size>>0)&0xFF,  \
+                            identifier],[0x74])
+
+    def request_upload(self,address,size,identifier):
+        self.infor.emit(' request upload')
+        return self.transmit([0x35,0x00,0x44,     \
+                            (address>>24)&0xFF,(address>>16)&0xFF,(address>>8)&0xFF,(address>>0)&0xFF,   \
+                            (size>>24)&0xFF,(size>>16)&0xFF,(size>>8)&0xFF,(size>>0)&0xFF,  \
+                            identifier],[0x75])
+    
+    def request_transfer_exit(self):
+        self.infor.emit(' request transfer exit')
+        return self.transmit([0x37],[0x77])
+    
+    def download_one_section(self,address,size,data,identifier):
+        FLASH_WRITE_SIZE = 512
+        blockSequenceCounter = 1
+        left_size = size
+        pos = 0
+        ability = int(((4096-4)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
+        ercd,res = self.request_download(address,size,identifier)
+        if(ercd == False):return ercd,res
+        while(left_size>0 and ercd==True):
+            req = [0x36,blockSequenceCounter,0,identifier]
+            if(left_size > ability):
+                sz = ability
+            else:
+                sz = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
+                left_size = 0
+            for i in range(sz):
+                if((pos+i)<size):
+                    req.append(data[pos+i])
+                else:
+                    req.append(0xFF)
+            self.infor.emit(' transfer block %s'%(blockSequenceCounter))
+            ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
+            if(ercd == False):return ercd,res
+            blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
+            pos += sz
+        ercd,res = self.request_transfer_exit()
+        if(ercd == False):return ercd,res
+        return ercd,res
+
+    def upload_one_section(self,address,size,identifier):
+        FLASH_READ_SIZE = 512
+        blockSequenceCounter = 1
+        left_size = size
+        ability = int(((4096-4)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
+        ercd,res = self.request_upload(address,size,identifier)
+        if(ercd == False):return ercd,res,None
+        data = []
+        while(left_size>0 and ercd==True):
+            req = [0x36,blockSequenceCounter,0,identifier]
+            self.infor.emit(' transfer block %s'%(blockSequenceCounter))
+            ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
+            if(ercd == False):return ercd,res,None
+            blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
+            sz = len(res)-2
+            if (left_size > sz):
+                left_size = left_size - sz
+            else:
+                left_size = 0
+            for b in res[2:]:
+                data.append(b)
+        ercd,res = self.request_transfer_exit()
+        if(ercd == False):return ercd,res,None
+        return ercd,res,data
+    
+    def compare(self,d1,d2):
+        for i,b in enumerate(d1):
+            if(b!=d2[i]):return False
+        return True
+
     def download_flash_driver(self):
         flsdrv = s19(self.flsdrv)
-        return False,None
+        ary = flsdrv.getData()
+        for ss in ary:
+            ercd,res = self.download_one_section(ss['address']-ary[0]['address'],ss['size'],ss['data'],0xFD)
+            if(ercd == False):return ercd,res
+        
+        for ss in ary:
+            ercd,res,up = self.upload_one_section(ss['address']-ary[0]['address'],ss['size'],0xFD)
+            if(ercd and self.compare(ss['data'], up)):
+                self.infor.emit('  check flash driver pass!')
+            else:
+                self.infor.emit('  check flash driver failed!')
+                return False,res
+        return ercd,res
+    
     def routine_erase_flash(self):
         return self.transmit([0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0xFF],[0x71,0x01,0xFF,0x01])
     
     def download_application(self):
-        return False,None
+        app = s19(self.app)
+        ary = app.getData()
+        for ss in ary:
+            ercd,res = self.download_one_section(ss['address'],ss['size'],ss['data'],0xFF)
+            if(ercd == False):return ercd,res
+        
+        for ss in ary:
+            ercd,res,up = self.upload_one_section(ss['address'],ss['size'],0xFF)
+            if(ercd and self.compare(ss['data'], up)):
+                self.infor.emit('  check application pass!')
+            else:
+                self.infor.emit('  check application failed!')
+                return False,res
+        return ercd,res
     
     def run(self):
         self.infor.emit("starting ... ")

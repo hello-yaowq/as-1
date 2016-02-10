@@ -52,6 +52,7 @@ class cantp():
         self.SN = 0
         self.t_size = 0
         self.STmin = 0
+        self.BS=0
         self.cSTmin = cfgSTmin
         self.cBS = cfgBS
         self.cfgSTmin = 0
@@ -75,7 +76,7 @@ class cantp():
         pdu.append(ISO15765_TPCI_FF | ((length>>8)&0x0F))
         pdu.append(length&0xFF)
   
-        for d in data:
+        for d in data[:6]:
             pdu.append(d)
   
         self.SN = 0
@@ -128,29 +129,29 @@ class cantp():
     def __handleFC__(self,request):
         ercd,data = self.__waitRF__()
         if (True == ercd):
-            if ((data[1]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FC):
-                if ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS): 
-                    self.cfgSTmin = data[3]
-                    self.BS = data[2]
+            if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FC):
+                if ((data[0]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_CTS): 
+                    self.cfgSTmin = data[2]
+                    self.BS = data[1]
                     self.STmin = 0   # send the first CF immediately
                     self.state = CANTP_ST_SEND_CF
-                elif ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT):
+                elif ((data[0]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_WAIT):
                     self.state = CANTP_ST_WAIT_FC
-                elif ((data[1]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW):
+                elif ((data[0]&ISO15765_TPCI_FS_MASK) == ISO15765_FLOW_CONTROL_STATUS_OVFLW):
                     print("cantp buffer over-flow, cancel...")
                     ercd = False
                 else:
-                    print("FC error as reason %X,invalid flow status"%(data[1]))
+                    print("FC error as reason %X,invalid flow status"%(data[0]))
                     ercd = False
             else:
-                print("FC error as reason %X,invalid PCI"%(data[1]))
+                print("FC error as reason %X,invalid PCI"%(data[0]))
                 ercd = False 
         return ercd
     
     def __schedule_tx__(self,request):
         length = len(request)
 
-        ercd = self.__sendFF__(request[:6])  # FF sends 6 bytes
+        ercd = self.__sendFF__(request)  # FF sends 6 bytes
   
         if (True == ercd):
             while(self.t_size < length):
@@ -181,7 +182,7 @@ class cantp():
         ercd = False
         data=None
         pre = time.time()
-        while ( ((time.time() -pre) < 1) and (ercd == False)): # 1s timeout
+        while ( ((time.time() -pre) < 5) and (ercd == False)): # 1s timeout
             result,canid,data= can_read(self.canbus,self.rxid)
             if((True == result) and (self.rxid == canid)):
                 ercd = True
@@ -209,7 +210,7 @@ class cantp():
                 for d in data[2:]:
                     response.append(d)
                 self.state = CANTP_ST_SEND_FC
-                self.state = 0
+                self.SN = 0
                 ercd = True
                 finished = False
         else:
@@ -224,13 +225,14 @@ class cantp():
    
         ercd,data = self.__waitRF__()
    
+        finished = False
         if (True == ercd ):
             if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_CF):
                 self.SN += 1
                 if (self.SN > 15):
                     self.SN = 0
        
-                SN = data[1]&0x0F
+                SN = data[0]&0x0F
                 if (SN == self.SN):
                     l_size = t_size -sz  # left size 
                     if (l_size > 7):
@@ -239,7 +241,7 @@ class cantp():
                         response.append(d)
          
                     if ((sz+l_size) == t_size):
-                        finished = true
+                        finished = True
                     else:
                         if (self.BS > 0):
                             self.BS -= 1
@@ -249,13 +251,14 @@ class cantp():
                                 self.state = CANTP_ST_WAIT_CF
                         else:
                             self.state = CANTP_ST_WAIT_CF
+                else:
+                    ercd = False
+                    finished = True
+                    print("cantp: wrong sequence number!",SN,self.SN)
             else:
+                print("invalid PCI mask %02X when wait CF"%(data[0]))
                 ercd = False
                 finished = True
-                print("cantp: wrong sequence number!",SN,self.SN)
-        else:
-            ercd = False
-            finished = True
    
         return ercd,finished
 
