@@ -33,11 +33,19 @@
 
 /* sa holds flash driver start address, 
  * pp contains pointer the pointer to the parameter structure */
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#define FLASH_DRIVER_INIT(sa, pp)     FlashInit(pp)
+#define FLASH_DRIVER_DEINIT(sa, pp)   FlashDeinit(pp)
+#define FLASH_DRIVER_ERASE(sa, pp)    FlashErase(pp)
+#define FLASH_DRIVER_WRITE(sa, pp)    FlashWrite(pp)
+#define FLASH_DRIVER_READ(sa, pp)     FlashRead(pp)
+#else
 #define FLASH_DRIVER_INIT(sa, pp)     (*(tFlashFct*) ((sa)+FLASH_DRIVER_INIT_OFFSET))  ((pp))
 #define FLASH_DRIVER_DEINIT(sa, pp)   (*(tFlashFct*) ((sa)+FLASH_DRIVER_DEINIT_OFFSET))((pp))
 #define FLASH_DRIVER_ERASE(sa, pp)    (*(tFlashFct*) ((sa)+FLASH_DRIVER_ERASE_OFFSET)) ((pp))
 #define FLASH_DRIVER_WRITE(sa, pp)    (*(tFlashFct*) ((sa)+FLASH_DRIVER_WRITE_OFFSET)) ((pp))
 #define FLASH_DRIVER_READ(sa, pp)     (*(tFlashFct*) ((sa)+FLASH_DRIVER_READ_OFFSET))  ((pp))
+#endif
 
 /* standard error codes */
 #define kFlashOk             0x00 /* called function succeeded */
