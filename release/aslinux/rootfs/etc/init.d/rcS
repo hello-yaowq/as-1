@@ -1,3 +1,5 @@
+#!/bin/sh
+
 #/**
 # * AS - the open source Automotive Software on https://github.com/parai
 # *
@@ -16,4 +18,10 @@
 # aslinux file system initialization script
 
 echo "  >> welcome to the world of aslinux <<"
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:
+
+mount -a
+mdev -s
+
+
+
+

@@ -10,8 +10,11 @@ rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
 # first default make
-all:$(rootfs) askernel asuboot asglibc asbusybox sdcard
+all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
 	@echo "  >> build vexpress-a9 done <<"
+
+# 4.8.6 or 5.5.1
+qt-version?=4.8.6
 
 $(rootfs):
 	@mkdir -p $(rootfs)
@@ -88,6 +91,83 @@ asglibc:$(download)/glibc-2.22.tar.bz2
 		make;	\
 		make install install_root=$(rootfs))
 
+$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:
+	@(cd $(download);wget http://101.44.1.124/files/A165000004244025/anychimirror101.mirrors.tds.net/pub/Qt/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz)
+	@make extract-qt
+
+extract-qt-5.5.1:$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz
+	@(gunzip -kv $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz)
+	@(tar -xvf$(download)/qt-everywhere-opensource-src-5.5.1.tar -C $(CURDIR))
+	@rm $(download)/qt-everywhere-opensource-src-5.5.1.tar
+
+extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
+	@(gunzip -kv $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
+	@(tar -xvf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
+	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
+	
+$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
+	@(cd $(download);wget http://101.44.1.117/files/82540000020A32A4/mirrors.ustc.edu.cn/qtproject/archive/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz)
+	@make extract-qt-4.8.6
+
+asqt-4.8.6:
+	@(cd qt-everywhere-opensource-src-$(qt-version);	\
+		./configure \
+			-opensource \
+			-confirm-license \
+			-release -shared \
+			-embedded arm \
+			-xplatform qws/linux-arm-g++ \
+			-depths 16,18,24 \
+			-fast \
+			-optimized-qmake \
+			-pch \
+			-qt-sql-sqlite \
+			-qt-libjpeg \
+			-qt-zlib \
+			-qt-libpng \
+			-qt-freetype \
+			-little-endian -host-little-endian \
+			-no-qt3support \
+			-no-libtiff -no-libmng \
+			-no-opengl \
+			-no-mmx -no-sse -no-sse2 \
+			-no-3dnow \
+			-no-openssl \
+			-no-webkit \
+			-no-qvfb \
+			-no-phonon \
+			-no-nis \
+			-no-opengl \
+			-no-cups \
+			-no-glib \
+			-no-xcursor -no-xfixes -no-xrandr -no-xrender \
+			-no-separate-debug-info \
+			-nomake examples -nomake tools -nomake docs \
+			-qt-mouse-tslib \
+			-I$(rootfs)/include \
+			-L$(rootfs)/usr/lib;	\
+		make;	\
+		make install INSTALL_ROOT=$(rootfs)/qt)
+
+asqt-5.5.1:
+	@(echo "  >> I don't know how to build"
+		
+asqt: $(download)/qt-everywhere-opensource-src-$(qt-version).tar.gz asqt-$(qt-version)
+	@(cd qt-everywhere-opensource-src-$(qt-version);./configure -embedded arm;make;make install INSTALL_ROOT=$(rootfs)/qt)
+
+tslib:
+	@git clone https://github.com/kergoth/tslib.git
+	@(cd tslib;git checkout 1.1 -f;git st|xargs -i rm {} -fvr)
+
+# something wrong, do manual build step by step
+astslib:tslib
+	@(cd tslib;./autogen.sh;	\
+		echo "av_cv_func_malloc_0_nonnull=yes" > arm-linux-gnueabi.cache;	\
+		./configure --host=arm-linux-gnueabi --cache-file=arm-linux-gnueabi.cache \
+		-prefix=$(CURDIR)/tslib/install)
+	@(cd tslib;make install)
+	@(cd tslib;cp -frv install/* $(rootfs))
+
 $(out)/sdcard.ext3:
 	@dd if=/dev/zero of=$@ bs=1G count=2
 	@sudo mkfs.ext3 $@
@@ -104,6 +184,8 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo mknod tmp/dev/tty2 c 4 2;	\
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
+		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
+		sudo cp ~/workspace/as/release/aslinux/rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
@@ -117,3 +199,4 @@ clean:
 	@(cd busybox;make clean)
 	@(cd glibc/build;make clean)
 	@(cd example;make clean)
+	@(cd tslib;make clean;./autogen-clean.sh)
