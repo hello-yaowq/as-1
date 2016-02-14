@@ -13,7 +13,7 @@ Yes, there is AGL(Auto-Graded-Linux) and GENIVI(General In Vehivle Infortainment
 ### 2. simulation environment for study -- qemu vexpress ca9
 Now I almost has no idea of linux operating system, but as I think I have a very good knowledge of RTOS, I think it should be easy to know how linux operating system works if I am willing to read the fucking source code directly. I have done some basic research and I have found out that the qemu can simulate arm machine vexpress-a9 very well, and there is already some articles to teach us how to setup the software environment and build the rootfs and create a sdcard image and then the qemu could run the linux with that sdcard as file system. I think this is good for me, I can do research without buying a real board.
 
-So I following the instructions on net, and create a simple makefile [vexpress-ca9.mk](https://github.com/parai/as/release/aslinux/script/vexpress-ca9.mk) that can download the necessay packages and then do build job and generate the rootfs. And now I have successfully use the sacard image with the rootfs to start the qemu machine.
+So I following the instructions on net, and create a simple makefile [vexpress-ca9.mk](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) that can download the necessay packages and then do build job and generate the rootfs. And now I have successfully use the sacard image with the rootfs to start the qemu machine.
 
 check the startup image as below, now only 4 packages used: u-boot linux busybox and glibc.
 ![qemu-vexpress-a9](/as/images/vexpress-a9/qemu-vexpress-a9-startup.png)
