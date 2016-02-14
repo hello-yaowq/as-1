@@ -173,11 +173,10 @@ $(out)/sdcard.ext3:
 	@sudo mkfs.ext3 $@
 
 asrootfs:
-	@cp aslinux/rootfs/* $(rootfs) -frv
 
 sdcard:$(out)/sdcard.ext3 asrootfs
 	@(cd $(out);mkdir -pv tmp;	\
-		sudo mount -t ext3 $< tmp/ -o loop;	\
+		sudo mount -t ext3 sdcard.ext3 tmp/ -o loop;	\
 		sudo cp $(rootfs)/* tmp/ -rvf;	\
 		sudo mkdir tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\

@@ -21,5 +21,7 @@ else
     #qemu-system-arm -kernel rootfs/u-boot -M vexpress-a9 -append "root=/dev/mmcblk0 console=ttyAMA0 console=tty0" -sd sdcard.ext3 -serial stdio
     qemu-system-arm -kernel rootfs/zImage -dtb rootfs/vexpress-v2p-ca9.dtb \
     	-M vexpress-a9 -append "init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 console=tty0" \
-    	-sd sdcard.ext3 -serial stdio -net nic -net user -smp 4 -m 512M
+    	-sd sdcard.ext3 -serial stdio -net nic -net user -smp 4 -m 512M	\
+    	-usb 
+#-usbdevice touchscreen
 fi

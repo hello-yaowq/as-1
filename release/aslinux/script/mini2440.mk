@@ -14,7 +14,7 @@ rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
 # first default make
-all:$(rootfs) askernel asuboot asglibc asbusybox sdcard
+all:$(rootfs) asmini2440-kernel asmini2440-uboot asmini2440-qemu nand
 	@echo "  >> build mini2440 done <<"
 
 $(rootfs):
@@ -39,6 +39,31 @@ askernel: kernel/.config
 	@cp -fv kernel/vmlinux $(rootfs)/vmlinux
 	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
 
+mini2440-qemu:
+#	@git clone git://repo.or.cz/qemu/mini2440.git mini2440-qemu
+	git clone https://gitcafe.com/parai/min2440-qemu.git
+
+# need to add "LIBS+=-lz -lrt -lm" to Makefile and Makefile.target
+asmini2440-qemu:mini2440-qemu
+	@(cd mini2440-qemu;./configure --target-list=arm-softmmu 	\
+		 --extra-ldflags="-lz -lrt -lm" --prefix=$(CURDIR)/opt;	\
+		make install )
+
+mini2440-boot:
+#	@git clone git://repo.or.cz/u-boot-openmoko/mini2440.git mini2440-boot
+	git clone https://gitcafe.com/parai/min2440-boot.git
+asmini2440-boot:mini2440-boot
+	@(cd mini2440-boot; make mini2440_config; make -j4 CROSS_COMPILE=arm-linux-gnueabi-; cp u-boot.bin $(out) -v)
+
+mini2440-kernel:
+#	@git clone git://repo.or.cz/linux-2.6/mini2440.git mini2440-kernel
+	git clone https://gitcafe.com/parai/min2440-kernel.git
+
+asmini2440-kernel:mini2440-kernel
+	@(cd mini2440-kernel; make mini2440_defconfig ARCH=arm;	\
+		make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage;	\
+		cp -v arch/arm/boot/uImage $(out))
+		
 extract-uboot:
 	@tar -zxvf $(download)/u-boot-1.1.6_QQ2440.tgz -C $(CURDIR)
 	@mv u-boot-1.1.6_QQ2440 u-boot
@@ -87,7 +112,7 @@ asrootfs:
 
 sdcard:$(out)/sdcard.ext3 asrootfs
 	@(cd $(out);mkdir -pv tmp;	\
-		sudo mount -t ext3 $< tmp/ -o loop;	\
+		sudo mount -t ext3 sdcard.ext3 tmp/ -o loop;	\
 		sudo cp $(rootfs)/* tmp/ -rvf;	\
 		sudo mkdir tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\
@@ -98,6 +123,19 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo umount tmp;	\
 		rm tmp -fr)
 
+nand:$(out)/rootfs.jffs2
+#	@cp -v flashimg/uboot.part $(out)
+	@(cd $(out); mkfs.jffs2 -r $(rootfs) -o rootfs.jffs2 -e 16KiB --pad=0x3aa0000 -s 0x200 -n －b)
+	@(cd $(out);	\
+		flashimg -s 64M -t nand -f nand.bin -p uboot.part -w boot,u-boot.bin -w kernel,uImage -w root,rootfs.jffs2 -z 512)
+
+run-qemu-mini2440:
+	@opt/bin/qemu-system-arm -M mini2440 -serial stdio -mtdblock out/nand.bin -usbdevice mouse
+# for the first start of qemu, need do the below command
+# MINI2440 # nboot kernel
+# MINI2440 # setenv bootargs root=/dev/mtdblock3 rootfstype=jffs2 console=ttySAC0,115200 mini2440=3tb
+# MINI2440 # saveenv
+# MINI2440 # bootm
 example:
 	@(cd example;make all)
 
