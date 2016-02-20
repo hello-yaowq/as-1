@@ -68,7 +68,7 @@ int fdt_check_header(const void *fdt)
 }
 ```
 
-OK, here let's use the Emacs open the dtb file vexpress-v2p-ca9.dtb, and display in hexl-mode,below is the part of header. As you could see that the first 4 bytes value is 0xd00dfeed which is just the value of macro FDT\_MAGIC. And then accoring to the fdt_header structure, we can easily know that the dtb version is 0x28 and the last compatible version is 0x11, so that the header check will pass and return value 0.
+OK, here let's use the Emacs open the dtb file vexpress-v2p-ca9.dtb, and display in hexl-mode,below is the part of header. As you could see that the first 4 bytes value is 0xd00dfeed which is just the value of macro FDT\_MAGIC. And then accoring to the fdt_header structure, we can easily know that the dtb version is 0x11 and the last compatible version is 0x10, so that the header check will pass and return value 0.
 And the totalsize is 0x36e0(14048), you can check that the size is the same with file vexpress-v2p-ca9.dtb.
 
 ```text
@@ -230,3 +230,6 @@ struct fdt_property {
 		}
 	}
 ```
+
+this picture below gives a simple overview about how a DTB was parsed by linux kernel, so I know that the dtb will be copied to the RAM by uboot and passed to kernel as paramter and then parsed by the kernel. And the name of the node or property can be any valid string I think, that's great, by now I know how the DTS was parsed by the kernel, so next step is that how the DTS was used by the kernel.
+![linux-dts-dtb](/as/images/vexpress-a9/linux-dts-dtb.png)
