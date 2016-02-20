@@ -69,6 +69,7 @@ busybox-menuconfig:
 	@(cd busybox;make menuconfig)
 
 busybox/.config:
+	@(cd busybox;make menuconfig)
 
 asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make all)
@@ -81,7 +82,7 @@ extract-glibc:
 	@mv glibc-2.22 glibc
 
 $(download)/glibc-2.22.tar.bz2:
-	@(cd $(download;wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
+	@(cd $(download);wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
 	@make extract-glibc
 
 asglibc:$(download)/glibc-2.22.tar.bz2
