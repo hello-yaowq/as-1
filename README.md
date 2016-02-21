@@ -57,6 +57,7 @@ sudo apt-get install automake autogen autoconf libtool
 sudo apt-get install u-boot-tools
 sudo apt-get install nfs-kernel-server
 sudo apt-get install mtd-utils
+sudo apt-get install Kolourpaint
 
 ## Clone
 > git clone https://github.com/sics-sse/moped.git
