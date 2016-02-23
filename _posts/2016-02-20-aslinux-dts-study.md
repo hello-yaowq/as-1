@@ -5,7 +5,7 @@ category: linux
 comments: true
 ---
 
-
+### unflatten\_device\_tree
 Sometimes, I really want to give up, linux is so complex to me. But for the purpose to keep me valueable, I need to do it, though it is a tough things.
 
 According to my opinion, if I want to know how to develop linux bsp, the first things that I need to know is linux DTS. So let me start. This [article](http://blog.csdn.net/ermuzhi/article/details/9289523) from csdn do give a basic introduction of linux DTS, you can read it firstly. so let's use qemu and eclipse to debug it start\_kernel() --> setup\_arch() --> unflatten\_device\_tree().
@@ -233,3 +233,37 @@ struct fdt_property {
 
 this picture below gives a simple overview about how a DTB was parsed by linux kernel, so I know that the dtb will be copied to the RAM by uboot and passed to kernel as paramter and then parsed by the kernel. And the name of the node or property can be any valid string I think, that's great, by now I know how the DTS was parsed by the kernel, so next step is that how the DTS was used by the kernel.
 ![linux-dts-dtb](/as/images/vexpress-a9/linux-dts-dtb.png)
+
+###of\_platform\_populate
+then on the key API of\_platform\_populate which will to post process of the DTS which has been parsed by the above analyze. Here is a question
+
+```c
+*** arch/arm/mach-vexpress/v2m.c:
+static void __init v2m_dt_init(void)
+{
+	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+}
+
+***kernel/drivers/of/platform.c
+int of_platform_populate(struct device_node *root,
+			const struct of_device_id *matches,
+			const struct of_dev_auxdata *lookup,
+			struct device *parent)
+{
+	struct device_node *child;
+	int rc = 0;
+
+	root = root ? of_node_get(root) : of_find_node_by_path("/");
+	if (!root)
+		return -EINVAL;
+
+	for_each_child_of_node(root, child) {
+		rc = of_platform_bus_create(child, matches, lookup, parent, true);
+		if (rc)
+			break;
+	}
+
+	of_node_put(root);
+	return rc;
+}
+```
