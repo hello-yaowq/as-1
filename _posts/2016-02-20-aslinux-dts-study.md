@@ -235,16 +235,66 @@ this picture below gives a simple overview about how a DTB was parsed by linux k
 ![linux-dts-dtb](/as/images/vexpress-a9/linux-dts-dtb.png)
 
 ###of\_platform\_populate
-then on the key API of\_platform\_populate which will to post process of the DTS which has been parsed by the above analyze. Here is a question
+then on the key API of\_platform\_populate which will do the post process of the DTS which has been parsed by the above analyze. by qemu debuger with eclipse, I could easily know how the API was called as the below picture showed:
+
+![of_platform_populate](/as/images/vexpress-a9/of_platform_populate.png)
+
+so that we could know that this API of\_platform\_populate is called by the kernel postcore_initcall function vexpress\_config\_init, and with qemu eclipse debuger, you could also that there is other initialization API such as vexpress\_sysreg\_base will call API of\_find\_compatible\_node to initialize the node device.
 
 ```c
-*** arch/arm/mach-vexpress/v2m.c:
-static void __init v2m_dt_init(void)
+*** kernel/drivers/bus/vexpress-config.c
+static int __init vexpress_config_init(void)
 {
-	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+	int err = 0;
+	struct device_node *node;
+
+	/* Need the config devices early, before the "normal" devices... */
+	for_each_compatible_node(node, NULL, "arm,vexpress,config-bus") {
+		err = vexpress_config_populate(node);
+		if (err)
+			break;
+	}
+
+	return err;
+}
+postcore_initcall(vexpress_config_init);
+
+*** kernel/drivers/mfd/vexpress-sysreg.c
+static void __iomem *vexpress_sysreg_base(void)
+{
+	if (!__vexpress_sysreg_base) {
+		struct device_node *node = of_find_compatible_node(NULL, NULL,
+				"arm,vexpress-sysreg");
+
+		__vexpress_sysreg_base = of_iomap(node, 0);
+	}
+
+	WARN_ON(!__vexpress_sysreg_base);
+
+	return __vexpress_sysreg_base;
 }
 
-***kernel/drivers/of/platform.c
+*** kernel/drivers/of/base.c
+struct device_node *of_find_compatible_node(struct device_node *from,
+	const char *type, const char *compatible)
+{
+	struct device_node *np;
+	unsigned long flags;
+
+	raw_spin_lock_irqsave(&devtree_lock, flags);
+	np = from ? from->allnext : of_allnodes;
+	for (; np; np = np->allnext) {
+		if (__of_device_is_compatible(np, compatible, type, NULL) &&
+		    of_node_get(np))
+			break;
+	}
+	of_node_put(from);
+	raw_spin_unlock_irqrestore(&devtree_lock, flags);
+	return np;
+}
+EXPORT_SYMBOL(of_find_compatible_node);
+
+*** kernel/drivers/of/platform.c
 int of_platform_populate(struct device_node *root,
 			const struct of_device_id *matches,
 			const struct of_dev_auxdata *lookup,
@@ -267,3 +317,7 @@ int of_platform_populate(struct device_node *root,
 	return rc;
 }
 ```
+
+so that till now, generally, we could know how a device board specific information was passed to kernel by the DTB, so I think next step is that to do analyze of one of the vexpress drivers.
+
+
