@@ -68,6 +68,7 @@ struct Can_SocketHandleList_s
 /* ============================ [ DATAS     ] ====================================================== */
 static struct Can_SocketHandleList_s* socketH = NULL;
 static pthread_mutex_t socketLock = PTHREAD_MUTEX_INITIALIZER;
+static struct timeval m0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static int init_socket(int port)
 {
@@ -188,10 +189,24 @@ static void try_recv_forward(void)
 		len = recv(h->s, (void*)&frame, CAN_MTU, 0);
 		if(CAN_MTU == len)
 		{
-			printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+			struct timeval m1;
+
+			gettimeofday(&m1,NULL);
+			float rtim = m1.tv_sec-m0.tv_sec;
+
+			if(m1.tv_usec > m0.tv_usec)
+			{
+				rtim += (float)(m1.tv_usec-m0.tv_usec)/1000000.0;
+			}
+			else
+			{
+				rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
+			}
+			printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X] @ %f s\n",
 					frame.can_id,frame.can_dlc,
 					frame.data[0],frame.data[1],frame.data[2],frame.data[3],
-					frame.data[4],frame.data[5],frame.data[6],frame.data[7]);
+					frame.data[4],frame.data[5],frame.data[6],frame.data[7],
+					rtim);
 			STAILQ_FOREACH(h2,&socketH->head,entry)
 			{
 				if(h != h2)
@@ -237,7 +252,7 @@ int main(int argc,char* argv[])
 		printf("Usage:%s <port>\n",argv[0]);
 		return -1;
 	}
-
+	gettimeofday(&m0,NULL);
 	if(FALSE==init_socket(atoi(argv[1])))
 	{
 		WSACleanup();
