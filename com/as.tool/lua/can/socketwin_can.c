@@ -236,9 +236,13 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 		perror("CAN socket read");
 		ASWARNING("CAN Socket port=%d read message failed!\n",handle->port);
 	}
-	else
+	else if(nbytes==sizeof(frame))
 	{
 		handle->rx_notification(handle->busid,frame.can_id,frame.can_dlc,frame.data);
+	}
+	else
+	{
+		/* read failed with invalid length if the remote set to non-blocking */
 	}
 
 }

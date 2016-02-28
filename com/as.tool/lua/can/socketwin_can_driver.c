@@ -103,6 +103,7 @@ static int init_socket(int port)
 	}
 
     /* Set Timeout for recv call */
+	/*
 	tv.tv_sec  = 0;
 	tv.tv_usec = 0;
 	if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
@@ -111,6 +112,10 @@ static int init_socket(int port)
 		closesocket(s);
 		return FALSE;
 	}
+	*/
+	/* set to non blocking mode */
+	u_long iMode = 1;
+	ioctlsocket(s, FIONBIO, &iMode);
 
 	printf("can(%d) socket driver on-line!\n",port);
 
@@ -134,12 +139,17 @@ static void try_accept(void)
 		handle = malloc(sizeof(struct Can_SocketHandle_s));
 		handle->s = s;
 	    /* Set Timeout for recv call */
+		/*
 		if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
 		{
 			wprintf(L"setsockopt failed with error: %ld\n", WSAGetLastError());
 			closesocket(s);
 			return;
 		}
+		*/
+		/* set to non blocking mode */
+		u_long iMode = 1;
+		ioctlsocket(s, FIONBIO, &iMode);
 		pthread_mutex_lock(&socketLock);
 		STAILQ_INSERT_TAIL(&socketH->head,handle,entry);
 		pthread_mutex_unlock(&socketLock);
@@ -147,7 +157,7 @@ static void try_accept(void)
 	}
 	else
 	{
-		wprintf(L"accept failed with error: %ld\n", WSAGetLastError());
+		//wprintf(L"accept failed with error: %ld\n", WSAGetLastError());
 	}
 }
 static void * rx_daemon(void * param)
@@ -196,9 +206,16 @@ static void try_recv_forward(void)
 		}
 		else if(-1 == len)
 		{
-			wprintf(L"recv failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h->s);
-			remove_socket(h);
-			break;
+			if(10035!= WSAGetLastError())
+			{
+				wprintf(L"recv failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h->s);
+				remove_socket(h);
+				break;
+			}
+			else
+			{
+				/* Resource temporarily unavailable. */
+			}
 		}
 		else
 		{
