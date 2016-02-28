@@ -90,12 +90,14 @@ def-y += -D__LINUX__
 def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
+def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 endif	
 # slect GUI openVG/GTK 
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
 else
-ldflags-y +=-lwinmm 
+ldflags-y +=-lwinmm -lwsock32
+ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lstdc++ -lm -lpthread
 def-y += -DUSE_DET -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
@@ -217,6 +219,13 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/simulator TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
+ifeq ($(host),Linux)
+else
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
+	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+endif	
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 

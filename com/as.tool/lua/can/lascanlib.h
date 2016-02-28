@@ -50,9 +50,7 @@ extern const Can_DeviceOpsType can_serial_ops;
 extern const Can_DeviceOpsType can_vxl_ops;
 extern const Can_DeviceOpsType can_peak_ops;
 #endif
-#ifdef __LINUX__
 extern const Can_DeviceOpsType can_socket_ops;
-#endif
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

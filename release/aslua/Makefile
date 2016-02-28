@@ -73,7 +73,7 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=  -ldl -lreadline
 else
-ldflags-y +=-lwinmm 
+ldflags-y +=-lwinmm -lwsock32
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lm -lpthread
@@ -176,8 +176,20 @@ endif
 	
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
 
-all:exe
+can_socket:
+ifeq ($(host),Linux)
+	@echo "  >> use linux vcan"
+else
+	@echo "  >> CC socketwin_can_driver.c"
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -I$(src-dir)/include	\
+		$(src-dir)/socketwin_can_driver.c -o $(exe-dir)/ascan_socket_server.exe		\
+		-lwinmm -lwsock32 -lm -lpthread
+	@cp -v $(exe-dir)/ascan_socket_server.exe $(prj-dir)/com/as.tool/lua/script/
+endif
 
+all:exe can_socket
+	@(cp -v $(exe-dir)/posix.exe $(prj-dir)/com/as.tool/lua/script/aslua.exe)
+	
 depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 

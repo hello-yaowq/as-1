@@ -14,8 +14,6 @@
  */
 #ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "lascanlib.h"
 #include <sys/queue.h>
 #include <pthread.h>
 /* most of the code copy from https://github.com/linux-can/can-utils */
@@ -27,6 +25,8 @@
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <windows.h>
+#include "Std_Types.h"
+#include "lascanlib.h"
 #include "asdebug.h"
 
 /* Link with ws2_32.lib */
@@ -38,6 +38,7 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_MAX_DLEN 8
 #define CAN_MTU sizeof(struct can_frame)
+#define CAN_PORT_MIN  80
 /* ============================ [ TYPES     ] ====================================================== */
 /**
  * struct can_frame - basic CAN frame structure
@@ -130,10 +131,9 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		struct sockaddr_in addr;
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-		addr.sin_port = htons(port);
+		addr.sin_port = htons(CAN_PORT_MIN+port);
 		/* open socket */
 		if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-			perror("CAN socket : ");
 			ASWARNING("CAN Socket port=%d open failed!\n",port);
 			rv = FALSE;
 		}
@@ -143,11 +143,12 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			/* Connect to server. */
 			int ercd = connect(s, (SOCKADDR *) & addr, sizeof (SOCKADDR));
 			if (ercd == SOCKET_ERROR) {
-				printf("connect function failed with error: %d\n", WSAGetLastError());
+				ASWARNING("connect function failed with error: %d\n", WSAGetLastError());
 				ercd = closesocket(s);
 				if (ercd == SOCKET_ERROR){
-					printf("closesocket function failed with error: %d\n", WSAGetLastError());
+					ASWARNING("closesocket function failed with error: %d\n", WSAGetLastError());
 				}
+				rv = FALSE;
 			}
 		}
 
@@ -195,7 +196,7 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 		frame.can_dlc = dlc;
 		memcpy(frame.data,data,dlc);
 
-		if (write(handle->s, &frame, CAN_MTU) != CAN_MTU) {
+		if (send(handle->s, (const char*)&frame, CAN_MTU,0) != CAN_MTU) {
 			perror("CAN socket write");
 			ASWARNING("CAN Socket port=%d send message failed!\n",port);
 			rv = FALSE;
@@ -214,7 +215,7 @@ static void socket_close(uint32_t port)
 	struct Can_SocketHandle_s* handle = getHandle(port);
 	if(NULL != handle)
 	{
-		close(handle->s);
+		closesocket(handle->s);
 		STAILQ_REMOVE(&socketH->head,handle,Can_SocketHandle_s,entry);
 
 		free(handle);
@@ -230,7 +231,7 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 {
 	int nbytes,len;
 	struct can_frame frame;
-	nbytes = recvfrom(handle->s, &frame, sizeof(frame), 0, (struct sockaddr*)&handle->addr, &len);
+	nbytes = recvfrom(handle->s, (char*)&frame, sizeof(frame), 0, (struct sockaddr*)&handle->addr, &len);
 	if (nbytes < 0) {
 		perror("CAN socket read");
 		ASWARNING("CAN Socket port=%d read message failed!\n",handle->port);

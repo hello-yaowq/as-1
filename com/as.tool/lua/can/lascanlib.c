@@ -80,9 +80,7 @@ static const Can_DeviceOpsType* canOps [] =
 	&can_vxl_ops,
 	&can_peak_ops,
 	#endif
-	#ifdef __LINUX__
 	&can_socket_ops,
-	#endif
 	NULL
 };
 static FILE* canLog = NULL;

@@ -25,6 +25,7 @@
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
 #define AS_LOG_STDERR  	AS_LOG_DEFAULT
 #define AS_LOG_ON       AS_LOG_DEFAULT
+#define AS_LOG_ERROR    AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 
 #ifdef USE_DET
