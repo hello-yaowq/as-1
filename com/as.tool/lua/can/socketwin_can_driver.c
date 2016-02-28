@@ -62,76 +62,92 @@ struct Can_SocketHandleList_s
 {
 	int s; /* can raw socket: listen */
 	pthread_t rx_thread;
-	struct sockaddr_in service;
 	STAILQ_HEAD(,Can_SocketHandle_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static struct Can_SocketHandleList_s* socketH = NULL;
+static pthread_mutex_t socketLock = PTHREAD_MUTEX_INITIALIZER;
 /* ============================ [ LOCALS    ] ====================================================== */
 static int init_socket(int port)
 {
 	int ercd;
+	int s;
 	WSADATA wsaData;
+	struct sockaddr_in service;
 	struct timeval tv;
-	tv.tv_sec  = 0;
-	tv.tv_usec = 1600;
-
-	socketH = malloc(sizeof(struct Can_SocketHandleList_s));
-	assert(socketH);
-	STAILQ_INIT(&socketH->head);
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	socketH->s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (socketH->s == INVALID_SOCKET) {
+	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s == INVALID_SOCKET) {
 		wprintf(L"socket function failed with error: %u\n", WSAGetLastError());
 		WSACleanup();
 		return FALSE;;
 	}
 
-	socketH->service.sin_family = AF_INET;
-	socketH->service.sin_addr.s_addr = inet_addr("127.0.0.1");
-	socketH->service.sin_port = (u_short)htons(CAN_PORT_MIN+port);
-	ercd = bind(socketH->s, (SOCKADDR *) &(socketH->service), sizeof (SOCKADDR));
+	service.sin_family = AF_INET;
+	service.sin_addr.s_addr = inet_addr("127.0.0.1");
+	service.sin_port = (u_short)htons(CAN_PORT_MIN+port);
+	ercd = bind(s, (SOCKADDR *) &(service), sizeof (SOCKADDR));
 	if (ercd == SOCKET_ERROR) {
 		wprintf(L"bind to port %d failed with error: %ld\n", port, WSAGetLastError());
-		closesocket(socketH->s);
+		closesocket(s);
 		return FALSE;
 	}
 
-	if (listen(socketH->s, CAN_BUS_NODE_MAX) == SOCKET_ERROR) {
+	if (listen(s, CAN_BUS_NODE_MAX) == SOCKET_ERROR) {
 		wprintf(L"listen failed with error: %ld\n", WSAGetLastError());
-		closesocket(socketH->s);
+		closesocket(s);
 		return FALSE;
 	}
 
-   /* Set Timeout for recv call */
-	if(setsockopt(socketH->s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
+    /* Set Timeout for recv call */
+	tv.tv_sec  = 0;
+	tv.tv_usec = 0;
+	if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
 	{
 		wprintf(L"setsockopt failed with error: %ld\n", WSAGetLastError());
-		closesocket(socketH->s);
+		closesocket(s);
 		return FALSE;
 	}
 
 	printf("can(%d) socket driver on-line!\n",port);
+
+	socketH = malloc(sizeof(struct Can_SocketHandleList_s));
+	assert(socketH);
+	STAILQ_INIT(&socketH->head);
+	socketH->s = s;
+
 	return TRUE;
 }
 static void try_accept(void)
 {
 	struct Can_SocketHandle_s* handle;
+	struct timeval tv;
 	int s = accept(socketH->s, NULL, NULL);
 
 	if(s != INVALID_SOCKET)
 	{
+		tv.tv_sec  = 0;
+		tv.tv_usec = 0;
 		handle = malloc(sizeof(struct Can_SocketHandle_s));
 		handle->s = s;
+	    /* Set Timeout for recv call */
+		if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
+		{
+			wprintf(L"setsockopt failed with error: %ld\n", WSAGetLastError());
+			closesocket(s);
+			return;
+		}
+		pthread_mutex_lock(&socketLock);
 		STAILQ_INSERT_TAIL(&socketH->head,handle,entry);
+		pthread_mutex_unlock(&socketLock);
 		printf("can socket %X on-line!\n",s);
 	}
 	else
 	{
-		printf("accept failed\n");
+		wprintf(L"accept failed with error: %ld\n", WSAGetLastError());
 	}
 }
 static void * rx_daemon(void * param)
@@ -144,12 +160,19 @@ static void * rx_daemon(void * param)
 
 	return NULL;
 }
+static void remove_socket(struct Can_SocketHandle_s* h)
+{
+	STAILQ_REMOVE(&socketH->head,h,Can_SocketHandle_s,entry);
+	closesocket(h->s);
+	free(h);
+}
 static void try_recv_forward(void)
 {
 	int len;
 	struct can_frame frame;
 	struct Can_SocketHandle_s* h;
 	struct Can_SocketHandle_s* h2;
+	pthread_mutex_lock(&socketLock);
 	STAILQ_FOREACH(h,&socketH->head,entry)
 	{
 		len = recv(h->s, (void*)&frame, CAN_MTU, 0);
@@ -164,19 +187,25 @@ static void try_recv_forward(void)
 				if(h != h2)
 				{
 					if (send(h2->s, (const char*)&frame, CAN_MTU,0) != CAN_MTU) {
-						wprintf(L"send failed with error: %ld, remove this node!\n", WSAGetLastError());
-						STAILQ_REMOVE(&socketH->head,h2,Can_SocketHandle_s,entry);
-						closesocket(h2->s);
-						free(h2);
+						wprintf(L"send failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h2->s);
+						remove_socket(h2);
+						break;
 					}
 				}
 			}
 		}
+		else if(-1 == len)
+		{
+			wprintf(L"recv failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h->s);
+			remove_socket(h);
+			break;
+		}
 		else
 		{
-			printf("timeout recv...\n");
+			printf("timeout recv... len=%d\n",len);
 		}
 	}
+	pthread_mutex_unlock(&socketLock);
 }
 static void schedule(void)
 {

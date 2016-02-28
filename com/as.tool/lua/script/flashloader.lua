@@ -488,6 +488,7 @@ function main(argc,argv)
   end
   as.can_log() -- no paramter close the file
   --os.execute("pgrep .exe|xargs -i kill -9 {}")
+  os.execute("cat laslog/flash-loader.asc")
 end
 
 main(rawlen(arg),arg)
