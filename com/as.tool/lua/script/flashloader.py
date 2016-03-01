@@ -294,16 +294,15 @@ class UIFlashloader(QWidget):
         self.btnOpenFlsDrv.clicked.connect(self.on_btnOpenFlsDrv_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         
-        self.app=''
-        self.flsdrv=''
-        
-        default_app = '/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19'
-        default_flsdrv = '/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19'
+        if(os.name == 'nt'):
+            default_app = 'D:/repository/as/release/asboot/out/stm32f107vc.s19'
+            default_flsdrv = 'D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19'
+        else:
+            default_app = '/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19'
+            default_flsdrv = '/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19'
         if(os.path.exists(default_app)):
-            self.app = default_app
             self.leApplication.setText(default_app)
         if(os.path.exists(default_flsdrv)):
-            self.flsdrv = default_flsdrv
             self.leFlsDrv.setText(default_flsdrv)
 
     def on_enableChanged(self,step,enable):
@@ -317,19 +316,16 @@ class UIFlashloader(QWidget):
 
     def on_btnOpenApp_clicked(self):
         rv = QFileDialog.getOpenFileName(None,'application file', '','application (*.s19 *.bin)')
-        self.app = rv[0]
-        self.leApplication.setText(self.app)
+        self.leApplication.setText(rv[0])
 
     def on_btnOpenFlsDrv_clicked(self):
         rv = QFileDialog.getOpenFileName(None,'flash driver file', '','flash driver (*.s19 *.bin)')
-        self.flsdrv = rv[0]
-        self.leFlsDrv.setText(self.flsdrv)
-
+        self.leFlsDrv.setText(rv[0])
 
     def on_btnStart_clicked(self):
-        if(os.path.exists(self.app)):
+        if(os.path.exists(str(self.leApplication.text()))):
             self.pgbProgress.setValue(1)
-            self.loader.setTarget(self.app, self.flsdrv)
+            self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()))
             self.loader.start()
         else:
             QMessageBox.information(self, 'Tips', 'Please load a valid application first!')

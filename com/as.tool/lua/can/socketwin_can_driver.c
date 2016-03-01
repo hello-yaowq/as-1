@@ -39,6 +39,8 @@
 #define CAN_MTU sizeof(struct can_frame)
 #define CAN_PORT_MIN  80
 #define CAN_BUS_NODE_MAX 32	/* maximum node on the bus port */
+
+//#define USE_RX_DAEMON
 /* ============================ [ TYPES     ] ====================================================== */
 /**
  * struct can_frame - basic CAN frame structure
@@ -61,13 +63,17 @@ struct Can_SocketHandle_s
 struct Can_SocketHandleList_s
 {
 	int s; /* can raw socket: listen */
+	#ifdef USE_RX_DAEMON
 	pthread_t rx_thread;
+	#endif
 	STAILQ_HEAD(,Can_SocketHandle_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static struct Can_SocketHandleList_s* socketH = NULL;
+#ifdef USE_RX_DAEMON
 static pthread_mutex_t socketLock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 static struct timeval m0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static int init_socket(int port)
@@ -151,9 +157,13 @@ static void try_accept(void)
 		/* set to non blocking mode */
 		u_long iMode = 1;
 		ioctlsocket(s, FIONBIO, &iMode);
+		#ifdef USE_RX_DAEMON
 		pthread_mutex_lock(&socketLock);
+		#endif
 		STAILQ_INSERT_TAIL(&socketH->head,handle,entry);
+		#ifdef USE_RX_DAEMON
 		pthread_mutex_unlock(&socketLock);
+		#endif
 		printf("can socket %X on-line!\n",s);
 	}
 	else
@@ -161,6 +171,7 @@ static void try_accept(void)
 		//wprintf(L"accept failed with error: %ld\n", WSAGetLastError());
 	}
 }
+#ifdef USE_RX_DAEMON
 static void * rx_daemon(void * param)
 {
 	(void)param;
@@ -171,6 +182,7 @@ static void * rx_daemon(void * param)
 
 	return NULL;
 }
+#endif
 static void remove_socket(struct Can_SocketHandle_s* h)
 {
 	STAILQ_REMOVE(&socketH->head,h,Can_SocketHandle_s,entry);
@@ -183,7 +195,9 @@ static void try_recv_forward(void)
 	struct can_frame frame;
 	struct Can_SocketHandle_s* h;
 	struct Can_SocketHandle_s* h2;
+	#ifdef USE_RX_DAEMON
 	pthread_mutex_lock(&socketLock);
+	#endif
 	STAILQ_FOREACH(h,&socketH->head,entry)
 	{
 		len = recv(h->s, (void*)&frame, CAN_MTU, 0);
@@ -237,10 +251,15 @@ static void try_recv_forward(void)
 			printf("timeout recv... len=%d\n",len);
 		}
 	}
+	#ifdef USE_RX_DAEMON
 	pthread_mutex_unlock(&socketLock);
+	#endif
 }
 static void schedule(void)
 {
+	#ifndef USE_RX_DAEMON
+	try_accept();
+	#endif
 	try_recv_forward();
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -258,7 +277,7 @@ int main(int argc,char* argv[])
 		WSACleanup();
 		return -1;
 	}
-
+	#ifdef USE_RX_DAEMON
 	if( 0 == pthread_create(&(socketH->rx_thread),NULL,rx_daemon,NULL))
 	{
 	}
@@ -266,7 +285,7 @@ int main(int argc,char* argv[])
 	{
 		return -1;
 	}
-
+	#endif
 	for(;;)
 	{
 		schedule();

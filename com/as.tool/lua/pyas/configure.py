@@ -31,6 +31,7 @@ def sip_makefile(sipfile,output):
     makefile.extra_cflags = ['--std=gnu99']
     if(os.name=='nt'):
        makefile.extra_libs.append('PCANBasic')
+       makefile.extra_libs.append('wsock32')
     # Generate the Makefile itself.
     makefile.generate()
     

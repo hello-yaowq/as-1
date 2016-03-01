@@ -27,12 +27,12 @@ local dcm_chl = 0
 local FLASH_WRITE_SIZE = 512
 local FLASH_READ_SIZE  = 512
 
--- local l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
--- local l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
+local l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+local l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
 
 local l_bootloader = "/home/parai/workspace/as/release/asboot/out/posix.exe &"
-local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
-local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
+--local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+--local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
