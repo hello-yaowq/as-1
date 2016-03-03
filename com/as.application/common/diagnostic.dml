@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<Diagnostic>
+	<General>
+		<DataIdentifier Name='Finger Print' Id='0xFF01' Attribute='rw'>
+			<Data Name='vendor' Type='U8Array' size='32' Default='text="as.by.parai@foxmail.com"' />
+			<Data name='year'  type='U16' Default='2016' />
+			<Data name='month' type='U8'  Default='3' />
+			<Data name='day' type='U8' Default='3' />
+			<Data name='hour' type='U8' Default='12' />
+			<Data name='minute' type='U8' Default='0' />
+			<Data name='second' type='U8' Default='0' />
+			
+		</DataIdentifier>
+	</General>
+</Diagnostic>
