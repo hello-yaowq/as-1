@@ -27,8 +27,24 @@ import xml.etree.ElementTree as ET
 from pyas.dcm import *
 import traceback
 
+from bitarray import bitarray
+
 __all__ = ['UIDcm']
 
+
+class dcmbits():
+    def __init__(self):
+        self.bits = bitarray()
+
+    def append(self,d, num=1):
+        for i in range(num):
+            if((d&(1<<(num-1-i))) != 0):
+                self.bits.append(True)
+            else:
+                self.bits.append(False)
+    
+    def toarray(self):
+        return self.bits.tobytes()
 
 def str2int(sstr):
     if(sstr[:2].lower() == '0x'):
@@ -65,8 +81,7 @@ class wDataUS(QComboBox):
         except:
             pass
         
-    def getValue(self,data=None):
-        '''append value to data if not none and return the value'''
+    def getValue(self,data):
         index = self.currentIndex()
         
         si = 0
@@ -78,23 +93,19 @@ class wDataUS(QComboBox):
             else:
                 si = si + 1
         assert(svalue)
-        
-        data2 = str2int(svalue)
-        
-        if(data!=None):
-            if(self.Data.attrib['type']=='U32  Select'):
-                data.append((data2>>24)&0xFF)
-                data.append((data2>>16)&0xFF)
-                data.append((data2>>8)&0xFF)
-                data.append((data2>>0)&0xFF)
-            elif(self.Data.attrib['type']=='U16  Select'):
-                data.append((data2>>8)&0xFF)
-                data.append((data2>>0)&0xFF)
-            elif(self.Data.attrib['type']=='U8 Select'):
-                data.append(data2&0xFF)
-            else:
-                assert(0)
-        return data2
+
+        d = str2int(svalue)
+        a = dcmbits()
+        if(self.Data.attrib['type']=='U32  Select'):
+            num = 32
+        elif(self.Data.attrib['type']=='U16  Select'):
+            num = 16
+        elif(self.Data.attrib['type']=='U8 Select'):
+            num=8
+        else:
+            assert(0)
+        data.append(d, num)
+    
     def setValue(self,data,start):
         try:
             if(self.Data.attrib['type']=='U32 Select'):
@@ -163,7 +174,7 @@ class wDataU(QLineEdit):
             else:
                 self.setText('%d'%(value))
         return start
-    def getValue(self,data=None):
+    def getValue(self,data):
         if(self.Data.attrib['type']=='U8Array'):
             size = str2int(self.Data.attrib['size'])
             string = str(self.text())
@@ -171,26 +182,22 @@ class wDataU(QLineEdit):
             grp = string.split(',')
             for i in range(0,size):
                 try:
-                    data.append((str2int(grp[i]))&0xFF)
+                    data.append(str2int(grp[i])&0xFF,8)
                 except:
-                    print(traceback.format_exc())
-                    data.append(0xFF)
+                    #print(traceback.format_exc())
+                    data.append(0xFF,8)
         else:
-            parameter = str2int(str(self.text()))
-            if(data!=None):
-                if(self.Data.attrib['type']=='U32'):
-                    data.append((parameter>>24)&0xFF)
-                    data.append((parameter>>16)&0xFF)
-                    data.append((parameter>>8)&0xFF)
-                    data.append((parameter>>0)&0xFF)
-                elif(self.Data.attrib['type']=='U16'):
-                    data.append((parameter>>8)&0xFF)
-                    data.append((parameter>>0)&0xFF)
-                elif(self.Data.attrib['type']=='U8'):
-                    data.append((parameter>>0)&0xFF)
-                else:
-                    assert(0)
-        return parameter
+            d = str2int(str(self.text()))
+            num = 0
+            if(self.Data.attrib['type']=='U32'):
+                num = 32
+            elif(self.Data.attrib['type']=='U16'):
+                num = 16
+            elif(self.Data.attrib['type']=='U8'):
+                num = 8
+            else:
+                assert(0)
+            data.append(d,num)
 
 class UIInputOutputControl(QGroupBox):
     def __init__(self,xml,parent=None):
@@ -225,27 +232,27 @@ class UIInputOutputControl(QGroupBox):
         self.setLayout(grid)
         
     def on_btnStart_clicked(self):
-        data = [0x2F]
+        data = dcmbits()
+        data.append(0x2F,8)
         did = str2int(self.IOC.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
-        data.append(0x03)
+        data.append(did,16)
+        data.append(0x03,8)
         
         for leData in self.leDatas:
             leData.getValue(data)
 
-        res = Dcm_TransmitMessage(data) 
+        res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
         if(res[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
               
     def on_btnRtce_clicked(self):
-        data = [0x2F]
+        data = dcmbits()
+        data.append(0x2F,8)
         did = str2int(self.IOC.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
-        data.append(0x00)
-        res = Dcm_TransmitMessage(data)  
+        data.append(did,16)
+        data.append(0x00,8)
+        res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
         if(res[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Return Control to ECU Failed!  %s.'%(Dcm_GetLastError())).exec_();
@@ -287,12 +294,12 @@ class UIDataIdentifier(QGroupBox):
         
         self.setLayout(grid)
     def on_btnRead_clicked(self):
-        data = [0x22]
+        data = dcmbits()
+        data.append(0x22,8)
         did = str2int(self.DID.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
+        data.append(did,16)
        
-        res = Dcm_TransmitMessage(data) 
+        res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
         start = 3
         if(res[0]!=0x62):
@@ -301,13 +308,13 @@ class UIDataIdentifier(QGroupBox):
             for leData in self.leDatas:
                 start = leData.setValue(res,start)
     def on_btnWrite_clicked(self):
-        data = [0x2E]
+        data = dcmbits()
+        data.append(0x2E,8)
         did = str2int(self.DID.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
+        data.append(did,16)
         for leData in self.leDatas:
             leData.getValue(data)
-        res = Dcm_TransmitMessage(data)  
+        res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
         if(res[0]!=0x6E):
             QMessageBox(QMessageBox.Critical, 'Error', 'DID Write Failed!  %s.'%(Dcm_GetLastError())).exec_();
@@ -370,15 +377,15 @@ class UIRoutineControl(QGroupBox):
         self.setLayout(grid)
         
     def on_btnStart_clicked(self):
-        data = [0x31,0x01]
+        data = dcmbits()
+        data.append(0x3101, 16)
         did = str2int(self.SRI.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
+        data.append(did,16)
         
         for leData in self.leDatas:
             leData.getValue(data)
 
-        res = Dcm_TransmitMessage(data) 
+        res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
         if(res[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
@@ -386,20 +393,20 @@ class UIRoutineControl(QGroupBox):
             self.leResult.setText('Please Click Button \'Result\' to Read the Result.')
     
     def on_btnStop_clicked(self):
-        data = [0x31,0x02]
+        data = dcmbits()
+        data.append(0x3102, 16)
         did = str2int(self.SRI.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
-        res = Dcm_TransmitMessage(data)  
+        data.append(did,16)
+        res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
         if(res[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Stop Failed!  %s.'%(Dcm_GetLastError())).exec_();   
     def on_btnResult_clicked(self):
-        data = [0x31,0x03]
+        data = dcmbits()
+        data.append(0x3103,16)
         did = str2int(self.SRI.attrib['ID'])
-        data.append((did>>8)&0xFF)
-        data.append((did>>0)&0xFF)
-        res = Dcm_TransmitMessage(data)  
+        data.append(did,16)
+        res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
         if(res[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Request Result Failed!  %s.'%(Dcm_GetLastError())).exec_();
@@ -457,3 +464,9 @@ class UIDcm(QWidget):
         if(rv[0] != ''):
             self.leDml.setText(rv[0])
             self.loadDml(rv[0])
+
+if(__name__ == '__main__'):
+    a = dcmbits()
+    a.append(0xdeadbeef,32)
+    print(a.toarray())
+    
