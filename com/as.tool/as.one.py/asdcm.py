@@ -43,6 +43,16 @@ class dcmbits():
             else:
                 self.bits.append(False)
     
+    def toint(self,pos,num):
+        bits = self.bits[pos:pos+num]
+        bytes = int((num+4)/8)
+        left = bytes*8 - num
+        v = 0
+        for b in bits.tobytes():
+            v = (v<<8) + b
+        v =v >> left
+        return v
+        
     def toarray(self):
         return self.bits.tobytes()
 
@@ -63,7 +73,7 @@ def Dcm_TransmitMessage(req):
     return None
 
 class wDataUS(QComboBox):
-    '''Data U8/U16/U32 Select'''
+    '''Data UxxSelect, 0<xx<=32'''
     def __init__(self,xml,parent=None):
         super(QComboBox, self).__init__(parent)
         self.Data = xml
@@ -96,29 +106,15 @@ class wDataUS(QComboBox):
 
         d = str2int(svalue)
         a = dcmbits()
-        if(self.Data.attrib['type']=='U32  Select'):
-            num = 32
-        elif(self.Data.attrib['type']=='U16  Select'):
-            num = 16
-        elif(self.Data.attrib['type']=='U8 Select'):
-            num=8
-        else:
-            assert(0)
+        num = str2int(self.Data.attrib['type'][1:-6])
         data.append(d, num)
     
     def setValue(self,data,start):
         try:
-            if(self.Data.attrib['type']=='U32 Select'):
-                value = (data[start+0]<<24) + (data[start+1]<<16) + (data[start+2]<<8) + (data[start+3]<<0)
-                start += 4
-            elif(self.Data.attrib['type']=='U16 Select'):
-                value = (data[start+0]<<8) + (data[start+1]<<0)
-                start += 2
-            elif(self.Data.attrib['type']=='U8 Select'):
-                value = (data[start+0]<<0)
-                start += 1
-            else:
-                assert(0)
+            num = str2int(self.Data.attrib['type'][1:-6])
+            value = data.toint(start,num)
+            start += num
+            
         except IndexError:
             QMessageBox(QMessageBox.Critical, 'Error', 'Data record witn Invalid Length  %s.'%(Dcm_GetResponse())).exec_();
             return
@@ -132,7 +128,7 @@ class wDataUS(QComboBox):
         return start
     
 class wDataU(QLineEdit):
-    '''Data U8/U16/U32 U8Array'''
+    '''Data Uxx UxxArray 0<xx<=32'''
     def __init__(self,xml,parent=None):
         super(QLineEdit, self).__init__(parent)
         self.Data = xml          
@@ -142,31 +138,27 @@ class wDataU(QLineEdit):
             pass
     def setValue(self,data,start):
         try:
-            if(self.Data.attrib['type']=='U32'):
-                value = (data[start+0]<<24) + (data[start+1]<<16) + (data[start+2]<<8) + (data[start+3]<<0)
-                start += 4
-            elif(self.Data.attrib['type']=='U16'):
-                value = (data[start+0]<<8) + (data[start+1]<<0)
-                start += 2
-            elif(self.Data.attrib['type']=='U8'):
-                value = (data[start+0]<<0)
-                start += 1
-            elif(self.Data.attrib['type']=='U8Array'):
+            if(self.Data.attrib['type'][-5:]=='Array'):
+                num = str2int(self.Data.attrib['type'][0:-5])
                 value = '[ '
                 size = str2int(self.Data.attrib['size'])
                 for i in range(0,size):
+                    v = data.toint(start,num)
                     if(self.Data.attrib['display'] == 'hex'):
-                        value += '0x%0-2X,'%(data[start+i])
+                        value += '0x%X,'%(v)
                     else:
-                        value += '0x%-3d,'%(data[start+i])
+                        value += '%d,'%(v)
+                    start += num
                 value = value[:-1] + ' ]'
-                start += size
+                
             else:
-                assert(0)
+                num = str2int(self.Data.attrib['type'][1:])
+                value = data.toint(start,num)
+                start += num
         except IndexError:
             QMessageBox(QMessageBox.Critical, 'Error', 'Data record witn Invalid Length  %s.'%(Dcm_GetResponse())).exec_();
             return
-        if(self.Data.attrib['type']=='U8Array'):
+        if(self.Data.attrib['type'][-5:]=='Array'):
             self.setText(value)
         else:
             if(self.Data.attrib['display'] == 'hex'):
@@ -175,28 +167,32 @@ class wDataU(QLineEdit):
                 self.setText('%d'%(value))
         return start
     def getValue(self,data):
-        if(self.Data.attrib['type']=='U8Array'):
+        stype = self.Data.attrib['type']
+        if(stype[-5:]=='Array'):
+            num = str2int(stype[1:-5])
+            assert(num<=32)
             size = str2int(self.Data.attrib['size'])
             string = str(self.text())
-            string = string.replace('[', '').replace(']', '')
-            grp = string.split(',')
+            if(string[:5]=='text='):
+                va = []
+                for c in string[5:]:
+                    va.append(ord(c))
+            else:
+                string = string.replace('[', '').replace(']', '')
+                grp = string.split(',')
+                va = []
+                for g in grp:
+                    va.append(str2int(g))
             for i in range(0,size):
                 try:
-                    data.append(str2int(grp[i])&0xFF,8)
+                    data.append(va[i],num)
                 except:
                     #print(traceback.format_exc())
-                    data.append(0xFF,8)
+                    data.append(0,num)
         else:
             d = str2int(str(self.text()))
-            num = 0
-            if(self.Data.attrib['type']=='U32'):
-                num = 32
-            elif(self.Data.attrib['type']=='U16'):
-                num = 16
-            elif(self.Data.attrib['type']=='U8'):
-                num = 8
-            else:
-                assert(0)
+            num = str2int(stype[1:])
+            assert(num<=32)
             data.append(d,num)
 
 class UIInputOutputControl(QGroupBox):
@@ -469,4 +465,5 @@ if(__name__ == '__main__'):
     a = dcmbits()
     a.append(0xdeadbeef,32)
     print(a.toarray())
+    print(a.tovalue(4, 4))
     
