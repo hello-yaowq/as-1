@@ -43,6 +43,7 @@ ifeq ($(HOME), $(wildcard $(HOME)))
 else
 $(error fix your home path)
 endif
+LUA   = $(prj-dir)/com/as.tool/lua
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
 DEPC  = $(PY34) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
@@ -133,6 +134,7 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 def-y += -DUSE_GUI
+def-y += -D__AS_CAN_BUS__
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 # openVG
@@ -344,6 +346,14 @@ ifeq ($(gui),openVG)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg/win32 FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/VG)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/openvg/include/EGL)
+endif
+	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
+	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
+ifeq ($(host),Linux)
+else
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
+	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 endif
 	@(cd $(src-dir);rm -f Dem.c J1939Tp* Lin*)
 	@(make BSW)

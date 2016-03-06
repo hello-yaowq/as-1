@@ -45,6 +45,7 @@ struct Can_Pdu_s {
 struct Can_PduQueue_s {
 	uint32_t id;	/* can_id of this list */
 	uint32_t size;
+	uint32_t warning;
 	STAILQ_HEAD(,Can_Pdu_s) head;
 	STAILQ_ENTRY(Can_PduQueue_s) entry;
 };
@@ -205,6 +206,7 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 		{
 			L->id = pdu->msg.id;
 			L->size = 0;
+			L->warning = FALSE;
 			STAILQ_INIT(&L->head);
 			STAILQ_INSERT_TAIL(&b->head,L,entry);
 		}
@@ -223,10 +225,15 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 			STAILQ_INSERT_TAIL(&b->head2,pdu,entry2);
 			b->size2 ++;
 			L->size ++;
+			L->warning = FALSE;
 		}
 		else
 		{
-			ASWARNING("LUA CAN Q[id=%X] List is full with size %d\n",L->id,L->size);
+			if(L->warning == FALSE)
+			{
+				ASWARNING("LUA CAN Q[id=%X] List is full with size %d\n",L->id,L->size);
+				L->warning = TRUE;
+			}
 			free(pdu);
 		}
 	}
