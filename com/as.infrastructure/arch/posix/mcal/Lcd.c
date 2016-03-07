@@ -229,6 +229,8 @@ static void* Lcd_Thread(void* param)
 
 	PRINTF("# Lcd_Thread Exit\n");
 
+	exit(0);
+
 	return 0;
 }
 #else
