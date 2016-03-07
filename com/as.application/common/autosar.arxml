@@ -191,7 +191,7 @@
 <RoutineList Max="TBD" />
 <MemoryList Max="TBD" />
 <ProtocolList Max="TBD">
-<Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
+<Protocol Comment="*" Name="P2P" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer1" ServiceTableRef="ServiceTableP2P" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
 <ConnectionList Max="TBD">
 <Connection Comment="*" Name="Connection1">
 <RxChannelList Max="TBD">
@@ -201,7 +201,7 @@
 </Connection>
 </ConnectionList>
 </Protocol>
-<Protocol Comment="*" Name="P2A" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer3" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer4">
+<Protocol Comment="*" Name="P2A" ProtocolID="UDS_ON_CAN" RxBufferRef="Buffer3" ServiceTableRef="ServiceTableP2A" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer4">
 <ConnectionList Max="TBD">
 <Connection Comment="*" Name="Connection1">
 <RxChannelList Max="TBD">
@@ -216,7 +216,7 @@
 <RequestService Comment="*" Name="RequestService1" ProtocolIndicationCbk="Diag_ProtocolIndicationCbk" StartProtocolCbk="Diag_StartProtocolCbk" StopProtocolCbk="Diag_StopProtocolCbk" />
 </RequestServiceList>
 <ServiceTableList Max="TBD">
-<ServiceTable Comment="*" Name="ServiceTable1">
+<ServiceTable Comment="*" Name="ServiceTableP2P">
 <ServiceList Max="TBD">
 <Service Comment="*" Name="DIAGNOSTIC_SESSION_CONTROL" SubFunctionSupported="True">
 <SecurityList Max="TBD">
@@ -255,6 +255,40 @@
 <Security Comment="*" Name="EXTDS" />
 </SecurityList>
 <SessionList Max="TBD">
+<Session Comment="*" Name="EXTDS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="READ_DATA_BY_IDENTIFIER" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="EXTDS" />
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="EXTDS" />
+<Session Comment="*" Name="PRGS" />
+</SessionList>
+</Service>
+</ServiceList>
+</ServiceTable>
+<ServiceTable Comment="*" Name="ServiceTableP2A">
+<ServiceList Max="TBD">
+<Service Comment="*" Name="DIAGNOSTIC_SESSION_CONTROL" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="EXTDS" />
+<Security Comment="*" Name="DS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="EXTDS" />
+<Session Comment="*" Name="DS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="TESTER_PRESENT" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="EXTDS" />
+<Security Comment="*" Name="DS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="DS" />
 <Session Comment="*" Name="EXTDS" />
 </SessionList>
 </Service>

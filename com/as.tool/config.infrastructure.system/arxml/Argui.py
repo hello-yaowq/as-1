@@ -545,13 +545,15 @@ class ArgModule(QMainWindow):
                     self.table.setColumnWidth(Column,widths[Column])
             except:
                 pass
-            self.table.setMinimumWidth(self.width()*3/4)                  
+            self.table.setMinimumWidth(self.width()*3/4)
             self.wConfig.setCentralWidget(self.table)
     def creActions(self):
         #  create cActionNumber action
+        self.actionBar = QToolBar()
+        self.addToolBar(Qt.TopToolBarArea,self.actionBar)
         for i in range(0,cActionNumber):
             qAction=ArgAction(self.tr(''),self) 
-            self.menuBar().addAction(qAction)
+            self.actionBar.addAction(qAction)
             qAction.setDisabled(True)
             self.actions.append(qAction)
             
