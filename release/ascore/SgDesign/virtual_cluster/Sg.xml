@@ -24,5 +24,41 @@
 		y      = '250'  					
 		/>
 </SgWidget>
+
+<SgWidget 
+	name     = 'sgwClusterTachoPointer'	
+	type     = 'SgBMP{1}' 			
+	x        = '346'
+	y        = '282'
+	w        = '200'	
+	h        = '16'
+	layer    = '1'
+	refresh  = 'RefreshClusterTachoPointer'
+	>
+	<SgBMP 
+		name   = 'ClusterTachoPointer' 
+		locate = 'virtual_cluster/pics/pointer_big.png' 
+		x      = '30' 				
+		y      = '8'  					
+		/>
+</SgWidget>
+
+<SgWidget 
+	name     = 'sgwClusterSpeedPointer'	
+	type     = 'SgBMP{1}' 			
+	x        = '842'
+	y        = '282'
+	w        = '200'	
+	h        = '16'
+	layer    = '1'
+	refresh  = 'RefreshClusterSpeedPointer'
+	>
+	<SgBMP 
+		name   = 'ClusterSpeedPointer' 
+		locate = 'virtual_cluster/pics/pointer_big.png' 
+		x      = '30' 				
+		y      = '8'  					
+		/>
+</SgWidget>
 </Sg>	
 
