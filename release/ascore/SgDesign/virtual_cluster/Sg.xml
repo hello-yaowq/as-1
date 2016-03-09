@@ -28,8 +28,8 @@
 <SgWidget 
 	name     = 'sgwClusterTachoPointer'	
 	type     = 'SgBMP{1}' 			
-	x        = '346'
-	y        = '282'
+	x        = '340'
+	y        = '285'
 	w        = '200'	
 	h        = '16'
 	layer    = '1'
@@ -46,8 +46,8 @@
 <SgWidget 
 	name     = 'sgwClusterSpeedPointer'	
 	type     = 'SgBMP{1}' 			
-	x        = '842'
-	y        = '282'
+	x        = '850'
+	y        = '285'
 	w        = '200'	
 	h        = '16'
 	layer    = '1'

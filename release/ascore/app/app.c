@@ -34,7 +34,7 @@ void StartupHook(void)
 #ifdef USE_GUI
 	Lcd_Init();
 	Sg_Init();
-	OsSetRelAlarm(AlarmApp, 10, 100);
+	OsSetRelAlarm(AlarmApp, 10, 5);
 #endif
 }
 
