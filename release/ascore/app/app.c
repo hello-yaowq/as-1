@@ -18,19 +18,24 @@
 #include "Sg.h"
 #include "Lcd.h"
 #endif
+#ifdef USE_STMO
+#include "Stmo.h"
+#endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
 	printf(" start application BUILD @ %s %s\n",__DATE__,__TIME__);
+#ifdef USE_STMO
+	Stmo_Init(&Stmo_ConfigData);
+#endif
 #ifdef USE_GUI
 	Lcd_Init();
 	Sg_Init();
@@ -41,6 +46,9 @@ void StartupHook(void)
 TASK(TaskApp)
 {
 	ASLOG(OFF,"TaskApp is running\n");
+#ifdef USE_STMO
+	Stmo_MainFunction();
+#endif
 #ifdef USE_GUI
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();

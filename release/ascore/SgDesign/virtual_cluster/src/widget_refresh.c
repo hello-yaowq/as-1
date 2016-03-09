@@ -1,23 +1,24 @@
 
 #include "Sg.h"
+#include "Stmo.h"
 void* RefreshClusterTachoPointer(SgWidget* w)
 {
-	static uint32_t degree=0;
+	Stmo_DegreeType degree;
 
-	degree += 200;
+	Stmo_GetPosDegree(STMO_ID_TACHO,&degree);
 
-	w->d = (degree/100)%360;
+	w->d = (degree/STMO_ONE_DEGREE)%360;
 
 	return 0;
 }
 
 void* RefreshClusterSpeedPointer(SgWidget* w)
 {
-	static uint32_t degree=0;
+	Stmo_DegreeType degree;
 
-	degree += 150;
+	Stmo_GetPosDegree(STMO_ID_SPEED,&degree);
 
-	w->d = (degree/100)%360;
+	w->d = (degree/STMO_ONE_DEGREE)%360;
 
 	return 0;
 }
