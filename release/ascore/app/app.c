@@ -29,6 +29,63 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_STMO
+static void sample_pointer(void)
+{
+	static Stmo_DegreeType tacho = 0;
+	static Stmo_DegreeType speed = 0;
+	static boolean tacho_up = TRUE;
+	static boolean speed_up = TRUE;
+
+	if(tacho_up)
+	{
+		tacho += 100;
+		if(tacho >=  24000)
+		{
+			tacho = 24000;
+			tacho_up = FALSE;
+		}
+	}
+	else
+	{
+		if(tacho > 200)
+		{
+			tacho -= 200;
+		}
+		else
+		{
+			tacho = 0;
+			tacho_up = TRUE;
+		}
+	}
+
+	if(speed_up)
+	{
+		speed += 50;
+		if(speed >=  24000)
+		{
+			speed = 24000;
+			speed_up = FALSE;
+		}
+	}
+	else
+	{
+		if(speed > 100)
+		{
+			speed -= 100;
+		}
+		else
+		{
+			speed = 0;
+			speed_up = TRUE;
+		}
+	}
+
+	Stmo_SetPosDegree(STMO_ID_SPEED,speed);
+	Stmo_SetPosDegree(STMO_ID_TACHO,tacho);
+
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
@@ -47,6 +104,7 @@ TASK(TaskApp)
 {
 	ASLOG(OFF,"TaskApp is running\n");
 #ifdef USE_STMO
+	sample_pointer();
 	Stmo_MainFunction();
 #endif
 #ifdef USE_GUI
