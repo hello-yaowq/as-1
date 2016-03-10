@@ -60,5 +60,41 @@
 		y      = '8'  					
 		/>
 </SgWidget>
+
+<SgWidget 
+	name     = 'sgwClusterTempPointer'	
+	type     = 'SgBMP{1}' 			
+	x        = '134'
+	y        = '383'
+	w        = '80'	
+	h        = '8'
+	layer    = '1'
+	refresh  = 'RefreshClusterTempPointer'
+	>
+	<SgBMP 
+		name   = 'ClusterTempPointer' 
+		locate = 'virtual_cluster/pics/pointer_small.png' 
+		x      = '4' 				
+		y      = '4'  					
+		/>
+</SgWidget>
+
+<SgWidget 
+	name     = 'sgwClusterFuelPointer'	
+	type     = 'SgBMP{1}' 			
+	x        = '1055'
+	y        = '383'
+	w        = '80'	
+	h        = '8'
+	layer    = '1'
+	refresh  = 'RefreshClusterFuelPointer'
+	>
+	<SgBMP 
+		name   = 'ClusterFuelPointer' 
+		locate = 'virtual_cluster/pics/pointer_small.png' 
+		x      = '4' 				
+		y      = '4'  					
+		/>
+</SgWidget>
 </Sg>	
 

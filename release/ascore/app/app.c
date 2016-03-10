@@ -34,8 +34,12 @@ static void sample_pointer(void)
 {
 	static Stmo_DegreeType tacho = 0;
 	static Stmo_DegreeType speed = 0;
+	static Stmo_DegreeType temp = 0;
+	static Stmo_DegreeType fuel = 0;
 	static boolean tacho_up = TRUE;
 	static boolean speed_up = TRUE;
+	static boolean temp_up = TRUE;
+	static boolean fuel_up = TRUE;
 
 	if(tacho_up)
 	{
@@ -81,8 +85,54 @@ static void sample_pointer(void)
 		}
 	}
 
+	if(temp_up)
+	{
+		temp += 50;
+		if(temp >=  9700)
+		{
+			temp = 9700;
+			temp_up = FALSE;
+		}
+	}
+	else
+	{
+		if(temp > 50)
+		{
+			temp -= 50;
+		}
+		else
+		{
+			temp = 0;
+			temp_up = TRUE;
+		}
+	}
+
+	if(fuel_up)
+	{
+		fuel += 50;
+		if(fuel >=  9700)
+		{
+			fuel = 9700;
+			fuel_up = FALSE;
+		}
+	}
+	else
+	{
+		if(fuel > 50)
+		{
+			fuel -= 50;
+		}
+		else
+		{
+			fuel = 0;
+			fuel_up = TRUE;
+		}
+	}
+
 	Stmo_SetPosDegree(STMO_ID_SPEED,speed);
 	Stmo_SetPosDegree(STMO_ID_TACHO,tacho);
+	Stmo_SetPosDegree(STMO_ID_TEMP,temp);
+	Stmo_SetPosDegree(STMO_ID_FUEL,fuel);
 
 }
 #endif

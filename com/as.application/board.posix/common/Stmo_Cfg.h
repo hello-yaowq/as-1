@@ -26,12 +26,22 @@ typedef enum
 {
 	STMO_ID_SPEED,
 	STMO_ID_TACHO,
+	STMO_ID_TEMP,
+	STMO_ID_FUEL,
 	STMO_CFG_NUM
 }Stmo_IdType;
+
+typedef enum
+{
+	STMO_DIR_CLOCKWISE,
+	STMO_DIR_ANTICLOCKWISE
+}Stmo_DirectionType;
 
 typedef struct
 {
 	Stmo_DegreeType SoftwareZero;
+	Stmo_DirectionType Direction;
+
 }Stmo_ChannelType;
 
 typedef struct

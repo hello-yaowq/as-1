@@ -25,10 +25,14 @@
 
 #define GET_STMO_SOFTWARE_ZERO(Id)	\
 		(pConfig->Channels[Id].SoftwareZero)
+
+#define GET_STMO_DIRECTION(Id)	\
+		(pConfig->Channels[Id].Direction)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
 	Stmo_DegreeType Current;
+	Stmo_DegreeType Inter;
 	Stmo_DegreeType Command;
 }Stmo_ControllerType;
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -46,6 +50,7 @@ void Stmo_Init(const Stmo_ConfigType *Config)
 	for(i=0;i<STMO_CFG_NUM;i++)
 	{
 		StmoCtrl[i].Command = GET_STMO_SOFTWARE_ZERO(i);
+		StmoCtrl[i].Inter = GET_STMO_SOFTWARE_ZERO(i);
 		StmoCtrl[i].Current = GET_STMO_SOFTWARE_ZERO(i);
 	}
 }
@@ -57,7 +62,7 @@ Std_ReturnType Stmo_SetPosDegree(Stmo_IdType Id,Stmo_DegreeType Degree)
 
 	if(Degree <= STMO_MAX_DEGREE)
 	{
-		StmoCtrl[Id].Command = Degree+GET_STMO_SOFTWARE_ZERO(Id);
+		StmoCtrl[Id].Command = Degree;
 		ercd = E_OK;
 	}
 
@@ -81,33 +86,49 @@ void Stmo_MainFunction(void)
 {
 	for(int i=0;i<STMO_CFG_NUM;i++)
 	{
-		if(StmoCtrl[i].Command != StmoCtrl[i].Current)
+		if(StmoCtrl[i].Command != StmoCtrl[i].Inter)
 		{
-			if(StmoCtrl[i].Command > StmoCtrl[i].Current)
+			if(StmoCtrl[i].Command > StmoCtrl[i].Inter)
 			{
-				if(StmoCtrl[i].Command > (StmoCtrl[i].Current+STMO_ONE_STEP))
+				if(StmoCtrl[i].Command > (StmoCtrl[i].Inter+STMO_ONE_STEP))
 				{
-					StmoCtrl[i].Current= StmoCtrl[i].Current+STMO_ONE_STEP;
+					StmoCtrl[i].Inter= StmoCtrl[i].Inter+STMO_ONE_STEP;
 				}
 				else
 				{
-					StmoCtrl[i].Current = StmoCtrl[i].Command;
+					StmoCtrl[i].Inter = StmoCtrl[i].Command;
 				}
 			}
-			else if(StmoCtrl[i].Command < StmoCtrl[i].Current)
+			else if(StmoCtrl[i].Command < StmoCtrl[i].Inter)
 			{
-				if(StmoCtrl[i].Command < (StmoCtrl[i].Current-STMO_ONE_STEP))
+				if((StmoCtrl[i].Command+STMO_ONE_STEP) < StmoCtrl[i].Inter)
 				{
-					StmoCtrl[i].Current= StmoCtrl[i].Current-STMO_ONE_STEP;
+					StmoCtrl[i].Inter = StmoCtrl[i].Inter-STMO_ONE_STEP;
 				}
 				else
 				{
-					StmoCtrl[i].Current = StmoCtrl[i].Command;
+					StmoCtrl[i].Inter = StmoCtrl[i].Command;
 				}
 			}
 			else
 			{
-				StmoCtrl[i].Current = StmoCtrl[i].Command;
+				StmoCtrl[i].Inter = StmoCtrl[i].Command;
+			}
+
+			if(GET_STMO_DIRECTION(i) == STMO_DIR_CLOCKWISE)
+			{
+				StmoCtrl[i].Current = GET_STMO_SOFTWARE_ZERO(i)+StmoCtrl[i].Inter;
+			}
+			else
+			{
+				if(GET_STMO_SOFTWARE_ZERO(i) >= StmoCtrl[i].Inter)
+				{
+					StmoCtrl[i].Current = GET_STMO_SOFTWARE_ZERO(i)-StmoCtrl[i].Inter;
+				}
+				else
+				{
+					StmoCtrl[i].Current = STMO_MAX_DEGREE+GET_STMO_SOFTWARE_ZERO(i)- StmoCtrl[i].Inter;
+				}
 			}
 		}
 	}
