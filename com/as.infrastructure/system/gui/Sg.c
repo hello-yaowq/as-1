@@ -216,6 +216,20 @@ static void SgDrawWidget(SgWidget* w)
 			break;
 	}
 }
+
+static void SgCache(void)
+{
+	uint32 i;
+	SgWidget* w;
+	for(i=0;i<SGW_MAX;i++)
+	{
+		w = &SGWidget[i];
+		if(NULL != w->src->cf)
+		{
+			w->src->cf(w);
+		}
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sg_Init(void)
 {
@@ -276,6 +290,7 @@ void Sg_ManagerTask(void)
 		{
 			sgLayer = 0;
 			sgUpdateInProcessing = TRUE;
+			SgCache();
 		}
 	}
 }

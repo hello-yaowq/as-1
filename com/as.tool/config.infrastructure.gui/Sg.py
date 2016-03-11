@@ -113,11 +113,15 @@ def GenearteSgBMP(widget,fph,fpc):
     fp.write('\t/*t =*/%s,\n'%('SGT_BMP'))
     fp.write('\t/*rs=*/%s,\n'%(size))
     fp.write('\t/*r =*/(const SgRes**)%s_BMPS,\n'%(widget.attrib['name']))
-    fp.write('\t/*rf=*/(void*(*)(void*))%s\n'%(widget.attrib['refresh']))
+    fp.write('\t/*rf=*/(void*(*)(void*))%s,\n'%(widget.attrib['refresh']))
+    fp.write('\t/*cf=*/(void(*)(void*))%s\n'%(widget.attrib['cache']))
     fp.write('};\n\n')
     
     if(widget.attrib['refresh'] != 'NULL'):
         fph.write('extern void* %s(SgWidget* w);\n'%(widget.attrib['refresh']))
+
+    if(widget.attrib['cache'] != 'NULL'):
+        fph.write('extern void %s(SgWidget* w);\n'%(widget.attrib['cache']))
     
     fph.write('extern const SgSRC %s_SRC;\n'%(widget.attrib['name']))
     

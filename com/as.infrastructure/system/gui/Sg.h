@@ -105,7 +105,8 @@ typedef struct
 	uint8           t;
 	uint16  		rs;	/* resource size */
 	const SgRes **  r;	/* resource */
-	void*         (*rf)(void*);
+	void*         (*rf)(void*);	/* refresh resource according to the cache */
+	void          (*cf)(void*);	/* cache current status/data of the widget */
 }SgSRC;	/* static resource configuration */
 /*		  	  Width (w)
  * 		  + ---------- x
