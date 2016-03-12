@@ -27,6 +27,7 @@
 static boolean sgUpdateInProcessing  = FALSE;
 static uint8   sgLayer = 0;
 static uint32  sgWI    = 0;
+static uint32  sgX     = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void	SgDrawDot(uint32 x, uint32 y,const uint8* d,uint32 c)
 {
@@ -69,23 +70,40 @@ static const uint8* SgfLookup(const SgTXT* txt,uint16 code)
 
 	return NULL;
 }
-static void SgDrawBMP0(SgWidget* w)
+static boolean SgDrawBMP0(SgWidget* w)
 {
+	boolean rv;
 	const SgBMP* bmp;
 	uint32 x,y,W,H,color;
 	uint32 X;
 	uint32 Y;
+	uint32 width;
 	bmp = (SgBMP*)w->src->r[w->ri];
 	W = bmp->w;
 	H = bmp->h;
 	X = w->x;
 	Y = w->y;
 
+	width = (w->src->weight+99)/100;
+	x = (W+width-1)/width;
+
+	if((sgX+x) < W)
+	{
+		width=sgX+x;
+		rv = FALSE;
+	}
+	else
+	{
+		width = W;
+		rv = TRUE;
+	}
+
+
 	if( (w->w >= W) && (w->h >= H) )
 	{
 		X += (w->w-W)/2;
 		Y += (w->h-H)/2;
-		for(x=0;x<W;x++)
+		for(x=sgX;x<width;x++)
 		{
 			for(y=0;y<H;y++)
 			{
@@ -99,6 +117,10 @@ static void SgDrawBMP0(SgWidget* w)
 		/* out of range */
 		assert(0);
 	}
+
+	sgX = width;
+
+	return rv;
 }
 void Sg_Calc(uint32 *px,uint32 *py,uint32 cx,uint32 cy,uint16 d)
 { /* This is difficult, I think I need a lib to do this job */
@@ -118,7 +140,7 @@ void Sg_Calc(uint32 *px,uint32 *py,uint32 cx,uint32 cy,uint16 d)
 		py[0]= (uint32)(((double)(x-(int)cx)*SIN + (double)(y-(int)cy)*COS) + (int)cy);
 	}
 }
-static void SgDrawBMPd(SgWidget* w)
+static boolean SgDrawBMPd(SgWidget* w)
 {
 	const SgBMP* bmp;
 	uint32 x,y,W,H,color;
@@ -141,9 +163,12 @@ static void SgDrawBMPd(SgWidget* w)
 			Sg_DrawPixel(cx+1,cy,color);
 		}
 	}
+
+	return TRUE;
 }
-static void SgDrawBMP(SgWidget* w)
+static boolean SgDrawBMP(SgWidget* w)
 {
+	boolean rv;
 	if(NULL != w->src->rf)
 	{
 		w->src->rf(w);
@@ -152,20 +177,23 @@ static void SgDrawBMP(SgWidget* w)
 	{
 		if(0xFFFF == w->d)
 		{	/* no degree */
-			SgDrawBMP0(w);
+			rv=SgDrawBMP0(w);
 		}
 		else
 		{	/* draw with rotation */
-			SgDrawBMPd(w);
+			rv=SgDrawBMPd(w);
 		}
 	}
 	else
 	{
 		assert(0);
+		rv = TRUE;
 	}
 
+	return rv;
+
 }
-static void SgDrawTXT(SgWidget* w)
+static boolean SgDrawTXT(SgWidget* w)
 {
 	const SgTXT* txt;
 	const uint16* utext;
@@ -198,23 +226,30 @@ static void SgDrawTXT(SgWidget* w)
 	{
 		assert(0);
 	}
+
+	return TRUE;
 }
-static void SgDrawWidget(SgWidget* w)
+static boolean SgDrawWidget(SgWidget* w)
 {
+	boolean rv;
 	switch(w->src->t)
 	{
 		case SGT_DMP:
+			rv = TRUE;
 			break;
 		case SGT_BMP:
-			SgDrawBMP(w);
+			rv = SgDrawBMP(w);
 			break;
 		case SGT_TXT:
-			SgDrawTXT(w);
+			rv =SgDrawTXT(w);
 			break;
 		default:
+			rv = TRUE;
 			assert(0);
 			break;
 	}
+
+	return rv;
 }
 
 static void SgCache(void)
@@ -263,16 +298,24 @@ void Sg_ManagerTask(void)
 			while(sgWI < SGW_MAX)
 			{
 				w = &SGWidget[sgWI];
-				sgWI ++;
+
 				if(w->l == sgLayer)
 				{
-					SgDrawWidget(w);
-					/* TODO: for a widget is bigger than 100, it should be draw in weight/100 times */
-					weight = w->src->weight;
+					if(TRUE==SgDrawWidget(w))
+					{
+						sgWI++;
+						sgX = 0;
+						weight += w->src->weight%100;
+					}
+					else
+					{
+						weight += 100;
+					}
 				}
 				else
 				{
 					/* continue */
+					sgWI ++;
 				}
 			}
 			if(SGW_MAX <= sgWI)
