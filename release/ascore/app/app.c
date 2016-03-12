@@ -43,7 +43,7 @@ static void sample_pointer(void)
 
 	if(tacho_up)
 	{
-		tacho += 100;
+		tacho += 50;
 		if(tacho >=  24000)
 		{
 			tacho = 24000;
@@ -52,9 +52,9 @@ static void sample_pointer(void)
 	}
 	else
 	{
-		if(tacho > 200)
+		if(tacho > 100)
 		{
-			tacho -= 200;
+			tacho -= 100;
 		}
 		else
 		{

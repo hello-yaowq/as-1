@@ -250,7 +250,7 @@ void Sg_Init(void)
 void Sg_ManagerTask(void)
 {
 	SgWidget* w;
-	boolean  drawFlag = FALSE;
+	uint32_t weight=0;
 
 	if(sgUpdateInProcessing)
 	{
@@ -267,7 +267,8 @@ void Sg_ManagerTask(void)
 				if(w->l == sgLayer)
 				{
 					SgDrawWidget(w);
-					drawFlag = TRUE;
+					/* TODO: for a widget is bigger than 100, it should be draw in weight/100 times */
+					weight = w->src->weight;
 				}
 				else
 				{
@@ -280,8 +281,8 @@ void Sg_ManagerTask(void)
 				sgWI = 0;
 			}
 
-			if(drawFlag)
-			{
+			if(weight >= 100)
+			{	/* each main function call, just draw 100 */
 				break;
 			}
 		}

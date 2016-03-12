@@ -17,6 +17,7 @@
 	layer    = '0'
 	refresh  = 'NULL'
 	cache    = 'NULL'
+	weight   = '500'
 	>
 	<SgBMP 
 		name   = 'ClusterBackground' 
@@ -36,6 +37,7 @@
 	layer    = '2'
 	refresh  = 'RefreshClusterTachoPointer'
 	cache    = 'CacheClusterTachoPointer'
+	weight   = '20'
 	>
 	<SgBMP 
 		name   = 'ClusterTachoPointer' 
@@ -55,6 +57,7 @@
 	layer    = '2'
 	refresh  = 'RefreshClusterSpeedPointer'
 	cache    = 'CacheClusterSpeedPointer'
+	weight   = '20'
 	>
 	<SgBMP 
 		name   = 'ClusterSpeedPointer' 
@@ -74,6 +77,7 @@
 	layer    = '2'
 	refresh  = 'RefreshClusterTempPointer'
 	cache    = 'CacheClusterTempPointer'
+	weight   = '15'
 	>
 	<SgBMP 
 		name   = 'ClusterTempPointer' 
@@ -93,6 +97,7 @@
 	layer    = '2'
 	refresh  = 'RefreshClusterFuelPointer'
 	cache    = 'CacheClusterFuelPointer'
+	weight   = '15'
 	>
 	<SgBMP 
 		name   = 'ClusterFuelPointer' 
@@ -105,18 +110,39 @@
 <SgWidget 
 	name     = 'sgwTelltaleTPMS'	
 	type     = 'SgBMP{1}' 			
-	x        = '400'
-	y        = '300'
+	x        = '415'
+	y        = '320'
 	w        = '42'	
 	h        = '36'
 	layer    = '1'
 	refresh  = 'RefreshTelltaleTPMS'
 	cache    = 'CacheTelltaleTPMS'
+	weight   = '10'
 	>
 	<SgBMP 
 		name   = 'TelltaleTPMS' 
 		locate = 'virtual_cluster/pics/tt_tpms.png' 
 		x      = '21' 				
+		y      = '18'  					
+		/>
+</SgWidget>
+
+<SgWidget 
+	name     = 'sgwTelltaleLowOil'	
+	type     = 'SgBMP{1}' 			
+	x        = '220'
+	y        = '320'
+	w        = '64'	
+	h        = '36'
+	layer    = '1'
+	refresh  = 'RefreshTelltaleLowOil'
+	cache    = 'CacheTelltaleLowOil'
+	weight   = '10'
+	>
+	<SgBMP 
+		name   = 'TelltaleLowOil' 
+		locate = 'virtual_cluster/pics/tt_low_oil.png' 
+		x      = '32' 				
 		y      = '18'  					
 		/>
 </SgWidget>

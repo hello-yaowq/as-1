@@ -114,7 +114,8 @@ def GenearteSgBMP(widget,fph,fpc):
     fp.write('\t/*rs=*/%s,\n'%(size))
     fp.write('\t/*r =*/(const SgRes**)%s_BMPS,\n'%(widget.attrib['name']))
     fp.write('\t/*rf=*/(void*(*)(void*))%s,\n'%(widget.attrib['refresh']))
-    fp.write('\t/*cf=*/(void(*)(void*))%s\n'%(widget.attrib['cache']))
+    fp.write('\t/*cf=*/(void(*)(void*))%s,\n'%(widget.attrib['cache']))
+    fp.write('\t/*weight=*/%s\n'%(widget.attrib['weight']))
     fp.write('};\n\n')
     
     if(widget.attrib['refresh'] != 'NULL'):

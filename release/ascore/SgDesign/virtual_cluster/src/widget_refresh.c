@@ -2,6 +2,9 @@
 #include "Sg.h"
 #include "Stmo.h"
 
+#define TT_ON  1
+#define TT_OFF SGL_INVALID
+
 void CacheClusterTachoPointer(SgWidget* w){}
 void* RefreshClusterTachoPointer(SgWidget* w)
 {
@@ -60,11 +63,11 @@ void CacheTelltaleTPMS(SgWidget* w)
 
 	if(tflash < 20)
 	{
-		w->l = 1;
+		w->l = TT_ON;
 	}
 	else if(tflash < 40)
 	{
-		w->l = SGL_INVALID;
+		w->l = TT_OFF;
 	}
 	else
 	{
@@ -74,6 +77,33 @@ void CacheTelltaleTPMS(SgWidget* w)
 }
 
 void* RefreshTelltaleTPMS(SgWidget* w)
+{
+	return 0;
+}
+
+void CacheTelltaleLowOil(SgWidget* w)
+{
+
+	static int tflash=0;
+
+	tflash ++;
+
+	if(tflash < 30)
+	{
+		w->l = TT_ON;
+	}
+	else if(tflash < 60)
+	{
+		w->l = TT_OFF;
+	}
+	else
+	{
+		w->l = 1;
+		tflash = 0;
+	}
+}
+
+void* RefreshTelltaleLowOil(SgWidget* w)
 {
 	return 0;
 }
