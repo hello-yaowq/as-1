@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include "arvic.h"
 static class Entry* self = NULL;
 
 Entry::Entry ( QWidget *parent )
@@ -35,10 +36,11 @@ Entry::Entry ( QWidget *parent )
 
     this->setGeometry(50,50,600,20);
 
-    registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
-    registerDevice(new arShell(SHELL_DEVICE_NAME,this));
+    //registerDevice(new arCan(CAN_DEVICE_NAME,CAN_CTRL_NUM,this));
+    //registerDevice(new arShell(SHELL_DEVICE_NAME,this));
+    registerDevice(new arVIC(VIC_DEVICE_NAME,this));
 
-    loadEcu();
+    //loadEcu();
 }
 
 class Entry* Entry::Self ( void )

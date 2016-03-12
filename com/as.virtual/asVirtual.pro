@@ -33,7 +33,8 @@ SOURCES +=              \
     source/ardevice.cpp \
     source/entry.cpp \
     source/xlLoadlib.cpp \
-    source/arshell.cpp
+    source/arshell.cpp \
+    source/arvic.cpp
 
 HEADERS  +=             \
     include/vEcu.h \
@@ -43,7 +44,8 @@ HEADERS  +=             \
     include/ardevice.h \
     include/entry.h \
     include/vxlapi.h \
-    include/arshell.h
+    include/arshell.h \
+    include/arvic.h
 
 FORMS    +=
 
