@@ -23,6 +23,27 @@
 #define VIC_DEVICE_NAME "Vic"
 #define VIC_PICS_PATH "/home/parai/workspace/as/release/ascore/SgDesign/virtual_cluster/pics"
 /* ============================ [ TYPES     ] ====================================================== */
+typedef enum
+{
+    STMO_ID_SPEED,
+    STMO_ID_TACHO,
+    STMO_ID_TEMP,
+    STMO_ID_FUEL,
+    STMO_CFG_NUM
+}Stmo_IdType;
+typedef qint32 Stmo_DegreeType;
+
+typedef enum
+{
+    TELLTALE_ID_TPMS,
+    TELLTALE_ID_LOW_OIL_PRESSURE,
+    TELLTALE_CFG_NUM
+}Telltale_IdType;
+typedef enum
+{
+    TELLTALE_OFF,
+    TELLTALE_ON
+}Telltale_StatueType;
 /* ============================ [ CLASS     ] ====================================================== */
 /*
  * Virtual Instrument Cluster
@@ -31,11 +52,27 @@
 class arVICPointer : public QGraphicsItem
 {
 private:
-
+    Stmo_IdType id;
+    Stmo_DegreeType posDegree;
 public:
-    explicit arVICPointer(QGraphicsItem *parent = 0);
+    explicit arVICPointer(Stmo_IdType id,QGraphicsItem *parent = 0);
     ~arVICPointer();
-    void setPosDegree(qint32 Degree);
+    void setPosDegree(quint32 degree);
+private:
+    QRectF boundingRect() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
+
+};
+
+class arVICTelltale : public QGraphicsItem
+{
+private:
+    Telltale_IdType id;
+    Telltale_StatueType status;
+public:
+    explicit arVICTelltale(Telltale_IdType id,QGraphicsItem *parent = 0);
+    ~arVICTelltale();
+    void setStatus(Telltale_StatueType status);
 private:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
@@ -46,7 +83,8 @@ class arVICGraphicView : public QGraphicsView
 {
     Q_OBJECT
 private:
-    arVICPointer* speed;
+    arVICPointer* pointers[STMO_CFG_NUM];
+    arVICTelltale* telltales[TELLTALE_CFG_NUM];
 public:
     explicit arVICGraphicView(QWidget *parent=0);
     ~arVICGraphicView();
