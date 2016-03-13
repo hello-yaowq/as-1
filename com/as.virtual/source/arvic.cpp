@@ -250,17 +250,18 @@ arVICGraphicView::arVICGraphicView(QWidget *parent):QGraphicsView(parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
+    for(int i=0;i<TELLTALE_CFG_NUM;i++)
+    {
+        telltales[i] = new arVICTelltale((Telltale_IdType)i);
+        scene->addItem(telltales[i]);
+    }
+
     for(int i=0;i<STMO_CFG_NUM;i++)
     {
         pointers[i] = new arVICPointer((Stmo_IdType)i);
         scene->addItem(pointers[i]);
     }
 
-    for(int i=0;i<TELLTALE_CFG_NUM;i++)
-    {
-        telltales[i] = new arVICTelltale((Telltale_IdType)i);
-        scene->addItem(telltales[i]);
-    }
     startTimer(10);
 }
 
