@@ -21,7 +21,11 @@
 #include <QImage>
 /* ============================ [ MACROS    ] ====================================================== */
 #define VIC_DEVICE_NAME "Vic"
+#ifdef __WINDOWS__
+#define VIC_PICS_PATH "D:/repository/as/release/ascore/SgDesign/virtual_cluster/pics"
+#else
 #define VIC_PICS_PATH "/home/parai/workspace/as/release/ascore/SgDesign/virtual_cluster/pics"
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef enum
 {
