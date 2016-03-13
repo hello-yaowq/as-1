@@ -110,12 +110,15 @@ def-y += -D__LINUX__
 def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
+def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
 endif	
 # slect GUI openVG/GTK 
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
+ldflags-y +=-ldl -lreadline
 else
-ldflags-y +=-lwinmm 
+ldflags-y +=-lwinmm -lwsock32
+ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
