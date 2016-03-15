@@ -367,6 +367,14 @@ static int os_usleep (lua_State *L) {
 	}
   return 1;
 }
+static int os_name (lua_State *L) {
+#ifdef __WINDOWS__
+	lua_pushstring(L, "nt");
+#else
+	lua_pushstring(L, "posix");
+#endif
+	return 1;
+}
 #endif
 
 static const luaL_Reg syslib[] = {
@@ -383,6 +391,7 @@ static const luaL_Reg syslib[] = {
   {"tmpname",   os_tmpname},
 #ifdef __AS_BY_PARAI__
   {"usleep",   os_usleep},
+  {"name",     os_name},
 #endif
   {NULL, NULL}
 };

@@ -27,12 +27,14 @@ local dcm_chl = 0
 local FLASH_WRITE_SIZE = 512
 local FLASH_READ_SIZE  = 512
 
-local l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
-local l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
-
 local l_bootloader = "/home/parai/workspace/as/release/asboot/out/posix.exe &"
---local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
---local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
+local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
+
+if os.name() == "nt" then
+  l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
+  l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
+end
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
@@ -473,10 +475,12 @@ function main(argc,argv)
 	os.execute("sudo ip link set up can0")
 	as.can_open(can_bus,"socket",0,1000000)
 
-	--os.execute(l_bootloader)
-	os.usleep(1000)
+  if os.name() == "posix" then
+	  os.execute(l_bootloader)
+	  os.usleep(1000)
   end
-  -- os.execute("mkdir laslog")
+  end
+  os.execute("mkdir laslog")
   as.can_log("laslog/flash-loader.asc")
   dcm.init(dcm_chl,can_bus,0x732,0x731)
   
@@ -487,7 +491,7 @@ function main(argc,argv)
     end
   end
   as.can_log() -- no paramter close the file
-  --os.execute("pgrep .exe|xargs -i kill -9 {}")
+  os.execute("pgrep .exe|xargs -i kill -9 {}")
   os.execute("cat laslog/flash-loader.asc")
 end
 
