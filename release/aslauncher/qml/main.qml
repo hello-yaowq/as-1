@@ -22,8 +22,11 @@ Rectangle {
     ListModel {
         id: appModel
         ListElement { name: "asone"; icon: "https://www.python.org/static/img/python-logo.png" }
+        ListElement { name: "core-cfg"; icon: "http://www.arccore.com/images/logo.png" }
+        ListElement { name: "boot-cfg"; icon: "http://www.arccore.com/images/logo.png" }
         ListElement { name: "aslua"; icon: "http://www.lua.org/images/lua.gif" }
-        ListElement { name: "studio"; icon: "http://www.arccore.com/images/logo.png" }
+        ListElement { name: "asboot"; icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/NewTux.svg/150px-NewTux.svg.png" }
+        ListElement { name: "ascore"; icon: "http://www.autosar.org/typo3conf/templates/images/logo.png" }
     }
 //! [0]
     GridView {
@@ -42,7 +45,7 @@ Rectangle {
                 y: 20; 
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: 20
                 source: icon
             }
             Process {
@@ -62,12 +65,24 @@ Rectangle {
                         process.start("python3",["main.py"]);
                     }
                     else if(index==1) {
-                        process.setPWD("/home/parai/workspace/as/com/as.tool/lua/script")
-                        process.start("/bin/bash",["aslua.exe flashloader.lua"]);
+                        process.setPWD("/home/parai/workspace/as/com/as.tool/config.infrastructure.system");
+                        process.start("python3",["studio.py","/home/parai/workspace/as/release/ascore/src/posix-smallos-posix-gcc"]);
                     }
                     else if(index==2) {
                         process.setPWD("/home/parai/workspace/as/com/as.tool/config.infrastructure.system");
-                        process.start("python3",["studio.py","/home/parai/workspace/as/release/ascore/src/posix-smallos-posix-gcc"]);
+                        process.start("python3",["studio.py","/home/parai/workspace/as/release/asboot/src/posix-posix-gcc"]);
+                    }
+                    else if(index==3) {
+                        process.setPWD("/home/parai/workspace/as/com/as.tool/lua/script")
+                        process.start("gnome-terminal",[]);
+                    }
+                    else if(index==4) {
+                        process.setPWD("/home/parai/workspace/as/release/asboot/out")
+                        process.start("gnome-terminal",[]);
+                    }
+                    else if(index==5) {
+                        process.setPWD("/home/parai/workspace/as/release/ascore/out")
+                        process.start("gnome-terminal",[]);
                     }
                     else {}
 
