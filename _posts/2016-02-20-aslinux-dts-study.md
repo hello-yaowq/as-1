@@ -239,7 +239,7 @@ then on the key API of\_platform\_populate which will do the post process of the
 
 ![of_platform_populate](/as/images/vexpress-a9/of_platform_populate.png)
 
-so that we could know that this API of\_platform\_populate is called by the kernel postcore_initcall function vexpress\_config\_init, and with qemu eclipse debuger, you could also that there is other initialization API such as vexpress\_sysreg\_base will call API of\_find\_compatible\_node to initialize the node device.
+so that we could know that this API of\_platform\_populate is called by the kernel postcore\_initcall function vexpress\_config\_init, and with qemu eclipse debuger, you could also that there is other initialization API such as vexpress\_sysreg\_base will call API of\_find\_compatible\_node to initialize the node device.
 
 ```c
 *** kernel/drivers/bus/vexpress-config.c
