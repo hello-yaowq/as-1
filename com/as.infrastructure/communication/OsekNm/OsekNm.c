@@ -187,11 +187,14 @@ static void nmAddtoPresent(NetIdType NetId,NodeIdType NodeId)
 		{ /* do ind */
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.SMode == SignalActivation)
 			{
+				#ifdef __SMALL_OS__
+				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+				#endif
 				(void)ActivateTask(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId);
 			}
 			else
 			{
-				//(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
 			}
 		}
 	}
@@ -213,11 +216,14 @@ static void nmAddtoLimphome(NetIdType NetId,NodeIdType NodeId)
 		{ /* do ind */
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.SMode == SignalActivation)
 			{
+				#ifdef __SMALL_OS__
+				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+				#endif
 				(void)ActivateTask(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId);
 			}
 			else
 			{
-				//(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
 			}
 		}
 	}
@@ -301,10 +307,13 @@ static void nmNormalStandard(NetIdType NetId,NMPduType* NMPDU)
 				/* Do Ring Data indication */
 				if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalEvent)
 				{
-					//(void)SetEvent(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+					(void)SetEvent(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
 				}
 				else if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalActivation)
 				{
+					#ifdef __SMALL_OS__
+					(void)SetEvent(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+					#endif
 					(void)ActivateTask(NM_ControlBlock[NetId].nmRingDataInd.TaskId);
 				}
 				else

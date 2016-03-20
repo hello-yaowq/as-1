@@ -125,5 +125,9 @@ FUNC(StatusType,MEM_GetTaskState) 	 GetTaskState    ( TaskType TaskID,TaskStateR
 FUNC(void,MEM_StartOS)               StartOS         ( AppModeType Mode );
 FUNC(StatusType,MEM_GetResource)     GetResource     ( ResourceType ResID );
 FUNC(StatusType,MEM_ReleaseResource) ReleaseResource ( ResourceType ResID );
+FUNC(StatusType,MEM_SetEvent)        SetEvent        ( TaskType tskid , EventMaskType mask );
+FUNC(StatusType,MEM_ClearEvent)      ClearEvent      ( EventMaskType mask );
+FUNC(StatusType,MEM_GetEvent)        GetEvent        ( TaskType tskid , EventMaskRefType p_mask );
+FUNC(StatusType,MEM_WaitEvent)       WaitEvent       ( EventMaskType mask );
 
-#endif // OS_I_H
+#endif /* OS_I_H */

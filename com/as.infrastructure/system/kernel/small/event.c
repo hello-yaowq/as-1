@@ -18,6 +18,78 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+STATIC EventMaskType EventBit[TASK_NUM];
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+StatusType SetEvent ( TaskType tskid , EventMaskType mask )
+{
+	StatusType ercd = E_OK;
+
+	if (tskid < TASK_NUM)
+	{
+		EventBit[tskid] |= mask;
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;
+}
+
+
+StatusType ClearEvent ( EventMaskType mask )
+{
+	StatusType ercd = E_OK;
+
+	TaskType tskid;
+
+	GetTaskID(&tskid);
+
+	if (tskid < TASK_NUM)
+	{
+		EventBit[tskid] &= ~mask;
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+
+	return ercd;
+}
+
+StatusType GetEvent ( TaskType tskid , EventMaskRefType p_mask )
+{
+	StatusType ercd = E_OK;
+
+	if (tskid < TASK_NUM)
+	{
+		*p_mask = EventBit[tskid];
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;
+}
+
+StatusType WaitEvent ( EventMaskType mask )
+{
+	StatusType ercd = E_OK;
+	TaskType tskid;
+
+	GetTaskID(&tskid);
+
+	if (tskid < TASK_NUM)
+	{
+		if(0 == (EventBit[tskid]&mask))
+		{
+			ercd = E_OS_ACCESS;
+		}
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;
+}

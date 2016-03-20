@@ -77,60 +77,52 @@ TASK(TaskNmInd)
 {
 	StatusType ercd;
 	EventMaskType mask;
-	for(;;)
-	{
 
-		//ercd = WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
-		if(E_OK == ercd)
+	ercd = WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
+	if(E_OK == ercd)
+	{
+		GetEvent(TaskNmInd,&mask);
+		if((mask&EventNmNormal) != 0)
 		{
-			//GetEvent(TaskNmInd,&mask);
-			if((mask&EventNmNormal) != 0)
-			{
-				printf("In NM normal state,config changed.\n");
-			}
-			if((mask&EventNmLimphome) != 0)
-			{
-				printf("In NM limphome state,config changed.\n");
-			}
-			if((mask&EventNmStatus) != 0)
-			{
-				printf("NM network status changed.\n");
-			}
-			if((mask&EventRingData) != 0)
-			{
-				printf("NM Ring Data ind.\n");
-			}
-			//(void)ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
+			printf("In NM normal state,config changed.\n");
 		}
-		else
+		if((mask&EventNmLimphome) != 0)
 		{
-			printf("Error when Wait,ercd = %d.\n",ercd);
+			printf("In NM limphome state,config changed.\n");
 		}
+		if((mask&EventNmStatus) != 0)
+		{
+			printf("NM network status changed.\n");
+		}
+		if((mask&EventRingData) != 0)
+		{
+			printf("NM Ring Data ind.\n");
+		}
+		(void)ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	}
 	TerminateTask();
 }
 
-// This is an example of how to write NMInit()
+/* This is an example of how to write NMInit() */
 void NMInit(NetIdType NetId)
 {
 	uint8 config[32];
 	NetworkStatusType status;
-	(void)memset(config,0x01,32); //care node :0,8,16,24,32,...
+	(void)memset(config,0x01,32); /*care node :0,8,16,24,32,... */
 	if(NetId == 0)
 	{
-		//D_DefineWindow(NetId,0x4FF,0x400, NM_PDUID,8,8);
 		InitNMType(NetId,NM_DIRECT);
-		InitNMScaling(NetId,0xFF); // TODO: not used
+		InitNMScaling(NetId,0xFF); /* TODO: not used */
 		InitCMaskTable(NetId,NM_ckNormal,config);
 		InitCMaskTable(NetId,NM_ckLimphome,config);
-		InitIndDeltaConfig(NetId,NM_ckNormal,SignalEvent/*SignalEvent*/,TaskNmInd,EventNmNormal);
-		InitIndDeltaConfig(NetId,NM_ckLimphome,SignalEvent/*SignalEvent*/,TaskNmInd,EventNmLimphome);
+		InitIndDeltaConfig(NetId,NM_ckNormal,SignalActivation,TaskNmInd,EventNmNormal);
+		InitIndDeltaConfig(NetId,NM_ckLimphome,SignalActivation,TaskNmInd,EventNmLimphome);
 		memset(&status,0,sizeof(NetworkStatusType));
 		status.W.NMactive = 1;
-		InitSMaskTable(NetId,&status); // TODO : not implemented for indication
+		InitSMaskTable(NetId,&status); /* TODO : not implemented for indication */
 		InitTargetStatusTable(NetId,&status);
-		InitIndDeltaStatus(NetId,SignalEvent/*SignalEvent*/,TaskNmInd,EventNmStatus);
-		InitDirectNMParams(NetId,argNMNodeId /* LocalNodeId */,tTyp,tMax,tError,tWBS,tTx);
-		InitIndRingData(NetId,SignalEvent/*SignalEvent*/,TaskNmInd,EventRingData);
+		InitIndDeltaStatus(NetId,SignalActivation,TaskNmInd,EventNmStatus);
+		InitDirectNMParams(NetId,argNMNodeId,tTyp,tMax,tError,tWBS,tTx);
+		InitIndRingData(NetId,SignalActivation,TaskNmInd,EventRingData);
 	}
 }
