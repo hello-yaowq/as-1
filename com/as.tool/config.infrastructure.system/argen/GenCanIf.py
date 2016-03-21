@@ -142,6 +142,9 @@ def GenC():
 #if defined(USE_CANNM)
 #include "CanNm_Cbk.h"
 #endif
+#if defined(USE_OSEKNM)
+#include "OsekNm.h"
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* Imported structs from Can_PBcfg.c */
 extern const Can_ControllerConfigType Can_ControllerCfgData[];
@@ -298,7 +301,8 @@ static const CanIf_TxPduConfigType CanIfTxPduConfigData[] =
                     IdPrfix='CANTP'
                 else:
                     IdPrfix='PDUR'
-                if(GAGet(pdu,'ReceivedNotifier')!='Nobody'):
+                if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and
+                   (GAGet(pdu,'ReceivedNotifier')!='User')):
                     notifier='NULL'
                 else:
                     notifier=GAGet(pdu,'UserNotification')

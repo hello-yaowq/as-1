@@ -86,6 +86,8 @@
 									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__SOCKET_WIN_CAN_DRIVER__"/>
 									<listOptionValue builtIn="false" value="USE_STMO"/>
+									<listOptionValue builtIn="false" value="USE_OSEKNM"/>
+									<listOptionValue builtIn="false" value="USE_CANNM"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

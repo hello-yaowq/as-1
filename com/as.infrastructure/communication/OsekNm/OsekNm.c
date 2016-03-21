@@ -156,7 +156,7 @@ static void nmLimphomePrepSleepMain(NetIdType NetId);
 static void nmNormalMain(NetIdType NetId);
 static void nmTwbsLimphomeMain(NetIdType NetId);
 /* ============================ [ DATAS     ] ====================================================== */
-NM_ControlBlockType NM_ControlBlock[cfgNM_NET_NUM];
+NM_ControlBlockType NM_ControlBlock[OSEKNM_NET_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* nmInit3 is special doesn't mean all the operation of "Leave NMBusSleep" */
 static void nmInit3(NetIdType NetId)
@@ -1073,7 +1073,7 @@ void NM_WakeupIndication(NetIdType NetId)
 void NM_MainFuntion(void)
 {
 	NetIdType NetId;
-	for(NetId= 0; NetId < cfgNM_NET_NUM; NetId ++)
+	for(NetId= 0; NetId < OSEKNM_NET_NUM; NetId ++)
 	{
 		if(nmIsAlarmStarted(TTx))
 		{

@@ -14,6 +14,9 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "OsekNm.h"
+#include "Can.h"
+#include "CanIf.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define LocalNodeId 0x5A
 // NM Main Task Tick = 10 ms
@@ -51,7 +54,15 @@ void D_Online(NetIdType NetId)
 }
 StatusType D_WindowDataReq(NetIdType NetId,NMPduType* NMPDU,uint8 DataLengthTx)
 {
-	return E_OK;
+	PduInfoType pdu;
+	uint8 data[8];
+	pdu.SduLength = DataLengthTx;
+	pdu.SduDataPtr = data;
+	asAssert(DataLengthTx > 2);
+	data[0] = NMPDU->Destination;
+	data[1] = NMPDU->OpCode.b;
+	memcpy(&data[2],NMPDU->RingData,DataLengthTx-2);
+	return CanIf_Transmit(CANIF_ID_OSEK_NM_TX,&pdu);
 }
 
 
@@ -125,4 +136,27 @@ void NMInit(NetIdType NetId)
 		InitDirectNMParams(NetId,argNMNodeId,tTyp,tMax,tError,tWBS,tTx);
 		InitIndRingData(NetId,SignalActivation,TaskNmInd,EventRingData);
 	}
+}
+
+
+void CanIf_OsekNmUserTxConfirmation(PduIdType pduId)
+{
+	NM_TxConformation((NetIdType)pduId);
+}
+
+void CanIf_OsekNmUserRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId)
+{
+	NMPduType pdu;
+	pdu.Source = canId&0xFF;
+
+	asAssert(dlc >= 2);
+	pdu.Destination = sduPtr[0];
+	pdu.OpCode.b=sduPtr[1];
+
+	memset(pdu.RingData,0,6);
+	memcpy(pdu.RingData,&sduPtr[2],dlc-2);
+
+
+	NM_RxIndication(channel,&pdu);
+
 }

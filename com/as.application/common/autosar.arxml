@@ -50,6 +50,8 @@
 <Pdu Comment="*" Name="TxMsgTime" Size="64" />
 <Pdu Comment="*" Name="RxMsgAbsInfo" Size="64" />
 <Pdu Comment="*" Name="LS_NM_TX" Size="64" />
+<Pdu Comment="*" Name="OSEK_NM_TX" Size="64" />
+<Pdu Comment="*" Name="OSEK_NM_RX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -72,8 +74,9 @@
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2A" Identifier="0x744" Name="P2A" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" Identifier="0x402" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" Identifier="0x502" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" Identifier="0x101" Name="Time" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_TX" Identifier="0x401" Name="OSEK_NM_TX" TransmitNotifier="User" UserNotification="CanIf_OsekNmUserTxConfirmation" />
 </PduList>
 </Hth>
 </HthList>
@@ -83,6 +86,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0xFFF" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x700" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>

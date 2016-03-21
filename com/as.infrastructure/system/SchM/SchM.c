@@ -269,6 +269,13 @@
 #define SCHM_MAINFUNCTION_CANSM()
 #endif
 
+#ifdef USE_OSEKNM
+#include "OsekNm.h"
+#include "SchM_OsekNm.h"
+#else
+#define SCHM_MAINFUNCTION_OSEKNM()
+#endif
+
 #if defined(USE_UDPNM)
 #include "UdpNm.h"
 #endif
@@ -322,7 +329,7 @@ SCHM_DECLARE(EA);
 SCHM_DECLARE(FLS);
 SCHM_DECLARE(WDGM_TRIGGER);
 SCHM_DECLARE(WDGM_ALIVESUPERVISION);
-
+SCHM_DECLARE(OSEKNM);
 
 
 void SchM_Init( void ) {
@@ -395,6 +402,13 @@ TASK(SchM_Startup){
 	}
 #endif
 
+#ifdef USE_OSEKNM
+	for(i=0;i<OSEKNM_NET_NUM;i++)
+	{
+		StartNM(i);
+	}
+#endif
+
 #if defined(USE_CANSM)
 	for(i=0;i<CANSM_NETWORK_COUNT;i++)
 	{
@@ -459,6 +473,7 @@ TASK(SchM_BswService) {
 		SCHM_MAINFUNCTION_IOHWAB();
 		SCHM_MAINFUNCTION_COMM();
 		SCHM_MAINFUNCTION_NM();
+		SCHM_MAINFUNCTION_OSEKNM();
 		SCHM_MAINFUNCTION_CANNM();
 		SCHM_MAINFUNCTION_CANSM();
 		SCHM_MAINFUNCTION_WDGM_TRIGGER();

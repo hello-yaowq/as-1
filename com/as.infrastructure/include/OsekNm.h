@@ -16,6 +16,7 @@
 #define COM_AS_INFRASTRUCTURE_INCLUDE_OSEKNM_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#include "ComStack_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* Mask bit for ScalingParamType */
 /* If 1 the function is supported, 0 not */
