@@ -164,8 +164,6 @@ void CanIf_OsekNmUserRxIndication(uint8 channel, PduIdType pduId, const uint8 *s
 	memset(pdu.RingData,0,6);
 	memcpy(pdu.RingData,&sduPtr[2],dlc-2);
 
-	printf("CanIf_OsekNmUserRxIndication\n");
-
 	NM_RxIndication(channel,&pdu);
 
 }

@@ -264,7 +264,6 @@ static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 				((CanIf_FuncTypeCanSpecial) (entry->CanIfUserRxIndication))(
 						entry->CanIfCanRxPduHrhRef->CanIfCanControllerHrhIdRef,
 						entry->CanIfCanRxPduId, CanSduPtr, CanDlc, CanId);
-
 				return;
 			}
 			break;
