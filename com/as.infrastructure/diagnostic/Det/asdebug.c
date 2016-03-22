@@ -25,6 +25,8 @@ typedef void (*aslog_t)(char*,char*);
 #if defined(__WINDOWS__) || defined(__LINUX__)
 static char* __aswho  = "parai";
 static aslog_t __aslog  = NULL;
+static int g_argc=0;
+static char** g_argv = 0;
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -162,6 +164,21 @@ void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor)
 	}
 
 	aslog("Perf","%s :: cost %f s\n",infor,rv);
+}
+
+void asEnvInit(int argc,char* argv[])
+{
+	g_argc = argc;
+	g_argv = argv;
+}
+char* asEnvGet(int index)
+{
+	if(index < g_argc)
+	{
+		return g_argv[index];
+	}
+
+	return NULL;
 }
 #endif
 

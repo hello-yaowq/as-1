@@ -136,7 +136,8 @@ def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
-def-y += -DUSE_GUI -DUSE_STMO
+#def-y += -DUSE_GUI 
+def-y += -DUSE_STMO
 def-y += -D__AS_CAN_BUS__
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 

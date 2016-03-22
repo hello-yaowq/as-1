@@ -103,6 +103,19 @@
 #define ASPERF_MEASURE_START()
 #define ASPERF_MEASURE_STOP(infor)
 #endif
+/*
+ * Env Definition:
+ * 0: program name
+ * 1: OSEK NM Node ID
+ */
+
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define ASENVINIT(argc,argv) asEnvInit(argc,argv)
+#define ASENV(index) asEnvGet(index)
+#else
+#define ASENVINIT(argc,argv)
+#define ASENV(index)
+#endif
 
 /* ============================ [ TYPES     ] ====================================================== */
 #if defined(__LINUX__) || defined(__WINDOWS__)
@@ -120,5 +133,7 @@ extern void  asAssertErrorHook(void);
 #if defined(__LINUX__) || defined(__WINDOWS__)
 extern void asPerfSet(asperf_t *m);
 extern void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor);
+extern void asEnvInit(int argc,char* argv[]);
+extern char* asEnvGet(int index);
 #endif
 #endif /* COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_ */

@@ -18,7 +18,6 @@
 #include "CanIf.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define LocalNodeId 0x5A
 // NM Main Task Tick = 10 ms
 #define tTyp 10
 #define tMax 26
@@ -26,18 +25,24 @@
 #define tWBS   500
 #define tTx    2
 
-#define NM_PDUID 0xFF  /* For NM purpose */
+#define TaskNmInd TASK_ID_TaskNmInd
 
-#define TaskNmInd 0
+#define EventNmNormal   EVENT_MASK_TaskNmInd_EventNmNormal
+#define EventNmLimphome EVENT_MASK_TaskNmInd_EventNmLimphome
+#define EventNmStatus   EVENT_MASK_TaskNmInd_EventNmStatus
+#define EventRingData   EVENT_MASK_TaskNmInd_EventRingData
 
-#define EventNmNormal   0x1
-#define EventNmLimphome 0x2
-#define EventNmStatus   0x4
-#define EventRingData   0x8
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define ASENV_OSEKNM_NODE_ID()  atoi(ASENV(1))
+#else
+#define ASENV_OSEKNM_NODE_ID()  1
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#if defined(__WINDOWS__) || defined(__LINUX__)
+extern CanIf_TxPduConfigType CanIfTxPduConfigData[];
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
-uint32 argNMNodeId = NM_PDUID;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void D_Init(NetIdType NetId,RoutineRefType InitRoutine)
@@ -120,6 +125,9 @@ void NMInit(NetIdType NetId)
 	uint8 config[32];
 	NetworkStatusType status;
 	(void)memset(config,0x01,32); /*care node :0,8,16,24,32,... */
+	#if defined(__LINUX__) || defined(__WINDOWS__)
+	CanIfTxPduConfigData[CANIF_ID_OSEK_NM_TX].CanIfCanTxPduIdCanId = 0x400+ASENV_OSEKNM_NODE_ID();
+	#endif
 	if(NetId == 0)
 	{
 		InitNMType(NetId,NM_DIRECT);
@@ -133,7 +141,7 @@ void NMInit(NetIdType NetId)
 		InitSMaskTable(NetId,&status); /* TODO : not implemented for indication */
 		InitTargetStatusTable(NetId,&status);
 		InitIndDeltaStatus(NetId,SignalActivation,TaskNmInd,EventNmStatus);
-		InitDirectNMParams(NetId,argNMNodeId,tTyp,tMax,tError,tWBS,tTx);
+		InitDirectNMParams(NetId,ASENV_OSEKNM_NODE_ID(),tTyp,tMax,tError,tWBS,tTx);
 		InitIndRingData(NetId,SignalActivation,TaskNmInd,EventRingData);
 	}
 }
@@ -156,6 +164,7 @@ void CanIf_OsekNmUserRxIndication(uint8 channel, PduIdType pduId, const uint8 *s
 	memset(pdu.RingData,0,6);
 	memcpy(pdu.RingData,&sduPtr[2],dlc-2);
 
+	printf("CanIf_OsekNmUserRxIndication\n");
 
 	NM_RxIndication(channel,&pdu);
 

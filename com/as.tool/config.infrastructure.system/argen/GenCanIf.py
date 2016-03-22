@@ -285,7 +285,11 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
              notifier,
              GAGet(chl,'Name'),Index)
     fp.write("""
-static const CanIf_TxPduConfigType CanIfTxPduConfigData[] = 
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#else
+static const
+#endif
+CanIf_TxPduConfigType CanIfTxPduConfigData[] = 
 {
     %s
 };\n\n"""%(cstr))
