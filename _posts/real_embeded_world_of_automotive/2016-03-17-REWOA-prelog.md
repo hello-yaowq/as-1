@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 真实的嵌入式汽车电子 -- 序言
+title: 序言
 category: real embeded world of automotive
 comments: true
 ---

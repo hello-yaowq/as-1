@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 真实的嵌入式汽车电子 -- １　初识Ｃ语言
+title: １　初识Ｃ语言
 category: real embeded world of automotive
 comments: true
 ---
