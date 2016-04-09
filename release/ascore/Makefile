@@ -138,7 +138,7 @@ def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 #def-y += -DUSE_GUI 
 def-y += -DUSE_STMO
-def-y += -D__AS_CAN_BUS__
+def-y += -D__AS_CAN_BUS__ -DAUTOSAR_SIMULATOR
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 # openVG
@@ -276,6 +276,7 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
+#	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/test FALSE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)

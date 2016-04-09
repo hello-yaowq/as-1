@@ -177,6 +177,10 @@ char* asEnvGet(int index)
 	{
 		return g_argv[index];
 	}
+	else
+	{
+		asAssert(0);
+	}
 
 	return NULL;
 }
