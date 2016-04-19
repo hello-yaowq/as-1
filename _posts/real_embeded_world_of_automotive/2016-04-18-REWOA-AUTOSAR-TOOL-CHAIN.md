@@ -17,10 +17,39 @@ comments: true
 
 这里举几个小例子来证明，ｐｙｔｈｏｎ是如何被我利用来辅助高效地完成个人汽车电子软件开发工作的。
 
-####１ 由Ｖｅｃｔｏｒ ＣＡＮ　ＤＢＣ文件到ＯＳＥＫ　ＯＩＬ文件的自动转换
+####１ [正则表达式](http://www.cnblogs.com/huxi/archive/2010/07/04/1771073.html)——由Ｖｅｃｔｏｒ ＣＡＮ　ＤＢＣ文件到ＯＳＥＫ　ＯＩＬ文件的自动转换
 工作中，曾经接到了这样一份工作，将一个由客户提供的有很多ＣＡＮ消息的ＤＢＣ文件手工转换为ＯＩＬ（ＯＳＥＫ　Ｉｍｐｌｅｍｅｎｔａｔｉｏｎ　Ｌａｎｇｕａｇｅ）文件，当时就傻掉了，ｓｈｉｔ，这是多么无聊的一份工作啊，但不管怎样，活得干啊，谁让我是小兵呢。习惯性的用文本编辑器ｎｏｔｅｐａｄ＋＋打开了那个让我头疼的ＤＢＣ文件，看了一下之后，然后用Ｖｅｃｔｏｒ　ＤＢＣ　Ｅｄｉｔｏｒ打开，比较下之后瞬间明白了，ＤＢＣ本身是具有固定格式的文本文件，如果使用ｐｙｔｈｏｎ正则表达式来解析该ＤＢＣ文件然后自动生成ＯＩＬ文件，那是何其的简单，所以前前后后也就花了２天左右的时间，工具出来了，用这个工具向公司提了个ＣＩ（Ｃｏｎｔｉｎｉｏｕｓ　Ｉｍｐｒｏｖｅｍｅｎｔ）竟然还拿奖了，可惜奖金很少就１００块。现在，该工具的解析部分被我升级了，使用ｐｌｙ库来解析，更加的简单和灵活，参见[ａｓｃｃ](https://github.com/parai/as/tree/master/com/as.tool/py.can.database.access/ascc),
 一时无聊，还基于Ｅｘｃｅｌ　ＶＢＡ实现了一个解析工具[AS.xlsm](https://github.com/parai/as/blob/master/com/as.tool/config.infrastructure.system/AS.xlsm)，如下图所示：
 
 ![as-can-xlsm.png](/as/images/rewoa/as-can-xlsm.png)
 <center> 图１ AUTOSAR CAN Excel Tool </center>
+
+###２ [ｘｌｒｄ　Ｅｘｃｅｌ解析](https://pypi.python.org/pypi/xlrd/)
+之所以我会掌握了解ｐｙｔｈｏｎ库[ｘｌｒｄ](https://pypi.python.org/pypi/xlrd/)的一个重要原因也是因为ＣＡＮ通讯矩阵Ｍａｔｒｉｘ，因为有一个客户竟然不提供ＣＡＮ　ＤＢＣ文件，而是一个如图１所示的Ｅｘｃｅｌ文件，在我接受该项目之前，我惊奇的发现，前人又是眼看手写配置文件ＯＩＬ，我又傻掉了，能不能不要这么无聊。之后，我发现工作中有很多这样的相同的事情，Ｅｘｃｅｌ常常作为一个软件某些配置信息的输入文件，如ＮＶＭ数据配置等，而这些配置信息对应的Ｃ代码通常是具有某种共性的，所以如果使用ｘｌｒｄ去解析ｅｘｃｅｌ文件，并生成相应Ｃ代码是很简单的事情，并节省工时同时又可避免人为手写代码因为不细心而导致的错误，何乐而不为呢,并且在Ｅｘｃｅｌ数据升级之后，只要执行ｐｙｔｈｏｎ解析生成工具就所有工作完成，比眼看手写的方式不知道快多少倍。如下代码片段是解析图１所示Ｅｘｃｅｌ　AS.xlsm的代码片段,从中可以看出使用ｘｌｒｄ解析一个ｅｘｃｅｌ并用[ｐｙｔｈｏｎ字典](https://www.linuxzen.com/python-you-ya-de-cao-zuo-zi-dian.html)来返回ｅｘｃｅｌ数据是何其的简单，你能使用其他语言写出如此精简的代码吗，我个人认为是没有的，所以我想说使用ｐｙｔｈｏｎ作为数据分析工具在合适不过了,我认为当你了解ｐｙｔｈｏｎ之后，会给你的工作带来另外一种态度，另外一种思维方式，另外我认为今后的汽车电子软件开发将高度依赖于工具，如ＡＲＣＣＯＲＥ的一系列工具（基于[ｅｃｌｉｐｓｅ　ａｒｔｏｐ](http://www.artop.org/)），但ｐｙｔｈｏｎ的强大用来做些ｅｃｌｉｐｓｅ不擅长的事情，如数据分析，各种小工具等，是具有很强的生命力的，经济实惠。
+
+```python
+import xlrd
+
+def parse_as_xls_com(filename):
+    scom = {}
+    book = xlrd.open_workbook(filename)
+    sheet = book.sheet_by_name('COM')
+    for row in range(5,sheet.nrows):
+        signal = []
+        for col in range(1,sheet.ncols):
+            signal.append(str(sheet.cell(row,col).value))
+        name = signal[0]
+        try:
+            scom[name].append(signal)
+        except KeyError:
+            scom[name]=[signal]
+    return scom
+
+if(__name__ == '__main__'):
+    for name,signals in parse_as_xls_com('AS.xlsm').items():
+        print('%s = {'%(name))
+        for sig in signals:
+            print('\t%s'%(sig))
+        print('}')
+```
 
