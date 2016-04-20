@@ -53,3 +53,33 @@ if(__name__ == '__main__'):
         print('}')
 ```
 
+####３ [ｍａｔｈｐｌｏｔｌｉｂ](http://matplotlib.org/) 
+这是我最为欣赏和认为最有价值的[一个ｐｙｔｈｏｎ软件包](http://matplotlib.org/)，有了这个包，[ｍａｔｌａｂ](http://cn.mathworks.com/?requestedDomain=www.mathworks.com)能干的事情基本都能干了，而且入门门槛比ｍａｔｌａｂ还要低很多。对于像我这样菜鸟般的软件工程师来说，工作中常见的需要数值分析的问题，我都可以用ｐｙｔｈｏｎ　ｍａｔｈｐｌｏｔｌｉｂ来完成，甚至我还会用其来做简单建模来辅助软件设计。但是我个人一直没搞懂怎么安装此软件包，因为其依赖于其他很多软件包，如ｐｙＱｔ，[ｎｕｍｐｙ](http://www.numpy.org/)等，所以后来我也就不折腾了，干脆使用[ｐｙｔｈｏｎ（ｘ，ｙ）](http://python-xy.github.io/)，该ｐｙｔｈｏｎ软件安装包包含了几乎所有常用软件包，用于科学计算和数值分析，但是该安装包仅面向ｗｉｎｄｏｗｓ操作系统，对于我这样使用ｕｂｕｎｔｕ　ｌｉｎｕｘ操作系统的，则不得不使用虚拟机运行个ＸＰ然后使用ｐｙｔｈｏｎｘｙ，如下图所示，展示了ｐｙｔｈｏｎｘｙ的基本架构和功能模块，可见其强大。
+
+![pythonxy](http://python-xy.github.io/images/pythonxy_2117.png)
+
+如下图所示，则为使用ｍａｔｈｐｌｏｔ可以画出的图表，可知其功能真的很强大。
+![mathplotlib](http://matplotlib.org/_static/logo_sidebar_horiz.png)
+
+如下代码片段则为我通常使用ｐｙｔｈｏｎ　ｍａｔｈｐｌｏｔｌｉｂ的一种方式，对我而言，只要会这种方式基本足矣，因为我基本上和复杂数学问题无缘了，嵌入式基础软件行业还是一个比较简单的行业，工作比较繁琐，但不是很难。
+
+```python
+from pylab import *
+
+X = [-4,-3,-2,-1,0,1,2,3,4]
+Y0 = [-4,-3,-2,-1,0,1,2,3,4]
+Y1 = [4,3,2,1,0,-1,-2,-3,-4]
+
+plt.plot(X,Y0,color="blue", linewidth=1.0, linestyle="-")
+plt.plot(X,Y1,color="green", linewidth=1.0, linestyle="-")
+
+X = np.linspace(-np.pi, np.pi, 256,endpoint=True)
+C,S = np.cos(X), np.sin(X)
+
+plt.plot(X, C, color="red", linewidth=1.0, linestyle="-")
+plt.plot(X, S, color="black", linewidth=1.0, linestyle="-")
+
+grid()
+
+plt.show()
+```
