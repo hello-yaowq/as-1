@@ -47,3 +47,5 @@ HelloAutosar.arxml  Rte.c          Rte_GeneratedEcuc.arxml  Rte_InternalDataType
 HelloAutosar.yaml   Rte_Cbk.h      Rte_GeneratedEcuc.yaml   Rte_Main.h                         Rte_Partition_EcucPartition_SWC1.h  Rte_SWC1_Type.h                     Rte_Util.h
 Makefile            Rte_Cfg.h      Rte.h                    Rte_Partition_EcucPartition_Rte.c  Rte_Partition_EcucPartition_SWC2.c  Rte_SWC2.h
 ```
+
+Okay, [2016-04-24],今天家里断网，又傻掉了，虽然生成出来了一些代码，但是打开看看，对我来说好像没有什么特别大的帮助，真是头疼，所以决定先把ＲＴＥ的文档在好好读一遍，整理一下思绪。
