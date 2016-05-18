@@ -516,6 +516,7 @@ class ArgModule(QMainWindow):
             widths=[]
             for i in range(0,arobj.childCount()):
                 arobj1 = arobj.child(i)
+                if(IsArxmlList(arobj1.arxml)==True):continue
                 for Column in range(0,len(arobj1.arxml.descriptor.items())):
                     rePos = re.compile(r'PosGUI=(\d+)')
                     for [key,value] in arobj1.arxml.descriptor.items():
@@ -529,6 +530,7 @@ class ArgModule(QMainWindow):
             self.table.setHorizontalHeaderLabels(headers)
             for i in range(0,arobj.childCount()):
                 arobj1 = arobj.child(i)
+                if(IsArxmlList(arobj1.arxml)==True):continue
                 index = self.table.rowCount()
                 self.table.setRowCount(index+1)
                 for Column in range(0,len(arobj1.arxml.descriptor.items())):
