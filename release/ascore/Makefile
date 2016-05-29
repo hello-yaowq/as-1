@@ -291,6 +291,7 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/memory TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/libraries TRUE)
 #	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/vm TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)

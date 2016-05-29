@@ -70,6 +70,16 @@ typedef enum {
 	CANSM_BOR_CHECK_L2 /**<  Bus-off recovery level 2 state, TX enabled again */
 } CanSM_BusOffRecoveryStateType; /** @req CANSM169 */
 
+/** parai: @req 4.2.2:SWS_CanSM_00598 */
+typedef enum
+{
+	CANSM_BSWM_NO_COMMUNICATION,
+	CANSM_BSWM_SILENT_COMMUNICATION,
+	CANSM_BSWM_FULL_COMMUNICATION,
+	CANSM_BSWM_BUS_OFF,
+	CANSM_BSWM_CHANGE_BAUDRATE
+}CanSM_BswMCurrentStateType;
+
 /** @req CANSM037 */
 
 
