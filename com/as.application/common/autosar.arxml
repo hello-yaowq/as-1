@@ -368,4 +368,15 @@
 </Block>
 </BlockList>
 </NvM>
+<Rte>
+<SwcList Max="TBD">
+<Swc Comment="*" Name="Swc1">
+<InternalBehaviorList Max="TBD">
+<PimList Max="TBD">
+<Pim Comment="*" Name="MyPIM" TypeDefinion="struct {uint16 val1;uint8 * val2;}" TypeName="MyMemType" />
+</PimList>
+</InternalBehaviorList>
+</Swc>
+</SwcList>
+</Rte>
 </AUTOSAR>

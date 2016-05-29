@@ -797,4 +797,24 @@
 		</Block>
 	</BlockList>
 </NvM>
+
+<Rte>
+	<!-- according to RTE Example 5.4 -->
+	<SwcList Max="65535">
+		<Swc
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1" >
+		<InternalBehaviorList Max="65535">
+			<PimList Max="65535">
+				<Pim
+					Name="Text PosGUI=0"
+					TypeName="Text PosGUI=1"
+					TypeDefinion="TextArea PosGUI=2"
+					Comment="TextArea Default=* PosGUI=3"
+					/>
+			</PimList>
+		</InternalBehaviorList>
+		</Swc>
+	</SwcList>
+</Rte>
 </AUTOSAR>

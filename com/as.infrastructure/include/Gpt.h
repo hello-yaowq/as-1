@@ -97,6 +97,15 @@ typedef enum
 /** Channel id type */
 typedef uint8_t Gpt_ChannelType;
 
+/** parai: @req 4.2.2/SWS_Gpt_00389 */
+typedef enum
+{
+	GPT_PREDEF_TIMER_1US_16BIT,
+	GPT_PREDEF_TIMER_1US_24BIT,
+	GPT_PREDEF_TIMER_1US_32BIT,
+	GPT_PREDEF_TIMER_100US_32BIT
+} Gpt_PredefTimerType;
+
 /* Needs Gpt_ConfigType */
 #include "Gpt_Cfg.h"		/* @req 4.0.3/GPT259 */
 

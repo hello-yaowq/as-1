@@ -118,6 +118,14 @@ typedef enum
 	ECUM_WKSTATUS_EXPIRED = 3     /**< The wakeup event has not been validated and has expired therefore */
 } EcuM_WakeupStatusType;
 
+/* parai: @req4.2.2:SWS_EcuM_04120 */
+typedef enum
+{	/* Result of the Run Request Protocol sent to BswM */
+	ECUM_RUNSTATUS_UNKNOWN = 0,
+	ECUM_RUNSTATUS_REQUESTED,
+	ECUM_RUNSTATUS_RELEASED
+
+}EcuM_RunStatusType;
 
 #if !defined(_DEFINED_TYPEDEF_FOR_EcuM_BootTargetType_)
 typedef enum
