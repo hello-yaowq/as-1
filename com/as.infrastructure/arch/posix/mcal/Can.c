@@ -521,18 +521,20 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 		  rpmsg.id = pduInfo->id;
 		  rpmsg.length = pduInfo->length;
 		  memcpy(rpmsg.sdu,pduInfo->sdu,pduInfo->length);
-		  ASLOG(CAN,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
-				  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
-				  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
-			do {
-				ercd = RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
-			} while(ercd != E_OK);
+		  do {
+			ercd = RPmsg_Send(RPMSG_CHL_CAN,&rpmsg,sizeof(rpmsg));
+		  } while(ercd != E_OK);
 		#else
+
 		  if(FALSE == can_write(busid,pduInfo->id,pduInfo->length,pduInfo->sdu))
 		  {
 			  asAssert(0);
 		  }
 		#endif	/* __AS_CAN_BUS__ */
+
+		  ASLOG(CAN,"CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+				  pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
+				  pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);
 
 		  canUnit->swPduHandle = pduInfo->swPduHandle;
 		  // Increment statistics

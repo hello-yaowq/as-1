@@ -70,7 +70,7 @@ sint16 Ifx_LkUpMap_s16(const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU
 uint8  Ifx_LkUpBaseMap_u8 (const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU16_Type* dpResultY,uint16 num_value,const uint8*  Val_array);
 uint16 Ifx_LkUpBaseMap_u16(const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU16_Type* dpResultY,uint16 num_value,const uint16* Val_array);
 sint8  Ifx_LkUpBaseMap_s8 (const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU16_Type* dpResultY,uint16 num_value,const sint8*  Val_array);
-sint16 Ifx_LkUpBaseMap_u16(const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU16_Type* dpResultY,uint16 num_value,const sint16* Val_array);
+sint16 Ifx_LkUpBaseMap_s16(const Ifx_DPResultU16_Type* dpResultX,const Ifx_DPResultU16_Type* dpResultY,uint16 num_value,const sint16* Val_array);
 
 uint8  Ifx_IntIpoCur_u8_u8   ( uint8  Xin, uint8  N, const uint8*  X_array, const uint8*  Val_array);
 uint16 Ifx_IntIpoCur_u8_u16  ( uint8  Xin, uint8  N, const uint8*  X_array, const uint16* Val_array);
