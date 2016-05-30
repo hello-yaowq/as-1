@@ -52,7 +52,7 @@ void Ifx_DPSearch_u16 (Ifx_DPResultU16_Type* dpResult,uint16 Xin,uint16 N,const 
 			}
 			else if((Xin < X_array[index + 1]) && ((index + 1) < N) )
 			{
-				ratio = (Xin - X_array[index]) / (X_array [index+1] - X_array [index])
+				ratio = (Xin - X_array[index]) / (X_array [index+1] - X_array [index]);
 			}
 			else
 			{

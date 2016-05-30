@@ -68,6 +68,19 @@ struct Can_SocketHandleList_s
 	#endif
 	STAILQ_HEAD(,Can_SocketHandle_s) head;
 };
+
+struct Can_Filter_s {
+	uint32_t mask;
+	uint32_t code;
+	STAILQ_ENTRY(Can_Filter_s) entry;
+};
+
+struct Can_FilterList_s
+{
+	STAILQ_HEAD(,Can_Filter_s) head;
+};
+
+
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static struct Can_SocketHandleList_s* socketH = NULL;
@@ -75,6 +88,7 @@ static struct Can_SocketHandleList_s* socketH = NULL;
 static pthread_mutex_t socketLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 static struct timeval m0;
+static struct Can_FilterList_s* canFilterH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static int init_socket(int port)
 {
@@ -144,6 +158,7 @@ static void try_accept(void)
 		tv.tv_sec  = 0;
 		tv.tv_usec = 0;
 		handle = malloc(sizeof(struct Can_SocketHandle_s));
+		assert(handle);
 		handle->s = s;
 	    /* Set Timeout for recv call */
 		/*
@@ -189,6 +204,36 @@ static void remove_socket(struct Can_SocketHandle_s* h)
 	closesocket(h->s);
 	free(h);
 }
+static void log_msg(struct can_frame* frame,float rtim)
+{
+	boolean bOut = FALSE;
+
+	struct Can_Filter_s* filter;
+
+	if(NULL == canFilterH)
+	{
+		bOut = TRUE;
+	}
+	else
+	{
+		STAILQ_FOREACH(filter,&canFilterH->head,entry)
+		{
+			if((frame->can_id&filter->mask) == (filter->code&filter->mask))
+			{
+				bOut = TRUE;
+			}
+		}
+	}
+
+	if(bOut)
+	{
+		printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X] @ %f s\n",
+				frame->can_id,frame->can_dlc,
+				frame->data[0],frame->data[1],frame->data[2],frame->data[3],
+				frame->data[4],frame->data[5],frame->data[6],frame->data[7],
+				rtim);
+	}
+}
 static void try_recv_forward(void)
 {
 	int len;
@@ -216,11 +261,9 @@ static void try_recv_forward(void)
 			{
 				rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
 			}
-			printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X] @ %f s\n",
-					frame.can_id,frame.can_dlc,
-					frame.data[0],frame.data[1],frame.data[2],frame.data[3],
-					frame.data[4],frame.data[5],frame.data[6],frame.data[7],
-					rtim);
+
+			log_msg(&frame,rtim);
+
 			STAILQ_FOREACH(h2,&socketH->head,entry)
 			{
 				if(h != h2)
@@ -262,13 +305,40 @@ static void schedule(void)
 	#endif
 	try_recv_forward();
 }
+
+static void arg_filter(char* s)
+{
+	char *code;
+	struct Can_Filter_s* filter = malloc(sizeof(struct Can_Filter_s));
+	assert(filter);
+
+	code = strchr(s,'#');
+	assert(code);
+	code = &code[1];
+
+	filter->mask = strtoul(s,NULL,16);
+	filter->code = strtoul(code,NULL,16);
+
+	if (NULL == canFilterH)
+	{
+		canFilterH = malloc(sizeof(struct Can_FilterList_s));
+		assert(canFilterH);
+		STAILQ_INIT(&canFilterH->head);
+	}
+
+	STAILQ_INSERT_TAIL(&canFilterH->head,filter,entry);
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int main(int argc,char* argv[])
 {
 	int rv;
-	if(argc != 2)
+
+	if(argc < 2)
 	{
-		printf("Usage:%s <port>\n",argv[0]);
+		printf( "Usage:%s <port> : 'port' is a number start from 0\n"
+			    "  -f <Mask>#<Code> : optional parameter for CAN log Mask and Code, in hex\n"
+			    "Example:\n"
+				"  %s 0 -f 700#300",argv[0],argv[0]);
 		return -1;
 	}
 	gettimeofday(&m0,NULL);
@@ -277,6 +347,20 @@ int main(int argc,char* argv[])
 		WSACleanup();
 		return -1;
 	}
+
+	argc = argc - 2;
+	argv = argv + 2;
+	while(argc >= 2)
+	{
+		if( 0 == strcmp(argv[0],"-f") )
+		{
+			arg_filter(argv[1]);
+		}
+
+		argc = argc - 2;
+		argv = argv + 2;
+	}
+
 	#ifdef USE_RX_DAEMON
 	if( 0 == pthread_create(&(socketH->rx_thread),NULL,rx_daemon,NULL))
 	{
