@@ -33,15 +33,15 @@ debug ?= TRUE
 ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
-HOME = /home/parai
+HOME ?= /home/parai
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
-HOME = C:/Users/parai.wang
+HOME ?= C:/Users/parai.wang
 endif
 ifeq ($(HOME), $(wildcard $(HOME)))
-else
-$(error fix your home path)
+#else
+#$(error fix your home path)
 endif
 LUA   = $(prj-dir)/com/as.tool/lua
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py

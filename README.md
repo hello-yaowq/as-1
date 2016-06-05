@@ -1,6 +1,8 @@
 # as
 automotive software and its tool-chain
 
+[![Build Status](https://travis-ci.org/parai/as.svg?branch=master)](https://travis-ci.org/parai/as)
+
 ## why this repository
 because I am not powerful so I decided to develop small but smart part of automotive software.
 

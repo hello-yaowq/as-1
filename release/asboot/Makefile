@@ -37,10 +37,10 @@ PY34 = python3
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
-HOME = C:/Users/parai.wang
+HOME ?= C:/Users/parai.wang
 ifeq ($(HOME), $(wildcard $(HOME)))
-else
-$(error fix your home path)
+#else
+#$(error fix your home path)
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
