@@ -17,8 +17,8 @@ before_script:
 
 script:
   - cd release/ascore && make 91 && make 92
-  - cd ../..release/asboot && make 91 && make 92
-  - cd ../..release/aslua && make 91 && make 94 && make 81 && make 82
+  - cd ../../release/asboot && make 91 && make 92
+  - cd ../../release/aslua && make 91 && make 94 && make 81 && make 82
 
 env:
   - AS_TOOL_CHAIN='sourcery-arm'
