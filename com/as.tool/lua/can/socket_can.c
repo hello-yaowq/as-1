@@ -37,6 +37,9 @@
  * sudo ip link add dev vcan0 type vcan
  * sudo ip link set up vcan0
  */
+#ifndef CAN_MTU
+#define CAN_MTU sizeof(struct can_frame)
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SocketHandle_s
 {
