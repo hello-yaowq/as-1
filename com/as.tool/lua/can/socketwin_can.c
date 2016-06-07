@@ -14,17 +14,23 @@
  */
 #ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <sys/queue.h>
-#include <pthread.h>
 /* most of the code copy from https://github.com/linux-can/can-utils */
+#include <windows.h>
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <windows.h>
+#ifdef SLIST_ENTRY
+#undef SLIST_ENTRY
+#endif
+
+#include <sys/queue.h>
+#include <pthread.h>
+
 #include "Std_Types.h"
 #include "lascanlib.h"
 #include "asdebug.h"

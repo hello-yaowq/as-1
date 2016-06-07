@@ -104,6 +104,7 @@ ifeq ($(board),posix)
 #rtos?=freertos
 #rtos?=toppers_osek
 rtos?=smallos
+#rtos?=contiki
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
 # my computer is 64 bit 
@@ -124,7 +125,7 @@ cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
 			 -lpthread
-ldflags-y += -lstdc++ -lm	
+ldflags-y += -lstdc++ -lm
 
 # basic
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET
@@ -303,6 +304,12 @@ dep-posix: SG dep-as-virtual
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
+endif
+ifeq ($(rtos),contiki)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/sys)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/lib)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/platform/native TRUE)
 endif
 ifeq ($(rtos),atk2-sc4)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
@@ -619,13 +626,13 @@ endif
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=contiki
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 

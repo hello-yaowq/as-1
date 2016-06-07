@@ -55,7 +55,7 @@
 #include <string.h>
 
 
-#define AS_LOG_CANTP    0
+#define AS_LOG_CANTP    1
 #include "asdebug.h"
 
 #if  ( CANTP_DEV_ERROR_DETECT == STD_ON ) /** @req CANTP006 *//** @req CANTP134 */
