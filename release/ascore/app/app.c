@@ -214,7 +214,8 @@ void ErrorHook(StatusType ercd)
 		/* recover-able error */
 	}
 }
-#if defined(__FREERTOS__) || defined(__FREEOSEK__) || defined(__SMALL_OS__) || defined(__TOPPERS_ATK2_SC4__)
+#if defined(__FREERTOS__) || defined(__FREEOSEK__) || defined(__SMALL_OS__) || defined(__TOPPERS_ATK2_SC4__)	\
+	|| defined(__CONTIKI_OS__)
 void PreTaskHook(void)
 {
 }

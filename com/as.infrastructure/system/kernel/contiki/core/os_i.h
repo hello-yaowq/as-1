@@ -44,6 +44,15 @@
 
 #define RES_SCHEDULER           (ResourceType)0 /* default resources for OS */
 
+#define GetResource(...) 0
+#define ReleaseResource(...) 0
+#define WaitEvent(...) 0
+#define GetEvent(...) 0
+#define ClearEvent(...) 0
+#define TerminateTask(...) 0
+#define SetRelAlarm(...) 0
+#define CancelAlarm(...) 0
+#define ActivateTask(...) 0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8 					StatusType;
 typedef uint32   				EventMaskType;
