@@ -16,6 +16,7 @@
 #define OS_I_H
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#include "contiki.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define    E_OS_ACCESS             	  (StatusType)1
 #define    E_OS_CALLEVEL              (StatusType)2
