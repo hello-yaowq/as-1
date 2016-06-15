@@ -39,7 +39,7 @@
 /*
  *  Macro for declare Task/Alarm/ISR Entry
  */
-#define TASK(TaskName)        	 void TaskMain##TaskName(void)
+#define TASK(TaskName)        	 PROCESS_THREAD(TaskName,ev,data)
 #define ISR(ISRName)        	 void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
 

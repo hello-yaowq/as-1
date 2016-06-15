@@ -19,6 +19,9 @@ LD  = gcc
 AR  = ar
 RM  = rm
 
+# generate pre-preocess C files if set to yes
+export gen-pp?=no
+
 ifeq ($(host), Linux)
 cflags-y  += -fPIC
 ldflags-y += -fPIC
@@ -61,7 +64,9 @@ endif
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
-#	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@.s -E $<
+ifeq ($(gen-pp),yes)
+	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@.s -E $<
+endif
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 ifeq ($(gen-mk),yes)	
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat

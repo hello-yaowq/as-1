@@ -86,6 +86,7 @@ void mtarch_pstart(void)
 {
 
 }
+
 void mtarch_pstop(void)
 {
 
@@ -105,7 +106,13 @@ PROCESS_THREAD(hello_world_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  printf("Hello, world\n");
+  printf("Hello, world, begin\n");
+  for(;;)
+  {
+	  PROCESS_PAUSE();
+	  printf("Hello, world\n");
+  }
+  printf("Hello, world, end\n");
 
   PROCESS_END();
 }
