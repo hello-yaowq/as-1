@@ -22,7 +22,6 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 TickType OsTickCounter = 0;
-const struct process *procinit[1] = {0,};
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
@@ -89,15 +88,7 @@ void mtarch_pstop(void)
 
 TickType GetOsTick(void)
 {
-	return 0;
+	return OsTickCounter;
 }
 
-void ShutdownOS(StatusType ercd)
-{
 
-}
-
-void StartOS(AppModeType app_mode)
-{
-
-}

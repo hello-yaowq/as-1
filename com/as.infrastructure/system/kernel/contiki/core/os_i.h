@@ -16,8 +16,9 @@
 #define OS_I_H
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#include "contiki.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define    E_OS_ACCESS             	  (StatusType)1
+#define    E_OS_ACCESS                (StatusType)1
 #define    E_OS_CALLEVEL              (StatusType)2
 #define    E_OS_ID                    (StatusType)3
 #define    E_OS_LIMIT                 (StatusType)4
@@ -38,18 +39,19 @@
 /*
  *  Macro for declare Task/Alarm/ISR Entry
  */
-#define TASK(TaskName)        	 void TaskMain##TaskName(void)
-#define ISR(ISRName)        	 void ISRMain##ISRName(void)
+#define TASK(TaskName)           PROCESS_THREAD(TaskName, ev, data)
+#define ISR(ISRName)             void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
 
 #define RES_SCHEDULER           (ResourceType)0 /* default resources for OS */
 
 #define GetResource(...) 0
 #define ReleaseResource(...) 0
+#define SetEvent(...) 0
 #define WaitEvent(...) 0
 #define GetEvent(...) 0
 #define ClearEvent(...) 0
-#define TerminateTask(...) 0
+#define TerminateTask(...) PROCESS_EXIT()
 #define SetRelAlarm(...) 0
 #define CancelAlarm(...) 0
 #define ActivateTask(...) 0
