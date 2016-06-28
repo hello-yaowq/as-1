@@ -78,7 +78,7 @@ config ASLNUX_HELLO_MODULE
 	  aslinux hello world module sample
 ```
 
-then do menuconfig, under menu Device Drivers/Charactor devices, select the new add item as option \<M\>. and modify the kernel/drivers/char/Makefile, add "obj-$(CONFIG_ASLNUX_HELLO_MODULE)	+= aslinux_hello.o", then rebuild the kernel, then you would find out the moudle file by command 'find . -name "*.ko"', copy to rootfs, then when you do insmod, you would see the related print out infromation.(note, the directory "rootfs/lib/modules/3.18.0+" should be created manually)
+then do menuconfig, under menu Device Drivers/Charactor devices, select the new add item as option \<M\>. and modify the kernel/drivers/char/Makefile, add "obj-$(CONFIG\_ASLNUX\_HELLO\_MODULE)	+= aslinux_hello.o", then rebuild the kernel, then you would find out the moudle file by command 'find . -name "*.ko"', copy to rootfs, then when you do insmod, you would see the related print out infromation.(note, the directory "rootfs/lib/modules/3.18.0+" should be created manually)
 
 ```sh
 /example # insmod aslinux_hello.ko
