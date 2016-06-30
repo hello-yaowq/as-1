@@ -28,7 +28,7 @@
 #include <linux/pinctrl/pinmux.h>
 #include <linux/pinctrl/pinconf.h>
 #include <linux/platform_device.h>
-#include "../pinctrl/core.h"
+#include "core.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -40,7 +40,6 @@
 static int asvirt_pctl_probe(struct platform_device *pdev)
 {
 	printk("aslinux virt-gpio -probed\n");
-	while(1);
 	return 0;
 }
 
@@ -61,4 +60,4 @@ static int __init asvirt_pctl_init(void)
 	printk("\n\n >> register ASLINUX VIRTUAL GPIO driver \n\n");
 	return platform_driver_register(&asvirt_pctl_driver);
 }
-arch_initcall(asvirt_pctl_init);
+subsys_initcall(asvirt_pctl_init);
