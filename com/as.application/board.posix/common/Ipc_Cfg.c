@@ -51,7 +51,7 @@ const Ipc_ConfigType Ipc_Config =
 unsigned long Ipc_BaseAddress = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Qt_SetIpcParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lock, void* w_event)
+void Qt_SetIpcParam(/*Ipc_ChannelType*/int chl, void* r_lock, void* r_event, void* w_lock, void* w_event)
 {
 	asAssert(chl < IPC_CHL_NUM);
 	Ipc_ChlConfig[chl].r_lock = w_lock;
@@ -59,7 +59,7 @@ void Qt_SetIpcParam(Ipc_ChannelType chl, void* r_lock, void* r_event, void* w_lo
 	Ipc_ChlConfig[chl].r_event = w_event;
 	Ipc_ChlConfig[chl].w_event = r_event;
 }
-void Qt_GetIpcFifo(Ipc_ChannelType chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo)
+void Qt_GetIpcFifo(/*Ipc_ChannelType*/int chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo)
 {
 	asAssert(chl < IPC_CHL_NUM);
 	*r_fifo = Ipc_ChlConfig[chl].w_fifo;

@@ -20,6 +20,11 @@
 #include <sys/time.h>
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
+#ifdef CONFIG_ARCH_VEXPRESS
+#define USE_DET
+#define printf printk
+#define asAssertErrorHook()
+#endif
 /* levels for log output */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT
@@ -65,10 +70,12 @@
 #define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
 #if defined(__WINDOWS__) || defined(__LINUX__)
 #define ASHEX(a)	ashex((unsigned long)(a))
+#else
+#define ASHEX(a) "hex-null"
 #endif
 #else
 #define PRINTF(fmt,...)
-#define ASHEX(a)
+#define ASHEX(a)	"hex-null"
 #endif
 
 #ifdef USE_DET
@@ -125,6 +132,7 @@ typedef struct timeval asperf_t;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef CONFIG_ARCH_VEXPRESS
 extern void  aslog(char* module,char* format,...);
 extern void  asmem(void* address,size_t size);
 extern char* ashex(unsigned long a);
@@ -136,4 +144,5 @@ extern void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor);
 extern void asEnvInit(int argc,char* argv[]);
 extern char* asEnvGet(int index);
 #endif
+#endif	/* CONFIG_ARCH_VEXPRESS */
 #endif /* COM_AS_INFRASTRUCTURE_INCLUDE_ASDEBUG_H_ */

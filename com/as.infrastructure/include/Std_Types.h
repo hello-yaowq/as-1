@@ -15,6 +15,12 @@
 #ifndef STD_TYPES_H
 #define STD_TYPES_H
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef CONFIG_ARCH_VEXPRESS
+#include <linux/types.h>
+#include <linux/string.h>
+#include <linux/ctype.h>
+#include <linux/printk.h>
+#else
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -22,6 +28,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#endif
 #include "io.h"
 #include "Compiler.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -82,6 +89,53 @@
 
 #define SIZE_OF_ARRAY(a) 	(sizeof(a)/sizeof(a[0]))
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef CONFIG_ARCH_VEXPRESS
+/* Exact integral types.  */
+
+/* Signed.  */
+
+/* There is some amount of overlap with <sys/types.h> as known by inet code */
+
+typedef signed char		int8_t;
+typedef short int		int16_t;
+typedef int			int32_t;
+typedef long long int		int64_t;
+
+/* Unsigned.  */
+typedef unsigned char		uint8_t;
+typedef unsigned short int	uint16_t;
+typedef unsigned int		uint32_t;
+typedef unsigned long long int	uint64_t;
+
+
+/* Small types.  */
+
+/* Signed.  */
+typedef signed char		int_least8_t;
+typedef short int		int_least16_t;
+typedef int			int_least32_t;
+typedef long long int		int_least64_t;
+
+/* Unsigned.  */
+typedef unsigned char		uint_least8_t;
+typedef unsigned short int	uint_least16_t;
+typedef unsigned int		uint_least32_t;
+typedef unsigned long long int	uint_least64_t;
+
+/* Fast types.  */
+
+/* Signed.  */
+typedef signed char		int_fast8_t;
+typedef long int		int_fast16_t;
+typedef long int		int_fast32_t;
+typedef long int		int_fast64_t;
+
+/* Unsigned.  */
+typedef unsigned char		uint_fast8_t;
+typedef unsigned long int	uint_fast16_t;
+typedef unsigned long int	uint_fast32_t;
+typedef unsigned long int	uint_fast64_t;
+#endif
 typedef unsigned char		       	boolean;
 typedef int8_t        				sint8;
 typedef uint8_t			       		uint8;

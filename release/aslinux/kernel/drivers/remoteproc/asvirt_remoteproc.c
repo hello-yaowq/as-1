@@ -41,31 +41,14 @@
         } \
     }while (0);
 #endif
-/* ============================ [ TYPES     ] ====================================================== */
 
-/*
- * struct asvirt_rproc_pdata - asvirt remoteproc's platform data
- * @name: the remoteproc's name
- * @oh_name: asvirt hwmod device
- * @oh_name_opt: optional, secondary asvirt hwmod device
- * @firmware: name of firmware file to load
- * @mbox_name: name of asvirt mailbox device to use with this rproc
- * @ops: start/stop rproc handlers
- * @device_enable: asvirt-specific handler for enabling a device
- * @device_shutdown: asvirt-specific handler for shutting down a device
- * @set_bootaddr: asvirt-specific handler for setting the rproc boot address
- */
-struct asvirt_rproc_pdata {
-	const char *name;
-	const char *oh_name;
-	const char *oh_name_opt;
-	const char *firmware;
-	const char *mbox_name;
-	const struct rproc_ops *ops;
-	int (*device_enable) (struct platform_device *pdev);
-	int (*device_shutdown) (struct platform_device *pdev);
-	void(*set_bootaddr)(u32);
-};
+#define IPC_FIFO_SIZE 1024
+/* ============================ [ TYPES     ] ====================================================== */
+typedef struct
+{
+	u32 count;
+	u32     idx[IPC_FIFO_SIZE];
+}Ipc_FifoType;
 
 /**
  * struct asvirt_rproc - asvirt remote processor state
@@ -81,12 +64,23 @@ struct asvirt_rproc {
 	struct semaphore r_event;
 	struct semaphore w_event;
 
+	Ipc_FifoType* r_fifo;
+	Ipc_FifoType* w_fifo;
+
+	u32 r_pos;
+	u32 w_pos;
+
 	struct rproc *rproc;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static int asvirt_rproc_probe(struct platform_device *pdev);
 static int asvirt_rproc_remove(struct platform_device *pdev);
 static void asvirt_rproc_kick(struct rproc *rproc, int vqid);
+static struct resource_table *
+asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
+		     int *tablesz);
+static struct resource_table *
+asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw);
 static int asvirt_rproc_stop(struct rproc *rproc);
 static int asvirt_rproc_start(struct rproc *rproc);
 /* ============================ [ DATAS     ] ====================================================== */
@@ -96,6 +90,12 @@ static struct rproc_ops asvirt_rproc_ops = {
 	.kick		= asvirt_rproc_kick,
 };
 
+/* ASVIRT firmware handler operations */
+static const struct rproc_fw_ops asvirt_fw_ops = {
+	.load = NULL,
+	.find_rsc_table = asvirt_find_rsc_table,
+	.find_loaded_rsc_table = asvirt_find_loaded_rsc_table,
+};
 
 static struct of_device_id asvirt_rproc_of_match[] = {
 	{ .compatible = "as,virtual-rproc" },
@@ -111,7 +111,47 @@ static struct platform_driver asvirt_rproc_driver = {
 	},
 };
 /* ============================ [ LOCALS    ] ====================================================== */
+static int fifo_read(struct asvirt_rproc *oproc, int *idx)
+{
+    int ercd;
+    if(oproc->r_fifo->count > 0)
+    {
+        *idx = oproc->r_fifo->idx[oproc->r_pos];
+        printk("Kernel: Incoming message: 0x%X,pos=%d,count=%d\n",*idx,oproc->r_pos,oproc->r_fifo->count);
+        oproc->r_fifo->count -= 1;
+        oproc->r_pos = (oproc->r_pos + 1)%(IPC_FIFO_SIZE);
+        ercd = 0;
+    }
+    else
+    {
+        ercd  = -1;
+    }
+    return ercd;
+}
+static int fifo_write(struct asvirt_rproc *oproc, int idx)
+{
+	int ercd;
 
+	mutex_lock(&oproc->w_lock);
+
+	if(oproc->w_fifo->count < IPC_FIFO_SIZE)
+	{
+		oproc->w_fifo->idx[oproc->w_pos] = idx;
+		oproc->w_fifo->count += 1;
+		printk("Kernel: Transmit message: 0x%X,pos=%d,count=%d\n",idx,oproc->w_pos,oproc->w_fifo->count);
+		oproc->w_pos = (oproc->w_pos + 1)%(IPC_FIFO_SIZE);
+		ercd = 0;
+	}
+	else
+	{
+		ercd = -1;
+	}
+
+	mutex_unlock(&oproc->w_lock );
+	up(&oproc->w_event);
+
+	return ercd;
+}
 /* kick a virtqueue */
 static void asvirt_rproc_kick(struct rproc *rproc, int vqid)
 {
@@ -120,11 +160,36 @@ static void asvirt_rproc_kick(struct rproc *rproc, int vqid)
 	int ret;
 
 	/* send the index of the triggered virtqueue in the mailbox payload */
-	ret = 0;
+	ret = fifo_write(oproc,vqid);
 	if (ret)
-		dev_err(dev, "asvirt_mbox_msg_send failed: %d\n", ret);
+		dev_err(dev, "fifo_write failed: %d\n", ret);
 }
 
+extern void* Qt_GetRprocResourceTable(void);
+extern unsigned int Qt_GetRprocResourceTableSize(void);
+/* Find the resource table inside the remote processor's firmware. */
+static struct resource_table *
+asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
+		     int *tablesz)
+{
+	struct resource_table * rsc_tbl;
+
+	rsc_tbl =  (struct resource_table *)Qt_GetRprocResourceTable();
+
+	*tablesz = Qt_GetRprocResourceTableSize();
+	return rsc_tbl;
+}
+
+/* Find the resource table inside the remote processor's firmware. */
+static struct resource_table *
+asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
+{
+	struct resource_table * rsc_tbl;
+
+	rsc_tbl =  (struct resource_table *)Qt_GetRprocResourceTable();
+
+	return rsc_tbl;
+}
 /*
  * Power up the remote processor.
  *
@@ -134,39 +199,14 @@ static void asvirt_rproc_kick(struct rproc *rproc, int vqid)
  */
 static int asvirt_rproc_start(struct rproc *rproc)
 {
-	struct asvirt_rproc *oproc = rproc->priv;
 	struct device *dev = rproc->dev.parent;
 	struct platform_device *pdev = to_platform_device(dev);
-	struct asvirt_rproc_pdata *pdata = pdev->dev.platform_data;
-	int ret;
 
-	if (pdata->set_bootaddr)
-		pdata->set_bootaddr(rproc->bootaddr);
+	dev_info(&pdev->dev, " >>> rproc linux starting... <<<\n");
 
-	/*
-	 * Ping the remote processor. this is only for sanity-sake;
-	 * there is no functional effect whatsoever.
-	 *
-	 * Note that the reply will _not_ arrive immediately: this message
-	 * will wait in the mailbox fifo until the remote processor is booted.
-	 */
-	ret = 0;
-	if (ret) {
-		dev_err(dev, "asvirt_mbox_get failed: %d\n", ret);
-		goto put_mbox;
-	}
-
-	ret = pdata->device_enable(pdev);
-	if (ret) {
-		dev_err(dev, "asvirt_device_enable failed: %d\n", ret);
-		goto put_mbox;
-	}
+	asvirt_rproc_kick(rproc,0xFFFFFFFF);
 
 	return 0;
-
-put_mbox:
-
-	return ret;
 }
 
 /* power off the remote processor */
@@ -174,23 +214,21 @@ static int asvirt_rproc_stop(struct rproc *rproc)
 {
 	struct device *dev = rproc->dev.parent;
 	struct platform_device *pdev = to_platform_device(dev);
-	struct asvirt_rproc_pdata *pdata = pdev->dev.platform_data;
-	struct asvirt_rproc *oproc = rproc->priv;
-	int ret;
 
-	ret = pdata->device_shutdown(pdev);
-	if (ret)
-		return ret;
+	dev_info(&pdev->dev, " >>> rproc linux stop... <<<\n");
+
+	asvirt_rproc_kick(rproc,0xFFFFFFFE);
 
 	return 0;
 }
 
 static int thread_rproc_linux(void *data)
 {
+	int vqid=0,ercd;
 	struct rproc *rproc =  (struct rproc *)data;
 	struct device *dev = rproc->dev.parent;
-	struct platform_device *pdev = to_platform_device(dev);
 	struct asvirt_rproc *oproc = rproc->priv;
+	struct platform_device *pdev = to_platform_device(dev);
 
 	/* sleep for a while make sure MCU thread run firstly */
 	SLEEP_MILLI_SEC(100);
@@ -201,16 +239,29 @@ static int thread_rproc_linux(void *data)
 		down(&oproc->r_event);
 
 		mutex_lock(&oproc->r_lock);
+		do {
+			ercd = fifo_read(oproc,&vqid);
 
-		dev_info(&pdev->dev, "^_^ rproc linux side thread get the semaphore...\n");
+			if(ercd)
+			{
+				if (rproc_vq_interrupt(rproc, vqid) == IRQ_NONE)
+					dev_err(&pdev->dev, "no message was found in vqid %d\n", vqid);
+			}
+			else
+			{
 
+			}
+		} while(ercd);
 		mutex_unlock(&oproc->r_lock);
-
 	}
 
 	return 0;
 }
 
+extern void Qt_SetIpcParam(int chl, void* r_lock, void* r_event, void* w_lock, void* w_event);
+extern void Qt_GetIpcFifo(int chl, Ipc_FifoType** r_fifo, Ipc_FifoType** w_fifo);
+extern void Qt_SetIpcBaseAddress(unsigned long base);
+extern void aslinux_mcu_rproc_start(void);
 static int thread_rproc_mcu(void *data)
 {
 	struct rproc *rproc =  (struct rproc *)data;
@@ -220,20 +271,11 @@ static int thread_rproc_mcu(void *data)
 
 	dev_info(&pdev->dev, "rproc MCU side thread is running...\n");
 
-	while(1)
-	{
+	Qt_SetIpcParam(0,&oproc->r_lock,&oproc->r_event,&oproc->w_lock,&oproc->w_event);
+	Qt_GetIpcFifo(0,&oproc->r_fifo,&oproc->w_fifo);
+	Qt_SetIpcBaseAddress(0);
 
-		/* fall asleep for one second */
-		SLEEP_MILLI_SEC(1000);
-
-		mutex_lock(&oproc->r_lock);
-
-		dev_info(&pdev->dev, "^_^ rproc MCU side thread give semaphore...\n");
-
-		up(&oproc->r_event);
-
-		mutex_unlock(&oproc->r_lock);
-	}
+	aslinux_mcu_rproc_start();
 
 	return 0;
 }
@@ -265,6 +307,9 @@ static int asvirt_rproc_probe(struct platform_device *pdev)
 
 	oproc = rproc->priv;
 	oproc->rproc = rproc;
+
+	/* Set the STE-modem specific firmware handler */
+	rproc->fw_ops = &asvirt_fw_ops;
 
 	platform_set_drvdata(pdev, rproc);
 

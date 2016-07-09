@@ -18,8 +18,8 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-void Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
-void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
+void __weak Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len){}
+void __weak Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl) {}
 #ifdef USE_SHELL
 void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
 void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl);

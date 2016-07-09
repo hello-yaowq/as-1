@@ -68,3 +68,8 @@ Rproc_ResourceTableType* Qt_GetRprocResourceTable(void)
 {
 	return &Rproc_ResourceTable;
 }
+
+unsigned int Qt_GetRprocResourceTableSize(void)
+{
+	return sizeof(Rproc_ResourceTable);
+}

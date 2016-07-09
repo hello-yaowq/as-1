@@ -103,23 +103,18 @@
 #endif
 #endif
 
+#ifndef CONFIG_ARCH_VEXPRESS
 #if defined(__ICCHCS12__) || defined(__ICCARM__)
-static inline unsigned int ilog2(unsigned long _x)
+static inline int ilog2(unsigned long v)
 {
-	unsigned int i;
-	unsigned idx = 0;
-	for(i=0;i<32;i++)
-	{
-		if(_x&(1<i))
-		{
-			idx = i;
-			break;
-		}
-	}
-	return idx;
+	int l = 0;
+	while ((1UL << l) < v)
+		l++;
+	return l;
 }
 #else
 #define ilog2(_x)			__builtin_ffs(_x)
+#endif
 #endif
 
 /* Does this really work on all compilers.... */
