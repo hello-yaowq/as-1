@@ -5,25 +5,10 @@
  *
  * Licensed under GPLv2 or later.
  */
-
 gpio0: pinctrl@0 {
 	#gpio-cells = <2>;
 	compatible = "as,virtual-pinctrl";
 	reg = <0 0x10000>;
-	gpio-controller;
-};
-
-gpio1: pinctrl@1 {
-	#gpio-cells = <2>;
-	compatible = "as,virtual-pinctrl";
-	reg = <1 0x10000>;
-	gpio-controller;
-};
-
-gpio3: pinctrl@2 {
-	#gpio-cells = <2>;
-	compatible = "as,virtual-pinctrl";
-	reg = <2 0x10000>;
 	gpio-controller;
 	
 	pingrp0: pinapp@0 {
@@ -54,4 +39,11 @@ gpio3: pinctrl@2 {
 		};
 	};
 	
+};
+
+
+firmware_mcu: remoteproc@0 {
+	compatible = "as,virtual-rproc";
+	reg = <0 0x10000>;
+	fwname = "AUTOSAR";
 };
