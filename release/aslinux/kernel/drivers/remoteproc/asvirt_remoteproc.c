@@ -24,10 +24,23 @@
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
+#include <linux/kthread.h>
+#include <linux/sched.h>
+#include <linux/mutex.h>
+#include <linux/semaphore.h>
 #include "remoteproc_internal.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-
+#ifndef SLEEP_MILLI_SEC
+#define SLEEP_MILLI_SEC(nMilliSec) \
+    do { \
+        long timeout = (nMilliSec) * HZ /1000; \
+        while (timeout > 0) \
+        { \
+            timeout = schedule_timeout(timeout); \
+        } \
+    }while (0);
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 
 /*
@@ -59,6 +72,15 @@ struct asvirt_rproc_pdata {
  * @rproc: rproc handle
  */
 struct asvirt_rproc {
+	struct task_struct * task_linux;
+	struct task_struct * task_mcu;
+
+	/* r and w to linux */
+	struct mutex r_lock;
+	struct mutex w_lock;
+	struct semaphore r_event;
+	struct semaphore w_event;
+
 	struct rproc *rproc;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -163,6 +185,59 @@ static int asvirt_rproc_stop(struct rproc *rproc)
 	return 0;
 }
 
+static int thread_rproc_linux(void *data)
+{
+	struct rproc *rproc =  (struct rproc *)data;
+	struct device *dev = rproc->dev.parent;
+	struct platform_device *pdev = to_platform_device(dev);
+	struct asvirt_rproc *oproc = rproc->priv;
+
+	/* sleep for a while make sure MCU thread run firstly */
+	SLEEP_MILLI_SEC(100);
+	dev_info(&pdev->dev, "rproc linux side thread is running...\n");
+
+	while(1)
+	{
+		down(&oproc->r_event);
+
+		mutex_lock(&oproc->r_lock);
+
+		dev_info(&pdev->dev, "^_^ rproc linux side thread get the semaphore...\n");
+
+		mutex_unlock(&oproc->r_lock);
+
+	}
+
+	return 0;
+}
+
+static int thread_rproc_mcu(void *data)
+{
+	struct rproc *rproc =  (struct rproc *)data;
+	struct device *dev = rproc->dev.parent;
+	struct platform_device *pdev = to_platform_device(dev);
+	struct asvirt_rproc *oproc = rproc->priv;
+
+	dev_info(&pdev->dev, "rproc MCU side thread is running...\n");
+
+	while(1)
+	{
+
+		/* fall asleep for one second */
+		SLEEP_MILLI_SEC(1000);
+
+		mutex_lock(&oproc->r_lock);
+
+		dev_info(&pdev->dev, "^_^ rproc MCU side thread give semaphore...\n");
+
+		up(&oproc->r_event);
+
+		mutex_unlock(&oproc->r_lock);
+	}
+
+	return 0;
+}
+
 static int asvirt_rproc_probe(struct platform_device *pdev)
 {
 	const char* firmware_name;
@@ -197,6 +272,20 @@ static int asvirt_rproc_probe(struct platform_device *pdev)
 	if (ret)
 		goto free_rproc;
 
+	oproc->task_linux = kthread_run(&thread_rproc_linux,(void *)rproc,"rproc-linux");
+	if(NULL == oproc->task_linux)
+		goto free_rproc;
+
+	oproc->task_mcu = kthread_run(&thread_rproc_mcu,(void *)rproc,"rproc-mcu");
+	if(NULL == oproc->task_mcu)
+		goto free_rproc;
+
+	mutex_init(&oproc->r_lock);
+	mutex_init(&oproc->w_lock);
+
+	sema_init(&oproc->r_event,0);
+	sema_init(&oproc->w_event,0);
+
 	dev_info(&pdev->dev, "initialized ASVIRT remote processor driver\n");
 
 	return 0;
@@ -209,9 +298,13 @@ free_rproc:
 static int asvirt_rproc_remove(struct platform_device *pdev)
 {
 	struct rproc *rproc = platform_get_drvdata(pdev);
+	struct asvirt_rproc *oproc = rproc->priv;
 
 	rproc_del(rproc);
 	rproc_put(rproc);
+
+	kthread_stop(oproc->task_linux);
+	kthread_stop(oproc->task_mcu);
 
 	return 0;
 }
