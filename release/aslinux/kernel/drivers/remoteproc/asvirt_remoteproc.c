@@ -79,8 +79,10 @@ static void asvirt_rproc_kick(struct rproc *rproc, int vqid);
 static struct resource_table *
 asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
 		     int *tablesz);
+#if 0
 static struct resource_table *
 asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw);
+#endif
 static int asvirt_rproc_stop(struct rproc *rproc);
 static int asvirt_rproc_start(struct rproc *rproc);
 /* ============================ [ DATAS     ] ====================================================== */
@@ -94,7 +96,9 @@ static struct rproc_ops asvirt_rproc_ops = {
 static const struct rproc_fw_ops asvirt_fw_ops = {
 	.load = NULL,
 	.find_rsc_table = asvirt_find_rsc_table,
+#if 0
 	.find_loaded_rsc_table = asvirt_find_loaded_rsc_table,
+#endif
 };
 
 static struct of_device_id asvirt_rproc_of_match[] = {
@@ -179,7 +183,7 @@ asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
 	*tablesz = Qt_GetRprocResourceTableSize();
 	return rsc_tbl;
 }
-
+#if 0
 /* Find the resource table inside the remote processor's firmware. */
 static struct resource_table *
 asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
@@ -190,6 +194,7 @@ asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
 
 	return rsc_tbl;
 }
+#endif
 /*
  * Power up the remote processor.
  *
@@ -271,10 +276,6 @@ static int thread_rproc_mcu(void *data)
 
 	dev_info(&pdev->dev, "rproc MCU side thread is running...\n");
 
-	Qt_SetIpcParam(0,&oproc->r_lock,&oproc->r_event,&oproc->w_lock,&oproc->w_event);
-	Qt_GetIpcFifo(0,&oproc->r_fifo,&oproc->w_fifo);
-	Qt_SetIpcBaseAddress(0);
-
 	aslinux_mcu_rproc_start();
 
 	return 0;
@@ -311,11 +312,13 @@ static int asvirt_rproc_probe(struct platform_device *pdev)
 	/* Set the STE-modem specific firmware handler */
 	rproc->fw_ops = &asvirt_fw_ops;
 
+	atomic_inc(&rproc->power);
+
 	platform_set_drvdata(pdev, rproc);
 
-	ret = rproc_add(rproc);
-	if (ret)
-		goto free_rproc;
+	Qt_SetIpcParam(0,&oproc->r_lock,&oproc->r_event,&oproc->w_lock,&oproc->w_event);
+	Qt_GetIpcFifo(0,&oproc->r_fifo,&oproc->w_fifo);
+	Qt_SetIpcBaseAddress(0);
 
 	oproc->task_linux = kthread_run(&thread_rproc_linux,(void *)rproc,"rproc-linux");
 	if(NULL == oproc->task_linux)
@@ -330,6 +333,10 @@ static int asvirt_rproc_probe(struct platform_device *pdev)
 
 	sema_init(&oproc->r_event,0);
 	sema_init(&oproc->w_event,0);
+
+	ret = rproc_add(rproc);
+	if (ret)
+		goto free_rproc;
 
 	dev_info(&pdev->dev, "initialized ASVIRT remote processor driver\n");
 
