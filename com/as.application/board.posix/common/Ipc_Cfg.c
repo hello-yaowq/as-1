@@ -78,3 +78,9 @@ void Qt_SetIpcBaseAddress(unsigned long base)
 		asAssert(Ipc_BaseAddress == base);
 	}
 }
+#ifndef CONFIG_ARCH_VEXPRESS
+unsigned long as_phys_to_virt(unsigned long addr)
+{
+	return (Ipc_BaseAddress+addr);
+}
+#endif

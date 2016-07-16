@@ -22,7 +22,7 @@
 
 #define IPC_FIFO_SIZE 1024
 
-#define IPC_MAP_PA_TO_VA(addr) ((void*)(unsigned long)(Ipc_BaseAddress+addr))
+#define IPC_MAP_PA_TO_VA(addr) as_phys_to_virt(addr)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*Ipc_RxNotificationType)(VirtQ_ChannerlType chl);
 typedef void (*Ipc_TxConfirmationType)(VirtQ_ChannerlType chl);
@@ -61,8 +61,7 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern const Ipc_ConfigType Ipc_Config;
-extern unsigned long Ipc_BaseAddress;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
+unsigned long as_phys_to_virt(unsigned long addr);
 #endif /* COM_AS_APPLICATION_BOARD_POSIX_COMMON_IPC_CFG_H_ */

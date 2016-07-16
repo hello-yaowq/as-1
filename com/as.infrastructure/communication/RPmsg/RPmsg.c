@@ -16,7 +16,7 @@
 #include "RPmsg.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_RPMSG 0
+#define AS_LOG_RPMSG 1
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -37,7 +37,7 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 	VirtQ_IdxType idx;
 	RPmsg_HandlerType* msg;
 	uint16 length;
-	ASLOG(OFF,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
+	ASLOG(RPMSG,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
 	ercd = VirtQ_GetAvailiableBuffer(portConfig->txChl,&idx,(void**)&msg,&length);
 	if(E_OK == ercd)
 	{
@@ -71,7 +71,7 @@ static void sendNamseServiceMessage(const RPmsg_PortConfigType* portConfig, RPms
     nsMsg.addr = portConfig->port;
     nsMsg.flags = flags;
 
-    ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",portConfig->name,portConfig->port);
+    ASLOG(RPMSG,"RPmsg create <%s> on port=0x%X\n",portConfig->name,portConfig->port);
     ercd = sendMessage(portConfig,RPMSG_NAME_SERVICE_PORT, portConfig->port, &nsMsg, sizeof(nsMsg));
     asAssert(E_OK == ercd);
 }
@@ -117,7 +117,7 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 		ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
 		if(E_OK == ercd)
 		{
-			ASLOG(OFF,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,msg->data,msg->len,length);
+			ASLOG(RPMSG,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,msg->data,msg->len,length);
 			for(chl=0;chl<RPMSG_CHL_NUM;chl++)
 			{
 				if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&

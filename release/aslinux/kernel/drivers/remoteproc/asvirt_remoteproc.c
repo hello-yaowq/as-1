@@ -71,6 +71,8 @@ struct asvirt_rproc {
 	u32 w_pos;
 
 	struct rproc *rproc;
+
+	int table_loaded;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static int asvirt_rproc_probe(struct platform_device *pdev);
@@ -79,12 +81,13 @@ static void asvirt_rproc_kick(struct rproc *rproc, int vqid);
 static struct resource_table *
 asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
 		     int *tablesz);
-#if 0
 static struct resource_table *
 asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw);
-#endif
 static int asvirt_rproc_stop(struct rproc *rproc);
 static int asvirt_rproc_start(struct rproc *rproc);
+
+extern void* Qt_GetRprocResourceTable(void);
+extern unsigned int Qt_GetRprocResourceTableSize(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct rproc_ops asvirt_rproc_ops = {
 	.start		= asvirt_rproc_start,
@@ -96,9 +99,7 @@ static struct rproc_ops asvirt_rproc_ops = {
 static const struct rproc_fw_ops asvirt_fw_ops = {
 	.load = NULL,
 	.find_rsc_table = asvirt_find_rsc_table,
-#if 0
 	.find_loaded_rsc_table = asvirt_find_loaded_rsc_table,
-#endif
 };
 
 static struct of_device_id asvirt_rproc_of_match[] = {
@@ -163,14 +164,18 @@ static void asvirt_rproc_kick(struct rproc *rproc, int vqid)
 	struct device *dev = rproc->dev.parent;
 	int ret;
 
+	if(0 == oproc->table_loaded)
+	{
+		memcpy(Qt_GetRprocResourceTable(),rproc->cached_table,Qt_GetRprocResourceTableSize());
+		oproc->table_loaded=1;
+	}
+
 	/* send the index of the triggered virtqueue in the mailbox payload */
 	ret = fifo_write(oproc,vqid);
 	if (ret)
 		dev_err(dev, "fifo_write failed: %d\n", ret);
 }
 
-extern void* Qt_GetRprocResourceTable(void);
-extern unsigned int Qt_GetRprocResourceTableSize(void);
 /* Find the resource table inside the remote processor's firmware. */
 static struct resource_table *
 asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
@@ -183,7 +188,7 @@ asvirt_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
 	*tablesz = Qt_GetRprocResourceTableSize();
 	return rsc_tbl;
 }
-#if 0
+
 /* Find the resource table inside the remote processor's firmware. */
 static struct resource_table *
 asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
@@ -194,7 +199,6 @@ asvirt_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
 
 	return rsc_tbl;
 }
-#endif
 /*
  * Power up the remote processor.
  *
@@ -209,7 +213,7 @@ static int asvirt_rproc_start(struct rproc *rproc)
 
 	dev_info(&pdev->dev, " >>> rproc linux starting... <<<\n");
 
-	asvirt_rproc_kick(rproc,0xFFFFFFFF);
+	//asvirt_rproc_kick(rproc,0xFFFFFFFF);
 
 	return 0;
 }
@@ -222,7 +226,7 @@ static int asvirt_rproc_stop(struct rproc *rproc)
 
 	dev_info(&pdev->dev, " >>> rproc linux stop... <<<\n");
 
-	asvirt_rproc_kick(rproc,0xFFFFFFFE);
+	//asvirt_rproc_kick(rproc,0xFFFFFFFE);
 
 	return 0;
 }
@@ -334,6 +338,8 @@ static int asvirt_rproc_probe(struct platform_device *pdev)
 	sema_init(&oproc->r_event,0);
 	sema_init(&oproc->w_event,0);
 
+	oproc->table_loaded = 0;
+
 	ret = rproc_add(rproc);
 	if (ret)
 		goto free_rproc;
@@ -361,7 +367,18 @@ static int asvirt_rproc_remove(struct platform_device *pdev)
 	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-
+#include <linux/virtio.h>
+#include <linux/virtio_ring.h>
+#include <linux/virtio_config.h>
+#include <linux/device.h>
+#include <linux/slab.h>
+#include <linux/module.h>
+#include <linux/hrtimer.h>
+#include <linux/kmemleak.h>
+unsigned long as_phys_to_virt(unsigned long addr)
+{
+	return (unsigned long)phys_to_virt(addr);
+}
 
 module_platform_driver(asvirt_rproc_driver);
 
