@@ -80,4 +80,3 @@ done the coding with [this commit](https://github.com/parai/as/tree/6d6f2e5359bf
 * [aslinux/script/vexpress-ca9.mk](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk): okay, this is a automatic makefile that to prepare the code kernel and busybox and so on, just run command "make all", enjoy it.
 
 
-
