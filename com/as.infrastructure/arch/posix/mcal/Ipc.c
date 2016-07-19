@@ -167,7 +167,7 @@ void* Ipc_Daemon(void* lpParameter)
 			{
 				for( i=0 ; i<config->map_size; i++)
 				{
-					if(config->mapping->idx == idx)
+					if(config->mapping[i].idx == idx)
 					{
 						asAssert(config->rxNotification);
 						config->rxNotification(config->mapping->chl);

@@ -251,7 +251,7 @@ static int thread_rproc_linux(void *data)
 		do {
 			ercd = fifo_read(oproc,&vqid);
 
-			if(ercd)
+			if(!ercd)
 			{
 				if (rproc_vq_interrupt(rproc, vqid) == IRQ_NONE)
 					dev_err(&pdev->dev, "no message was found in vqid %d\n", vqid);

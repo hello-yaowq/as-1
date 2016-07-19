@@ -94,41 +94,13 @@ static void virtqueue_set_used_buf(VirtQ_QueueType *vq, VirtQ_IdxType idx, uint3
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void VirtQ_InitVq(VirtQ_ChannerlType chl)
 {
-#if AS_LOG_VIRTQ == 1
-	int i;
-#endif
 	vring_init(	&virtq.vq[chl].vring,
 				virtq.config->queueConfig[chl].vring->num,
 				IPC_MAP_PA_TO_VA(virtq.config->queueConfig[chl].vring->da),
 				virtq.config->queueConfig[chl].vring->align
 			);
-#if AS_LOG_VIRTQ == 1
-	for(i=0;i<virtq.config->queueConfig[chl].vring->num;i++)
-	{
-		ASLOG(VIRTQ,"vring%d: desc[%d] addr=%d,len=%d,flags=%d,next=%d\n",chl,i,
-				virtq.vq[chl].vring.desc[i].addr,
-				virtq.vq[chl].vring.desc[i].len,
-				virtq.vq[chl].vring.desc[i].flags,
-				virtq.vq[chl].vring.desc[i].next);
-	}
-#endif
+
 	virtq.vq[chl].last_avail_idx = 0;
-
-    ASLOG(OFF,"sizeof(Vring_DescType)=%d,sizeof(Vring_UsedElemType)=%d,sizeof(uint16_t)=%d,num=%d,align=%d\n",
-          sizeof(Vring_DescType),sizeof(Vring_UsedElemType),sizeof(uint16_t),
-		  virtq.config->queueConfig[chl].vring->num,virtq.config->queueConfig[chl].vring->align);
-
-	ASLOG(VIRTQ,"vring@%p[idx=%Xh,size=%d]: num=%d, desc=%Xh, avail=%Xh, used=%Xh, da=%Xh\n",
-			virtq.config->queueConfig[chl].vring,
-			virtq.config->queueConfig[chl].vring->notifyid,
-			vring_size(virtq.config->queueConfig[chl].vring->num,virtq.config->queueConfig[chl].vring->align),
-			virtq.vq[chl].vring.num,virtq.vq[chl].vring.desc,
-			virtq.vq[chl].vring.avail,virtq.vq[chl].vring.used,
-			virtq.config->queueConfig[chl].vring->da);
-
-	ASLOG(VIRTQ,"InitQ ring%d.avail@%p.idx=%d,flags=%Xh\n",chl,virtq.vq[chl].vring.avail,virtq.vq[chl].vring.avail->idx,virtq.vq[chl].vring.avail->flags);
-	ASLOG(VIRTQ,"%d,%d,%d,%d\n",virtq.vq[chl].vring.desc[0].next,virtq.vq[chl].vring.desc[1].next,
-			virtq.vq[chl].vring.desc[2].next,virtq.vq[chl].vring.desc[3].next);
 }
 Std_ReturnType VirtQ_GetAvailiableBuffer(VirtQ_ChannerlType chl,VirtQ_IdxType* idx,void** buf,uint16* len)
 {
