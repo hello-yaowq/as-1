@@ -122,7 +122,8 @@ static int fifo_read(struct asvirt_rproc *oproc, int *idx)
     if(oproc->r_fifo->count > 0)
     {
         *idx = oproc->r_fifo->idx[oproc->r_pos];
-        printk("Kernel: Incoming message: 0x%X,pos=%d,count=%d\n",*idx,oproc->r_pos,oproc->r_fifo->count);
+        printk("Kernel: Incoming message: 0x%X,pos=%d,count=%d from fifo@%p\n",
+        		*idx,oproc->r_pos,oproc->r_fifo->count,oproc->r_fifo);
         oproc->r_fifo->count -= 1;
         oproc->r_pos = (oproc->r_pos + 1)%(IPC_FIFO_SIZE);
         ercd = 0;
@@ -143,7 +144,8 @@ static int fifo_write(struct asvirt_rproc *oproc, int idx)
 	{
 		oproc->w_fifo->idx[oproc->w_pos] = idx;
 		oproc->w_fifo->count += 1;
-		printk("Kernel: Transmit message: 0x%X,pos=%d,count=%d\n",idx,oproc->w_pos,oproc->w_fifo->count);
+		printk("Kernel: Transmit message: 0x%X,pos=%d,count=%d through fifo@%p\n",
+				idx,oproc->w_pos,oproc->w_fifo->count,oproc->w_fifo);
 		oproc->w_pos = (oproc->w_pos + 1)%(IPC_FIFO_SIZE);
 		ercd = 0;
 	}
@@ -276,7 +278,7 @@ static int thread_rproc_mcu(void *data)
 	struct rproc *rproc =  (struct rproc *)data;
 	struct device *dev = rproc->dev.parent;
 	struct platform_device *pdev = to_platform_device(dev);
-	struct asvirt_rproc *oproc = rproc->priv;
+	//struct asvirt_rproc *oproc = rproc->priv;
 
 	dev_info(&pdev->dev, "rproc MCU side thread is running...\n");
 

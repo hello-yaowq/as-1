@@ -42,8 +42,6 @@ typedef struct
 {
 	Ipc_ChannelType             chl;
 	uint8                       handler;	/* upper layer handler */
-    /* Id for this VirtQueue_Object */
-	VirtQ_IdxType               idx;
 
     /* The function to call when buffers are consumed (can be NULL) */
 	VirtQ_NotificationType      rxNotification;

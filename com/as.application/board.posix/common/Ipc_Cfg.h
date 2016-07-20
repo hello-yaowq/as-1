@@ -33,7 +33,7 @@ typedef struct
 }Ipc_FifoType;
 typedef struct
 {
-	VirtQ_IdxType 		idx;
+	Rproc_ReseouceVdevVringType* vring;
 	VirtQ_ChannerlType 	chl;
 }Ipc_Idx2VirtQChannleMappingType;
 typedef struct

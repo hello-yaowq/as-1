@@ -47,14 +47,14 @@ VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable = {
 			.da = 0,
 			.align = 4096,
 			.num   = 256,
-			.notifyid = VIRTQ_IDX_RPMSG_TX,
+			.notifyid = 0xdeadbeef,	/* will filled up by kernel */
 			.reserved = 0
 		},
 		.vring[1] = {
 			.da = 0,
 			.align = 4096,
 			.num   = 256,
-			.notifyid = VIRTQ_IDX_RPMSG_RX,
+			.notifyid = 0xdeadbeef,	/* will filled up by kernel */
 			.reserved = 0
 		},
 	},

@@ -25,8 +25,8 @@ static Ipc_FifoType r_fifo;
 static Ipc_FifoType w_fifo;
 static const Ipc_Idx2VirtQChannleMappingType mapping[2] =
 {
-	{ .idx = VIRTQ_IDX_RPMSG_RX, .chl= VIRTQ_CHL_RPMSG_RX },
-	{ .idx = VIRTQ_IDX_RPMSG_TX, .chl= VIRTQ_CHL_RPMSG_TX },
+	{ .vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[1]), .chl= VIRTQ_CHL_RPMSG_RX },
+	{ .vring = &(Rproc_ResourceTable.rpmsg_vdev.vring[0]), .chl= VIRTQ_CHL_RPMSG_TX },
 };
 static Ipc_ChannelConfigType Ipc_ChlConfig[IPC_CHL_NUM] =
 {

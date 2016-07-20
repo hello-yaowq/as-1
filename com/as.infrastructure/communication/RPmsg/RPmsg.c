@@ -37,14 +37,11 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 	VirtQ_IdxType idx;
 	RPmsg_HandlerType* msg;
 	uint16 length;
-	ASLOG(RPMSG,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
+	ASLOG(RPMSG,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,(uint32)data,len);
 	ercd = VirtQ_GetAvailiableBuffer(portConfig->txChl,&idx,(void**)&msg,&length);
 	if(E_OK == ercd)
 	{
-		if(len > length){
-			len = length;
-			ASLOG(RPMSG,"warning transmit message length=%d > buffer length=%d, truncate.\n",len,length);
-		}
+		asAssert(len <= (length-(sizeof(*msg)-sizeof(msg->data))));
 		/* Copy the payload and set message header: */
 		memcpy(msg->data, data, len);
 		msg->len = len;
@@ -53,7 +50,7 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 		msg->flags = 0;
 		msg->reserved = 0;
 
-		VirtQ_AddUsedBuffer(portConfig->txChl, idx, len);
+		VirtQ_AddUsedBuffer(portConfig->txChl, idx, length);
 		VirtQ_Kick(portConfig->txChl);
 	}
 	else
@@ -112,39 +109,54 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 	asAssert(port < RPMSG_PORT_NUM);
 
 	portConfig = &(rpmsg.config->portConfig[port]);
-	if(rpmsg.online)
+
+	ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
+	if(E_OK == ercd)
 	{
-		ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
-		if(E_OK == ercd)
+		ASLOG(RPMSG,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,(uint32)msg->data,msg->len,length);
+		for(chl=0;chl<RPMSG_CHL_NUM;chl++)
 		{
-			ASLOG(RPMSG,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,msg->data,msg->len,length);
-			for(chl=0;chl<RPMSG_CHL_NUM;chl++)
+			if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&
+				(msg->dst==rpmsg.config->chlConfig[chl].dst) )
 			{
-				if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&
-					(msg->dst==rpmsg.config->chlConfig[chl].dst) )
-				{
-					break;
-				}
+				break;
 			}
+		}
 
-			if(chl<RPMSG_CHL_NUM)
-			{
-				rpmsg.config->chlConfig[chl].rxNotification(chl,msg->data,msg->len);
-			}
-			else
-			{
-				/* ignore invalid message */
-				ASWARNING("RPMSG: invalid message, ignore it\n");
-			}
-
-			VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
-			VirtQ_Kick(portConfig->rxChl);
+		if(chl<RPMSG_CHL_NUM)
+		{
+			rpmsg.config->chlConfig[chl].rxNotification(chl,msg->data,msg->len);
 		}
 		else
 		{
-			/* asAssert(0); */
-			ASLOG(OFF,"invalid RPmsg_RxNotification\n");
+			/* ignore invalid message */
+			ASWARNING("RPMSG: invalid message, ignore it\n");
 		}
+
+		VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
+		VirtQ_Kick(portConfig->rxChl);
+	}
+	else
+	{
+		/* asAssert(0); */
+		ASLOG(RPMSG,"invalid RPmsg_RxNotification\n");
+	}
+}
+
+boolean RPmsg_IsOnline(void)
+{
+	return rpmsg.online;
+}
+void RPmsg_TxConfirmation(RPmsg_PortType port)
+{
+	const RPmsg_PortConfigType* portConfig;
+	asAssert(rpmsg.initialized);
+	asAssert(port < RPMSG_PORT_NUM);
+
+	portConfig = &(rpmsg.config->portConfig[port]);
+	if(rpmsg.online)
+	{
+		// TODO:
 	}
 	else
 	{
@@ -154,15 +166,6 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 		NameSerivice_Create(portConfig);
 		rpmsg.online = TRUE;
 	}
-}
-
-boolean RPmsg_IsOnline(void)
-{
-	return rpmsg.online;
-}
-void RPmsg_TxConfirmation(RPmsg_PortType channel)
-{
-	(void)channel;
 }
 
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
