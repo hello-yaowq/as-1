@@ -11,7 +11,7 @@ download = $(CURDIR)/download
 
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
-all:$(rootfs) askernel asglibc asbusybox sdcard
+all:$(rootfs) askernel asglibc asbusybox
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -37,7 +37,7 @@ extract-kernel:
 	@mv linux-3.18 kernel
 	@make patch-kernel
 
-$(download)/linux-3.18.tar.xz:$(rootfs)
+$(download)/linux-3.18.tar.xz:
 	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.tar.xz)
 	@make extract-kernel
 
@@ -71,7 +71,7 @@ extract-busybox:
 	@rm $(download)/busybox-1.24.0.tar
 	@mv busybox-1.24.0 busybox
 
-$(download)/busybox-1.24.0.tar.bz2:$(rootfs)
+$(download)/busybox-1.24.0.tar.bz2:
 	@(cd $(download);wget http://busybox.net/downloads/busybox-1.24.0.tar.bz2)
 	@make extract-busybox
 
@@ -79,8 +79,9 @@ busybox-menuconfig:
 	@(cd busybox;make menuconfig)
 
 busybox/.config:
-	@(cd busybox;make menuconfig)
-
+	#@(cd busybox;make menuconfig)
+	@(cd busybox;cp ../kernel/aspatch/busybox_defconfig .config)
+	
 asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make all)
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
@@ -91,7 +92,7 @@ extract-glibc:
 	@rm $(download)/glibc-2.22.tar
 	@mv glibc-2.22 glibc
 
-$(download)/glibc-2.22.tar.bz2:$(rootfs)
+$(download)/glibc-2.22.tar.bz2:
 	@(cd $(download);wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
 	@make extract-glibc
 
@@ -116,7 +117,7 @@ extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
 	@(tar -xvf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
 	
-$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:$(rootfs)
+$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
 	@(cd $(download);wget http://101.44.1.117/files/82540000020A32A4/mirrors.ustc.edu.cn/qtproject/archive/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz)
 	@make extract-qt-4.8.6
 
