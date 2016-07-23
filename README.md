@@ -23,17 +23,16 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [FreeRTOS](http://www.freertos.org/)
 * [toppers-atk2](https://www.toppers.jp/atk2.html)
 * small : this OS is developed by me, OSEK BCC1 conformed
+* [contiki](http://contiki-os.org/)
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
 
-## 4. Virtual Simulation of AUTOSAR
-> Qt simulator, rpmsg strategy for the ECUs(dll) connectivity simulation 
+## 4. AUTOSAR & LINUX communication
 * [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
 * [remoteproc](https://www.kernel.org/doc/Documentation/remoteproc.txt)
 * [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
-* [README](./com/as.infrastructure/system/vm/readme.md)
 
 ## 5. Lua Script Integrated
 * support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.

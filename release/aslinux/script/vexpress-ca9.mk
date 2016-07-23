@@ -10,7 +10,8 @@ rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
 # first default make
-all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
+#all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
+all:$(rootfs) askernel asglibc asbusybox sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -21,20 +22,29 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
+	@mkdir -p $(download)
+
+patch-kernel:
+	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
+	@(cp ../kernel . -rvf)
+	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
+	
 
 extract-kernel:
 	@xz -vdk $(download)/linux-3.18.tar.xz
 	@tar -xvf $(download)/linux-3.18.tar -C $(CURDIR)
 	@rm $(download)/linux-3.18.tar
 	@mv linux-3.18 kernel
+	@make patch-kernel
 
 $(download)/linux-3.18.tar.xz:
 	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.tar.xz)
 	@make extract-kernel
 
 kernel/.config:
-	@(cd kernel;cp arch/arm/configs/vexpress_defconfig .config)
-	@(cd kernel;make menuconfig O=.)
+#	@(cd kernel;cp arch/arm/configs/vexpress_defconfig .config)
+#	@(cd kernel;make menuconfig O=.)
+	@(cd kernel;cp aspatch/vexpress_defconfig .config)
 
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
@@ -185,7 +195,7 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
-		sudo cp ~/workspace/as/release/aslinux/rootfs/* tmp/ -rvf;	\
+		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
