@@ -29,7 +29,7 @@ void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
 static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
 {
 	{
-		.name = "RPMSG-SAMPLE",
+		.name = "rpmsg-client-sample",
 		.port = 0x257,
 		.rxChl = VIRTQ_CHL_RPMSG_RX,
 		.txChl = VIRTQ_CHL_RPMSG_TX,
@@ -46,7 +46,7 @@ static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
 	},
 #endif
 	{
-		.dst = 0xCAB,
+		.dst = 0x400,
 		.rxNotification = Can_RPmsg_RxNotitication,
 		.txConfirmation = Can_RPmsg_TxConfirmation,
 		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]

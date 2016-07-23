@@ -157,10 +157,11 @@ void RPmsg_TxConfirmation(RPmsg_PortType port)
 	if(rpmsg.online)
 	{
 		// TODO:
+		ASLOG(RPMSG,"RPmsg_TxConfirmation(%d)\n",port);
 	}
 	else
 	{
-		ASLOG(RPMSG,"RPmsg_RxNotification(offline-->online)\n");
+		ASLOG(RPMSG,"RPmsg_TxConfirmation(offline-->online)\n");
 		VirtQ_InitVq(portConfig->rxChl);
 		VirtQ_InitVq(portConfig->txChl);
 		NameSerivice_Create(portConfig);
