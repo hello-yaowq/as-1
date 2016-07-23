@@ -37,7 +37,7 @@ extract-kernel:
 	@mv linux-3.18 kernel
 	@make patch-kernel
 
-$(download)/linux-3.18.tar.xz:
+$(download)/linux-3.18.tar.xz:$(rootfs)
 	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.tar.xz)
 	@make extract-kernel
 
@@ -71,7 +71,7 @@ extract-busybox:
 	@rm $(download)/busybox-1.24.0.tar
 	@mv busybox-1.24.0 busybox
 
-$(download)/busybox-1.24.0.tar.bz2:
+$(download)/busybox-1.24.0.tar.bz2:$(rootfs)
 	@(cd $(download);wget http://busybox.net/downloads/busybox-1.24.0.tar.bz2)
 	@make extract-busybox
 
@@ -91,7 +91,7 @@ extract-glibc:
 	@rm $(download)/glibc-2.22.tar
 	@mv glibc-2.22 glibc
 
-$(download)/glibc-2.22.tar.bz2:
+$(download)/glibc-2.22.tar.bz2:$(rootfs)
 	@(cd $(download);wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
 	@make extract-glibc
 
@@ -102,7 +102,7 @@ asglibc:$(download)/glibc-2.22.tar.bz2
 		make;	\
 		make install install_root=$(rootfs))
 
-$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:
+$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:$(rootfs)
 	@(cd $(download);wget http://101.44.1.124/files/A165000004244025/anychimirror101.mirrors.tds.net/pub/Qt/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz)
 	@make extract-qt
 
@@ -116,7 +116,7 @@ extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
 	@(tar -xvf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
 	
-$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
+$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:$(rootfs)
 	@(cd $(download);wget http://101.44.1.117/files/82540000020A32A4/mirrors.ustc.edu.cn/qtproject/archive/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz)
 	@make extract-qt-4.8.6
 
