@@ -28,7 +28,7 @@
 #include "Ipc.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_IPC 1
+#define AS_LOG_IPC 0
 #ifdef CONFIG_ARCH_VEXPRESS
 #define pthread_mutex_lock mutex_lock
 #define pthread_mutex_unlock mutex_unlock

@@ -35,8 +35,6 @@
 #include <linux/can/error.h>
 #include <linux/can/led.h>
 /* ============================ [ MACROS    ] ====================================================== */
-#define MSG		"can:hello world!"
-#define MSG_LIMIT	100
 /* ============================ [ TYPES     ] ====================================================== */
 
 /**
@@ -79,7 +77,7 @@ static const struct net_device_ops ascan_netdev_ops = {
 };
 
 static struct rpmsg_device_id rpmsg_driver_can_id_table[] = {
-	{ .name	= "rpmsg-client-sample" },
+	{ .name	= "rpmsg-can-sample" },
 	{ },
 };
 MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_can_id_table);
@@ -167,9 +165,7 @@ static int ascan_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 		return ret;
 	}
 
-
 	stats->tx_bytes += cf->can_dlc;
-
 
 	return NETDEV_TX_OK;
 }
@@ -177,30 +173,40 @@ static int ascan_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 static void rpmsg_can_cb(struct rpmsg_channel *rpdev, void *data, int len,
 						void *priv, u32 src)
 {
-	int ret;
-	static int rx_count;
+	struct net_device *ndev = (struct net_device *)priv;
+	struct net_device_stats *stats = &ndev->stats;
+	struct can_frame *cf;
+	struct sk_buff *skb;
 
-	dev_info(&rpdev->dev, "incoming msg %d (src: 0x%x)\n", ++rx_count, src);
+	dev_info(&rpdev->dev, "incoming can msg %d (src: 0x%x)\n", (int)stats->rx_packets+1, src);
 
-	print_hex_dump(KERN_DEBUG, __func__, DUMP_PREFIX_NONE, 16, 1,
+	print_hex_dump(KERN_DEBUG, "rpmsg_can_cb RX: ", DUMP_PREFIX_NONE, 16, 1,
 		       data, len,  true);
 
-	/* samples should not live forever */
-	if (rx_count >= MSG_LIMIT) {
-		dev_info(&rpdev->dev, "goodbye!\n");
+	skb = alloc_can_skb(ndev, &cf);
+	if (unlikely(!skb)) {
+		stats->rx_dropped++;
 		return;
 	}
 
-	/* send a new message now */
-	ret = rpmsg_send(rpdev, MSG, strlen(MSG));
-	if (ret)
-		dev_err(&rpdev->dev, "CAN:rpmsg_send failed: %d\n", ret);
+	if(sizeof(*cf) != len)
+	{
+		stats->rx_dropped++;
+		dev_err(&rpdev->dev, "CAN: invalid length(%d != %d)\n", len,sizeof(*cf));
+		return;
+	}
+
+	memcpy(cf,data,len);
+
+	stats->rx_bytes += cf->can_dlc;
+	stats->rx_packets++;
+	netif_receive_skb(skb);
 }
 
 static int rpmsg_can_probe(struct rpmsg_channel *rpdev)
 {
 	int ret;
-
+	struct can_frame cf;
 	struct net_device *ndev;
 	struct ascan_priv *priv;
 
@@ -216,6 +222,8 @@ static int rpmsg_can_probe(struct rpmsg_channel *rpdev)
 	priv->dev = ndev;
 	priv->rpdev = rpdev;
 
+	rpdev->ept->priv = ndev;
+
 	ndev->netdev_ops = &ascan_netdev_ops;
 
 	ret = register_candev(ndev);
@@ -226,8 +234,14 @@ static int rpmsg_can_probe(struct rpmsg_channel *rpdev)
 
 	devm_can_led_init(ndev);
 
+	cf.can_id = 0x777;
+	cf.can_dlc = 0x8;
+	for (ret=0;ret<8;ret++)
+	{
+		cf.data[ret] = (ret<<4)+(ret);
+	}
 	/* send a message to our remote processor */
-	ret = rpmsg_send(rpdev, MSG, strlen(MSG));
+	ret = rpmsg_send(rpdev, &cf, sizeof(cf));
 	if (ret) {
 		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", ret);
 		return ret;

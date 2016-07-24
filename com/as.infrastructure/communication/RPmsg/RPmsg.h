@@ -84,7 +84,6 @@ typedef void (*RPmsg_TxConfirmationType)(RPmsg_ChannelType chl);
 
 typedef struct
 {
-	char*  name;
 	uint32 port;	/* src for each dst end point */
 	VirtQ_ChannerlType rxChl;
 	VirtQ_ChannerlType txChl;
@@ -92,6 +91,7 @@ typedef struct
 
 typedef struct
 {
+	char*  name;
 	uint32_t dst;
 	uint16_t flags;
 	RPmsg_RxNotiticationType rxNotification;

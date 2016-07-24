@@ -18,18 +18,23 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-void __weak Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len){}
+#ifdef CONFIG_ARCH_VEXPRESS
+/* for simple test purpose, echo the message back */
+void __weak Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len){
+	RPmsg_Send(chl,data,len);
+}
 void __weak Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl) {}
-#ifdef USE_SHELL
-void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len);
-void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl);
+void __weak RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
+{
+	RPmsg_Send(chl,data,len);
+}
+void __weak RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 
 static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
 {
 	{
-		.name = "rpmsg-client-sample",
 		.port = 0x257,
 		.rxChl = VIRTQ_CHL_RPMSG_RX,
 		.txChl = VIRTQ_CHL_RPMSG_TX,
@@ -37,18 +42,18 @@ static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
 };
 static const RPmsg_ChannelConfigType chlConfig[RPMSG_CHL_NUM] =
 {
-#ifdef USE_SHELL
 	{
-		.dst = 0xCAD,
-		.rxNotification = Shell_RPmsg_RxNotitication,
-		.txConfirmation = Shell_RPmsg_TxConfirmation,
-		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]
-	},
-#endif
-	{
+		.name = "rpmsg-can-sample",
 		.dst = 0x400,
 		.rxNotification = Can_RPmsg_RxNotitication,
 		.txConfirmation = Can_RPmsg_TxConfirmation,
+		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]
+	},
+	{
+		.name = "rpmsg-client-sample",
+		.dst = 0x401,
+		.rxNotification = RPmsg_Client_RxNotitication,
+		.txConfirmation = RPmsg_Client_TxConfirmation,
 		.portConfig = &portConfig[RPMSG_PORT_DEFAULT]
 	}
 };

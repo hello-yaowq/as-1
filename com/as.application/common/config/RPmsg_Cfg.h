@@ -21,14 +21,9 @@
 #define RPMSG_PORT_NUM 	1
 
 
-#ifdef USE_SHELL
-#define RPMSG_CHL_SHELL	0
-#define RPMSG_CHL_CAN	1
+#define RPMSG_CHL_CAN		0
+#define RPMSG_CHL_CLIENT	1
 #define RPMSG_CHL_NUM 	2
-#else
-#define RPMSG_CHL_CAN	0
-#define RPMSG_CHL_NUM 	1
-#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct {
     /* the CAN ID, 29 or 11-bit */
