@@ -28,6 +28,7 @@ patch-kernel:
 	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
 	@(cp ../kernel . -rvf)
 	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
+	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
 	
 
 extract-kernel:
