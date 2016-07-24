@@ -32,8 +32,8 @@ patch-kernel:
 	
 
 extract-kernel:
-	@xz -vdk $(download)/linux-3.18.tar.xz
-	@tar -xvf $(download)/linux-3.18.tar -C $(CURDIR)
+	@xz -dk $(download)/linux-3.18.tar.xz
+	@tar -xf $(download)/linux-3.18.tar -C $(CURDIR)
 	@rm $(download)/linux-3.18.tar
 	@mv linux-3.18 kernel
 	@make patch-kernel
@@ -53,10 +53,10 @@ kernel-menuconfig:
 askernel:$(download)/linux-3.18.tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
-	@cp -fv kernel/arch/arm/boot/zImage $(rootfs)/zImage
-	@cp -fv kernel/vmlinux $(rootfs)/vmlinux
+	@cp -f kernel/arch/arm/boot/zImage $(rootfs)/zImage
+	@cp -f kernel/vmlinux $(rootfs)/vmlinux
 	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
-	@cp -fv kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
+	@cp -f kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
 
 u-boot:
 	@git clone git://git.denx.de/u-boot.git
@@ -67,8 +67,8 @@ asuboot:u-boot
 	@(cd u-boot;cp -v u-boot $(rootfs))
 
 extract-busybox:
-	@bzip2 -dvk $(download)/busybox-1.24.0.tar.bz2
-	@tar -xvf $(download)/busybox-1.24.0.tar -C $(CURDIR)
+	@bzip2 -dk $(download)/busybox-1.24.0.tar.bz2
+	@tar -xf $(download)/busybox-1.24.0.tar -C $(CURDIR)
 	@rm $(download)/busybox-1.24.0.tar
 	@mv busybox-1.24.0 busybox
 
@@ -88,8 +88,8 @@ asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
 
 extract-glibc:
-	@bzip2 -dvk $(download)/glibc-2.22.tar.bz2
-	@tar -xvf $(download)/glibc-2.22.tar -C $(CURDIR)
+	@bzip2 -dk $(download)/glibc-2.22.tar.bz2
+	@tar -xf $(download)/glibc-2.22.tar -C $(CURDIR)
 	@rm $(download)/glibc-2.22.tar
 	@mv glibc-2.22 glibc
 
@@ -109,13 +109,13 @@ $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:$(rootfs)
 	@make extract-qt
 
 extract-qt-5.5.1:$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz
-	@(gunzip -kv $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz)
-	@(tar -xvf$(download)/qt-everywhere-opensource-src-5.5.1.tar -C $(CURDIR))
+	@(gunzip -k $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz)
+	@(tar -xf$(download)/qt-everywhere-opensource-src-5.5.1.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-5.5.1.tar
 
 extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
-	@(gunzip -kv $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
-	@(tar -xvf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
+	@(gunzip -k $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
+	@(tar -xf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
 	
 $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
@@ -188,16 +188,16 @@ $(out)/sdcard.ext3:
 asrootfs:
 
 sdcard:$(out)/sdcard.ext3 asrootfs
-	@(cd $(out);mkdir -pv tmp;	\
+	@(cd $(out);mkdir -p tmp;	\
 		sudo mount -t ext3 sdcard.ext3 tmp/ -o loop;	\
-		sudo cp $(rootfs)/* tmp/ -rvf;	\
+		sudo cp $(rootfs)/* tmp/ -rf;	\
 		sudo mkdir tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\
 		sudo mknod tmp/dev/tty2 c 4 2;	\
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
-		sudo cp ../../rootfs/* tmp/ -rvf;	\
+		sudo cp ../../rootfs/* tmp/ -rf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
