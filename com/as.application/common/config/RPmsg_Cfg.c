@@ -18,7 +18,6 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifdef CONFIG_ARCH_VEXPRESS
 /* for simple test purpose, echo the message back */
 void __weak Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len){
 	RPmsg_Send(chl,data,len);
@@ -28,8 +27,7 @@ void __weak RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16
 {
 	RPmsg_Send(chl,data,len);
 }
-void __weak RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl);
-#endif
+void __weak RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl){};
 /* ============================ [ DATAS     ] ====================================================== */
 
 static const RPmsg_PortConfigType portConfig[RPMSG_PORT_NUM] =
