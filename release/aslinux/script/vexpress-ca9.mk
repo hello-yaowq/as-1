@@ -50,7 +50,7 @@ kernel/.config:
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
 
-askernel:$(download)/linux-3.18.tar.xz kernel/.config
+askernel:$(rootfs) $(download)/linux-3.18.tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
 	@cp -f kernel/arch/arm/boot/zImage $(rootfs)/zImage
