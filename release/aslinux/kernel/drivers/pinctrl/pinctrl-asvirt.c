@@ -133,16 +133,16 @@ static const struct asvirt_pin_group asvirt_pin_groups[] = {
 	ASVIRT_PIN_GROUP("pingrp3", pingrp3_pins)
 };
 
-static const char * const pingrp0_fname[] = { "grp0-func0","grp0-func2" };
-static const char * const pingrp1_fname[] = { "grp1-func0" };
-static const char * const pingrp2_fname[] = { "grp2-func0","grp2-func2" };
-static const char * const pingrp3_fname[] = { "grp3-func0" };
+static const char * const pingrp0_fname[] = { "pingrp0","grp0-func2" };
+static const char * const pingrp1_fname[] = { "pingrp1" };
+static const char * const pingrp2_fname[] = { "pingrp2","grp2-func2" };
+static const char * const pingrp3_fname[] = { "pingrp3" };
 
 static const struct asvirt_pmx_func asvirt_pmx_functions[] = {
-	ASVIRT_PMX_FUNCTION("pingrp0", pingrp0_fname),
-	ASVIRT_PMX_FUNCTION("pingrp1", pingrp1_fname),
-	ASVIRT_PMX_FUNCTION("pingrp2", pingrp2_fname),
-	ASVIRT_PMX_FUNCTION("pingrp3", pingrp3_fname),
+	ASVIRT_PMX_FUNCTION("general pingrp0", pingrp0_fname),
+	ASVIRT_PMX_FUNCTION("general pingrp1", pingrp1_fname),
+	ASVIRT_PMX_FUNCTION("general pingrp2", pingrp2_fname),
+	ASVIRT_PMX_FUNCTION("general pingrp3", pingrp3_fname),
 };
 
 static struct asvirt_pinctrl_data as_pinctrl_data=
