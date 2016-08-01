@@ -81,3 +81,5 @@ okay, till 2016-7-3 12:09, it was done almost for all of the API, and I think I 
 
 * [kernel/arch/arm/boot/dts/vexpress-v2p-asvirt.dtsi](https://github.com/parai/as/blob/22683e54839962571d4ae9e03fda315c00b212dd/release/aslinux/kernel/arch/arm/boot/dts/vexpress-v2p-asvirt.dtsi)
 
+[2016-8-1] from rpmsg back to pinctrl, so I want to know how a group of pins are used by differnet drivers such as CAN driver.
+

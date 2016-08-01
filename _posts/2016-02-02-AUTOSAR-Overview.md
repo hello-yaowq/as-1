@@ -97,17 +97,14 @@ parai@UX303LB:~/workspace/as/release/asboot$ make studio board=posix compiler=po
 
 ![config.infrastructure.system](/as/images/config.infrastructure.system.png)
 
-### 4. Virtual Simulation of AUTOSAR
-> Qt simulator, rpmsg strategy for the ECUs(dll) connectivity simulation, mostly for the purpose to study linux virtio/rpmsg system
+### 4. AUTOSAR & LINUX communication
+> mostly for the purpose to study linux virtio/rpmsg system
 
 * [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
 * [remoteproc](https://www.kernel.org/doc/Documentation/remoteproc.txt)
 * [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
 
-> Now as I have found out that there is virtual CAN(vcan) modules on linux, so I use the vcan on linux to simulate the CAN bus, it was very good.
-
-> For EEPROM and FLASH, they are simulated by binary files.
 
 ### 5. Lua Script Integrated
 * support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
