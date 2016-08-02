@@ -72,16 +72,19 @@ X = [-4,-3,-2,-1,0,1,2,3,4]
 Y0 = [-4,-3,-2,-1,0,1,2,3,4]
 Y1 = [4,3,2,1,0,-1,-2,-3,-4]
 
-plt.plot(X,Y0,color="blue", linewidth=1.0, linestyle="-")
-plt.plot(X,Y1,color="green", linewidth=1.0, linestyle="-")
+plt.plot(X,Y0,color="blue", linewidth=1.0, linestyle="-",label='y=x')
+plt.plot(X,Y1,color="green", linewidth=1.0, linestyle="-",label='y=-x')
 
 X = np.linspace(-np.pi, np.pi, 256,endpoint=True)
 C,S = np.cos(X), np.sin(X)
 
-plt.plot(X, C, color="red", linewidth=1.0, linestyle="-")
-plt.plot(X, S, color="black", linewidth=1.0, linestyle="-")
+plt.plot(X, C, color="red", linewidth=1.0, linestyle="-",label='y=cos(x)')
+plt.plot(X, S, color="black", linewidth=1.0, linestyle="-",label='y=sin(x)')
 
 grid()
+
+plt.title('Example of mathplotlib')
+plt.legend()
 
 plt.show()
 ```

@@ -83,3 +83,7 @@ okay, till 2016-7-3 12:09, it was done almost for all of the API, and I think I 
 
 [2016-8-1] from rpmsg back to pinctrl, so I want to know how a group of pins are used by differnet drivers such as CAN driver.
 
+reference:
+
+* [Wowo Teck GPIO&PINCTRL](http://www.wowotech.net/gpio_subsystem/pin-controller-driver.html)
+
