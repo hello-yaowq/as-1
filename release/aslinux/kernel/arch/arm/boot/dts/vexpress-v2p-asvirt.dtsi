@@ -47,5 +47,6 @@ firmware_mcu: remoteproc@0 {
 	reg = <0 0x10000>;
 	fwname = "AUTOSAR";
 	
-	pinctrl-0 = <&pingrp0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pingrp2>;
 };

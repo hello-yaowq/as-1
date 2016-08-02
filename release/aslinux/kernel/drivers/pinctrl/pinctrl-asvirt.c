@@ -122,6 +122,24 @@ static int asvirt_pinmux_request_gpio(struct pinctrl_dev *pmxdev,
 
 static int asvirt_pctl_probe(struct platform_device *pdev);
 /* ============================ [ DATAS     ] ====================================================== */
+static const struct pinctrl_pin_desc asvirt_pads[] = {
+	PINCTRL_PIN(0, "pin0"),
+	PINCTRL_PIN(1, "pin1"),
+	PINCTRL_PIN(2, "pin2"),
+	PINCTRL_PIN(3, "pin3"),
+	PINCTRL_PIN(4, "pin4"),
+	PINCTRL_PIN(5, "pin5"),
+	PINCTRL_PIN(6, "pin6"),
+	PINCTRL_PIN(7, "pin7"),
+	PINCTRL_PIN(8, "pin8"),
+	PINCTRL_PIN(9, "pin9"),
+	PINCTRL_PIN(10, "pin10"),
+	PINCTRL_PIN(11, "pin11"),
+	PINCTRL_PIN(12, "pin12"),
+	PINCTRL_PIN(13, "pin13"),
+	PINCTRL_PIN(14, "pin14"),
+	PINCTRL_PIN(15, "pin15")
+};
 static const unsigned int pingrp0_pins[] = { 0 , 1 , 2 , 3 };
 static const unsigned int pingrp1_pins[] = { 4 , 5 , 6 , 7 };
 static const unsigned int pingrp2_pins[] = { 8 , 9 ,10 ,11 };
@@ -191,6 +209,8 @@ static struct pinctrl_desc asvirt_pinmux_desc = {
 	.pctlops = &asvirt_pctrl_ops,
 	.pmxops = &asvirt_pinmux_ops,
 	.owner = THIS_MODULE,
+    .pins  = asvirt_pads,
+    .npins = ARRAY_SIZE(asvirt_pads),
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* Returns the count of total number of groups registered
@@ -327,6 +347,7 @@ static int asvirt_pinmux_set_mux(struct pinctrl_dev *pmxdev,
 static int asvirt_pinmux_get_funcs_count(struct pinctrl_dev *pmxdev)
 {
 	struct asvirt_pmx *spmx = pinctrl_dev_get_drvdata(pmxdev);
+	pr_debug("asvirt_pinmux_get_funcs_count of pinctrl.%d\n",spmx->idx);
 	return spmx->pinctrl_data->funcs_cnt;
 }
 
@@ -334,6 +355,7 @@ static const char *asvirt_pinmux_get_func_name(struct pinctrl_dev *pctldev,
 					  unsigned selector)
 {
 	struct asvirt_pmx *spmx = pinctrl_dev_get_drvdata(pctldev);
+	pr_debug("asvirt_pinmux_get_func_name(%d) of pinctrl.%d\n",selector,spmx->idx);
 	return spmx->pinctrl_data->funcs[selector].name;
 }
 
@@ -345,6 +367,7 @@ static int asvirt_pinmux_get_groups(struct pinctrl_dev *pctldev,
 	struct asvirt_pmx *spmx = pinctrl_dev_get_drvdata(pctldev);
 	*groups = spmx->pinctrl_data->funcs[selector].groups;
 	*num_groups = spmx->pinctrl_data->funcs[selector].num_groups;
+	pr_debug("asvirt_pinmux_get_groups of pinctrl.%d\n",spmx->idx);
 	return 0;
 }
 
