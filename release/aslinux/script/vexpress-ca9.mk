@@ -11,7 +11,7 @@ download = $(CURDIR)/download
 
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
-all:$(rootfs) askernel asglibc asbusybox sdcard
+all:$(rootfs) askernel asglibc asbusybox asamb sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -23,6 +23,13 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
+
+automotive-message-broker:
+	@git clone https://github.com/otcshare/automotive-message-broker.git
+	@(cd automotive-message-broker;git checkout 0.14;mkdir build)
+	
+asamb:automotive-message-broker
+	@(cd automotive-message-broker/build; cmake ..; make)
 
 patch-kernel:
 	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)

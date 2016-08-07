@@ -61,6 +61,7 @@ sudo apt-get install u-boot-tools
 sudo apt-get install nfs-kernel-server
 sudo apt-get install mtd-utils
 sudo apt-get install Kolourpaint
+sudo apt-get install cmake uuid-dev libboost-dev libwebsockets-dev libjson-c-dev libjson-glib-1.0-0 libjson0 libjson0-dev
 ```
 
 ## Clone
