@@ -10,7 +10,10 @@ set(autosarplugin_sources autosarplugin.cpp)
 
 add_library(autosarplugin MODULE ${autosarplugin_sources} ${autosarplugin_headers})
 set_target_properties(autosarplugin PROPERTIES PREFIX "")
-target_link_libraries(autosarplugin amb amb-plugins-common -L${CMAKE_CURRENT_BINARY_DIR}/plugins/common ${link_libraries} -lrt ${json_LIBRARIES})
+
+## cd build/lib; ln -fs ../../plugins/autosar/out/libposix.a  libascore.so
+target_link_libraries(autosarplugin amb amb-plugins-common -L${CMAKE_CURRENT_BINARY_DIR}/plugins/common ${link_libraries} -lrt ${json_LIBRARIES}
+	-lascore)
 
 install(TARGETS autosarplugin LIBRARY DESTINATION ${PLUGIN_INSTALL_PATH})
 
