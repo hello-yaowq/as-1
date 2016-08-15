@@ -15,27 +15,18 @@
 #ifndef AUTOSARPLUGIN_H_
 #define AUTOSARPLUGIN_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <map>
-#include <memory>
-#include <tgmath.h>
-#include <libwebsockets.h>
-#include <json.h>
-
-#include <ambpluginimpl.h>
+#include <abstractsource.h>
+#include <string>
 /* ============================ [ MACROS    ] ====================================================== */
-
+using namespace std;
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ CLASS     ] ====================================================== */
-class AUTOSARPlugin: public AmbPluginImpl {
+class AUTOSARPlugin: public AbstractSource {
 
 public:
 
-	/*!
-	 * \param re AbstractRoutingEngine
-	 * \param config Map of the configuration string values loaded on startup from AMB configuration file
-	 * \param parent AmbPlugin instance
-	 */
-	AUTOSARPlugin(AbstractRoutingEngine* re, const std::map<std::string, std::string>& config, AbstractSource &parent);
+	AUTOSARPlugin(): AbstractSource(nullptr, map<string, string>()) {}
+	AUTOSARPlugin(AbstractRoutingEngine* re, map<string, string> config);
 	virtual ~AUTOSARPlugin();
 
 	/* from AbstractSink */
@@ -46,25 +37,42 @@ public:
 	 *
 	 * use python::uuid.uuid5(uuid.NAMESPACE_DNS, 'as.autosar.parai')
 	 */
-	const std::string uuid() const { return "21e16c41-5d79-5e2c-a088-3e8e68107aa8"; }
+	const string uuid() { return "21e16c41-5d79-5e2c-a088-3e8e68107aa8"; }
 
-	/*! propertyChanged is called when a subscribed to property changes.
-	  * @see AbstractRoutingEngine::subscribeToPropertyChanges()
-	  * \param value value of the property that changed. this is a temporary pointer that will be destroyed.
-	  * Do not destroy it.  If you need to store the value use value.anyValue(), value.value<T>() or
-	  * value->copy() to copy.
-	  */
-	void propertyChanged(AbstractPropertyType* value);
+	void getPropertyAsync(AsyncPropertyReply *reply);
+	void getRangePropertyAsync(AsyncRangePropertyReply *reply);
+	AsyncPropertyReply * setProperty(AsyncSetPropertyRequest request);
+	void subscribeToPropertyChanges(VehicleProperty::Property property);
+	void unsubscribeToPropertyChanges(VehicleProperty::Property property);
+	PropertyList supported();
 
-	AsyncPropertyReply* setProperty(const AsyncSetPropertyRequest &request);
+	int supportedOperations();
 
+	void supportedChanged(const PropertyList &) {}
+
+	PropertyInfo getPropertyInfo(const VehicleProperty::Property & property)
+	{
+		if(propertyInfoMap.find(property) != propertyInfoMap.end())
+			return propertyInfoMap[property];
+
+		return PropertyInfo::invalid();
+	}
 	/* from AUTOSAR */
 public:
+	void MainFunction(void);
 
-
+private:
+	void* thread;
+	PropertyList mSupported;
+	PropertyList mRequests;
+	std::map<VehicleProperty::Property, PropertyInfo> propertyInfoMap;
+	std::map<Zone::Type, bool> acStatus;
 
 private:
 
+
+private:
+	void addPropertySupport(VehicleProperty::Property property, Zone::Type zone);
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

@@ -134,3 +134,12 @@ clean:
 	make lib board=posix compiler=posix-gcc debug=true
 93:
 	make lib board=posix compiler=posix-gcc debug=false	
+	
+
+amb:
+	@(cd ~/workspace/qemu-vexpress-ca9/automotive-message-broker/build;	\
+		make;	\
+		make install)
+	@(rm -v /etc/ambd/plugins.d/examples*)
+	@(cp -v config /etc/ambd/config)
+	
