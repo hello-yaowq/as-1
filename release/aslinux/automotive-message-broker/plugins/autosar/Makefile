@@ -55,8 +55,8 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 endif
 ldflags-y += -lstdc++ -lm -lpthread
-def-y += -DUSE_DET -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
-def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_MCU
+def-y += -DUSE_DET -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL -DUSE_MCU
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_COM
 def-y += -D__AS_CAN_BUS__ -DUSE_OS
 endif
 

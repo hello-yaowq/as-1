@@ -29,10 +29,14 @@
 
 using namespace std;
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define COM_SID_VehicleSpeed                     0
+#define COM_SID_EngineSpeed                      1
 /* ============================ [ TYPES     ] ====================================================== */
+typedef uint16_t Com_SignalIdType;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern "C" void* EcuM_Init(void*);
+extern "C" uint8_t Com_SendSignal(Com_SignalIdType SignalId, const void *SignalDataPtr);
+extern "C" uint8_t Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static gboolean timeoutCallback(gpointer data)
@@ -105,12 +109,17 @@ void AUTOSARPlugin::unsubscribeToPropertyChanges(VehicleProperty::Property prope
 
 void AUTOSARPlugin::MainFunction()
 {
-	static VehicleProperty::VehicleSpeedType vel;
+	uint16_t v;
 
-	vel.setValue(240);
+	Com_ReceiveSignal(COM_SID_VehicleSpeed,&v);
+	vel.setValue(v);
 	vel.sequence++;
-
 	routingEngine->updateProperty(&vel, uuid());
+
+	Com_ReceiveSignal(COM_SID_EngineSpeed,&v);
+	eng.setValue(v);
+	eng.sequence++;
+	routingEngine->updateProperty(&eng, uuid());
 }
 void AUTOSARPlugin::getRangePropertyAsync(AsyncRangePropertyReply *reply)
 {

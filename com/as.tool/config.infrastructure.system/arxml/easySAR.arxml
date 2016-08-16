@@ -333,10 +333,28 @@
 					Name="Text PosGUI=0"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=3"
+					StartBit="Integer Range=0~63 PosGUI=3 
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					Size="Integer Range=1~64 Default=8 PosGUI=4"
 					UpdateBitUsed="Boolean Default=False PosGUI=5"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					TimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=7"
 					FirstTimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Direction==RECEIVE) PosGUI=8"
 					TimeoutAction="Enum=(REPLACE,NONE) Default=REPLACE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
@@ -349,10 +367,28 @@
 							Name="Text PosGUI=0"
 							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
-							StartBit="Integer Range=0~63 PosGUI=3"
+							StartBit="Integer Range=0~63 PosGUI=3
+							\n BITMAP： MSB              LSB
+							\n BYTE0  7  6  5  4  3  2  1  0
+							\n BYTE1 15 14 13 12 11 10  9  8
+							\n BYTE2 23 22 21 20 19 18 17 16
+							\n BYTE3 31 30 29 28 27 26 25 24
+							\n BYTE4 39 38 37 36 35 34 33 32
+							\n BYTE5 47 46 45 44 43 42 41 40
+							\n BYTE6 55 54 53 52 51 50 49 48
+							\n BYTE7 63 62 61 60 59 58 57 56"
 							Size="Integer Range=1~64 Default=8 PosGUI=4"
 							UpdateBitUsed="Boolean Default=False PosGUI=5"
-							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+							\n BITMAP： MSB              LSB
+							\n BYTE0  7  6  5  4  3  2  1  0
+							\n BYTE1 15 14 13 12 11 10  9  8
+							\n BYTE2 23 22 21 20 19 18 17 16
+							\n BYTE3 31 30 29 28 27 26 25 24
+							\n BYTE4 39 38 37 36 35 34 33 32
+							\n BYTE5 47 46 45 44 43 42 41 40
+							\n BYTE6 55 54 53 52 51 50 49 48
+							\n BYTE7 63 62 61 60 59 58 57 56"
 							InitialValue="Text Default=0 PosGUI=7"
 							Comment="TextArea Default=* PosGUI=8"
 							>
@@ -366,11 +402,29 @@
 					Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=4"
+					StartBit="Integer Range=0~63 PosGUI=4
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					Size="Integer Range=1~64 Default=8 PosGUI=5"
 					InitialValue="Text Default=0 PosGUI=6"
 					UpdateBitUsed="Boolean Default=False PosGUI=7"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					TimeoutFactor="Integer Unit=ms Default=200 \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
 					FirstTimeoutFactor="Integer Unit=ms Default=500 \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
 					TimeoutAction="Enum=(REPLACE,NONE) Default=REPLACE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"

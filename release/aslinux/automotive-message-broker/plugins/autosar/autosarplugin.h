@@ -70,6 +70,8 @@ private:
 
 private:
 
+	VehicleProperty::VehicleSpeedType vel;
+	VehicleProperty::EngineSpeedType  eng;
 
 private:
 	void addPropertySupport(VehicleProperty::Property property, Zone::Type zone);
