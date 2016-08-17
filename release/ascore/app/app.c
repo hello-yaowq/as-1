@@ -152,6 +152,7 @@ void StartupHook(void)
 
 TASK(TaskApp)
 {
+	OS_TASK_BEGIN();
 	ASLOG(OFF,"TaskApp is running\n");
 #ifdef USE_STMO
 	sample_pointer();
@@ -164,6 +165,8 @@ TASK(TaskApp)
 #endif
 
 	OsTerminateTask(TaskApp);
+
+	OS_TASK_END();
 }
 
 ALARM(AlarmApp)

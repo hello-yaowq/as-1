@@ -43,6 +43,11 @@
 #define ISR(ISRName)             void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
 
+#define DeclareAlarm(Name)						\
+    {											\
+        .main = AlarmMain##Name						\
+    }
+
 #define RES_SCHEDULER           (ResourceType)0 /* default resources for OS */
 
 #define GetResource(...) 0
@@ -52,9 +57,6 @@
 #define GetEvent(...) 0
 #define ClearEvent(...) 0
 #define TerminateTask(...) PROCESS_EXIT()
-#define SetRelAlarm(...) 0
-#define CancelAlarm(...) 0
-#define ActivateTask(...) 0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8 					StatusType;
 typedef uint32   				EventMaskType;
@@ -81,9 +83,22 @@ typedef AlarmBaseType *			AlarmBaseRefType;
 
 typedef uint8                   ResourceType;
 
+typedef void         (*alarm_main_t)(void);
+
+typedef struct
+{
+    alarm_main_t main;
+    /* No Autostart support */
+}alarm_declare_t;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
+void OsTick ( void );
 
+FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle );
+FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle );
+FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId );
+FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId);
 #endif /* OS_I_H */

@@ -126,17 +126,22 @@ TimerType GetTimer(TimerType* timer)
 
 TASK(TaskIdle)
 {
-#if !defined(__SMALL_OS__)
+	OS_TASK_BEGIN();
+
+#if !defined(__SMALL_OS__) && !defined(__CONTIKI_OS__)
 	ASLOG(STDOUT,"TaskIdle is running\n");
 	for(;;)
 	{
 #endif
 		KSM_EXECUTE();
+
 #ifdef __FREEOSEK__
 		(void)Schedule();
 #endif
 
-#if !defined(__SMALL_OS__)
+#if !defined(__SMALL_OS__) && !defined(__CONTIKI_OS__)
 	}
 #endif
+
+	OS_TASK_END();
 }

@@ -354,7 +354,7 @@ static void runMemory( void ) {
 	SCHM_MAINFUNCTION_SPI();
 }
 
-#if defined(__SMALL_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 void SchM_RunMemory(void)
 {
 	runMemory();
@@ -368,6 +368,7 @@ TASK(SchM_Startup){
 #if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)
 	uint32_t i;
 #endif
+	OS_TASK_BEGIN();
 	ASLOG(OFF,"SchM_Startup is running\n");
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
@@ -434,11 +435,14 @@ TASK(SchM_Startup){
 
 	OsTerminateTask(SchM_Startup);
 
+	OS_TASK_END();
 }
 
 
 TASK(SchM_BswService) {
 	EcuM_StateType state;
+
+	OS_TASK_BEGIN();
 
 	ASLOG(OFF,"SchM_BswService is running\n");
 	EcuM_GetState(&state);
@@ -481,6 +485,8 @@ TASK(SchM_BswService) {
 		break;
 	}
 	OsTerminateTask(SchM_BswService);
+
+	OS_TASK_END();
 }
 
 void SchM_MainFunction( void ) {
