@@ -33,6 +33,8 @@ STUDIO = $(PY34) studio.py
 
 host = $(shell uname)
 
+work_dir?=~/workspace/qemu-vexpress-ca9
+
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
@@ -134,12 +136,38 @@ clean:
 	make lib board=posix compiler=posix-gcc debug=true
 93:
 	make lib board=posix compiler=posix-gcc debug=false	
-	
 
-amb:
-	@(cd ~/workspace/qemu-vexpress-ca9/automotive-message-broker/build;	\
+# ---------------------------------- [ AMB BUILD   ] ---------------------------------- #
+$(work_dir):
+	@(mkdir -p $(work_dir))
+	@(cd $(work_dir);git clone https://github.com/otcshare/automotive-message-broker.git)
+	@(ln -fs `pwd` $(work_dir)/automotive-message-broker/plugins/autosar)
+	@(cd $(work_dir)/automotive-message-broker;	\
+		git checkout 0.14;	\
+		mkdir -p build;	\
+		git apply plugins/autosar/0001-add-amb-autosar-com-stack-as-plugin.patch;	\
+		cd build;cmake ..)
+
+$(work_dir)/automotive-message-broker/build/lib/libascore.so:
+	@(make 91;make 93)
+	@(ln -fs `pwd`/out/libposix.a $(work_dir)/automotive-message-broker/build/lib/libascore.so)
+
+amb: $(work_dir) $(work_dir)/automotive-message-broker/build/lib/libascore.so
+	@(echo " >> build @ $(work_dir)")
+	@(cd $(work_dir)/automotive-message-broker/build;	\
 		make;	\
 		make install)
 	@(rm -v /etc/ambd/plugins.d/examples*)
 	@(cp -v config /etc/ambd/config)
+	
+# smaple test:
+# $	ambd 
+# $ cansend can0 100#002200334455667788 && amb-get VehicleSpeed && amb-get EngineSpeed
+
+canutils:
+	@(echo " >> build @ $(work_dir)")
+	@(cd $(work_dir);	\
+		git clone https://github.com/linux-can/can-utils.git;	\
+		cd can-utils;make; sudo make install)
+
 	
