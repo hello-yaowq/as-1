@@ -16,6 +16,7 @@
 <Pdu Comment="*" Name="AMB_PDU0" Size="64" />
 <Pdu Comment="*" Name="AMB_PDU1" Size="64" />
 <Pdu Comment="*" Name="AMB_PDU2" Size="64" />
+<Pdu Comment="*" Name="AMB_TXPDU0" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -34,7 +35,11 @@
 <ChannelList Max="TBD">
 <Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
-<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth" />
+<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
+<PduList Max="TBD">
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="AMB_TXPDU0" Identifier="0x201" Name="AMB_TXPDU0" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
+</PduList>
+</Hth>
 </HthList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
@@ -56,19 +61,24 @@
 <PduR>
 <General CanIfUsed="True" CanTpUsed="False" ComUsed="True" Comment="*" DcmUsed="False" DevelopmentErrorDetection="ON" J1939TpUsed="False" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="ON" ZeroCostTp="CanTp" />
 <RoutineList Max="TBD">
-<Source Comment="*" Module="Com" Name="AMB_PDU0" PduRef="AMB_PDU0">
+<Source Comment="*" Module="CanIf" Name="AMB_PDU0" PduRef="AMB_PDU0">
 <DestinationList Max="TBD">
-<Destination Comment="*" Module="CanIf" Name="AMB_PDU0" PduRef="AMB_PDU0" />
+<Destination Comment="*" Module="Com" Name="AMB_PDU0" PduRef="AMB_PDU0" />
 </DestinationList>
 </Source>
-<Source Comment="*" Module="Com" Name="AMB_PDU1" PduRef="AMB_PDU1">
+<Source Comment="*" Module="CanIf" Name="AMB_PDU1" PduRef="AMB_PDU1">
 <DestinationList Max="TBD">
-<Destination Comment="*" Module="CanIf" Name="AMB_PDU1" PduRef="AMB_PDU1" />
+<Destination Comment="*" Module="Com" Name="AMB_PDU1" PduRef="AMB_PDU1" />
 </DestinationList>
 </Source>
-<Source Comment="*" Module="Com" Name="AMB_PDU2" PduRef="AMB_PDU2">
+<Source Comment="*" Module="CanIf" Name="AMB_PDU2" PduRef="AMB_PDU2">
 <DestinationList Max="TBD">
-<Destination Comment="*" Module="CanIf" Name="AMB_PDU2" PduRef="AMB_PDU2" />
+<Destination Comment="*" Module="Com" Name="AMB_PDU2" PduRef="AMB_PDU2" />
+</DestinationList>
+</Source>
+<Source Comment="*" Module="CanIf" Name="AMB_TXPDU0" PduRef="AMB_TXPDU0">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="CanIf" Name="Destination1" PduRef="AMB_TXPDU0" />
 </DestinationList>
 </Source>
 </RoutineList>
@@ -108,6 +118,17 @@
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="MachineGunTurretStatus" ReceivedNotification="NULL" Size="8" StartBit="47" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="AccelerationX" ReceivedNotification="NULL" Size="8" StartBit="55" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="AccelerationY" ReceivedNotification="NULL" Size="8" StartBit="63" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+</SignalList>
+</IPdu>
+<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x55" Direction="SEND" Name="AMB_TXPDU0" NumberOfRepetions="0" PduGroupRef="PduGroupAMB" PduRef="AMB_TXPDU0" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="100" TimePeriodFactor="200" TxMinimumDelayFactor="1" TxMode="PERIODIC">
+<SignalList Max="TBD">
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Heater" ReceivedNotification="NULL" Size="8" StartBit="7" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Defrost" ReceivedNotification="NULL" Size="8" StartBit="15" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="DefrostWindow" ReceivedNotification="NULL" Size="8" StartBit="23" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="DefrostMirror" ReceivedNotification="NULL" Size="8" StartBit="31" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="SteeringWheelHeater" ReceivedNotification="NULL" Size="8" StartBit="39" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="SeatHeater" ReceivedNotification="NULL" Size="8" StartBit="47" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="SeatCooler" ReceivedNotification="NULL" Size="8" StartBit="55" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 </SignalList>
 </IPdu>
 </IPduList>

@@ -16,18 +16,19 @@
 #define AUTOSARPLUGIN_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <abstractsource.h>
+#include <abstractsink.h>
 #include <string>
 /* ============================ [ MACROS    ] ====================================================== */
 using namespace std;
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ CLASS     ] ====================================================== */
-class AUTOSARPlugin: public AbstractSource {
+class AUTOSARSource: public AbstractSource {
 
 public:
 
-	AUTOSARPlugin(): AbstractSource(nullptr, map<string, string>()) {}
-	AUTOSARPlugin(AbstractRoutingEngine* re, map<string, string> config);
-	virtual ~AUTOSARPlugin();
+	AUTOSARSource(): AbstractSource(nullptr, map<string, string>()) {}
+	AUTOSARSource(AbstractRoutingEngine* re, map<string, string> config);
+	virtual ~AUTOSARSource();
 
 	/* from AbstractSink */
 public:
@@ -35,9 +36,9 @@ public:
 	/*! uuid() is a unique identifier of the plugin
 	 * @return a guid-style unique identifier
 	 *
-	 * use python::uuid.uuid5(uuid.NAMESPACE_DNS, 'as.autosar.parai')
+	 * use python::uuid.uuid5(uuid.NAMESPACE_DNS, 'as.autosar.source')
 	 */
-	const string uuid() { return "21e16c41-5d79-5e2c-a088-3e8e68107aa8"; }
+	const string uuid() { return "e4c2f746-6854-54e0-bfca-c2c41534c0d8"; }
 
 	void getPropertyAsync(AsyncPropertyReply *reply);
 	void getRangePropertyAsync(AsyncRangePropertyReply *reply);
@@ -75,6 +76,22 @@ private:
 
 private:
 	void addPropertySupport(VehicleProperty::Property property, Zone::Type zone);
+};
+
+class AUTOSARSink : public AbstractSink
+{
+
+public:
+	AUTOSARSink(AbstractRoutingEngine* engine, map<string, string> config);
+	PropertyList subscriptions();
+	void supportedChanged(const PropertyList & supportedProperties);
+	void propertyChanged( AbstractPropertyType* value);
+	/*! uuid() is a unique identifier of the plugin
+	 * @return a guid-style unique identifier
+	 *
+	 * use python::uuid.uuid5(uuid.NAMESPACE_DNS, 'as.autosar.sink')
+	 */
+	const string uuid() { return "fde786ca-b604-5f96-94d4-9891aa3e3913"; }
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

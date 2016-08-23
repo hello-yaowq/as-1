@@ -156,9 +156,9 @@ amb: $(work_dir) $(work_dir)/automotive-message-broker/build/lib/libascore.so
 	@(echo " >> build @ $(work_dir)")
 	@(cd $(work_dir)/automotive-message-broker/build;	\
 		make;	\
-		make install)
-	@(rm -v /etc/ambd/plugins.d/examples*)
-	@(cp -v config /etc/ambd/config)
+		sudo make install)
+	@(sudo rm -v /etc/ambd/plugins.d/examples*)
+	@(sudo cp -v config /etc/ambd/config)
 	
 # smaple test:
 # $	ambd 

@@ -41,7 +41,7 @@ extern "C" uint8_t Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalData
 /* ============================ [ LOCALS    ] ====================================================== */
 static gboolean timeoutCallback(gpointer data)
 {
-	AUTOSARPlugin* src = (AUTOSARPlugin*)data;
+	AUTOSARSource* src = (AUTOSARSource*)data;
 
 	src->MainFunction();
 
@@ -55,14 +55,19 @@ extern "C" void StartupHook(void)
 /* library exported function for plugin loader */
 extern "C" void create(AbstractRoutingEngine* routingengine, std::map<std::string, std::string> config)
 {
-	new AUTOSARPlugin(routingengine, config);
+#if 0
+	new AUTOSARSource(routingengine, config);
+#else
+	pthread_t thread;
+	pthread_create((pthread_t*)&(thread),NULL,EcuM_Init,NULL);
+#endif
+	new AUTOSARSink(routingengine, config);
 }
 
 
-AUTOSARPlugin::AUTOSARPlugin(AbstractRoutingEngine* re, map<string, string> config) :
+AUTOSARSource::AUTOSARSource(AbstractRoutingEngine* re, map<string, string> config) :
 	AbstractSource(re, config)
 {
-	debugOut("setting timeout");
 
 	int delay = 1000;
 
@@ -78,15 +83,15 @@ AUTOSARPlugin::AUTOSARPlugin(AbstractRoutingEngine* re, map<string, string> conf
 
 	pthread_create((pthread_t*)&(thread),NULL,EcuM_Init,NULL);
 
-	DebugOut()<<"AUTOSARPlugin: AS COM STACK ON LINE!"<<endl;
+	DebugOut()<<"AUTOSARSource: AS COM STACK ON LINE!"<<endl;
 }
 
-AUTOSARPlugin::~AUTOSARPlugin()
+AUTOSARSource::~AUTOSARSource()
 {
 
 }
 
-AsyncPropertyReply* AUTOSARPlugin::setProperty(AsyncSetPropertyRequest request)
+AsyncPropertyReply* AUTOSARSource::setProperty(AsyncSetPropertyRequest request)
 {
 	AsyncPropertyReply *reply = new AsyncPropertyReply(request);
 	reply->success = false;
@@ -96,18 +101,18 @@ AsyncPropertyReply* AUTOSARPlugin::setProperty(AsyncSetPropertyRequest request)
 	return reply;
 }
 
-void AUTOSARPlugin::subscribeToPropertyChanges(VehicleProperty::Property property)
+void AUTOSARSource::subscribeToPropertyChanges(VehicleProperty::Property property)
 {
 	mRequests.push_back(property);
 }
 
-void AUTOSARPlugin::unsubscribeToPropertyChanges(VehicleProperty::Property property)
+void AUTOSARSource::unsubscribeToPropertyChanges(VehicleProperty::Property property)
 {
 	if(contains(mRequests,property))
 		removeOne(&mRequests, property);
 }
 
-void AUTOSARPlugin::MainFunction()
+void AUTOSARSource::MainFunction()
 {
 	uint16_t v;
 
@@ -121,14 +126,14 @@ void AUTOSARPlugin::MainFunction()
 	eng.sequence++;
 	routingEngine->updateProperty(&eng, uuid());
 }
-void AUTOSARPlugin::getRangePropertyAsync(AsyncRangePropertyReply *reply)
+void AUTOSARSource::getRangePropertyAsync(AsyncRangePropertyReply *reply)
 {
 
 }
 
-void AUTOSARPlugin::getPropertyAsync(AsyncPropertyReply *reply)
+void AUTOSARSource::getPropertyAsync(AsyncPropertyReply *reply)
 {
-	DebugOut()<<"AUTOSARPlugin: getPropertyAsync called for property: "<<reply->property<<endl;
+	DebugOut()<<"AUTOSARSource: getPropertyAsync called for property: "<<reply->property<<endl;
 	if(reply->property == VehicleProperty::VehicleSpeed)
 	{
 		VehicleProperty::VehicleSpeedType temp(120);
@@ -151,19 +156,19 @@ void AUTOSARPlugin::getPropertyAsync(AsyncPropertyReply *reply)
 	}
 }
 
-PropertyList AUTOSARPlugin::supported()
+PropertyList AUTOSARSource::supported()
 {
-	//DebugOut()<<"AUTOSARPlugin: supported " <<endl;
+	//DebugOut()<<"AUTOSARSource: supported " <<endl;
 	return mSupported;
 }
 
-int AUTOSARPlugin::supportedOperations()
+int AUTOSARSource::supportedOperations()
 {
-	DebugOut()<<"AUTOSARPlugin: supportedOperations " <<endl;
+	DebugOut()<<"AUTOSARSource: supportedOperations " <<endl;
 	return Get | Set | GetRanged;;
 }
 
-void AUTOSARPlugin::addPropertySupport(VehicleProperty::Property property, Zone::Type zone)
+void AUTOSARSource::addPropertySupport(VehicleProperty::Property property, Zone::Type zone)
 {
 	mSupported.push_back(property);
 
@@ -175,3 +180,96 @@ void AUTOSARPlugin::addPropertySupport(VehicleProperty::Property property, Zone:
 
 	propertyInfoMap[property] = info;
 }
+
+
+AUTOSARSink::AUTOSARSink(AbstractRoutingEngine* engine, map<string, string> config): AbstractSink(engine, config)
+{
+	routingEngine->subscribeToProperty(VehicleProperty::Heater, this);
+	routingEngine->subscribeToProperty(VehicleProperty::Defrost, this);
+
+	supportedChanged(engine->supported());
+}
+
+
+PropertyList AUTOSARSink::subscriptions()
+{
+
+}
+
+void AUTOSARSink::supportedChanged(const PropertyList & supportedProperties)
+{
+	DebugOut()<<"Support changed!"<<endl;
+
+	if(contains(supportedProperties, VehicleProperty::Heater))
+	{
+		AsyncPropertyRequest heaterRequest;
+		heaterRequest.property = VehicleProperty::Heater;
+		heaterRequest.completed = [](AsyncPropertyReply* reply)
+		{
+			if(!reply->success)
+				DebugOut(DebugOut::Error)<<"Heater Async request failed ("<<reply->error<<")"<<endl;
+			else
+				DebugOut(0)<<"Heater Async request completed: "<<reply->value->toString()<<endl;
+			delete reply;
+		};
+
+		routingEngine->getPropertyAsync(heaterRequest);
+	}
+
+	if(contains(supportedProperties, VehicleProperty::Defrost))
+	{
+		AsyncPropertyRequest defrostRequest;
+		defrostRequest.property = VehicleProperty::Defrost;
+		defrostRequest.completed = [](AsyncPropertyReply* reply)
+		{
+			if(!reply->success)
+				DebugOut(DebugOut::Error)<<"Defrost Async request failed ("<<reply->error<<")"<<endl;
+			else
+				DebugOut(0)<<"Defrost Async request completed: "<<reply->value->toString()<<endl;
+			delete reply;
+		};
+
+		routingEngine->getPropertyAsync(defrostRequest);
+	}
+
+	auto getRangedCb = [](gpointer data)
+	{
+		AbstractRoutingEngine* routingEngine = (AbstractRoutingEngine*)data;
+
+		AsyncRangePropertyRequest vehicleSpeedFromLastWeek;
+
+		vehicleSpeedFromLastWeek.timeBegin = amb::Timestamp::instance()->epochTime() - 10;
+		vehicleSpeedFromLastWeek.timeEnd = amb::Timestamp::instance()->epochTime();
+
+		PropertyList requestList;
+		requestList.push_back(VehicleProperty::Heater);
+		requestList.push_back(VehicleProperty::Defrost);
+
+		vehicleSpeedFromLastWeek.properties = requestList;
+		vehicleSpeedFromLastWeek.completed = [](AsyncRangePropertyReply* reply)
+		{
+			std::list<AbstractPropertyType*> values = reply->values;
+			for(auto itr = values.begin(); itr != values.end(); itr++)
+			{
+				auto val = *itr;
+				DebugOut(1) <<"Value from past: (" << val->name << "): " << val->toString()
+						   <<" time: " << val->timestamp << " sequence: " << val->sequence << endl;
+			}
+
+			delete reply;
+		};
+
+		routingEngine->getRangePropertyAsync(vehicleSpeedFromLastWeek);
+
+		return 0;
+	};
+
+	g_timeout_add(10000, getRangedCb, routingEngine);
+}
+
+void AUTOSARSink::propertyChanged(AbstractPropertyType *value)
+{
+	VehicleProperty::Property property = value->name;
+	DebugOut()<<property<<" value: "<<value->toString()<<endl;
+}
+
