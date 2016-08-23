@@ -76,6 +76,10 @@ def GenH():
 #define ComConfigurationTimeBase 0
 #define ComVersionInfoApi
 
+/* unit in ms */
+#define COM_MAIN_FUNCTION_RX_PERIOD  10
+#define COM_MAIN_FUNCTION_TX_PERIOD  10
+
 #endif /*COM_CFG_H*/
     """%(len(GLGet('IPduList')),sigNbr,sigGrpNbr))
     fp.close()
@@ -231,6 +235,10 @@ static const ComGroupSignal_type ComGroupSignal[] = {
     cstr = ''
     id = 0
     for pdu in GLGet('IPduList'):
+        if(GAGet(pdu,'Direction')=='RECEIVE'):
+            period = 'COM_MAIN_FUNCTION_RX_PERIOD'
+        else:
+            period = 'COM_MAIN_FUNCTION_TX_PERIOD'
         for sig in GLGet(pdu,'SignalList'):
             cstr += """
     {
@@ -240,14 +248,14 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComBitPosition =  %s,
         .ComBitSize =  %s,
         .ComErrorNotification =  NULL,
-        .ComFirstTimeoutFactor =  %s,
+        .ComFirstTimeoutFactor =  (%s+%s-1)/%s,
         .ComHandleId =  COM_SID_%s,
         .ComNotification =  %s,
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_%s,
         .ComSignalEndianess =  COM_%s, 
         .ComSignalInitValue =  &%s_InitValue,
         .ComSignalType =  COM_SIGNAL_TYPE_%s,
-        .ComTimeoutFactor =  %s,
+        .ComTimeoutFactor =  (%s+%s-1)/%s,
         .ComTimeoutNotification =  %s,
         .ComTransferProperty =  %s,    
         .ComUpdateBitPosition =  %s,         
@@ -261,14 +269,14 @@ static const ComGroupSignal_type ComGroupSignal[] = {
     },\n"""%(GAGet(sig,'Name'),
              GAGet(sig,'StartBit'),
              GAGet(sig,'Size'),
-             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),
+             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'Name'),
              GAGet(sig,'ReceivedNotification'),
              GAGet(sig,'TimeoutAction'),
              GAGet(sig,'Endianess'),
              GAGet(sig,'Name'),
              GAGet(sig,'Type').upper(),
-             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),
+             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'TimeoutNotification'),
              GAGet(sig,'TransferProperty'),
              GAGet(sig,'UpdateBitPosition').replace('TBD','0xDB'),
@@ -284,14 +292,14 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComBitPosition =  %s,
         .ComBitSize =  %s,
         .ComErrorNotification =  NULL,
-        .ComFirstTimeoutFactor =  %s,
+        .ComFirstTimeoutFactor =  (%s+%s-1)/%s,
         .ComHandleId =  COM_SID_%s,
         .ComNotification =  %s,
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_%s,
         .ComSignalEndianess =  COM_%s, 
         .ComSignalInitValue =  NULL,
         .ComSignalType =  COM_SIGNAL_TYPE_UINT8, // For group signal, this means nothing
-        .ComTimeoutFactor =  %s,
+        .ComTimeoutFactor =  (%s+%s-1)/%s,
         .ComTimeoutNotification =  %s,
         .ComTransferProperty =  %s,    
         .ComUpdateBitPosition =  %s,         
@@ -305,12 +313,12 @@ static const ComGroupSignal_type ComGroupSignal[] = {
     },\n"""%(GAGet(sig,'Name'),
              GAGet(sig,'StartBit'),
              GAGet(sig,'Size'),
-             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),
+             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'Name'),
              GAGet(sig,'ReceivedNotification'),
              GAGet(sig,'TimeoutAction'),
              GAGet(sig,'Endianess'),
-             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),
+             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'TimeoutNotification'),
              GAGet(sig,'TransferProperty'),
              GAGet(sig,'UpdateBitPosition').replace('TBD','0xDB'),
@@ -382,8 +390,8 @@ static const ComIPduGroup_type ComIPduGroup[] = {
                 .ComTxModeMode =   %s,
                 .ComTxModeNumberOfRepetitions =   %s,
                 .ComTxModeRepetitionPeriodFactor =   %s,
-                .ComTxModeTimeOffsetFactor =   %s,
-                .ComTxModeTimePeriodFactor =   %s,
+                .ComTxModeTimeOffsetFactor =   (%s+COM_MAIN_FUNCTION_TX_PERIOD-1)/COM_MAIN_FUNCTION_TX_PERIOD,
+                .ComTxModeTimePeriodFactor =   (%s+COM_MAIN_FUNCTION_TX_PERIOD-1)/COM_MAIN_FUNCTION_TX_PERIOD,
             },
         },
         .ComIPduDataPtr =  %s_IPduBuffer,
