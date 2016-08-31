@@ -85,4 +85,14 @@ void mtarch_pstop(void)
 
 }
 
+void EnableAllInterrupts(void)
+{
+
+}
+void DisableAllInterrupts(void)
+{
+
+}
+
+
 

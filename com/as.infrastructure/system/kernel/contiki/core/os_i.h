@@ -101,4 +101,7 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle );
 FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId );
 FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId);
+
+extern void EnableAllInterrupts(void);
+extern void DisableAllInterrupts(void);
 #endif /* OS_I_H */

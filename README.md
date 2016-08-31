@@ -94,6 +94,10 @@ sudo apt-get install gcc-aarch64-linux-gnu
 
 > git clone https://github.com/lua/lua.git
 
+> git clone https://github.com/z2akhtar/PWC-Demonstrator.git
+
+> git clone https://github.com/elupus/autosar-xcp.git
+
    
     
 
