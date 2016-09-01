@@ -1,5 +1,5 @@
 # make file to study the arm trust-zone techology
-# start from a clean directory, 
+# start from a clean directory,
 # ln -fs /as/release/aslinux/script/armtz.mk makefile
 
 # arm or aarch64
@@ -28,6 +28,13 @@ else
 	@(./qemu-tz/aarch64-softmmu/qemu-system-aarch64 -bios ./qemu-tztest/tztest.img	\
 		-serial stdio -display none -m 1024 -machine type=virt -cpu cortex-a57)
 endif
+
+optee_os:
+	@git clone https://github.com/OP-TEE/optee_os.git
+
+asoptee_os:optee_os
+	@(cd optee_os;PLATFORM=vexpress-qemu_virt CROSS_COMPILE=arm-linux-gnueabihf- make)
+	
 
 all: asqemutz asqemutztest
 	@(echo "  >> build done")

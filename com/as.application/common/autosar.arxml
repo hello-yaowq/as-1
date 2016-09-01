@@ -147,7 +147,7 @@
 <IPduList Max="TBD">
 <IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="MsgTime" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgTime" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <GroupSignalList Max="TBD">
-<GroupSignal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="64" StartBit="0" TimeoutAction="NONE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
+<GroupSignal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="64" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
 <SignalList Max="TBD">
 <Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="0" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="12" Name="month" Size="8" StartBit="16" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
@@ -368,6 +368,10 @@
 </Block>
 </BlockList>
 </NvM>
+<Xcp>
+<General Comment="*" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_DYNAMIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="0" XcpOdtEntriesCount="0" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
+<XcpDaqList Max="TBD" />
+</Xcp>
 <Rte>
 <SwcList Max="TBD">
 <Swc Comment="*" Name="Swc1">
