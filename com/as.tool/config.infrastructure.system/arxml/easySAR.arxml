@@ -881,6 +881,18 @@
 		>
 	</General>
 	<XcpDaqList Max="65536">
+		<XcpDaq 
+			Name="Text PosGUI=0"
+			XcpMaxOdt="Integer Range=0~252 Default=8 PosGUI=1"
+			XcpOdtCount="Integer Range=0~252 Default=8 PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3"
+		>
+			<XcpOdtList Max="65536">
+				<XcpOdt
+					Name="Text PosGUI=0"
+					/>
+			</XcpOdtList>
+		</XcpDaq>
 	</XcpDaqList>
 </Xcp>
 <Rte>
