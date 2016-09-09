@@ -145,6 +145,10 @@ def GenC():
 #if defined(USE_OSEKNM)
 #include "OsekNm.h"
 #endif
+#if defined(USE_XCP)
+#include "Xcp.h"
+#include "XcpOnCan_Cbk.h"
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* Imported structs from Can_PBcfg.c */
 extern const Can_ControllerConfigType Can_ControllerCfgData[];
@@ -250,6 +254,8 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                     IdPrfix='CANTP_ID'
                 elif(GAGet(pdu,'TransmitNotifier')=='CanNm'):
                     IdPrfix='CANNM_ID'
+                elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
+                    IdPrfix='XCP_ID'
                 else:
                     IdPrfix='PDUR_ID2'
                 if(GAGet(pdu,'TransmitNotifier')=='Nobody'):
@@ -257,6 +263,8 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                 elif(GAGet(pdu,'TransmitNotifier')!='User'):
                     if(GAGet(pdu,'TransmitNotifier')=='PduR'):
                         notifier='PduR_CanIfTxConfirmation'
+                    elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
+                        notifier='Xcp_CanIfTxConfirmation'
                     else:
                         notifier='%s_TxConfirmation'%(GAGet(pdu,'TransmitNotifier'))
                 else:
@@ -303,6 +311,8 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
             for pdu in GLGet(hrh,'PduList'):
                 if(GAGet(pdu,'ReceivedNotifier')=='CanTp'):
                     IdPrfix='CANTP'
+                elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
+                    IdPrfix='XCP'
                 else:
                     IdPrfix='PDUR'
                 if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and
@@ -318,6 +328,8 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
                     notifierT='CANIF_USER_TYPE_CAN_NM'
                 elif(GAGet(pdu,'ReceivedNotifier')=='J1939Tp'):
                     notifierT='CANIF_USER_TYPE_J1939TP'
+                elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
+                    notifierT='CANIF_USER_TYPE_XCP'
                 else:
                     notifierT='CANIF_USER_TYPE_CAN_SPECIAL'
                 if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):

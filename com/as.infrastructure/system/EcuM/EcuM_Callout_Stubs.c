@@ -48,6 +48,9 @@
 #if defined(USE_J1939TP)
 #include "J1939Tp.h"
 #endif
+#if defined(USE_XCP)
+#include "Xcp.h"
+#endif
 #if defined(USE_DCM)
 #include "Dcm.h"
 #endif
@@ -380,6 +383,10 @@ void EcuM_AL_DriverInitTwo(const EcuM_ConfigType* ConfigPtr)
 	NO_DRIVER(Com_Init(ConfigPtr->ComConfig));
 #endif
 
+#if defined(USE_XCP)
+	// Setup XCP
+	NO_DRIVER(Xcp_Init(&XcpConfig));
+#endif
 #if defined(USE_DCM)
 	// Setup DCM
 	NO_DRIVER(Dcm_Init());

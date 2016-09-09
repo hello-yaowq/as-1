@@ -52,6 +52,8 @@
 <Pdu Comment="*" Name="LS_NM_TX" Size="64" />
 <Pdu Comment="*" Name="OSEK_NM_TX" Size="64" />
 <Pdu Comment="*" Name="OSEK_NM_RX" Size="64" />
+<Pdu Comment="*" Name="XCP_RX" Size="64" />
+<Pdu Comment="*" Name="XCP_TX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -77,6 +79,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" Identifier="0x502" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" Identifier="0x101" Name="Time" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_TX" Identifier="0x401" Name="OSEK_NM_TX" TransmitNotifier="User" UserNotification="CanIf_OsekNmUserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_UserTxConfirmation" />
 </PduList>
 </Hth>
 </HthList>
@@ -87,6 +90,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x700" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_RX" FilterMask="0x7ff" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>

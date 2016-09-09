@@ -276,6 +276,13 @@
 #define SCHM_MAINFUNCTION_OSEKNM()
 #endif
 
+#if defined(USE_XCP)
+#include "Xcp.h"
+#include "SchM_Xcp.h"
+#else
+#define SCHM_MAINFUNCTION_XCP()
+#endif
+
 #if defined(USE_UDPNM)
 #include "UdpNm.h"
 #endif
@@ -330,6 +337,7 @@ SCHM_DECLARE(FLS);
 SCHM_DECLARE(WDGM_TRIGGER);
 SCHM_DECLARE(WDGM_ALIVESUPERVISION);
 SCHM_DECLARE(OSEKNM);
+SCHM_DECLARE(XCP);
 
 
 void SchM_Init( void ) {
@@ -473,6 +481,8 @@ TASK(SchM_BswService) {
 		SCHM_MAINFUNCTION_J1939TP();
 		SCHM_MAINFUNCTION_DCM();
 		SCHM_MAINFUNCTION_DEM();
+
+		SCHM_MAINFUNCTION_XCP();
 
 		SCHM_MAINFUNCTION_IOHWAB();
 		SCHM_MAINFUNCTION_COMM();
