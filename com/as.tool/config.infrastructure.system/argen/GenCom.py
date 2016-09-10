@@ -297,8 +297,8 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         .ComNotification =  %s,
         .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_%s,
         .ComSignalEndianess =  COM_%s, 
-        .ComSignalInitValue =  NULL,
-        .ComSignalType =  COM_SIGNAL_TYPE_UINT8, // For group signal, this means nothing
+        .ComSignalInitValue =  %s_ShadowBuffer,
+        .ComSignalType =  COM_SIGNAL_TYPE_UINT8_N, // For group signal, this means nothing
         .ComTimeoutFactor =  (%s+%s-1)/%s,
         .ComTimeoutNotification =  %s,
         .ComTransferProperty =  %s,    
@@ -318,6 +318,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
              GAGet(sig,'ReceivedNotification'),
              GAGet(sig,'TimeoutAction'),
              GAGet(sig,'Endianess'),
+             GAGet(sig,'Name'),
              GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'TimeoutNotification'),
              GAGet(sig,'TransferProperty'),
