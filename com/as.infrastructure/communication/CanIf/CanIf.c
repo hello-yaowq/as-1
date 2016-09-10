@@ -38,6 +38,10 @@
 #if defined(USE_CANNM)
 #include "CanNm.h"
 #endif
+#if defined(USE_XCP)
+#include "Xcp.h"
+#include "XcpOnCan_Cbk.h"
+#endif
 
 #include "Os.h"
 
@@ -294,6 +298,17 @@ static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 				CanTpRxPdu.SduLength = CanDlc;
 				CanTpRxPdu.SduDataPtr = (uint8 *) CanSduPtr;
 				CanTp_RxIndication(entry->CanIfCanRxPduId, &CanTpRxPdu);
+				return;
+			}
+#endif
+			break;
+			case CANIF_USER_TYPE_XCP:
+#if defined(USE_XCP)
+			{
+				PduInfoType CanTpRxPdu;
+				CanTpRxPdu.SduLength = CanDlc;
+				CanTpRxPdu.SduDataPtr = (uint8 *) CanSduPtr;
+				Xcp_CanIfRxIndication(entry->CanIfCanRxPduId, &CanTpRxPdu);
 				return;
 			}
 #endif
