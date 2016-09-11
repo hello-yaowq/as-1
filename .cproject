@@ -88,6 +88,7 @@
 									<listOptionValue builtIn="false" value="USE_STMO"/>
 									<listOptionValue builtIn="false" value="USE_OSEKNM"/>
 									<listOptionValue builtIn="false" value="USE_CANNM"/>
+									<listOptionValue builtIn="false" value="USE_XCP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -144,6 +145,7 @@
 									<listOptionValue builtIn="false" value="USE_DCM"/>
 									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
+									<listOptionValue builtIn="false" value="USE_XCP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

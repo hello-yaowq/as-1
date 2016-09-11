@@ -69,7 +69,10 @@ __dcm__ = dcm(0,0x732,0x731)
 def Dcm_TransmitMessage(req):
     ercd,res = __dcm__.transmit(req)
     if(ercd==True):
-        return res
+        res2 = dcmbits()
+        for d in res:
+            res2.append(d, 8)
+        return res2
     return None
 
 class wDataUS(QComboBox):
@@ -239,7 +242,7 @@ class UIInputOutputControl(QGroupBox):
 
         res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
-        if(res[0]!=0x6F):
+        if(res.toarray()[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
               
     def on_btnRtce_clicked(self):
@@ -250,7 +253,7 @@ class UIInputOutputControl(QGroupBox):
         data.append(0x00,8)
         res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
-        if(res[0]!=0x6F):
+        if(res.toarray()[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Return Control to ECU Failed!  %s.'%(Dcm_GetLastError())).exec_();
 
 class UIDataIdentifier(QGroupBox):
@@ -298,7 +301,7 @@ class UIDataIdentifier(QGroupBox):
         res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
         start = 3
-        if(res[0]!=0x62):
+        if(res.toarray()[0]!=0x62):
             QMessageBox(QMessageBox.Critical, 'Error', 'DID Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
         else:
             for leData in self.leDatas:
@@ -312,7 +315,7 @@ class UIDataIdentifier(QGroupBox):
             leData.getValue(data)
         res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
-        if(res[0]!=0x6E):
+        if(res.toarray()[0]!=0x6E):
             QMessageBox(QMessageBox.Critical, 'Error', 'DID Write Failed!  %s.'%(Dcm_GetLastError())).exec_();
 
 class UIRoutineControl(QGroupBox):
@@ -395,7 +398,7 @@ class UIRoutineControl(QGroupBox):
         data.append(did,16)
         res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
-        if(res[0]!=0x71):
+        if(res.toarray()[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Stop Failed!  %s.'%(Dcm_GetLastError())).exec_();   
     def on_btnResult_clicked(self):
         data = dcmbits()
@@ -404,15 +407,15 @@ class UIRoutineControl(QGroupBox):
         data.append(did,16)
         res = Dcm_TransmitMessage(data.toarray())  
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
-        if(res[0]!=0x71):
+        if(res.toarray()[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Request Result Failed!  %s.'%(Dcm_GetLastError())).exec_();
         else:
             self.leResult.setText('check it by the raw response: %s'%(FormatMessage(res)))
 
-class UIGroup(QWidget):
+class UIGroup(QScrollArea):
     def __init__(self, xml,parent=None):
-        super(QWidget, self).__init__(parent)
-        
+        super(QScrollArea, self).__init__(parent)
+        wd = QWidget()
         vBox = QVBoxLayout()
         for service in xml:
             if(service.tag=='InputOutputControl'):
@@ -421,8 +424,9 @@ class UIGroup(QWidget):
                 vBox.addWidget(UIDataIdentifier(service))
             elif(service.tag=='RoutineControl'):
                 vBox.addWidget(UIRoutineControl(service))
-        self.setLayout(vBox)
-        
+        wd.setLayout(vBox)
+        self.setWidget(wd)
+
 class UIDcm(QWidget):
     def __init__(self, parent=None):
         super(QWidget, self).__init__(parent)

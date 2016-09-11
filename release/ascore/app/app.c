@@ -28,6 +28,9 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_XCP
+static uint8_t xcpSimMTAMemory[1024];
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_STMO
 static void sample_pointer(void)
@@ -147,6 +150,10 @@ void StartupHook(void)
 	Lcd_Init();
 	Sg_Init();
 	OsSetRelAlarm(AlarmApp, 10, 5);
+#endif
+
+#ifdef USE_XCP
+	printf(" XCP MTA memory address %p\n",xcpSimMTAMemory);
 #endif
 }
 

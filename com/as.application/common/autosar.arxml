@@ -90,7 +90,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x700" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_RX" FilterMask="0x7ff" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7ff" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>
