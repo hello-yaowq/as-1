@@ -5,6 +5,18 @@ category: real embeded world of automotive
 comments: true
 ---
 
+## Test Command List:
+Connect:     cansend can0 554#FF00
+Disconnect:  cansend can0 554#FE
+GetStatus:   cansend can0 554#FD
+GetID:       cansend can0 554#FA00
+
+### Calibrating Parameters in the Slave
+
+SetMTA:      cansend can0 554#F6000000607D8900
+Download:    cansend can0 554#F00400000041
+ShortUpload: cansend can0 554#F4040000607D8900
+Upload:      cansend can0 554#F506
 
 
 ### reference:
