@@ -877,7 +877,8 @@
 		XcpTimestampUnit="Enum=(100ms,100ns,100ps,100us,10ms,10ns,10ps,10us,1ms,1ns,1ps,1us,1s) Default=1ms PosGUI=20"
 		XcpCounterRef="EnumRef=Os.CounterList PosGUI=21"
 		XcpNvRamBlockIdRef="EnumRef=NvM.BlockList PosGUI=22"
-		Comment="TextArea Default=* PosGUI=23"
+		XcpMaxRxTxQueue="Integer Default=0 Range=0~255 PosGUI=23"
+		Comment="TextArea Default=* PosGUI=24"
 		>
 	</General>
 	<XcpDaqList Max="65536">

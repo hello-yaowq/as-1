@@ -49,7 +49,7 @@ def GenH():
     fp.write('#define XCP_ODT_ENTRIES_COUNT %s\n'%(GAGet(General,'XcpOdtEntriesCount')))
     fp.write('#define XCP_MAX_CTO %s\n'%(GAGet(General,'XcpMaxCto')))
     fp.write('#define XCP_MAX_DTO %s\n'%(GAGet(General,'XcpMaxDto')))
-    fp.write('#define XCP_MAX_RXTX_QUEUE %s\n'%(GAGet(General,'XcpDaqCount')))
+    fp.write('#define XCP_MAX_RXTX_QUEUE %s\n'%(GAGet(General,'XcpMaxRxTxQueue')))
     fp.write('#define XCP_PROTOCOL XCP_PROTOCOL_CAN\n')
     fp.write('#define XCP_PDU_ID_TX CANIF_ID_XCP_TX\n')
     fp.write('#define XCP_PDU_ID_RX 0\n')
@@ -89,15 +89,37 @@ def GenC():
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    General=GLGet('General')
+    XCP_DAQ_COUNT= int(GAGet(General,'XcpDaqCount'))
+    XCP_ODT_COUNT= int(GAGet(General,'XcpOdtCount'))
+    XCP_ODT_ENTRIES_COUNT= int(GAGet(General,'XcpOdtEntriesCount'))
+    for i in range(0,XCP_DAQ_COUNT):
+        for j in range(0,XCP_ODT_COUNT):
+            fp.write('static Xcp_OdtEntryType xcpOdt_%s_%s[%s];\n'%(i,j,GAGet(General,'XcpOdtEntriesCount')))
+    for i in range(0,XCP_DAQ_COUNT):
+        fp.write('static Xcp_OdtType xcpOdt_%s[%s] = \n{\n'%(i,GAGet(General,'XcpOdtCount')))
+        for j in range(0,XCP_ODT_COUNT):
+            fp.write('    {\n')
+            fp.write('        .XcpMaxOdtEntries = %s,\n'%(GAGet(General,'XcpOdtEntriesCount')))
+            fp.write('        .XcpOdtEntry = xcpOdt_%s_%s,\n'%(i,j))
+            fp.write('    },\n')
+        fp.write('};\n')
+    fp.write('static Xcp_DaqListType xcpDaqList[%s] = \n{\n'%(GAGet(General,'XcpDaqCount')))
+    for i in range(0,XCP_DAQ_COUNT):
+        fp.write('    {\n')
+        fp.write('        .XcpMaxOdt = %s,\n'%(GAGet(General,'XcpOdtCount')))
+        fp.write('        .XcpOdt = xcpOdt_%s,\n'%(i))
+        fp.write('    },\n')
+    fp.write('};\n')
     fp.write('''
-static Xcp_DaqListType xcpDaqList[8];
 const Xcp_ConfigType XcpConfig =
 {
     .XcpDaqList = xcpDaqList,
-    .XcpMaxDaq = 8,
-    .XcpMinDaq = 4,
+    .XcpMaxDaq = %s,
+    .XcpMinDaq = %s,
 };
-''')
+'''%(GAGet(General,'XcpDaqCount'),
+     GAGet(General,'XcpMinDaq')))
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

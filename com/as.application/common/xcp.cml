@@ -92,5 +92,33 @@
 				<Data name='byte6' type='U8' display='hex' default='0'/>
 			</Response>			
 		</Command>
+		<Command name='SetDAQPtr' ID='0xE2'>
+			<Request>
+				<Data name='reserved' type='U8' display='dec' default='0'/>
+				<Data name='daqListNumber' type='U16' display='dec' default='0'/>
+				<Data name='odtNumber' type='U8' display='dec' default='0'/>
+				<Data name='odtEntryNumber' type='U8' display='dec' default='0'/>
+			</Request>
+			<Response>
+			</Response>			
+		</Command>
+		<Command name='WriteDAQ' ID='0xE1'>
+			<Request>
+				<Data name='bitOffSet' type='U8' display='dec' default='0'/>
+				<Data name='daqElemSize' type='U8' display='dec' default='0'/>
+				<Data name='Extension' type='U8' display='dec' default='0'/>
+				<Data name='Address' type='U32' display='dec' default='0x897d60'/>
+			</Request>
+			<Response>
+			</Response>			
+		</Command>
+		<Command name='ClearDAQList' ID='0xE3'>
+			<Request>
+				<Data name='reserved' type='U8' display='dec' default='0'/>
+				<Data name='daqListNumber' type='U16' display='dec' default='0'/>
+			</Request>
+			<Response>
+			</Response>			
+		</Command>
 	</General>
 </XCP>
