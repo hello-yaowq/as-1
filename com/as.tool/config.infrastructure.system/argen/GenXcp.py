@@ -111,6 +111,7 @@ def GenC():
                 fp.write('    { /* %s of %s of %s */\n'%(GAGet(entry,'Name'),GAGet(odt,'Name'),GAGet(daq,'Name')))
                 fp.write('        .XcpOdtEntryExtension=XCP_MTA_EXTENSION_%s,\n'%(GAGet(entry,'Extension')))
                 fp.write('        .XcpOdtEntryAddress=%s,\n'%(GAGet(entry,'Address')))
+                fp.write('        .XcpOdtEntryLength=%s,\n'%(GAGet(entry,'Length')))
                 fp.write('    },\n')
     fp.write('};\n\n')
     fp.write('static Xcp_OdtType xcpOdt[%s] = \n{\n'%(XCP_ODT_COUNT))
@@ -130,9 +131,23 @@ def GenC():
         fp.write('        .XcpOdt = &xcpOdt[%d],\n'%(id))
         fp.write('    },\n')
     fp.write('};\n')
+    for evchl in GLGet('XcpEventChannelList'):
+        fp.write('static Xcp_DaqListType* XcpEventChannelTriggeredDaqListRef_%s[%s];\n'%(
+                                                        GAGet(evchl,'Name'),
+                                                        GAGet(evchl,'DAQListRefSize')))
+    fp.write('static Xcp_EventChannelType xcpEventChannel[%s] = \n{\n'%(len(GLGet('XcpEventChannelList'))))
+    for id,evchl in enumerate(GLGet('XcpEventChannelList')):
+        fp.write('    {\n')
+        fp.write('        .XcpEventChannelName = "%s",\n'%(GAGet(evchl,'Name')))
+        fp.write('        .XcpEventChannelNumber=%s,\n'%(id))
+        fp.write('        .XcpEventChannelMaxDaqList = %s,\n'%(GAGet(evchl,'DAQListRefSize')))
+        fp.write('        .XcpEventChannelTriggeredDaqListRef=XcpEventChannelTriggeredDaqListRef_%s,\n'%(GAGet(evchl,'Name')))
+        fp.write('    },\n')
+    fp.write('};\n\n')
     fp.write('''
 const Xcp_ConfigType XcpConfig =
 {
+    .XcpEventChannel = xcpEventChannel,
     .XcpDaqList = xcpDaqList,
     .XcpMaxDaq = %s,
     .XcpMinDaq = %s,
@@ -142,7 +157,7 @@ const Xcp_ConfigType XcpConfig =
     .ptrDynamicOdtEntry = &xcpOdtEntry[%s]
 #endif
 };
-'''%(GAGet(General,'XcpDaqCount'),
+'''%(len(GLGet('XcpStaticDaqList')),
      len(GLGet('XcpStaticDaqList')),
      XCP_DAQ_COUNT-int(GAGet(General,'XcpDaqCount')),
      XCP_ODT_COUNT-int(GAGet(General,'XcpOdtCount')),

@@ -379,19 +379,22 @@
 <XcpOdtList Max="TBD">
 <XcpOdt Comment="*" Name="XcpOdt1">
 <XcpOdtEntryList Max="TBD">
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry1" />
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry2" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
 </XcpOdtEntryList>
 </XcpOdt>
 <XcpOdt Comment="*" Name="XcpOdt2">
 <XcpOdtEntryList Max="TBD">
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry1" />
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry2" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
 </XcpOdtEntryList>
 </XcpOdt>
 </XcpOdtList>
 </XcpDaq>
 </XcpStaticDaqList>
+<XcpEventChannelList Max="TBD">
+<XcpEventChannel Comment="*" DAQListRefSize="8" Name="10ms" />
+</XcpEventChannelList>
 </Xcp>
 <Rte>
 <SwcList Max="TBD">

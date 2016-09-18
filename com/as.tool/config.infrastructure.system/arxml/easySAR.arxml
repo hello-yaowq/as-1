@@ -891,20 +891,28 @@
 			<XcpOdtList Max="65536">
 				<XcpOdt
 					Name="Text PosGUI=0"
-					Comment="TextArea Default=* PosGUI=2"
+					Comment="TextArea Default=* PosGUI=1"
 					>
 					<XcpOdtEntryList Max="65535">
 						<XcpEntry
 							Name="Text PosGUI=0"
 							Extension="Enum=(MEMORY,FLASH,DIO_PORT,DIO_CHANNEL) Default=MEMORY Range=0~256 PosGUI=1"
 							Address="Integer Default=0x897d60 PosGUI=2"
-							Comment="TextArea Default=* PosGUI=3"
+							Length="Integer Default=4 Unit=byte PosGUI=3"
+							Comment="TextArea Default=* PosGUI=4"
 							/>
 					</XcpOdtEntryList>
 				</XcpOdt>
 			</XcpOdtList>
 		</XcpDaq>
 	</XcpStaticDaqList>
+	<XcpEventChannelList Max="65535">
+		<XcpEventChannel
+			Name="Text PosGUI=0"
+			DAQListRefSize="Integer Default=8 PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			/>
+	</XcpEventChannelList>
 </Xcp>
 <Rte>
 	<!-- according to RTE Example 5.4 -->
