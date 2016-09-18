@@ -64,7 +64,7 @@ def Xcp_TransmitMessage(req):
     ercd = False
     data=None
     pre = time.time()
-    while ( ((time.time() - pre) < 1) and (ercd == False)): # 1s timeout
+    while ( ((time.time() - pre) < 100) and (ercd == False)): # 1s timeout
         result,canid,data= can_read(__canbus__,__rx_canid__)
         if((True == result) and (__rx_canid__ == canid)):
             ercd = True

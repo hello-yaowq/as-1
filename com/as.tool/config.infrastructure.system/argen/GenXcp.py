@@ -22,7 +22,8 @@ __dir = '.'
 def GenXcp(root,dir):
     global __dir,__root
     GLInit(root)
-    if(len(GLGet('XcpDaqList')) == 0):return
+    General=GLGet('General')
+    if((len(GLGet('XcpStaticDaqList')) == 0) and (GAGet(General,'XcpDaqConfigType') == 'DAT_STATIC')):return
     __dir = '%s'%(dir)
     GenH()
     GenC()
@@ -42,7 +43,8 @@ def GenH():
     fp.write('#define XCP_DEV_ERROR_DETECT STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
     fp.write('#define XCP_VERSION_INFO_API STD_%s\n'%(GAGet(General,'VersionInfoApi')))
     fp.write('#define XCP_FEATURE_GET_SLAVE_ID STD_ON\n')
-    
+    fp.write('\n#define DAQ_DYNAMIC 0\n#define DAT_STATIC\n')
+    fp.write('#define XCP_DAQ_CONFIG_TYPE %s\n'%(GAGet(General,'XcpDaqConfigType')))
     fp.write('#define XCP_IDENTIFICATION XCP_IDENTIFICATION_%s\n'%(GAGet(General,'XcpIdentificationFieldType')))
     fp.write('#define XCP_DAQ_COUNT  %s\n'%(GAGet(General,'XcpDaqCount')))
     fp.write('#define XCP_ODT_COUNT  %s\n'%(GAGet(General,'XcpOdtCount')))
@@ -85,30 +87,47 @@ def GenC():
     fp.write(GHeader('XCP'))
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Xcp.h"\n')
+    fp.write('#include "Xcp_Internal.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     General=GLGet('General')
-    XCP_DAQ_COUNT= int(GAGet(General,'XcpDaqCount'))
-    XCP_ODT_COUNT= int(GAGet(General,'XcpOdtCount'))
-    XCP_ODT_ENTRIES_COUNT= int(GAGet(General,'XcpOdtEntriesCount'))
-    for i in range(0,XCP_DAQ_COUNT):
-        for j in range(0,XCP_ODT_COUNT):
-            fp.write('static Xcp_OdtEntryType xcpOdt_%s_%s[%s];\n'%(i,j,GAGet(General,'XcpOdtEntriesCount')))
-    for i in range(0,XCP_DAQ_COUNT):
-        fp.write('static Xcp_OdtType xcpOdt_%s[%s] = \n{\n'%(i,GAGet(General,'XcpOdtCount')))
-        for j in range(0,XCP_ODT_COUNT):
-            fp.write('    {\n')
-            fp.write('        .XcpMaxOdtEntries = %s,\n'%(GAGet(General,'XcpOdtEntriesCount')))
-            fp.write('        .XcpOdtEntry = xcpOdt_%s_%s,\n'%(i,j))
+    XCP_DAQ_COUNT = XCP_ODT_COUNT = XCP_ODT_ENTRIES_COUNT = 0;
+    if(GAGet(General,'XcpDaqConfigType')=='DAQ_DYNAMIC'):
+        XCP_DAQ_COUNT= int(GAGet(General,'XcpDaqCount'))
+        XCP_ODT_COUNT= int(GAGet(General,'XcpOdtCount'))
+        XCP_ODT_ENTRIES_COUNT= int(GAGet(General,'XcpOdtEntriesCount'))
+    for daq in GLGet('XcpStaticDaqList'):
+        XCP_DAQ_COUNT += 1
+        for odt in GLGet(daq,'XcpOdtList'):
+            XCP_ODT_COUNT += 1
+            for entry in GLGet(odt,'XcpOdtEntryList'):
+                 XCP_ODT_ENTRIES_COUNT += 1
+    fp.write('static Xcp_OdtEntryType xcpOdtEntry[%s] = \n{\n'%(XCP_ODT_ENTRIES_COUNT))
+    for daq in GLGet('XcpStaticDaqList'):
+        for odt in GLGet(daq,'XcpOdtList'):
+            for entry in GLGet(odt,'XcpOdtEntryList'):
+                fp.write('    { /* %s of %s of %s */\n'%(GAGet(entry,'Name'),GAGet(odt,'Name'),GAGet(daq,'Name')))
+                fp.write('        .XcpOdtEntryExtension=XCP_MTA_EXTENSION_%s,\n'%(GAGet(entry,'Extension')))
+                fp.write('        .XcpOdtEntryAddress=%s,\n'%(GAGet(entry,'Address')))
+                fp.write('    },\n')
+    fp.write('};\n\n')
+    fp.write('static Xcp_OdtType xcpOdt[%s] = \n{\n'%(XCP_ODT_COUNT))
+    odt_entry_pos=0;
+    for daq in GLGet('XcpStaticDaqList'):
+        for odt in GLGet(daq,'XcpOdtList'):
+            fp.write('    { /* %s of %s*/\n'%(GAGet(odt,'Name'),GAGet(daq,'Name')));
+            fp.write('        .XcpMaxOdtEntries = %s,\n'%(len(GLGet(odt,'XcpOdtEntryList'))))
+            fp.write('        .XcpOdtEntry = &xcpOdtEntry[%s],\n'%(odt_entry_pos))
             fp.write('    },\n')
+            odt_entry_pos += len(GLGet(odt,'XcpOdtEntryList'))
         fp.write('};\n')
-    fp.write('static Xcp_DaqListType xcpDaqList[%s] = \n{\n'%(GAGet(General,'XcpDaqCount')))
-    for i in range(0,XCP_DAQ_COUNT):
-        fp.write('    {\n')
-        fp.write('        .XcpMaxOdt = %s,\n'%(GAGet(General,'XcpOdtCount')))
-        fp.write('        .XcpOdt = xcpOdt_%s,\n'%(i))
+    fp.write('static Xcp_DaqListType xcpDaqList[%s] = \n{\n'%(XCP_DAQ_COUNT))
+    for id,daq in enumerate(GLGet('XcpStaticDaqList')):
+        fp.write('    {/* %s */\n'%(GAGet(daq,'Name')))
+        fp.write('        .XcpMaxOdt = %s,\n'%(len(GLGet(daq,'XcpOdtList'))))
+        fp.write('        .XcpOdt = &xcpOdt[%d],\n'%(id))
         fp.write('    },\n')
     fp.write('};\n')
     fp.write('''
@@ -117,9 +136,18 @@ const Xcp_ConfigType XcpConfig =
     .XcpDaqList = xcpDaqList,
     .XcpMaxDaq = %s,
     .XcpMinDaq = %s,
+#if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
+    .ptrDynamicDaq = &xcpDaqList[%s],
+    .ptrDynamicOdt = &xcpOdt[%s],
+    .ptrDynamicOdtEntry = &xcpOdtEntry[%s]
+#endif
 };
 '''%(GAGet(General,'XcpDaqCount'),
-     GAGet(General,'XcpMinDaq')))
+     len(GLGet('XcpStaticDaqList')),
+     XCP_DAQ_COUNT-int(GAGet(General,'XcpDaqCount')),
+     XCP_ODT_COUNT-int(GAGet(General,'XcpOdtCount')),
+     XCP_ODT_ENTRIES_COUNT-int(GAGet(General,'XcpOdtEntriesCount'))))
+     
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

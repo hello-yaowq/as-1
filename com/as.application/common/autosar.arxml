@@ -373,12 +373,25 @@
 </BlockList>
 </NvM>
 <Xcp>
-<General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_DYNAMIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="8" XcpMinDaq="0" XcpNvRamBlockIdRef="EaTest1" XcpOdtCount="8" XcpOdtEntriesCount="8" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
-<XcpDaqList Max="TBD">
+<General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_DYNAMIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="8" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="56" XcpOdtEntriesCount="112" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
+<XcpStaticDaqList Max="TBD">
 <XcpDaq Comment="*" Name="XcpDaq1" XcpMaxOdt="8" XcpOdtCount="8">
-<XcpOdtList Max="TBD" />
+<XcpOdtList Max="TBD">
+<XcpOdt Comment="*" Name="XcpOdt1">
+<XcpOdtEntryList Max="TBD">
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry2" />
+</XcpOdtEntryList>
+</XcpOdt>
+<XcpOdt Comment="*" Name="XcpOdt2">
+<XcpOdtEntryList Max="TBD">
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Name="XcpEntry2" />
+</XcpOdtEntryList>
+</XcpOdt>
+</XcpOdtList>
 </XcpDaq>
-</XcpDaqList>
+</XcpStaticDaqList>
 </Xcp>
 <Rte>
 <SwcList Max="TBD">

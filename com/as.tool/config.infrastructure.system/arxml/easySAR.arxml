@@ -856,7 +856,7 @@
 	<General
 		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
 		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
-		XcpDaqConfigType="Enum=(DAQ_DYNAMIC,DAQ_STATIC) Default=DAQ_DYNAMIC PosGUI=2"
+		XcpDaqConfigType="Enum=(DAQ_DYNAMIC,DAQ_STATIC) Default=DAQ_STATIC PosGUI=2"
 		XcpDaqCount="Integer Default=8 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=3"
 		XcpFlashProgrammingEnabled="Boolean Default=True PosGUI=4"
 		XcpIdentificationFieldType="Enum=(ABSOLUTE,RELATIVE_BYTE,RELATIVE_WORD,RELATIVE_WORD_ALIGNED) Default=ABSOLUTE PosGUI=5"
@@ -864,37 +864,47 @@
 		XcpMaxCto="Integer Default=8 Range=8~255 PosGUI=7"
 		XcpMaxDto="Integer Default=8 Range=8~65535 PosGUI=8"
 		XcpMaxEventChannel="Integer Default=8 Range=0~65535 PosGUI=9"
-		XcpMinDaq="Integer Default=0 Range=0~255 PosGUI=10"
-		XcpOdtCount="Integer Default=0 Range=0~252 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=11"
-		XcpOdtEntriesCount="Integer Default=0 Range=0~255 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=12"
-		XcpOdtEntrySizeDaq="Integer Default=0 Range=0~255 PosGUI=13"
-		XcpOdtEntrySizeStim="Integer Default=0 Range=0~255 PosGUI=14"
-		XcpProtocal="Enum=(CAN,FLEXRAY,ETHERNET,USB) Default=CAN PosGUI=15"
-		XcpPrescalerSupported="Boolean Default=True PosGUI=16"
-		XcpSuppressTxSupport="Boolean Default=True PosGUI=17"
-		XcpTimestampTicks="Integer Default=1 Range=0~65535 PosGUI=18"
-		XcpTimestampType="Enum=(FOUR_BYTE,NO_TIME_STAMP,ONE_BYTE,TWO_BYTE) Default=FOUR_BYTE PosGUI=19"
-		XcpTimestampUnit="Enum=(100ms,100ns,100ps,100us,10ms,10ns,10ps,10us,1ms,1ns,1ps,1us,1s) Default=1ms PosGUI=20"
-		XcpCounterRef="EnumRef=Os.CounterList PosGUI=21"
-		XcpNvRamBlockIdRef="EnumRef=NvM.BlockList PosGUI=22"
+		XcpMinDaq="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=10"
+		XcpOdtCount="Integer Default=56 Range=0~252 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=11"
+		XcpOdtEntriesCount="Integer Default=112 Range=0~255 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=12"
+		XcpOdtEntrySizeDaq="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=13"
+		XcpOdtEntrySizeStim="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=14"
+		XcpProtocal="Enum=(CAN,FLEXRAY,ETHERNET,USB) Default=CAN Enabled=(False) PosGUI=15"
+		XcpPrescalerSupported="Boolean Default=True Enabled=(False) PosGUI=16"
+		XcpSuppressTxSupport="Boolean Default=True Enabled=(False)  PosGUI=17"
+		XcpTimestampTicks="Integer Default=1 Range=0~65535 Enabled=(False) PosGUI=18"
+		XcpTimestampType="Enum=(FOUR_BYTE,NO_TIME_STAMP,ONE_BYTE,TWO_BYTE) Enabled=(False) Default=FOUR_BYTE PosGUI=19"
+		XcpTimestampUnit="Enum=(100ms,100ns,100ps,100us,10ms,10ns,10ps,10us,1ms,1ns,1ps,1us,1s) Enabled=(False) Default=1ms PosGUI=20"
+		XcpCounterRef="EnumRef=Os.CounterList Enabled=(False) PosGUI=21"
+		XcpNvRamBlockIdRef="EnumRef=NvM.BlockListEnabled=(False) PosGUI=22"
 		XcpMaxRxTxQueue="Integer Default=0 Range=0~255 PosGUI=23"
 		Comment="TextArea Default=* PosGUI=24"
 		>
 	</General>
-	<XcpDaqList Max="65536">
+	<XcpStaticDaqList Max="65536">
 		<XcpDaq 
 			Name="Text PosGUI=0"
 			XcpMaxOdt="Integer Range=0~252 Default=8 PosGUI=1"
 			XcpOdtCount="Integer Range=0~252 Default=8 PosGUI=2"
 			Comment="TextArea Default=* PosGUI=3"
-		>
+			>
 			<XcpOdtList Max="65536">
 				<XcpOdt
 					Name="Text PosGUI=0"
-					/>
+					Comment="TextArea Default=* PosGUI=2"
+					>
+					<XcpOdtEntryList Max="65535">
+						<XcpEntry
+							Name="Text PosGUI=0"
+							Extension="Enum=(MEMORY,FLASH,DIO_PORT,DIO_CHANNEL) Default=MEMORY Range=0~256 PosGUI=1"
+							Address="Integer Default=0x897d60 PosGUI=2"
+							Comment="TextArea Default=* PosGUI=3"
+							/>
+					</XcpOdtEntryList>
+				</XcpOdt>
 			</XcpOdtList>
 		</XcpDaq>
-	</XcpDaqList>
+	</XcpStaticDaqList>
 </Xcp>
 <Rte>
 	<!-- according to RTE Example 5.4 -->
