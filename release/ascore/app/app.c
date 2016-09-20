@@ -21,6 +21,9 @@
 #ifdef USE_STMO
 #include "Stmo.h"
 #endif
+#ifdef USE_XCP
+#include "Xcp.h"
+#endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -149,12 +152,13 @@ void StartupHook(void)
 #ifdef USE_GUI
 	Lcd_Init();
 	Sg_Init();
-	OsSetRelAlarm(AlarmApp, 10, 5);
 #endif
 
 #ifdef USE_XCP
 	printf(" XCP MTA memory address %p\n",xcpSimMTAMemory);
 #endif
+
+	OsSetRelAlarm(AlarmApp, 10, 5);
 }
 
 TASK(TaskApp)
@@ -169,6 +173,10 @@ TASK(TaskApp)
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
+#endif
+
+#ifdef USE_XCP
+	Xcp_MainFunction_Channel(XCP_EVCHL_10ms);
 #endif
 
 	OsTerminateTask(TaskApp);

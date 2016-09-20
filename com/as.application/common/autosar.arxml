@@ -393,7 +393,11 @@
 </XcpDaq>
 </XcpStaticDaqList>
 <XcpEventChannelList Max="TBD">
-<XcpEventChannel Comment="*" DAQListRefSize="8" Name="10ms" />
+<XcpEventChannel Comment="*" DAQListRefSize="8" Name="10ms">
+<XcpStaticDaqList Max="TBD">
+<XcpDaq Comment="*" Name="XcpDaq1" />
+</XcpStaticDaqList>
+</XcpEventChannel>
 </XcpEventChannelList>
 </Xcp>
 <Rte>

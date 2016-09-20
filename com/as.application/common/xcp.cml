@@ -151,10 +151,10 @@
 		</Command>
 		<Command name='SetDAQListMode' ID='0xE0'>
 			<Request>
-				<Data name='modeBits' type='U8' display='hex' default='0'/>
+				<Data name='modeBits' type='U8' display='hex' default='0xc0'/>
 				<Data name='list' type='U16' display='dec' default='0'/>
 				<Data name='eventChannel' type='U16' display='dec' default='0'/>
-				<Data name='prescale' type='U8' display='dec' default='0'/>
+				<Data name='prescale' type='U8' display='dec' default='1'/>
 				<Data name='priority' type='U8' display='dec' default='0'/>
 			</Request>
 			<Response>

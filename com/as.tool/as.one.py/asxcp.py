@@ -57,6 +57,18 @@ def __show_response__(res):
         ss += '%02X,'%(res[i])
     ss+=']'
     print(ss)
+    
+def Xcp_PollDAQMessage():
+    if(__last_response==None):return
+    result,canid,data= can_read(__canbus__,__rx_canid__)
+    if((True == result) and (__rx_canid__ == canid)):
+        ss = "  >> xcp DAQ response = ["
+        length = len(data)
+        for i in range(length):
+            ss += '%02X,'%(data[i])
+        ss+=']'
+        print(ss)
+
 def Xcp_TransmitMessage(req):
     global __last_response
     __show_request__(req)
@@ -366,6 +378,11 @@ class UIXcp(QWidget):
         self.loadCml(default_cml)
 
         self.btnOpenCml.clicked.connect(self.on_btnOpenCml_clicked)
+        
+        self.startTimer(1)
+    
+    def timerEvent(self,e):
+        Xcp_PollDAQMessage()
     
     def loadCml(self,cml):
         self.tabWidget.clear()

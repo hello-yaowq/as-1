@@ -2034,7 +2034,7 @@ void Xcp_Transmit_Main(void) {
 		retVal = Xcp_Transmit(it->data, it->len);
 
 		if (E_OK != retVal) {
-			DEBUG(DEBUG_HIGH, "Xcp_Transmit_Main - failed to transmit\n");
+			DEBUG(DEBUG_LOW, "Xcp_Transmit_Main - failed to transmit\n");
 		} else {
 			txConfirmed = FALSE;
 		}

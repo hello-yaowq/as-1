@@ -911,7 +911,14 @@
 			Name="Text PosGUI=0"
 			DAQListRefSize="Integer Default=8 PosGUI=1"
 			Comment="TextArea Default=* PosGUI=2"
-			/>
+			>
+			<XcpStaticDaqList Max="65535">
+				<XcpDaq
+					Name="EnumRef=Xcp.XcpStaticDaqList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</XcpStaticDaqList>
+		</XcpEventChannel>
 	</XcpEventChannelList>
 </Xcp>
 <Rte>
