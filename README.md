@@ -63,6 +63,7 @@ sudo apt-get install mtd-utils
 sudo apt-get install Kolourpaint
 sudo apt-get install cmake uuid-dev libboost-dev libwebsockets-dev libjson-c-dev libjson-glib-1.0-0 libjson0 libjson0-dev
 sudo apt-get install gcc-aarch64-linux-gnu
+sudo apt-get install libstdc++6:i386 # for 64bit machine run 32bit app
 ```
 
 ## Clone
