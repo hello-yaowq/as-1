@@ -95,23 +95,3 @@ void DisableAllInterrupts(void)
 {
 
 }
-
-<<<<<<< HEAD:com/as.infrastructure/system/kernel/contiki/platform/native/portable.c
-PROCESS_THREAD(hello_world_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  printf("Hello, world, begin\n");
-  for(;;)
-  {
-	  PROCESS_PAUSE();
-	  printf("Hello, world\n");
-  }
-  printf("Hello, world, end\n");
-
-  PROCESS_END();
-}
-=======
-
-
->>>>>>> 988596d6069b2f1b1b55344b0bd5f9ca327089f6:com/as.infrastructure/system/kernel/contiki/platform/native/portabe.c
