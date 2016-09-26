@@ -85,11 +85,11 @@ static int lua_main_entry(int argc, char *argv[])
 	return rv;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Shell_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
+void RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
 	uint32_t i;
 	char* cmd = (char*)data;
-	asAssert(chl == RPMSG_CHL_SHELL);
+	asAssert(chl == RPMSG_CHL_CLIENT);
 	ASLOG(SHELL,"receive cmd \"%s\"\n",cmd);
 	/* for debug */
 	/* strcpy(cmd,"lua d:/repository/as/com/as.tool/lua/script/flashloader.lua"); */
@@ -139,9 +139,9 @@ char SHELL_getc(void)
 	(void)pthread_mutex_unlock(&shCmdCache.w_lock);
 	return chr;
 }
-void Shell_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
+void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 {
-	asAssert(chl == RPMSG_CHL_SHELL);
+	asAssert(chl == RPMSG_CHL_CLIENT);
 }
 int main(int argc,char* argv[])
 {

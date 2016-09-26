@@ -34,6 +34,7 @@ from argen.GenFls import GenFls
 from argen.GenFee import GenFee
 from argen.GenEa import GenEa
 from argen.GenNvM import GenNvM
+from argen.GenXcp import GenXcp
 
 from argen.GenRte import GenRte
 
@@ -45,6 +46,7 @@ __gen_engine =  {
     'Can':GenCan,'CanIf':GenCanIf,'CanTp':GenCanTp,'PduR':GenPduR,'Com':GenCom,'Dcm':GenDcm,
     'Fls':GenFls,'Fee':GenFee,'Ea':GenEa,'NvM':GenNvM,
     'Rte':GenRte,
+    'Xcp':GenXcp,
     'EcuC':dummy
 }
 

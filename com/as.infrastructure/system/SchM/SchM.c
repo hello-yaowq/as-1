@@ -276,6 +276,13 @@
 #define SCHM_MAINFUNCTION_OSEKNM()
 #endif
 
+#if defined(USE_XCP)
+#include "Xcp.h"
+#include "SchM_Xcp.h"
+#else
+#define SCHM_MAINFUNCTION_XCP()
+#endif
+
 #if defined(USE_UDPNM)
 #include "UdpNm.h"
 #endif
@@ -330,6 +337,7 @@ SCHM_DECLARE(FLS);
 SCHM_DECLARE(WDGM_TRIGGER);
 SCHM_DECLARE(WDGM_ALIVESUPERVISION);
 SCHM_DECLARE(OSEKNM);
+SCHM_DECLARE(XCP);
 
 
 void SchM_Init( void ) {
@@ -354,7 +362,7 @@ static void runMemory( void ) {
 	SCHM_MAINFUNCTION_SPI();
 }
 
-#if defined(__SMALL_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 void SchM_RunMemory(void)
 {
 	runMemory();
@@ -368,6 +376,7 @@ TASK(SchM_Startup){
 #if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)
 	uint32_t i;
 #endif
+	OS_TASK_BEGIN();
 	ASLOG(OFF,"SchM_Startup is running\n");
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
@@ -434,11 +443,14 @@ TASK(SchM_Startup){
 
 	OsTerminateTask(SchM_Startup);
 
+	OS_TASK_END();
 }
 
 
 TASK(SchM_BswService) {
 	EcuM_StateType state;
+
+	OS_TASK_BEGIN();
 
 	ASLOG(OFF,"SchM_BswService is running\n");
 	EcuM_GetState(&state);
@@ -470,6 +482,8 @@ TASK(SchM_BswService) {
 		SCHM_MAINFUNCTION_DCM();
 		SCHM_MAINFUNCTION_DEM();
 
+		SCHM_MAINFUNCTION_XCP();
+
 		SCHM_MAINFUNCTION_IOHWAB();
 		SCHM_MAINFUNCTION_COMM();
 		SCHM_MAINFUNCTION_NM();
@@ -481,6 +495,8 @@ TASK(SchM_BswService) {
 		break;
 	}
 	OsTerminateTask(SchM_BswService);
+
+	OS_TASK_END();
 }
 
 void SchM_MainFunction( void ) {

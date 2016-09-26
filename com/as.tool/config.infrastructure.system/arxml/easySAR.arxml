@@ -188,7 +188,7 @@
 						Name="Text Comment=(Name must be unique) PosGUI=0"
 						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
 						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
-						TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,User) Default=PduR PosGUI=3"
+						TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=3"
 						UserNotification="Text Default=CanIf_UserTxConfirmation PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
 						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
 						Comment="TextArea Default=* PosGUI=6"
@@ -210,7 +210,7 @@
 						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
 						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
 						FilterMask="Integer Range=0~0x1FFFFFFFF PosGUI=3 \n Enabled=(Self.Parent.Parent.SoftwareFilterUsed==True) \n Comment=(If $FilterMask and `Identifier==$Identifier, then valid)"
-						ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,User) Default=PduR PosGUI=4"
+						ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=4"
 						UserNotification="Text Default=CanIf_UserRxIndication PosGUI=5 Enabled=(Self.ReceivedNotifier==User)"
 						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=6"
 						Comment="TextArea Default=* PosGUI=7"
@@ -333,13 +333,31 @@
 					Name="Text PosGUI=0"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=3"
+					StartBit="Integer Range=0~63 PosGUI=3 
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					Size="Integer Range=1~64 Default=8 PosGUI=4"
 					UpdateBitUsed="Boolean Default=False PosGUI=5"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					TimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=7"
 					FirstTimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Direction==RECEIVE) PosGUI=8"
-					TimeoutAction="Enum=(RESET,NONE) Default=NONE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
+					TimeoutAction="Enum=(REPLACE,NONE) Default=REPLACE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
 					TimeoutNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
 					ReceivedNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
 					Comment="TextArea Default=* PosGUI=12"
@@ -349,10 +367,28 @@
 							Name="Text PosGUI=0"
 							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
-							StartBit="Integer Range=0~63 PosGUI=3"
+							StartBit="Integer Range=0~63 PosGUI=3
+							\n BITMAP： MSB              LSB
+							\n BYTE0  7  6  5  4  3  2  1  0
+							\n BYTE1 15 14 13 12 11 10  9  8
+							\n BYTE2 23 22 21 20 19 18 17 16
+							\n BYTE3 31 30 29 28 27 26 25 24
+							\n BYTE4 39 38 37 36 35 34 33 32
+							\n BYTE5 47 46 45 44 43 42 41 40
+							\n BYTE6 55 54 53 52 51 50 49 48
+							\n BYTE7 63 62 61 60 59 58 57 56"
 							Size="Integer Range=1~64 Default=8 PosGUI=4"
 							UpdateBitUsed="Boolean Default=False PosGUI=5"
-							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6"
+							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+							\n BITMAP： MSB              LSB
+							\n BYTE0  7  6  5  4  3  2  1  0
+							\n BYTE1 15 14 13 12 11 10  9  8
+							\n BYTE2 23 22 21 20 19 18 17 16
+							\n BYTE3 31 30 29 28 27 26 25 24
+							\n BYTE4 39 38 37 36 35 34 33 32
+							\n BYTE5 47 46 45 44 43 42 41 40
+							\n BYTE6 55 54 53 52 51 50 49 48
+							\n BYTE7 63 62 61 60 59 58 57 56"
 							InitialValue="Text Default=0 PosGUI=7"
 							Comment="TextArea Default=* PosGUI=8"
 							>
@@ -366,14 +402,32 @@
 					Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=4"
+					StartBit="Integer Range=0~63 PosGUI=4
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
 					Size="Integer Range=1~64 Default=8 PosGUI=5"
 					InitialValue="Text Default=0 PosGUI=6"
 					UpdateBitUsed="Boolean Default=False PosGUI=7"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8"
-					TimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
-					FirstTimeoutFactor="Integer Unit=ms \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
-					TimeoutAction="Enum=(RESET,NONE) Default=NONE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
+					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
+					\n BITMAP： MSB              LSB
+					\n BYTE0  7  6  5  4  3  2  1  0
+					\n BYTE1 15 14 13 12 11 10  9  8
+					\n BYTE2 23 22 21 20 19 18 17 16
+					\n BYTE3 31 30 29 28 27 26 25 24
+					\n BYTE4 39 38 37 36 35 34 33 32
+					\n BYTE5 47 46 45 44 43 42 41 40
+					\n BYTE6 55 54 53 52 51 50 49 48
+					\n BYTE7 63 62 61 60 59 58 57 56"
+					TimeoutFactor="Integer Unit=ms Default=200 \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=9"
+					FirstTimeoutFactor="Integer Unit=ms Default=500 \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=10"
+					TimeoutAction="Enum=(REPLACE,NONE) Default=REPLACE \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
 					TimeoutNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=12"
 					ReceivedNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=13"
 					Comment="TextArea Default=* PosGUI=14"
@@ -798,6 +852,75 @@
 	</BlockList>
 </NvM>
 
+<Xcp>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		XcpDaqConfigType="Enum=(DAQ_DYNAMIC,DAQ_STATIC) Default=DAQ_STATIC PosGUI=2"
+		XcpDaqCount="Integer Default=8 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=3"
+		XcpFlashProgrammingEnabled="Boolean Default=True PosGUI=4"
+		XcpIdentificationFieldType="Enum=(ABSOLUTE,RELATIVE_BYTE,RELATIVE_WORD,RELATIVE_WORD_ALIGNED) Default=ABSOLUTE PosGUI=5"
+		XcpMainFunctionPeriod="Integer Default=10 Unit=ms PosGUI=6"
+		XcpMaxCto="Integer Default=8 Range=8~255 PosGUI=7"
+		XcpMaxDto="Integer Default=8 Range=8~65535 PosGUI=8"
+		XcpMaxEventChannel="Integer Default=8 Range=0~65535 PosGUI=9"
+		XcpMinDaq="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=10"
+		XcpOdtCount="Integer Default=56 Range=0~252 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=11"
+		XcpOdtEntriesCount="Integer Default=112 Range=0~255 Enabled=(Self.XcpDaqConfigType==DAQ_DYNAMIC) PosGUI=12"
+		XcpOdtEntrySizeDaq="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=13"
+		XcpOdtEntrySizeStim="Integer Default=0 Range=0~255 Enabled=(False) PosGUI=14"
+		XcpProtocal="Enum=(CAN,FLEXRAY,ETHERNET,USB) Default=CAN Enabled=(False) PosGUI=15"
+		XcpPrescalerSupported="Boolean Default=True Enabled=(False) PosGUI=16"
+		XcpSuppressTxSupport="Boolean Default=True Enabled=(False)  PosGUI=17"
+		XcpTimestampTicks="Integer Default=1 Range=0~65535 Enabled=(False) PosGUI=18"
+		XcpTimestampType="Enum=(FOUR_BYTE,NO_TIME_STAMP,ONE_BYTE,TWO_BYTE) Enabled=(False) Default=FOUR_BYTE PosGUI=19"
+		XcpTimestampUnit="Enum=(100ms,100ns,100ps,100us,10ms,10ns,10ps,10us,1ms,1ns,1ps,1us,1s) Enabled=(False) Default=1ms PosGUI=20"
+		XcpCounterRef="EnumRef=Os.CounterList Enabled=(False) PosGUI=21"
+		XcpNvRamBlockIdRef="EnumRef=NvM.BlockListEnabled=(False) PosGUI=22"
+		XcpMaxRxTxQueue="Integer Default=0 Range=0~255 PosGUI=23"
+		Comment="TextArea Default=* PosGUI=24"
+		>
+	</General>
+	<XcpStaticDaqList Max="65536">
+		<XcpDaq 
+			Name="Text PosGUI=0"
+			XcpMaxOdt="Integer Range=0~252 Default=8 PosGUI=1"
+			XcpOdtCount="Integer Range=0~252 Default=8 PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3"
+			>
+			<XcpOdtList Max="65536">
+				<XcpOdt
+					Name="Text PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					>
+					<XcpOdtEntryList Max="65535">
+						<XcpEntry
+							Name="Text PosGUI=0"
+							Extension="Enum=(MEMORY,FLASH,DIO_PORT,DIO_CHANNEL) Default=MEMORY Range=0~256 PosGUI=1"
+							Address="Integer Default=0x897d60 PosGUI=2"
+							Length="Integer Default=4 Unit=byte PosGUI=3"
+							Comment="TextArea Default=* PosGUI=4"
+							/>
+					</XcpOdtEntryList>
+				</XcpOdt>
+			</XcpOdtList>
+		</XcpDaq>
+	</XcpStaticDaqList>
+	<XcpEventChannelList Max="65535">
+		<XcpEventChannel
+			Name="Text PosGUI=0"
+			DAQListRefSize="Integer Default=8 PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2"
+			>
+			<XcpStaticDaqList Max="65535">
+				<XcpDaq
+					Name="EnumRef=Xcp.XcpStaticDaqList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</XcpStaticDaqList>
+		</XcpEventChannel>
+	</XcpEventChannelList>
+</Xcp>
 <Rte>
 	<!-- according to RTE Example 5.4 -->
 	<SwcList Max="65535">

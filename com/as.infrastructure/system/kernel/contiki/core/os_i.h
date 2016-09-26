@@ -18,7 +18,7 @@
 #include "Std_Types.h"
 #include "contiki.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define    E_OS_ACCESS             	  (StatusType)1
+#define    E_OS_ACCESS                (StatusType)1
 #define    E_OS_CALLEVEL              (StatusType)2
 #define    E_OS_ID                    (StatusType)3
 #define    E_OS_LIMIT                 (StatusType)4
@@ -39,21 +39,24 @@
 /*
  *  Macro for declare Task/Alarm/ISR Entry
  */
-#define TASK(TaskName)        	 PROCESS_THREAD(TaskName,ev,data)
-#define ISR(ISRName)        	 void ISRMain##ISRName(void)
+#define TASK(TaskName)           PROCESS_THREAD(TaskName, ev, data)
+#define ISR(ISRName)             void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
+
+#define DeclareAlarm(Name)						\
+    {											\
+        .main = AlarmMain##Name						\
+    }
 
 #define RES_SCHEDULER           (ResourceType)0 /* default resources for OS */
 
 #define GetResource(...) 0
 #define ReleaseResource(...) 0
+#define SetEvent(...) 0
 #define WaitEvent(...) 0
 #define GetEvent(...) 0
 #define ClearEvent(...) 0
-#define TerminateTask(...) 0
-#define SetRelAlarm(...) 0
-#define CancelAlarm(...) 0
-#define ActivateTask(...) 0
+#define TerminateTask(...) PROCESS_EXIT()
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8 					StatusType;
 typedef uint32   				EventMaskType;
@@ -80,9 +83,25 @@ typedef AlarmBaseType *			AlarmBaseRefType;
 
 typedef uint8                   ResourceType;
 
+typedef void         (*alarm_main_t)(void);
+
+typedef struct
+{
+    alarm_main_t main;
+    /* No Autostart support */
+}alarm_declare_t;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+/* ============================ [ FUNCTIONS ] ====================================================== */
+void OsTick ( void );
 
+FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle );
+FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle );
+FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId );
+FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId);
+
+extern void EnableAllInterrupts(void);
+extern void DisableAllInterrupts(void);
 #endif /* OS_I_H */

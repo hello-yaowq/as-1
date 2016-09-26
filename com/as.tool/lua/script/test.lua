@@ -15,6 +15,7 @@
 require("cantp")
 require("as")
 require("s19")
+require("os")
 
 local function hexs(data)
   ss = "["
@@ -66,4 +67,13 @@ function test_can_vcan()
   end
 end
 
-test_can_vcan()
+function test_can_amb()
+  data = {}
+  as.can_open(0,"socket",0,1000000)
+  while true do
+	ercd = as.can_write(0,0x100,{0x00,0x01,0x00,0x02,0x00,0x03,0x00,0x04})
+  os.usleep(100)
+  end
+end
+
+test_can_amb()

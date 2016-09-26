@@ -31,20 +31,18 @@ static rpmsg_t rpmsg =
 	.initialized = FALSE
 };
 /* ============================ [ LOCALS    ] ====================================================== */
-static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32 dstEndpt, uint32 srcEndpt, void* data, uint16 len)
+static Std_ReturnType sendMessage(const RPmsg_ChannelConfigType* chlConfig, uint32 dstEndpt, uint32 srcEndpt, void* data, uint16 len)
 {
 	Std_ReturnType ercd;
 	VirtQ_IdxType idx;
 	RPmsg_HandlerType* msg;
 	uint16 length;
-	ASLOG(OFF,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,data,len);
+	const RPmsg_PortConfigType* portConfig = chlConfig->portConfig;
+	ASLOG(RPMSG,"RPmsg send(dst=%Xh,src=%Xh,data=%Xh,len=%d)\n",dstEndpt,srcEndpt,(uint32)data,len);
 	ercd = VirtQ_GetAvailiableBuffer(portConfig->txChl,&idx,(void**)&msg,&length);
 	if(E_OK == ercd)
 	{
-		if(len > length){
-			len = length;
-			ASLOG(RPMSG,"warning transmit message length=%d > buffer length=%d, truncate.\n",len,length);
-		}
+		asAssert(len <= (length-(sizeof(*msg)-sizeof(msg->data))));
 		/* Copy the payload and set message header: */
 		memcpy(msg->data, data, len);
 		msg->len = len;
@@ -53,7 +51,7 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 		msg->flags = 0;
 		msg->reserved = 0;
 
-		VirtQ_AddUsedBuffer(portConfig->txChl, idx, len);
+		VirtQ_AddUsedBuffer(portConfig->txChl, idx, length);
 		VirtQ_Kick(portConfig->txChl);
 	}
 	else
@@ -62,30 +60,24 @@ static Std_ReturnType sendMessage(const RPmsg_PortConfigType* portConfig, uint32
 	}
 	return ercd;
 }
-static void sendNamseServiceMessage(const RPmsg_PortConfigType* portConfig, RPmsg_NameServiceFlagType flags)
+static void sendNamseServiceMessage(const RPmsg_ChannelConfigType* chlConfig, RPmsg_NameServiceFlagType flags)
 {
 	RPmsg_NamseServiceMessageType nsMsg;
-    Std_ReturnType ercd;
+	Std_ReturnType ercd;
+	const RPmsg_PortConfigType* portConfig = chlConfig->portConfig;
+	strncpy(nsMsg.name, chlConfig->name, RPMSG_NAME_SIZE);
+	nsMsg.addr = portConfig->port;
+	nsMsg.flags = flags;
 
-    strncpy(nsMsg.name, portConfig->name, RPMSG_NAME_SIZE);
-    nsMsg.addr = portConfig->port;
-    nsMsg.flags = flags;
-
-    ASLOG(OFF,"RPmsg create <%s> on port=0x%X\n",portConfig->name,portConfig->port);
-    ercd = sendMessage(portConfig,RPMSG_NAME_SERVICE_PORT, portConfig->port, &nsMsg, sizeof(nsMsg));
-    asAssert(E_OK == ercd);
+	ASLOG(RPMSG,"RPmsg create <%s> on port=0x%X\n",chlConfig->name,portConfig->port);
+	ercd = sendMessage(chlConfig,RPMSG_NAME_SERVICE_PORT, portConfig->port, &nsMsg, sizeof(nsMsg));
+	asAssert(E_OK == ercd);
 }
 
-static void NameSerivice_Create(const RPmsg_PortConfigType* portConfig)
+static void NameSerivice_Create(const RPmsg_ChannelConfigType* chlConfig)
 {
-	sendNamseServiceMessage(portConfig, RPMSG_NS_CREATE);
+	sendNamseServiceMessage(chlConfig, RPMSG_NS_CREATE);
 }
-#if 0
-static void NameSerivice_Destroy(char * name, uint32 port)
-{
-	sendNamseServiceMessage(name, port, RPMSG_NS_DESTROY);
-}
-#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void RPmsg_Init(const RPmsg_ConfigType* config)
 {
@@ -112,47 +104,38 @@ void RPmsg_RxNotification(RPmsg_PortType port)
 	asAssert(port < RPMSG_PORT_NUM);
 
 	portConfig = &(rpmsg.config->portConfig[port]);
-	if(rpmsg.online)
+
+	ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
+	if(E_OK == ercd)
 	{
-		ercd = VirtQ_GetAvailiableBuffer(portConfig->rxChl,&idx,(void**)&msg,&length);
-		if(E_OK == ercd)
+		ASLOG(RPMSG,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,(uint32)msg->data,msg->len,length);
+		for(chl=0;chl<RPMSG_CHL_NUM;chl++)
 		{
-			ASLOG(OFF,"RPmsg rx(dst=%Xh,src=%Xh,data=%Xh,len=%d/%d)\n",msg->dst,msg->src,msg->data,msg->len,length);
-			for(chl=0;chl<RPMSG_CHL_NUM;chl++)
+			if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&
+				(portConfig->port == msg->dst) &&
+				(msg->src==rpmsg.config->chlConfig[chl].dst) )
 			{
-				if( (portConfig==rpmsg.config->chlConfig[chl].portConfig) &&
-					(msg->dst==rpmsg.config->chlConfig[chl].dst) )
-				{
-					break;
-				}
+				break;
 			}
+		}
 
-			if(chl<RPMSG_CHL_NUM)
-			{
-				rpmsg.config->chlConfig[chl].rxNotification(chl,msg->data,msg->len);
-			}
-			else
-			{
-				/* ignore invalid message */
-				ASWARNING("RPMSG: invalid message, ignore it\n");
-			}
-
-			VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
-			VirtQ_Kick(portConfig->rxChl);
+		if(chl<RPMSG_CHL_NUM)
+		{
+			rpmsg.config->chlConfig[chl].rxNotification(chl,msg->data,msg->len);
 		}
 		else
 		{
-			/* asAssert(0); */
-			ASLOG(OFF,"invalid RPmsg_RxNotification\n");
+			/* ignore invalid message */
+			ASWARNING("RPMSG: invalid message, ignore it\n");
 		}
+
+		VirtQ_AddUsedBuffer(portConfig->rxChl, idx, length);
+		VirtQ_Kick(portConfig->rxChl);
 	}
 	else
 	{
-		ASLOG(RPMSG,"RPmsg_RxNotification(offline-->online)\n");
-		VirtQ_InitVq(portConfig->rxChl);
-		VirtQ_InitVq(portConfig->txChl);
-		NameSerivice_Create(portConfig);
-		rpmsg.online = TRUE;
+		/* asAssert(0); */
+		ASLOG(RPMSG,"invalid RPmsg_RxNotification\n");
 	}
 }
 
@@ -160,9 +143,35 @@ boolean RPmsg_IsOnline(void)
 {
 	return rpmsg.online;
 }
-void RPmsg_TxConfirmation(RPmsg_PortType channel)
+void RPmsg_TxConfirmation(RPmsg_PortType port)
 {
-	(void)channel;
+	int chl;
+	const RPmsg_PortConfigType* portConfig;
+	const RPmsg_ChannelConfigType* chlConfig;
+	asAssert(rpmsg.initialized);
+	asAssert(port < RPMSG_PORT_NUM);
+
+	portConfig = &(rpmsg.config->portConfig[port]);
+	if(rpmsg.online)
+	{
+		// TODO:
+		ASLOG(RPMSG,"RPmsg_TxConfirmation(%d)\n",port);
+	}
+	else
+	{
+		ASLOG(RPMSG,"RPmsg_TxConfirmation(offline-->online)\n");
+		VirtQ_InitVq(portConfig->rxChl);
+		VirtQ_InitVq(portConfig->txChl);
+		for(chl = 0; chl < RPMSG_CHL_NUM; chl ++)
+		{
+			chlConfig=&(rpmsg.config->chlConfig[chl]);
+			if(chlConfig->portConfig == portConfig)
+			{
+				NameSerivice_Create(chlConfig);
+			}
+		}
+		rpmsg.online = TRUE;
+	}
 }
 
 Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
@@ -172,6 +181,6 @@ Std_ReturnType RPmsg_Send(RPmsg_ChannelType chl, void* data, uint16 len)
 	asAssert(rpmsg.initialized);
 	asAssert(chl<RPMSG_CHL_NUM);
 	chlConfig=&(rpmsg.config->chlConfig[chl]);
-	ercd = sendMessage(chlConfig->portConfig,chlConfig->dst,chlConfig->portConfig->port,data,len);
+	ercd = sendMessage(chlConfig,chlConfig->dst,chlConfig->portConfig->port,data,len);
 	return ercd;
 }

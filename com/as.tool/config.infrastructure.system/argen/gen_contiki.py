@@ -28,9 +28,7 @@ def genForContikiConf_H(gendir,os_list):
     fp.write('#include "Std_Types.h"\n\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define CCIF\n#define CLIF\n\n')
-    fp.write('#define CC_CONF_REGISTER_ARGS          1\n')
-    fp.write('#define CC_CONF_FUNCTION_POINTER_ARGS  1\n')
-    fp.write('#define CC_CONF_VA_ARGS                1\n')
+    fp.write('#define AUTOSTART_ENABLE 1\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('typedef unsigned long clock_time_t;\n\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -79,17 +77,39 @@ def genForContiki_H(gendir,os_list):
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-
+    for id,task in enumerate(task_list):
+        fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
+    fp.write('\n\n')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
+    fp.write('\n\n')
     fp.write('#endif /* OS_CFG_H */\n\n')
     fp.close()
 def genForContiki_C(gendir,os_list):
     fp = open('%s/Os_Cfg.c'%(gendir),'w')
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
+    fp.write('#include "Os.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    task_list = ScanFrom(os_list,'Task')
+    cstr=cstr2=''
+    for id,task in enumerate(task_list):
+        fp.write('PROCESS(%s,"%s");\n'%(GAGet(task,'Name'),GAGet(task,'Name')))
+        cstr2 += '\t&%s,\n'%(GAGet(task,'Name'))
+        if(GAGet(task,'Autostart').upper()=='TRUE'):
+            cstr += '\t&%s,\n'%(GAGet(task,'Name'))
+    fp.write('AUTOSTART_PROCESSES(\n%s\n);\n'%(cstr[:-2]))
+    fp.write('struct process * const TaskList[TASK_NUM] = {\n%s\n};\n'%(cstr2[:-2]))
+    
+    alarm_list = ScanFrom(os_list,'Alarm')
+    fp.write('CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM] = \n{\n')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('\tDeclareAlarm(%s),\n'%(GAGet(alarm,'Name')))
+    fp.write('};\n\n')
+    
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.close()

@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#if defined(__SMALL_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 #include <sys/time.h>
 #include <time.h>
 #endif
@@ -24,7 +24,7 @@
 extern void Can_SimulatorRunning(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-#if defined(__SMALL_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 static clock_t previous = 0;
 #endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -44,7 +44,7 @@ KSM(Simulator,Running)
 {
 	Can_SimulatorRunning();
 
-#if defined(__SMALL_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 	clock_t now = clock();
 	if( (0u == (now%(CLOCKS_PER_SEC/1000))) &&  (now != previous) )
 	{

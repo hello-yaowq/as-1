@@ -52,6 +52,8 @@
 <Pdu Comment="*" Name="LS_NM_TX" Size="64" />
 <Pdu Comment="*" Name="OSEK_NM_TX" Size="64" />
 <Pdu Comment="*" Name="OSEK_NM_RX" Size="64" />
+<Pdu Comment="*" Name="XCP_RX" Size="64" />
+<Pdu Comment="*" Name="XCP_TX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -77,6 +79,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" Identifier="0x502" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" Identifier="0x101" Name="Time" TransmitNotifier="PduR" UserNotification="CanIf_UserTxConfirmation" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_TX" Identifier="0x401" Name="OSEK_NM_TX" TransmitNotifier="User" UserNotification="CanIf_OsekNmUserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_UserTxConfirmation" />
 </PduList>
 </Hth>
 </HthList>
@@ -87,6 +90,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0xFFF" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x700" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUserRxIndication" />
+<Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7ff" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>
@@ -147,25 +151,25 @@
 <IPduList Max="TBD">
 <IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="MsgTime" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgTime" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <GroupSignalList Max="TBD">
-<GroupSignal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="64" StartBit="0" TimeoutAction="NONE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
+<GroupSignal Comment="*" Endianess="OPAQUE" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="56" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
 <SignalList Max="TBD">
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="0" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="12" Name="month" Size="8" StartBit="16" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="15" Name="day" Size="8" StartBit="24" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="19" Name="hour" Size="8" StartBit="32" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="49" Name="minute" Size="8" StartBit="40" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" InitialValue="0" Name="second" Size="8" StartBit="48" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="15" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="12" Name="month" Size="8" StartBit="23" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="15" Name="day" Size="8" StartBit="31" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="19" Name="hour" Size="8" StartBit="39" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="49" Name="minute" Size="8" StartBit="47" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="0" Name="second" Size="8" StartBit="55" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 </SignalList>
 </GroupSignal>
 </GroupSignalList>
 </IPdu>
 <IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="RECEIVE" Name="AbsInfo" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="RxMsgAbsInfo" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="10" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <SignalList Max="TBD">
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="VehicleSpeed" ReceivedNotification="NULL" Size="16" StartBit="0" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="TachoSpeed" ReceivedNotification="NULL" Size="16" StartBit="16" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led1Sts" ReceivedNotification="NULL" Size="2" StartBit="32" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led2Sts" ReceivedNotification="NULL" Size="2" StartBit="34" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="LITTLE_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led3Sts" ReceivedNotification="NULL" Size="2" StartBit="36" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="VehicleSpeed" ReceivedNotification="NULL" Size="16" StartBit="15" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="TachoSpeed" ReceivedNotification="NULL" Size="16" StartBit="31" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led1Sts" ReceivedNotification="NULL" Size="2" StartBit="39" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led2Sts" ReceivedNotification="NULL" Size="2" StartBit="37" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led3Sts" ReceivedNotification="NULL" Size="2" StartBit="35" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 </SignalList>
 </IPdu>
 </IPduList>
@@ -368,6 +372,34 @@
 </Block>
 </BlockList>
 </NvM>
+<Xcp>
+<General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_DYNAMIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="8" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="56" XcpOdtEntriesCount="112" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
+<XcpStaticDaqList Max="TBD">
+<XcpDaq Comment="*" Name="XcpDaq1" XcpMaxOdt="8" XcpOdtCount="8">
+<XcpOdtList Max="TBD">
+<XcpOdt Comment="*" Name="XcpOdt1">
+<XcpOdtEntryList Max="TBD">
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
+</XcpOdtEntryList>
+</XcpOdt>
+<XcpOdt Comment="*" Name="XcpOdt2">
+<XcpOdtEntryList Max="TBD">
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
+<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
+</XcpOdtEntryList>
+</XcpOdt>
+</XcpOdtList>
+</XcpDaq>
+</XcpStaticDaqList>
+<XcpEventChannelList Max="TBD">
+<XcpEventChannel Comment="*" DAQListRefSize="8" Name="10ms">
+<XcpStaticDaqList Max="TBD">
+<XcpDaq Comment="*" Name="XcpDaq1" />
+</XcpStaticDaqList>
+</XcpEventChannel>
+</XcpEventChannelList>
+</Xcp>
 <Rte>
 <SwcList Max="TBD">
 <Swc Comment="*" Name="Swc1">

@@ -35,6 +35,14 @@
 #define ALARM(AlarmName)  ALARMCALLBACK(AlarmName)
 #endif
 
+#ifdef __CONTIKI_OS__
+#define OS_TASK_BEGIN() PROCESS_BEGIN()
+#define OS_TASK_END()	PROCESS_END()
+#else
+#define OS_TASK_BEGIN()
+#define OS_TASK_END()
+#endif
+
 /* KSM states */
 #define KSM_S_INIT                0x00
 #define KSM_S_START               0x01

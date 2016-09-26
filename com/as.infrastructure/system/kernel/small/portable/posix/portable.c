@@ -30,3 +30,13 @@ void Irq_Enable(void){}
 void Irq_Disable(void){}
 imask_t __Irq_Save(void){ return 0; }
 void Irq_Restore(imask_t irq_state) { (void)irq_state; }
+
+void EnableAllInterrupts(void)
+{
+
+}
+void DisableAllInterrupts(void)
+{
+
+}
+

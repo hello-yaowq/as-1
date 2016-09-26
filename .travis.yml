@@ -11,11 +11,15 @@ before_script:
   - sudo apt-get update
   - "sudo apt-get install -qq python3-pyqt5 pyqt5-dev pyqt5-dev-tools libreadline6 libreadline6-dev libgtk2.0-dev libgtk-3-dev || true"
   - "sudo apt-get install -qq gcc-arm-none-eabi || true"
+  - "sudo apt-get install -qq gcc-arm-linux-gnueabi || true"
+  - "sudo apt-get insatll -qq g++-arm-linux-gnueabi || true"
+  - "sudo apt-get insatll -qq cmake uuid-dev libboost-dev || true"
 
 script:
   - cd release/asboot && make 91 && make 92 && make 11 && make 12 && make 21 && make 22
-  - cd ../../release/ascore && make 91 && make 92 && make 01 && make 02 && make 11 && make 12 && make 31 && make 32
-  - cd ../../release/aslua && make 91 && make 94 && make 81 && make 82
+#  - cd ../../release/ascore && make 91 && make 92 && make 01 && make 02 && make 11 && make 12 && make 31 && make 32
+#  - cd ../../release/aslua && make 91 && make 94 && make 81 && make 82
+  - cd ../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel
 
 env:
   - EMAIL='parai@foxmail.com'

@@ -25,8 +25,6 @@
 #define tWBS   500
 #define tTx    2
 
-#define TaskNmInd TASK_ID_TaskNmInd
-
 #define EventNmNormal   EVENT_MASK_TaskNmInd_EventNmNormal
 #define EventNmLimphome EVENT_MASK_TaskNmInd_EventNmLimphome
 #define EventNmStatus   EVENT_MASK_TaskNmInd_EventNmStatus
@@ -97,7 +95,7 @@ TASK(TaskNmInd)
 	ercd = WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	if(E_OK == ercd)
 	{
-		GetEvent(TaskNmInd,&mask);
+		GetEvent(TASK_ID_TaskNmInd,&mask);
 		if((mask&EventNmNormal) != 0)
 		{
 			printf("In NM normal state,config changed.\n");
@@ -134,15 +132,15 @@ void NMInit(NetIdType NetId)
 		InitNMScaling(NetId,0xFF); /* TODO: not used */
 		InitCMaskTable(NetId,NM_ckNormal,config);
 		InitCMaskTable(NetId,NM_ckLimphome,config);
-		InitIndDeltaConfig(NetId,NM_ckNormal,SignalActivation,TaskNmInd,EventNmNormal);
-		InitIndDeltaConfig(NetId,NM_ckLimphome,SignalActivation,TaskNmInd,EventNmLimphome);
+		InitIndDeltaConfig(NetId,NM_ckNormal,SignalActivation,TASK_ID_TaskNmInd,EventNmNormal);
+		InitIndDeltaConfig(NetId,NM_ckLimphome,SignalActivation,TASK_ID_TaskNmInd,EventNmLimphome);
 		memset(&status,0,sizeof(NetworkStatusType));
 		status.W.NMactive = 1;
 		InitSMaskTable(NetId,&status); /* TODO : not implemented for indication */
 		InitTargetStatusTable(NetId,&status);
-		InitIndDeltaStatus(NetId,SignalActivation,TaskNmInd,EventNmStatus);
+		InitIndDeltaStatus(NetId,SignalActivation,TASK_ID_TaskNmInd,EventNmStatus);
 		InitDirectNMParams(NetId,ASENV_OSEKNM_NODE_ID(),tTyp,tMax,tError,tWBS,tTx);
-		InitIndRingData(NetId,SignalActivation,TaskNmInd,EventRingData);
+		InitIndRingData(NetId,SignalActivation,TASK_ID_TaskNmInd,EventRingData);
 	}
 }
 

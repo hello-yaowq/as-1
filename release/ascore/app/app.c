@@ -21,6 +21,9 @@
 #ifdef USE_STMO
 #include "Stmo.h"
 #endif
+#ifdef USE_XCP
+#include "Xcp.h"
+#endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -28,6 +31,9 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_XCP
+static uint8_t xcpSimMTAMemory[1024];
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_STMO
 static void sample_pointer(void)
@@ -146,12 +152,18 @@ void StartupHook(void)
 #ifdef USE_GUI
 	Lcd_Init();
 	Sg_Init();
-	OsSetRelAlarm(AlarmApp, 10, 5);
 #endif
+
+#ifdef USE_XCP
+	printf(" XCP MTA memory address %p\n",xcpSimMTAMemory);
+#endif
+
+	OsSetRelAlarm(AlarmApp, 10, 5);
 }
 
 TASK(TaskApp)
 {
+	OS_TASK_BEGIN();
 	ASLOG(OFF,"TaskApp is running\n");
 #ifdef USE_STMO
 	sample_pointer();
@@ -163,7 +175,13 @@ TASK(TaskApp)
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
 #endif
 
+#ifdef USE_XCP
+	Xcp_MainFunction_Channel(XCP_EVCHL_10ms);
+#endif
+
 	OsTerminateTask(TaskApp);
+
+	OS_TASK_END();
 }
 
 ALARM(AlarmApp)

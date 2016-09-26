@@ -64,8 +64,8 @@ endif
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
-ifeq ($(gen-pp),yes)
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@.s -E $<
+ifeq ($(gen-cpp),yes)
+	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@.cpp -E $<
 endif
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<
 ifeq ($(gen-mk),yes)	

@@ -96,6 +96,8 @@
 
 #define MODULE_ID_CRC    (201) // CRC Routines
 
+#define MODULE_ID_CANXCP (210u) // Can specific XCP module
+
 #define MODULE_ID_C2CAN  (220) // CAN
 #define MODULE_ID_C2COM  (221) // COM Services
 #define MODULE_ID_C2DIAG (222) // Diagnostic

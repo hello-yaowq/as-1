@@ -46,15 +46,15 @@ VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable = {
 		.vring[0] = {
 			.da = 0,
 			.align = 4096,
-			.num   = 512,
-			.notifyid = VIRTQ_IDX_RPMSG_RX,
+			.num   = 256,
+			.notifyid = 0xdeadbeef,	/* will filled up by kernel */
 			.reserved = 0
 		},
 		.vring[1] = {
 			.da = 0,
 			.align = 4096,
-			.num   = 512,
-			.notifyid = VIRTQ_IDX_RPMSG_TX,
+			.num   = 256,
+			.notifyid = 0xdeadbeef,	/* will filled up by kernel */
 			.reserved = 0
 		},
 	},
@@ -67,4 +67,9 @@ VAR(Rproc_ResourceTableType, MEM_RPROC_RESOURCE_TABLE) Rproc_ResourceTable = {
 Rproc_ResourceTableType* Qt_GetRprocResourceTable(void)
 {
 	return &Rproc_ResourceTable;
+}
+
+unsigned int Qt_GetRprocResourceTableSize(void)
+{
+	return sizeof(Rproc_ResourceTable);
 }

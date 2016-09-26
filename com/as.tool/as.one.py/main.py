@@ -25,6 +25,7 @@ from asserial import UISerial
 from pyas.flashloader import *
 from pyas.ascan import *
 from asdcm import *
+from asxcp import *
 
 class AsAction(QAction):
     action=QtCore.pyqtSignal(str)
@@ -36,7 +37,7 @@ class AsAction(QAction):
         self.action.emit(self.text())
     
 class Window(QMainWindow):
-    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan,'Dcm':UIDcm}
+    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan,'Dcm':UIDcm,'Xcp':UIXcp}
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent) 
         self.creGui()
@@ -75,6 +76,7 @@ class Window(QMainWindow):
         self.onAction('Can')
         self.onAction('Flashloader')
         self.onAction('Dcm')
+        self.onAction('Xcp')
         
         self.setMinimumSize(1200, 600)
 

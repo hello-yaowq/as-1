@@ -16,12 +16,35 @@
 #ifdef __WINDOWS__
 #include <windows.h>
 #endif
+#ifdef CONFIG_ARCH_VEXPRESS
+#include <linux/kthread.h>
+#include <linux/sched.h>
+#include <linux/mutex.h>
+#include <linux/semaphore.h>
+#else
 #include <pthread.h>
 #include <unistd.h>
+#endif
 #include "Ipc.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_IPC 0
+#ifdef CONFIG_ARCH_VEXPRESS
+#define pthread_mutex_lock mutex_lock
+#define pthread_mutex_unlock mutex_unlock
+#define pthread_cond_signal up
+#define pthread_cond_wait(sem,lock) down(sem);mutex_lock(lock)
+#define pthread_create(...)
+#define usleep(nMilliSec) \
+    do { \
+        long timeout = (nMilliSec) * HZ /1000; \
+        while (timeout > 0) \
+        { \
+            timeout = schedule_timeout(timeout); \
+        } \
+    }while (0);
+
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -37,6 +60,10 @@ typedef struct
 	Ipc_ChannelRuntimeType runtime[IPC_CHL_NUM];
 	boolean bInitialized;
 }ipc_t;
+#ifdef CONFIG_ARCH_VEXPRESS
+typedef struct mutex pthread_mutex_t;
+typedef struct semaphore pthread_cond_t;
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static ipc_t ipc =
@@ -51,7 +78,8 @@ static boolean fifo_read(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType*
     {
     	//asmem(config->r_fifo,512);
         *idx = config->r_fifo->idx[runtime->r_pos];
-        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d from thread=%08X\n",*idx,runtime->r_pos,config->r_fifo->count,pthread_self());
+        ASLOG(IPC,"Incoming message: 0x%X,pos=%d,count=%d from fifo@%p\n",
+        		*idx,runtime->r_pos,config->r_fifo->count,config->r_fifo);
         config->r_fifo->count -= 1;
         runtime->r_pos = (runtime->r_pos + 1)%(IPC_FIFO_SIZE);
         ercd = TRUE;
@@ -74,13 +102,14 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 	{
 		config->w_fifo->idx[runtime->w_pos] = idx;
 		config->w_fifo->count += 1;
-		ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d from thread=%08X\n",idx,runtime->w_pos,config->w_fifo->count,pthread_self());
+		ASLOG(IPC,"Transmit message: 0x%X,pos=%d,count=%d through fifo@%p\n",
+				idx,runtime->w_pos,config->w_fifo->count,config->w_fifo);
 		runtime->w_pos = (runtime->w_pos + 1)%(IPC_FIFO_SIZE);
 		ercd = true;
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		ercd = false;
 	}
 #ifdef __WINDOWS__
@@ -96,7 +125,10 @@ static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* c
 #ifdef __WINDOWS__
 static DWORD Ipc_Daemon(PVOID lpParameter)
 #else
-static void* Ipc_Daemon(void* lpParameter)
+#ifndef CONFIG_ARCH_VEXPRESS
+static
+#endif
+void* Ipc_Daemon(void* lpParameter)
 #endif
 {
 #ifdef __WINDOWS__
@@ -109,7 +141,7 @@ static void* Ipc_Daemon(void* lpParameter)
 	Ipc_ChannelConfigType* config;
 	Ipc_ChannelRuntimeType* runtime;
 	chl = (Ipc_ChannelType)(unsigned long)lpParameter;
-	assert(chl<IPC_CHL_NUM);
+	asAssert(chl<IPC_CHL_NUM);
 	config = &(ipc.config->channelConfig[chl]);
 	runtime = &(ipc.runtime[chl]);
 #ifdef __WINDOWS__
@@ -120,8 +152,10 @@ static void* Ipc_Daemon(void* lpParameter)
 	{
 		usleep(1);
 	}
-    ASLOG(OFF,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
-          config->r_lock,config->w_lock,config->r_event,config->w_event,config->r_fifo,config->w_fifo);
+    ASLOG(IPC,"r_lock=%08X, w_lock=%08X, r_event=%08X, w_event=%08X, r_fifo=%08X, w_fifo=%08X\n",
+          (uint32)config->r_lock,(uint32)config->w_lock,
+		  (uint32)config->r_event,(uint32)config->w_event,
+		  (uint32)config->r_fifo,(uint32)config->w_fifo);
 	runtime->ready = TRUE;
 	while(true)
 	{
@@ -136,14 +170,14 @@ static void* Ipc_Daemon(void* lpParameter)
 			{
 				for( i=0 ; i<config->map_size; i++)
 				{
-					if(config->mapping->idx == idx)
+					if(config->mapping[i].vring->notifyid == idx)
 					{
-						assert(config->rxNotification);
-						config->rxNotification(config->mapping->chl);
+						asAssert(config->rxNotification);
+						config->rxNotification(config->mapping[i].chl);
 						break;
 					}
 				}
-				assert(i<config->map_size);
+				asAssert(i<config->map_size);
 			}
 			else
 			{
@@ -167,7 +201,7 @@ boolean Ipc_IsReady(Ipc_ChannelType chl)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 	return status;
 }
@@ -195,7 +229,7 @@ void Ipc_Init(const Ipc_ConfigType* config)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 void Ipc_WriteIdx(Ipc_ChannelType chl, uint16 idx)
@@ -203,9 +237,22 @@ void Ipc_WriteIdx(Ipc_ChannelType chl, uint16 idx)
 	Ipc_ChannelConfigType* config;
 	Ipc_ChannelRuntimeType* runtime;
 
-	assert(chl<IPC_CHL_NUM);
+	asAssert(chl<IPC_CHL_NUM);
 	config = &(ipc.config->channelConfig[chl]);
 	runtime = &(ipc.runtime[chl]);
 
 	fifo_write(runtime,config,idx);
 }
+
+#ifdef CONFIG_ARCH_VEXPRESS
+#include "RPmsg.h"
+#include "VirtQ.h"
+void aslinux_mcu_rproc_start(void)
+{
+	Ipc_Init(&Ipc_Config);
+	VirtQ_Init(&VirtQ_Config);
+	RPmsg_Init(&RPmsg_Config);
+
+	Ipc_Daemon((void*)0);
+}
+#endif

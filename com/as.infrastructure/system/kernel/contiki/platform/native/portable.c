@@ -21,11 +21,6 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TickType OsTickCounter = 0;
-const struct process *procinit[1] = {0,};
-
-PROCESS(hello_world_process, "Hello world process");
-AUTOSTART_PROCESSES(&hello_world_process);
 /* ============================ [ LOCALS    ] ====================================================== */
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -92,16 +87,16 @@ void mtarch_pstop(void)
 
 }
 
-TickType GetOsTick(void)
-{
-	return 0;
-}
-
-void ShutdownOS(StatusType ercd)
+void EnableAllInterrupts(void)
 {
 
 }
+void DisableAllInterrupts(void)
+{
 
+}
+
+<<<<<<< HEAD:com/as.infrastructure/system/kernel/contiki/platform/native/portable.c
 PROCESS_THREAD(hello_world_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -116,3 +111,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   PROCESS_END();
 }
+=======
+
+
+>>>>>>> 988596d6069b2f1b1b55344b0bd5f9ca327089f6:com/as.infrastructure/system/kernel/contiki/platform/native/portabe.c

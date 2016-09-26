@@ -10,7 +10,8 @@ rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
 # first default make
-all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
+#all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
+all:$(rootfs) askernel asglibc asbusybox asamb sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -21,31 +22,48 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
+	@mkdir -p $(download)
+
+automotive-message-broker:
+	@git clone https://github.com/otcshare/automotive-message-broker.git
+	@(cd automotive-message-broker;git checkout 0.14;mkdir build)
+	
+asamb:automotive-message-broker
+	@(cd automotive-message-broker/build; cmake ..; make)
+
+patch-kernel:
+	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
+	@(cp ../kernel . -rvf)
+	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
+	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
+	
 
 extract-kernel:
-	@xz -vdk $(download)/linux-3.18.tar.xz
-	@tar -xvf $(download)/linux-3.18.tar -C $(CURDIR)
+	@xz -dk $(download)/linux-3.18.tar.xz
+	@tar -xf $(download)/linux-3.18.tar -C $(CURDIR)
 	@rm $(download)/linux-3.18.tar
 	@mv linux-3.18 kernel
+	@make patch-kernel
 
 $(download)/linux-3.18.tar.xz:
 	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.tar.xz)
 	@make extract-kernel
 
 kernel/.config:
-	@(cd kernel;cp arch/arm/configs/vexpress_defconfig .config)
-	@(cd kernel;make menuconfig O=.)
+#	@(cd kernel;cp arch/arm/configs/vexpress_defconfig .config)
+#	@(cd kernel;make menuconfig O=.)
+	@(cd kernel;cp aspatch/vexpress_defconfig .config)
 
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
 
-askernel:$(download)/linux-3.18.tar.xz kernel/.config
+askernel:$(rootfs) $(download)/linux-3.18.tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
-	@cp -fv kernel/arch/arm/boot/zImage $(rootfs)/zImage
-	@cp -fv kernel/vmlinux $(rootfs)/vmlinux
+	@cp -f kernel/arch/arm/boot/zImage $(rootfs)/zImage
+	@cp -f kernel/vmlinux $(rootfs)/vmlinux
 	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
-	@cp -fv kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
+	@cp -f kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
 
 u-boot:
 	@git clone git://git.denx.de/u-boot.git
@@ -56,8 +74,8 @@ asuboot:u-boot
 	@(cd u-boot;cp -v u-boot $(rootfs))
 
 extract-busybox:
-	@bzip2 -dvk $(download)/busybox-1.24.0.tar.bz2
-	@tar -xvf $(download)/busybox-1.24.0.tar -C $(CURDIR)
+	@bzip2 -dk $(download)/busybox-1.24.0.tar.bz2
+	@tar -xf $(download)/busybox-1.24.0.tar -C $(CURDIR)
 	@rm $(download)/busybox-1.24.0.tar
 	@mv busybox-1.24.0 busybox
 
@@ -69,15 +87,16 @@ busybox-menuconfig:
 	@(cd busybox;make menuconfig)
 
 busybox/.config:
-	@(cd busybox;make menuconfig)
-
+	#@(cd busybox;make menuconfig)
+	@(cd busybox;cp ../kernel/aspatch/busybox_defconfig .config)
+	
 asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make all)
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
 
 extract-glibc:
-	@bzip2 -dvk $(download)/glibc-2.22.tar.bz2
-	@tar -xvf $(download)/glibc-2.22.tar -C $(CURDIR)
+	@bzip2 -dk $(download)/glibc-2.22.tar.bz2
+	@tar -xf $(download)/glibc-2.22.tar -C $(CURDIR)
 	@rm $(download)/glibc-2.22.tar
 	@mv glibc-2.22 glibc
 
@@ -92,18 +111,18 @@ asglibc:$(download)/glibc-2.22.tar.bz2
 		make;	\
 		make install install_root=$(rootfs))
 
-$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:
+$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:$(rootfs)
 	@(cd $(download);wget http://101.44.1.124/files/A165000004244025/anychimirror101.mirrors.tds.net/pub/Qt/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz)
 	@make extract-qt
 
 extract-qt-5.5.1:$(download)/qt-everywhere-opensource-src-5.5.1.tar.gz
-	@(gunzip -kv $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz)
-	@(tar -xvf$(download)/qt-everywhere-opensource-src-5.5.1.tar -C $(CURDIR))
+	@(gunzip -k $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz)
+	@(tar -xf$(download)/qt-everywhere-opensource-src-5.5.1.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-5.5.1.tar
 
 extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
-	@(gunzip -kv $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
-	@(tar -xvf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
+	@(gunzip -k $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
+	@(tar -xf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
 	
 $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
@@ -176,16 +195,16 @@ $(out)/sdcard.ext3:
 asrootfs:
 
 sdcard:$(out)/sdcard.ext3 asrootfs
-	@(cd $(out);mkdir -pv tmp;	\
+	@(cd $(out);mkdir -p tmp;	\
 		sudo mount -t ext3 sdcard.ext3 tmp/ -o loop;	\
-		sudo cp $(rootfs)/* tmp/ -rvf;	\
+		sudo cp $(rootfs)/* tmp/ -rf;	\
 		sudo mkdir tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\
 		sudo mknod tmp/dev/tty2 c 4 2;	\
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
-		sudo cp ~/workspace/as/release/aslinux/rootfs/* tmp/ -rvf;	\
+		sudo cp ../../rootfs/* tmp/ -rf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)

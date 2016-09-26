@@ -130,4 +130,6 @@ FUNC(StatusType,MEM_ClearEvent)      ClearEvent      ( EventMaskType mask );
 FUNC(StatusType,MEM_GetEvent)        GetEvent        ( TaskType tskid , EventMaskRefType p_mask );
 FUNC(StatusType,MEM_WaitEvent)       WaitEvent       ( EventMaskType mask );
 
+extern void EnableAllInterrupts(void);
+extern void DisableAllInterrupts(void);
 #endif /* OS_I_H */

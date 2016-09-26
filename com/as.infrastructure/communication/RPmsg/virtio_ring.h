@@ -55,7 +55,7 @@
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
 typedef struct {
 	/* Address (guest-physical). */
-	uint32 addr;
+	uint64 addr;
 	/* Length. */
 	uint32 len;
 	/* The flags as indicated above. */

@@ -20,9 +20,6 @@
 #define VIRTQ_CHL_RPMSG_RX  ((VirtQ_ChannerlType)0)
 #define VIRTQ_CHL_RPMSG_TX  ((VirtQ_ChannerlType)1)
 #define VIRTQ_CHL_NUM		((VirtQ_ChannerlType)2)
-
-#define VIRTQ_IDX_RPMSG_RX 0x100
-#define VIRTQ_IDX_RPMSG_TX 0x101
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
