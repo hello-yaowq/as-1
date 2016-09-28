@@ -45,6 +45,29 @@
 #define CAN_MAX_DLEN 8
 #define CAN_MTU sizeof(struct can_frame)
 #define CAN_PORT_MIN  80
+
+#define CAN_FRAME_TYPE_RAW 0
+#define CAN_FRAME_TYPE_MTU 1
+#define CAN_FRAME_TYPE CAN_FRAME_TYPE_RAW
+#if (CAN_FRAME_TYPE == CAN_FRAME_TYPE_RAW)
+#define mCANID(frame) ( ((uint32_t)frame.data[CAN_MAX_DLEN+0]<<24)+((uint32_t)frame.data[CAN_MAX_DLEN+1]<<16)	\
+					   +((uint32_t)frame.data[CAN_MAX_DLEN+2]<< 8)+((uint32_t)frame.data[CAN_MAX_DLEN+3]) )
+
+#define mSetCANID(frame,canid) do {	frame.data[CAN_MAX_DLEN+0] = (uint8_t)(canid>>24);	\
+									frame.data[CAN_MAX_DLEN+1] = (uint8_t)(canid>>16);	\
+									frame.data[CAN_MAX_DLEN+2] = (uint8_t)(canid>> 8);	\
+									frame.data[CAN_MAX_DLEN+3] = (uint8_t)(canid); } while(0)
+
+#define mCANDLC(frame) ( (uint8_t) frame.data[CAN_MAX_DLEN+4] )
+#define mSetCANDLC(frame,dlc) do { frame.data[CAN_MAX_DLEN+4] = dlc; } while(0)
+#else
+#define mCANID(frame) frame.can_id
+
+#define mSetCANID(frame,canid) do {	frame.can_id = canid; } while(0)
+
+#define mCANDLC(frame) ( frame->can_dlc )
+#define mSetCANDLC(frame,dlc) do { frame.can_dlc = dlc; } while(0)
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /**
  * struct can_frame - basic CAN frame structure
@@ -55,9 +78,13 @@
  * @data:    CAN frame payload (up to 8 byte)
  */
 struct can_frame {
+#if (CAN_FRAME_TYPE == CAN_FRAME_TYPE_RAW)
+	uint8_t    data[CAN_MAX_DLEN + 5];
+#else
 	uint32_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
 	uint8_t    can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
 	uint8_t    data[CAN_MAX_DLEN] __attribute__((aligned(8)));
+#endif
 };
 struct Can_SocketHandle_s
 {
@@ -198,8 +225,8 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 	if(handle != NULL)
 	{
 		struct can_frame frame;
-		frame.can_id = canid;
-		frame.can_dlc = dlc;
+		mSetCANID(frame , canid);
+		mSetCANDLC(frame , dlc);
 		memcpy(frame.data,data,dlc);
 
 		if (send(handle->s, (const char*)&frame, CAN_MTU,0) != CAN_MTU) {
@@ -244,7 +271,7 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 	}
 	else if(nbytes==sizeof(frame))
 	{
-		handle->rx_notification(handle->busid,frame.can_id,frame.can_dlc,frame.data);
+		handle->rx_notification(handle->busid,mCANID(frame),mCANDLC(frame),frame.data);
 	}
 	else
 	{

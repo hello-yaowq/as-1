@@ -40,6 +40,28 @@
 #define CAN_PORT_MIN  80
 #define CAN_BUS_NODE_MAX 32	/* maximum node on the bus port */
 
+#define CAN_FRAME_TYPE_RAW 0
+#define CAN_FRAME_TYPE_MTU 1
+#define CAN_FRAME_TYPE CAN_FRAME_TYPE_RAW
+#if (CAN_FRAME_TYPE == CAN_FRAME_TYPE_RAW)
+#define mCANID(frame) ( ((uint32_t)frame->data[CAN_MAX_DLEN+0]<<24)+((uint32_t)frame->data[CAN_MAX_DLEN+1]<<16)	\
+					   +((uint32_t)frame->data[CAN_MAX_DLEN+2]<< 8)+((uint32_t)frame->data[CAN_MAX_DLEN+3]) )
+
+#define mSetCANID(frame,canid) do {	frame->data[CAN_MAX_DLEN+0] = (uint8_t)(canid>>24);	\
+									frame->data[CAN_MAX_DLEN+1] = (uint8_t)(canid>>16);	\
+									frame->data[CAN_MAX_DLEN+2] = (uint8_t)(canid>> 8);	\
+									frame->data[CAN_MAX_DLEN+3] = (uint8_t)(canid); } while(0)
+
+#define mCANDLC(frame) ( (uint8_t) frame->data[CAN_MAX_DLEN+4] )
+#define mSetCANDLC(frame,dlc) do { frame->data[CAN_MAX_DLEN+4] = dlc; } while(0)
+#else
+#define mCANID(frame) frame->can_id
+
+#define mSetCANID(frame,canid) do {	frame->can_id = canid; } while(0)
+
+#define mCANDLC(frame) ( frame->can_dlc )
+#define mSetCANDLC(frame,dlc) do { frame->can_dlc = dlc; } while(0)
+#endif
 //#define USE_RX_DAEMON
 /* ============================ [ TYPES     ] ====================================================== */
 /**
@@ -51,9 +73,13 @@
  * @data:    CAN frame payload (up to 8 byte)
  */
 struct can_frame {
+#if (CAN_FRAME_TYPE == CAN_FRAME_TYPE_RAW)
+	uint8_t    data[CAN_MAX_DLEN + 5];
+#else
 	uint32_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
 	uint8_t    can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
 	uint8_t    data[CAN_MAX_DLEN] __attribute__((aligned(8)));
+#endif
 };
 struct Can_SocketHandle_s
 {
@@ -96,12 +122,12 @@ static int init_socket(int port)
 	int s;
 	WSADATA wsaData;
 	struct sockaddr_in service;
-	struct timeval tv;
+	/* struct timeval tv; */
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (s == INVALID_SOCKET) {
+	if ((SOCKET)s == INVALID_SOCKET) {
 		wprintf(L"socket function failed with error: %u\n", WSAGetLastError());
 		WSACleanup();
 		return FALSE;;
@@ -150,13 +176,13 @@ static int init_socket(int port)
 static void try_accept(void)
 {
 	struct Can_SocketHandle_s* handle;
-	struct timeval tv;
+	/* struct timeval tv; */
 	int s = accept(socketH->s, NULL, NULL);
 
-	if(s != INVALID_SOCKET)
+	if((SOCKET)s != INVALID_SOCKET)
 	{
-		tv.tv_sec  = 0;
-		tv.tv_usec = 0;
+		/* tv.tv_sec  = 0;
+		tv.tv_usec = 0; */
 		handle = malloc(sizeof(struct Can_SocketHandle_s));
 		assert(handle);
 		handle->s = s;
@@ -218,7 +244,7 @@ static void log_msg(struct can_frame* frame,float rtim)
 	{
 		STAILQ_FOREACH(filter,&canFilterH->head,entry)
 		{
-			if((frame->can_id&filter->mask) == (filter->code&filter->mask))
+			if((mCANID(frame)&filter->mask) == (filter->code&filter->mask))
 			{
 				bOut = TRUE;
 			}
@@ -228,7 +254,7 @@ static void log_msg(struct can_frame* frame,float rtim)
 	if(bOut)
 	{
 		printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X] @ %f s\n",
-				frame->can_id,frame->can_dlc,
+				mCANID(frame),mCANDLC(frame),
 				frame->data[0],frame->data[1],frame->data[2],frame->data[3],
 				frame->data[4],frame->data[5],frame->data[6],frame->data[7],
 				rtim);
@@ -331,8 +357,6 @@ static void arg_filter(char* s)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int main(int argc,char* argv[])
 {
-	int rv;
-
 	if(argc < 2)
 	{
 		printf( "Usage:%s <port> : 'port' is a number start from 0\n"

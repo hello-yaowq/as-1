@@ -47,7 +47,7 @@
 
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_CANIF  0
+#define AS_LOG_CANIF  1
 
 #if  ( CANIF_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \

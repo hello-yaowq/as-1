@@ -181,9 +181,8 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -I$(src-dir)/include	\
-		$(src-dir)/socketwin_can_driver.c -o $(exe-dir)/ascan_socket_server.exe		\
-		-lwinmm -lwsock32 -lm -lpthread
+	@$(CC) $(cflags-y) $(inc-y) -D__SOCKET_WIN_CAN_DRIVER__ -o $(obj-dir)/socketwin_can_driver2.o $(src-dir)/socketwin_can_driver.c
+	@$(LD) $(obj-dir)/socketwin_can_driver2.o $(ldflags-y) -o $(exe-dir)/ascan_socket_server.exe 
 	@cp -v $(exe-dir)/ascan_socket_server.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 
