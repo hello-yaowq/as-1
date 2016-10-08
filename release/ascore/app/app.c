@@ -32,7 +32,7 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_XCP
-static uint8_t xcpSimMTAMemory[1024];
+uint8_t xcpSimMTAMemory[1024];
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_STMO
@@ -156,6 +156,10 @@ void StartupHook(void)
 
 #ifdef USE_XCP
 	printf(" XCP MTA memory address %p\n",xcpSimMTAMemory);
+	for(int i=0;i<sizeof(xcpSimMTAMemory);i++)
+	{
+		xcpSimMTAMemory[i] = i;
+	}
 #endif
 
 	OsSetRelAlarm(AlarmApp, 10, 5);
@@ -176,7 +180,11 @@ TASK(TaskApp)
 #endif
 
 #ifdef USE_XCP
-	Xcp_MainFunction_Channel(XCP_EVCHL_10ms);
+	{
+		static int counter = 0;
+		counter ++;
+		if(0 ==(counter%100))Xcp_MainFunction_Channel(XCP_EVCHL_1000ms);
+	}
 #endif
 
 	OsTerminateTask(TaskApp);

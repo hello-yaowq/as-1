@@ -305,7 +305,7 @@ class wDataU(QLineEdit):
 
 class UICommand(QGroupBox):
     def __init__(self,xml,parent=None):
-        super(QGroupBox, self).__init__(xml.attrib['name'],parent)
+        super(QGroupBox, self).__init__('%s %s'%(xml.attrib['name'],xml.attrib['ID']),parent)
         self.xml = xml
         grid = QGridLayout()
         
@@ -365,7 +365,8 @@ class UICommand(QGroupBox):
             QMessageBox(QMessageBox.Critical, 'Error', 'Command execute Failed!  %s.'%(Xcp_GetLastError())).exec_();
         else:
             if(pid == 0xFF):
-                xcp_cpu_endian = res.toarray()[1]&0x01;
+                xcp_cpu_endian = res.toarray()[2]&0x01;
+                QMessageBox(QMessageBox.Information, 'XCP', 'XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian)).exec_()
             for leData in self.leDataResponse:
                 start = leData.setValue(res,start)
 

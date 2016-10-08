@@ -78,7 +78,7 @@
 					<Select name='DIO_PORT' value='0x02'/>
 					<Select name='DIO_CHANNEL' value='0x03'/>
 				</Data>
-				<Data name='address' type='U32' display='hex' default='0x897d60'/>
+				<Data name='address' type='U32' display='hex' default='0x8a01a0'/>
 			</Request>
 			<Response>
 			</Response>
@@ -106,7 +106,7 @@
 					<Select name='DIO_PORT' value='0x02'/>
 					<Select name='DIO_CHANNEL' value='0x03'/>
 				</Data>
-				<Data name='address' type='U32' display='hex' default='0x897d60'/>
+				<Data name='address' type='U32' display='hex' default='0x8a01a0'/>
 			</Request>
 			<Response>
 				<Data name='byte0' type='U8' display='hex' default='0'/>
@@ -138,7 +138,7 @@
 					<Select name='DIO_PORT' value='0x02'/>
 					<Select name='DIO_CHANNEL' value='0x03'/>
 				</Data>
-				<Data name='Address' type='U32' display='dec' default='0x897d60'/>
+				<Data name='Address' type='U32' display='dec' default='0x8a01a0'/>
 			</Request>
 			<Response>
 			</Response>

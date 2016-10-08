@@ -74,6 +74,7 @@ def GenH():
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('extern const Xcp_ConfigType XcpConfig;\n')
+    fp.write('extern uint8_t xcpSimMTAMemory[];\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('#endif\n')
@@ -121,7 +122,7 @@ def GenC():
             for entry in GLGet(odt,'XcpOdtEntryList'):
                 fp.write('    { /* %s of %s of %s */\n'%(GAGet(entry,'Name'),GAGet(odt,'Name'),GAGet(daq,'Name')))
                 fp.write('        .XcpOdtEntryExtension=XCP_MTA_EXTENSION_%s,\n'%(GAGet(entry,'Extension')))
-                fp.write('        .XcpOdtEntryAddress=%s,\n'%(GAGet(entry,'Address')))
+                fp.write('        .XcpOdtEntryAddress=(void*)%s,\n'%(GAGet(entry,'Address')))
                 fp.write('        .XcpOdtEntryLength=%s,\n'%(GAGet(entry,'Length')))
                 fp.write('    },\n')
     fp.write('};\n\n')

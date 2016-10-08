@@ -897,7 +897,7 @@
 						<XcpEntry
 							Name="Text PosGUI=0"
 							Extension="Enum=(MEMORY,FLASH,DIO_PORT,DIO_CHANNEL) Default=MEMORY Range=0~256 PosGUI=1"
-							Address="Integer Default=0x897d60 PosGUI=2"
+							Address="Text Default=0x8a01a0 PosGUI=2"
 							Length="Integer Default=4 Unit=byte PosGUI=3"
 							Comment="TextArea Default=* PosGUI=4"
 							/>

@@ -69,7 +69,7 @@ typedef struct {
 } Xcp_DtoType;
 
 typedef struct Xcp_OdtEntryType {
-	uint32 XcpOdtEntryAddress;
+	void* XcpOdtEntryAddress;
 	uint8 XcpOdtEntryLength;
 	uint8 XcpOdtEntryNumber; /* 0 .. 254 */
 

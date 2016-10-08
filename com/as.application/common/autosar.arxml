@@ -379,21 +379,23 @@
 <XcpOdtList Max="TBD">
 <XcpOdt Comment="*" Name="XcpOdt1">
 <XcpOdtEntryList Max="TBD">
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[0]" Comment="*" Extension="MEMORY" Length="1" Name="XcpEntry1" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[1]" Comment="*" Extension="MEMORY" Length="2" Name="XcpEntry2" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[3]" Comment="*" Extension="MEMORY" Length="3" Name="XcpEntry3" />
 </XcpOdtEntryList>
 </XcpOdt>
 <XcpOdt Comment="*" Name="XcpOdt2">
 <XcpOdtEntryList Max="TBD">
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry1" />
-<XcpEntry Address="0x897d60" Comment="*" Extension="MEMORY" Length="4" Name="XcpEntry2" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[6]" Comment="*" Extension="MEMORY" Length="1" Name="XcpEntry1" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[7]" Comment="*" Extension="MEMORY" Length="2" Name="XcpEntry2" />
+<XcpEntry Address="&amp;xcpSimMTAMemory[9]" Comment="*" Extension="MEMORY" Length="3" Name="XcpEntry3" />
 </XcpOdtEntryList>
 </XcpOdt>
 </XcpOdtList>
 </XcpDaq>
 </XcpStaticDaqList>
 <XcpEventChannelList Max="TBD">
-<XcpEventChannel Comment="*" DAQListRefSize="8" Name="10ms">
+<XcpEventChannel Comment="*" DAQListRefSize="8" Name="1000ms">
 <XcpStaticDaqList Max="TBD">
 <XcpDaq Comment="*" Name="XcpDaq1" />
 </XcpStaticDaqList>
