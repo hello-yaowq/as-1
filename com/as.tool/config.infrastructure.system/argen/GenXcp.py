@@ -18,7 +18,7 @@ from .GCF import *
 __all__ = ['GenXcp']
 
 __dir = '.'
-    
+
 def GenXcp(root,dir):
     global __dir,__root
     GLInit(root)
@@ -59,6 +59,10 @@ def GenH():
     fp.write('#define XCP_PDU_ID_BROADCAST 0\n')
     fp.write('#define XCP_ID_XCP_RX XCP_PDU_ID_RX\n')
     fp.write('#define XCP_ID_XCP_TX XCP_PDU_ID_TX\n\n')
+    fp.write('#define XCP_FEATURE_PROTECTION STD_ON\n')
+    fp.write('#define XCP_FEATURE_PGM STD_ON\n')
+    fp.write('#define XCP_FEATURE_BLOCKMODE STD_ON\n')
+    fp.write('#define XCP_FEATURE_CALPAG STD_ON\n\n')
     
     for id,evchl in enumerate(GLGet('XcpEventChannelList')):
         fp.write('#define XCP_EVCHL_%-32s %s\n'%(GAGet(evchl,'Name'),id))
@@ -167,6 +171,37 @@ def GenC():
         fp.write('    },\n')
     fp.write('};\n\n')
     fp.write('''
+Std_ReturnType __weak Xcp_UnlockFn(Xcp_ProtectType res, const uint8* seed,
+            uint8 seed_len, const uint8* key, uint8 key_len)
+{
+    Std_ReturnType ercd = E_OK;
+    if( (4==seed_len) && (4==key_len))
+    {
+        if( 0 == memcmp(seed,key,4))
+        {
+        }
+        else
+        {
+            ercd = E_NOT_OK;
+        }
+    }
+    else
+    {
+        ercd = E_NOT_OK;
+    }
+
+    return ercd;
+}
+uint8 __weak Xcp_SeedFn(Xcp_ProtectType res, uint8* seed)
+{
+    uint8 seed_r[4];    /* use stack local random value */
+    memcpy(seed,seed_r,4);
+    return 4;
+}
+Std_ReturnType __weak Xcp_UserFn(void* data, int len)
+{
+    return E_NOT_OK;
+}
 const Xcp_ConfigType XcpConfig =
 {
     .XcpEventChannel = xcpEventChannel,
@@ -177,8 +212,11 @@ const Xcp_ConfigType XcpConfig =
 #if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
     .ptrDynamicDaq = &xcpDaqList[%s],
     .ptrDynamicOdt = &xcpOdt[%s],
-    .ptrDynamicOdtEntry = &xcpOdtEntry[%s]
+    .ptrDynamicOdtEntry = &xcpOdtEntry[%s],
 #endif
+    .XcpSeedFn = Xcp_SeedFn,
+    .XcpUnlockFn = Xcp_UnlockFn,
+    .XcpUserFn = Xcp_UserFn,
 };
 '''%(len(GLGet('XcpEventChannelList')),
      len(GLGet('XcpStaticDaqList')),
@@ -186,7 +224,7 @@ const Xcp_ConfigType XcpConfig =
      XCP_DAQ_COUNT-int(GAGet(General,'XcpDaqCount')),
      XCP_ODT_COUNT-int(GAGet(General,'XcpOdtCount')),
      XCP_ODT_ENTRIES_COUNT-int(GAGet(General,'XcpOdtEntriesCount'))))
-     
+
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

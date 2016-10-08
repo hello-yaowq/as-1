@@ -142,7 +142,7 @@ class wDataU(QLineEdit):
     def setValue(self,data,start):
         try:
             if(self.Data.attrib['type'][-5:]=='Array'):
-                num = str2int(self.Data.attrib['type'][0:-5])
+                num = str2int(self.Data.attrib['type'][1:-5])
                 value = '[ '
                 size = str2int(self.Data.attrib['size'])
                 for i in range(0,size):

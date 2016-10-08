@@ -17,6 +17,32 @@
 				<Data name='XCP Protocol Layer Version Number' type='U16' display='hex' default='0'/>
 			</Response>			
 		</Command>
+		<Command name='GetSeed' ID='0xF8'>
+			<Request>
+				<Data name='Mode' type='U8 Select'>
+					<Select name='Normal' value='0x00'/>
+					<Select name='user define' value='0x01'/>
+				</Data>
+				<Data name='Type' type='U8 Select'>
+					<Select name='CALPAG' value='0x01'/>
+					<Select name='DAQ' value='0x04'/>
+					<Select name='STIM' value='0x08'/>
+					<Select name='PGM' value='0x10'/>
+				</Data>
+			</Request>
+			<Response>
+				<Data name='seed length' type='U8' display='dec' />
+				<Data name='seed' type='U8Array' display='hex' size='4' />
+			</Response>
+		</Command>
+		<Command name='Unlock' ID='0xF7'>
+			<Request>
+				<Data name='key length' type='U8' default='4' display='dec' />
+				<Data name='key' type='U8Array' display='hex' size='4' default='[0xFF,0xFF,0xFF,0xFF]' />
+			</Request>
+			<Response>
+			</Response>
+		</Command>
 		<Command name='Disconnect' ID='0xFE'><Request></Request><Response></Response></Command>
 		<Command name='GetStatus' ID='0xFD'>
 			<Request></Request>

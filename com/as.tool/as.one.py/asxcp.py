@@ -42,6 +42,21 @@ xcp_cpu_endian = 1
 
 __last_response = None
 
+__error_code = {
+    0x00:'XCP_ERR_CMD_SYNCH',           0x10:'XCP_ERR_CMD_BUSY',
+    0x11:'XCP_ERR_DAQ_ACTIVE',          0x12:'XCP_ERR_PGM_ACTIVE',
+
+    0x20:'XCP_ERR_CMD_UNKNOWN',         0x21:'XCP_ERR_CMD_SYNTAX',
+    0x22:'XCP_ERR_OUT_OF_RANGE',        0x23:'XCP_ERR_WRITE_PROTECTED',
+    0x24:'XCP_ERR_ACCESS_DENIED',       0x25:'XCP_ERR_ACCESS_LOCKED',
+    0x26:'XCP_ERR_PAGE_NOT_VALID',      0x27:'XCP_ERR_MODE_NOT_VALID',
+    0x28:'XCP_ERR_SEGMENT_NOT_VALID',   0x29:'XCP_ERR_SEQUENCE',
+    0x2A:'XCP_ERR_DAQ_CONFIG',
+
+    0x30:'XCP_ERR_MEMORY_OVERFLOW',     0x31:'XCP_ERR_GENERIC',
+    0x32:'XCP_ERR_VERIFY'
+}
+
 def __show_request__(req):
     ss = "  >> xcp request = ["
     length = len(req)
@@ -57,7 +72,7 @@ def __show_response__(res):
         ss += '%02X,'%(res[i])
     ss+=']'
     print(ss)
-    
+
 def Xcp_PollDAQMessage():
     if(__last_response==None):return
     result,canid,data= can_read(__canbus__,__rx_canid__)
@@ -76,7 +91,7 @@ def Xcp_TransmitMessage(req):
     ercd = False
     data=None
     pre = time.time()
-    while ( ((time.time() - pre) < 100) and (ercd == False)): # 1s timeout
+    while ( ((time.time() - pre) < 1) and (ercd == False)): # 1s timeout
         result,canid,data= can_read(__canbus__,__rx_canid__)
         if((True == result) and (__rx_canid__ == canid)):
             ercd = True
@@ -95,10 +110,22 @@ def Xcp_TransmitMessage(req):
     return __last_response
 
 def Xcp_GetLastError():
-    return __last_response.toarray()
+    ercd = __last_response.toarray()[1]
+    ss = Xcp_GetResponse()
+    try:
+        ss += ' %s'%(__error_code[ercd])
+    except KeyError:
+        ss += ' unknown error code %s'%(ercd)
+    return ss
 
 def Xcp_GetResponse():
-    return __last_response.toarray()
+    data = __last_response.toarray()
+    ss = "["
+    length = len(data)
+    for i in range(length):
+        ss += '%02X,'%(data[i])
+    ss+=']'
+    return ss
 
 def str2int(sstr):
     if(sstr[:2].lower() == '0x'):
@@ -220,7 +247,7 @@ class wDataU(QLineEdit):
     def setValue(self,data,start):
         try:
             if(self.Data.attrib['type'][-5:]=='Array'):
-                num = str2int(self.Data.attrib['type'][0:-5])
+                num = str2int(self.Data.attrib['type'][1:-5])
                 value = '[ '
                 size = str2int(self.Data.attrib['size'])
                 for i in range(0,size):
