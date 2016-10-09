@@ -11,7 +11,7 @@ download = $(CURDIR)/download
 
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
-all:$(rootfs) askernel asglibc asbusybox asamb sdcard
+all:$(rootfs) askernel asglibc asbusybox asamb ascanutil sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -23,6 +23,12 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
+
+can-utils:
+	@git clone  https://github.com/linux-can/can-utils.git
+
+ascanutil:can-utils
+	@(cd can-utils;make;make install PREFIX=$(rootfs)/usr)
 
 automotive-message-broker:
 	@git clone https://github.com/otcshare/automotive-message-broker.git

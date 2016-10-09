@@ -82,7 +82,12 @@ class Window(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setFont(QFont('Consolas', 10)) 
+    if(os.name == 'nt'):
+        app.setFont(QFont('Consolas')) 
+    elif(os.name == 'posix'):
+        app.setFont(QFont('Monospace'))
+    else:
+        print('unKnown platform.')
     mWain = Window()
     mWain.show()
     sys.exit(app.exec_()) 

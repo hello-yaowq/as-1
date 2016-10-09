@@ -25,6 +25,7 @@ import sys,os
 import xml.etree.ElementTree as ET
 from pyas.dcm import *
 import traceback
+import re
 
 from pyas.can import *
 
@@ -342,7 +343,7 @@ class UICommand(QGroupBox):
             grid.addWidget(QLabel(data.attrib['name']), row, col+0)
             grid.addWidget(leData, row, col+1)
             col += 2
-            
+
             if(col >= 8):
                 row += 1
                 col = 0
@@ -354,10 +355,10 @@ class UICommand(QGroupBox):
         data = xcpbits()
         pid = str2int(self.xml.attrib['ID'])
         data.append(pid,8)
-        
+
         for leData in self.leDataRequest:
             leData.getValue(data)
-       
+
         res = Xcp_TransmitMessage(data.toarray())
         start = 8
         if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
@@ -366,9 +367,128 @@ class UICommand(QGroupBox):
         else:
             if(pid == 0xFF):
                 xcp_cpu_endian = res.toarray()[2]&0x01;
-                QMessageBox(QMessageBox.Information, 'XCP', 'XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian)).exec_()
+                #QMessageBox(QMessageBox.Information, 'XCP', 'XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian)).exec_()
+                print('XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian))
             for leData in self.leDataResponse:
                 start = leData.setValue(res,start)
+
+class UIMTA(QGroupBox):
+    def __init__(self,xml,parent=None):
+        super(QGroupBox, self).__init__('%s'%(xml.attrib['name']),parent)
+        self.xml = xml
+
+        vbox = QVBoxLayout()
+
+        grid = QGridLayout()
+
+        grid.addWidget(QLabel('Address'), 0, 0)
+        self.leAddress = QLineEdit()
+        grid.addWidget(self.leAddress, 0, 1)
+        self.leAddress.setText('0x8a01a0')
+
+        grid.addWidget(QLabel('Size'), 0, 2)
+        self.leSize = QLineEdit()
+        grid.addWidget(self.leSize, 0, 3)
+        self.leSize.setText('100')
+
+        self.btnUpload = QPushButton('Upload')
+        grid.addWidget(self.btnUpload, 0, 4)
+        self.btnUpload.clicked.connect(self.on_btnUpload_clicked)
+
+        self.btnDownload = QPushButton('Download')
+        grid.addWidget(self.btnDownload, 0, 5)
+        self.btnDownload.clicked.connect(self.on_btnDownload_clicked)
+
+        vbox.addLayout(grid)
+
+        self.leMemory = QTextEdit()
+        vbox.addWidget(self.leMemory)
+        self.leMemory.setMinimumWidth(1000)
+
+        self.setLayout(vbox)
+
+    def send(self,data):
+        res = Xcp_TransmitMessage(data.toarray())
+        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
+        if(res.toarray()[0]!=0xFF):
+            QMessageBox(QMessageBox.Critical, 'Error', 'Command execute Failed!  %s.'%(Xcp_GetLastError())).exec_();
+            return
+        return res
+
+    def on_btnUpload_clicked(self):
+        address = str2int(self.leAddress.text())
+        size = str2int(self.leSize.text())
+        content = []
+        # short upload
+        while(size > 0):
+            data = xcpbits()
+            data.append(0xf4)
+            length = 7
+            if(size < length):length=size
+            data.append(length)
+            data.append(0x00)   # resered
+            data.append(0x00)   # type: memory
+            data.append(address,32)
+            size -= length
+            address += length
+            res = self.send(data)
+            if(None==res):return
+            bytes = res.toarray()
+            vlen = len(bytes)-1
+            for i in range(0,vlen):
+                content.append(bytes[1+i])
+
+        address = str2int(self.leAddress.text())
+        cstr = ' address : 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F'
+        astr = ''
+        for i,d in enumerate(content):
+            if(i%16==0):astr=' : ';cstr+=astr;cstr+='\n%08X :'%(address+i)
+            cstr += ' %02X'%(content[i])
+            # TODO astr += '%c'%(content[i])
+        if((i+1)%16==0):
+            astr=' : ';cstr+=astr;
+        else:
+            for j in range(0,16-(i+1)%16):
+                cstr += ' FF'
+            astr=' : ';cstr+=astr;
+        self.leMemory.setText(cstr)
+    def getMemoryContent(self):
+        '''1234ABCD : 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F'''
+        reItem = re.compile(r'([0-9A-F]+) : ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+) ([0-9A-F]+)')
+        cstr = self.leMemory.toPlainText()
+        content = []
+        for el in cstr.split('\n'):
+            if(reItem.search(el)):
+                for d in reItem.search(el).groups()[1:]:
+                    content.append(str2int('0x%s'%(d)))
+        return content
+
+    def on_btnDownload_clicked(self):
+        content = self.getMemoryContent()
+        address = str2int(self.leAddress.text())
+        size = str2int(self.leSize.text())
+        # set MTA
+        data = xcpbits()
+        data.append(0xf6)
+        data.append(0x0000,16)   # reserved
+        data.append(0x00)   # type: memory
+        data.append(address,32)
+        res = self.send(data)
+        if(None == res):return
+        # download
+        dlen = 0
+        while(size > 0):
+            length = 6
+            if(size < length): length = size
+            data = xcpbits()
+            data.append(0xf0)
+            data.append(length)
+            for i in range(0,length):
+                data.append(content[dlen+i])
+            res = self.send(data)
+            if(res==None):return
+            size -= length
+            dlen += length
 
 class UIGroup(QScrollArea):
     def __init__(self, xml,parent=None):
@@ -378,6 +498,8 @@ class UIGroup(QScrollArea):
         for service in xml:
             if(service.tag=='Command'):
                 vBox.addWidget(UICommand(service))
+            elif(service.tag=='MTA'):
+                vBox.addWidget(UIMTA(service))
         wd.setLayout(vBox)
         self.setWidget(wd)
 
