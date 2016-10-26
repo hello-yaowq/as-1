@@ -1,0 +1,13 @@
+#define LWIP_AR_MAJOR_VERSION   1
+#define LWIP_AR_MINOR_VERSION   0
+#define LWIP_AR_PATCH_VERSION   0
+
+#define LWIP_SW_MAJOR_VERSION   1
+#define LWIP_SW_MINOR_VERSION   0
+#define LWIP_SW_PATCH_VERSION   0
+
+#ifndef LWIP_TIMEVAL_PRIVATE
+#define LWIP_TIMEVAL_PRIVATE 0
+#endif
+
+#include "LwIp_Cfg.h"

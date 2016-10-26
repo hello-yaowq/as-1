@@ -147,8 +147,10 @@ else	 # openVG
 def-y += -DGUI_USE_OPENVG	
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 inc-y += -I$(inc-dir)/EGL
-inc-y += -I$(inc-dir)/VG	
+inc-y += -I$(inc-dir)/VG
 endif
+inc-y += -I$(src-dir)/lwip/src/include
+inc-y += -I$(src-dir)/lwip/src/include/ipv4
 endif	# posix end
 
 ifeq ($(board),at91sam3s)
@@ -271,6 +273,14 @@ studio:
 
 dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
+
+lwip:
+	@(git clone git://git.savannah.nongnu.org/lwip.git;	\
+		git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git)
+	
+dep-lwip: lwip
+	@(cd lwip;git checkout STABLE-1_4_1)
+	(cd lwip-contrib;git checkout STABLE-1_4_1)
 	
 dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
@@ -288,10 +298,13 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/memory TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/libraries TRUE)
