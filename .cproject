@@ -90,6 +90,7 @@
 									<listOptionValue builtIn="false" value="USE_CANNM"/>
 									<listOptionValue builtIn="false" value="USE_XCP"/>
 									<listOptionValue builtIn="false" value="_LITTLE_ENDIAN"/>
+									<listOptionValue builtIn="false" value="USE_SOAD"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -148,6 +149,7 @@
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
 									<listOptionValue builtIn="false" value="USE_XCP"/>
 									<listOptionValue builtIn="false" value="_LITTLE_ENDIAN"/>
+									<listOptionValue builtIn="false" value="USE_SOAD"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

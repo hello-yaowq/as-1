@@ -42,10 +42,7 @@ void PduR_SoAdTpTxConfirmation(PduIdType dcmTxPduId, NotifResultType Result)
 
 
 /* PduR_SoAd interface API implementation */
-void PduR_SoAdIfRxIndication(PduIdType RxPduId, const uint8* SduPtr) {
-	PduInfoType PduInfo = {
-		.SduDataPtr = (uint8 *)SduPtr
-	};
+void PduR_SoAdIfRxIndication(PduIdType RxPduId, PduInfoType* PduInfo) {
 	PduR_ARC_RxIndication(RxPduId, &PduInfo, 0x01);
 }
 
@@ -59,6 +56,18 @@ void PduR_SoAdIfTriggerTransmit(PduIdType TxPduId, uint8 *SduPtr) {
 		.SduDataPtr = SduPtr
 	};
 	PduR_ARC_TriggerTransmit(TxPduId, &PduInfo, 0x10);
+}
+
+BufReq_ReturnType PduR_SoAdTpStartOfReception(PduIdType id, PduLengthType TpSduLength, PduLengthType* bufferSizePtr) {
+    return 0;
+}
+
+BufReq_ReturnType PduR_SoAdTpCopyRxData(PduIdType id, PduInfoType* info, PduLengthType* bufferSizePtr) {
+    return 0;
+}
+
+BufReq_ReturnType PduR_SoAdTpCopyTxData(PduIdType id, PduInfoType* info, RetryInfoType* retry, PduLengthType* availableDataPtr ) {
+    return 0;
 }
 
 #endif

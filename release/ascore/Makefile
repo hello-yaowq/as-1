@@ -135,6 +135,7 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+def-y += -DUSE_SOAD
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
@@ -308,6 +309,7 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/core TRUE)
 	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/netif TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/api TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/memory TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/libraries TRUE)

@@ -52,6 +52,12 @@ typedef struct {
 } PduInfoType;
 
 typedef enum {
+    TP_STMIN=0,
+    TP_BS,
+    TP_BC,
+} TPParameterType;
+
+typedef enum {
 	TP_DATACONF,
 	TP_DATARETRY,
 	TP_CONFPENDING,
@@ -70,11 +76,15 @@ typedef struct {
 } PduInfoType;
 */
 
+// IMPROVEMENT: remove all non-E_prefixed error enum values
 typedef enum {
 	BUFREQ_OK=0,
-	BUFREQ_NOT_OK,
-	BUFREQ_BUSY,
-	BUFREQ_OVFL
+    BUFREQ_NOT_OK=1,
+    BUFREQ_E_NOT_OK=1,
+    BUFREQ_BUSY=2,
+    BUFREQ_E_BUSY=2,
+    BUFREQ_OVFL=3,
+    BUFREQ_E_OVFL=3,
 } BufReq_ReturnType;
 
 // 0x00--0x1e General return types

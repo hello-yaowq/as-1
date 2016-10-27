@@ -34,9 +34,11 @@ BufReq_ReturnType PduR_SoAdTpProvideTxBuffer(PduIdType dcmTxPduId, PduInfoType *
 void PduR_SoAdTpTxConfirmation(PduIdType dcmTxPduId, NotifResultType result);
 
 /* SoAd acts as interface module */
-void PduR_SoAdIfRxIndication(PduIdType RxPduId, const uint8* SduPtr);
+void PduR_SoAdIfRxIndication(PduIdType RxPduId, PduInfoType* PduInfo);
 void PduR_SoAdIfTxConfirmation(PduIdType ComTxPduId);
 void PduR_SoAdIfTriggerTransmit(PduIdType TxPduId, uint8 *SduPtr);
+
+BufReq_ReturnType PduR_SoAdTpStartOfReception(PduIdType id, PduLengthType TpSduLength, PduLengthType* bufferSizePtr);
 
 #endif
 

@@ -71,7 +71,11 @@ def GenH():
 #define PDUR_DCM_SUPPORT STD_%s
 #define PDUR_IPDUM_SUPPORT STD_OFF  /* Not supported */
 #define PDUR_J1939TP_SUPPORT STD_%s
-#define PDUR_SOAD_SUPPORT STD_OFF  /* Not supported */
+#ifdef USE_SOAD
+#define PDUR_SOAD_SUPPORT STD_ON
+#else
+#define PDUR_SOAD_SUPPORT STD_OFF
+#endif
 
 #define PDUR_DEV_ERROR_DETECT         STD_%s
 #define PDUR_VERSION_INFO_API         STD_%s
