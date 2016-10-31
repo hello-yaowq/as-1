@@ -284,6 +284,7 @@ dep-lwip: lwip
 	(cd lwip-contrib;git checkout STABLE-1_4_1)
 	
 dep-posix: SG dep-as-virtual
+	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
@@ -299,7 +300,7 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch)
+	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)

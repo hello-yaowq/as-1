@@ -19,6 +19,25 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+const SoAd_ConfigType SoAd_Config;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-const SoAd_ConfigType SoAd_Config;
+Std_ReturnType SoAd_DoIp_Arc_GetVin(uint8* buf, uint8 len)
+{
+	return E_OK;
+}
+
+Std_ReturnType SoAd_DoIp_Arc_GetEid(uint8* buf, uint8 len)
+{
+	return E_OK;
+}
+
+Std_ReturnType SoAd_DoIp_Arc_GetGid(uint8* buf, uint8 len)
+{
+	return E_OK;
+}
+
+Std_ReturnType SoAd_DoIp_Arc_GetFurtherActionRequired(uint8* buf)
+{
+	return E_OK;
+}
