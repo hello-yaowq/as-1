@@ -62,3 +62,30 @@ char* strcpy (char* __to, const char* __from)
 	*dst = '\0';
 	return __to;
 }
+
+int
+strcmp(const char *s1, const char *s2)
+{
+	for ( ; *s1 == *s2; s1++, s2++)
+	if (*s1 == '\0')
+	{
+		return 0;
+	}
+	return ((*(unsigned char *)s1 < *(unsigned char *)s2) ? -1 : +1);
+}
+
+
+int
+memcmp(const void *s1, const void *s2, size_t n)
+{
+	unsigned char u1, u2;
+
+	for ( ; n-- ; s1++, s2++) {
+		u1 = * (unsigned char *) s1;
+		u2 = * (unsigned char *) s2;
+		if ( u1 != u2) {
+			return (u1-u2);
+		}
+	}
+	return 0;
+}

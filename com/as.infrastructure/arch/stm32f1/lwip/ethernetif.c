@@ -62,8 +62,6 @@
 
 
 #include "Os.h"
-#include "irq.h"
-#include "arc.h"
 
 
 /* TCP and ARP timeouts */

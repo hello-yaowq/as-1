@@ -29,9 +29,6 @@
 #include "stm32_eth.h"
 
 #include "Os.h"
-#include "irq.h"
-#include "arc.h"
-#include "sleep.h"
 #include "Mcu.h"
 
 #define MAX_DHCP_TRIES        1

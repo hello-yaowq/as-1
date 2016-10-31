@@ -43,10 +43,7 @@
 
 void pre_sys_init(void);
 typedef uint8 sys_sem_t;
-
 typedef void* sys_mbox_t;
-
-
 typedef TaskType sys_thread_t;
 
 #endif /* __SYS_RTXC_H__ */

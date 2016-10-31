@@ -197,9 +197,12 @@ def-y += -DCHIP_STM32F10X -DSTM32F10X_CL -DUSE_STDPERIPH_DRIVER
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM
 # network of CAN
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
-		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 #def-y += -DUSE_DET
+def-y += -DUSE_SOAD
 def-y += -DUSE_SIMUL_CAN
+inc-y += -I$(src-dir)/lwip/src/include
+inc-y += -I$(src-dir)/lwip/src/include/ipv4
 endif	# stm32f107vc end
 
 ifeq ($(board),lm3s6965evb)
@@ -393,6 +396,7 @@ endif
 	@(echo "  >> prepare link for posix done")
 
 dep-stm32f107vc:
+	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -406,10 +410,18 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/arch TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/core TRUE)
+	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/netif TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/api TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32_ETH_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/STM32F10x_StdPeriph_Driver TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)

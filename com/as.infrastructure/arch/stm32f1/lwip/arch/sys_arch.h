@@ -32,16 +32,18 @@
 #ifndef __SYS_ARCH_H__
 #define __SYS_ARCH_H__
 
-#include "os.h"
+#include "Os.h"
 #include "Std_Types.h"
-#include "mbox.h"
 
 #define SYS_MBOX_NULL 0
 #define SYS_SEM_NULL  0
 
+/* let sys.h use binary semaphores for mutexes */
+#define LWIP_COMPAT_MUTEX 1
+
 void pre_sys_init(void);
 typedef uint8 sys_sem_t;
-typedef Arc_MBoxType* sys_mbox_t;
+typedef void* sys_mbox_t;
 typedef TaskType sys_thread_t;
 
 #endif /* __SYS_RTXC_H__ */

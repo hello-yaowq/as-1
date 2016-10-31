@@ -156,8 +156,8 @@ typedef enum {
 
 #ifndef NO_SOAD_TCPIP_EVENT_TYPE
 typedef enum {
-	RESET = 0x01,		// TCP connection was reset
-	CLOSED = 0x02		// TCP connetion was closed successfully
+	SOAD_RESET = 0x01,		// TCP connection was reset
+	SOAD_CLOSED = 0x02		// TCP connetion was closed successfully
 } SoAd_TcpIpEventType;	/** @req SOAD147 */
 #endif
 
