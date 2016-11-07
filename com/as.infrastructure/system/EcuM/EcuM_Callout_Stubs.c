@@ -118,6 +118,11 @@
 #if defined(USE_RPMSG)
 #include "RPmsg.h"
 #endif
+
+#if defined(USE_SOAD)
+#include "SoAd.h"
+#endif
+
 #include "asdebug.h"
 /* ----------------------------[private define]------------------------------*/
 
@@ -395,6 +400,10 @@ void EcuM_AL_DriverInitTwo(const EcuM_ConfigType* ConfigPtr)
 #if defined(USE_IOHWAB)
 	// Setup IO hardware abstraction layer
 	IoHwAb_Init();
+#endif
+
+#if defined(USE_SOAD)
+	SoAd_Init();
 #endif
 
 }
