@@ -30,6 +30,7 @@
 #include <setjmp.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_OS 0
 #define configASSERT(x)	asAssert(x)
 
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )
@@ -474,6 +475,14 @@ void portRestroeIrqState(imask_t irq_state)
 	(void)irq_state;
 }
 #endif
+imask_t __Irq_Save(void)
+{
+	return portGetIrqStateAndDisableIt();
+}
+void Irq_Restore(imask_t irq_state)
+{
+	portRestroeIrqState(irq_state);
+}
 void dispatch(void)
 {
 	unlock_cpu();
@@ -588,4 +597,5 @@ void sys_exit(void)
 {
 	exit(-1);
 }
+
 

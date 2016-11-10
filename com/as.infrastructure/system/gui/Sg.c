@@ -13,6 +13,7 @@
  * for more details.
  * Sg: static GUI
  */
+#ifdef USE_GUI
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
@@ -348,3 +349,4 @@ boolean Sg_IsDataReady ( void )
 
 	return isReady;
 }
+#endif /* USE_GUI */

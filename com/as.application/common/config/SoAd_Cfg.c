@@ -19,7 +19,18 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-const SoAd_ConfigType SoAd_Config;
+static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT] =
+{
+	{
+		.SocketRemoteIpAddress = "127.0.0.1",
+		.SocketRemotePort = 0x8000,
+		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
+	}
+};
+const SoAd_ConfigType SoAd_Config =
+{
+	.SocketConnection = SoAd_SocketConnection,
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 Std_ReturnType SoAd_DoIp_Arc_GetVin(uint8* buf, uint8 len)

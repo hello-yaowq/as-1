@@ -1,4 +1,4 @@
-
+#ifdef USE_GUI
 #include "Sg.h"
 #include <time.h>
 void* RefreshPointerHour(SgWidget* w)
@@ -91,4 +91,4 @@ void* RefreshDate(SgWidget* w)
 
 	return Text;
 }
-
+#endif

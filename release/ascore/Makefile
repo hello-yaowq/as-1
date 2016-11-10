@@ -51,7 +51,8 @@ STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
-sgapp ?= virtual_cluster
+#sgapp ?= virtual_cluster
+sgapp ?= none
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
 ## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
@@ -121,10 +122,13 @@ else
 ldflags-y +=-lwinmm -lwsock32
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
+ifeq ($(sgapp),none)
+else
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
-			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0` \
-			 -lpthread
+			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0`
+endif
+ldflags-y += -lpthread
 ldflags-y += -lstdc++ -lm
 
 def-y += -D_LITTLE_ENDIAN
@@ -139,9 +143,11 @@ def-y += -DUSE_SOAD
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
-#def-y += -DUSE_GUI 
 def-y += -DUSE_STMO
 def-y += -D__AS_CAN_BUS__ -DAUTOSAR_SIMULATOR
+ifeq ($(sgapp),none)
+else
+def-y += -DUSE_GUI 
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 # openVG
@@ -149,6 +155,7 @@ def-y += -DGUI_USE_OPENVG
 def-y += -DOPENVG_STATIC_LIBRARY -D_WIN32 -DEGL_STATIC_LIBRARY
 inc-y += -I$(inc-dir)/EGL
 inc-y += -I$(inc-dir)/VG
+endif
 endif
 inc-y += -I$(src-dir)/lwip/src/include
 inc-y += -I$(src-dir)/lwip/src/include/ipv4
@@ -286,7 +293,11 @@ dep-lwip: lwip
 	@(cd lwip;git checkout STABLE-1_4_1)
 	(cd lwip-contrib;git checkout STABLE-1_4_1)
 	
-dep-posix: SG dep-as-virtual
+dep-posix: dep-as-virtual
+ifeq ($(sgapp),none)
+else
+	@(make SG)
+endif
 	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
@@ -325,6 +336,7 @@ dep-posix: SG dep-as-virtual
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.c Sg.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
@@ -660,13 +672,13 @@ endif
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=contiki
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 

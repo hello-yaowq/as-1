@@ -22,8 +22,12 @@
 
 #define ETH_MAC_ADDR {0xde,0xed,0xbe,0xef,0xaa,0xbb}
 
-#define EVENT_MASK_START_TCPIP 0
-#define TASK_ID_tcpip_task 0
+#define EVENT_MASK_SLEEP_TCPIP EVENT_MASK_TaskLwip_Event30
+#define EVENT_MASK_START_TCPIP EVENT_MASK_TaskLwip_Event31
+#define TASK_ID_tcpip_task TASK_ID_TaskLwip
+
+
+#define LWIP_DEBUG 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

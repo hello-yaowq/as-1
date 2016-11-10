@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_GUI
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifdef GUI_USE_GTK
 #include <gtk/gtk.h>
@@ -459,3 +460,5 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 		/* device not ready */
 	}
 }
+#endif /* USE_GUI */
+

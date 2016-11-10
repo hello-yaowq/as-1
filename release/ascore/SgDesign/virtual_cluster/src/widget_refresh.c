@@ -1,4 +1,4 @@
-
+#ifdef USE_GUI
 #include "Sg.h"
 #include "Stmo.h"
 
@@ -107,3 +107,4 @@ void* RefreshTelltaleLowOil(SgWidget* w)
 {
 	return 0;
 }
+#endif /* widget_refresh.c */

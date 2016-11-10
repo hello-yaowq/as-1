@@ -371,6 +371,7 @@ void SchM_RunMemory(void)
 /**
  * Startup task.
  */
+extern void SchM_StartupHook(void);
 TASK(SchM_Startup){
 
 #if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)
@@ -378,6 +379,8 @@ TASK(SchM_Startup){
 #endif
 	OS_TASK_BEGIN();
 	ASLOG(OFF,"SchM_Startup is running\n");
+
+	SchM_StartupHook();
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
 	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 2);

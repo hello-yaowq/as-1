@@ -17,8 +17,8 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 
 /* ============================ [ MACROS    ] ====================================================== */
-#define SOAD_SOCKET_COUNT 2
-#define SOAD_PDU_ROUTE_COUNT 2
+#define SOAD_SOCKET_COUNT 1
+#define SOAD_PDU_ROUTE_COUNT 0
 
 #define SOAD_DOIP_ANNOUNCE_WAIT 100
 
@@ -32,7 +32,7 @@
 
 #define SOAD_DOIP_ANNOUNCE_SOCKET 2
 
-#define SOAD_SOCKET_ROUTE_COUNT 2
+#define SOAD_SOCKET_ROUTE_COUNT 0
 
 
 #define DOIP_MAX_TESTER_CONNECTIONS 2
