@@ -56,7 +56,22 @@ static lwip_thread_fn tcpip_thread = NULL;
 static u16_t nextthread = 0;
 static struct semlist_t semlist[SYS_SEM_MAX];
 /* ============================ [ LOCALS    ] ====================================================== */
-static void sys_sleep(TickType tick);
+static void sys_sleep(TickType tick)
+{
+	SetRelAlarm(ALARM_ID_Alarm_Lwip, tick, 0);
+	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
+	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
+}
+/* Eth Isr routine */
+static void Eth_Isr(void)
+{
+	/* move received packet into a new pbuf */
+	struct pbuf *p = low_level_input(&netif);
+
+	if(p!=NULL){
+		tcpip_input(p, &netif);
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /*
   This optional function does a "fast" critical region protection and returns
@@ -341,7 +356,7 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 	{
 		while( GetSem( *sem) != E_OK )
 		{
-			//Sleep(1);
+			sys_sleep(1);
 			EndTime = GetOsTick();
 			Elapsed = EndTime - StartTime;
 			if(Elapsed > timeout)
@@ -473,16 +488,11 @@ TASK(TaskLwip)
 	OS_TASK_END();
 }
 
-static void sys_sleep(TickType tick)
-{
-	SetRelAlarm(ALARM_ID_Alarm_Lwip, tick, 0);
-	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
-	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
-}
 ALARM(Alarm_Lwip)
 {
 	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
 }
+
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 		void *arg, int stacksize, int prio)
 {
@@ -567,5 +577,25 @@ struct netif * LwIP_Init(void)
 	netbios_init();
 
 	return &netif;
+}
+
+KSM(LwipIdle,Init)
+{
+	KGS(LwipIdle,Running);
+}
+
+KSM(LwipIdle,Start)
+{
+
+}
+
+KSM(LwipIdle,Stop)
+{
+
+}
+
+KSM(LwipIdle,Running)
+{
+	Eth_Isr();
 }
 

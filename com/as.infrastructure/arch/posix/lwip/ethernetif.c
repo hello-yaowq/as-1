@@ -118,6 +118,7 @@ void Set_MAC_Address(uint8_t* macadd)
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
+extern void lwip_client_init(void);
 static void
 low_level_init(struct netif *netif)
 {
@@ -139,6 +140,7 @@ low_level_init(struct netif *netif)
   /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
+  lwip_client_init();
 }
 
 
@@ -224,17 +226,18 @@ ethernetif_init(struct netif *netif)
  * @return a pbuf filled with the received packet (including MAC header)
  *         NULL on memory error
  */
+extern int lwip_client_recv(void* data,size_t size);
 struct pbuf *
 low_level_input()
 {
   struct pbuf *p, *q;
   uint16_t len;
   int l =0;
-  uint8 *buffer;
+  uint8 buffer[2048];
 
   /* Obtain the size of the packet and put it into the "len"
      variable. */
-  len = 0;
+  len = lwip_client_recv(buffer,sizeof(buffer));
 
 	if(len != ETH_ERROR){
 
@@ -279,12 +282,30 @@ low_level_input()
  *       to become availale since the stack doesn't retry to send a packet
  *       dropped because of memory failure (except for the TCP timers).
  */
+int lwip_client_send(void* data,size_t size);
 static err_t
 low_level_output(struct netif *netif, struct pbuf *p)
 {
 	struct pbuf *q;
 	int l = 0;
+	uint8 buffer[1024*32];
 
+	for(q = p; q != NULL; q = q->next)
+	{
+
+		if( (l + q->len) < sizeof(buffer) )
+		{
+			memcpy(&buffer[l], q->payload, q->len);
+			l = l + q->len;
+		}
+		else
+		{
+			printf("lwip: buffer overflow\n");
+			exit(-1);
+		}
+	}
+
+	lwip_client_send(buffer,l);
 
 	return 0;
 }

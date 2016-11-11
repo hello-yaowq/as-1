@@ -41,9 +41,9 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\Python34\include&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.721171525" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -111,9 +111,9 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\Python34\include&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1621784308" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DYNAMIC_XLDRIVER_DLL"/>
@@ -132,10 +132,12 @@
 									<listOptionValue builtIn="false" value="USE_GUI"/>
 									<listOptionValue builtIn="false" value="USE_VIRTIO"/>
 									<listOptionValue builtIn="false" value="__packed="/>
-									<listOptionValue builtIn="false" value="__LINUX__"/>
 									<listOptionValue builtIn="false" value="__X86_64__"/>
 									<listOptionValue builtIn="false" value="CHIP_STM32F10X"/>
 									<listOptionValue builtIn="false" value="__SMALL_OS__"/>
+									<listOptionValue builtIn="false" value="USE_IPC"/>
+									<listOptionValue builtIn="false" value="USE_RPMSG"/>
+									<listOptionValue builtIn="false" value="USE_VIRTQ"/>
 									<listOptionValue builtIn="false" value="USE_SHELL"/>
 									<listOptionValue builtIn="false" value="__AS_BY_PARAI__"/>
 									<listOptionValue builtIn="false" value="USE_FLS"/>
@@ -145,9 +147,17 @@
 									<listOptionValue builtIn="false" value="USE_MEMIF"/>
 									<listOptionValue builtIn="false" value="USE_NVM"/>
 									<listOptionValue builtIn="false" value="LUA_COMPAT_APIINTCASTS"/>
+									<listOptionValue builtIn="false" value="__AS_BOOTLOADER__"/>
 									<listOptionValue builtIn="false" value="USE_DCM"/>
 									<listOptionValue builtIn="false" value="GUI_USE_GTK"/>
+									<listOptionValue builtIn="false" value="USE_SIMUL_CAN"/>
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
+									<listOptionValue builtIn="false" value="__LINUX__"/>
+									<listOptionValue builtIn="false" value="__WINDOWS__"/>
+									<listOptionValue builtIn="false" value="__SOCKET_WIN_CAN_DRIVER__"/>
+									<listOptionValue builtIn="false" value="USE_STMO"/>
+									<listOptionValue builtIn="false" value="USE_OSEKNM"/>
+									<listOptionValue builtIn="false" value="USE_CANNM"/>
 									<listOptionValue builtIn="false" value="USE_XCP"/>
 									<listOptionValue builtIn="false" value="_LITTLE_ENDIAN"/>
 									<listOptionValue builtIn="false" value="USE_SOAD"/>
@@ -179,16 +189,16 @@
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtGui"/>
 									<listOptionValue builtIn="false" value="/opt/Qt5.5.0/5.5/gcc_64/include/QtWidgets"/>
 									<listOptionValue builtIn="false" value="/usr/include/gtk-3.0/gtk"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\gtk-3.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include\glib-2.0&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Python34\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\gtk-3.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\MinGW\include\glib-2.0&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/parai/workspace/as/Default/C:\Python34\include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1651600050" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="aslua|com/" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="com/|socket_tcpip.c|aslua" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
