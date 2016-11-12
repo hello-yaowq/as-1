@@ -87,7 +87,7 @@ int lwip_client_send(void* data,size_t size)
 int lwip_client_recv(void* data,size_t size)
 {
 	int len;
-	len=recv(client_sockfd,data,size,0);
+	len=recv(client_sockfd,data,size,MSG_DONTWAIT);
 
 	if( len < 0)
 	{

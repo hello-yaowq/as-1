@@ -675,6 +675,8 @@ endif
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek
 92:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true
+	gcc src/posix-toppers_osek-posix-gcc/socket_ethernet_driver.c -lpthread	\
+	 -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
 94:
