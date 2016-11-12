@@ -96,6 +96,7 @@ def GenH():
 def GenC():
     fp = open('%s/Dcm_LCfg.c'%(__dir),'w')
     fp.write(GHeader('Dcm'))
+    fp.write('#ifdef USE_DCM\n')
     fp.write("""#include "Std_Types.h"
 #include "Dcm.h"
 #include "Dcm_Internal.h"
@@ -763,6 +764,7 @@ const Dcm_ConfigType DCM_Config = {
     .Dsl = &Dsl
 };
 """);
+    fp.write('#endif /* USE_DCM */\n')
     #------------------------------------------------------------------
     fp.close();
 

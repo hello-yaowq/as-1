@@ -15,7 +15,7 @@
 
 
 //lint -esym(960,8.7)	PC-Lint misunderstanding of Misra 8.7 for Com_SystenEndianness and endianess_test
-
+#ifdef USE_COM
 #include <string.h>
 
 #include "Com_Arc_Types.h"
@@ -536,3 +536,5 @@ boolean isPduBufferLocked(PduIdType id) {
 PduIdType getPduId(const ComIPdu_type* IPdu) {
 	return (PduIdType)(IPdu - (ComConfig->ComIPdu));
 }
+#endif /* USE_COM */
+

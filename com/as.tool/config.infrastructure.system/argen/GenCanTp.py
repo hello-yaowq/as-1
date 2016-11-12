@@ -74,6 +74,7 @@ def GenC():
     global __dir
     fp = open('%s/CanTp_Cfg.c'%(__dir),'w')
     fp.write(GHeader('CanTp'))
+    fp.write('#ifdef USE_CANTP\n')
     fp.write("""#include "CanTp.h"
 #if defined(USE_CANIF)
 #include "CanIf.h"
@@ -195,4 +196,5 @@ static const CanTp_NTaType CanTpNTaConfig =
     .CanTpNSduList =     CanTpNSduConfigList,
     .CanTpRxIdList =    CanTp_RxIdList
 };\n\n""")
+    fp.write('#endif /* USE_CANTP */\n')
     fp.close();

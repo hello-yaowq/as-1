@@ -23,7 +23,7 @@
 /** @req CANSM079 */
 /** @req CANSM237 */
 /** @req CANSM156.bswbuilder */
-
+#ifdef USE_CANSM
 #include "ComStack_Types.h"
 #include "CanSM.h"              /**< @req CANSM013 */
 #include "Com.h"                /**< @req CANSM172 */
@@ -457,3 +457,4 @@ void CanSM_MainFunction() {
 	}
 }
 
+#endif /* USE_CANSM */

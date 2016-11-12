@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_OSEKNM
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "OsekNm.h"
 #include "Can.h"
@@ -114,7 +115,7 @@ TASK(TaskNmInd)
 		}
 		(void)ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	}
-	TerminateTask();
+	OsTerminateTask(TaskNmInd);
 }
 
 /* This is an example of how to write NMInit() */
@@ -165,3 +166,10 @@ void CanIf_OsekNmUserRxIndication(uint8 channel, PduIdType pduId, const uint8 *s
 	NM_RxIndication(channel,&pdu);
 
 }
+#else
+#include "Os.h"
+TASK(TaskNmInd)
+{
+	OsTerminateTask(TaskNmInd);
+}
+#endif /* USE_OSEKNM */

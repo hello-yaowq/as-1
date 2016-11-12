@@ -13,7 +13,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
-
+#ifdef USE_PDUR
 #include "PduR.h"
 #if defined(USE_DET)
 #include "Det.h"
@@ -41,3 +41,5 @@ void PduR_CanTpTxConfirmation(PduIdType CanTpTxPduId, NotifResultType Result) {
 }
 
 #endif
+
+#endif /* USE_PDUR */

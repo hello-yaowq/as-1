@@ -17,7 +17,7 @@
 //lint -esym(960,8.7)	PC-Lint misunderstanding of Misra 8.7 for Com_SystenEndianness and endianess_test
 
 
-
+#ifdef USE_COM
 
 
 #include <stdlib.h>
@@ -398,4 +398,4 @@ void Com_ReceiveShadowSignal(Com_SignalIdType SignalId, void *SignalDataPtr) {
 }
 
 
-
+#endif /* USE_COM */

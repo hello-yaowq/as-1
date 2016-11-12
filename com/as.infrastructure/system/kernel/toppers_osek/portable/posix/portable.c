@@ -438,7 +438,7 @@ void* prvToppersOSEK_TaskProcess(void * param)
 /*-----------------------------------------------------------*/
 void disable_int(void)
 {
-	asAssert(TRUE==xInterruptsEnabled);
+	//asAssert(TRUE==xInterruptsEnabled);
 	if(callevel!=TCL_ISR2)
 	{
 		(void)pthread_mutex_lock( &xSingleThreadMutex );
@@ -447,7 +447,7 @@ void disable_int(void)
 }
 void enable_int(void)
 {
-	asAssert(FALSE==xInterruptsEnabled);
+	//asAssert(FALSE==xInterruptsEnabled);
 	if(callevel!=TCL_ISR2)
 	{
 		(void)pthread_mutex_unlock( &xSingleThreadMutex );

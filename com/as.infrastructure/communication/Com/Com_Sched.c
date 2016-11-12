@@ -15,7 +15,7 @@
 
 
 
-
+#ifdef USE_COM
 
 
 #include "Com_Arc_Types.h"
@@ -174,3 +174,5 @@ void Com_MainFunctionTx(void) {
 		Irq_Restore(irq_state);
 	}
 }
+
+#endif /* USE_COM */

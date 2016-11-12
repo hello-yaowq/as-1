@@ -265,6 +265,7 @@ void PostTaskHook(void)
 void ShutdownHook(StatusType ercd)
 {
 	printf("ShutdownHook(%X)\n",ercd);
+	asAssert(0);
 }
 
 #if defined(__TOPPERS_ATK2_SC4__)

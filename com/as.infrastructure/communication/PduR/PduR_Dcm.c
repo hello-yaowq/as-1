@@ -13,7 +13,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
-
+#ifdef USE_PDUR
 #include "PduR.h"
 
 #if (PDUR_ZERO_COST_OPERATION == STD_OFF) && (PDUR_DCM_SUPPORT == STD_ON)
@@ -23,3 +23,4 @@ Std_ReturnType PduR_DcmTransmit(PduIdType DcmTxPduId, const PduInfoType* PduInfo
 }
 
 #endif
+#endif /* USE_PDUR */

@@ -15,7 +15,7 @@
 
 
 //lint -esym(960,8.7)	PC-Lint misunderstanding of Misra 8.7 for Com_SystenEndianness and endianess_test
-
+#ifdef USE_COM
 
 #include <stdlib.h>
 //#include <stdio.h>
@@ -277,3 +277,4 @@ BufReq_ReturnType Com_StartOfReception(PduIdType ComRxPduId, PduLengthType TpSdu
 	Irq_Restore(state);
 	return r;
 }
+#endif /* USE_COM */

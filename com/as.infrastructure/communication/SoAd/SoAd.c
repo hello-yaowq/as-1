@@ -327,6 +327,7 @@ uint8 SoAd_GetNofCurrentlyUsedTcpSockets() {
 
 static void socketTcpRead(uint16 sockNr)
 {
+#ifdef USE_PDUR
     BufReq_ReturnType result;
 
 	switch (SocketAdminList[sockNr].SocketConnectionRef->AutosarConnectorType) {
@@ -401,11 +402,13 @@ static void socketTcpRead(uint16 sockNr)
 		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_TCP_READ_ID, SOAD_E_NOCONNECTOR);
 		break;
 	}
+#endif /* USE_PDUR */
 }
 
 
 static void socketUdpRead(uint16 sockNr)
 {
+#ifdef USE_PDUR
     BufReq_ReturnType result;
 
 	switch (SocketAdminList[sockNr].SocketConnectionRef->AutosarConnectorType) {
@@ -499,6 +502,7 @@ static void socketUdpRead(uint16 sockNr)
 		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_UDP_READ_ID, SOAD_E_NOCONNECTOR);
 		break;
 	}
+#endif /* USE_PDUR */
 }
 
 
@@ -655,6 +659,7 @@ void SoAd_SocketReset(void)
 /** @req SOAD091 */
 Std_ReturnType SoAdIf_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr)
 {
+#ifdef USE_PDUR
 	Std_ReturnType returnCode = E_OK;
 	uint16 socketNr;
 
@@ -702,6 +707,9 @@ Std_ReturnType SoAdIf_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 	}
 
 	return returnCode;
+#else
+	return E_NOT_OK;
+#endif /* USE_PDUR */
 }
 
 
@@ -709,6 +717,7 @@ Std_ReturnType SoAdIf_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr)
 {
 	Std_ReturnType returnCode = E_OK;
+#ifdef USE_PDUR
 	PduInfoType txPduInfo;
 	uint16 socketNr;
 
@@ -770,7 +779,7 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 		/* SocketAdminRef is NULL */
 		returnCode = E_NOT_OK;
 	}
-
+#endif /* USE_PDUR */
 	return returnCode;
 }
 

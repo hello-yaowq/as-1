@@ -1051,6 +1051,7 @@ static void associateTargetWithConnectionIndex(uint16 targetIndex, uint16 connec
 
 static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *rxBuffer)
 {
+#ifdef USE_PDUR
 	LookupSaTaResultType lookupResult;
     BufReq_ReturnType result;
     PduInfoType pduInfo;
@@ -1146,6 +1147,7 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 		createAndSendNack(sockNr, DOIP_E_INVALID_PAYLOAD_LENGTH);
 		SoAd_SocketClose(sockNr);
 	}
+#endif /* USE_PDUR */
 }
 
 
@@ -1320,6 +1322,7 @@ void DoIp_HandleUdpRx(uint16 sockNr)
 Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr)
 {
 	Std_ReturnType returnCode = E_OK;
+#ifdef USE_PDUR
 	PduInfoType txPduInfo;
 	PduInfoType txPayloadPduInfo;
 	uint16 socketNr;
@@ -1412,7 +1415,7 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 		/* A PDU is already in progress */
 		returnCode = E_NOT_OK;
 	}
-
+#endif /* USE_PDUR */
 	return returnCode;
 }
 

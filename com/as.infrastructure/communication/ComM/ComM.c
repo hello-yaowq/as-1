@@ -54,7 +54,7 @@
 /** @req COMM454 */
 /** @req COMM455 */
 /** @req COMM344 */
-
+#ifdef USE_COMM
 
 #include <string.h>
 #include "ComM.h"
@@ -789,3 +789,5 @@ static inline Std_ReturnType ComM_Internal_Enter_ReadySleep(const ComM_ChannelTy
 	}
 	return globalStatus;
 }
+
+#endif /* USE_COMM */

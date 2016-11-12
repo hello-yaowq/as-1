@@ -17,7 +17,7 @@
 /** @req XCP716 *//*Performance information must be exchanged between Slave and Master*/
 /** @req XCP718 *//*Support GET_SLAVE_ID command*/
 /** @req XCP517 *//*2 can Pdu needed*/
-
+#ifdef USE_XCP
 #include "Xcp.h"
 
 #if !(XCP_PROTOCOL != XCP_PROTOCOL_CAN)
@@ -244,3 +244,5 @@ Std_ReturnType Xcp_CmdTransportLayer(uint8 pid, void* data, int len)
 }
 
 #endif
+
+#endif /* USE_XCP */

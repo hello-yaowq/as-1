@@ -11,7 +11,7 @@
  * LICENSE.GPL included in the packaging of this file or here
  * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
  *-------------------------------- Arctic Core -----------------------------*/
-
+#ifdef USE_XCP
 #include "Xcp.h"
 #include "Xcp_Internal.h"
 
@@ -173,3 +173,4 @@ Std_ReturnType Xcp_CmdProgramInfo(uint8 pid, void* data, int len)
 }
 
 #endif /*XCP_FEATURE_PGM*/
+#endif /* USE_XCP */

@@ -13,7 +13,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
-
+#ifdef USE_NM
 #if defined(USE_CANNM)
 #include "CanNm.h"
 #endif
@@ -379,4 +379,4 @@ void Nm_StateChangeNotification(
   * (Nm020). However, specific implementation may not need it (Nm093) */
 /** @req 121 */
 void Nm_MainFunction(){}
-
+#endif /* USE_NM */

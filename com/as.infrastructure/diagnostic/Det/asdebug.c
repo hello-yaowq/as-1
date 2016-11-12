@@ -16,7 +16,9 @@
 #include "asdebug.h"
 #include <stdarg.h>
 #include <ctype.h>
+#if defined(__WINDOWS__) || defined(__LINUX__)
 #include <execinfo.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */

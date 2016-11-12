@@ -13,7 +13,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
-
+#ifdef USE_PDUR
 
 #include "PduR.h"
 
@@ -24,3 +24,5 @@ Std_ReturnType PduR_ComTransmit(PduIdType ComTxPduId, const PduInfoType* PduInfo
 }
 
 #endif
+
+#endif /* USE_PDUR */

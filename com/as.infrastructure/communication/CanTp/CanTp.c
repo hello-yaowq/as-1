@@ -44,7 +44,7 @@
 /** @req CANTP164 */
 /** @req CANTP199 */
 
-
+#ifdef USE_CANTP
 #include "CanTp.h" /** @req CANTP219 */
 #include "CanTp_Cbk.h" /** @req CANTP233 */
 #include "Det.h"
@@ -1309,5 +1309,5 @@ void CanTp_MainFunction(void)
 		}
 	}
 }
-
+#endif /* USE_CANTP */
 

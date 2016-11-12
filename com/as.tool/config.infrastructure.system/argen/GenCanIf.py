@@ -114,6 +114,7 @@ def GenC():
     global __dir
     fp = open('%s/CanIf_Cfg.c'%(__dir),'w')
     fp.write(GHeader('CanIf'))
+    fp.write('#ifdef USE_CANIF\n')
     cstr1=cstr2=cstr3=''    
     for chl in GLGet('ChannelList'):
         cstr1+='\t%-32s,/* %-32s */\n'%(GAGet(chl,'ControllerRef'),GAGet(chl,'Name'))
@@ -395,4 +396,5 @@ const CanIf_ConfigType CanIf_Config =
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 \n\n"""%(cstr))
+    fp.write('#endif /* USE_CANIF */')
     fp.close() 

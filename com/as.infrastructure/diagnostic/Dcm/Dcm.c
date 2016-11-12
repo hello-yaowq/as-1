@@ -34,7 +34,7 @@
  /** @req DCM040.Param */
  /** @req DCM043 */
  /** @req DCM048 */
-
+#ifdef USE_DCM
 #include <string.h>
 #include "Dcm.h"
 #include "Dcm_Internal.h"
@@ -193,4 +193,4 @@ void Dcm_TxConfirmation(PduIdType dcmTxPduId, NotifResultType result)
 
 	DslTxConfirmation(dcmTxPduId, result);
 }
-
+#endif /* USE_DCM */

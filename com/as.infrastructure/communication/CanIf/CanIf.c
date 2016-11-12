@@ -14,6 +14,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core -> AS ------------------------------*/
+#ifdef USE_CANIF
 /* ============================ [ INCLUDES  ] ====================================================== */
 #if defined(USE_DET)
 #include "Det.h"
@@ -1158,3 +1159,25 @@ TASK(TaskCanIf)
 	OsTerminateTask(TaskCanIf);
 }
 #endif
+#else
+#include "Os.h"
+KSM(CANIdle,Init)
+{
+	KGS(CANIdle,Running);
+}
+KSM(CANIdle,Start)
+{
+}
+KSM(CANIdle,Stop)
+{
+
+}
+KSM(CANIdle,Running)
+{
+}
+TASK(TaskCanIf)
+{
+	OsTerminateTask(TaskCanIf);
+}
+
+#endif /* USE_CANIF */

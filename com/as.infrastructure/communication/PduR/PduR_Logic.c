@@ -20,7 +20,7 @@
 
 
 
-
+#ifdef USE_PDUR
 #include "PduR.h"
 
 #include <string.h>
@@ -418,3 +418,5 @@ BufReq_ReturnType PduR_ARC_ProvideTxBuffer(PduIdType PduId, PduInfoType** PduInf
 
 
 #endif
+
+#endif /* USE_PDUR */

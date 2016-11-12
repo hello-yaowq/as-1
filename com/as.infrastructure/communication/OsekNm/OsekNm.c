@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_OSEKNM
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "OsekNm.h"
 #include "asdebug.h"
@@ -1110,4 +1111,4 @@ void NM_MainFuntion(void)
 		}
 	}
 }
-
+#endif /* USE_OSEKNM */

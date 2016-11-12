@@ -27,7 +27,7 @@
 /** @req XCP801 *//*Imported type definitions - can not be tested with conventional module tests*/
 /** @req XCP832 *//*Optional interface - can not be tested with conventional module tests*/
 
-
+#ifdef USE_XCP
 #include "Std_Types.h"
 #include "Xcp.h"
 #include "Xcp_Internal.h"
@@ -2078,4 +2078,4 @@ void Xcp_MainFunction(void) {
 	}
 	Xcp_Transmit_Main();
 }
-
+#endif /* USE_XCP */

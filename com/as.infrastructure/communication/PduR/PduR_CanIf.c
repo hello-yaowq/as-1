@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
-
+#ifdef USE_PDUR
 
 #include "PduR.h"
 
@@ -28,3 +28,6 @@ void PduR_CanIfTxConfirmation(PduIdType CanTxPduId) {
 }
 
 #endif
+
+#endif /* USE_PDUR */
+

@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
-
+#ifdef USE_PDUR
 
 #include "PduR.h"
 #if defined(USE_DET)
@@ -71,3 +71,5 @@ BufReq_ReturnType PduR_SoAdTpCopyTxData(PduIdType id, PduInfoType* info, RetryIn
 }
 
 #endif
+
+#endif /* USE_PDUR */

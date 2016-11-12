@@ -13,7 +13,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
-
+#ifdef USE_PDUR
 #include "PduR.h"
 
 
@@ -181,3 +181,4 @@ BufReq_ReturnType PduR_ARC_RouteProvideTxBuffer(const PduRRoutingPath_type *rout
 }
 
 #endif
+#endif /* USE_PDUR */

@@ -20,7 +20,7 @@
  */
 /** @req DCM030 */
 
-
+#ifdef USE_DCM
 #include <string.h>
 #include "Dcm.h"
 #include "Dcm_Internal.h"
@@ -1003,3 +1003,5 @@ void DslTxConfirmation(PduIdType dcmTxPduId, NotifResultType result) {
 	    Irq_Restore(state);
 	}
 }
+
+#endif /* USE_DCM */

@@ -242,6 +242,7 @@ def GenC():
     global __dir
     fp = open('%s/Can_PBCfg.c'%(__dir),'w')
     fp.write(GHeader('Can'))
+    fp.write('#ifdef USE_CAN\n')
     fp.write("""#include "Can.h"
 
 static const Can_FilterMaskType vCanFilterMask0=
@@ -312,4 +313,5 @@ const Can_CallbackType CanCallbackConfigData = {
 const Can_ConfigSetType Can_ConfigSetData ={Can_ControllerCfgData,&CanCallbackConfigData};
 const Can_ConfigType Can_ConfigData ={&Can_ConfigSetData};\n\n"""
     fp.write(cstr)
+    fp.write('#endif /* USE_CAN */\n\n')
     fp.close()

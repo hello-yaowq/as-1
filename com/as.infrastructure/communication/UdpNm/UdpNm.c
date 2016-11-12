@@ -14,7 +14,7 @@
 
 //lint -emacro(904, UDPNM_VALIDATE_INIT, UDPNM_VALIDATE_CHANNEL, UDPNM_VALIDATE_NOTNULL) //904 PC-Lint exception to MISRA 14.7 (validate macros).
 
-
+#ifdef USE_UDPNM
 /* Globally fulfilled requirements */
 /** @req UDPNM131 */
 /** @req UDPNM081 */
@@ -730,4 +730,4 @@ static inline void UdpNm_Internal_ReadySleep_to_RepeatMessage( const UdpNm_Chann
 static inline void UdpNm_Internal_NetworkMode_to_NetworkMode( const UdpNm_ChannelType* ChannelConf, UdpNm_Internal_ChannelType* ChannelInternal ){
 	ChannelInternal->TimeoutTimeLeft = ChannelConf->UdpNmTimeoutTime;
 }
-
+#endif /* USE_UDPNM */

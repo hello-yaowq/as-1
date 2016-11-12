@@ -371,7 +371,7 @@ void SchM_RunMemory(void)
 /**
  * Startup task.
  */
-extern void SchM_StartupHook(void);
+DECLARE_WEAK void SchM_StartupHook(void){}
 TASK(SchM_Startup){
 
 #if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)
