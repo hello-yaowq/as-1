@@ -28,9 +28,11 @@ ldflags-y += -fPIC
 endif
 cflags-y  += -std=gnu99
 ldflags-y += -std=gnu99
+ifeq ($(host), Linux)
 # for call stack trace purpose
 cflags-y  += -rdynamic
 ldflags-y += -rdynamic
+endif
 #common flags
 ifeq ($(debug),true)
 cflags-y   += -c -g  -O0 -Wall

@@ -17,9 +17,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#ifdef __WINDOWS__
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <asdebug.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -32,21 +38,34 @@ static int client_sockfd = -1;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void lwip_client_init(void)
 {
+	#ifdef __WINDOWS__
+	WSADATA wsaData;
+	#endif
 	struct sockaddr_in remote_addr;
 	memset(&remote_addr,0,sizeof(remote_addr));
 	remote_addr.sin_family=AF_INET;
 	remote_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
 	remote_addr.sin_port=htons(8000);
 
+	#ifdef __WINDOWS__
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
+	#endif
+
 	if((client_sockfd=socket(PF_INET,SOCK_STREAM,0))<0)
 	{
 		perror("lwip:socket");
+		#ifdef __WINDOWS__
+		WSACleanup();
+		#endif
 		asAssert(0);
 	}
 
 	if(connect(client_sockfd,(struct sockaddr *)&remote_addr,sizeof(struct sockaddr))<0)
 	{
 		perror("lwip:connect");
+		#ifdef __WINDOWS__
+		closesocket(client_sockfd);
+		#endif
 		asAssert(0);
 	}
 }

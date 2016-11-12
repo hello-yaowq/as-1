@@ -16,7 +16,7 @@
 #include "asdebug.h"
 #include <stdarg.h>
 #include <ctype.h>
-#if defined(__WINDOWS__) || defined(__LINUX__)
+#if defined(__LINUX__)
 #include <execinfo.h>
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
@@ -142,6 +142,7 @@ char* ashex(unsigned long a)
 void asAssertErrorHook(void)
 {
 #if defined(__WINDOWS__) || defined(__LINUX__)
+#if defined(__LINUX__)
 	int blen,i;
 	void* buffer[256];
 	char** names;
@@ -152,6 +153,7 @@ void asAssertErrorHook(void)
 	{
 		printf("  %3d: %32s\n",blen-1-i,names[i]);
 	}
+#endif
 	exit(-1);
 #else
 	while(1);

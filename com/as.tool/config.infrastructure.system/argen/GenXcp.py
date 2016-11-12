@@ -97,6 +97,7 @@ def GenC():
     global __dir
     fp = open('%s/Xcp_Cfg.c'%(__dir),'w')
     fp.write(GHeader('XCP'))
+    fp.write('#ifdef USE_XCP\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Xcp.h"\n')
     fp.write('#include "Xcp_Internal.h"\n')
@@ -228,5 +229,5 @@ const Xcp_ConfigType XcpConfig =
 
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    
+    fp.write('#endif /* USE_XCP */\n')
     fp.close()
