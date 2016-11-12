@@ -57,6 +57,7 @@ typedef enum {
 	ETIMEDOUT = 0x005c,			// Operation timed out
 	ECONNREFUSED = 0x005d,		// Connection refused
 	ELOOP = 0x005e,				// Too many levels of symbolic links
+	EHOSTUNREACH = 0x0061,		// No route to host
 } SoAd_TcpIpErrorType; /** @req SOAD117 */
 #endif
 /* ============================ [ DECLARES  ] ====================================================== */
