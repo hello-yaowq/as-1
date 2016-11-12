@@ -16,6 +16,7 @@
 #include "asdebug.h"
 #include <stdarg.h>
 #include <ctype.h>
+#include <execinfo.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -139,6 +140,16 @@ char* ashex(unsigned long a)
 void asAssertErrorHook(void)
 {
 #if defined(__WINDOWS__) || defined(__LINUX__)
+	int blen,i;
+	void* buffer[256];
+	char** names;
+	blen = backtrace(buffer,256);
+	names = backtrace_symbols(buffer,blen);
+	printf("call stack trace is:\n");
+	for(i=blen-1;i >= 0;i--)
+	{
+		printf("  %3d: %32s\n",blen-1-i,names[i]);
+	}
 	exit(-1);
 #else
 	while(1);

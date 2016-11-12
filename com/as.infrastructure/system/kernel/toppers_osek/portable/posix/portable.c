@@ -105,12 +105,12 @@ static volatile portBASE_TYPE xServicingTick = pdFALSE;
 /*
  * Setup the timer to generate the tick interrupts.
  */
-static void prvSetupTimerInterrupt( void );
-static void prvSuspendSignalHandler(int sig);
-static void prvResumeSignalHandler(int sig);
-static void prvSetupSignalsAndSchedulerPolicy( void );
-static void prvSuspendThread( pthread_t xThreadId );
-static void prvResumeThread( pthread_t xThreadId );
+void prvSetupTimerInterrupt( void );
+void prvSuspendSignalHandler(int sig);
+void prvResumeSignalHandler(int sig);
+void prvSetupSignalsAndSchedulerPolicy( void );
+void prvSuspendThread( pthread_t xThreadId );
+void prvResumeThread( pthread_t xThreadId );
 /*-----------------------------------------------------------*/
 
 /*
@@ -196,7 +196,7 @@ portTickType xMicroSeconds = portTICK_RATE_MICROSECONDS;
 	}
 }
 
-static void prvProcessTickInterrupt( void )
+void prvProcessTickInterrupt( void )
 {
 	UINT8 saved_callevel = callevel;
 	callevel = TCL_ISR2;
@@ -397,7 +397,7 @@ struct tms xTimes;
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
-static void* prvToppersOSEK_TaskProcess(void * param)
+void* prvToppersOSEK_TaskProcess(void * param)
 {
 	TaskType taskId= (TaskType)(unsigned long)param;
 

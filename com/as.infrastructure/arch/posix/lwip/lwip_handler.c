@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <asdebug.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -40,13 +41,13 @@ void lwip_client_init(void)
 	if((client_sockfd=socket(PF_INET,SOCK_STREAM,0))<0)
 	{
 		perror("lwip:socket");
-		exit(-1);
+		asAssert(0);
 	}
 
 	if(connect(client_sockfd,(struct sockaddr *)&remote_addr,sizeof(struct sockaddr))<0)
 	{
 		perror("lwip:connect");
-		exit(-1);
+		asAssert(0);
 	}
 }
 

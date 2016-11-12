@@ -83,7 +83,7 @@
 	do {																								\
 		if(FALSE==(e))																					\
 		{																								\
-			ASLOG(STDERR,"assert error on condition<%s> at line %d of %s\n,",#e, __LINE__, __FILE__);	\
+			ASLOG(STDERR,"assert error on condition<%s> at line %d of %s\n",#e, __LINE__, __FILE__);	\
 			asAssertErrorHook();																		\
 		}																								\
 	}while(0)
