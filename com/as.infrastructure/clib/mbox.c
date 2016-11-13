@@ -33,7 +33,8 @@
 #include <assert.h>
 #endif
 
-
+extern void *asmalloc( size_t xWantedSize );
+extern void asfree( void *pv );
 
 Arc_MBoxType* Arc_MBoxCreate( size_t size ) {
 	Arc_MBoxType *mPtr;

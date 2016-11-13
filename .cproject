@@ -83,7 +83,6 @@
 									<listOptionValue builtIn="false" value="USE_SIMUL_CAN"/>
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
 									<listOptionValue builtIn="false" value="__LINUX__"/>
-									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__SOCKET_WIN_CAN_DRIVER__"/>
 									<listOptionValue builtIn="false" value="USE_STMO"/>
 									<listOptionValue builtIn="false" value="USE_OSEKNM"/>
@@ -154,7 +153,6 @@
 									<listOptionValue builtIn="false" value="USE_SIMUL_CAN"/>
 									<listOptionValue builtIn="false" value="FLASH_DRIVER_DYNAMIC_DOWNLOAD"/>
 									<listOptionValue builtIn="false" value="__LINUX__"/>
-									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="__SOCKET_WIN_CAN_DRIVER__"/>
 									<listOptionValue builtIn="false" value="USE_STMO"/>
 									<listOptionValue builtIn="false" value="USE_OSEKNM"/>

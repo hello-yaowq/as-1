@@ -78,6 +78,7 @@
 #include "Std_Types.h"
 #include "asdebug.h"
 
+#define configUSE_MALLOC_FAILED_HOOK 1
 #define configTOTAL_HEAP_SIZE (8*1024)
 
 #define configASSERT(x) asAssert(x)
@@ -87,7 +88,7 @@
 
 #define mtCOVERAGE_TEST_MARKER()
 
-#define AS_LOG_HEAP 1
+#define AS_LOG_HEAP 0
 
 #define traceMALLOC( pvReturn, xWantedSize ) ASLOG(HEAP," malloc(%d)=%p\n",xWantedSize,pvReturn)
 #define traceFREE( pv, xBlockSize )  ASLOG(HEAP, " free(%p,%d)\n",pv, xBlockSize)
@@ -516,3 +517,8 @@ uint8_t *puc;
 	}
 }
 
+void vApplicationMallocFailedHook(void)
+{
+	ASLOG(HEAP,"asmalloc failed\n");
+	asAssert(0);
+}

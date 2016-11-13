@@ -46,7 +46,8 @@
 #endif
 //#define MEMCPY(_x,_y,_z)	memcpy(_x,_y,_z)
 
-
+extern void *asmalloc( size_t xWantedSize );
+extern void asfree( void *pv );
 /* TODO: Not threadsafe, add DisableAllInterrts()/EnableAllInterrupts() */
 
 void CirqBuff_Init(CirqBufferType *cirqbuffer, void *buffer, int maxCnt, size_t dataSize) {
