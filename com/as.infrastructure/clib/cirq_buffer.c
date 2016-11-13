@@ -81,13 +81,13 @@ CirqBufferType CirqBuffStatCreate(void *buffer, int maxCnt, size_t dataSize) {
 
 CirqBufferType *CirqBuffDynCreate( size_t size, size_t dataSize ) {
 	CirqBufferType *cPtr;
-	cPtr = malloc(sizeof(CirqBufferType));
+	cPtr = asmalloc(sizeof(CirqBufferType));
 	if( cPtr == NULL ) {
 		return NULL;
 	}
 	cPtr->maxCnt = size;
 	cPtr->dataSize = dataSize;
-	cPtr->bufStart = malloc(dataSize*size);
+	cPtr->bufStart = asmalloc(dataSize*size);
 	cPtr->bufEnd = (char *)cPtr->bufStart + dataSize*size;
 	cPtr->head = cPtr->bufStart;
 	cPtr->tail = cPtr->bufStart;

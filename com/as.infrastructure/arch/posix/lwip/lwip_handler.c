@@ -74,6 +74,7 @@ int lwip_client_send(void* data,size_t size)
 {
 	int len;
 
+	asCallStack();
 	len=send(client_sockfd,data,size,0);
 
 	if( len < 0)

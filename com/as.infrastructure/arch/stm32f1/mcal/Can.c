@@ -993,7 +993,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 
 	return rv;
 }
-ISR(knl_isr_usart2_process)	/* USART2_IRQn = 38 + 16 = 54 */
+void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 16 = 54 */
 {
 
 	if(USART_GetITStatus(USART2,USART_IT_RXNE))

@@ -96,7 +96,7 @@ static void try_accept(void)
 		pthread_mutex_lock(&socketLock);
 		STAILQ_INSERT_TAIL(&socketH->head,handle,entry);
 		pthread_mutex_unlock(&socketLock);
-		printf("ETH socket %X on-line!\n",s);
+		printf("  >> ETH socket %X on-line! <<\n",s);
 	}
 	else
 	{
@@ -106,19 +106,48 @@ static void try_accept(void)
 
 static void remove_socket(struct Eth_SocketHandle_s* h)
 {
+	printf("  >> ETH socket %X off-line! <<\n",h->s);
 	STAILQ_REMOVE(&socketH->head,h,Eth_SocketHandle_s,entry);
 	close(h->s);
 	free(h);
 }
 static void log_msg(unsigned char* frame,size_t len,float rtim, int s)
 {
-	int i;
-	printf("ETH%03d:: ",s);
-	for(i=0;i<len;i++)
+	size_t i,j;
+	printf("\nETH%05d :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  length=%d @%f s\n",s,(int)len,rtim);
+	for(i=0; i<(len+15)/16; i++)
 	{
-		printf("%02X ",frame[i]);
+
+		printf("%08X ::",(uint32_t)i*16);
+
+		fflush(stdout);
+		for(j=0;j<16;j++)
+		{
+			if((i*16+j)<len)
+			{
+				printf(" %02X",frame[i*16+j]);
+			}
+			else
+			{
+				printf("   ");
+			}
+		}
+		printf("\t");
+		for(j=0;j<16;j++)
+		{
+			if(((i*16+j)<len) && isprint(frame[i*16+j]))
+			{
+				printf("%c",frame[i*16+j]);
+			}
+			else
+			{
+				printf(".");
+			}
+		}
+		printf("\n");
 	}
-	printf(" @ %f s\n",rtim);
+
+	fflush(stdout);
 }
 static void try_recv_forward(void)
 {

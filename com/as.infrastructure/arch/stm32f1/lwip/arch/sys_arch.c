@@ -1,59 +1,43 @@
-/*
- * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
- * are permitted provided that the following conditions are met:
+/**
+ * AS - the open source Automotive Software on https://github.com/parai
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ * Copyright (C) 2016  AS <parai@foxmail.com>
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
- * OF SUCH DAMAGE.
+ * This source code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation; See <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>.
  *
- * This file is part of the lwIP TCP/IP stack.
- * 
- * Author: Adam Dunkels <adam@sics.se>
- *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  */
-
-/* lwIP includes. */
+/* ============================ [ INCLUDES  ] ====================================================== */
+#include "lwip/opt.h"
+#include "lwip/arch.h"
+#include "lwip/stats.h"
 #include "lwip/debug.h"
-#include "lwip/def.h"
 #include "lwip/sys.h"
+#include "lwip/tcp.h"
+#include "lwip/udp.h"
+#include "lwip/mem.h"
+#include "lwip/memp.h"
+#include "lwip/tcpip.h"
+#include "netif/etharp.h"
+#include "lwip/dhcp.h"
+#include "lwip_handler.h"
+#include "ethernetif.h"
 
 #include "Os.h"
-#include "Std_Types.h"
-#include "arch/sys_arch.h"
-#include "Mcu.h"
-
-static void (* tcpip_thread)(void *arg) = NULL;
-
-#if !NO_SYS
-
-#include "lwip/tcpip.h"
-
-
+#include "asdebug.h"
+#include "mbox.h"
+/* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_LWIP 1
 /* This is the number of threads that can be started with sys_thread_new()
  * Cannot be modified at the moment. No need to support slip/ppp */
 #define SYS_THREAD_MAX 1
-
-static u16_t nextthread = 0;
-
 #define SYS_SEM_MAX 25
+/* ============================ [ TYPES     ] ====================================================== */
 struct semlist_t
 {
 	sys_sem_t val;
@@ -62,8 +46,32 @@ struct semlist_t
 	TaskType task[SYS_SEM_MAX];
 	u8_t taskIndex;
 };
+/* ============================ [ DECLARES  ] ====================================================== */
+err_t ethernetif_input(struct netif *netif, struct pbuf *p);
+err_t ethernetif_init(struct netif *netif);
+/* ============================ [ DATAS     ] ====================================================== */
+static struct netif netif;
+static lwip_thread_fn tcpip_thread = NULL;
+static u16_t nextthread = 0;
 static struct semlist_t semlist[SYS_SEM_MAX];
+/* ============================ [ LOCALS    ] ====================================================== */
+static void sys_sleep(TickType tick)
+{
+	SetRelAlarm(ALARM_ID_Alarm_Lwip, tick, 0);
+	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
+	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
+}
+/* Eth Isr routine */
+static void Eth_Isr(void)
+{
+	/* move received packet into a new pbuf */
+	struct pbuf *p = low_level_input();
 
+	if(p!=NULL){
+		tcpip_input(p, &netif);
+	}
+}
+/* ============================ [ FUNCTIONS ] ====================================================== */
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short
@@ -112,6 +120,31 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 	return res;
 }
 
+
+// TBD memory leak with invalid mbox?
+int sys_mbox_valid(sys_mbox_t *mbox)
+{
+	return (*mbox == NULL) ? 0 : 1;
+}
+
+void sys_mbox_set_invalid(sys_mbox_t *mbox)
+{
+	*mbox = NULL;
+}
+
+
+int sys_sem_valid(sys_sem_t *sem)
+{
+	return (semlist[*sem].used == FALSE) ? 0 : 1;
+}
+
+
+void sys_sem_set_invalid(sys_sem_t *sem)
+{
+	semlist[*sem].used = FALSE;
+}
+
+
 /*-----------------------------------------------------------------------------------*/
 /*
   Deallocates a mailbox. If there are messages still present in the
@@ -130,11 +163,11 @@ void sys_mbox_free(sys_mbox_t *mbox)
   the "msg" is really posted.
   */
 void sys_mbox_post(sys_mbox_t *mbox, void *msg)
-{   
-//	while(Arc_MBoxPost( *mbox, (ApplicationDataRef) &msg ) != E_OK)
-//	{
-//		Sleep(1);
-//	}
+{
+	while(Arc_MBoxPost( *mbox, &msg ) != E_OK)
+	{
+		sys_sleep(1);
+	}
 }
 
 
@@ -145,14 +178,14 @@ void sys_mbox_post(sys_mbox_t *mbox, void *msg)
   */
 err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 {
-//	if(Arc_MBoxPost( *mbox, (ApplicationDataRef) &msg ) != E_OK)
-//	{
-//		return ERR_MEM;
-//	}
-//	else
-//	{
-//		return ERR_OK;
-//	}
+	if(Arc_MBoxPost( *mbox, &msg ) != E_OK)
+	{
+		return ERR_MEM;
+	}
+	else
+	{
+		return ERR_OK;
+	}
 }
 
 /* This is similar to sys_arch_mbox_fetch, however if a message is not
@@ -196,7 +229,7 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
   timeout.
 
   Note that a function with a similar name, sys_mbox_fetch(), is
-  implemented by lwIP. 
+  implemented by lwIP.
 */
 u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 {
@@ -209,12 +242,12 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 	{
 		msg = &dummyptr;
 	}
-		
+
 	if(	timeout != 0 )
 	{
 		while( Arc_MBoxFetch( *mbox, msg) != E_OK )
 		{
-			Sleep(1);
+			sys_sleep(1);
 			EndTime = GetOsTick();
 			Elapsed = EndTime - StartTime;
 			if(Elapsed > timeout)
@@ -235,12 +268,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 	{
 		while( E_OK != Arc_MBoxFetch( *mbox, msg) )
 		{
-			Sleep(1);
-        	/*TaskType TaskID;
-            GetTaskID(&TaskID);
-			SetEvent(TaskID, EVENT_MASK_dispatch);
-			WaitEvent(EVENT_MASK_dispatch);
-			ClearEvent(EVENT_MASK_dispatch);*/
+			sys_sleep(1);
 		}
 		EndTime = GetOsTick();
 		Elapsed = EndTime - StartTime;
@@ -248,7 +276,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 		{
 			Elapsed = 1;
 		}
-		return ( Elapsed ); // return time blocked TBD test	
+		return ( Elapsed ); // return time blocked TBD test
 	}
 }
 
@@ -327,7 +355,7 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 	{
 		while( GetSem( *sem) != E_OK )
 		{
-			//Sleep(1);
+			sys_sleep(1);
 			EndTime = GetOsTick();
 			Elapsed = EndTime - StartTime;
 			if(Elapsed > timeout)
@@ -362,8 +390,8 @@ u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 			Elapsed = 1;
 		}
 
-		return ( Elapsed ); // return time blocked	
-		 
+		return ( Elapsed ); // return time blocked
+
 	}
 }
 
@@ -411,14 +439,12 @@ sys_sem_free(sys_sem_t *sem)
 
 /*-----------------------------------------------------------------------------------*/
 // Initialize sys arch
-void
-sys_init(void)
+void sys_init(void)
 {
-}
 
+}
 // Preinitialize sys arch
-void
-pre_sys_init(void)
+void pre_sys_init(void)
 {
 	uint8 i;
 
@@ -428,80 +454,43 @@ pre_sys_init(void)
 		semlist[i].used = FALSE;
 		semlist[i].val = 0;
 		semlist[i].taskIndex = 0;
-    }
-#if 0
-	i=0;
-	semlist[i++].event = EVENT_MASK_OsEvent1;
-	semlist[i++].event = EVENT_MASK_OsEvent2;
-	semlist[i++].event = EVENT_MASK_OsEvent3;
-	semlist[i++].event = EVENT_MASK_OsEvent4;
-	semlist[i++].event = EVENT_MASK_OsEvent5;
-	semlist[i++].event = EVENT_MASK_OsEvent6;
-	semlist[i++].event = EVENT_MASK_OsEvent7;
-	semlist[i++].event = EVENT_MASK_OsEvent8;
-	semlist[i++].event = EVENT_MASK_OsEvent9;
-	semlist[i++].event = EVENT_MASK_OsEvent10;
-	semlist[i++].event = EVENT_MASK_OsEvent11;
-	semlist[i++].event = EVENT_MASK_OsEvent12;
-	semlist[i++].event = EVENT_MASK_OsEvent13;
-	semlist[i++].event = EVENT_MASK_OsEvent14;
-	semlist[i++].event = EVENT_MASK_OsEvent15;
-	semlist[i++].event = EVENT_MASK_OsEvent16;
-	semlist[i++].event = EVENT_MASK_OsEvent17;
-	semlist[i++].event = EVENT_MASK_OsEvent18;
-	semlist[i++].event = EVENT_MASK_OsEvent19;
-	semlist[i++].event = EVENT_MASK_OsEvent20;
-	semlist[i++].event = EVENT_MASK_OsEvent21;
-	semlist[i++].event = EVENT_MASK_OsEvent22;
-	semlist[i++].event = EVENT_MASK_OsEvent23;
-	semlist[i++].event = EVENT_MASK_OsEvent24;
-	semlist[i++].event = EVENT_MASK_OsEvent25;
-#endif
+
+		/* event Mask by bits */
+		semlist[i].event = 1<<i;
+	}
 
 	// keep track of how many threads have been created
 	nextthread = 0;
 }
 
-// TBD memory leak with invalid mbox?
-int sys_mbox_valid(sys_mbox_t *mbox)
+TASK(TaskLwip)
 {
-	return (*mbox == NULL) ? 0 : 1;
+	OS_TASK_BEGIN();
+
+	for(;;) {
+		WaitEvent(EVENT_MASK_START_TCPIP);
+		ClearEvent(EVENT_MASK_START_TCPIP);
+		if(tcpip_thread != NULL)
+		{
+			ASLOG(LWIP,"TaskLwip is running\n");
+			tcpip_thread(NULL); // Will never return
+		}
+	}
+
+	OsTerminateTask(TaskLwip);
+
+	OS_TASK_END();
 }
 
-void sys_mbox_set_invalid(sys_mbox_t *mbox)
+ALARM(Alarm_Lwip)
 {
-	*mbox = NULL;
+	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
 }
 
-
-int sys_sem_valid(sys_sem_t *sem)
+sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
+		void *arg, int stacksize, int prio)
 {
-	return (semlist[*sem].used == FALSE) ? 0 : 1;
-}
-
-
-void sys_sem_set_invalid(sys_sem_t *sem)
-{
-	semlist[*sem].used = FALSE;
-}
-
-
-/*-----------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------*/
-// TBD 
-/*-----------------------------------------------------------------------------------*/
-/*
-  Starts a new thread with priority "prio" that will begin its execution in the
-  function "thread()". The "arg" argument will be passed as an argument to the
-  thread() function. The id of the new thread is returned. Both the id and
-  the priority are system dependent.
-*/
-sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
-{
-	sys_thread_t CreatedTask = TASK_ID_tcpip_task;
-	static uint8 iCall = 0;
-
-	if( iCall == 0 )
+	if( NULL == tcpip_thread )
 	{
 		tcpip_thread = thread;
 	}
@@ -512,20 +501,27 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
 		return 0;
 	}
 
-	SetEvent(TASK_ID_tcpip_task,EVENT_MASK_START_TCPIP); // Start tcpip stack
-	return CreatedTask;
+	SetEvent(TASK_ID_tcpip_task,EVENT_MASK_START_TCPIP); /* Start tcpip stack */
+
+	return TASK_ID_tcpip_task;
 }
 
-#endif /* !NO_SYS */
+KSM(LwipIdle,Init)
+{
+	KGS(LwipIdle,Running);
+}
 
-// TCPIP task shell
-void tcpip_task( void ) {
-	for(;;) {
-		WaitEvent(EVENT_MASK_START_TCPIP);
-		ClearEvent(EVENT_MASK_START_TCPIP);
-		if(tcpip_thread != NULL)
-		{
-			tcpip_thread(NULL); // Will never return
-		}
-	}
+KSM(LwipIdle,Start)
+{
+
+}
+
+KSM(LwipIdle,Stop)
+{
+
+}
+
+KSM(LwipIdle,Running)
+{
+
 }

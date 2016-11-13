@@ -337,6 +337,7 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
@@ -616,14 +617,14 @@ clean:
 	make all board=at91sam3s compiler=cortexm3-icc debug=false	
 # ---------------------------------- [ STM32F107VC ] ---------------------------------- #
 11:
-	make dep board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4
+	make dep board=stm32f107vc compiler=cortexm3-gcc rtos=toppers_osek
 12:
-	make all board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4 debug=true
+	make all board=stm32f107vc compiler=cortexm3-gcc rtos=toppers_osek debug=true
 ifeq ($(use-boot),yes)
 	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 endif
 13:
-	make all board=stm32f107vc compiler=cortexm3-gcc rtos=atk2-sc4 debug=false	
+	make all board=stm32f107vc compiler=cortexm3-gcc rtos=toppers_osek debug=false	
 
 15:
 	make dep board=stm32f107vc compiler=cortexm3-icc

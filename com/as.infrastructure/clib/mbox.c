@@ -38,7 +38,7 @@
 Arc_MBoxType* Arc_MBoxCreate( size_t size ) {
 	Arc_MBoxType *mPtr;
 
-	mPtr = malloc(sizeof(Arc_MBoxType));
+	mPtr = asmalloc(sizeof(Arc_MBoxType));
 	mPtr->cirqPtr = CirqBuffDynCreate(size,sizeof(void *));
 
 	return mPtr;
@@ -47,7 +47,7 @@ Arc_MBoxType* Arc_MBoxCreate( size_t size ) {
 
 void Arc_MBoxDestroy( Arc_MBoxType *mPtr ) {
 	CirqBuffDynDestroy(mPtr->cirqPtr);
-	free(mPtr);
+	asfree(mPtr);
 }
 
 /**

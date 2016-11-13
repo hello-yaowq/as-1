@@ -139,10 +139,9 @@ char* ashex(unsigned long a)
 }
 #endif
 
-void asAssertErrorHook(void)
-{
-#if defined(__WINDOWS__) || defined(__LINUX__)
 #if defined(__LINUX__)
+void  asPrintCallStack(void)
+{
 	int blen,i;
 	void* buffer[256];
 	char** names;
@@ -153,6 +152,14 @@ void asAssertErrorHook(void)
 	{
 		printf("  %3d: %32s\n",blen-1-i,names[i]);
 	}
+}
+#endif
+
+void asAssertErrorHook(void)
+{
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#if defined(__LINUX__)
+	asPrintCallStack();
 #endif
 	exit(-1);
 #else

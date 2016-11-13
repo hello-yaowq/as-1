@@ -66,7 +66,7 @@ static void sys_sleep(TickType tick)
 static void Eth_Isr(void)
 {
 	/* move received packet into a new pbuf */
-	struct pbuf *p = low_level_input(&netif);
+	struct pbuf *p = low_level_input();
 
 	if(p!=NULL){
 		tcpip_input(p, &netif);

@@ -38,14 +38,14 @@ static struct netif netif;
 err_t ethernetif_input(struct netif *netif, struct pbuf *p);
 
 /* Eth Isr routine */
-static void Eth_Isr(void)
+void knl_isr_eth_process(void)
 {
 	uint32_t res = 0;
 
 	while((ETH_GetRxPktSize() != 0) && (res == 0))
 	{
 		  /* move received packet into a new pbuf */
-		  struct pbuf *p = low_level_input(&netif);
+		  struct pbuf *p = low_level_input();
 
           if(p!=NULL){
         	  tcpip_input(p, &netif);
@@ -76,11 +76,6 @@ struct netif * LwIP_Init()
   struct ip_addr netmask;
   struct ip_addr gw;
 
-  /* Create isr for ethernet interrupt */
-  TaskType tid;
-  tid = Os_Arc_CreateIsr(Eth_Isr,3/*prio*/,"Eth"); \
-  Irq_AttachIsr2(tid,NULL,ETH_IRQn); \
-
   /* Configure ethernet */
    Ethernet_Configuration();
 
@@ -97,7 +92,6 @@ struct netif * LwIP_Init()
   uint32 lockcnt = 0;
   while(tcpip_initialized == FALSE){
   	 lockcnt++;
-  	 SLEEP(0);
   };
 #endif
 

@@ -108,8 +108,8 @@ def genForToppersOSEK_H(gendir,os_list):
     isr_list = ScanFrom(os_list,'ISR')
     isr_num = len(isr_list)
     for isr in isr_list:
-        if((int(isr.attrib['vector'],10)+1)>isr_num):
-            isr_num = int(isr.attrib['vector'],10)+1
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
     fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     
     counter_list = ScanFrom(os_list,'Counter')
@@ -148,7 +148,7 @@ def genForToppersOSEK_C(gendir,os_list):
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     isr_list = ScanFrom(os_list,'ISR')
     for isr in isr_list:
-        fp.write('extern void %s (void);\n'%(isr.attrib['name']))
+        fp.write('extern void %s (void);\n'%(isr.attrib['Name']))
     fp.write('extern void task_initialize(void);\n')
     fp.write('extern void alarm_initialize(void);\n')
     fp.write('extern void resource_initialize(void);\n')

@@ -124,6 +124,12 @@
 #define ASENV(index)
 #endif
 
+#if defined(__LINUX__)
+#define asCallStack() asPrintCallStack()
+#else
+#define asCallStack()
+#endif
+
 /* ============================ [ TYPES     ] ====================================================== */
 #if defined(__LINUX__) || defined(__WINDOWS__)
 typedef struct timeval asperf_t;
@@ -138,6 +144,9 @@ extern void  asmem(void* address,size_t size);
 extern char* ashex(unsigned long a);
 extern char* aswho(void);
 extern void  asAssertErrorHook(void);
+#if defined(__LINUX__)
+extern void  asPrintCallStack(void);
+#endif
 #if defined(__LINUX__) || defined(__WINDOWS__)
 extern void asPerfSet(asperf_t *m);
 extern void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor);
