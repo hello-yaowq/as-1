@@ -152,6 +152,8 @@ void  asPrintCallStack(void)
 	{
 		printf("  %3d: %32s\n",blen-1-i,names[i]);
 	}
+
+	free(names);
 }
 #endif
 

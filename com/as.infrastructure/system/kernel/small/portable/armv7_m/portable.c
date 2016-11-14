@@ -59,8 +59,8 @@ void knl_isr_handler(uint32_t intno)
 #if defined(STM32F10X_CL) && defined(__AS_BOOTLOADER__) && defined(USE_SIMUL_CAN)
 	if(54 == intno)
 	{
-		extern ISR(knl_isr_usart2_process);
-		ISRMainknl_isr_usart2_process();
+		extern void knl_isr_usart2_process(void);
+		knl_isr_usart2_process();
 	}
 	else
 #endif
