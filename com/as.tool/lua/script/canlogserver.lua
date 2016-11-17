@@ -44,7 +44,8 @@ function main(argc,argv)
   print(" >> canlog server on-line!")
   while true do   
     result,canid,data = as.can_read(can_bus,-1)
-    if result and (canid&0x770)==0x550 then
+    -- if result and (canid&0x770)==0x550 then
+    if result then
       logmsg(canid,data)
     else
       os.usleep(10) -- sleep a while 

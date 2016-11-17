@@ -106,6 +106,8 @@ ifeq ($(board),posix)
 #rtos?=toppers_osek
 rtos?=smallos
 #rtos?=contiki
+#tcpip？=lwip
+tcpip?=contiki
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
 # my computer is 64 bit 
@@ -135,11 +137,17 @@ def-y += -D_LITTLE_ENDIAN
 # basic
 def-y += -DUSE_KERNEL -DUSE_PORT -DUSE_MCU -DUSE_DIO -DUSE_ECUM -DUSE_SCHM -DUSE_DET
 # network of CAN
-#def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
-#		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
+def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 # inter processor communication		 
 #def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG
+ifeq ($(tcpip),lwip)
 def-y += -DUSE_SOAD
+def-y += -DUSE_LWIP
+endif
+ifeq ($(tcpip),contiki)
+def-y += -DUSE_CONTIKI
+endif
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
@@ -291,7 +299,11 @@ lwip:
 	
 dep-lwip: lwip
 	@(cd lwip;git checkout STABLE-1_4_1)
-	(cd lwip-contrib;git checkout STABLE-1_4_1)
+	@(cd lwip-contrib;git checkout STABLE-1_4_1)
+	
+contiki:
+	@(git clone https://github.com/contiki-os/contiki.git;\
+		cd contiki;git checkout 3.x)
 	
 dep-posix: dep-as-virtual
 ifeq ($(sgapp),none)
@@ -314,6 +326,7 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c Os.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
+ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip)
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/core TRUE)
 	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
@@ -322,6 +335,7 @@ endif
 	@(cd $(src-dir);rm ethernetif.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
+endif	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
@@ -334,7 +348,7 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.h Sg.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.h SgDraw.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/Sg.c Sg.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui/SgDraw.c SgDraw.c)		
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
@@ -343,9 +357,17 @@ ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
 endif
 ifeq ($(rtos),contiki)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/lib FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/sys TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/ip TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/ipv4 TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/lib)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/rpl)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/dev)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/platform/native TRUE)
 endif
 ifeq ($(rtos),atk2-sc4)
@@ -406,6 +428,9 @@ else
 	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 endif
 	@(cd $(src-dir);rm -f Dem.c J1939Tp* Lin*)
+ifeq ($(tcpip),contiki)
+	@(cd $(src-dir);rm -f lwip.xml)
+endif
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
@@ -673,15 +698,15 @@ endif
 	 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=contiki
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true
-	gcc src/posix-toppers_osek-posix-gcc/socket_ethernet_driver.c -lpthread	\
-	 -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
+	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true
+#	gcc src/posix-toppers_osek-posix-gcc/socket_ethernet_driver.c -lpthread	\
+#	 -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 

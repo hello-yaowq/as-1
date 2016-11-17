@@ -11,7 +11,7 @@
  * LICENSE.GPL included in the packaging of this file or here
  * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
  *-------------------------------- Arctic Core -----------------------------*/
-
+#ifdef USE_SOAD
 
 #include "SoAd.h"
 #include "SoAd_Internal.h"
@@ -1506,3 +1506,5 @@ void DoIp_Init() {
 		connectionStatus[i].aliveCheckTimer = 0;
 	}
 }
+#endif /* USE_SOAD */
+

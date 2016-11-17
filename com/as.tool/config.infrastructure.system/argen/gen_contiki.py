@@ -1,3 +1,4 @@
+from DistUpgrade.utils import wrap
 
 __header = '''/**
  * AS - the open source Automotive Software on https://github.com/parai
@@ -31,6 +32,7 @@ def genForContikiConf_H(gendir,os_list):
     fp.write('#define AUTOSTART_ENABLE 1\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('typedef unsigned long clock_time_t;\n\n')
+    fp.write('typedef unsigned short uip_stats_t;\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')

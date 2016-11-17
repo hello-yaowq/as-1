@@ -57,6 +57,7 @@
 #define GetEvent(...) 0
 #define ClearEvent(...) 0
 #define TerminateTask(...) PROCESS_EXIT()
+#define GetTaskID(...) 0
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8 					StatusType;
 typedef uint32   				EventMaskType;

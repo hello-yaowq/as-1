@@ -11,7 +11,7 @@
  * LICENSE.GPL included in the packaging of this file or here
  * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
  *-------------------------------- Arctic Core -----------------------------*/
-
+#ifdef USE_SOAD
 #include <string.h>
 #include "Os.h"
 #include "Mcu.h"
@@ -810,4 +810,5 @@ Std_ReturnType TcpIp_SetDhcpHostNameOption(uint8* HostNameOption, uint8 HostName
 {
 	return E_OK;
 }
+#endif /* USE_SOAD */
 
