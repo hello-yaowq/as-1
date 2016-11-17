@@ -117,6 +117,6 @@ def genForContiki_C(gendir,os_list):
     fp.close()
 
 def gen_contiki(gendir,os_list):
-    genForContikiConf_H(gendir,os_list)
+    #genForContikiConf_H(gendir,os_list)
     genForContiki_H(gendir,os_list)
     genForContiki_C(gendir,os_list)

@@ -134,3 +134,23 @@ FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId)
 	return ercd;
 }
 
+imask_t __Irq_Save(void)
+{
+	return 0;
+}
+void Irq_Restore(imask_t irq_state)
+{
+	(void)irq_state;
+}
+
+/* contiki stubs */
+int nullradio_driver;
+int uip_ds6_if;
+void dhcpc_configured(void) { asAssert(0); }
+void dhcpc_unconfigured(void) { asAssert(0); }
+void rpl_link_neighbor_callback(void) { asAssert(0); }
+void rpl_ipv6_neighbor_callback(void) { asAssert(0); }
+void uip_ds6_defrt_lookup(void) { asAssert(0); }
+void uip_ds6_defrt_rm(void) { asAssert(0); }
+void uip_nd6_ns_output(void) { asAssert(0); }
+

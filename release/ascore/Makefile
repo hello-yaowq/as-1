@@ -19,6 +19,8 @@ exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src/$(board)-$(rtos)-$(compiler)
 inc-dir = $(CURDIR)/src/$(board)-$(rtos)-$(compiler)/include
 
+download = $(CURDIR)/../download
+
 prj-dir = $(subst /release/ascore,,$(CURDIR))
 
 host = $(shell uname)
@@ -53,52 +55,6 @@ S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
 #sgapp ?= virtual_cluster
 sgapp ?= none
-# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
-# on C disk do the following command:
-## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
-ifeq ($(compiler),posix-gcc)
-#cflags-y += -Werror
-COMPILER_DIR = 
-include ../make/posix.mk
-endif
-
-ifeq ($(compiler),cortexm3-gcc)
-CMSIS = $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS
-ifeq ($(host), Linux)
-#COMPILER_PREFIX = arm-linux-gnueabi-
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = /usr
-else
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
-
-#COMPILER_PREFIX = arm-linux-gnueabihf-
-#COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
-endif
-inc-y += -I$(inc-dir)/CMSIS/Include
-include ../make/cortexm3.gcc.mk
-endif
-
-ifeq ($(compiler),cortexm3-icc)
-COMPILER_DIR = C:/IAR
-include ../make/cortexm3.iar.mk
-endif
-
-ifeq ($(compiler),arm920t-gcc)
-ifeq ($(host), Linux)
-#COMPILER_PREFIX = arm-linux-gnueabi-
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = /usr
-else
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
-
-#COMPILER_PREFIX = arm-linux-gnueabihf-
-#COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
-endif
-include ../make/arm920t.gcc.mk
-endif
-
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),posix)
 #rtos?=freeosek
@@ -147,6 +103,7 @@ def-y += -DUSE_LWIP
 endif
 ifeq ($(tcpip),contiki)
 def-y += -DUSE_CONTIKI
+def-y += -DCONTIKI=1 -DCONTIKI_TARGET_MINIMAL_NET=1
 endif
 # memory service
 def-y += -DUSE_FLS -DUSE_EEP -DUSE_EA -DUSE_FEE -DUSE_NVM -DUSE_MEMIF
@@ -165,8 +122,11 @@ inc-y += -I$(inc-dir)/EGL
 inc-y += -I$(inc-dir)/VG
 endif
 endif
+ifeq ($(tcpip),lwip)
 inc-y += -I$(src-dir)/lwip/src/include
 inc-y += -I$(src-dir)/lwip/src/include/ipv4
+endif
+def-y += -DAUTOSTART_ENABLE
 endif	# posix end
 
 ifeq ($(board),at91sam3s)
@@ -261,6 +221,53 @@ def-y += -D__AS_BY_PARAI__
 def-y += -D$(board)_board
 inc-y += -I$(inc-dir)
 
+
+# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
+# on C disk do the following command:
+## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
+ifeq ($(compiler),posix-gcc)
+#cflags-y += -Werror
+COMPILER_DIR = 
+include ../make/posix.mk
+endif
+
+ifeq ($(compiler),cortexm3-gcc)
+CMSIS = $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS
+ifeq ($(host), Linux)
+#COMPILER_PREFIX = arm-linux-gnueabi-
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = /usr
+else
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+
+#COMPILER_PREFIX = arm-linux-gnueabihf-
+#COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
+endif
+inc-y += -I$(inc-dir)/CMSIS/Include
+include ../make/cortexm3.gcc.mk
+endif
+
+ifeq ($(compiler),cortexm3-icc)
+COMPILER_DIR = C:/IAR
+include ../make/cortexm3.iar.mk
+endif
+
+ifeq ($(compiler),arm920t-gcc)
+ifeq ($(host), Linux)
+#COMPILER_PREFIX = arm-linux-gnueabi-
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = /usr
+else
+COMPILER_PREFIX = arm-none-eabi-
+COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+
+#COMPILER_PREFIX = arm-linux-gnueabihf-
+#COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
+endif
+include ../make/arm920t.gcc.mk
+endif
+
 $(inc-dir)/utility:
 	@mkdir -p $@
 $(inc-dir):
@@ -273,7 +280,7 @@ $(ASCORE)/SgDesign/SgRes/SgRes.h:
 
 SG:
 	@(cd SgDesign;$(SG) $(sgapp)/Sg.xml)
-	
+
 
 OS:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)	
@@ -285,27 +292,34 @@ endif
 
 BSW:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) true)
-	
+
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(src-dir))	
-	
 
 dep-as-virtual:
 	@($(LNFS) $(VIRTUAL) virtual)
 
-lwip:
-	@(git clone git://git.savannah.nongnu.org/lwip.git;	\
-		git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git)
+$(download):
+	@mkdir -p $@
+
+$(download)/lwip:
+	@(cd $(download);git clone git://git.savannah.nongnu.org/lwip.git;cd lwip;git checkout STABLE-1_4_1)
+
+$(download)/lwip-contrib:
+	@(cd $(download);git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git;cd lwip-contrib;git checkout STABLE-1_4_1)
+
+aslwip: $(download)/lwip $(download)/lwip-contrib
 	
-dep-lwip: lwip
-	@(cd lwip;git checkout STABLE-1_4_1)
-	@(cd lwip-contrib;git checkout STABLE-1_4_1)
-	
-contiki:
-	@(git clone https://github.com/contiki-os/contiki.git;\
-		cd contiki;git checkout 3.x)
-	
-dep-posix: dep-as-virtual
+$(download)/contiki:
+	@(cd $(download);git clone https://github.com/contiki-os/contiki.git;\
+		cd contiki;git checkout 3.x;	\
+		cd core/sys;	\
+		sed -e "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt,	\\" process.h > process.h2;	\
+		mv process.h2 process.h)
+
+ascontiki:$(download)/contiki
+
+dep-posix: $(download) aslwip ascontiki dep-as-virtual
 ifeq ($(sgapp),none)
 else
 	@(make SG)
@@ -357,18 +371,23 @@ ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
 endif
 ifeq ($(rtos),contiki)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/lib FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/sys TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/ip TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/ipv4 TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/sys)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/lib)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/net/rpl)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core/dev)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/platform/native TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core FALSE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/lib FALSE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/sys TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net FALSE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net/mac TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net/rime TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net/rpl TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/cfs)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/sys)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/lib)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/net/rpl)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/core/dev)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/cpu/native TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/contiki/platform/minimal-net TRUE)
+	@(cd $(src-dir); rm contiki-main.c ctk-*.c rime-udp.c wpcap.c wpcap-drv.c slipdev.c sensors.c libconio.c)
 endif
 ifeq ($(rtos),atk2-sc4)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/include TRUE)
@@ -389,15 +408,15 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/src/win TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/gen/inc/win FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freeosek/gen/src/win FALSE)
-endif	
-endif 	
+endif
+endif
 ifeq ($(rtos),freertos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/include FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MemMang FALSE)
 ifeq ($(host),Linux)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/GCC/Posix FALSE)
-else	
+else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/source/portable/MSVC-MingW FALSE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
@@ -412,7 +431,7 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/mingw TRUE)
 endif	
 endif 
-	
+
 ifeq ($(gui),openVG)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg/win32 FALSE)
@@ -469,7 +488,7 @@ ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 ifeq ($(compiler),cortexm3-gcc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)
 else
 	$(error for small os, non-gcc compiler is not supported)
 endif
@@ -524,7 +543,7 @@ endif
 dep-lm3s6965evb-library:	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/lm3s/DriverLib library)
 	@(cd $(src-dir)/library; make all)
-	
+
 dep-lm3s6965evb:dep-lm3s6965evb-library
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
@@ -621,7 +640,7 @@ endif
 	@(make BSW)
 	@(cd  $(src-dir); rm -fv Dem* J1939Tp* Lin* NvM* Fee* Ea* Eep* Fls* RPmsg* Ipc* VirtQ* Rproc*)
 	@(echo "  >> prepare link for S3C2440A done")
-	
+
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
@@ -665,8 +684,7 @@ endif
 	make all board=lm3s6965evb compiler=cortexm3-gcc debug=true
 23:
 	make all board=lm3s6965evb compiler=cortexm3-gcc debug=false
-		
-		
+
 29:
 	@echo "target remote:2345" > ~/.gdbinit
 	@echo "file out/lm3s6965evb.exe" >> ~/.gdbinit
@@ -695,7 +713,7 @@ endif
 	make all board=s3c2440a compiler=arm920t-gcc rtos=atk2-sc4 debug=true
 33:
 	make all board=s3c2440a compiler=arm920t-gcc rtos=atk2-sc4 debug=false	
-	 
+
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=contiki
