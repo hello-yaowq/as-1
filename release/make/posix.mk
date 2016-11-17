@@ -34,6 +34,7 @@ cflags-y  += -rdynamic
 ldflags-y += -rdynamic
 endif
 #common flags
+debug ?= true
 ifeq ($(debug),true)
 cflags-y   += -c -g  -O0 -Wall
 ldflags-y  += -g  -O0 -Wall	

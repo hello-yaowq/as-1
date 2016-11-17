@@ -397,6 +397,22 @@
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
+			<target name="all" path="release/astcpip/lwip" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>all</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="clean" path="release/astcpip/lwip" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>clean</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
 			<target name="test.py" path="release/pyascom/sip" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>python</buildCommand>
 				<buildArguments/>
