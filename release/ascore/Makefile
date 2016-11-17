@@ -314,7 +314,7 @@ $(download)/contiki:
 	@(cd $(download);git clone https://github.com/contiki-os/contiki.git;\
 		cd contiki;git checkout 3.x;	\
 		cd core/sys;	\
-		sed -e "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt,	\\" process.h > process.h2;	\
+		sed -e "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, \\\\" process.h > process.h2;	\
 		mv process.h2 process.h)
 
 ascontiki:$(download)/contiki
