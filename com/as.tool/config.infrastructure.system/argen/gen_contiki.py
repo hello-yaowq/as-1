@@ -1,5 +1,3 @@
-from DistUpgrade.utils import wrap
-
 __header = '''/**
  * AS - the open source Automotive Software on https://github.com/parai
  *
