@@ -31,7 +31,8 @@ __osgen__ = {'freeosek':gen_freeosek,
              'smallos':gen_smallos,
              'freertos':gen_freertos,
              'atk2-sc4':gen_toppers_atk2_sc4,
-             'contiki':gen_contiki
+             'contiki':gen_contiki,
+             'posix':gen_toppers_osek
             }
 
 def getOsRef(os_list):

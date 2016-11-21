@@ -31,6 +31,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
+#define AS_LOG_ISR 1
 #define configASSERT(x)	asAssert(x)
 
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )
@@ -95,6 +96,8 @@ static pthread_t hMainThread = ( pthread_t )NULL;
 static volatile portBASE_TYPE xSentinel = 0;
 static volatile portBASE_TYPE xSchedulerEnd = pdFALSE;
 static volatile portBASE_TYPE xInterruptsEnabled = pdTRUE;
+static volatile unsigned portBASE_TYPE uxCriticalNesting = 0;
+static pthread_mutex_t isrAccess = PTHREAD_MUTEX_INITIALIZER;
 static volatile portBASE_TYPE xServicingTick = pdFALSE;
 
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -126,6 +129,9 @@ void vPortStartFirstTask( void );
 /*-----------------------------------------------------------*/
 void vPortStartFirstTask( void )
 {
+	/* Initialise the critical nesting count ready for the first task. */
+	uxCriticalNesting = 0;
+
 	/* Start the first task. */
 
 	callevel = TCL_TASK;
@@ -214,8 +220,12 @@ void vPortSystemTickHandler( int sig )
 		{
 			xServicingTick = pdTRUE;
 
+			uxCriticalNesting ++;
+
 			// TODO: when this function start running, should make sure all thread suspened
 			prvProcessTickInterrupt();
+
+			uxCriticalNesting --;
 
 			/* If the task selected to enter the running state is not the task
 			that is already in the running state. */
@@ -436,53 +446,113 @@ void* prvToppersOSEK_TaskProcess(void * param)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
 /*-----------------------------------------------------------*/
+#if 0
 void disable_int(void)
 {
-	//asAssert(TRUE==xInterruptsEnabled);
+	pthread_mutex_lock(&isrAccess);
+	asAssert(TRUE==xInterruptsEnabled);
 	if(callevel!=TCL_ISR2)
 	{
 		(void)pthread_mutex_lock( &xSingleThreadMutex );
 	}
 	xInterruptsEnabled = pdFALSE;
+	ASLOG(ISR, "disable_int\n" );
+	pthread_mutex_unlock(&isrAccess);
 }
 void enable_int(void)
 {
-	//asAssert(FALSE==xInterruptsEnabled);
+	pthread_mutex_lock(&isrAccess);
+	asAssert(FALSE==xInterruptsEnabled);
 	if(callevel!=TCL_ISR2)
 	{
 		(void)pthread_mutex_unlock( &xSingleThreadMutex );
 	}
 	xInterruptsEnabled = pdTRUE;
+	ASLOG(ISR, "enable_int\n" );
+	pthread_mutex_unlock(&isrAccess);
 }
-#if 0
-imask_t portGetIrqStateAndDisableIt(void)
-{
-	imask_t ret = xInterruptsEnabled;
-	xInterruptsEnabled = FALSE;
-	return ret;
-}
-void portRestroeIrqState(imask_t irq_state)
-{
-	xInterruptsEnabled = irq_state;
-}
-#else
-imask_t portGetIrqStateAndDisableIt(void)
-{
-	return 0;
-}
-void portRestroeIrqState(imask_t irq_state)
-{
-	(void)irq_state;
-}
-#endif
 imask_t __Irq_Save(void)
 {
-	return portGetIrqStateAndDisableIt();
+	imask_t ret;
+
+	pthread_mutex_lock(&isrAccess);
+
+	ret = xInterruptsEnabled;
+
+	if(xInterruptsEnabled)
+	{
+		(void)pthread_mutex_lock( &xSingleThreadMutex );
+	}
+	xInterruptsEnabled = pdFALSE;
+	ASLOG(ISR, "__Irq_Save(%d)\n",ret);
+	//asCallStack();
+	pthread_mutex_unlock(&isrAccess);
+
+	return ret;
 }
 void Irq_Restore(imask_t irq_state)
 {
-	portRestroeIrqState(irq_state);
+	pthread_mutex_lock(&isrAccess);
+
+	xInterruptsEnabled = irq_state;
+
+	if(xInterruptsEnabled)
+	{
+		(void)pthread_mutex_unlock( &xSingleThreadMutex );
+	}
+	ASLOG(ISR, "Irq_Restore(%d)\n",irq_state);
+	pthread_mutex_unlock(&isrAccess);
 }
+#else
+void disable_int( void )
+{
+	pthread_mutex_lock(&isrAccess);
+
+	ASLOG(ISR, "disable_int(%d)\n",uxCriticalNesting);
+
+	uxCriticalNesting ++;
+
+	if(1 == uxCriticalNesting)
+	{
+		(void)pthread_mutex_lock( &xSingleThreadMutex );
+	}
+	xInterruptsEnabled = pdFALSE;
+
+	pthread_mutex_unlock(&isrAccess);
+}
+/*-----------------------------------------------------------*/
+
+void enable_int( void )
+{
+	pthread_mutex_lock(&isrAccess);
+	/* Check for unmatched exits. */
+	if ( uxCriticalNesting > 0 )
+	{
+		uxCriticalNesting--;
+	}
+
+	/* If we have reached 0 then re-enable the interrupts. */
+	if( uxCriticalNesting == 0 )
+	{
+		xInterruptsEnabled = pdTRUE;
+		(void)pthread_mutex_unlock( &xSingleThreadMutex );
+	}
+
+	ASLOG(ISR, "enable_int(%d)\n",uxCriticalNesting);
+	pthread_mutex_unlock(&isrAccess);
+}
+
+imask_t __Irq_Save(void)
+{
+	disable_int();
+
+	return 0;
+}
+void Irq_Restore(imask_t irq_state)
+{
+	enable_int();
+}
+#endif
 void dispatch(void)
 {
 	unlock_cpu();

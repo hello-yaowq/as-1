@@ -234,7 +234,11 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 	int nbytes,len;
 	struct can_frame frame;
 	nbytes = recvfrom(handle->s, &frame, sizeof(frame), 0, (struct sockaddr*)&handle->addr, &len);
-	if (nbytes < 0) {
+	if( -1 == nbytes )
+	{
+		/* nothing to do */
+	}
+	else if (nbytes < 0) {
 		perror("CAN socket read");
 		ASWARNING("CAN Socket port=%d read message failed %d!\n",handle->port,nbytes);
 	}

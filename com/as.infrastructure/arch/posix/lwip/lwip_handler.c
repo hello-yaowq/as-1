@@ -55,6 +55,8 @@
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 #define AS_LOG_TAP 1
+
+#define USE_AS_ETH
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -161,7 +163,7 @@ int lwip_client_send(void* data,size_t size)
 {
 	int len;
 
-	asCallStack();
+	//asCallStack();
 	len=send(client_sockfd,data,size,0);
 
 	if( len < 0)

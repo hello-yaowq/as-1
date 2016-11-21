@@ -12,8 +12,8 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_OS_H_
-#define COM_CLANG_INCLUDE_OS_H_
+#ifndef _OS_H_
+#define _OS_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "Os_Cfg.h"
@@ -94,4 +94,4 @@ extern void StartTimer(TimerType* timer);
 extern void StopTimer(TimerType* timer);
 extern TimerType GetTimer(TimerType* timer);
 extern TickType GetOsTick(void);
-#endif /* COM_CLANG_INCLUDE_OS_H_ */
+#endif /* _OS_H_ */

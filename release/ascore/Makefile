@@ -62,8 +62,12 @@ ifeq ($(board),posix)
 #rtos?=toppers_osek
 rtos?=smallos
 #rtos?=contiki
-#tcpip？=lwip
-tcpip?=contiki
+ifeq ($(rtos),contiki)
+tcpip=contiki
+else
+tcpip=lwip
+endif
+
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
 # my computer is 64 bit 
@@ -341,15 +345,15 @@ endif
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 ifeq ($(tcpip),lwip)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/core TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
 	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/netif TRUE)
-	@(cd $(src-dir);$(LNFS) $(ASCORE)/lwip/src/api TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/netif TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/api TRUE)
 	@(cd $(src-dir);rm ethernetif.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
-endif	
+endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
@@ -369,6 +373,9 @@ endif
 ifeq ($(rtos),smallos)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/posix FALSE)
+endif
+ifeq ($(rtos),posix)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/posix TRUE)
 endif
 ifeq ($(rtos),contiki)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/contiki/core TRUE)
@@ -644,6 +651,9 @@ endif
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
+ifeq ($(board),posix)
+	gcc $(src-dir)/socket_ethernet_driver.c -lpthread -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
+endif
 
 depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
@@ -716,15 +726,14 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=contiki
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true
-#	gcc src/posix-toppers_osek-posix-gcc/socket_ethernet_driver.c -lpthread	\
-#	 -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
+	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true
+
 93:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=false	
+	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
 94:
-	make dll board=posix compiler=posix-gcc gui=GTK rtos=contiki debug=true	
+	make dll board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true	
 	@cp -v ./out/posix.dll ../asboot/out/core.dll
 
 

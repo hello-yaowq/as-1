@@ -88,9 +88,7 @@ static void Eth_Isr(void)
 */
 sys_prot_t sys_arch_protect(void)
 {
-	uint32_t val;
-	Irq_Save(val);
-    return val;
+	return GetResource(RES_SCHEDULER);
 }
 
 /*
@@ -101,7 +99,7 @@ sys_prot_t sys_arch_protect(void)
 */
 void sys_arch_unprotect(sys_prot_t pval)
 {
-	Irq_Restore(pval);
+	ReleaseResource(RES_SCHEDULER);
 }
 
 
@@ -402,7 +400,7 @@ void
 sys_sem_signal(sys_sem_t *sem)
 {
 	sys_prot_t val = sys_arch_protect();
-	GetResource(RES_SCHEDULER);
+
 
 	if(semlist[*sem].val > 0){
 		semlist[*sem].val = 0;
@@ -413,7 +411,6 @@ sys_sem_signal(sys_sem_t *sem)
         semlist[*sem].taskIndex = 0;
 	}
 
-	ReleaseResource(RES_SCHEDULER);
 	sys_arch_unprotect(val);
 }
 
