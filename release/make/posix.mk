@@ -22,13 +22,13 @@ RM  = rm
 # generate pre-preocess C files if set to yes
 export gen-pp?=no
 
-ifeq ($(host), Linux)
+ifeq ($(shell uname), Linux)
 cflags-y  += -fPIC
 ldflags-y += -fPIC
 endif
 cflags-y  += -std=gnu99
 ldflags-y += -std=gnu99
-ifeq ($(host), Linux)
+ifeq ($(shell uname), Linux)
 # for call stack trace purpose
 cflags-y  += -rdynamic
 ldflags-y += -rdynamic

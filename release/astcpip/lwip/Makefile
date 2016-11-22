@@ -9,12 +9,19 @@ inc-dir = $(CURDIR)/src
 
 download = $(CURDIR)/../../download
 
+INFRASTRUCTURE = $(CURDIR)/../../../com/as.infrastructure
+
 ldflags-y += -lpthread
 ldflags-y += -lstdc++ -lm
 
+inc-y += -I$(INFRASTRUCTURE)/include
 inc-y += -I$(download)/lwip/src/include
 inc-y += -I$(download)/lwip/src/include/ipv4
 inc-y += -I$(download)/lwip-contrib/ports/unix/include
+
+VPATH += $(INFRASTRUCTURE)/diagnostic/Det
+obj-y += $(obj-dir)/asdebug.o
+def-y += -DUSE_DET -D__LINUX__
 
 dir-y += $(download)/lwip/src/core
 dir-y += $(download)/lwip/src/core/ipv4
@@ -29,8 +36,14 @@ dir-y += $(download)/lwip-contrib/ports/unix/proj/lib
 dir-y += $(download)/lwip-contrib/apps/httpserver
 dir-y += $(CURDIR)/app
 
-def-y += -DLWIP_DEBUG=0x80 -DDELIF_DEBUG=0x80 -DSIO_FIFO_DEBUG=0x80	\
-		-DTAPIF_DEBUG=0x80
+def-y += -DLWIP_DEBUG=LWIP_DBG_ON
+def-y += -DIP_DEBUG=LWIP_DBG_ON
+def-y += -DTCP_DEBUG=LWIP_DBG_ON
+def-y += -DTCP_INPUT_DEBUG=LWIP_DBG_ON
+
+def-y += -DDELIF_DEBUG=LWIP_DBG_ON
+def-y += -DSIO_FIFO_DEBUG=LWIP_DBG_ON
+def-y += -DTAPIF_DEBUG=LWIP_DBG_ON
 
 include ../../make/posix.mk
 

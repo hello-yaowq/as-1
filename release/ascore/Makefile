@@ -728,9 +728,9 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=freertos
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=posix
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=freertos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=posix debug=true
 
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
