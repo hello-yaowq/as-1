@@ -92,8 +92,12 @@ TASK(TaskNmInd)
 {
 	StatusType ercd;
 	EventMaskType mask;
-
-	ercd = WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
+#ifdef __FREERTOS__
+	ercd = E_OK;
+#else
+	ercd =
+#endif
+	WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	if(E_OK == ercd)
 	{
 		GetEvent(TASK_ID_TaskNmInd,&mask);
@@ -113,7 +117,7 @@ TASK(TaskNmInd)
 		{
 			printf("NM Ring Data ind.\n");
 		}
-		(void)ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
+		ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	}
 	OsTerminateTask(TaskNmInd);
 }

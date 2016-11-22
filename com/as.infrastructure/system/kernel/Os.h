@@ -20,6 +20,7 @@
 #include "ksm_cfg.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
+#ifndef __FREERTOS__
 #define OsActivateTask(x)		ActivateTask(TASK_ID_##x)
 #define OsTerminateTask(x)		TerminateTask()
 #define OsSetRelAlarm(x,a,b)	SetRelAlarm(ALARM_ID_##x,a,b)
@@ -30,6 +31,7 @@
 #define OsGetEvent(task,event)    GetEvent(TASK_ID_##task,EVENT_MASK_##task##_##event)
 #define OsClearEvent(task,event)  ClearEvent(EVENT_MASK_##task##_##event)
 #define OsWaitEvent(task,event)   WaitEvent(EVENT_MASK_##task##_##event)
+#endif /* __FREERTOS__ */
 
 #if defined(__FREEOSEK__)
 #define ALARM(AlarmName)  ALARMCALLBACK(AlarmName)

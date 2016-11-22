@@ -42,14 +42,6 @@
 				<Event Name="Event21" Mask="0x00200000" />
 				<Event Name="Event22" Mask="0x00400000" />
 				<Event Name="Event23" Mask="0x00800000" />
-				<Event Name="Event24" Mask="0x01000000" />
-				<Event Name="Event25" Mask="0x02000000" />
-				<Event Name="Event26" Mask="0x04000000" />
-				<Event Name="Event27" Mask="0x08000000" />
-				<Event Name="Event28" Mask="0x10000000" />
-				<Event Name="Event29" Mask="0x20000000" />
-				<Event Name="Event30" Mask="0x40000000" />
-				<Event Name="Event31" Mask="0x80000000" />
 			</EventList>
 		</Task>
 

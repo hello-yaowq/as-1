@@ -345,12 +345,13 @@ endif
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 ifeq ($(tcpip),lwip)
+	@(cd $(src-dir);rm -f lwip_timers.c timers.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
 	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/netif TRUE)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/api TRUE)
-	@(cd $(src-dir);rm ethernetif.c)
+	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
 endif
@@ -475,12 +476,13 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+	@(cd $(src-dir);rm -f lwip_timers.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
 	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/netif TRUE)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/api TRUE)
-	@(cd $(src-dir);rm ethernetif.c)
+	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
@@ -726,9 +728,9 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=freertos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=freertos debug=true
 
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	

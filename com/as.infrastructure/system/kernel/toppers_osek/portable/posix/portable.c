@@ -463,11 +463,11 @@ void enable_int(void)
 {
 	pthread_mutex_lock(&isrAccess);
 	asAssert(FALSE==xInterruptsEnabled);
+	xInterruptsEnabled = pdTRUE;
 	if(callevel!=TCL_ISR2)
 	{
 		(void)pthread_mutex_unlock( &xSingleThreadMutex );
 	}
-	xInterruptsEnabled = pdTRUE;
 	ASLOG(ISR, "enable_int\n" );
 	pthread_mutex_unlock(&isrAccess);
 }

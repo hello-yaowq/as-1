@@ -100,8 +100,19 @@ __for_freertos_macros = \
 #define SetRelAlarm OsSetRelAlarm_impl
 #define CancelAlarm OsCancelAlarm_impl
 
+#define GetTaskID(t) OsGetTaskID_impl(t)
+
+#define ActivateTask OsActivateTask_impl
+#define SetEvent     OsSetEvent_impl
+#define WaitEvent(mask)    do  { TaskType __tid;GetTaskID(&__tid);OsWaitEvent_impl(__tid,(mask)); } while(0)
+#define GetEvent(__tid,pmask)     do  { *(pmask)=OsGetEvent_impl(__tid); } while(0)
+#define ClearEvent(mask)  do  { TaskType __tid;GetTaskID(&__tid);OsClearEvent_impl(__tid,(mask)); } while(0)
+
 #define GetResource(r)
 #define ReleaseResource(r)
+
+#define DisableAllInterrupts    vPortEnterCritical
+#define EnableAllInterrupts     vPortExitCritical
 """
 
 __for_freertos_functions = \
@@ -183,6 +194,20 @@ void vConfigureTimerForRunTimeStats(void)
 {
 
 }
+extern TaskHandle_t * volatile pxCurrentTCB;
+StatusType OsGetTaskID_impl ( TaskType* TaskID )
+{
+    uint32 i;
+    for(i=0;i<TASK_NUM;i++)
+    {
+        if(pxCurrentTCB == os_task_handles[i])
+        {
+            *TaskID = i;
+            return E_OK;
+        }
+    }
+    return E_NOT_OK;
+}
 '''
 
 
@@ -229,6 +254,8 @@ def genForFreeRTOS_H(gendir,os_list):
     fp.write('typedef uint16      AlarmType;\n')
     fp.write('typedef uint16      CounterType;\n')
     fp.write('typedef TickType_t  TickType;\n')
+    fp.write('typedef uint16      TaskType;\n')
+    fp.write('typedef uint32      EventMaskType;\n')
     fp.write('\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')    
@@ -245,6 +272,7 @@ def genForFreeRTOS_H(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
+    fp.write('extern StatusType OsGetTaskID_impl ( TaskType* TaskID );\n')
     fp.write('#endif /* OS_CFG_H */\n')
     fp.close()
 

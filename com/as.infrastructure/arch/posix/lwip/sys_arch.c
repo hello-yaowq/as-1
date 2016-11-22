@@ -36,7 +36,7 @@
 /* This is the number of threads that can be started with sys_thread_new()
  * Cannot be modified at the moment. No need to support slip/ppp */
 #define SYS_THREAD_MAX 1
-#define SYS_SEM_MAX 25
+#define SYS_SEM_MAX 22
 /* ============================ [ TYPES     ] ====================================================== */
 struct semlist_t
 {
