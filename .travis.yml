@@ -19,7 +19,7 @@ script:
   - cd release/asboot && make 91 && make 92 && make 11 && make 12 && make 21 && make 22
   - cd ../../release/ascore && make 91 && make 92 && make 11 && make 12
 #  - cd ../../release/aslua && make 91 && make 94 && make 81 && make 82
-  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -f && make all
+  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -fr && make all
   - cd ../../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel
  
 env:
