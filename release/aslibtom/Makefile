@@ -9,12 +9,32 @@ inc-dir = $(CURDIR)/src
 
 download = $(CURDIR)/../download
 
+host = $(shell uname)
+
+ifeq ($(host), Linux)
+PY27 = python2
+PY34 = python3
+else
+PY27 = C:Python27/python
+PY34 = C:Python34/python
+endif
+
+LNFS  = $(PY34) $(CURDIR)/../make/lnfs.py
+
+### flags for libtom
+def-y += -DLTC_NO_ASM
+cflags-y += -Wall -Wsign-compare -W -Wshadow -Wno-unused-parameter -DLTC_SOURCE  -funroll-loops -fomit-frame-pointer 
+cflags-y += --include "tomcrypt_macros.h"
+
 ldflags-y += -lpthread
 ldflags-y += -lstdc++ -lm
 
 include ../make/posix.mk
 
-all: $(src-dir) $(download) aslibtom exe
+dep: $(src-dir)
+	@(cd $(src-dir); $(LNFS) $(download)/libtomcrypt-1.17/src TRUE)
+
+all: $(src-dir) $(download) exe
 
 
 clean: clean-obj
