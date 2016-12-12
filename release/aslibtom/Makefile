@@ -19,23 +19,25 @@ PY27 = C:Python27/python
 PY34 = C:Python34/python
 endif
 
-LNFS  = $(PY34) $(CURDIR)/../make/lnfs.py
+libraries += $(download)/libtomcrypt-1.17/libtomcrypt.a
+ldflags-y += -L$(download)/libtomcrypt-1.17 -ltomcrypt
 
-### flags for libtom
-def-y += -DLTC_NO_ASM
-cflags-y += -Wall -Wsign-compare -W -Wshadow -Wno-unused-parameter -DLTC_SOURCE  -funroll-loops -fomit-frame-pointer 
-cflags-y += --include "tomcrypt_macros.h"
+inc-y += -I$(download)/libtomcrypt-1.17/src/headers
+
+VPATH += $(download)/libtomcrypt-1.17/demos
+obj-y += $(obj-dir)/encrypt.o
+
+LNFS  = $(PY34) $(CURDIR)/../make/lnfs.py
 
 ldflags-y += -lpthread
 ldflags-y += -lstdc++ -lm
 
 include ../make/posix.mk
 
-dep: $(src-dir)
-	@(cd $(src-dir); $(LNFS) $(download)/libtomcrypt-1.17/src TRUE)
+$(download)/libtomcrypt-1.17/libtomcrypt.a:
+	@(cd $(download)/libtomcrypt-1.17;make clean;make library)
 
-all: $(src-dir) $(download) exe
-
+all: $(src-dir) $(download) $(libraries) exe
 
 clean: clean-obj
 
