@@ -27,11 +27,11 @@ inc-y += -I$(download)/libtomcrypt-1.17/src/headers
 VPATH += $(download)/libtomcrypt-1.17/demos
 obj-y += $(obj-dir)/encrypt.o
 
+cflags-y += -Wall -Wsign-compare -W -Wshadow -Wno-unused-parameter -DLTC_SOURCE -funroll-loops -fomit-frame-pointer
+
 LNFS  = $(PY34) $(CURDIR)/../make/lnfs.py
 
-ldflags-y += -lpthread
-ldflags-y += -lstdc++ -lm
-
+trace_callstack = no
 include ../make/posix.mk
 
 $(download)/libtomcrypt-1.17/libtomcrypt.a:

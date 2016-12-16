@@ -30,8 +30,11 @@ cflags-y  += -std=gnu99
 ldflags-y += -std=gnu99
 ifeq ($(shell uname), Linux)
 # for call stack trace purpose
+trace_callstack ?= yes
+ifeq ($(trace_callstack),yes)
 cflags-y  += -rdynamic
 ldflags-y += -rdynamic
+endif
 endif
 #common flags
 debug ?= true
@@ -78,7 +81,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
 	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 endif
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
 .PHONY:all clean
 
@@ -105,7 +108,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> LD $(target-y).exe\"" >> build.bat
 	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
 endif
-	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
+	$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
