@@ -19,6 +19,13 @@ LD  = gcc
 AR  = ar
 RM  = rm
 
+export verbose ?= no
+ifeq ($(verbose),no)
+Q=@
+else
+Q=
+endif
+
 # generate pre-preocess C files if set to yes
 export gen-pp?=no
 
@@ -68,7 +75,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
 	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 endif
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<
+	$(Q) $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<
 	
 $(obj-dir)/%.o:%.c
 	@echo
@@ -81,7 +88,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
 	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 endif
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	$(Q) $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
 .PHONY:all clean
 
@@ -108,7 +115,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> LD $(target-y).exe\"" >> build.bat
 	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
 endif
-	$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
+	$(Q) $(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 	
 dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
@@ -118,12 +125,12 @@ ifeq ($(gen-mk),yes)
 	@echo "$(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
 	@echo "pause" >> build.bat
 endif
-	@$(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
+	$(Q) $(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).LIB"
-	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)
+	$(Q) $(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 
 clean-obj:

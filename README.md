@@ -7,6 +7,7 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
+2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
 2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
 
 ## Key Point
@@ -36,6 +37,27 @@ because I am not powerful so I decided to develop small but smart part of automo
 
 ## 5. Lua Script Integrated
 * support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
+
+## 6. aslinux simulation environment on QEMU
+* very simple and easy, with one single [Makefile](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) to build out the kernel and the rootfs, and a [shell script](https://github.com/parai/as/blob/master/release/aslinux/script/run-vexpress.sh) to kick off the qemu virtual machine to execute that kernel and mount that rootfs.(for details check my [github.io page](http://parai.github.io/as/navigations/categories.html) on category linux)
+* aslinux build step
+
+```sh
+git clone https://github.com/parai/as.git
+cd $(patch-to)/as/release/aslinux
+mkdir build
+cd build
+ln -fs ../script/vexpress-ca9.mk Makefile
+ln -fs ../script/run-vexpress.sh run.sh
+make all
+./run.sh
+# if aslua want to be used
+cd $(patch-to)/as/release/aslua && make 31 && make 33 
+cp out/arm.exe $(patch-to)/as/release/aslinux/build/out/rootfs/usr/bin/aslua -v
+cp /usr/arm-linux-gnueabi/lib/*.so* $(patch-to)/as/release/aslinux/build/out/rootfs/lib -v
+# then the sdcard need to be rebuilt
+cd $(patch-to)/as/release/aslinux/build && make sdcard
+```
 
 ## Setup Environment
 
@@ -99,6 +121,4 @@ sudo apt-get install libstdc++6:i386 # for 64bit machine run 32bit app
 
 > git clone https://github.com/elupus/autosar-xcp.git
 
-   
-    
 
