@@ -22,6 +22,12 @@ echo "  >> welcome to the world of aslinux <<"
 mount -a
 mdev -s
 
+echo 0 > /proc/sys/kernel/hung_task_timeout_secs
+ip link set can0 up
+ip link add dev can1 type vcan
+ip link set up can1
+
+
 
 
 

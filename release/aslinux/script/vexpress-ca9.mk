@@ -11,7 +11,7 @@ download = $(CURDIR)/download
 
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
-all:$(rootfs) askernel asglibc asbusybox asamb ascanutils sdcard
+all:$(rootfs) askernel asglibc asbusybox asamb ascanutil sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -27,8 +27,10 @@ $(rootfs):
 can-utils:
 	@git clone  https://github.com/linux-can/can-utils.git
 
-ascanutil:can-utils
-	@(cd can-utils;make;make install PREFIX=$(rootfs)/usr)
+ascanutil: can-utils
+	@(cd can-utils;./autogen.sh;	\
+		./configure --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc;	\
+		make clean;make all;make install)
 
 libsocketcan:
 	@git clone git://git.pengutronix.de/git/tools/libsocketcan.git
@@ -38,7 +40,7 @@ canutils:
 	@git clone git://git.pengutronix.de/tools/canutils
 	@(cd canutils;git checkout canutils-4.0.6)
 
-ascanutils: canutils libsocketcan
+ascanutils: libsocketcan canutils 
 	(cd libsocketcan;./autogen.sh;	\
 		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc;	\
 		make clean;make all)
@@ -46,7 +48,7 @@ ascanutils: canutils libsocketcan
 		sed -e "12522c pkg_failed=no" configure > configure2;	\
 		chmod +x configure2;	\
 		./configure2 --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
-		make all;make install)
+		make clean;make all;make install)
 
 automotive-message-broker:
 	@git clone https://github.com/otcshare/automotive-message-broker.git
@@ -227,7 +229,7 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
-		sudo cp ../../rootfs/* tmp/ -rf;	\
+		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
@@ -242,3 +244,6 @@ clean:
 	@(cd glibc/build;make clean)
 	@(cd example;make clean)
 	@(cd tslib;make clean;./autogen-clean.sh)
+	@(cd can-utils;make clean)
+	@(cd canutils;make clean)
+	@(cd libsocketcan;make clean)

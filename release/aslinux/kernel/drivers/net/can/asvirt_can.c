@@ -89,6 +89,29 @@ static struct rpmsg_driver rpmsg_can_client = {
 	.callback	= rpmsg_can_cb,
 	.remove		= rpmsg_can_remove,
 };
+static const struct can_bittiming_const ascan_bittiming_const = {
+	.name = KBUILD_MODNAME,
+	.tseg1_min = 2,		/* Time segment 1 = prop_seg + phase_seg1 */
+	.tseg1_max = 64,
+	.tseg2_min = 1,		/* Time segment 2 = phase_seg2 */
+	.tseg2_max = 16,
+	.sjw_max = 16,
+	.brp_min = 1,
+	.brp_max = 1024,
+	.brp_inc = 1,
+};
+
+static const struct can_bittiming_const ascan_data_bittiming_const = {
+	.name = KBUILD_MODNAME,
+	.tseg1_min = 2,		/* Time segment 1 = prop_seg + phase_seg1 */
+	.tseg1_max = 16,
+	.tseg2_min = 1,		/* Time segment 2 = phase_seg2 */
+	.tseg2_max = 8,
+	.sjw_max = 4,
+	.brp_min = 1,
+	.brp_max = 32,
+	.brp_inc = 1,
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 
 /**
@@ -109,6 +132,7 @@ static int ascan_open(struct net_device *ndev)
 		return ret;
 
 	can_led_event(ndev, CAN_LED_EVENT_OPEN);
+	set_bit(NAPI_STATE_SCHED, &(priv->napi.state));
 	napi_enable(&priv->napi);
 	netif_start_queue(ndev);
 
@@ -203,6 +227,44 @@ static void rpmsg_can_cb(struct rpmsg_channel *rpdev, void *data, int len,
 	netif_receive_skb(skb);
 }
 
+static void ascan_start(struct net_device *dev)
+{
+	/* TODO */
+}
+static int ascan_set_mode(struct net_device *dev, enum can_mode mode)
+{
+	switch (mode) {
+	case CAN_MODE_START:
+		ascan_start(dev);
+		netif_wake_queue(dev);
+		break;
+	default:
+		return -EOPNOTSUPP;
+	}
+
+	return 0;
+}
+
+static int __ascan_get_berr_counter(const struct net_device *dev,
+				    struct can_berr_counter *bec)
+{
+	/* struct ascan_priv *priv = netdev_priv(dev); */
+
+	bec->rxerr = 0;
+	bec->txerr = 0;
+
+	return 0;
+}
+static int ascan_get_berr_counter(const struct net_device *dev,
+				  struct can_berr_counter *bec)
+{
+	/* struct ascan_priv *priv = netdev_priv(dev); */
+
+	__ascan_get_berr_counter(dev, bec);
+
+	return 0;
+}
+
 static int rpmsg_can_probe(struct rpmsg_channel *rpdev)
 {
 	int ret;
@@ -225,6 +287,16 @@ static int rpmsg_can_probe(struct rpmsg_channel *rpdev)
 	rpdev->ept->priv = ndev;
 
 	ndev->netdev_ops = &ascan_netdev_ops;
+
+	/* set up bittiming */
+	priv->can.bittiming.bitrate = 1000000; /* 1Mbps */
+	priv->can.bittiming_const = &ascan_bittiming_const;
+	priv->can.data_bittiming_const = &ascan_data_bittiming_const;
+	priv->can.do_set_mode = ascan_set_mode;
+	priv->can.do_get_berr_counter = ascan_get_berr_counter;
+	priv->can.ctrlmode_supported = CAN_CTRLMODE_LOOPBACK |
+					CAN_CTRLMODE_LISTENONLY |
+					CAN_CTRLMODE_BERR_REPORTING;
 
 	ret = register_candev(ndev);
 	if (ret) {
