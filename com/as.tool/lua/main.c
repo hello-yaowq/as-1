@@ -29,11 +29,13 @@
 #include "RPmsg.h"
 #endif
 
+#ifdef USE_SHELL
 #include "shell.h"
-
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define SHELL_CMD_CACHE_SIZE  4096
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef USE_SHELL
 typedef struct {
 	uint32_t r_pos;
 	uint32_t w_pos;
@@ -41,11 +43,15 @@ typedef struct {
 	pthread_mutex_t w_lock;
 	char     cmd[SHELL_CMD_CACHE_SIZE];
 }Shel_CmdInputCacheType;
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 extern int lua_main(int argc, char *argv[]);
+#ifdef USE_SHELL
 static int lua_main_entry(int argc, char *argv[]);
+#endif
 extern void luaclose_as(void);
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_SHELL
 static Shel_CmdInputCacheType shCmdCache;
 static ShellCmdT luacmd =
 {
@@ -56,8 +62,10 @@ static ShellCmdT luacmd =
 	.shortDesc = "lua <script>",
 	.longDesc ="lua script executor",
 };
+#endif
 static const pthread_mutex_t mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_SHELL
 static void StartupHook(void)
 {
 #if defined(USE_IPC)
@@ -84,7 +92,9 @@ static int lua_main_entry(int argc, char *argv[])
 
 	return rv;
 }
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#if defined(USE_RPMSG)
 void RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
 	uint32_t i;
@@ -143,8 +153,10 @@ void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 {
 	asAssert(chl == RPMSG_CHL_CLIENT);
 }
+#endif /* USE_RPMSG */
 int main(int argc,char* argv[])
 {
+#ifdef USE_SHELL
 	if( argc != 1 )
 	{
 		lua_main(argc,argv);
@@ -155,5 +167,8 @@ int main(int argc,char* argv[])
 
 		SHELL_Mainloop();
 	}
+#else
+	lua_main(argc,argv);
+#endif
 	return 0;
 }

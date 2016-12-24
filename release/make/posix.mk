@@ -81,7 +81,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
 	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 endif
-	$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
 	
 .PHONY:all clean
 
