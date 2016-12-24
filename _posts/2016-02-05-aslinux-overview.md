@@ -104,3 +104,21 @@ that's very wonderfull, isn't it?
 OK, by this simulation environment, I will continue to install package by package on the linux, to make the aslinux becomes a whole system with GUI/Audio/Video support. The next step for me is to research how to simulate a LCD and integrate the embededed Qt as GUI system.
 
 
+### aslinux build step
+
+```sh
+git clone https://github.com/parai/as.git
+cd $(patch-to)/as/release/aslinux
+mkdir build
+cd build
+ln -fs ../script/vexpress-ca9.mk Makefile
+ln -fs ../script/run-vexpress.sh run.sh
+make all
+./run.sh
+# if aslua want to be used
+cd $(patch-to)/as/release/aslua && make 31 && make 33 
+cp out/arm.exe $(patch-to)/as/release/aslinux/build/out/rootfs/usr/bin/aslua -v
+cp /usr/arm-linux-gnueabi/lib/*.so* $(patch-to)/as/release/aslinux/build/out/rootfs/lib -v
+# then the sdcard need to be rebuilt
+cd $(patch-to)/as/release/aslinux/build && make sdcard
+```
