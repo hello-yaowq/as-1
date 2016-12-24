@@ -11,7 +11,7 @@ download = $(CURDIR)/download
 
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
-all:$(rootfs) askernel asglibc asbusybox asamb ascanutil sdcard
+all:$(rootfs) askernel asglibc asbusybox asamb ascanutils sdcard
 	@echo "  >> build vexpress-a9 done <<"
 
 # 4.8.6 or 5.5.1
@@ -30,10 +30,28 @@ can-utils:
 ascanutil:can-utils
 	@(cd can-utils;make;make install PREFIX=$(rootfs)/usr)
 
+libsocketcan:
+	@git clone git://git.pengutronix.de/git/tools/libsocketcan.git
+	@(cd libsocketcan;git checkout v0.0.10)
+
+canutils:
+	@git clone git://git.pengutronix.de/tools/canutils
+	@(cd canutils;git checkout canutils-4.0.6)
+
+ascanutils: canutils libsocketcan
+	(cd libsocketcan;./autogen.sh;	\
+		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc;	\
+		make clean;make all)
+	(cd canutils;./autogen.sh;	\
+		sed -e "12522c pkg_failed=no" configure > configure2;	\
+		chmod +x configure2;	\
+		./configure2 --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
+		make all;make install)
+
 automotive-message-broker:
 	@git clone https://github.com/otcshare/automotive-message-broker.git
 	@(cd automotive-message-broker;git checkout 0.14;mkdir build)
-	
+
 asamb:automotive-message-broker
 	@(cd automotive-message-broker/build; cmake ..; make)
 
@@ -42,7 +60,6 @@ patch-kernel:
 	@(cp ../kernel . -rvf)
 	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
 	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
-	
 
 extract-kernel:
 	@xz -dk $(download)/linux-3.18.tar.xz
@@ -95,7 +112,7 @@ busybox-menuconfig:
 busybox/.config:
 	#@(cd busybox;make menuconfig)
 	@(cd busybox;cp ../kernel/aspatch/busybox_defconfig .config)
-	
+
 asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
 	@(cd busybox;make all)
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
@@ -130,7 +147,7 @@ extract-qt-4.8.6:$(download)/qt-everywhere-opensource-src-4.8.6.tar.gz
 	@(gunzip -k $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz)
 	@(tar -xf$(download)/qt-everywhere-opensource-src-4.8.6.tar -C $(CURDIR))
 	@rm $(download)/qt-everywhere-opensource-src-4.8.6.tar
-	
+
 $(download)/qt-everywhere-opensource-src-4.8.6.tar.gz:
 	@(cd $(download);wget http://101.44.1.117/files/82540000020A32A4/mirrors.ustc.edu.cn/qtproject/archive/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz)
 	@make extract-qt-4.8.6
@@ -177,7 +194,7 @@ asqt-4.8.6:
 
 asqt-5.5.1:
 	@(echo "  >> I don't know how to build"
-		
+
 asqt: $(download)/qt-everywhere-opensource-src-$(qt-version).tar.gz asqt-$(qt-version)
 	@(cd qt-everywhere-opensource-src-$(qt-version);./configure -embedded arm;make;make install INSTALL_ROOT=$(rootfs)/qt)
 
