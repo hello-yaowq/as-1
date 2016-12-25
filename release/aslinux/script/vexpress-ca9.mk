@@ -24,6 +24,34 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(download)/sqlite-amalgamation-3.5.6.tar.gz:
+	@(cd $(download);wget http://www.sqlite.org/sqlite-amalgamation-3.5.6.tar.gz)
+
+sqlite-3.5.6:$(download)/sqlite-amalgamation-3.5.6.tar.gz
+	@tar zxf $(download)/sqlite-amalgamation-3.5.6.tar.gz -C .
+
+assqlite:sqlite-3.5.6
+	@(cd sqlite-3.5.6;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr  \
+		 --enable-shared --disable-readline --disable-dynamic-extensions;  	\
+		make; make install)
+
+$(download)/Python-2.5.1.tar.bz2:
+	@(cd $(download);wget http://www.python.org/ftp/python/2.5.1/Python-2.5.1.tar.bz2)
+
+Python-2.5.1:$(download)/Python-2.5.1.tar.bz2
+	@(tar jxf $(download)/Python-2.5.1.tar.bz2 -C .)
+
+aspython:Python-2.5.1
+	@(cd Python-2.5.1;mkdir build.pc;cd build.pc;../configure  CC=gcc --host=x86 ;make all;)
+# modify the configure to disable the %zd printf format check
+	@(cd Python-2.5.1;mkdir build.arm;cd build.arm;  \
+		sed -i "22092c if 0; then" ../configure;	\
+		sed -i "22168c fi" ../configure;	\
+		../configure --prefix=$(rootfs) --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
+		echo "   1. manually modify the Makefile, replase all ./&(BUILDPYTHON) to ../build.pc/python";	\
+		echo "   2. and than do command: make all; make install")
+
+
 can-utils:
 	@git clone  https://github.com/linux-can/can-utils.git
 
@@ -45,9 +73,8 @@ ascanutils: libsocketcan canutils
 		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc;	\
 		make clean;make all)
 	(cd canutils;./autogen.sh;	\
-		sed -e "12522c pkg_failed=no" configure > configure2;	\
-		chmod +x configure2;	\
-		./configure2 --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
+		sed -i "12522c pkg_failed=no" configure;	\
+		./configure --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
 		make clean;make all;make install)
 
 automotive-message-broker:

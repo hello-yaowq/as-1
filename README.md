@@ -52,11 +52,11 @@ ln -fs ../script/run-vexpress.sh run.sh
 make all
 ./run.sh
 # if aslua want to be used
-cd $(patch-to)/as/release/aslua && make 31 && make 33 
-cp out/arm.exe $(patch-to)/as/release/aslinux/build/out/rootfs/usr/bin/aslua -v
-cp /usr/arm-linux-gnueabi/lib/*.so* $(patch-to)/as/release/aslinux/build/out/rootfs/lib -v
+cd $(path-to)/as/release/aslua && make 31 && make 33 
+cp out/arm.exe $(path-to)/as/release/aslinux/build/out/rootfs/usr/bin/aslua -v
+cp /usr/arm-linux-gnueabi/lib/*.so* $(path-to)/as/release/aslinux/build/out/rootfs/lib -v
 # then the sdcard need to be rebuilt
-cd $(patch-to)/as/release/aslinux/build && make sdcard
+cd $(path-to)/as/release/aslinux/build && make sdcard
 ```
 
 ## Setup Environment
