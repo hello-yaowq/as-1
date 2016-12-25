@@ -7,8 +7,8 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
-2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
-2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
+* 2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost have no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
+* 2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
 
 ## Key Point
 
