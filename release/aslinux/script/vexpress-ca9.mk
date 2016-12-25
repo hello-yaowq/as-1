@@ -47,7 +47,7 @@ aspython:Python-2.5.1
 	@(cd Python-2.5.1;mkdir build.arm;cd build.arm;  \
 		sed -i "22092c if 0; then" ../configure;	\
 		sed -i "22168c fi" ../configure;	\
-		../configure --prefix=$(rootfs) --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
+		../configure --prefix=$(rootfs)/usr --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
 		echo "   1. manually modify the Makefile, replase all ./&(BUILDPYTHON) to ../build.pc/python";	\
 		echo "   2. and than do command: make all; make install")
 
