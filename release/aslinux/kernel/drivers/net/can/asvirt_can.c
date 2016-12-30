@@ -202,7 +202,7 @@ static void rpmsg_can_cb(struct rpmsg_channel *rpdev, void *data, int len,
 	struct can_frame *cf;
 	struct sk_buff *skb;
 
-	dev_info(&rpdev->dev, "incoming can msg %d (src: 0x%x)\n", (int)stats->rx_packets+1, src);
+	/* dev_info(&rpdev->dev, "incoming can msg %d (src: 0x%x)\n", (int)stats->rx_packets+1, src); */
 
 	print_hex_dump(KERN_DEBUG, "rpmsg_can_cb RX: ", DUMP_PREFIX_NONE, 16, 1,
 		       data, len,  true);

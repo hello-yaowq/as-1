@@ -20,12 +20,12 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* for simple test purpose, echo the message back */
 void __weak Can_RPmsg_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len){
-	RPmsg_Send(chl,data,len);
+	/* RPmsg_Send(chl,data,len); */
 }
 void __weak Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl) {}
 void __weak RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 {
-	RPmsg_Send(chl,data,len);
+	/* RPmsg_Send(chl,data,len); */
 }
 void __weak RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl){};
 /* ============================ [ DATAS     ] ====================================================== */

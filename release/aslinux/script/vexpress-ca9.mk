@@ -2,6 +2,9 @@
 # start from a clean directory, 
 # ln -fs /as/release/aslinux/script/vexpress-ca9.mk makefile
 
+#   As in China that often some URL resoure especial GOOGLE is not accessable, so a mirror is an alternate 
+# solution, such as https://mirrors.tuna.tsinghua.edu.cn/
+
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
 
@@ -24,6 +27,20 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(download)/jre-6u45-linux-i586.bin:
+	@(cd $(download);wget http://download.oracle.com/otn/java/jdk/6u45-b06/jre-6u45-linux-i586.bin;  \
+		wget http://download.oracle.com/otn/java/jdk/6u43-b01/jdk-6u43-linux-i586.bin)
+
+asjava:$(download)/jre-6u45-linux-i586.bin
+
+$(download)/qemu_v2.0.0.tar.gz:
+	@(cd $(download);wget https://github.com/qemu/qemu/archive/v2.0.0.tar.gz -O qemu_v2.0.0.tar.gz)
+
+$(download)/qemu:$(download)/qemu_v2.0.0.tar.gz
+	@(tar xf $(download)/qemu_v2.0.0.tar.gz -C .)
+
+asqemu:$(download)/qemu
+
 $(download)/sqlite-amalgamation-3.5.6.tar.gz:
 	@(cd $(download);wget http://www.sqlite.org/sqlite-amalgamation-3.5.6.tar.gz)
 
@@ -44,6 +61,7 @@ Python-2.5.1:$(download)/Python-2.5.1.tar.bz2
 aspython:Python-2.5.1
 	@(cd Python-2.5.1;mkdir build.pc;cd build.pc;../configure  CC=gcc --host=x86 ;make all;)
 # modify the configure to disable the %zd printf format check
+# For some PC, when do configure, should add 'SVNVERSION="Unversioned directory"', don't ask me why
 	@(cd Python-2.5.1;mkdir build.arm;cd build.arm;  \
 		sed -i "22092c if 0; then" ../configure;	\
 		sed -i "22168c fi" ../configure;	\
