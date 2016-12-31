@@ -12,6 +12,8 @@ out=$(CURDIR)/out
 rootfs = $(out)/rootfs
 download = $(CURDIR)/download
 
+SUPERFN = python $(CURDIR)/../../make/superfn.py
+
 # first default make
 #all:$(rootfs) askernel asuboot asglibc asbusybox astslib asqt sdcard
 all:$(rootfs) askernel asglibc asbusybox asamb ascanutil sdcard
@@ -59,16 +61,15 @@ Python-2.5.1:$(download)/Python-2.5.1.tar.bz2
 	@(tar jxf $(download)/Python-2.5.1.tar.bz2 -C .)
 
 aspython:Python-2.5.1
-	@(cd Python-2.5.1;mkdir build.pc;cd build.pc;../configure  CC=gcc --host=x86 ;make all;)
+	@(cd Python-2.5.1;mkdir -p build.pc;cd build.pc;SVNVERSION="Unversioned directory" ../configure CC=gcc --host=x86 ;make all;)
 # modify the configure to disable the %zd printf format check
 # For some PC, when do configure, should add 'SVNVERSION="Unversioned directory"', don't ask me why
 	@(cd Python-2.5.1;mkdir build.arm;cd build.arm;  \
 		sed -i "22092c if 0; then" ../configure;	\
 		sed -i "22168c fi" ../configure;	\
-		../configure --prefix=$(rootfs)/usr --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
-		echo "   1. manually modify the Makefile, replase all ./&(BUILDPYTHON) to ../build.pc/python";	\
-		echo "   2. and than do command: make all; make install")
-
+		SVNVERSION="Unversioned directory" ../configure --prefix=$(rootfs)/usr --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
+		$(SUPERFN) replace.file.all Makefile './\x24(BUILDPYTHON)' ../build.pc/python;  \
+		make all;make install)
 
 can-utils:
 	@git clone  https://github.com/linux-can/can-utils.git

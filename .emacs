@@ -84,7 +84,7 @@
 ;;(setq inhibit-startup-message t) 
 ;;(setq indent-tabs-mode t)
 
-;;solve mess encode issue of shell－mode
+;;solve mess encode issue of shell-mode
 (ansi-color-for-comint-mode-on)
 
 (fset 'yes-or-no-p 'y-or-n-p)
