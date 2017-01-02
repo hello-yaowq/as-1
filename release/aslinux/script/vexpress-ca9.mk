@@ -29,6 +29,35 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(CURDIR)/lk:
+	@(git clone https://github.com/littlekernel/lk.git)
+
+aslk:$(CURDIR)/lk
+
+$(CURDIR)/systemd:
+	@(git clone https://github.com/systemd/systemd.git;cd systemd;git checkout v200)
+
+assystemd:$(CURDIR)/systemd
+	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
+		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+
+
+$(CURDIR)/smack:
+	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.0)
+
+assmack:$(CURDIR)/smack
+	@(cd smack; ./autogen.sh;sed -i "4385c #LT_INIT(disable-static)" configure; mkdir -p build;cd build;    \
+		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+
+$(download)/attr-2.4.47.src.tar.gz:
+	@(cd $(download);wget http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz)
+
+$(CURDIR)/attr:$(download)/attr-2.4.47.src.tar.gz
+	@(tar xf $(download)/attr-2.4.47.src.tar.gz -C .; mv attr-* attr)
+
+asattr:$(CURDIR)/attr
+	@(cd attr;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+
 $(download)/jre-6u45-linux-i586.bin:
 	@(cd $(download);wget http://download.oracle.com/otn/java/jdk/6u45-b06/jre-6u45-linux-i586.bin;  \
 		wget http://download.oracle.com/otn/java/jdk/6u43-b01/jdk-6u43-linux-i586.bin)
