@@ -132,21 +132,31 @@ automotive-message-broker:
 asamb:automotive-message-broker
 	@(cd automotive-message-broker/build; cmake ..; make)
 
+# see http://www.redhat.com/archives/dm-devel/2016-February/msg00199.html
+# init: add support to directly boot to a mapped device
+patch-kernel-dm-boot:
+	@(cd kernel; wget https://patchwork.kernel.org/patch/104860/raw/ -O v4-2-3-dm-export-a-table-mapped-device-to-the-ioctl-interface.patch;  \
+		patch -p1 < v4-2-3-dm-export-a-table-mapped-device-to-the-ioctl-interface.patch)
+	@(cd kernel; wget https://patchwork.kernel.org/patch/104861/raw/ -O v4-3-3-init-add-support-to-directly-boot-to-a-mapped-device.patch; \
+		patch -p1 < v4-3-3-init-add-support-to-directly-boot-to-a-mapped-device.patch)
+
 patch-kernel:
 	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
 	@(cp ../kernel . -rvf)
 	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
 	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
 
+kernel-version ?= linux-3.18
+
 extract-kernel:
-	@xz -dk $(download)/linux-3.18.tar.xz
-	@tar -xf $(download)/linux-3.18.tar -C $(CURDIR)
-	@rm $(download)/linux-3.18.tar
-	@mv linux-3.18 kernel
+	@xz -dk $(download)/$(kernel-version).tar.xz
+	@tar -xf $(download)/$(kernel-version).tar -C $(CURDIR)
+	@rm $(download)/$(kernel-version).tar
+	@mv $(kernel-version) kernel
 	@make patch-kernel
 
-$(download)/linux-3.18.tar.xz:
-	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.tar.xz)
+$(download)/$(kernel-version).tar.xz:
+	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/$(kernel-version).tar.xz)
 	@make extract-kernel
 
 kernel/.config:
@@ -157,7 +167,7 @@ kernel/.config:
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
 
-askernel:$(rootfs) $(download)/linux-3.18.tar.xz kernel/.config
+askernel:$(rootfs) $(download)/$(kernel-version).tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
 	@cp -f kernel/arch/arm/boot/zImage $(rootfs)/zImage
@@ -308,6 +318,12 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
+
+$(out)/initrd.img:
+	@dd if=/dev/zero of=$@ bs=4096 count=1024
+	@sudo mkfs.ext3 $@
+
+initrd:$(out)/initrd.img
 
 example:
 	@(cd example;make all)
