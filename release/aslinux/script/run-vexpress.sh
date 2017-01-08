@@ -24,15 +24,22 @@ echo "#! /bin/sh" > tmp_qemu_run.sh
 echo "cd out" >> tmp_qemu_run.sh
 echo "qemu-system-arm -kernel rootfs/zImage -dtb rootfs/vexpress-v2p-ca9.dtb -M vexpress-a9 \\" >> tmp_qemu_run.sh
 if [ $opt_initrd = "yes" ]; then
-	echo "  -initrd initrd.img \\" >> tmp_qemu_run.sh
+	echo "  -initrd ramdisk.cpio \\" >> tmp_qemu_run.sh
 fi
-if [ $opt_gui = "no" ]; then
-	echo "  -nographic -append \"init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
-	echo "  -sd sdcard.ext3 -smp 4 -m 512M	\\" >> tmp_qemu_run.sh
+
+echo "  -sd sdcard.ext3 \\" >> tmp_qemu_run.sh
+
+if [ $opt_initrd = "yes" ]; then
+	echo "  -append \"init=/linuxrc root=/dev/ram console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
 else
-	echo "  -append \"init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 console=tty0\" \\" >> tmp_qemu_run.sh
-	echo "  -sd sdcard.ext3 -serial stdio -net nic -net user -smp 4 -m 512M	\\" >> tmp_qemu_run.sh
+    echo "  -append \"init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
 fi
+
+if [ $opt_gui = "no" ]; then
+	echo "  -nographic \\" >> tmp_qemu_run.sh
+fi
+
+echo "  -serial stdio -net nic -net user -smp 4 -m 512M	\\" >> tmp_qemu_run.sh
 
 if [ $opt_debug = "yes" ]; then
 	echo "  -s -S	\\" >> tmp_qemu_run.sh

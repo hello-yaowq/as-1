@@ -139,6 +139,9 @@ patch-kernel-dm-boot:
 		patch -p1 < v4-2-3-dm-export-a-table-mapped-device-to-the-ioctl-interface.patch)
 	@(cd kernel; wget https://patchwork.kernel.org/patch/104861/raw/ -O v4-3-3-init-add-support-to-directly-boot-to-a-mapped-device.patch; \
 		patch -p1 < v4-3-3-init-add-support-to-directly-boot-to-a-mapped-device.patch)
+	@(cd kernel; sed -i "396c dm_table_destroy(table);" init/do_mounts_dm.c)
+	@(cd kernel; sed -i "308c extern void dm_table_destroy(struct dm_table* t);" init/do_mounts_dm.c)
+
 
 patch-kernel:
 	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
@@ -319,11 +322,37 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo umount tmp;	\
 		rm tmp -fr)
 
+$(out)/ramdisk:
+	@mkdir -p $@
+
+$(out)/ramdisk.cpio:$(out)/ramdisk
+#	@(cd $(out)/ramdisk; echo "#include <stdio.h>" > init.c;	 \
+#		echo "int main(int argc, char* argv[]) { printf(\"Hello World!\\n\"); while(1); }" >> init.c;  \
+#		$(CROSS_COMPILE)gcc -o init init.c -static;  \
+#		echo init |cpio -o --format=newc > $@ )
+	@(cd  $(out)/ramdisk; find . | cpio -o --format=newc > $@)
+
+ramdisk:$(out)/ramdisk.cpio
+#	qemu-system-arm -M vexpress-a9 -kernel $(out)/rootfs/zImage  -initrd $(out)/ramdisk.cpio -serial stdio -append "console=ttyAMA0" -nographic
+
 $(out)/initrd.img:
 	@dd if=/dev/zero of=$@ bs=4096 count=1024
 	@sudo mkfs.ext3 $@
 
 initrd:$(out)/initrd.img
+	@(cd $(out);mkdir -p tmp;	\
+		sudo mount -t ext3 initrd.img tmp/ -o loop;	\
+		sudo mkdir tmp/dev;	\
+		sudo mknod tmp/dev/tty1 c 4 1;	\
+		sudo mknod tmp/dev/tty2 c 4 2;	\
+		sudo mknod tmp/dev/tty3 c 4 3;	\
+		sudo mknod tmp/dev/tty4 c 4 4;	\
+		sudo mknod tmp/dev/ram b 1 0;  \
+		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
+		sudo cp ../../initrd/* tmp/ -rvf;	\
+		sudo chmod +x tmp/etc/init.d/rcS;	\
+		sudo umount tmp;	\
+		rm tmp -fr)
 
 example:
 	@(cd example;make all)
