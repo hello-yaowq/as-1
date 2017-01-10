@@ -30,7 +30,7 @@ fi
 echo "  -sd sdcard.ext3 \\" >> tmp_qemu_run.sh
 
 if [ $opt_initrd = "yes" ]; then
-	echo "  -append \"init=/linuxrc root=/dev/ram console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
+	echo "  -append \"rdinit=/linuxrc root=/dev/ram console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
 else
     echo "  -append \"init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
 fi

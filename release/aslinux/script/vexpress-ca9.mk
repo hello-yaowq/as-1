@@ -322,18 +322,33 @@ sdcard:$(out)/sdcard.ext3 asrootfs
 		sudo umount tmp;	\
 		rm tmp -fr)
 
+test_initrd ?= no
+
 $(out)/ramdisk:
 	@mkdir -p $@
+ifeq ($(test_initrd),no)
+	@(echo "   >> please set busybox build option to static"; sleep 1)
+	@(cd busybox;make menuconfig;make all;make install CONFIG_PREFIX=$(out)/ramdisk)
+endif
 
-$(out)/ramdisk.cpio:$(out)/ramdisk
-#	@(cd $(out)/ramdisk; echo "#include <stdio.h>" > init.c;	 \
-#		echo "int main(int argc, char* argv[]) { printf(\"Hello World!\\n\"); while(1); }" >> init.c;  \
-#		$(CROSS_COMPILE)gcc -o init init.c -static;  \
-#		echo init |cpio -o --format=newc > $@ )
-	@(cd  $(out)/ramdisk; find . | cpio -o --format=newc > $@)
-
-ramdisk:$(out)/ramdisk.cpio
-#	qemu-system-arm -M vexpress-a9 -kernel $(out)/rootfs/zImage  -initrd $(out)/ramdisk.cpio -serial stdio -append "console=ttyAMA0" -nographic
+ramdisk:$(out)/ramdisk
+ifeq ($(test_initrd),yes)
+	@(cd $(out)/ramdisk; echo "#include <stdio.h>" > init.c;	 \
+		echo "int main(int argc, char* argv[]) { printf(\"Hello World!\\n\"); while(1); }" >> init.c;  \
+		$(CROSS_COMPILE)gcc -o init init.c -static;  \
+		echo init | cpio -o --format=newc > $(out)/ramdisk.cpio )
+else
+	@(cd $(out)/ramdisk;	\
+		sudo mkdir ./dev;	\
+		sudo mknod ./dev/tty1 c 4 1;	\
+		sudo mknod ./dev/tty2 c 4 2;	\
+		sudo mknod ./dev/tty3 c 4 3;	\
+		sudo mknod ./dev/tty4 c 4 4;	\
+		sudo mkdir ./proc ./tmp ./sys;	\
+		sudo cp ../../../rootfs/* ./ -rvf;	\
+		sudo chmod +x ./etc/init.d/rcS)
+	@(cd $(out)/ramdisk; find . | cpio -o --format=newc > $(out)/ramdisk.cpio)
+endif
 
 $(out)/initrd.img:
 	@dd if=/dev/zero of=$@ bs=4096 count=1024
