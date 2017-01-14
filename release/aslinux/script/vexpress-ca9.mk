@@ -149,7 +149,7 @@ patch-kernel:
 	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
 	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
 
-kernel-version ?= linux-3.18
+kernel-version ?= linux-3.18.46
 
 extract-kernel:
 	@xz -dk $(download)/$(kernel-version).tar.xz
@@ -339,14 +339,15 @@ ifeq ($(test_initrd),yes)
 		echo init | cpio -o --format=newc > $(out)/ramdisk.cpio )
 else
 	@(cd $(out)/ramdisk;	\
-		sudo mkdir ./dev;	\
+		mkdir ./dev;	\
 		sudo mknod ./dev/tty1 c 4 1;	\
 		sudo mknod ./dev/tty2 c 4 2;	\
 		sudo mknod ./dev/tty3 c 4 3;	\
 		sudo mknod ./dev/tty4 c 4 4;	\
-		sudo mkdir ./proc ./tmp ./sys;	\
-		sudo cp ../../../rootfs/* ./ -rvf;	\
-		sudo chmod +x ./etc/init.d/rcS)
+		mkdir ./proc ./tmp ./sys;	\
+		cp ../../../rootfs/* ./ -rvf;	\
+		echo "echo \"  >> This is a ramdisk rootfs <<\"" >> ./etc/init.d/rcS;		\
+		chmod +x ./etc/init.d/rcS)
 	@(cd $(out)/ramdisk; find . | cpio -o --format=newc > $(out)/ramdisk.cpio)
 endif
 

@@ -5,7 +5,7 @@ show_usage="args: [-g <yes/no>, -d <yes/no>, -i <yes/no>]	\
                   [--gui <yes/no>, --debug <yes/no> --initrd <yes/no>]"
 opt_gui="no"
 opt_debug="no"
-opt_initrd="yes"
+opt_initrd="no"
 
 GETOPT_ARGS=`getopt -o g:d: -al gui:,debug: -- "$@"`
 eval set -- "$GETOPT_ARGS"
