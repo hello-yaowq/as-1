@@ -43,11 +43,12 @@ assystemd:$(CURDIR)/systemd
 
 
 $(CURDIR)/smack:
-	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.0)
+	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.3.0)
 
 assmack:$(CURDIR)/smack
-	@(cd smack; ./autogen.sh;sed -i "4385c #LT_INIT(disable-static)" configure; mkdir -p build;cd build;    \
-		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+#sed -i "4385c #LT_INIT(disable-static)" configure;
+	@(cd smack; ./autogen.sh; \
+		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
 
 $(download)/attr-2.4.47.src.tar.gz:
 	@(cd $(download);wget http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz)
@@ -301,22 +302,32 @@ astslib:tslib
 	@(cd tslib;make install)
 	@(cd tslib;cp -frv install/* $(rootfs))
 
-$(out)/sdcard.ext3:
+$(out)/sdcard.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
-	@sudo mkfs.ext3 $@
+#	@sudo mkfs.ext3 $@
+	@echo " >> use fdisk to creat 2 primary partition, p1=+512M@2048, p2=left"
+	@echo "$@Device Boot  Start         End      Blocks   Id  System"
+	@echo "$@p1            2048     1050623      524288   83  Linux"
+	@echo "$@p2         1050624     4194303     1571840   83  Linux"
+	@fdisk $@
+	@echo "  >> use parted to mkfs the 2 partition to ext2 filesyste"
+	@parted $@
+
 
 asrootfs:
 
-sdcard:$(out)/sdcard.ext3 asrootfs
+sdcard:$(out)/sdcard.img asrootfs
 	@(cd $(out);mkdir -p tmp;	\
-		sudo mount -t ext3 sdcard.ext3 tmp/ -o loop;	\
+		parted sdcard.img unit B print;	\
+		sudo mount -o loop,offset=537919488 sdcard.img tmp/; \
 		sudo cp $(rootfs)/* tmp/ -rf;	\
-		sudo mkdir tmp/dev;	\
+		sudo mkdir -p tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\
 		sudo mknod tmp/dev/tty2 c 4 2;	\
 		sudo mknod tmp/dev/tty3 c 4 3;	\
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
+		sudo mkdir -p tmp/mnt/mmcblk0p1;	\
 		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\

@@ -3,7 +3,7 @@
 # show usage
 show_usage="args: [-g <yes/no>, -d <yes/no>, -i <yes/no>]	\
                   [--gui <yes/no>, --debug <yes/no> --initrd <yes/no>]"
-opt_gui="no"
+opt_gui="yes"
 opt_debug="no"
 opt_initrd="no"
 
@@ -27,12 +27,12 @@ if [ $opt_initrd = "yes" ]; then
 	echo "  -initrd ramdisk.cpio \\" >> tmp_qemu_run.sh
 fi
 
-echo "  -sd sdcard.ext3 \\" >> tmp_qemu_run.sh
+echo "  -sd sdcard.img \\" >> tmp_qemu_run.sh
 
 if [ $opt_initrd = "yes" ]; then
-	echo "  -append \"rdinit=/linuxrc root=/dev/ram console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
+	echo "  -append \"rdinit=/linuxrc root=/dev/ram console=ttyAMA0 console=tty0 loglevel=7\"\\" >> tmp_qemu_run.sh
 else
-    echo "  -append \"init=/linuxrc root=/dev/mmcblk0 rw console=ttyAMA0 loglevel=7\"\\" >> tmp_qemu_run.sh
+    echo "  -append \"init=/linuxrc root=/dev/mmcblk0p2 rw console=ttyAMA0 console=tty0 loglevel=7\"\\" >> tmp_qemu_run.sh
 fi
 
 if [ $opt_gui = "no" ]; then
