@@ -328,6 +328,7 @@ sdcard:$(out)/sdcard.img asrootfs
 		sudo mknod tmp/dev/tty4 c 4 4;	\
 		sudo mkdir tmp/proc tmp/tmp tmp/sys;	\
 		sudo mkdir -p tmp/mnt/mmcblk0p1;	\
+		sudo mkdir -p tmp/smack tmp/root tmp/home/root;	\
 		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo umount tmp;	\

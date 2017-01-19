@@ -31,5 +31,6 @@ ip link add dev can1 type vcan
 ip link set up can1
 
 echo "  >> login as root <<"
-sh
+
+/bin/hostname -F /etc/hostname
 
