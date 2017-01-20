@@ -29,6 +29,13 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(CURDIR)/strace:
+	@git clone https://github.com/strace/strace.git
+	@(cd strace;git checkout v4.15)
+
+asstrace:$(CURDIR)/strace
+	@(cd strace; ./bootstrap; autoreconf -i; ./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+
 $(CURDIR)/lk:
 	@(git clone https://github.com/littlekernel/lk.git)
 
@@ -331,6 +338,7 @@ sdcard:$(out)/sdcard.img asrootfs
 		sudo mkdir -p tmp/smack tmp/root tmp/home/root;	\
 		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
+		sudo cp /usr/arm-linux-gnueabi/lib/*.so* tmp/lib;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
 
