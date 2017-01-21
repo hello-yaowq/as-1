@@ -20,7 +20,8 @@ src-dir = $(CURDIR)/src/$(board)
 inc-dir = $(CURDIR)/src/$(board)/include
 download = $(CURDIR)/../download
 
-export rootfs ?= ~/workspace/qemu-vexpress-ca9/out/rootfs
+#export rootfs ?= ~/workspace/qemu-vexpress-ca9/out/rootfs
+export rootfs ?= $(shell readlink -f $(CURDIR)/../aslinux/build/out/rootfs)
 
 prj-dir = $(subst release/aslua,,$(CURDIR))
 
@@ -76,6 +77,7 @@ ldflags-y += -lrt -lm -lpthread -lg -ldl -lc
 ldflags-y += /usr/arm-linux-gnueabi/lib/libgcc_s.so.1
 ldflags-y += -lreadline -L$(download)/readline -lncurses -L$(download)/ncurses-6.0/lib
 def-y    += -DLUA_COMPAT_5_2
+inc-y += -I$(download)
 endif # board arm
 
 ifeq ($(board),posix)
@@ -217,8 +219,7 @@ endif
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(make pysip)
-	
-	
+
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
 
 can_socket:
@@ -254,13 +255,14 @@ clean-dist:clean
 32:
 	make all board=arm compiler=arm-gcc debug=true
 	@cp $(exe-dir)/arm.exe $(rootfs)/usr/bin/aslua -v
-	@cp /usr/arm-linux-gnueabi/lib/*.so* $(rootfs)/lib -v
+#	@cp /usr/arm-linux-gnueabi/lib/*.so* $(rootfs)/lib -v
 	@cp $(prj-dir)/com/as.tool/lua/script/*.lua $(rootfs)/example -v
+
 33:
 	make all board=arm compiler=arm-gcc debug=false	
 34:
 	make dll board=arm compiler=arm-gcc debug=true
-	
+
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc
@@ -273,7 +275,7 @@ clean-dist:clean
 	make dll board=posix compiler=posix-gcc debug=true
 	@cp -v $(exe-dir)/posix.dll ../asboot/out/aslua.dll
 	@(cp -v $(exe-dir)/posix.exe $(prj-dir)/com/as.tool/lua/script/aslua.exe)
-	
+
 # ---------------------------------- [ pyas        ] ---------------------------------- #
 # lua is preferred by me for validation, as it is small and perfect
 # but it is not able to make UI application

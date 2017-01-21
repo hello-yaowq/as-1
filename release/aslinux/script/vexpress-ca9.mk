@@ -76,9 +76,11 @@ $(download)/qemu_v2.0.0.tar.gz:
 	@(cd $(download);wget https://github.com/qemu/qemu/archive/v2.0.0.tar.gz -O qemu_v2.0.0.tar.gz)
 
 $(download)/qemu:$(download)/qemu_v2.0.0.tar.gz
-	@(tar xf $(download)/qemu_v2.0.0.tar.gz -C .)
+	@(tar xf $(download)/qemu_v2.0.0.tar.gz -C .; mv qemu-2.0.0 qemu)
 
+# need install "libpixman-1-dev libglib2.0-dev"
 asqemu:$(download)/qemu
+	@(cd qemu;./configure;make)
 
 $(download)/sqlite-amalgamation-3.5.6.tar.gz:
 	@(cd $(download);wget http://www.sqlite.org/sqlite-amalgamation-3.5.6.tar.gz)
