@@ -33,6 +33,11 @@
 #define AS_LOG_ERROR    AS_LOG_DEFAULT
 #define AS_LOG_OFF      0
 
+/* debug/warning/error */
+#define AS_LOG_TRACE_D AS_LOG_DEFAULT
+#define AS_LOG_TRACE_W AS_LOG_DEFAULT
+#define AS_LOG_TRACE_E AS_LOG_DEFAULT
+
 #ifdef USE_DET
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define ASLOG(level,fmt,...) 								\
@@ -130,6 +135,7 @@
 #define asCallStack()
 #endif
 
+#define ASTRACE(module) ASLOG(TRACE_##module,"%s @line %d of %s\n",__func__,__LINE__,__FILE__)
 /* ============================ [ TYPES     ] ====================================================== */
 #if defined(__LINUX__) || defined(__WINDOWS__)
 typedef struct timeval asperf_t;

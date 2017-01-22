@@ -123,7 +123,7 @@ TimerType GetTimer(TimerType* timer)
 	return time;
 }
 
-
+#ifndef __POSIX_OSAL__
 TASK(TaskIdle)
 {
 	OS_TASK_BEGIN();
@@ -145,3 +145,5 @@ TASK(TaskIdle)
 
 	OS_TASK_END();
 }
+#endif /* __POSIX_OSAL__ */
+

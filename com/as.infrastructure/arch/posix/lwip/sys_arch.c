@@ -469,7 +469,7 @@ void netbios_init(void)
 TASK(TaskLwip)
 {
 	OS_TASK_BEGIN();
-
+#ifdef USE_LWIP
 	for(;;) {
 		WaitEvent(EVENT_MASK_START_TCPIP);
 		ClearEvent(EVENT_MASK_START_TCPIP);
@@ -479,7 +479,7 @@ TASK(TaskLwip)
 			tcpip_thread(NULL); // Will never return
 		}
 	}
-
+#endif
 	OsTerminateTask(TaskLwip);
 
 	OS_TASK_END();
@@ -487,7 +487,9 @@ TASK(TaskLwip)
 
 ALARM(Alarm_Lwip)
 {
+#ifdef USE_LWIP
 	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
+#endif
 }
 
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
@@ -516,6 +518,7 @@ tcpip_init_done(void *arg)
 }
 struct netif * LwIP_Init(void)
 {
+#ifdef USE_LWIP
 	uint8_t macaddress[6] = ETH_MAC_ADDR;
 	struct ip_addr ipaddr;
 	struct ip_addr netmask;
@@ -574,6 +577,7 @@ struct netif * LwIP_Init(void)
 	netbios_init();
 
 	return &netif;
+#endif /* USE_LWIP */
 }
 
 KSM(LwipIdle,Init)
@@ -593,6 +597,8 @@ KSM(LwipIdle,Stop)
 
 KSM(LwipIdle,Running)
 {
+#ifdef USE_LWIP
 	Eth_Isr();
+#endif
 }
 
