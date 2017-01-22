@@ -313,7 +313,7 @@ $(download)/lwip-contrib:
 	@(cd $(download);git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git;cd lwip-contrib;git checkout STABLE-1_4_1)
 
 aslwip: $(download)/lwip $(download)/lwip-contrib
-	
+
 $(download)/contiki:
 	@(cd $(download);git clone https://github.com/contiki-os/contiki.git;\
 		cd contiki;git checkout 3.x;	\
@@ -583,7 +583,7 @@ endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(cd $(src-dir);rm -f Dem* J1939Tp* Lin* Can* Com.* Com_* ComM* PduR* Nm* RPmsg* Ipc* VirtQ* Rproc* diag_app.c)
 	@(echo "  >> prepare link for lm3s6965evb done")
-		
+
 dep-at91sam3s:
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
@@ -688,7 +688,7 @@ endif
 	make all board=stm32f107vc compiler=cortexm3-icc debug=true
 17:
 	make all board=stm32f107vc compiler=cortexm3-icc debug=false
-	
+
 # ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
 21:
 	make dep board=lm3s6965evb compiler=cortexm3-gcc
@@ -702,7 +702,7 @@ endif
 	@echo "file out/lm3s6965evb.exe" >> ~/.gdbinit
 	@echo "b main" >> ~/.gdbinit
 	@echo "b usage_fault_handler" >> ~/.gdbinit
-	
+
 	@echo "#! /bin/sh" > gdbg.sh
 	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> gdbg.sh
 	@echo "qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -kernel out/lm3s6965evb.exe -gdb tcp::2345 -S &" >> gdbg.sh
@@ -711,7 +711,7 @@ endif
 	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> gdbg.sh
 	@echo "echo end of debug" >> gdbg.sh
 	@chmod +x gdbg.sh
-	
+
 	@echo "#! /bin/sh" > run.sh
 	@echo "pgrep qemu-system-arm|xargs -i kill -9 {}" >> run.sh
 	@echo "qemu-system-arm -cpu cortex-m3 -nographic -monitor null -serial stdio -semihosting -machine lm3s6965evb -kernel out/lm3s6965evb.exe" >> run.sh

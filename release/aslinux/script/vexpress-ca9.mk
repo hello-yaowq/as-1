@@ -29,6 +29,35 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(download)/OpenSSL-fips-2_0_13.tar.gz:
+	@(cd $(download);wget https://github.com/openssl/openssl/archive/OpenSSL-fips-2_0_13.tar.gz)
+
+$(CURDIR)/openssl:$(download)/OpenSSL-fips-2_0_13.tar.gz
+	@(tar xf $(download)/OpenSSL-fips-2_0_13.tar.gz -C .; mv openssl-OpenSSL-fips-2_0_13 openssl)
+
+asopenssl:$(CURDIR)/openssl
+	@(cd openssl; ./Configure $(ARCH) compiler:gcc --prefix=$(rootfs)/usr; make ; make install -i)
+
+$(download)/ruby-2.4.0.tar.gz:
+	@(cd $(download);wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz)
+
+$(CURDIR)/ruby-2.4.0:$(download)/ruby-2.4.0.tar.gz
+	@tar xf $(download)/ruby-2.4.0.tar.gz -C .
+
+# make for host machine ubuntu: need install openssl before build.
+# $ gem install openssl
+# $ gem sources --add https://gems.ruby-china.org/ --remove https://rubygems.org/
+# $ gem install jekyll -v 3.3.0
+asruby:
+	@(cd ruby-2.4.0;./configure --with-openssl-dir=/usr/local/ssl;make)
+
+$(CURDIR)/jekyll:
+	@git clone git://github.com/jekyll/jekyll.git
+	@(cd jekyll; git checkout v3.3.0)
+
+asjekyll:$(CURDIR)/jekyll
+	@(cd jekyll ; script/bootstrap; bundle exec rake build; ls pkg/*.gem | head -n 1 | xargs sudo gem install -l)
+
 $(CURDIR)/strace:
 	@git clone https://github.com/strace/strace.git
 	@(cd strace;git checkout v4.15)
