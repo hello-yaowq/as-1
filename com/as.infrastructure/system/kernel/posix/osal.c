@@ -16,18 +16,26 @@
 #include "Os.h"
 #include "asdebug.h"
 #include <pthread.h>
+#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_TRACE_OS 0
+#define RES_NUM 32
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
 	pthread_t self;
 	boolean is_active;
 	uint8_t activation;
+
+	pthread_mutex_t evlock;
+	pthread_cond_t event;
+	EventMaskType curev;
+	EventMaskType waitev;
 }TCB_Type;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void object_initialize(void);
 extern void StartupHook(void);
+extern void ShutdownHook(StatusType ercd);
 extern const AppModeType  tinib_autoact[TASK_NUM];
 extern const UINT8	tnum_task;		/* number of the (basic & extend) task has been configured */
 extern const UINT8	tnum_exttask;		/* number of the extend task has been configured */
@@ -40,6 +48,8 @@ extern const VP			tinib_stk[];		/* task stack buffer entry */
 extern const UINT16		tinib_stksz[];		/* task stack buffer size */
 
 extern const FP             alminib_cback[ALARM_NUM];
+
+static pthread_mutex_t res_lock[RES_NUM];
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter = 1;	/* zero mask as not started */
 
@@ -117,7 +127,7 @@ FUNC(StatusType,MEM_ActivateTask)  ActivateTask ( TaskType TaskID )
 		ptcb = &tcb[TaskID];
 		if(ptcb->is_active)
 		{
-			if(ptcb->activation < tinib_maxact)
+			if(ptcb->activation < tinib_maxact[TaskID])
 			{
 				ptcb->activation ++;
 			}
@@ -129,7 +139,7 @@ FUNC(StatusType,MEM_ActivateTask)  ActivateTask ( TaskType TaskID )
 		else
 		{
 			ptcb->is_active = TRUE;
-			pthread_create(&ptcb->self,NULL,tinib_task[TaskID],NULL);
+			pthread_create(&ptcb->self,NULL,(void * (*)(void *))tinib_task[TaskID],NULL);
 		}
 
 		Irq_Restore(imask);
@@ -223,17 +233,167 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 		usleep(1000);
 	}
 }
-FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd ) {return;}
+FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )
+{
+	ShutdownHook(ercd);
+	exit(-1);
+	return;
+}
 
 
-StatusType SetEvent ( TaskType tskid , EventMaskType mask ) {return E_OK;}
-StatusType ClearEvent ( EventMaskType mask )  {return E_OK;}
-StatusType GetEvent ( TaskType tskid , EventMaskRefType p_mask ) {return E_OK;}
-StatusType WaitEvent ( EventMaskType mask )  {return E_OK;}
+StatusType SetEvent ( TaskType TaskID , EventMaskType mask )
+{
+	StatusType ercd;
+	imask_t imask;
+	TCB_Type* ptcb;
+	ASLOG(TRACE_OS, "SetEvent 0x%X of %d\n",mask, TaskID);
+	if (TaskID < TASK_NUM)
+	{
+		Irq_Save(imask);
 
-FUNC(StatusType,MEM_GetResource) GetResource ( ResourceType ResID ) {return E_OK;}
-FUNC(StatusType,MEM_ReleaseResource) ReleaseResource ( ResourceType ResID ) {return E_OK;}
+		ptcb = &tcb[TaskID];
 
+		ptcb->curev |= mask;
+
+		if(ptcb->waitev)
+		{
+			ptcb->waitev = 0;
+			Irq_Restore(imask);
+			pthread_cond_signal(&ptcb->event);
+		}
+		else
+		{
+			Irq_Restore(imask);
+		}
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
+StatusType ClearEvent ( EventMaskType mask )
+{
+	StatusType ercd;
+	TaskType TaskID;
+	imask_t imask;
+	TCB_Type* ptcb;
+
+	ercd = GetTaskID(&TaskID);
+	ASLOG(TRACE_OS, "ClearEvent 0x%X of %d\n",mask, TaskID);
+	if (E_OK == ercd)
+	{
+		Irq_Save(imask);
+
+		ptcb = &tcb[TaskID];
+
+		ptcb->curev &= ~mask;
+
+		Irq_Restore(imask);
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
+StatusType GetEvent ( TaskType TaskID , EventMaskRefType p_mask )
+{
+	StatusType ercd;
+	imask_t imask;
+	TCB_Type* ptcb;
+
+	if (TaskID < TASK_NUM)
+	{
+		Irq_Save(imask);
+
+		ptcb = &tcb[TaskID];
+
+		*p_mask = ptcb->curev;
+
+		Irq_Restore(imask);
+
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
+StatusType WaitEvent ( EventMaskType mask)
+{
+	StatusType ercd;
+	TaskType TaskID;
+	imask_t imask;
+	TCB_Type* ptcb;
+
+	ercd = GetTaskID(&TaskID);
+	ASLOG(TRACE_OS, "WaitEvent 0x%X of %d\n",mask, TaskID);
+	if (E_OK == ercd)
+	{
+		Irq_Save(imask);
+
+		ptcb = &tcb[TaskID];
+
+		if( (ptcb->curev & mask) == 0)
+		{	/* need wait */
+			ptcb->waitev = mask;
+			Irq_Restore(imask);
+			pthread_cond_wait(&ptcb->event,&ptcb->evlock);
+			pthread_mutex_unlock(&ptcb->evlock);
+		}
+		else
+		{
+			Irq_Restore(imask);
+		}
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
+
+FUNC(StatusType,MEM_GetResource) GetResource ( ResourceType ResID )
+{
+	StatusType ercd;
+	TaskType TaskID;
+
+	ercd = GetTaskID(&TaskID);
+	ASLOG(TRACE_OS, "GetResource %d of %d\n",ResID, TaskID);
+	if (E_OK == ercd)
+	{
+		pthread_mutex_lock(&res_lock[ResID]);
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
+FUNC(StatusType,MEM_ReleaseResource) ReleaseResource ( ResourceType ResID )
+{
+	StatusType ercd;
+	TaskType TaskID;
+
+	ercd = GetTaskID(&TaskID);
+	ASLOG(TRACE_OS, "ReleaseResource %d of %d\n",ResID, TaskID);
+	if (E_OK == ercd)
+	{
+		pthread_mutex_unlock(&res_lock[ResID]);
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+	}
+
+	return ercd;
+}
 
 FUNC(void,MEM_OsTick) OsTick ( void )
 {
@@ -345,6 +505,8 @@ void task_initialize(void)
 	memset(tcb,0,sizeof(tcb));
 	for (tskid = 0; tskid < tnum_task; tskid++)
 	{
+		pthread_mutex_init(&tcb[tskid].evlock,NULL);
+		pthread_cond_init(&tcb[tskid].event,NULL);
 		if(tinib_autoact[tskid]&appmode)
 		{
 			ActivateTask(tskid);
@@ -357,7 +519,12 @@ void alarm_initialize(void)
 }
 void resource_initialize(void)
 {
+	ResourceType resid;
 
+	for(resid=0; resid < RES_NUM; resid ++)
+	{
+		pthread_mutex_init(&res_lock[resid],NULL);
+	}
 }
 
 TASK(TaskIdle)
