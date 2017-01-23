@@ -28,6 +28,11 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
+$(CURDIR)/cynara:
+	@git clone https://github.com/Samsung/cynara.git
+	@(cd cynara;git checkout v0.8.0)
+
+ascynara:$(CURDIR)/cynara
 
 $(download)/OpenSSL-fips-2_0_13.tar.gz:
 	@(cd $(download);wget https://github.com/openssl/openssl/archive/OpenSSL-fips-2_0_13.tar.gz)
@@ -69,9 +74,27 @@ $(CURDIR)/lk:
 	@(git clone https://github.com/littlekernel/lk.git)
 
 aslk:$(CURDIR)/lk
+$(download)/libcap-2.24.tar.xz:
+	@(cd $(download);wget https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.24.tar.xz)
 
+$(CURDIR)/libcap:$(download)/libcap-2.24.tar.xz
+	@(tar -xJf $(download)/libcap-2.24.tar.xz -C .; mv libcap-* libcap)
+
+aslibcap:$(CURDIR)/libcap
+	@(cd libcap;make prefix=$(rootfs) BUILD_CC=gcc CC=$(CROSS_COMPILE)gcc AR=$(CROSS_COMPILE)ar RANLIB=$(CROSS_COMPILE)ranlib LDFLAGS="-L $(CURDIR)/attr/libattr/.libs")
+
+$(download)/kmod-17.tar.gz:
+	@(cd $(download);wget https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-17.tar.gz)
+
+$(CURDIR)/kmod:$(download)/kmod-17.tar.gz
+	@(tar -xzf $(download)/kmod-17.tar.gz -C .; mv kmod-* kmod)
+
+askmod:$(CURDIR)/kmod
+	@(cd kmod;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+
+# http://wiki.beyondlogic.org/index.php?title=Cross_Compiling_SystemD_for_ARM
 $(CURDIR)/systemd:
-	@(git clone https://github.com/systemd/systemd.git;cd systemd;git checkout v200)
+	@(git clone https://github.com/systemd/systemd.git;cd systemd;git checkout v212)
 
 assystemd:$(CURDIR)/systemd
 	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
