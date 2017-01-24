@@ -28,6 +28,39 @@ $(rootfs):
 	@mkdir -p $(rootfs)/lib/modules/3.18.0+
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
+
+$(download)/npth-1.3.tar.bz2:
+	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/npth/npth-1.3.tar.bz2)
+
+$(download)/libassuan-2.4.3.tar.bz2:
+	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.4.3.tar.bz2)
+
+$(download)/libksba-1.3.5.tar.bz2:
+	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2)
+
+$(download)/libgcrypt-1.7.6.tar.bz2:
+	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.7.6.tar.bz2)
+
+$(CURDIR)/libgcrypt:$(download)/libgcrypt-1.7.6.tar.bz2
+	@(tar jxf $(download)/libgcrypt-1.7.6.tar.bz2 -C .; mv libgcrypt-* libgcrypt)
+
+aslibgcrypt:$(CURDIR)/libgcrypt
+	@(cd libgcrypt; ./autogen.sh; \
+		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+
+$(download)/libgpg-error-1.26.tar.bz2:
+	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.26.tar.bz2)
+
+$(CURDIR)/libgpg-error:$(download)/libgpg-error-1.26.tar.bz2
+	@(tar jxf $(download)/libgpg-error-1.26.tar.bz2 -C .; mv libgpg-error-* libgpg-error)
+
+aslibgpg-error:$(CURDIR)/libgpg-error
+	@(cd libgpg-error; ./autogen.sh; \
+		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+
+$(download)/gnupg-2.1.18.tar.bz2:
+	@(cd $(download);https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.1.18.tar.bz2)
+
 $(CURDIR)/cynara:
 	@git clone https://github.com/Samsung/cynara.git
 	@(cd cynara;git checkout v0.8.0)
@@ -68,7 +101,7 @@ $(CURDIR)/strace:
 	@(cd strace;git checkout v4.15)
 
 asstrace:$(CURDIR)/strace
-	@(cd strace; ./bootstrap; autoreconf -i; ./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+	@(cd strace; ./bootstrap; autoreconf -i; ./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make install)
 
 $(CURDIR)/lk:
 	@(git clone https://github.com/littlekernel/lk.git)
@@ -90,7 +123,7 @@ $(CURDIR)/kmod:$(download)/kmod-17.tar.gz
 	@(tar -xzf $(download)/kmod-17.tar.gz -C .; mv kmod-* kmod)
 
 askmod:$(CURDIR)/kmod
-	@(cd kmod;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+	@(cd kmod;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make all; make install)
 
 # http://wiki.beyondlogic.org/index.php?title=Cross_Compiling_SystemD_for_ARM
 $(CURDIR)/systemd:
@@ -98,8 +131,7 @@ $(CURDIR)/systemd:
 
 assystemd:$(CURDIR)/systemd
 	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
-		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
-
+		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make 
 
 $(CURDIR)/smack:
 	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.3.0)
@@ -107,7 +139,7 @@ $(CURDIR)/smack:
 assmack:$(CURDIR)/smack
 #sed -i "4385c #LT_INIT(disable-static)" configure;
 	@(cd smack; ./autogen.sh; \
-		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make all; make install)
 
 $(download)/attr-2.4.47.src.tar.gz:
 	@(cd $(download);wget http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz)
@@ -116,7 +148,7 @@ $(CURDIR)/attr:$(download)/attr-2.4.47.src.tar.gz
 	@(tar xf $(download)/attr-2.4.47.src.tar.gz -C .; mv attr-* attr)
 
 asattr:$(CURDIR)/attr
-	@(cd attr;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make ; make install)
+	@(cd attr;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make install)
 
 $(download)/jre-6u45-linux-i586.bin:
 	@(cd $(download);wget http://download.oracle.com/otn/java/jdk/6u45-b06/jre-6u45-linux-i586.bin;  \
@@ -141,7 +173,7 @@ sqlite-3.5.6:$(download)/sqlite-amalgamation-3.5.6.tar.gz
 	@tar zxf $(download)/sqlite-amalgamation-3.5.6.tar.gz -C .
 
 assqlite:sqlite-3.5.6
-	@(cd sqlite-3.5.6;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr  \
+	@(cd sqlite-3.5.6;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)  \
 		 --enable-shared --disable-readline --disable-dynamic-extensions;  	\
 		make; make install)
 
@@ -158,7 +190,7 @@ aspython:Python-2.5.1
 	@(cd Python-2.5.1;mkdir build.arm;cd build.arm;  \
 		sed -i "22092c if 0; then" ../configure;	\
 		sed -i "22168c fi" ../configure;	\
-		SVNVERSION="Unversioned directory" ../configure --prefix=$(rootfs)/usr --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
+		SVNVERSION="Unversioned directory" ../configure --prefix=$(rootfs) --disable-ipv6 --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --enable-shared;  \
 		$(SUPERFN) replace.file.all Makefile './\x24(BUILDPYTHON)' ../build.pc/python;  \
 		make all;make install)
 
@@ -167,7 +199,7 @@ can-utils:
 
 ascanutil: can-utils
 	@(cd can-utils;./autogen.sh;	\
-		./configure --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc;	\
+		./configure --host=$(ARCH) --prefix=$(rootfs) CC=$(CROSS_COMPILE)gcc;	\
 		make clean;make all;make install)
 
 libsocketcan:
@@ -184,7 +216,7 @@ ascanutils: libsocketcan canutils
 		make clean;make all)
 	(cd canutils;./autogen.sh;	\
 		sed -i "12522c pkg_failed=no" configure;	\
-		./configure --host=$(ARCH) --prefix=$(rootfs)/usr CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
+		./configure --host=$(ARCH) --prefix=$(rootfs) CC=$(CROSS_COMPILE)gcc CFLAGS=-I$(CURDIR)/libsocketcan/include LDFLAGS="-lsocketcan -L$(CURDIR)/libsocketcan/src/.libs";	\
 		make clean;make all;make install)
 
 automotive-message-broker:
@@ -340,7 +372,7 @@ asqt-4.8.6:
 			-nomake examples -nomake tools -nomake docs \
 			-qt-mouse-tslib \
 			-I$(rootfs)/include \
-			-L$(rootfs)/usr/lib;	\
+			-L$(rootfs)/lib;	\
 		make;	\
 		make install INSTALL_ROOT=$(rootfs)/qt)
 
