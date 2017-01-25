@@ -6,7 +6,8 @@
 # solution, such as https://mirrors.tuna.tsinghua.edu.cn/
 
 export ARCH=arm
-export CROSS_COMPILE=arm-linux-gnueabi-
+export HOST=arm-linux-gnueabi
+export CROSS_COMPILE=$(HOST)-
 
 out=$(CURDIR)/out
 rootfs = $(out)/rootfs
@@ -45,8 +46,10 @@ $(CURDIR)/libgcrypt:$(download)/libgcrypt-1.7.6.tar.bz2
 	@(tar jxf $(download)/libgcrypt-1.7.6.tar.bz2 -C .; mv libgcrypt-* libgcrypt)
 
 aslibgcrypt:$(CURDIR)/libgcrypt
-	@(cd libgcrypt; ./autogen.sh; \
-		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+	@(cd libgcrypt; \
+		sed -i "14288c GPG_ERROR_LIBS=\" -L$(rootfs)/lib -lgpg-error  \"" ./configure;	\
+		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
+		make all CFLAGS=" -I$(rootfs)/include --include \"gpg-error.h\" " ; make install LDFLAGS=" $(rootfs)/lib/libgpg-error.so -lpthread ")
 
 $(download)/libgpg-error-1.26.tar.bz2:
 	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.26.tar.bz2)
@@ -56,7 +59,7 @@ $(CURDIR)/libgpg-error:$(download)/libgpg-error-1.26.tar.bz2
 
 aslibgpg-error:$(CURDIR)/libgpg-error
 	@(cd libgpg-error; ./autogen.sh; \
-		./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs)/usr; make all; make install)
+		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make all; make install)
 
 $(download)/gnupg-2.1.18.tar.bz2:
 	@(cd $(download);https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.1.18.tar.bz2)
@@ -74,7 +77,7 @@ $(CURDIR)/openssl:$(download)/OpenSSL-fips-2_0_13.tar.gz
 	@(tar xf $(download)/OpenSSL-fips-2_0_13.tar.gz -C .; mv openssl-OpenSSL-fips-2_0_13 openssl)
 
 asopenssl:$(CURDIR)/openssl
-	@(cd openssl; ./Configure $(ARCH) compiler:gcc --prefix=$(rootfs)/usr; make ; make install -i)
+	@(cd openssl; ./Configure $(ARCH) compiler:gcc --prefix=$(rootfs); make ; make install -i)
 
 $(download)/ruby-2.4.0.tar.gz:
 	@(cd $(download);wget https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz)
@@ -114,7 +117,9 @@ $(CURDIR)/libcap:$(download)/libcap-2.24.tar.xz
 	@(tar -xJf $(download)/libcap-2.24.tar.xz -C .; mv libcap-* libcap)
 
 aslibcap:$(CURDIR)/libcap
-	@(cd libcap;make prefix=$(rootfs) BUILD_CC=gcc CC=$(CROSS_COMPILE)gcc AR=$(CROSS_COMPILE)ar RANLIB=$(CROSS_COMPILE)ranlib LDFLAGS="-L $(CURDIR)/attr/libattr/.libs")
+	@(cd libcap;	\
+		make all BUILD_CC=gcc CC=$(CROSS_COMPILE)gcc AR=$(CROSS_COMPILE)ar RANLIB=$(CROSS_COMPILE)ranlib LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 ";	\
+		make install DESTDIR=$(rootfs) )
 
 $(download)/kmod-17.tar.gz:
 	@(cd $(download);wget https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-17.tar.gz)
@@ -123,7 +128,7 @@ $(CURDIR)/kmod:$(download)/kmod-17.tar.gz
 	@(tar -xzf $(download)/kmod-17.tar.gz -C .; mv kmod-* kmod)
 
 askmod:$(CURDIR)/kmod
-	@(cd kmod;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make all; make install)
+	@(cd kmod;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc ; make all; make install DESTDIR=$(rootfs))
 
 # http://wiki.beyondlogic.org/index.php?title=Cross_Compiling_SystemD_for_ARM
 $(CURDIR)/systemd:
@@ -131,7 +136,8 @@ $(CURDIR)/systemd:
 
 assystemd:$(CURDIR)/systemd
 	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
-		../configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make 
+		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
+		make ; make install) 
 
 $(CURDIR)/smack:
 	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.3.0)
@@ -148,7 +154,8 @@ $(CURDIR)/attr:$(download)/attr-2.4.47.src.tar.gz
 	@(tar xf $(download)/attr-2.4.47.src.tar.gz -C .; mv attr-* attr)
 
 asattr:$(CURDIR)/attr
-	@(cd attr;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make install)
+	@(cd attr;./configure --host=$(ARCH) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); make ; make install;	\
+		cp -v libattr/.libs/* $(rootfs)/lib)
 
 $(download)/jre-6u45-linux-i586.bin:
 	@(cd $(download);wget http://download.oracle.com/otn/java/jdk/6u45-b06/jre-6u45-linux-i586.bin;  \
