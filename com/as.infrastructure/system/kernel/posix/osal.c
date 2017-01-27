@@ -218,7 +218,12 @@ FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID ) {
 	uint32 i;
 	for(i=0;i<TASK_NUM;i++)
 	{
+#ifdef __WINDOWS__
+		pthread_t curThread = pthread_self();
+		if(0 == memcmp(&curThread,&(tcb[i].self),sizeof(pthread_t)))
+#else
 		if(pthread_self() == tcb[i].self)
+#endif
 		{
 			*TaskID = i;
 			return E_OK;

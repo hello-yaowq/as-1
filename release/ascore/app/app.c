@@ -276,3 +276,37 @@ ProtectionReturnType ProtectionHook(StatusType FatalError)
 	return PRO_SHUTDOWN;
 }
 #endif
+
+#ifndef USE_LWIP
+KSM(LwipIdle,Init)
+{
+	KGS(LwipIdle,Running);
+}
+
+KSM(LwipIdle,Start)
+{
+
+}
+
+KSM(LwipIdle,Stop)
+{
+
+}
+
+KSM(LwipIdle,Running)
+{
+}
+
+ALARM(Alarm_Lwip)
+{
+
+}
+
+TASK(TaskLwip)
+{
+	OS_TASK_BEGIN();
+	OsTerminateTask(TaskLwip);
+
+	OS_TASK_END();
+}
+#endif

@@ -53,8 +53,11 @@ STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
-#sgapp ?= virtual_cluster
+ifeq ($(host), Linux)
 sgapp ?= none
+else
+sgapp ?= virtual_cluster
+endif
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #		 
 ifeq ($(board),posix)
 #rtos?=freeosek
@@ -65,7 +68,11 @@ rtos?=smallos
 ifeq ($(rtos),contiki)
 tcpip=contiki
 else
+ifeq ($(host),Linux)
 tcpip=lwip
+else
+tcpip=none
+endif
 endif
 
 ifeq ($(host),Linux)
@@ -654,7 +661,9 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 
 all:exe
 ifeq ($(board),posix)
+ifeq ($(host),Linux)
 	gcc $(src-dir)/socket_ethernet_driver.c -lpthread -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
+endif
 endif
 
 depc:
