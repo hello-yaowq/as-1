@@ -25,6 +25,7 @@ typedef struct
 {
 	pthread_t self;
 	boolean is_active;
+	imask_t isISREnabled;
 	uint8_t activation;
 
 	pthread_mutex_t evlock;
@@ -61,22 +62,47 @@ static pthread_mutex_t isrAccess = PTHREAD_MUTEX_INITIALIZER;
 static imask_t isrEnabled = TRUE;
 static TCB_Type tcb[TASK_NUM];
 static AppModeType appmode;
+
+static imask_t* get_isr_mask(void)
+{
+	StatusType ercd;
+	TaskType TaskID;
+	imask_t* pISREnabled;
+
+	ercd = GetTaskID(&TaskID);
+
+	if(E_OK==ercd)
+	{
+		pISREnabled = &(tcb[TaskID].isISREnabled);
+	}
+	else
+	{
+		pISREnabled = &isrEnabled;
+	}
+
+	return pISREnabled;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void EnableAllInterrupts(void)
 {
+	imask_t* pISREnabled = get_isr_mask();
+
 	pthread_mutex_lock(&isrAccess);
 
-	isrEnabled = TRUE;
+	*pISREnabled = TRUE;
 	pthread_mutex_unlock(&isrMutex);
 
 	pthread_mutex_unlock(&isrAccess);
 }
 void DisableAllInterrupts(void)
 {
+	imask_t* pISREnabled = get_isr_mask();
+
 	pthread_mutex_lock(&isrAccess);
 
 	pthread_mutex_lock(&isrMutex);
-	isrEnabled = FALSE;
+
+	*pISREnabled = FALSE;
 
 	pthread_mutex_unlock(&isrAccess);
 }
@@ -85,16 +111,18 @@ imask_t __Irq_Save(void)
 {
 	imask_t ret;
 
+	imask_t* pISREnabled = get_isr_mask();
+
 	pthread_mutex_lock(&isrAccess);
 
-	ret = isrEnabled;
+	ret = *pISREnabled;
 
-	if(TRUE == isrEnabled)
+	if(TRUE == ret)
 	{
 		pthread_mutex_lock(&isrMutex);
 	}
 
-	isrEnabled = FALSE;
+	*pISREnabled = FALSE;
 
 	pthread_mutex_unlock(&isrAccess);
 
@@ -102,11 +130,13 @@ imask_t __Irq_Save(void)
 }
 void Irq_Restore(imask_t irq_state)
 {
+	imask_t* pISREnabled = get_isr_mask();
+
 	pthread_mutex_lock(&isrAccess);
 
-	isrEnabled = irq_state;
+	*pISREnabled = irq_state;
 
-	if(TRUE == isrEnabled)
+	if(TRUE == irq_state)
 	{
 		pthread_mutex_unlock(&isrMutex);
 	}
@@ -505,6 +535,7 @@ void task_initialize(void)
 	memset(tcb,0,sizeof(tcb));
 	for (tskid = 0; tskid < tnum_task; tskid++)
 	{
+		tcb[tskid].isISREnabled = TRUE;
 		pthread_mutex_init(&tcb[tskid].evlock,NULL);
 		pthread_cond_init(&tcb[tskid].event,NULL);
 		if(tinib_autoact[tskid]&appmode)
