@@ -30,6 +30,55 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(CURDIR)/zlib:
+	@(git clone https://github.com/madler/zlib.git;cd zlib;git checkout v1.2.10)
+
+aszlib:$(CURDIR)/zlib
+	@(cd zlib; CC=$(CROSS_COMPILE)gcc ./configure --prefix=$(rootfs); \
+		make ; make install)
+
+$(download)/pcre-8.40.tar.gz:
+	@(cd $(download);wget https://ftp.pcre.org/pub/pcre/pcre-8.40.tar.gz)
+
+$(CURDIR)/pcre:
+	@(tar xf $(download)/pcre-8.40.tar.gz -C .;mv pcre-8.40 pcre)
+
+#need: sudo apt-get install g++-arm-linux-gnueabi
+aspcre:$(CURDIR)/pcre
+	@(cd pcre;./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
+		make ; make install)
+
+# need: sudo apt-get install texinfo
+$(CURDIR)/libffi:
+	@(git clone https://github.com/libffi/libffi.git;cd libffi;git checkout v3.2.1)
+
+aslibffi:$(CURDIR)/libffi
+	@(cd libffi; ./autogen.sh; \
+		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
+		make ; make install)
+
+$(download)/glib-2.0.0.tar.gz:
+	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.0/glib-2.0.0.tar.gz)
+
+$(CURDIR)/glib:$(download)/glib-2.0.0.tar.gz
+	@(tar -xf $(download)/glib-2.0.0.tar.gz -C .;mv glib-2.0.0 glib)
+
+$(CURDIR)/glib/arm.cache:
+	@echo "glib_cv_long_long_format=yes" > $@
+	@echo "glib_cv_stack_grows=no" >> $@
+	@echo "glib_cv_working_bcopy=no" >> $@
+	@echo "glib_cv_uscore=no" >> $@
+	@echo "ac_cv_func_posix_getpwuid_r=yes" >> $@
+	@echo "ac_cv_func_nonposix_getpwuid_r=no" >> $@
+	@echo "ac_cv_func_posix_getgrgid_r=no" >> $@
+
+# reconfigure need make distclean
+asglib:$(CURDIR)/glib $(CURDIR)/glib/arm.cache
+	@(cd $(rootfs)/include; ln -fs ../lib/libffi-3.2.1/include/ffi.h ffi.h; ln -fs ../lib/libffi-3.2.1/include/ffitarget.h ffitarget.h)
+	@(cd glib; ./configure --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+			CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
+		make; make install)
+
 $(download)/npth-1.3.tar.bz2:
 	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/npth/npth-1.3.tar.bz2)
 
@@ -136,6 +185,11 @@ $(CURDIR)/systemd:
 
 assystemd:$(CURDIR)/systemd
 	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
+		sed -i "589c have_gcrypt=no" ../configure;	\
+		sed -i "591c #" ../configure;sed -i "592c #" ../configure;sed -i "593c #" ../configure;	\
+		sed -i "594c #" ../configure;sed -i "595c #" ../configure;sed -i "596c #" ../configure;	\
+		sed -i "130c #define HAVE_MALLOC 1" ../config.h.in;	\
+		sed -i "384c //#undef malloc" ../config.h.in;	\
 		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
 		make ; make install) 
 
