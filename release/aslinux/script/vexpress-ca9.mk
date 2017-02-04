@@ -190,7 +190,9 @@ assystemd:$(CURDIR)/systemd
 		sed -i "594c #" ../configure;sed -i "595c #" ../configure;sed -i "596c #" ../configure;	\
 		sed -i "130c #define HAVE_MALLOC 1" ../config.h.in;	\
 		sed -i "384c //#undef malloc" ../config.h.in;	\
-		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
+		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+			CFLAGS=" -I$(rootfs)/include -I$(rootfs)/usr/include " \
+			LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 -L$(rootfs)/usr/lib "; \
 		make ; make install) 
 
 $(CURDIR)/smack:
