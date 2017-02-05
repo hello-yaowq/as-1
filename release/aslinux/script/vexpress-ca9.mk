@@ -30,11 +30,34 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(download)/bzip2-1.0.6.tar.gz:
+	@(cd $(download);wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz)
+
+$(CURDIR)/bzip2:$(download)/bzip2-1.0.6.tar.gz
+	@(tar xf $(download)/bzip2-1.0.6.tar.gz -C .; mv bzip2-1.0.6 bzip2)
+
+asbzip2:$(CURDIR)/bzip2
+	@(cd bzip2;sed -i "18c CC=$(CROSS_COMPILE)gcc" Makefile;	\
+		sed -i "19c AR=$(CROSS_COMPILE)ar" Makefile;	\
+		sed -i "20c RANLIB=$(CROSS_COMPILE)ranlib" Makefile;	\
+		sed -i "27c PREFIX=$(rootfs)"  Makefile;	\
+		make install )
+
+$(CURDIR)/selinux:
+	@(git clone https://github.com/SELinuxProject/selinux.git;cd selinux;git checkout sepolgen-2.6)
+
+asselinux:$(CURDIR)/selinux
+	@(cd selinux;	\
+		CC=$(CROSS_COMPILE)gcc make install DESTDIR=$(rootfs) \
+			CFLAGS=" -O3 -gdwarf-2 -fno-strict-aliasing -Wall -Wshadow -I$(rootfs)/include " \
+			LDFLAGS=" -L$(rootfs)/lib -Wl,-rpath,$(rootfs)/lib ")
+
 $(CURDIR)/dbus:
 	@(git clone https://anongit.freedesktop.org/git/dbus/dbus.git; cd dbus;git checkout dbus-1.10.0)
 
 asdbus:$(CURDIR)/dbus
 	@(cd dbus;./autogen.sh;./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc; \
+		find . -name Makefile | xargs -i $(SUPERFN) replace.file.all {} /usr/local /usr;  \
 		make ; make install DESTDIR=$(rootfs))
 
 $(CURDIR)/zlib:

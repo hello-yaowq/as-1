@@ -48,7 +48,7 @@ fi
 if [ $opt_gui = "no" ]; then
 	echo "    console=ttyAMA0 \\" >> tmp_qemu_run.sh
 else
-	echo "    console=tty0 \\" >> tmp_qemu_run.sh
+	echo "    console=tty0 console=ttyAMA0 \\" >> tmp_qemu_run.sh
 fi  
 
 echo "    loglevel=7\" \\" >> tmp_qemu_run.sh
