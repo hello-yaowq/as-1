@@ -43,6 +43,18 @@ asbzip2:$(CURDIR)/bzip2
 		sed -i "27c PREFIX=$(rootfs)"  Makefile;	\
 		make install )
 
+$(CURDIR)/ustr:
+	@(git clone https://github.com/certik/ustr.git)
+
+asustr:$(CURDIR)/ustr
+	@(cd ustr;sed -i "31c CC=$(CROSS_COMPILE)gcc" Makefile;	\
+		sed -i "32c AR=$(CROSS_COMPILE)ar" Makefile;	\
+		sed -i "33c RANLIB=$(CROSS_COMPILE)ranlib" Makefile;	\
+		sed -i "11c DESTDIR=$(rootfs)"  Makefile;	\
+		sed -i "23c # define USTR_CONF_HAVE_64bit_SIZE_MAX     0" ustr-conf-debug.h;	\
+		sed -i "23c # define USTR_CONF_HAVE_64bit_SIZE_MAX     0" ustr-conf.h;	\
+		make install )
+
 $(CURDIR)/selinux:
 	@(git clone https://github.com/SELinuxProject/selinux.git;cd selinux;git checkout sepolgen-2.6)
 
