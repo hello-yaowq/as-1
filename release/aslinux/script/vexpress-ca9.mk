@@ -496,6 +496,7 @@ sdcard:$(out)/sdcard.img asrootfs
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo cp /usr/arm-linux-gnueabi/lib/*.so* tmp/lib;	\
 		sudo mv tmp/lib64/* tmp/lib; sudo rm -fr tmp/lib64;	\
+		sudo ln -fs ../../../../lib/systemd/system/getty@.service tmp/usr/etc/systemd/system/getty.target.wants/getty@ttyAMA0.service;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
 
