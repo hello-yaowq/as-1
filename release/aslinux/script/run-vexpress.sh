@@ -7,8 +7,9 @@ opt_gui="no"
 opt_debug="no"
 opt_initrd="no"
 opt_systemd="no"
-
-GETOPT_ARGS=`getopt -o g:d:i:s -al gui:debug:initrd:systemd: -- "$@"`
+# checking page http://www.cnblogs.com/FrankTan/archive/2010/03/01/1634516.html
+# ":" "::" means parameter
+GETOPT_ARGS=`getopt -o gdis -al gui,debug,initrd,systemd, -- "$@"`
 eval set -- "$GETOPT_ARGS"
 # get parameter
 while [ -n "$1" ]
@@ -47,7 +48,7 @@ fi
 if [ $opt_gui = "no" ]; then
 	echo "    console=ttyAMA0 \\" >> tmp_qemu_run.sh
 else
-	echo "    console=ttyAMA0 console=tty0 \\" >> tmp_qemu_run.sh
+	echo "    console=tty0 \\" >> tmp_qemu_run.sh
 fi  
 
 echo "    loglevel=7\" \\" >> tmp_qemu_run.sh
