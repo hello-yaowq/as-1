@@ -87,6 +87,7 @@ sudo apt-get install cmake uuid-dev libboost-dev libwebsockets-dev libjson-c-dev
 sudo apt-get install gcc-aarch64-linux-gnu
 sudo apt-get install libstdc++6:i386 # for 64bit machine run 32bit app
 sudo add-apt-repository ppa:webupd8team/java && sudo apt-get update && sudo apt-get install oracle-java7-installer
+sudo apt-get install gtk-doc-tools
 ```
 
 ## Clone

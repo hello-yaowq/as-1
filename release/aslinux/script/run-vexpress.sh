@@ -1,23 +1,25 @@
 #! /bin/sh
 
 # show usage
-show_usage="args: [-g <yes/no>, -d <yes/no>, -i <yes/no>]	\
-                  [--gui <yes/no>, --debug <yes/no> --initrd <yes/no>]"
+show_usage="args: [-g, -d, -i, -s]	\
+                  [--gui, --debug, --initrd, --systemd]"
 opt_gui="no"
 opt_debug="no"
 opt_initrd="no"
+opt_systemd="no"
 
-GETOPT_ARGS=`getopt -o g:d:i: -al gui:debug:initrd: -- "$@"`
+GETOPT_ARGS=`getopt -o g:d:i:s -al gui:debug:initrd:systemd: -- "$@"`
 eval set -- "$GETOPT_ARGS"
 # get parameter
 while [ -n "$1" ]
 do
     case "$1" in
-        -g|--gui) opt_gui=$2; shift 2;;
-        -d|--debug) opt_debug=$2; shift 2;;
-        -i|--initrd) opt_initrd=$2; shift 2;;
+        -g|--gui) opt_gui=yes; shift 1;;
+        -d|--debug) opt_debug=yes; shift 1;;
+        -i|--initrd) opt_initrd=yes; shift 1;;
+        -s|--systemd) opt_systemd=yes; shift 1;;
         --) break ;;
-        *) echo $1,$2,$show_usage; break ;;
+        *) echo $1,$show_usage; break ;;
     esac
 done
 
@@ -35,7 +37,11 @@ echo "  -sd sdcard.img \\" >> tmp_qemu_run.sh
 if [ $opt_initrd = "yes" ]; then
 	echo "  -append \"rdinit=/linuxrc root=/dev/ram rw \\" >> tmp_qemu_run.sh
 else
-	echo "  -append \"init=/linuxrc root=/dev/mmcblk0p2 rw \\" >> tmp_qemu_run.sh
+  if [ $opt_systemd = "yes" ]; then
+    echo "  -append \"init=/usr/lib/systemd/systemd root=/dev/mmcblk0p2 rw \\" >> tmp_qemu_run.sh
+  else
+    echo "  -append \"init=/linuxrc root=/dev/mmcblk0p2 rw \\" >> tmp_qemu_run.sh
+  fi
 fi
 
 if [ $opt_gui = "no" ]; then

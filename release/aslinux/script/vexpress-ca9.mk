@@ -30,6 +30,13 @@ $(rootfs):
 	@mkdir -p $(rootfs)/example
 	@mkdir -p $(download)
 
+$(CURDIR)/dbus:
+	@(git clone https://anongit.freedesktop.org/git/dbus/dbus.git; cd dbus;git checkout dbus-1.10.0)
+
+asdbus:$(CURDIR)/dbus
+	@(cd dbus;./autogen.sh;./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc; \
+		make ; make install DESTDIR=$(rootfs))
+
 $(CURDIR)/zlib:
 	@(git clone https://github.com/madler/zlib.git;cd zlib;git checkout v1.2.10)
 
@@ -182,7 +189,7 @@ askmod:$(CURDIR)/kmod
 # http://wiki.beyondlogic.org/index.php?title=Cross_Compiling_SystemD_for_ARM
 $(CURDIR)/systemd:
 	@(git clone https://github.com/systemd/systemd.git;cd systemd;git checkout v212)
-
+# need sudo apt-get install gtk-doc-tools
 assystemd:$(CURDIR)/systemd
 	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
 		sed -i "589c have_gcrypt=no" ../configure;	\
@@ -190,10 +197,10 @@ assystemd:$(CURDIR)/systemd
 		sed -i "594c #" ../configure;sed -i "595c #" ../configure;sed -i "596c #" ../configure;	\
 		sed -i "130c #define HAVE_MALLOC 1" ../config.h.in;	\
 		sed -i "384c //#undef malloc" ../config.h.in;	\
-		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc \
 			CFLAGS=" -I$(rootfs)/include -I$(rootfs)/usr/include " \
 			LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 -L$(rootfs)/usr/lib "; \
-		make ; make install) 
+		make ; make install DESTDIR=$(rootfs))
 
 $(CURDIR)/smack:
 	@(git clone https://github.com/smack-team/smack.git;cd smack; git checkout v1.3.0)
@@ -488,6 +495,7 @@ sdcard:$(out)/sdcard.img asrootfs
 		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
 		sudo cp /usr/arm-linux-gnueabi/lib/*.so* tmp/lib;	\
+		sudo mv tmp/lib64/* tmp/lib; sudo rm -fr tmp/lib64;	\
 		sudo umount tmp;	\
 		rm tmp -fr)
 

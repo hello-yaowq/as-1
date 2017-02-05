@@ -34,3 +34,6 @@ echo "  >> login as root <<"
 
 /bin/hostname -F /etc/hostname
 
+# for systemd https://bbs.archlinux.org/viewtopic.php?id=192053, as it fail
+# systemctl mask systemd-logind.service
+
