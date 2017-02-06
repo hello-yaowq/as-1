@@ -132,8 +132,10 @@ asglib:$(CURDIR)/glib $(CURDIR)/glib/arm.cache
 		sed -i "457c #PKG_CHECK_MODULES(LIBFFI, [libffi >= 3.0.0])" ./configure.ac;	\
 		sed -i "458c #AC_SUBST(LIBFFI_CFLAGS)" ./configure.ac;	\
 		sed -i "459c #AC_SUBST(LIBFFI_LIBS)" ./configure.ac;	\
+		sed -i "1758c have_libmount=yes" ./configure.ac;	\
 		./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
-			CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
+			CFLAGS=" -I$(rootfs)/include -I$(CURDIR)/util-linux/libmount/src " \
+			 LDFLAGS=" -lffi -L$(rootfs)/lib -L$(rootfs)/lib64 -L$(CURDIR)/util-linux/.libs "; \
 		make; make install)
 
 $(download)/npth-1.3.tar.bz2:
