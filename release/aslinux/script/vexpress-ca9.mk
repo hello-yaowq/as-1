@@ -82,7 +82,7 @@ aszlib:$(CURDIR)/zlib
 $(download)/pcre-8.40.tar.gz:
 	@(cd $(download);wget https://ftp.pcre.org/pub/pcre/pcre-8.40.tar.gz)
 
-$(CURDIR)/pcre:
+$(CURDIR)/pcre:$(download)/pcre-8.40.tar.gz
 	@(tar xf $(download)/pcre-8.40.tar.gz -C .;mv pcre-8.40 pcre)
 
 #need: sudo apt-get install g++-arm-linux-gnueabi
@@ -99,11 +99,22 @@ aslibffi:$(CURDIR)/libffi
 		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
 		make ; make install)
 
-$(download)/glib-2.0.0.tar.gz:
-	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.0/glib-2.0.0.tar.gz)
+$(download)/util-linux-2.29-rc1.tar.gz:
+	@(cd $(download);wget https://www.kernel.org/pub/linux/utils/util-linux/v2.29/util-linux-2.29-rc1.tar.gz)
 
-$(CURDIR)/glib:$(download)/glib-2.0.0.tar.gz
-	@(tar -xf $(download)/glib-2.0.0.tar.gz -C .;mv glib-2.0.0 glib)
+$(CURDIR)/util-linux:$(download)/util-linux-2.29-rc1.tar.gz
+	@(tar xf $(download)/util-linux-2.29-rc1.tar.gz -C .; mv util-linux-2.29-rc1 util-linux)
+
+asutillinux:$(CURDIR)/util-linux
+	@(cd util-linux;./autogen.sh;	\
+		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
+		make; make install)
+
+$(download)/glib-2.50.0.tar.xz:
+	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.50/glib-2.50.0.tar.xz)
+
+$(CURDIR)/glib:$(download)/glib-2.50.0.tar.xz
+	@(tar -xJf $(download)/glib-2.50.0.tar.xz -C .;mv glib-2.50.0 glib)
 
 $(CURDIR)/glib/arm.cache:
 	@echo "glib_cv_long_long_format=yes" > $@
@@ -117,7 +128,11 @@ $(CURDIR)/glib/arm.cache:
 # reconfigure need make distclean
 asglib:$(CURDIR)/glib $(CURDIR)/glib/arm.cache
 	@(cd $(rootfs)/include; ln -fs ../lib/libffi-3.2.1/include/ffi.h ffi.h; ln -fs ../lib/libffi-3.2.1/include/ffitarget.h ffitarget.h)
-	@(cd glib; ./configure --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+	@(cd glib;	\
+		sed -i "457c #PKG_CHECK_MODULES(LIBFFI, [libffi >= 3.0.0])" ./configure.ac;	\
+		sed -i "458c #AC_SUBST(LIBFFI_CFLAGS)" ./configure.ac;	\
+		sed -i "459c #AC_SUBST(LIBFFI_LIBS)" ./configure.ac;	\
+		./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
 			CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
 		make; make install)
 
