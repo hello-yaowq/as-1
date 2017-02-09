@@ -110,6 +110,9 @@ asutillinux:$(CURDIR)/util-linux
 		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
 		make; make install)
 
+$(download)/glib-2.0.0.tar.gz:
+	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.0/glib-2.0.0.tar.gz)
+
 $(download)/glib-2.50.0.tar.xz:
 	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.50/glib-2.50.0.tar.xz)
 
@@ -134,8 +137,8 @@ asglib:$(CURDIR)/glib $(CURDIR)/glib/arm.cache
 		sed -i "459c #AC_SUBST(LIBFFI_LIBS)" ./configure.ac;	\
 		sed -i "1758c have_libmount=yes" ./configure.ac;	\
 		./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
-			CFLAGS=" -I$(rootfs)/include -I$(CURDIR)/util-linux/libmount/src " \
-			 LDFLAGS=" -lffi -L$(rootfs)/lib -L$(rootfs)/lib64 -L$(CURDIR)/util-linux/.libs "; \
+			CFLAGS=" --sysroot=$(rootfs) -I$(CURDIR)/util-linux/libmount/src " \
+			 LDFLAGS=" -lffi --sysroot=$(rootfs) "; \
 		make; make install)
 
 $(download)/npth-1.3.tar.bz2:
@@ -177,6 +180,20 @@ $(CURDIR)/cynara:
 	@(cd cynara;git checkout v0.8.0)
 
 ascynara:$(CURDIR)/cynara
+	@(cd cynara; \
+		sed -i "31c #" src/helpers/creds-dbus/CMakeLists.txt; \
+		sed -i "32c #" src/helpers/creds-dbus/CMakeLists.txt; \
+		sed -i "33c #" src/helpers/creds-dbus/CMakeLists.txt; \
+		sed -i "34c #" src/helpers/creds-dbus/CMakeLists.txt; \
+		sed -i "31c #" src/CMakeLists.txt; \
+		sed -i "32c #" src/CMakeLists.txt; \
+		sed -i "33c #" src/CMakeLists.txt; \
+		sed -i "34c #" src/CMakeLists.txt; \
+		mkdir -p build;cd build; \
+		CXX=$(CROSS_COMPILE)g++ CC=$(CROSS_COMPILE)gcc LINKER=$(CROSS_COMPILE)ld \
+		RANLIB=$(CROSS_COMPILE)ranlib AR=$(CROSS_COMPILE)ar \
+		CXXFLAGS="-I$(rootfs)/include -std=c++11" LDFLAGS="--sysroot=$(rootfs)" cmake ..; \
+		make; make install DESTDIR=$(rootfs) )
 
 $(download)/OpenSSL-fips-2_0_13.tar.gz:
 	@(cd $(download);wget https://github.com/openssl/openssl/archive/OpenSSL-fips-2_0_13.tar.gz)
