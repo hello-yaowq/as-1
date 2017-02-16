@@ -23,7 +23,7 @@ download = $(CURDIR)/../download
 #export rootfs ?= ~/workspace/qemu-vexpress-ca9/out/rootfs
 export rootfs ?= $(shell readlink -f $(CURDIR)/../aslinux/build/out/rootfs)
 
-prj-dir = $(subst release/aslua,,$(CURDIR))
+prj-dir ?= $(subst release/aslua,,$(CURDIR))
 
 host = $(shell uname)
 
@@ -284,7 +284,7 @@ clean-dist:clean
 	make dep board=pyas compiler=posix-gcc
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
-	@(cd $(exe-dir);make all)
+	@(cd $(exe-dir);make all CXX="${CXX}")
 ifeq ($(host), Linux)	
 	@(cp -v $(exe-dir)/*.so $(prj-dir)/com/as.tool/lua/script)
 else

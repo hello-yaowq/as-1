@@ -4,10 +4,17 @@
 
 #   As in China that often some URL resoure especial GOOGLE is not accessable, so a mirror is an alternate 
 # solution, such as https://mirrors.tuna.tsinghua.edu.cn/
+# for x86_64, most of the module can be build manully by the below command:
+# ./configure --prefix=`readlink -f ../out/rootfs`
 
-export ARCH=arm
+export ARCH?=arm
+ifeq ($(ARCH),arm)
 export HOST=arm-linux-gnueabi
 export CROSS_COMPILE=$(HOST)-
+else
+export HOST=x86
+export CROSS_COMPILE=
+endif
 
 out=$(CURDIR)/out
 rootfs = $(out)/rootfs
@@ -87,7 +94,7 @@ $(CURDIR)/pcre:$(download)/pcre-8.40.tar.gz
 
 #need: sudo apt-get install g++-arm-linux-gnueabi
 aspcre:$(CURDIR)/pcre
-	@(cd pcre;./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
+	@(cd pcre;./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc LDFLAGS="--sysroot=$(rootfs)" --prefix=$(rootfs); \
 		make ; make install)
 
 # need: sudo apt-get install texinfo
@@ -99,25 +106,38 @@ aslibffi:$(CURDIR)/libffi
 		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
 		make ; make install)
 
-$(download)/util-linux-2.29-rc1.tar.gz:
-	@(cd $(download);wget https://www.kernel.org/pub/linux/utils/util-linux/v2.29/util-linux-2.29-rc1.tar.gz)
+$(download)/util-linux-2.29.1.tar.gz:
+	@(cd $(download);wget https://www.kernel.org/pub/linux/utils/util-linux/v2.29/util-linux-2.29.1.tar.gz)
 
-$(CURDIR)/util-linux:$(download)/util-linux-2.29-rc1.tar.gz
-	@(tar xf $(download)/util-linux-2.29-rc1.tar.gz -C .; mv util-linux-2.29-rc1 util-linux)
+$(CURDIR)/util-linux:$(download)/util-linux-2.29.1.tar.gz
+	@(tar xf $(download)/util-linux-2.29.1.tar.gz -C .; mv util-linux-2.29.1 util-linux)
 
 asutillinux:$(CURDIR)/util-linux
 	@(cd util-linux;./autogen.sh;	\
 		./configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs); \
 		make; make install)
 
+glib-version?=2.44
+
 $(download)/glib-2.0.0.tar.gz:
 	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.0/glib-2.0.0.tar.gz)
 
-$(download)/glib-2.50.0.tar.xz:
-	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.50/glib-2.50.0.tar.xz)
+$(download)/glib-2.44.1.tar.xz:
+	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.44/glib-2.44.1.tar.xz)
 
-$(CURDIR)/glib:$(download)/glib-2.50.0.tar.xz
-	@(tar -xJf $(download)/glib-2.50.0.tar.xz -C .;mv glib-2.50.0 glib)
+$(download)/glib-2.50.2.tar.xz:
+	@(cd $(download);wget https://ftp.acc.umu.se/pub/gnome/sources/glib/2.50/glib-2.50.2.tar.xz)
+
+$(CURDIR)/glib:$(download)/glib-2.50.2.tar.xz $(download)/glib-2.0.0.tar.gz $(download)/glib-2.44.1.tar.xz
+ifeq ($(glib-version),2.5)
+	@(tar -xJf $(download)/glib-2.50.2.tar.xz -C .;mv glib-2.50.2 glib)
+else
+ifeq ($(glib-version),2.44)
+	@(tar -xJf $(download)/glib-2.44.1.tar.xz -C .;mv glib-2.44.1 glib)
+else
+	@(tar -xf $(download)/glib-2.0.0.tar.gz -C .;mv glib-2.0.0 glib)
+endif
+endif
 
 $(CURDIR)/glib/arm.cache:
 	@echo "glib_cv_long_long_format=yes" > $@
@@ -131,15 +151,35 @@ $(CURDIR)/glib/arm.cache:
 # reconfigure need make distclean
 asglib:$(CURDIR)/glib $(CURDIR)/glib/arm.cache
 	@(cd $(rootfs)/include; ln -fs ../lib/libffi-3.2.1/include/ffi.h ffi.h; ln -fs ../lib/libffi-3.2.1/include/ffitarget.h ffitarget.h)
+ifeq ($(glib-version),2.5)
+# somehow, it would failed as missing some API, use "make -i"
 	@(cd glib;	\
 		sed -i "457c #PKG_CHECK_MODULES(LIBFFI, [libffi >= 3.0.0])" ./configure.ac;	\
 		sed -i "458c #AC_SUBST(LIBFFI_CFLAGS)" ./configure.ac;	\
 		sed -i "459c #AC_SUBST(LIBFFI_LIBS)" ./configure.ac;	\
-		sed -i "1758c have_libmount=yes" ./configure.ac;	\
-		./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
-			CFLAGS=" --sysroot=$(rootfs) -I$(CURDIR)/util-linux/libmount/src " \
-			 LDFLAGS=" -lffi --sysroot=$(rootfs) "; \
+		sed -i "1758c have_libmount=yes" ./configure.ac)
+	@(cd glib;./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+			CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi --sysroot=$(rootfs) "; \
 		make; make install)
+else
+ifeq ($(glib-version),2.44)
+	@(cd glib;	\
+		sed -i "445c #PKG_CHECK_MODULES(LIBFFI, [libffi >= 3.0.0])" ./configure.ac;	\
+		sed -i "446c #AC_SUBST(LIBFFI_CFLAGS)" ./configure.ac;	\
+		sed -i "447c #AC_SUBST(LIBFFI_LIBS)" ./configure.ac)
+	@(cd glib;./autogen.sh --cache-file=arm.cache --host=$(HOST) CC=$(CROSS_COMPILE)gcc --prefix=$(rootfs) \
+			CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi --sysroot=$(rootfs) "; \
+		make; make install)
+else
+#	@(cd glib;$(SUPERFN) replace.file.all ./configure '(exit 1); exit 1;' '(echo 1); echo 1;';chmod +x ./configure)
+	@(cd glib;./configure prefix=$(rootfs); make all CC=$(CROSS_COMPILE)gcc CFLAGS=" -I$(rootfs)/include " LDFLAGS=" -lffi --sysroot=$(rootfs) "; \
+		sed -i "66c CC=$(CROSS_COMPILE)gcc" glib/Makefile;	\
+		sed -i "66c CC=$(CROSS_COMPILE)gcc" gthread/Makefile;	\
+		sed -i "70c CC=$(CROSS_COMPILE)gcc" gobject/Makefile;	\
+		sed -i "67c CC=\"$(CROSS_COMPILE)gcc\"" libtool;	\
+		make install LDFLAGS="--sysroot=$(rootfs)")
+endif
+endif
 
 $(download)/npth-1.3.tar.bz2:
 	@(cd $(download);wget https://gnupg.org/ftp/gcrypt/npth/npth-1.3.tar.bz2)
@@ -192,7 +232,7 @@ ascynara:$(CURDIR)/cynara
 		mkdir -p build;cd build; \
 		CXX=$(CROSS_COMPILE)g++ CC=$(CROSS_COMPILE)gcc LINKER=$(CROSS_COMPILE)ld \
 		RANLIB=$(CROSS_COMPILE)ranlib AR=$(CROSS_COMPILE)ar \
-		CXXFLAGS="-I$(rootfs)/include -std=c++11" LDFLAGS="--sysroot=$(rootfs)" cmake ..; \
+		CXXFLAGS="-I$(rootfs)/include " LDFLAGS="--sysroot=$(rootfs)" cmake ..; \
 		make; make install DESTDIR=$(rootfs) )
 
 $(download)/OpenSSL-fips-2_0_13.tar.gz:
@@ -260,15 +300,16 @@ $(CURDIR)/systemd:
 	@(git clone https://github.com/systemd/systemd.git;cd systemd;git checkout v212)
 # need sudo apt-get install gtk-doc-tools
 assystemd:$(CURDIR)/systemd
-	@(cd systemd; ./autogen.sh; mkdir -p build;cd build;    \
+	@(cd systemd; ./autogen.sh; mkdir -p build;)
+	@(cd systemd/build;    \
 		sed -i "589c have_gcrypt=no" ../configure;	\
 		sed -i "591c #" ../configure;sed -i "592c #" ../configure;sed -i "593c #" ../configure;	\
 		sed -i "594c #" ../configure;sed -i "595c #" ../configure;sed -i "596c #" ../configure;	\
 		sed -i "130c #define HAVE_MALLOC 1" ../config.h.in;	\
-		sed -i "384c //#undef malloc" ../config.h.in;	\
-		../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc \
+		sed -i "384c //#undef malloc" ../config.h.in; )
+	@(cd systemd/build;../configure --host=$(HOST) CC=$(CROSS_COMPILE)gcc \
 			CFLAGS=" -I$(rootfs)/include -I$(rootfs)/usr/include " \
-			LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 -L$(rootfs)/usr/lib "; \
+			LDFLAGS=" --sysroot=$(rootfs) -L$(rootfs)/lib -L$(rootfs)/lib64 "; \
 		make ; make install DESTDIR=$(rootfs))
 
 $(CURDIR)/smack:
@@ -398,7 +439,11 @@ $(download)/$(kernel-version).tar.xz:
 kernel/.config:
 #	@(cd kernel;cp arch/arm/configs/vexpress_defconfig .config)
 #	@(cd kernel;make menuconfig O=.)
+ifeq ($(ARCH),arm)
 	@(cd kernel;cp aspatch/vexpress_defconfig .config)
+else
+	@(cd kernel;make menuconfig O=.)
+endif
 
 kernel-menuconfig:
 	@(cd kernel;make menuconfig O=.)
@@ -406,10 +451,12 @@ kernel-menuconfig:
 askernel:$(rootfs) $(download)/$(kernel-version).tar.xz kernel/.config
 #make uImage -j2 LOADADDR=0x60003000
 	@(cd kernel;make all)
-	@cp -f kernel/arch/arm/boot/zImage $(rootfs)/zImage
+	@cp -f kernel/arch/$(ARCH)/boot/zImage $(rootfs)/zImage
 	@cp -f kernel/vmlinux $(rootfs)/vmlinux
 	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
+ifeq (S(ARCH),arm)
 	@cp -f kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
+endif
 
 u-boot:
 	@git clone git://git.denx.de/u-boot.git
@@ -419,7 +466,7 @@ asuboot:u-boot
 	@(cd u-boot;make all)
 	@(cd u-boot;cp -v u-boot $(rootfs))
 
-extract-busybox:
+$(CURDIR)/busybox: $(download)/busybox-1.24.0.tar.bz2
 	@bzip2 -dk $(download)/busybox-1.24.0.tar.bz2
 	@tar -xf $(download)/busybox-1.24.0.tar -C $(CURDIR)
 	@rm $(download)/busybox-1.24.0.tar
@@ -427,7 +474,6 @@ extract-busybox:
 
 $(download)/busybox-1.24.0.tar.bz2:
 	@(cd $(download);wget http://busybox.net/downloads/busybox-1.24.0.tar.bz2)
-	@make extract-busybox
 
 busybox-menuconfig:
 	@(cd busybox;make menuconfig)
@@ -436,7 +482,7 @@ busybox/.config:
 	#@(cd busybox;make menuconfig)
 	@(cd busybox;cp ../kernel/aspatch/busybox_defconfig .config)
 
-asbusybox:$(download)/busybox-1.24.0.tar.bz2 busybox/.config
+asbusybox:$(CURDIR)/busybox busybox/.config
 	@(cd busybox;make all)
 	@(cd busybox;make install CONFIG_PREFIX=$(rootfs))
 
@@ -450,12 +496,22 @@ $(download)/glibc-2.22.tar.bz2:
 	@(cd $(download);wget http://mirrors.ustc.edu.cn/gnu/libc/glibc-2.22.tar.bz2)
 	@make extract-glibc
 
-asglibc:$(download)/glibc-2.22.tar.bz2
+$(download)/glibc-2.25.tar.bz2:
+	@(cd $(download); wget http://ftp.gnu.org/gnu/libc/glibc-2.25.tar.bz2)
+
+$(CURDIR)/glibc:$(download)/glibc-2.25.tar.bz2
+	@(tar xf $(download)/glibc-2.25.tar.bz2 -C .; mv glibc-2.25 glibc)
+
+asglibc:$(CURDIR)/glibc
+ifeq ($(ARCH),arm)
 	@(cd glibc;mkdir -pv build;	\
 		cd build;	\
-		../configure arm-linux-gnueabi --target=arm-linux-gnueabi --build=i686-pc-linux-gnu --prefix= --enable-add-ons;	\
+		../configure $(HOST) --target=$(HOST) --build=i686-pc-linux-gnu --prefix= --enable-add-ons;	\
 		make;	\
 		make install install_root=$(rootfs))
+else
+	@(cd glibc;mkdir -p build; cd build; ../configure --disable-sanity-checks; make; make install install_root=$(rootfs))
+endif
 
 $(download)/qt-everywhere-opensource-src-5.5.1.tar.gz:$(rootfs)
 	@(cd $(download);wget http://101.44.1.124/files/A165000004244025/anychimirror101.mirrors.tds.net/pub/Qt/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz)

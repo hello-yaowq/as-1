@@ -13,11 +13,11 @@
 # * for more details.
 # */
 #common compilers
-AS  = gcc
-CC  = gcc
-LD  = gcc
-AR  = ar
-RM  = rm
+AS  ?= gcc
+CC  ?= gcc
+LD  = $(CC)
+AR  ?= ar
+RM  ?= rm
 
 export verbose ?= no
 ifeq ($(verbose),no)
@@ -28,6 +28,9 @@ endif
 
 # generate pre-preocess C files if set to yes
 export gen-pp?=no
+
+cflags-y += ${CFLAGS}
+ldflags-y += ${LDFLAGS}
 
 ifeq ($(shell uname), Linux)
 cflags-y  += -fPIC
