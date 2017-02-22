@@ -15,40 +15,74 @@
 
 # default version of yocto want to be used
 VERSION?=morty
+# "agl" or "poky"
+POKY?=agl
 
-rootfs?=$(CURDIR)/poky/build/tmp/deploy/images/qemux86
+rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/qemux86
 
 default:all
 
-$(CURDIR)/poky:
-	@(git clone -b $(VERSION) git://git.yoctoproject.org/poky.git)
+# ----------------------------- [ AGL ] -----------------------------------------------------
+# https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/
+$(HOME)/bin/repo:
+	@mkdir -p $(HOME)/bin
+	@curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo -o $@
+	@chmod +x $@
 
-$(CURDIR)/poky/openembedded-core:
-	@(cd poky;git clone -b $(VERSION) git://git.openembedded.org/openembedded-core)
+# get AGL for a refference for the study of yocto
+$(CURDIR)/agl:$(HOME)/bin/repo
+	@mkdir -p $@
+	@(cd agl;export REPO_URL='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo/';  \
+		repo init -b $(VERSION) -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo; repo sync)
 
-$(CURDIR)/poky/meta-intel-iot-security:
-	(cd poky; git clone -b v1.0.0 https://github.com/01org/meta-intel-iot-security.git)
+# ----------------------------- [ yocto ] -----------------------------------------------------
+$(CURDIR)/$(POKY):
+	@mkdir -p $@
 
-asyocto:$(CURDIR)/poky $(CURDIR)/poky/openembedded-core $(CURDIR)/poky/meta-intel-iot-security
-	@echo " cd poky; source oe-init-build-env ; make asyoctosetup -C ../..; bitbake core-image-minimal "
+$(CURDIR)/$(POKY)/poky:
+	@(cd $(POKY);git clone -b $(VERSION) git://git.yoctoproject.org/poky.git)
+
+$(CURDIR)/$(POKY)/openembedded-core:
+	@(cd $(POKY);git clone -b $(VERSION) git://git.openembedded.org/openembedded-core)
+
+$(CURDIR)/$(POKY)/meta-openembedded:
+	@(cd $(POKY);git clone -b $(VERSION) git://git.openembedded.org/meta-openembedded)
+
+$(CURDIR)/$(POKY)/meta-intel-iot-security:
+	(cd $(POKY); git clone -b v1.0.0 https://github.com/01org/meta-intel-iot-security.git)
+
+$(CURDIR)/$(POKY)/meta-amb:
+	@(cd $(POKY); git clone https://github.com/tripzero/meta-amb.git)
+
+# remoce the cmake of meta-qt5 as the version is too old.
+$(CURDIR)/$(POKY)/meta-qt5:
+	@(cd $(POKY); git clone -b $(VERSION) https://github.com/meta-qt5/meta-qt5.git)
+
+# ----------------------------- [ aslinux build ] -----------------------------------------------------
+as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
+		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5
+	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake core-image-minimal "
 	@echo " runqemu tmp/deploy/images/qemux86/core-image-minimal-qemux86.qemuboot.conf nographic"
 
-asyoctosetup:
-	@echo "BBLAYERS += \"`readlink -f poky/meta-intel-iot-security/meta-security-smack`\"" >> poky/build/conf/bblayers.conf
-	@echo "BBLAYERS += \"`readlink -f poky/meta-intel-iot-security/meta-security-framework`\"" >> poky/build/conf/bblayers.conf
-	@echo "BBLAYERS += \"`readlink -f poky/meta-as`\"" >> poky/build/conf/bblayers.conf
-# check README of poky/meta-intel-iot-security/meta-security-smack: enable smack
-	@echo "OVERRIDES .= \":smack\"" >> poky/build/conf/local.conf
-	@echo "DISTRO_FEATURES_append = \" smack\"" >> poky/build/conf/local.conf
-	@echo "DISTRO_FEATURES_append = \" pam\"" >> poky/build/conf/local.conf
-	@echo "DISTRO_FEATURES_append += \" systemd\"" >> poky/build/conf/local.conf
-	@echo "VIRTUAL-RUNTIME_init_manager = \"systemd\"" >> poky/build/conf/local.conf
-	@echo "DISTRO_FEATURES_BACKFILL_CONSIDERED = \"sysvinit\"" >> poky/build/conf/local.conf
-	@echo "VIRTUAL-RUNTIME_initscripts = \"\"" >> poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"coreutils\"" >> poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> poky/build/conf/local.conf
+as$(POKY)setup:
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-smack`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+# check README of $(POKY)/meta-intel-iot-security/meta-security-smack: enable smack
+	@echo "OVERRIDES .= \":smack\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_append = \" smack\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_append = \" pam\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_append += \" systemd\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "VIRTUAL-RUNTIME_init_manager = \"systemd\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_BACKFILL_CONSIDERED = \"sysvinit\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "VIRTUAL-RUNTIME_initscripts = \"\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"coreutils\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara\"" >> poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
@@ -73,11 +107,11 @@ systemimg:$(rootfs)/system.img $(rootfs)/rootfs
 		sudo umount tmp)
 
 runqemu:
-	sudo poky/build/tmp/sysroots/x86_64-linux/usr/bin/qemu-system-i386 -device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 \
+	sudo $(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/qemu-system-i386 -device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 \
 		-netdev tap,id=net0,ifname=tap0,script=no,downscript=no  -nographic  -cpu qemu32 -m 256 \
 		-drive file=$(rootfs)/system.img,if=virtio,format=raw -vga vmware -show-cursor -usb -usbdevice tablet -device \
 		virtio-rng-pci -kernel $(rootfs)/bzImage \
 		-append 'root=/dev/vda2 rw highres=off  console=ttyS0 mem=256M ip=192.168.7.2::192.168.7.1:255.255.255.0 vga=0 uvesafb.mode_option=640x480-32 oprofile.timer=1 uvesafb.task_timeout=-1'
 
-all:asyocto
+all:as$(POKY)
 
