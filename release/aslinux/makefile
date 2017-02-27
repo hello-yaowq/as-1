@@ -22,6 +22,12 @@ rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/qemux86
 
 default:all
 
+# ----------------------------- [ issues ] -----------------------------------------------------
+# FIXME: for build of security-manager, there is some error, fix them manually
+#  1) '#include <vector>' && 'using namesapce std;'
+#  2) '#define XATTR_NAME_SMACKIPIN "SMACK64IPIN"' && '#define XATTR_NAME_SMACKIPOUT "SMACK64IPOUT"'
+#  3) '#include_next <stdlib.h>' --> '#include "./stdlib.h"' ... etc
+
 # ----------------------------- [ AGL ] -----------------------------------------------------
 # https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/
 $(HOME)/bin/repo:
@@ -83,26 +89,25 @@ as$(POKY)setup:
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
-#	@sudo mkfs.ext3 $@
-	@echo " >> use fdisk to creat 2 primary partition, p1=+512M@2048, p2=left"
-	@echo "$@Device Boot  Start         End      Blocks   Id  System"
-	@echo "$@p1            2048     1050623      524288   83  Linux"
-	@echo "$@p2         1050624     4194303     1571840   83  Linux"
-	@fdisk $@
-	@echo "  >> use parted to mkfs the 2 partition to ext2 filesyste"
-	@parted $@
+	@sudo mkfs.ext4 $@
+
+# will be /dev/vdb
+$(rootfs)/userdata.img:
+	@dd if=/dev/zero of=$@ bs=1G count=1
+	@sudo mkfs.ext4 $@
 
 $(rootfs)/rootfs:
 	@mkdir -p $@
 	@tar xf $(rootfs)/core-image-minimal-qemux86.tar.bz2 -C $@
 
-systemimg:$(rootfs)/system.img $(rootfs)/rootfs
+systemimg:$(rootfs)/system.img $(rootfs)/userdata.img $(rootfs)/rootfs
 	@(cd $(rootfs);mkdir -p tmp;	\
 		parted system.img unit B print;	\
-		sudo mount -o loop,offset=537919488 system.img tmp/; \
+		sudo mount -t ext4 -o loop system.img tmp/; \
 		pwd;sudo cp rootfs/* tmp/ -rf; \
 		sudo umount tmp)
 
@@ -111,7 +116,8 @@ runqemu:
 		-netdev tap,id=net0,ifname=tap0,script=no,downscript=no  -nographic  -cpu qemu32 -m 256 \
 		-drive file=$(rootfs)/system.img,if=virtio,format=raw -vga vmware -show-cursor -usb -usbdevice tablet -device \
 		virtio-rng-pci -kernel $(rootfs)/bzImage \
-		-append 'root=/dev/vda2 rw highres=off  console=ttyS0 mem=256M ip=192.168.7.2::192.168.7.1:255.255.255.0 vga=0 uvesafb.mode_option=640x480-32 oprofile.timer=1 uvesafb.task_timeout=-1'
+		-drive file=$(rootfs)/userdata.img,if=virtio,format=raw \
+		-append 'root=/dev/vda rw highres=off  console=ttyS0 mem=256M ip=192.168.7.2::192.168.7.1:255.255.255.0 vga=0 uvesafb.mode_option=640x480-32 oprofile.timer=1 uvesafb.task_timeout=-1'
 
 all:as$(POKY)
 

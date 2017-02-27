@@ -95,7 +95,7 @@
 (global-set-key [end] 'end-of-buffer)
 
 (when (eq system-type 'windows-nt)  
-  (setq find-program “gfind”))
+  (setq find-program "gfind"))
 
 (setq case-fold-search t)
 

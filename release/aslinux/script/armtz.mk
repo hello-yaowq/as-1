@@ -4,6 +4,19 @@
 
 # arm or aarch64
 ARCH ?= arm
+
+ifeq ($(ARCH),arm)
+export PLATFORM?=vexpress-qemu_virt 
+export CROSS_COMPILE?=arm-linux-gnueabihf-
+export TARGET?=default
+else
+export PLATFORM?=vexpress-qemu_armv8a
+export CROSS_COMPILE?=aarch64-linux-gnu-
+export TARGET?=qemu_v8
+endif
+
+default:all
+
 qemu-tz:
 	@git clone https://git.linaro.org/virtualization/qemu-tz.git
 	@(cd qemu-tz;git submodule update --init dtc)
@@ -30,12 +43,38 @@ else
 endif
 
 optee_os:
-	@git clone https://github.com/OP-TEE/optee_os.git
+	@git clone https://github.com/OP-TEE/optee_os.git -b 2.3.0
 
+# need: sudo apt-get install libmagickwand-dev && sudo pip install Wand
 asoptee_os:optee_os
-	@(cd optee_os;PLATFORM=vexpress-qemu_virt CROSS_COMPILE=arm-linux-gnueabihf- make)
-	
+	@(cd optee_os; make)
 
-all: asqemutz asqemutztest
+optee_client:
+	@git clone https://github.com/OP-TEE/optee_client.git -b 2.3.0
+
+asoptee_client:optee_client
+	@(cd optee_client; make)
+
+all-legency: asoptee_client asoptee_os asqemutz asqemutztest 
 	@(echo "  >> build done")
+
+# after reading https://github.com/OP-TEE/build, so drop the above action, using repo.
+$(CURDIR)/poky:
+	@(mkdir -p $@)
+	@(cd $@; repo init -u https://github.com/OP-TEE/manifest.git -m ${TARGET}.xml; repo sync)
+
+all:$(CURDIR)/poky
+	@(cd $</build;make toolchains; make all)
+
+runqemu:
+	@nc -z  127.0.0.1 54320 || gnome-terminal -t ""Normal"" -x poky/soc_term/soc_term 54320 &
+	@nc -z  127.0.0.1 54321 || gnome-terminal -t ""Secure"" -x poky/soc_term/soc_term 54321 &
+	@while ! nc -z 127.0.0.1 54320 || ! nc -z 127.0.0.1 54321; do sleep 1; done
+	@(poky/qemu/arm-softmmu/qemu-system-arm \
+		-nographic \
+		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
+		-machine virt -machine secure=on -cpu cortex-a15 \
+		-m 1057 \
+		-bios poky/out/bios-qemu/bios.bin)
+
 

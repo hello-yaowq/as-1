@@ -4,7 +4,7 @@ LICENSE = "GPLv2"
 DEPENDS += "readline python gtk+"
 
 S = "${WORKDIR}/"
-ASDIR= "`readlink -f ${TMPDIR}/../../../../..`"
+ASDIR= "`readlink -f ${TMPDIR}/../../../../../..`"
 
 # for rpm package /lib/as
 FILES_${PN} += "/lib/as/*"
@@ -18,6 +18,7 @@ do_clean () {
 
 do_compile () {
 #	die " die for debug env: ${CXX}"
+	rm -f ${S}/as
 	ln -fs ${ASDIR} ${S}/as
 
 	export verbose=1
