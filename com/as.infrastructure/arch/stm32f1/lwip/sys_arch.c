@@ -462,7 +462,7 @@ void pre_sys_init(void)
 	// keep track of how many threads have been created
 	nextthread = 0;
 }
-
+#ifdef USE_LWIP
 TASK(TaskLwip)
 {
 	OS_TASK_BEGIN();
@@ -486,7 +486,7 @@ ALARM(Alarm_Lwip)
 {
 	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
 }
-
+#endif
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 		void *arg, int stacksize, int prio)
 {
@@ -505,7 +505,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 
 	return TASK_ID_tcpip_task;
 }
-
+#ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
 	KGS(LwipIdle,Running);
@@ -525,3 +525,4 @@ KSM(LwipIdle,Running)
 {
 
 }
+#endif
