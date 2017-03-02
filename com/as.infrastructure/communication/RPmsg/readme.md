@@ -61,5 +61,5 @@ multiprocessing) ECUs firstly introduced by TI OMAP platform. So by generally th
   [6]: https://www.kernel.org/doc/Documentation/rpmsg.txt
   [7]: http://events.linuxfoundation.org/sites/events/files/slides/Enhancing%20RT%20Capabilities%20with%20the%20PRU%20final.pdf
   [8]: http://git.omapzoom.org/?p=repo/sysbios-rpmsg.git
-  [9]: https://github.com/parai/freertos-multicore.git
+  [9]: https://github.com/n-aizu/freertos-multicore
   
