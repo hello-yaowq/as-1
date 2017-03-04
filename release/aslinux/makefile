@@ -89,7 +89,7 @@ as$(POKY)setup:
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
