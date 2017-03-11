@@ -18,7 +18,24 @@ VERSION?=morty
 # "agl" or "poky"
 POKY?=agl
 
-rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/qemux86
+# valid: x86, arm, arm64
+export ARCH?=arm64
+
+export MACHINE?=qemu${ARCH}
+
+rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/${MACHINE}
+
+ifeq (${ARCH},x86)
+export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/i586-poky-linux/i586-poky-linux-
+endif
+
+ifeq (${ARCH},arm)
+export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/arm-poky-linux-guneabi/arm-poky-linux-gnueabi-
+endif
+
+ifeq (${ARCH},arm64)
+export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-
+endif
 
 default:all
 
@@ -68,9 +85,10 @@ $(CURDIR)/$(POKY)/meta-qt5:
 as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
 		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5
 	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake core-image-minimal "
-	@echo " runqemu tmp/deploy/images/qemux86/core-image-minimal-qemux86.qemuboot.conf nographic"
+	@echo " runqemu tmp/deploy/images/${MACHINE}/core-image-minimal-${MACHINE}.qemuboot.conf nographic"
 
 as$(POKY)setup:
+	@echo "MACHINE ?= \"${MACHINE}\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-smack`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
@@ -102,7 +120,7 @@ $(rootfs)/userdata.img:
 
 $(rootfs)/rootfs:
 	@mkdir -p $@
-	@tar xf $(rootfs)/core-image-minimal-qemux86.tar.bz2 -C $@
+	@tar xf $(rootfs)/core-image-minimal-${MACHINE}.tar.bz2 -C $@
 
 systemimg:$(rootfs)/system.img $(rootfs)/userdata.img $(rootfs)/rootfs
 	@(cd $(rootfs);mkdir -p tmp;	\
@@ -111,13 +129,111 @@ systemimg:$(rootfs)/system.img $(rootfs)/userdata.img $(rootfs)/rootfs
 		pwd;sudo cp rootfs/* tmp/ -rf; \
 		sudo umount tmp)
 
-runqemu:
-	sudo $(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/qemu-system-i386 -device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 \
-		-netdev tap,id=net0,ifname=tap0,script=no,downscript=no  -nographic  -cpu qemu32 -m 256 \
-		-drive file=$(rootfs)/system.img,if=virtio,format=raw -vga vmware -show-cursor -usb -usbdevice tablet -device \
-		virtio-rng-pci -kernel $(rootfs)/bzImage \
-		-drive file=$(rootfs)/userdata.img,if=virtio,format=raw \
-		-append 'root=/dev/vda rw highres=off  console=ttyS0 mem=256M ip=192.168.7.2::192.168.7.1:255.255.255.0 vga=0 uvesafb.mode_option=640x480-32 oprofile.timer=1 uvesafb.task_timeout=-1'
+$(CURDIR)/.qemux86.qemuboot.conf:
+	@echo "[config_bsp]" > $@
+	@echo "machine = ${MACHINE}" >> $@
+	@echo "tune_arch = i586" >> $@
+	@echo "deploy_dir_image = $(POKY)/poky/build/tmp/deploy/images/${MACHINE}" >> $@
+	@echo "kernel_imagetype = .bzImage" >> $@
+	@echo "image_name = system" >> $@
+	@echo "image_link_name = .system.img" >> $@
+	@echo "staging_dir_native = $(POKY)/poky/build/tmp/sysroots/x86_64-linux" >> $@
+	@echo "staging_bindir_native = $(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin" >> $@
+	@echo "staging_dir_host = $(POKY)/poky/build/tmp/sysroots/${MACHINE}" >> $@
+	@echo "qb_cpu_kvm_x86-64 = -cpu kvm64" >> $@
+	@echo "qb_mem = -m 256" >> $@
+	@echo "qb_kernel_cmdline_append = vga=0 uvesafb.mode_option=640x480-32 oprofile.timer=1 uvesafb.task_timeout=-1" >> $@
+	@echo "qb_cpu_kvm_x86 = -cpu kvm32" >> $@
+	@echo "qb_system_name_x86 = qemu-system-i386" >> $@
+	@echo "qb_audio_opt = -soundhw ac97,es1370" >> $@
+	@echo "qb_default_kernel = .bzImage.bin" >> $@
+	@echo "qb_audio_drv = alsa" >> $@
+	@echo "qb_cpu_x86 = -cpu qemu32" >> $@
+	@echo "qb_serial_opt = -serial mon:stdio -serial null" >> $@
+	@echo "qb_opt_append = -vga vmware -show-cursor -usb -usbdevice tablet -device virtio-rng-pci -drive file=$(rootfs)/userdata.img,if=virtio,format=raw" >> $@
+	@echo "qb_cpu_x86-64 = -cpu core2duo" >> $@
+	@echo "qb_default_fstype = ext4" >> $@
+	@echo "qb_system_name_x86-64 = qemu-system-x86_64" >> $@
+	@echo "qb_system_name = qemu-system-i386" >> $@
+	@echo "qb_cpu_kvm = -cpu kvm32" >> $@
+	@echo "qb_cpu = -cpu qemu32" >> $@
+
+$(CURDIR)/.qemuarm.qemuboot.conf:
+	@echo "[config_bsp]" > $@
+	@echo "machine = qemuarm" >> $@
+	@echo "tune_arch = arm" >> $@
+	@echo "deploy_dir_image = ${POKY}/poky/build/tmp/deploy/images/qemuarm" >> $@
+	@echo "kernel_imagetype = .zImage" >> $@
+	@echo "image_name = system" >> $@
+	@echo "image_link_name = .system.img" >> $@
+	@echo "staging_dir_native = ${POKY}/poky/build/tmp/sysroots/x86_64-linux" >> $@
+	@echo "staging_bindir_native = ${POKY}//poky/build/tmp/sysroots/x86_64-linux/usr/bin" >> $@
+	@echo "staging_dir_host = ${POKY}/poky/build/tmp/sysroots/qemuarm" >> $@
+	@echo "qb_opt_append = -show-cursor -usb -usbdevice tablet -device virtio-rng-pci" >> $@
+	@echo "qb_dtb = .zImage-versatile-pb.dtb" >> $@
+	@echo "qb_default_fstype = ext4" >> $@
+	@echo "qb_mem = -m 256" >> $@
+	@echo "qb_serial_opt = -serial mon:stdio -serial null" >> $@
+	@echo "qb_system_name = qemu-system-arm" >> $@
+	@echo "qb_machine = -machine versatilepb" >> $@
+	@echo "qb_kernel_cmdline_append = console=ttyAMA0,115200 console=tty" >> $@
+	@echo "qb_default_kernel = .zImage.bin" >> $@
+
+$(CURDIR)/.qemuarm64.qemuboot.conf:
+	@echo "[config_bsp]" > $@
+	@echo "machine = qemuarm64" >> $@
+	@echo "tune_arch = aarch64" >> $@
+	@echo "deploy_dir_image = ${POKY}/poky/build/tmp/deploy/images/qemuarm64" >> $@
+	@echo "kernel_imagetype = .Image" >> $@
+	@echo "image_name = system" >> $@
+	@echo "image_link_name = .system.img" >> $@
+	@echo "staging_dir_native = ${POKY}/poky/build/tmp/sysroots/x86_64-linux" >> $@
+	@echo "staging_bindir_native = ${POKY}/poky/build/tmp/sysroots/x86_64-linux/usr/bin" >> $@
+	@echo "staging_dir_host = ${POKY}/poky/build/tmp/sysroots/qemuarm64" >> $@
+	@echo "qb_mem = -m 512" >> $@
+	@echo "qb_default_fstype = ext4" >> $@
+	@echo "qb_cpu = -cpu cortex-a57" >> $@
+	@echo "qb_serial_opt = -device virtio-serial-device -chardev null,id=virtcon -device virtconsole,chardev=virtcon" >> $@
+	@echo "qb_tcpserial_opt =  -device virtio-serial-device -chardev socket,id=virtcon,port=@PORT@,host=127.0.0.1 -device virtconsole,chardev=virtcon" >> $@
+	@echo "qb_slirp_opt = -netdev user,id=net0 -device virtio-net-device,netdev=net0" >> $@
+	@echo "qb_kernel_cmdline_append = console=ttyAMA0,38400" >> $@
+	@echo "qb_opt_append = -show-cursor -device virtio-rng-pci -monitor null" >> $@
+	@echo "qb_machine = -machine virt" >> $@
+	@echo "qb_system_name = qemu-system-aarch64" >> $@
+	@echo "qb_default_kernel = .Image.bin" >> $@
+	@echo "qb_rootfs_opt = -drive id=disk0,file=@ROOTFS@,if=none,format=raw -device virtio-blk-device,drive=disk0" >> $@
+	@echo "qb_tap_opt = -netdev tap,id=net0,ifname=@TAP@,script=no,downscript=no -device virtio-net-device,netdev=net0,mac=@MAC@" >> $@
+
+$(CURDIR)/.system.img.ext4:
+	@ln -fs $(rootfs)/system.img $@
+
+# for example do debug kernel, do: export qemuparams="-s -S"
+export qemuparams?=""
+runqemu:$(CURDIR)/.${MACHINE}.qemuboot.conf $(CURDIR)/.system.img.ext4
+	@(export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$(POKY)/poky/scripts/;$(POKY)/poky/scripts/runqemu $< nographic qemuparams="$(qemuparams)")
+
+kernel-menuconfig:
+	@(cd kernel4.8;make menuconfig O=.)
+
+kernel4.8/.config:
+	@(cp $(POKY)/poky/build/tmp/work-shared/${MACHINE}/kernel-build-artifacts/.config $@ -v)
+
+$(CURDIR)/kernel4.8:
+	@(cp $(POKY)/poky/build/tmp/work-shared/${MACHINE}/kernel-source $@ -r)
+
+# this is for the purpose to fast build the kernel and debug
+kernel:$(CURDIR)/kernel4.8 kernel4.8/.config
+	@(cd kernel4.8;make)
+ifeq (${ARCH},x86)
+	@(ln -fs kernel4.8/arch/i386/boot/bzImage .bzImage)
+endif
+ifeq (${ARCH},arm)
+	@(ln -fs kernel4.8/arch/${ARCH}/boot/zImage .zImage)
+	@(ln -fs kernel4.8//arch/${ARCH}/boot/dts/versatile-pb.dtb .zImage-versatile-pb.dtb)
+endif
+ifeq (${ARCH},arm64)
+	@(ln -fs kernel4.8/arch/${ARCH}/boot/Image .Image)
+endif
 
 all:as$(POKY)
 

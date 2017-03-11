@@ -12,7 +12,11 @@ FILES_${PN} += "/lib/as/*"
 do_clean () {
   if [ -e ${S}/as ] ; then
     cd ${S}/as/release/aslua
-    make clean-dist
+    make clean
+    cd ${S}/as/release/ascore
+    make clean
+    cd ${S}/as/release/asboot
+    make clean
   fi
 }
 
@@ -24,16 +28,19 @@ do_compile () {
 	export verbose=1
 
 	cd ${S}/as/release/aslua
+	make clean
 	make 91
 	make 92
 #	make 81
 #	make 82
 	
 	cd ${S}/as/release/ascore
+	make clean
 #	make 91
 #	make 92
 
 	cd ${S}/as/release/asboot
+	make clean
 	make 91
 	make 92
 }
@@ -48,16 +55,4 @@ do_install () {
   cp ${ASDIR}/com/as.tool/as.one.py/pyas/*.py  ${D}/lib/as/pyas
   cp ${ASDIR}/com/as.tool/as.one.py/pyas/*.lua  ${D}/lib/as/pyas
   
-  cd ${TMPDIR}/deploy/images/${MACHINE}
-
-  if ! [ -d rootfs ]; then
-    mkdir rootfs
-    tar xf core-image-minimal-${MACHINE}.tar.bz2 -C ./rootfs
-  fi
-  
-  cp ${D}/* ./rootfs/ -frv
-
-  # need: sudo apt-get install android-tools-fsutils
-  # size 4G
-  # make_ext4fs -s -L system -l 4294967296 system.ext4 ./rootfs
 }

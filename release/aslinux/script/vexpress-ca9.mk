@@ -254,7 +254,7 @@ $(CURDIR)/ruby-2.4.0:$(download)/ruby-2.4.0.tar.gz
 # $ gem install openssl
 # $ gem sources --add https://gems.ruby-china.org/ --remove https://rubygems.org/
 # $ gem install jekyll -v 3.3.0
-asruby:
+asruby:$(CURDIR)/ruby-2.4.0
 	@(cd ruby-2.4.0;./configure --with-openssl-dir=/usr/local/ssl;make)
 
 $(CURDIR)/jekyll:
@@ -283,7 +283,7 @@ $(CURDIR)/libcap:$(download)/libcap-2.24.tar.xz
 
 aslibcap:$(CURDIR)/libcap
 	@(cd libcap;	\
-		make all BUILD_CC=gcc CC=$(CROSS_COMPILE)gcc AR=$(CROSS_COMPILE)ar RANLIB=$(CROSS_COMPILE)ranlib LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 ";	\
+		make all BUILD_CC=$(CROSS_COMPILE)gcc CC=$(CROSS_COMPILE)gcc AR=$(CROSS_COMPILE)ar RANLIB=$(CROSS_COMPILE)ranlib LDFLAGS=" -L$(rootfs)/lib -L$(rootfs)/lib64 ";	\
 		make install DESTDIR=$(rootfs) )
 
 $(download)/kmod-17.tar.gz:
@@ -416,14 +416,13 @@ patch-kernel-dm-boot:
 	@(cd kernel; sed -i "396c dm_table_destroy(table);" init/do_mounts_dm.c)
 	@(cd kernel; sed -i "308c extern void dm_table_destroy(struct dm_table* t);" init/do_mounts_dm.c)
 
+kernel-version ?= linux-3.18.48
 
 patch-kernel:
 	@(cd ../kernel/drivers/remoteproc/rproc-asvirt; make dep)
 	@(cp ../kernel . -rvf)
 	@(cd kernel; patch -p1 < aspatch/0001-aslinux-add-virtual-pinctrl-and-rpmsg-driver.patch)
 	@(cd kernel; patch -p1 < aspatch/0002-aslinux-add-virtual-CAN-driver-based-on-RPMSG.patch)
-
-kernel-version ?= linux-3.18.46
 
 extract-kernel:
 	@xz -dk $(download)/$(kernel-version).tar.xz
@@ -433,7 +432,7 @@ extract-kernel:
 	@make patch-kernel
 
 $(download)/$(kernel-version).tar.xz:
-	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v3.x/$(kernel-version).tar.xz)
+	@(cd $(download);wget https://www.kernel.org/pub/linux/kernel/v`echo $(kernel-version)|cut -b 7`.x/$(kernel-version).tar.xz)
 	@make extract-kernel
 
 kernel/.config:
@@ -454,7 +453,7 @@ askernel:$(rootfs) $(download)/$(kernel-version).tar.xz kernel/.config
 	@cp -f kernel/arch/$(ARCH)/boot/zImage $(rootfs)/zImage
 	@cp -f kernel/vmlinux $(rootfs)/vmlinux
 	@find kernel -name "*.ko"|xargs -i cp -v {} $(rootfs)/example
-ifeq (S(ARCH),arm)
+ifeq ($(ARCH),arm)
 	@cp -f kernel/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(rootfs)
 endif
 
@@ -601,13 +600,12 @@ $(out)/sdcard.img:
 	@echo "  >> use parted to mkfs the 2 partition to ext2 filesyste"
 	@parted $@
 
-
 asrootfs:
 
 sdcard:$(out)/sdcard.img asrootfs
 	@(cd $(out);mkdir -p tmp;	\
 		parted sdcard.img unit B print;	\
-		sudo mount -o loop,offset=537919488 sdcard.img tmp/; \
+		sudo mount -o loop,offset=537919488 sdcard.img tmp;	\
 		sudo cp $(rootfs)/* tmp/ -rf;	\
 		sudo mkdir -p tmp/dev;	\
 		sudo mknod tmp/dev/tty1 c 4 1;	\
@@ -619,11 +617,12 @@ sdcard:$(out)/sdcard.img asrootfs
 		sudo mkdir -p tmp/smack tmp/root tmp/home/root;	\
 		sudo cp ../../rootfs/* tmp/ -rvf;	\
 		sudo chmod +x tmp/etc/init.d/rcS;	\
-		sudo cp /usr/arm-linux-gnueabi/lib/*.so* tmp/lib;	\
-		sudo mv tmp/lib64/* tmp/lib; sudo rm -fr tmp/lib64;	\
-		sudo ln -fs ../../../../lib/systemd/system/getty@.service tmp/usr/etc/systemd/system/getty.target.wants/getty@ttyAMA0.service;	\
-		sudo umount tmp;	\
-		rm tmp -fr)
+		sudo cp /usr/arm-linux-gnueabi/lib/*.so* tmp/lib)
+#	@(cd $(out);sudo mv tmp/lib64/* tmp/lib; sudo rm -fr tmp/lib64; \
+		sudo ln -fs ../../../../lib/systemd/system/getty@.service tmp/usr/etc/systemd/system/getty.target.wants/getty@ttyAMA0.service)
+#  don't rm inittab and securetty if systemd want to be used
+	@(cd $(out);sudo rm -fr tmp/etc/inittab tmp/etc/securetty)
+	@(cd $(out);sudo umount tmp;rm tmp -fr)
 
 test_initrd ?= no
 
