@@ -96,7 +96,7 @@ void EnableAllInterrupts(void)
 }
 void DisableAllInterrupts(void)
 {
-	imask_t* pISREnabled = get_isr_mask();
+	volatile imask_t* pISREnabled = get_isr_mask();
 
 	pthread_mutex_lock(&isrAccess);
 
@@ -111,20 +111,34 @@ imask_t __Irq_Save(void)
 {
 	imask_t ret;
 
-	imask_t* pISREnabled = get_isr_mask();
+	volatile imask_t* pISREnabled = get_isr_mask();
 
-	pthread_mutex_lock(&isrAccess);
+	do {
+		pthread_mutex_lock(&isrAccess);
 
-	ret = *pISREnabled;
+		ret = *pISREnabled;
 
-	if(TRUE == ret)
-	{
-		pthread_mutex_lock(&isrMutex);
-	}
-
-	*pISREnabled = FALSE;
-
-	pthread_mutex_unlock(&isrAccess);
+		if(TRUE == ret)
+		{
+			if(0 == pthread_mutex_trylock(&isrMutex))
+			{
+				*pISREnabled = FALSE;
+				pthread_mutex_unlock(&isrAccess);
+				break;
+			}
+			else
+			{ /* another process has already disabled the ISR, wait a while */
+				pthread_mutex_unlock(&isrAccess);
+				usleep(1);
+				continue;
+			}
+		}
+		else
+		{ /* already ISR disabled */
+			pthread_mutex_unlock(&isrAccess);
+			break;
+		}
+	} while(TRUE);
 
 	return ret;
 }

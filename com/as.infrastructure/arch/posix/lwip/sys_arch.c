@@ -465,7 +465,7 @@ void netbios_init(void)
 {
 
 }
-
+#ifdef USE_LWIP
 TASK(TaskLwip)
 {
 	OS_TASK_BEGIN();
@@ -491,7 +491,7 @@ ALARM(Alarm_Lwip)
 	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
 #endif
 }
-
+#endif
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 		void *arg, int stacksize, int prio)
 {
@@ -579,7 +579,7 @@ struct netif * LwIP_Init(void)
 	return &netif;
 #endif /* USE_LWIP */
 }
-
+#ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
 	KGS(LwipIdle,Running);
@@ -601,4 +601,4 @@ KSM(LwipIdle,Running)
 	Eth_Isr();
 #endif
 }
-
+#endif

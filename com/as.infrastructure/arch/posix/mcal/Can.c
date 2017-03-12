@@ -291,6 +291,7 @@ void Can_Init( const Can_ConfigType *config ) {
 	#else
 	if(FALSE == can_open(configId,"socket",configId,canHwConfig->CanControllerBaudRate*1000))
 	{
+		ASLOG(STDOUT,"please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can0 type vcan\n\tsudo ip link set up can0\n");
 		asAssert(0);
 	}
 	#endif

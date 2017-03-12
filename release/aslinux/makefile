@@ -59,9 +59,6 @@ $(CURDIR)/agl:$(HOME)/bin/repo
 		repo init -b $(VERSION) -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo; repo sync)
 
 # ----------------------------- [ yocto ] -----------------------------------------------------
-$(CURDIR)/$(POKY):
-	@mkdir -p $@
-
 $(CURDIR)/$(POKY)/poky:
 	@(cd $(POKY);git clone -b $(VERSION) git://git.yoctoproject.org/poky.git)
 

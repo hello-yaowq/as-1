@@ -54,7 +54,7 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
 ifeq ($(host), Linux)
-sgapp ?= none
+sgapp ?= virtual_cluster
 else
 sgapp ?= virtual_cluster
 endif
