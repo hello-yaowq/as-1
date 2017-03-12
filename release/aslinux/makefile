@@ -19,7 +19,7 @@ VERSION?=morty
 POKY?=agl
 
 # valid: x86, arm, arm64
-export ARCH?=arm64
+export ARCH?=x86
 
 export MACHINE?=qemu${ARCH}
 
@@ -40,10 +40,6 @@ endif
 default:all
 
 # ----------------------------- [ issues ] -----------------------------------------------------
-# FIXME: for build of security-manager, there is some error, fix them manually
-#  1) '#include <vector>' && 'using namesapce std;'
-#  2) '#define XATTR_NAME_SMACKIPIN "SMACK64IPIN"' && '#define XATTR_NAME_SMACKIPOUT "SMACK64IPOUT"'
-#  3) '#include_next <stdlib.h>' --> '#include "./stdlib.h"' ... etc
 
 # ----------------------------- [ AGL ] -----------------------------------------------------
 # https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/
@@ -104,7 +100,7 @@ as$(POKY)setup:
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
@@ -205,9 +201,9 @@ $(CURDIR)/.system.img.ext4:
 	@ln -fs $(rootfs)/system.img $@
 
 # for example do debug kernel, do: export qemuparams="-s -S"
-export qemuparams?=""
+export qemuparams?="-nographic"
 runqemu:$(CURDIR)/.${MACHINE}.qemuboot.conf $(CURDIR)/.system.img.ext4
-	@(export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$(POKY)/poky/scripts/;$(POKY)/poky/scripts/runqemu $< nographic qemuparams="$(qemuparams)")
+	@(export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$(POKY)/poky/scripts/;$(POKY)/poky/scripts/runqemu $< qemuparams="$(qemuparams)")
 
 kernel-menuconfig:
 	@(cd kernel4.8;make menuconfig O=.)
