@@ -74,6 +74,9 @@ else
 tcpip=none
 endif
 endif
+ifeq ($(rtos),smallos)
+tcpip=none
+endif
 
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
@@ -662,7 +665,10 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 all:exe
 ifeq ($(board),posix)
 ifeq ($(host),Linux)
+ifeq ($(rtos),smallos)
+else
 	gcc $(src-dir)/socket_ethernet_driver.c -lpthread -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
+endif
 endif
 endif
 
@@ -737,9 +743,9 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=posix
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=posix debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
 
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	

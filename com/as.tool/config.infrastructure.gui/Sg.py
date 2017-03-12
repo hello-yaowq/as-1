@@ -1,3 +1,4 @@
+from colorsys import rgb_to_yiq
 __hh__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
@@ -60,6 +61,19 @@ class Sg():
             if(B>0):
                 fp.write('0x%-2X,'%(DOT))
         fp.write('\n};\n')
+    def filterForTelltale(self,rgb):
+        # as I don't want to use GIMP to create each valid TT PNG, so just
+        # use this API to filter out the black color 
+        alpha = (rgb>>24) & 0xFF;
+        if(alpha == 0): # this is empty color
+            return 0
+        r = (rgb>>16) & 0xFF;
+        g = (rgb>>8) & 0xFF;
+        b = (rgb>>0) & 0xFF;
+        if(r < 80 and g < 80 and b < 80):
+            return 0
+        return rgb
+
     def toU8Pixel(self,fp,X=0,Y=0):
         name = CName(os.path.basename(self.file))
         aname = os.path.abspath(self.file)
@@ -70,6 +84,8 @@ class Sg():
             fp.write('\n\t')
             for x in range(0,IM.size().width()):
                 rgb = IM.pixel(x,y)
+                if(name[:3]=='tt_'):
+                    rgb = self.filterForTelltale(rgb)
                 fp.write('0x%-8X,'%(rgb))
         fp.write('\n};\n')
         fp.write('static const SgBMP %s_BMP=\n'%(name))
