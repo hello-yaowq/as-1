@@ -19,7 +19,7 @@ VERSION?=morty
 POKY?=agl
 
 # valid: x86, arm, arm64
-export ARCH?=arm64
+export ARCH?=x86
 
 export MACHINE?=qemu${ARCH}
 
@@ -40,10 +40,6 @@ endif
 default:all
 
 # ----------------------------- [ issues ] -----------------------------------------------------
-# FIXME: for build of security-manager, there is some error, fix them manually
-#  1) '#include <vector>' && 'using namesapce std;'
-#  2) '#define XATTR_NAME_SMACKIPIN "SMACK64IPIN"' && '#define XATTR_NAME_SMACKIPOUT "SMACK64IPOUT"'
-#  3) '#include_next <stdlib.h>' --> '#include "./stdlib.h"' ... etc
 
 # ----------------------------- [ AGL ] -----------------------------------------------------
 # https://mirrors.tuna.tsinghua.edu.cn/help/git-repo/
