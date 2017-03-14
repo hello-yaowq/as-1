@@ -53,6 +53,7 @@ $(CURDIR)/agl:$(HOME)/bin/repo
 	@mkdir -p $@
 	@(cd agl;export REPO_URL='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo/';  \
 		repo init -b $(VERSION) -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo; repo sync)
+	@(cd agl/meta-openembedded/meta-oe/recipes-devtools; mkdir -p sip; cd sip; wget http://cgit.openembedded.org/meta-openembedded/plain/meta-oe/recipes-devtools/sip/sip_4.19.bb)
 
 # ----------------------------- [ yocto ] -----------------------------------------------------
 $(CURDIR)/$(POKY)/poky:

@@ -36,8 +36,8 @@ ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
 debug ?= TRUE
 ifeq ($(host), Linux)
-PY27 = python2
-PY34 = python3
+PY27 ?= python2
+PY34 ?= python3
 else
 PY27 = C:Python27/python
 PY34 = C:Python34/python

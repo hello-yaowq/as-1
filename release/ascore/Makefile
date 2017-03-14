@@ -317,19 +317,25 @@ $(download):
 	@mkdir -p $@
 
 $(download)/lwip:
+ifeq ($(tcpip),lwip)
 	@(cd $(download);git clone git://git.savannah.nongnu.org/lwip.git;cd lwip;git checkout STABLE-1_4_1)
+endif
 
 $(download)/lwip-contrib:
+ifeq ($(tcpip),lwip)
 	@(cd $(download);git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git;cd lwip-contrib;git checkout STABLE-1_4_1)
+endif
 
 aslwip: $(download)/lwip $(download)/lwip-contrib
 
 $(download)/contiki:
+ifeq (${rtos},contiki)
 	@(cd $(download);git clone https://github.com/contiki-os/contiki.git;\
 		cd contiki;git checkout 3.x;	\
 		cd core/sys;	\
 		sed -e "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, \\\\" process.h > process.h2;	\
 		mv process.h2 process.h)
+endif
 
 ascontiki:$(download)/contiki
 
