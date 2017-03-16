@@ -172,6 +172,7 @@ ifeq ($(board),stm32f107vc)
 rtos?=toppers_osek
 #rtos?=smallos
 use-boot?=yes
+tcpip=lwip
 ifeq ($(compiler),cortexm3-gcc)
 ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
@@ -477,7 +478,7 @@ endif
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")
 
-dep-stm32f107vc:
+dep-stm32f107vc:aslwip
 	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
@@ -492,6 +493,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
+ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);rm -f lwip_timers.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
@@ -501,6 +503,7 @@ dep-stm32f107vc:
 	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip TRUE)
+endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/Crc TRUE)

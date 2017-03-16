@@ -64,7 +64,7 @@ void aslog(char* module,char* format,...)
 	va_end(args);
 }
 
-void asmem(void* address,size_t size)
+void asmem(const void* address,size_t size)
 {
 	uint32 i,j;
 	uint8 *src;

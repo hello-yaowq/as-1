@@ -24,14 +24,14 @@ do_unpack() {
 
 do_compile () {
 	export verbose=1
-	export PY34=${TMPDIR}/sysroots/x86_64-linux/usr/bin/python-native/python
+	export PY34=${TMPDIR}/sysroots/${BUILD_SYS}/usr/bin/python-native/python
 
 	cd ${S}/as-master/release/aslua
 	make 91
 	make 92
 	# FIXME: this is ugly
-	if ! [ -e ${TMPDIR}/sysroots/x86_64-linux/usr/bin/sip ] ; then
-	   	cp ${S}/../../sip/4.19-r0/image/* ${TMPDIR}/sysroots/x86_64-linux/ -fr
+	if ! [ -e ${TMPDIR}/sysroots/${BUILD_SYS}/usr/bin/sip ] ; then
+	   	cp ${S}/../../sip/4.19-r0/image/* ${TMPDIR}/sysroots/${BUILD_SYS}/ -fr
 	fi
 	make 81
 	make 82

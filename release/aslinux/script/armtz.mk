@@ -3,7 +3,7 @@
 # ln -fs /as/release/aslinux/script/armtz.mk makefile
 
 # arm or aarch64
-ARCH ?= arm
+ARCH ?= aarch64
 
 ifeq ($(ARCH),arm)
 export PLATFORM?=vexpress-qemu_virt 
@@ -14,6 +14,9 @@ export PLATFORM?=vexpress-qemu_armv8a
 export CROSS_COMPILE?=aarch64-linux-gnu-
 export TARGET?=qemu_v8
 endif
+
+POKY=poky-${ARCH}
+export REPO_URL?='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo/'
 
 default:all
 
@@ -59,22 +62,23 @@ all-legency: asoptee_client asoptee_os asqemutz asqemutztest
 	@(echo "  >> build done")
 
 # after reading https://github.com/OP-TEE/build, so drop the above action, using repo.
-$(CURDIR)/poky:
+$(CURDIR)/${POKY}:
 	@(mkdir -p $@)
 	@(cd $@; repo init -u https://github.com/OP-TEE/manifest.git -m ${TARGET}.xml; repo sync)
+	@(cd $@/qemu;git submodule update --init dtc)
 
-all:$(CURDIR)/poky
+all:$(CURDIR)/${POKY}
 	@(cd $</build;make toolchains; make all)
 
 runqemu:
-	@nc -z  127.0.0.1 54320 || gnome-terminal -t ""Normal"" -x poky/soc_term/soc_term 54320 &
-	@nc -z  127.0.0.1 54321 || gnome-terminal -t ""Secure"" -x poky/soc_term/soc_term 54321 &
+	@nc -z  127.0.0.1 54320 || gnome-terminal -t ""Normal"" -x ${POKY}/soc_term/soc_term 54320 &
+	@nc -z  127.0.0.1 54321 || gnome-terminal -t ""Secure"" -x ${POKY}/soc_term/soc_term 54321 &
 	@while ! nc -z 127.0.0.1 54320 || ! nc -z 127.0.0.1 54321; do sleep 1; done
-	@(poky/qemu/arm-softmmu/qemu-system-arm \
+	@(${POKY}/qemu/arm-softmmu/qemu-system-arm \
 		-nographic \
 		-serial tcp:localhost:54320 -serial tcp:localhost:54321 \
 		-machine virt -machine secure=on -cpu cortex-a15 \
 		-m 1057 \
-		-bios poky/out/bios-qemu/bios.bin)
+		-bios ${POKY}/out/bios-qemu/bios.bin)
 
 
