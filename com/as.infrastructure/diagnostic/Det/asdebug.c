@@ -43,7 +43,7 @@ char* aswho(void)
 {
 	return __aswho;
 }
-void aslog(char* module,char* format,...)
+void aslog(const char* module,const char* format,...)
 {
 	static char buf[1024*2];
 	static char name[256];

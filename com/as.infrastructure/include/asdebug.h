@@ -145,8 +145,8 @@ typedef struct timeval asperf_t;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef CONFIG_ARCH_VEXPRESS
-extern void  aslog(char* module,char* format,...);
-extern void  asmem(void* address,size_t size);
+extern void  aslog(const char* module,const char* format,...);
+extern void  asmem(const void* address,size_t size);
 extern char* ashex(unsigned long a);
 extern char* aswho(void);
 extern void  asAssertErrorHook(void);

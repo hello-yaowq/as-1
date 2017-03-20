@@ -75,9 +75,15 @@ $(CURDIR)/$(POKY)/meta-amb:
 $(CURDIR)/$(POKY)/meta-qt5:
 	@(cd $(POKY); git clone -b $(VERSION) https://github.com/meta-qt5/meta-qt5.git)
 
+# ----------------------------- [ 3rd PART ] ----------------------------------------------------------
+$(CURDIR)/$(POKY)/meta-mender:
+	@(cd $(POKY); git clone -b $(VERSION) https://github.com/mendersoftware/meta-mender.git)
+
+$(CURDIR)/$(POKY)/oe-meta-go:
+	@(cd $(POKY); git clone https://github.com/mem/oe-meta-go.git)
 # ----------------------------- [ aslinux build ] -----------------------------------------------------
 as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
-		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5
+		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5 $(CURDIR)/$(POKY)/meta-mender $(CURDIR)/$(POKY)/oe-meta-go
 	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake core-image-minimal "
 	@echo " runqemu tmp/deploy/images/${MACHINE}/core-image-minimal-${MACHINE}.qemuboot.conf nographic"
 
@@ -88,6 +94,15 @@ as$(POKY)setup:
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+ifeq ($(ARCH),arm)
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/oe-meta-go`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-core`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-demo`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-qemu`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "MENDER_ARTIFACT_NAME = \"release-1\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "INHERIT += \"mender-full\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "UBOOT_MACHINE = \"vexpress-qemu\"">> $(POKY)/poky/build/conf/local.conf
+endif
 	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 # check README of $(POKY)/meta-intel-iot-security/meta-security-smack: enable smack
 	@echo "OVERRIDES .= \":smack\"" >> $(POKY)/poky/build/conf/local.conf
@@ -101,7 +116,7 @@ as$(POKY)setup:
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
@@ -227,6 +242,17 @@ ifeq (${ARCH},arm)
 endif
 ifeq (${ARCH},arm64)
 	@(ln -fs kernel4.8/arch/${ARCH}/boot/Image .Image)
+endif
+
+cc:
+ifeq (${CFILE},)
+	@echo "Usage:: make cc CFILE=\"path/to/c_source_file\""
+	@echo "# base rules for app makefile" > .base.mk
+	@echo "CC=${CROSS_COMPILE}gcc --sysroot=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/$(MACHINE)" >> .base.mk
+	@echo "SYSROOTS=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/$(MACHINE)" >> .base.mk
+	@cat .base.mk
+else
+	${CROSS_COMPILE}gcc --sysroot=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/$(MACHINE) ${CFLAGS} ${CFILE} -o $(rootfs)/rootfs/home/root/$(basename $(notdir ${CFILE})).exe
 endif
 
 all:as$(POKY)
