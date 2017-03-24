@@ -21,7 +21,11 @@ POKY?=agl
 # valid: x86, arm, arm64
 export ARCH?=x86
 
+ifeq (${ARCH},arm)
+export MACHINE?=vexpress-qemu
+else
 export MACHINE?=qemu${ARCH}
+endif
 
 rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/${MACHINE}
 
@@ -35,6 +39,13 @@ endif
 
 ifeq (${ARCH},arm64)
 export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-
+endif
+
+ifeq (${ARCH},arm)
+# this is as mender layer was used
+TARGET ?= core-image-full-cmdline
+else
+TARGET ?= core-image-minimal
 endif
 
 default:all
@@ -78,14 +89,16 @@ $(CURDIR)/$(POKY)/meta-qt5:
 # ----------------------------- [ 3rd PART ] ----------------------------------------------------------
 $(CURDIR)/$(POKY)/meta-mender:
 	@(cd $(POKY); git clone -b $(VERSION) https://github.com/mendersoftware/meta-mender.git)
+	@(echo " >> update ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass 108: set count to 2097152")
+	@(sed -i 's/count=0 seek=/count=2097152 seek=/g' ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass)
 
 $(CURDIR)/$(POKY)/oe-meta-go:
 	@(cd $(POKY); git clone https://github.com/mem/oe-meta-go.git)
 # ----------------------------- [ aslinux build ] -----------------------------------------------------
 as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
 		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5 $(CURDIR)/$(POKY)/meta-mender $(CURDIR)/$(POKY)/oe-meta-go
-	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake core-image-minimal "
-	@echo " runqemu tmp/deploy/images/${MACHINE}/core-image-minimal-${MACHINE}.qemuboot.conf nographic"
+	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake ${TARGRT} "
+	@echo " runqemu tmp/deploy/images/${MACHINE}/${TARGRT}-${MACHINE}.qemuboot.conf nographic"
 
 as$(POKY)setup:
 	@echo "MACHINE ?= \"${MACHINE}\"" >> $(POKY)/poky/build/conf/local.conf
@@ -95,13 +108,15 @@ as$(POKY)setup:
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 ifeq ($(ARCH),arm)
+# https://docs.mender.io/1.0/artifacts/building-mender-yocto-image
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/oe-meta-go`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-core`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-demo`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-qemu`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "MENDER_ARTIFACT_NAME = \"release-1\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "INHERIT += \"mender-full\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "UBOOT_MACHINE = \"vexpress-qemu\"">> $(POKY)/poky/build/conf/local.conf
+	@echo "IMAGE_FSTYPES = \"ext4\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "INHERIT += \"rm_work\""  >> $(POKY)/poky/build/conf/local.conf
 endif
 	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 # check README of $(POKY)/meta-intel-iot-security/meta-security-smack: enable smack
@@ -116,7 +131,7 @@ endif
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils ltp\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
@@ -129,7 +144,7 @@ $(rootfs)/userdata.img:
 
 $(rootfs)/rootfs:
 	@mkdir -p $@
-	@tar xf $(rootfs)/core-image-minimal-${MACHINE}.tar.bz2 -C $@
+	@tar xf $(rootfs)/${TARGRT}-${MACHINE}.tar.bz2 -C $@
 
 systemimg:$(rootfs)/system.img $(rootfs)/userdata.img $(rootfs)/rootfs
 	@(cd $(rootfs);mkdir -p tmp;	\
@@ -220,6 +235,9 @@ $(CURDIR)/.system.img.ext4:
 export qemuparams?="-nographic"
 runqemu:$(CURDIR)/.${MACHINE}.qemuboot.conf $(CURDIR)/.system.img.ext4
 	@(export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$(POKY)/poky/scripts/;$(POKY)/poky/scripts/runqemu $< qemuparams="$(qemuparams)")
+
+runmender:
+	@(export BUILDDIR=${POKY}/poky/build;$(POKY)/meta-mender/meta-mender-qemu/scripts/mender-qemu)
 
 kernel-menuconfig:
 	@(cd kernel4.8;make menuconfig O=.)
