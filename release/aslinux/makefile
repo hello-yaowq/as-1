@@ -19,7 +19,7 @@ VERSION?=morty
 POKY?=agl
 
 # valid: x86, arm, arm64
-export ARCH?=x86
+export ARCH?=arm
 
 ifeq (${ARCH},arm)
 export MACHINE?=vexpress-qemu
@@ -97,7 +97,7 @@ $(CURDIR)/$(POKY)/oe-meta-go:
 # ----------------------------- [ aslinux build ] -----------------------------------------------------
 as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
 		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5 $(CURDIR)/$(POKY)/meta-mender $(CURDIR)/$(POKY)/oe-meta-go
-	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake ${TARGRT} "
+	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake ${TARGET} "
 	@echo " runqemu tmp/deploy/images/${MACHINE}/${TARGRT}-${MACHINE}.qemuboot.conf nographic"
 
 as$(POKY)setup:
@@ -144,7 +144,7 @@ $(rootfs)/userdata.img:
 
 $(rootfs)/rootfs:
 	@mkdir -p $@
-	@tar xf $(rootfs)/${TARGRT}-${MACHINE}.tar.bz2 -C $@
+	@tar xf $(rootfs)/${TARGET}-${MACHINE}.tar.bz2 -C $@
 
 systemimg:$(rootfs)/system.img $(rootfs)/userdata.img $(rootfs)/rootfs
 	@(cd $(rootfs);mkdir -p tmp;	\
