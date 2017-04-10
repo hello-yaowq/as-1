@@ -319,6 +319,11 @@ void OSTaskSwHook (void)
 {
 }
 
+void OSTaskReturnHook(OS_TCB *ptcb)
+{
+
+}
+
 /*
 *********************************************************************************************************
 *                                           STATISTIC TASK HOOK
@@ -365,6 +370,7 @@ void OSTimeTickHook (void)
 void OSTaskIdleHook (void)
 {
 }
+
 #endif
 
 /*

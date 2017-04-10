@@ -53,7 +53,3 @@ void App2Task(void *p_arg)
 void OSDebugInit()
 {
 }
-void OSTaskReturnHook(OS_TCB *ptcb)
-{
-
-}

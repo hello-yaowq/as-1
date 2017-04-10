@@ -13,16 +13,31 @@
 # * for more details.
 # */
 
+# CPU architecture setting: win32 cm3 ...
+export ARCH ?= win32
+
 TARGET = ucOS_II_Demo
 
 obj-dir = $(CURDIR)/objs
 out-dir = $(CURDIR)/out
 
-KERNEL = $(shell readlink -f  $(CURDIR)/../../com/as.infrastructure/system/kernel/ucos_ii)
+COM = $(shell readlink -f  $(CURDIR)/../../com)
+KERNEL = ${COM}/as.infrastructure/system/kernel/ucos_ii
 
 # default compilers
+ifeq (${ARCH}, win32)
 CC = gcc
 LD = gcc
+endif
+
+ifeq (${ARCH}, cm3)
+export CROSS_COMPILE ?= arm-none-eabi-
+# board select: stm32f107vc at91sam3s
+export BOARD ?= stm32f107vc
+AS = ${CROSS_COMPILE}as
+CC = ${CROSS_COMPILE}gcc
+LD = ${CROSS_COMPILE}ld
+endif
 
 # make verbose or not
 export V ?= 0
@@ -34,14 +49,28 @@ endif
 
 # default FLAGS
 CFLAGS += -O0 -g
-LDFLAGS += -O0 -g -lwinmm
+LDFLAGS += -O0 -g -Map ${out-dir}/${TARGET}.map
+ifeq (${ARCH}, win32)
+LDFLAGS += -lwinmm
+endif
 
+ifeq (${ARCH}, cm3)
+ASFLAGS += -mcpu=cortex-m3  -mthumb
+CFLAGS  += -mcpu=cortex-m3  -mthumb
+LDFLAGS += -T ${COM}/as.application/board.${BOARD}/script/linker-app.lds
+endif
 
-default:all
-
+ifeq (${ARCH}, win32)
 VPATH += ${KERNEL}/portable/win32
 CFLAGS += -I${KERNEL}/portable/win32
 obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/os_trace.o 
+endif
+
+ifeq (${ARCH}, cm3)
+VPATH += ${KERNEL}/portable/cortex-m3/gnu
+CFLAGS += -I${KERNEL}/portable/cortex-m3/gnu
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/os_cpu_a.o ${obj-dir}/startup.o
+endif
 
 VPATH += ${KERNEL}/core
 CFLAGS += -I${KERNEL}/core
@@ -50,6 +79,21 @@ obj-y += ${obj-dir}/ucos_ii.o
 VPATH += ${CURDIR}/demo
 CFLAGS += -I${CURDIR}/demo
 obj-y += ${obj-dir}/main.o
+ifeq (${ARCH}, cm3)
+obj-y += ${obj-dir}/apphooks.o
+endif
+
+default:all
+
+$(obj-dir)/%.o:%.asm
+	@echo
+	@echo "  >> AS $(notdir $<)"	
+	${Q} $(AS) $(ASFLAGS) -o $@ -c $<
+
+$(obj-dir)/%.o:%.s
+	@echo
+	@echo "  >> AS $(notdir $<)"	
+	${Q} $(CC) $(ASFLAGS) -o $@ -c $<
 
 $(obj-dir)/%.o:%.c
 	@echo
@@ -67,3 +111,5 @@ all: ${obj-dir} ${out-dir} ${obj-y}
 	@echo "  >> LD $(TARGET)"
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)
 
+clean:
+	@rm -frv ${obj-dir} ${out-dir}
