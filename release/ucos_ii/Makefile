@@ -21,7 +21,7 @@ TARGET = ucOS_II_Demo
 obj-dir = $(CURDIR)/objs
 out-dir = $(CURDIR)/out
 
-COM = $(shell readlink -f  $(CURDIR)/../../com)
+COM = $(CURDIR)/../../com
 KERNEL = ${COM}/as.infrastructure/system/kernel/ucos_ii
 
 # default compilers
@@ -42,22 +42,24 @@ endif
 # make verbose or not
 export V ?= 0
 ifeq ($(V),1)
-Q=@
-else
 Q=
+else
+Q=@
 endif
 
 # default FLAGS
 CFLAGS += -O0 -g
-LDFLAGS += -O0 -g -Map ${out-dir}/${TARGET}.map
+LDFLAGS += -O0 -g
 ifeq (${ARCH}, win32)
 LDFLAGS += -lwinmm
+LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
 endif
 
 ifeq (${ARCH}, cm3)
 ASFLAGS += -mcpu=cortex-m3  -mthumb
 CFLAGS  += -mcpu=cortex-m3  -mthumb
 LDFLAGS += -T ${COM}/as.application/board.${BOARD}/script/linker-app.lds
+LDFLAGS += -Map ${out-dir}/${TARGET}.map
 endif
 
 ifeq (${ARCH}, win32)
