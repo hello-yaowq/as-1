@@ -13,8 +13,12 @@
 # * for more details.
 # */
 
-# CPU architecture setting: win32 cm3 ...
+# CPU architecture setting: win32 posix cm3 ...
+ifeq ($(shell uname), Linux)
+export ARCH ?= posix
+else
 export ARCH ?= win32
+endif
 
 TARGET = ucOS_II_Demo
 
@@ -25,6 +29,11 @@ COM = $(CURDIR)/../../com
 KERNEL = ${COM}/as.infrastructure/system/kernel/ucos_ii
 
 # default compilers
+ifeq (${ARCH}, posix)
+CC = gcc
+LD = gcc
+endif
+
 ifeq (${ARCH}, win32)
 CC = gcc
 LD = gcc
@@ -50,6 +59,10 @@ endif
 # default FLAGS
 CFLAGS += -O0 -g
 LDFLAGS += -O0 -g
+ifeq (${ARCH}, posix)
+LDFLAGS += -lpthread
+LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
+endif
 ifeq (${ARCH}, win32)
 LDFLAGS += -lwinmm
 LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
@@ -60,6 +73,12 @@ ASFLAGS += -mcpu=cortex-m3  -mthumb
 CFLAGS  += -mcpu=cortex-m3  -mthumb
 LDFLAGS += -T ${COM}/as.application/board.${BOARD}/script/linker-app.lds
 LDFLAGS += -Map ${out-dir}/${TARGET}.map
+endif
+
+ifeq (${ARCH}, posix)
+VPATH += ${KERNEL}/portable/posix
+CFLAGS += -I${KERNEL}/portable/posix
+obj-y += ${obj-dir}/os_cpu_c.o
 endif
 
 ifeq (${ARCH}, win32)
