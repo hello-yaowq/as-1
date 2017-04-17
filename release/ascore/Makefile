@@ -30,6 +30,9 @@ APPLICATION = $(prj-dir)/com/as.application
 VIRTUAL = $(prj-dir)/com/as.virtual
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
+
+default: 91 92
+
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
 debug ?= TRUE
 ifeq ($(host), Linux)
@@ -236,6 +239,10 @@ def-y += -D__AS_BY_PARAI__
 def-y += -D$(board)_board
 inc-y += -I$(inc-dir)
 
+ifeq ($(rtos),ucosii)
+inc-y += -I$(src-dir)/ucosii
+VPATH += $(src-dir)/ucosii
+endif
 
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
 # on C disk do the following command:
@@ -446,6 +453,15 @@ else
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/freertos/config TRUE)
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
+endif
+ifeq ($(rtos),ucosii)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core ucosii)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core/ucos_ii.c)
+ifeq ($(host),Linux)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/posix)	
+else
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/win32)	
+endif
 endif
 ifeq ($(rtos),toppers_osek)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/include TRUE)
@@ -752,9 +768,9 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=ucosii
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=ucosii debug=true
 
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
