@@ -39,6 +39,8 @@
 #define OS_LOWEST_PRIO           63u   /* Defines the lowest priority that can be assigned ...         */
                                        /* ... MUST NEVER be higher than 254!                           */
 
+#define OS_TASK_TMR_PRIO         62u
+
 #define OS_MAX_EVENTS            10u   /* Max. number of event control blocks in your application      */
 #define OS_MAX_FLAGS              5u   /* Max. number of Event Flag Groups    in your application      */
 #define OS_MAX_MEM_PART           5u   /* Max. number of memory partitions                             */

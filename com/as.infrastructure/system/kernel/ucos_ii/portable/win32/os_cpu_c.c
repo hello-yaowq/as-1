@@ -14,8 +14,12 @@
 */
 
 #define  OS_CPU_GLOBALS
-#include "includes.h"
-#include "os_trace.h"
+#include    <stdio.h>
+#include    <string.h>
+#include    <ctype.h>
+#include    <stdlib.h>
+#include    "ucos_ii.h"
+#include    "os_trace.h"
 #include	<windows.h>
 #include	<mmsystem.h>
 

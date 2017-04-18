@@ -92,7 +92,7 @@ TASK(TaskNmInd)
 {
 	StatusType ercd;
 	EventMaskType mask;
-#ifdef __FREERTOS__
+#if defined(__FREERTOS__)
 	ercd = E_OK;
 #else
 	ercd =

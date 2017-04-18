@@ -20,7 +20,7 @@
 #include "ksm_cfg.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-#if !defined(__FREERTOS__) && !defined(__UCOSII_OS__)
+#if !defined(__FREERTOS__)
 #define OsActivateTask(x)		ActivateTask(TASK_ID_##x)
 #define OsTerminateTask(x)		TerminateTask()
 #define OsSetRelAlarm(x,a,b)	SetRelAlarm(ALARM_ID_##x,a,b)
