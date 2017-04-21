@@ -13,9 +13,9 @@
 # * for more details.
 # */
 
-# CPU architecture setting: win32 posix cm3 ...
+# CPU architecture setting: win32 posix cm3 raspi ...
 ifeq ($(shell uname), Linux)
-export ARCH ?= posix
+export ARCH ?= raspi
 else
 export ARCH ?= win32
 endif
@@ -48,6 +48,13 @@ CC = ${CROSS_COMPILE}gcc
 LD = ${CROSS_COMPILE}ld
 endif
 
+ifeq (${ARCH}, raspi)
+export CROSS_COMPILE ?= arm-none-eabi-
+AS = ${CROSS_COMPILE}as
+CC = ${CROSS_COMPILE}gcc
+LD = ${CROSS_COMPILE}ld
+endif
+
 # make verbose or not
 export V ?= 0
 ifeq ($(V),1)
@@ -57,7 +64,7 @@ Q=@
 endif
 
 # default FLAGS
-CFLAGS += -O0 -g
+CFLAGS += -O0 -g -D__arch_${ARCH}__ -std=gnu99
 LDFLAGS += -O0 -g
 ifeq (${ARCH}, posix)
 LDFLAGS += -lpthread
@@ -72,6 +79,14 @@ ifeq (${ARCH}, cm3)
 ASFLAGS += -mcpu=cortex-m3  -mthumb
 CFLAGS  += -mcpu=cortex-m3  -mthumb
 LDFLAGS += -T ${COM}/as.application/board.${BOARD}/script/linker-app.lds
+LDFLAGS += -Map ${out-dir}/${TARGET}.map
+endif
+
+ifeq (${ARCH}, raspi)
+ASFLAGS += -mcpu=arm1176jzf-s -fpic -ffreestanding
+CFLAGS  += -mcpu=arm1176jzf-s -fpic -ffreestanding
+LDFLAGS += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-eabi/4.8.2
+LDFLAGS += -T ${COM}/as.infrastructure/arch/bcm2835/bsp/linker.lds
 LDFLAGS += -Map ${out-dir}/${TARGET}.map
 endif
 
@@ -91,6 +106,13 @@ ifeq (${ARCH}, cm3)
 VPATH += ${KERNEL}/portable/cortex-m3/gnu
 CFLAGS += -I${KERNEL}/portable/cortex-m3/gnu
 obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/os_cpu_a.o ${obj-dir}/startup.o
+endif
+
+ifeq (${ARCH}, raspi)
+VPATH += ${KERNEL}/portable/raspi/gnu ${COM}/as.infrastructure/arch/bcm2835/bsp
+CFLAGS += -I${KERNEL}/portable/raspi/gnu -I${COM}/as.infrastructure/arch/bcm2835/bsp
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/os_cpu_a.o ${obj-dir}/startup.o
+obj-y += ${obj-dir}/interrupts.o ${obj-dir}/syscalls.o ${obj-dir}/timer.o ${obj-dir}/uart.o
 endif
 
 VPATH += ${KERNEL}/core
@@ -127,6 +149,14 @@ ${obj-dir}:
 
 ${out-dir}:
 	mkdir -p $@
+
+$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz:
+	@wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz
+	@tar xf $@
+
+qemuparams?="-nographic"
+qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
+	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel $(out-dir)/$(TARGET))
 
 all: ${obj-dir} ${out-dir} ${obj-y}
 	@echo "  >> LD $(TARGET)"

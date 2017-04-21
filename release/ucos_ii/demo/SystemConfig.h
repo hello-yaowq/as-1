@@ -25,7 +25,7 @@
 #define MainTask_StkSize 1024
 #define App1Task_StkSize 1024
 #define App2Task_StkSize 1024
-#define OS_TASK_TMR_PRIO 65533
+
 #define OS_IDLE_PRIO OS_TASK_IDLE_PRIO
 #define OS_STAT_PRIO OS_TASK_STAT_PRIO
 

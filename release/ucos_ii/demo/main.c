@@ -1,5 +1,12 @@
 #include "SystemConfig.h"
 
+#ifdef __arch_raspi__
+#include "uart.h"
+#include "regs.h"
+#include "timer.h"
+#include "interrupts.h"
+#endif
+
 
 
 OS_STK MainTask_Stk[MainTask_StkSize];
@@ -7,6 +14,15 @@ OS_STK App1Task_Stk[App1Task_StkSize];
 OS_STK App2Task_Stk[App2Task_StkSize];
 int main(void)
 {
+#ifdef __arch_raspi__
+	uart_init();
+
+	InitInterruptController();
+
+	DisableInterrupts();
+
+	timer_init();
+#endif
 	OSInit();
 
 	OSTaskCreate(MainTask, (void *)0, &MainTask_Stk[MainTask_StkSize-1], MainTask_Prio);
