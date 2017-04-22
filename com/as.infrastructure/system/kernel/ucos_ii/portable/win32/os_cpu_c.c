@@ -529,6 +529,8 @@ void OSCtxSw()
     SS_SP = (OS_EMU_STK*) OSTCBHighRdy->OSTCBStkPtr;
 
     ResumeThread(SS_SP->Handle);
+
+    (void)n;
 }
 
 /*
@@ -596,6 +598,7 @@ void OSIntCtxSw()
     SS_SP = (OS_EMU_STK*) OSTCBHighRdy->OSTCBStkPtr;
 
     ResumeThread(SS_SP->Handle);
+    (void)n;
 }
 
 /*

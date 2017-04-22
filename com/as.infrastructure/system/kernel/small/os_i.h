@@ -17,6 +17,17 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#ifdef USE_UCOSII
+#define DeclareTask(Name,Autostart,AppMode,StackSize)		\
+    {											\
+        .main = TaskMain##Name,							\
+        .priority = TASK_ID_##Name,				\
+        .autostart = Autostart,					\
+        .app_mode = AppMode,					\
+		.stk_size = StackSize,					\
+		.pstk = TaskStk##Name					\
+    }
+#else
 #define DeclareTask(Name,Autostart,AppMode)		\
     {											\
         .main = TaskMain##Name,							\
@@ -24,7 +35,7 @@
         .autostart = Autostart,					\
         .app_mode = AppMode						\
     }
-
+#endif
 #define DeclareAlarm(Name)						\
     {											\
         .main = AlarmMain##Name						\
@@ -94,6 +105,10 @@ typedef struct
     task_priority_t priority;	/*! priority also represent the task id, the same as TaskType */
     boolean         autostart;
     AppModeType     app_mode;	/*! means task runnable modes */
+#ifdef USE_UCOSII
+    uint16          stk_size;
+    uint8*          pstk;
+#endif
 }task_declare_t;
 
 typedef struct
@@ -125,7 +140,11 @@ FUNC(StatusType,MEM_GetTaskState) 	 GetTaskState    ( TaskType TaskID,TaskStateR
 FUNC(void,MEM_StartOS)               StartOS         ( AppModeType Mode );
 FUNC(StatusType,MEM_GetResource)     GetResource     ( ResourceType ResID );
 FUNC(StatusType,MEM_ReleaseResource) ReleaseResource ( ResourceType ResID );
+#ifdef __WINDOWS__
+FUNC(StatusType,MEM_SetEvent)        SetEvent2        ( TaskType tskid , EventMaskType mask );
+#else
 FUNC(StatusType,MEM_SetEvent)        SetEvent        ( TaskType tskid , EventMaskType mask );
+#endif
 FUNC(StatusType,MEM_ClearEvent)      ClearEvent      ( EventMaskType mask );
 FUNC(StatusType,MEM_GetEvent)        GetEvent        ( TaskType tskid , EventMaskRefType p_mask );
 FUNC(StatusType,MEM_WaitEvent)       WaitEvent       ( EventMaskType mask );

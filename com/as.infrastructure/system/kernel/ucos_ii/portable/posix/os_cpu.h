@@ -48,7 +48,7 @@ typedef INT32U			OS_STK;
 *********************************************************************************************************
 */
 
-#define	OS_CRITICAL_METHOD 3
+#define	OS_CRITICAL_METHOD 3u
 
 /* Block interrupts by blocking the alarm signal */
 #define	OS_ENTER_CRITICAL() { cpu_sr = cpu_sr; sigset_t mask; sigemptyset( &mask ); sigaddset( &mask, SIGALRM ); sigprocmask( SIG_SETMASK, &mask, &new_cpu_sr ); }

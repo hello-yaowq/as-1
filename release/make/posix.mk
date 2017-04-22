@@ -27,7 +27,7 @@ Q=
 endif
 
 # generate pre-preocess C files if set to yes
-export gen-pp?=no
+export gen-cpp?=no
 
 cflags-y += ${CFLAGS}
 ldflags-y += ${LDFLAGS}

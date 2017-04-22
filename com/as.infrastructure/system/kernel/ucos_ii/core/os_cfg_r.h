@@ -22,8 +22,8 @@
 *********************************************************************************************************
 */
 
-#ifndef OS_CFG_H
-#define OS_CFG_H
+#ifndef OS_CFG_R_H
+#define OS_CFG_R_H
 
 
                                        /* ---------------------- MISCELLANEOUS ----------------------- */
@@ -42,7 +42,7 @@
 #define OS_TASK_TMR_PRIO         62u
 
 #define OS_MAX_EVENTS            10u   /* Max. number of event control blocks in your application      */
-#define OS_MAX_FLAGS              5u   /* Max. number of Event Flag Groups    in your application      */
+#define OS_MAX_FLAGS             10u   /* Max. number of Event Flag Groups    in your application      */
 #define OS_MAX_MEM_PART           5u   /* Max. number of memory partitions                             */
 #define OS_MAX_QS                 4u   /* Max. number of queue control blocks in your application      */
 #define OS_MAX_TASKS             20u   /* Max. number of tasks in your application, MUST be >= 2       */
@@ -142,5 +142,5 @@
 #define OS_TMR_CFG_WHEEL_SIZE     8u   /*     Size of timer wheel (#Spokes)                            */
 #define OS_TMR_CFG_TICKS_PER_SEC 10u   /*     Rate at which timer management task runs (Hz)            */
 
-#endif
-	 	   	  		 			 	    		   		 		 	 	 			 	    		   	 			 	  	 		 				 		  			 		 					 	  	  		      		  	   		      		  	 		 	      		   		 		  	 		 	      		  		  		  
+#endif /* OS_CFG_R_H */
+

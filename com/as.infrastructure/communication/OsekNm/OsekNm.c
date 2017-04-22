@@ -195,7 +195,11 @@ static void nmAddtoPresent(NetIdType NetId,NodeIdType NodeId)
 			}
 			else
 			{
+#ifdef __WINDOWS__
+				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+#else
 				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+#endif
 			}
 		}
 	}
@@ -224,7 +228,11 @@ static void nmAddtoLimphome(NetIdType NetId,NodeIdType NodeId)
 			}
 			else
 			{
+#ifdef __WINDOWS__
+				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+#else
 				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+#endif
 			}
 		}
 	}
@@ -308,7 +316,11 @@ static void nmNormalStandard(NetIdType NetId,NMPduType* NMPDU)
 				/* Do Ring Data indication */
 				if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalEvent)
 				{
+#ifdef __WINDOWS__
+					(void)SetEvent2(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+#else
 					(void)SetEvent(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+#endif
 				}
 				else if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalActivation)
 				{

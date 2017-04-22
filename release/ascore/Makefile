@@ -242,6 +242,7 @@ inc-y += -I$(inc-dir)
 ifeq ($(rtos),ucosii)
 inc-y += -I$(src-dir)/ucosii
 VPATH += $(src-dir)/ucosii
+def-y += -DUSE_UCOSII
 endif
 
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
@@ -455,13 +456,15 @@ endif
 	@(cd $(src-dir);rm -f heap_1.c heap_2.c heap_4.c heap_5.c)
 endif
 ifeq ($(rtos),ucosii)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core ucosii)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core ucosii)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core/ucos_ii.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core/os_dbg_r.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii FALSE)
 ifeq ($(host),Linux)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/posix TRUE)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/posix TRUE)
 else
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/win32 FALSE)	
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/win32 FALSE)
 endif
 endif
 ifeq ($(rtos),toppers_osek)
@@ -772,7 +775,11 @@ endif
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=ucosii
 92:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=ucosii debug=true
-
+ifeq ($(host),Linux)
+else
+	gcc -O2 -shared -Wall -o $(exe-dir)/backtrace.dll $(INFRASTRUCTURE)/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__
+	@cp -v $(exe-dir)/backtrace.dll C:/MinGW/bin
+endif
 93:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=toppers_osek debug=false	
 94:

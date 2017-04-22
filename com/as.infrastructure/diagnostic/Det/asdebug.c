@@ -13,12 +13,16 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#if defined(__WINDOWS__)
+#include <windows.h>
+#endif
 #include "asdebug.h"
 #include <stdarg.h>
 #include <ctype.h>
 #if defined(__LINUX__)
 #include <execinfo.h>
 #endif
+
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -157,12 +161,18 @@ void  asPrintCallStack(void)
 }
 #endif
 
+#if defined(__WINDOWS__)
+void asPrintCallStack( void )
+{
+	int *f=NULL;
+	*f = 0;
+}
+#endif
+
 void asAssertErrorHook(void)
 {
 #if defined(__WINDOWS__) || defined(__LINUX__)
-#if defined(__LINUX__)
 	asPrintCallStack();
-#endif
 	exit(-1);
 #else
 	while(1);
@@ -192,6 +202,9 @@ void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor)
 
 void asEnvInit(int argc,char* argv[])
 {
+#if defined(__WINDOWS__)
+	LoadLibraryA("backtrace.dll");
+#endif
 	g_argc = argc;
 	g_argv = argv;
 }

@@ -26,8 +26,11 @@
 #define OsSetRelAlarm(x,a,b)	SetRelAlarm(ALARM_ID_##x,a,b)
 #define OsSetAbsAlarm(x,a,b)	SetAbsAlarm(ALARM_ID_##x,a,b)
 #define OsCancelAlarm(x)		CancelAlarm(ALARM_ID_##x)
-
+#ifdef __WINDOWS__
+#define OsSetEvent(task,event)    SetEvent2(TASK_ID_##task,EVENT_MASK_##task##_##event)
+#else
 #define OsSetEvent(task,event)    SetEvent(TASK_ID_##task,EVENT_MASK_##task##_##event)
+#endif
 #define OsGetEvent(task,event)    GetEvent(TASK_ID_##task,EVENT_MASK_##task##_##event)
 #define OsClearEvent(task,event)  ClearEvent(EVENT_MASK_##task##_##event)
 #define OsWaitEvent(task,event)   WaitEvent(EVENT_MASK_##task##_##event)
