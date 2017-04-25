@@ -23,7 +23,10 @@
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
+static OS_CPU_SR  cpu_sr = 0u;
 static uint32_t isrDisableCounter = 0;
+
+
 #if OS_MAX_FLAGS < TASK_NUM
 #error please set OS_MAX_FLAGS bigger than TASK_NUM
 #endif
@@ -60,7 +63,7 @@ FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID )
 {
 	StatusType ercd = E_OK;
 
-	if(OSTCBCur->OSTCBPrio < (TASK_NUM-1))
+	if(OSTCBCur->OSTCBPrio < TASK_NUM)
 	{
 		*TaskID = TASK_NUM-1-OSTCBCur->OSTCBPrio;
 	}
@@ -252,33 +255,22 @@ FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )
 
 imask_t __Irq_Save(void)
 {
-#if OS_CRITICAL_METHOD == 3u
-	OS_CPU_SR  cpu_sr = 0u;
-#else
 	isrDisableCounter ++ ;
 	if(1u == isrDisableCounter)
 	{
-#endif
-	OS_ENTER_CRITICAL();
-#if OS_CRITICAL_METHOD == 3u
-	return (imask_t)cpu_sr;
-#else
+		OS_ENTER_CRITICAL();
 	}
 	return 0;
-#endif
 }
 
-void Irq_Restore(imask_t cpu_sr)
+void Irq_Restore(imask_t irq_state)
 {
-#if OS_CRITICAL_METHOD == 3u
-#else
+
 	isrDisableCounter --;
 	if(0u == isrDisableCounter)
 	{
-#endif
-	OS_EXIT_CRITICAL();
-#if OS_CRITICAL_METHOD == 3u
-#else
+		OS_EXIT_CRITICAL();
 	}
-#endif
+
+	(void)irq_state;
 }

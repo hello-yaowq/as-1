@@ -19,13 +19,16 @@ VERSION?=morty
 POKY?=agl
 
 # valid: x86, arm, arm64
-export ARCH?=arm
+export ARCH?=x86
 
 ifeq (${ARCH},arm)
 export MACHINE?=vexpress-qemu
 else
 export MACHINE?=qemu${ARCH}
 endif
+
+# linux security module(LSM): smack selinux
+export security?=smack
 
 rootfs?=$(CURDIR)/$(POKY)/poky/build/tmp/deploy/images/${MACHINE}
 
@@ -41,7 +44,7 @@ ifeq (${ARCH},arm64)
 export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-
 endif
 
-ifeq (${ARCH},arm)
+ifeq (${MACHINE},vexpress-qemu)
 # this is as mender layer was used
 TARGET ?= core-image-full-cmdline
 else
@@ -94,20 +97,30 @@ $(CURDIR)/$(POKY)/meta-mender:
 
 $(CURDIR)/$(POKY)/oe-meta-go:
 	@(cd $(POKY); git clone https://github.com/mem/oe-meta-go.git)
+
+$(CURDIR)/$(POKY)/meta-selinux:
+	@(cd $(POKY); git clone -b $(VERSION) https://git.yoctoproject.org/git/meta-selinux)
+
 # ----------------------------- [ aslinux build ] -----------------------------------------------------
 as$(POKY):$(CURDIR)/$(POKY) $(CURDIR)/$(POKY)/meta-intel-iot-security $(CURDIR)/$(POKY)/meta-openembedded \
-		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5 $(CURDIR)/$(POKY)/meta-mender $(CURDIR)/$(POKY)/oe-meta-go
+		$(CURDIR)/$(POKY)/meta-amb $(CURDIR)/$(POKY)/meta-qt5 $(CURDIR)/$(POKY)/meta-mender $(CURDIR)/$(POKY)/oe-meta-go \
+		$(CURDIR)/$(POKY)/meta-selinux
 	@echo " cd $(POKY)/poky; source oe-init-build-env ; make as$(POKY)setup -C $(CURDIR); bitbake ${TARGET} "
 	@echo " runqemu tmp/deploy/images/${MACHINE}/${TARGRT}-${MACHINE}.qemuboot.conf nographic"
 
 as$(POKY)setup:
 	@echo "MACHINE ?= \"${MACHINE}\"" >> $(POKY)/poky/build/conf/local.conf
+ifeq (${security}, smack)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-smack`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+endif
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
-ifeq ($(ARCH),arm)
+ifeq (${security}, selinux)
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-selinux`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+endif
+ifeq (${MACHINE},vexpress-qemu)
 # https://docs.mender.io/1.0/artifacts/building-mender-yocto-image
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/oe-meta-go`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-mender/meta-mender-core`\"" >> $(POKY)/poky/build/conf/bblayers.conf
@@ -119,6 +132,7 @@ ifeq ($(ARCH),arm)
 	@echo "INHERIT += \"rm_work\""  >> $(POKY)/poky/build/conf/local.conf
 endif
 	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+ifeq (${security}, smack)
 # check README of $(POKY)/meta-intel-iot-security/meta-security-smack: enable smack
 	@echo "OVERRIDES .= \":smack\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "DISTRO_FEATURES_append = \" smack\"" >> $(POKY)/poky/build/conf/local.conf
@@ -129,9 +143,19 @@ endif
 	@echo "VIRTUAL-RUNTIME_initscripts = \"\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"coreutils\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"smack-userspace\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"cynara security-manager\"" >> $(POKY)/poky/build/conf/local.conf
+endif
+ifeq (${security}, selinux)
+	@echo "DISTRO = \"poky-selinux\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_remove = \" sysvinit\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_append = \" systemd\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "VIRTUAL-RUNTIME_init_manager = \"systemd\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "DISTRO_FEATURES_BACKFILL_CONSIDERED = \"\"" >> $(POKY)/poky/build/conf/local.conf
+
+endif
 # install others
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"asrelease python cynara cryptsetup qtbase security-manager\"" >> $(POKY)/poky/build/conf/local.conf
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils ltp\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"python cryptsetup\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
