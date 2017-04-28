@@ -48,7 +48,19 @@ static void uCOS_TaskProcess(void *p_arg)
 FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId)
 {
 	StatusType ercd = E_OK;
-
+	if (TaskId < TASK_NUM)
+	{
+#ifdef __WINDOWS__
+		ercd = SetEvent2(TaskId,OS_EVENT_TASK_ACTIVATION);
+#else
+		ercd = SetEvent(TaskId,OS_EVENT_TASK_ACTIVATION);
+#endif
+	}
+	else
+	{
+		ercd = E_OS_ID;
+		asAssert(0);
+	}
 	return ercd;
 }
 
@@ -99,7 +111,12 @@ FUNC(StatusType,MEM_SetEvent)        SetEvent        ( TaskType tskid , EventMas
 
 	if (tskid < TASK_NUM)
 	{
-
+		OSFlagPost(taskEvent[tskid],(OS_FLAGS)mask,OS_FLAG_SET,&ercd);
+		if(ercd != OS_ERR_NONE)
+		{
+			ercd = E_OS_ACCESS;
+			asAssert(0);
+		}
 	}
 	else
 	{
@@ -120,7 +137,12 @@ StatusType ClearEvent ( EventMaskType mask )
 
 	if (tskid < TASK_NUM)
 	{
-
+		OSFlagPost(taskEvent[tskid],(OS_FLAGS)mask,OS_FLAG_CLR,&ercd);
+		if(ercd != OS_ERR_NONE)
+		{
+			ercd = E_OS_ACCESS;
+			asAssert(0);
+		}
 	}
 	else
 	{
@@ -137,7 +159,12 @@ StatusType GetEvent ( TaskType tskid , EventMaskRefType p_mask )
 
 	if (tskid < TASK_NUM)
 	{
-
+		*p_mask = OSFlagQuery(taskEvent[tskid],&ercd);
+		if(ercd != OS_ERR_NONE)
+		{
+			ercd = E_OS_ACCESS;
+			asAssert(0);
+		}
 	}
 	else
 	{
@@ -161,6 +188,7 @@ StatusType WaitEvent ( EventMaskType mask )
 		if(ercd != OS_ERR_NONE)
 		{
 			ercd = E_OS_ACCESS;
+			asAssert(0);
 		}
 	}
 	else
@@ -241,7 +269,14 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 		asAssert(OS_ERR_NONE == ercd);
 		taskEvent[i] = OSFlagCreate(0,&ercd);
 		asAssert(OS_ERR_NONE == ercd);
+
+		if(td->app_mode&Mode)
+		{
+			ActivateTask(i);
+		}
 	}
+
+	StartupHook();
 
 	OSStart();
 }

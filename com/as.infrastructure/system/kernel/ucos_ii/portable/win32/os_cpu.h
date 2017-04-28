@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <windows.h>
 
+typedef unsigned int OS_CPU_SR;
 /*
 *********************************************************************************************************
 *                                              Defines
