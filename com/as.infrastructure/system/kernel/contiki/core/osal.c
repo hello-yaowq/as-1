@@ -49,6 +49,11 @@ static void AlarmProcess(void* param)
 void OsTick ( void )
 {
 	OsTickCounter ++;
+
+	if(0 == OsTickCounter)
+	{
+		OsTickCounter = 1;
+	}
 }
 
 TickType GetOsTick(void)

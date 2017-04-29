@@ -80,6 +80,9 @@ endif
 ifeq ($(rtos),smallos)
 tcpip=none
 endif
+ifeq ($(rtos),ucosii)
+tcpip=none
+endif
 
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
@@ -694,7 +697,7 @@ dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
 all:exe
 ifeq ($(board),posix)
 ifeq ($(host),Linux)
-ifeq ($(rtos),smallos)
+ifeq ($(tcpip),none)
 else
 	gcc $(src-dir)/socket_ethernet_driver.c -lpthread -DSOCKET_ETHERNET_DRIVER -o $(exe-dir)/eth_driver.exe
 endif

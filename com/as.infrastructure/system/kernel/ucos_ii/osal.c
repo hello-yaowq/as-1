@@ -86,9 +86,9 @@ FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID )
 {
 	StatusType ercd = E_OK;
 
-	if(OSTCBCur->OSTCBPrio < TASK_NUM)
+	if((OSTCBCur->OSTCBPrio>0) && (OSTCBCur->OSTCBPrio <= TASK_NUM))
 	{
-		*TaskID = TASK_NUM-1-OSTCBCur->OSTCBPrio;
+		*TaskID = OSTCBCur->OSTCBPrio-1;
 	}
 	else
 	{
@@ -343,7 +343,7 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	for(i=0;i<TASK_NUM;i++)
 	{
 		td = &TaskList[i];
-		ercd = OSTaskCreate(uCOS_TaskProcess, (void *)i, (OS_STK*)&td->pstk[td->stk_size-1], TASK_NUM-1-td->priority);
+		ercd = OSTaskCreate(uCOS_TaskProcess, (void *)i, (OS_STK*)&td->pstk[td->stk_size-1], i+1);
 		asAssert(OS_ERR_NONE == ercd);
 		taskEvent[i] = OSFlagCreate(0,&ercd);
 		asAssert(OS_ERR_NONE == ercd);

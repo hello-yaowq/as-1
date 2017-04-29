@@ -18,7 +18,7 @@
 #else
 #define OS_CPU_EXT extern
 #endif
-
+#include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
 

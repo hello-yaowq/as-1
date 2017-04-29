@@ -36,10 +36,10 @@ def uCOSII_TaskList(os_list):
         else:
             prio = int(GAGet(task,'Priority'))
             flag = False
-            for it in ret_list:
+            for i,it in enumerate(ret_list):
                 iprio = int(GAGet(it,'Priority'))
-                if(prio < iprio):
-                    ret_list.insert(0, task)
+                if(prio > iprio):
+                    ret_list.insert(i, task)
                     flag = True
                     break
             if(flag == False):
