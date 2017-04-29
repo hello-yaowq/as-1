@@ -32,6 +32,11 @@ static uint32_t isrDisableCounter = 0;
 #endif
 static OS_FLAG_GRP* taskEvent[TASK_NUM];
 
+#if OS_TMR_CFG_MAX < ALARM_NUM
+#error please set OS_TMR_CFG_MAX bigger than ALARM_NUM
+#endif
+static OS_TMR* osTmr[ALARM_NUM];
+
 static void uCOS_TaskProcess(void *p_arg)
 {
 	ASLOG(OS,"Starting Task<%d>\n",(uint32)p_arg);
@@ -42,6 +47,12 @@ static void uCOS_TaskProcess(void *p_arg)
 		TaskList[(uint32)p_arg].main();
 	}
 
+}
+
+static void uCOS_AlarmProcess(void *ptmr, void *parg)
+{
+	ASLOG(OS,"Alarm%d is running\n",(uint32)parg);
+	AlarmList[(uint32)parg].main();
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
@@ -226,19 +237,77 @@ FUNC(StatusType,MEM_GetAlarm) GetAlarm(AlarmType AlarmId, TickRefType Tick)
 
 FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle )
 {
-	return E_OK;
+	StatusType ercd = E_OK;
+	ASLOG(OS,"SetRelAlarm(%d,%d,%d)\n",AlarmId,Increment,Cycle);
+	if(AlarmId < ALARM_NUM)
+	{
+		if(NULL == osTmr[AlarmId])
+		{
+			osTmr[AlarmId] = OSTmrCreate(Increment,Cycle,(0==Cycle)?OS_TMR_OPT_ONE_SHOT:OS_TMR_OPT_PERIODIC, \
+										 uCOS_AlarmProcess,(void*)AlarmId,NULL,&ercd);
+			if(OS_ERR_NONE == ercd)
+			{
+				OSTmrStart(osTmr[AlarmId],&ercd);
+				if(OS_ERR_NONE != ercd)
+				{
+					OSTmrDel(osTmr[AlarmId],&ercd);
+					osTmr[AlarmId] = NULL;
+				}
+			}
+
+			if(OS_ERR_NONE != ercd)
+			{
+				ercd = E_OS_ACCESS;
+				asAssert(0);
+			}
+		}
+		else
+		{
+			ercd = E_OS_STATE;
+		}
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;   
 }
 
 FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle )
 {
-
-	return E_OK;
+	return SetRelAlarm(AlarmId,Start,Cycle);
 }
 
 FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 {
-
-	return E_OK;
+	StatusType ercd = E_OK;
+	if(AlarmId < ALARM_NUM)
+	{
+		if(NULL != osTmr[AlarmId])
+		{
+			OSTmrStop(osTmr[AlarmId],OS_TMR_OPT_NONE,NULL,&ercd);
+			if(OS_ERR_NONE == ercd)
+			{
+				OSTmrDel(osTmr[AlarmId],&ercd);
+				osTmr[AlarmId] = NULL;
+			}
+			
+			if(OS_ERR_NONE != ercd)
+			{
+				ercd = E_OS_ACCESS;
+				asAssert(0);
+			}
+		}
+		else
+		{
+			ercd = E_OS_STATE;
+		}
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;
 }
 
 FUNC(TickType,MEM_GetOsTick) GetOsTick( void )
@@ -253,6 +322,15 @@ FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
 	else {
 		return(prevTick - OsTickCounter + (TICK_MAX + 1));
 	}
+}
+
+FUNC(StatusType,MEM_Schedule)       Schedule ( void )
+{
+	StatusType ercd = E_OK;
+	
+	OSTimeDly(1);
+	
+	return ercd;
 }
 FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 {

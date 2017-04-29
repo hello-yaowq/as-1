@@ -135,7 +135,7 @@ TASK(TaskIdle)
 #endif
 		KSM_EXECUTE();
 
-#ifdef __FREEOSEK__
+#if defined(__FREEOSEK__) || defined(__UCOSII_OS__)
 		(void)Schedule();
 #endif
 

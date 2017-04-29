@@ -904,6 +904,9 @@ void  OSTimeTick (void)
 #if OS_TIME_GET_SET_EN > 0u
     OS_ENTER_CRITICAL();                                   /* Update the 32-bit tick counter               */
     OSTime++;
+	#ifdef __AS_BY_PARAI__
+	OsTick();
+	#endif
     OS_EXIT_CRITICAL();
 #endif
     if (OSRunning == OS_TRUE) {

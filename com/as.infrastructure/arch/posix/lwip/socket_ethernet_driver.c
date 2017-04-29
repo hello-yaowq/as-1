@@ -27,6 +27,8 @@
 #include <asm-generic/ioctls.h>
 #include <assert.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <ctype.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define ETH_BUS_NODE_MAX 32
 /* ============================ [ TYPES     ] ====================================================== */

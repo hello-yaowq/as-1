@@ -231,7 +231,7 @@ void EcuM_StartupTwo(void)
 	 *   are run in a higher priority task that the task that executes this code.
 	 */
 	do {
-        #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
+        #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__) || defined(__UCOSII_OS__)
         Schedule();
         extern void SchM_RunMemory(void);
         SchM_RunMemory();

@@ -362,7 +362,7 @@ static void runMemory( void ) {
 	SCHM_MAINFUNCTION_SPI();
 }
 
-#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
+#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__) || defined(__UCOSII_OS__)
 void SchM_RunMemory(void)
 {
 	runMemory();
