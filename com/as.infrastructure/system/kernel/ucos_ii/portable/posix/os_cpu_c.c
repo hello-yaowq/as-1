@@ -198,6 +198,9 @@ void OSTimeTickHook (void)
 {
 #if (OS_CPU_HOOKS_EN > 0) && (OS_TIME_TICK_HOOK_EN > 0)
 #endif
+#if OS_TMR_EN > 0u
+	OSTmrSignal();
+#endif
 }
 
 /*

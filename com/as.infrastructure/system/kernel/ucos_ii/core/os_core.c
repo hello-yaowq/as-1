@@ -905,6 +905,7 @@ void  OSTimeTick (void)
     OS_ENTER_CRITICAL();                                   /* Update the 32-bit tick counter               */
     OSTime++;
 	#ifdef __AS_BY_PARAI__
+	extern void OsTick(void);
 	OsTick();
 	#endif
     OS_EXIT_CRITICAL();

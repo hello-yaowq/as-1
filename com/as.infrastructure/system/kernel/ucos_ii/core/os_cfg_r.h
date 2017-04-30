@@ -50,8 +50,11 @@
 #define OS_SCHED_LOCK_EN          1u   /* Include code for OSSchedLock() and OSSchedUnlock()           */
 
 #define OS_TICK_STEP_EN           1u   /* Enable tick stepping feature for uC/OS-View                  */
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#define OS_TICKS_PER_SEC       1000u   /* Set the number of ticks in one second                        */
+#else
 #define OS_TICKS_PER_SEC        100u   /* Set the number of ticks in one second                        */
-
+#endif
 
                                        /* --------------------- TASK STACK SIZE ---------------------- */
 #define OS_TASK_TMR_STK_SIZE    128u   /* Timer      task stack size (# of OS_STK wide entries)        */

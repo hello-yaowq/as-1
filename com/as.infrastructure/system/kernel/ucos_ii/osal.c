@@ -39,7 +39,6 @@ static OS_TMR* osTmr[ALARM_NUM];
 
 static void uCOS_TaskProcess(void *p_arg)
 {
-	ASLOG(OS,"Starting Task<%d>\n",(uint32)p_arg);
 	for( ;; )
 	{
 		WaitEvent(OS_EVENT_TASK_ACTIVATION);
@@ -51,7 +50,6 @@ static void uCOS_TaskProcess(void *p_arg)
 
 static void uCOS_AlarmProcess(void *ptmr, void *parg)
 {
-	ASLOG(OS,"Alarm%d is running\n",(uint32)parg);
 	AlarmList[(uint32)parg].main();
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -78,14 +76,20 @@ FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId)
 FUNC(StatusType,MEM_ACTIVATE_TASK) 	 TerminateTask   ( void )
 {
 	StatusType ercd = E_OK;
-
+	/*   This is just empty, let the Task return form then main entry to
+	 * the uCOS_TaskProcess handle, and then the Task wait its next activation
+	 * by set the activation event<OS_EVENT_TASK_ACTIVATION> */
 	return ercd;
 }
 
 FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID )
 {
+#if      OS_CRITICAL_METHOD == 3
+	OS_CPU_SR cpu_sr = 0u;
+#endif
 	StatusType ercd = E_OK;
 
+	OS_ENTER_CRITICAL();
 	if((OSTCBCur->OSTCBPrio>0) && (OSTCBCur->OSTCBPrio <= TASK_NUM))
 	{
 		*TaskID = OSTCBCur->OSTCBPrio-1;
@@ -95,6 +99,7 @@ FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID )
 		ercd = E_OS_ACCESS;
 		asAssert(0);
 	}
+	OS_EXIT_CRITICAL();
 
 	return ercd;
 }
@@ -191,7 +196,7 @@ StatusType WaitEvent ( EventMaskType mask )
 	TaskType tskid;
 
 	GetTaskID(&tskid);
-	ASLOG(OS,"WaitEvent Task<%d> Mask<%X>\n",tskid,mask);
+
 	if (tskid < TASK_NUM)
 	{
 		OSFlagPend(taskEvent[tskid],(OS_FLAGS)mask,OS_FLAG_WAIT_SET_ANY,0,&ercd);
@@ -238,7 +243,7 @@ FUNC(StatusType,MEM_GetAlarm) GetAlarm(AlarmType AlarmId, TickRefType Tick)
 FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle )
 {
 	StatusType ercd = E_OK;
-	ASLOG(OS,"SetRelAlarm(%d,%d,%d)\n",AlarmId,Increment,Cycle);
+
 	if(AlarmId < ALARM_NUM)
 	{
 		if(NULL == osTmr[AlarmId])
@@ -314,6 +319,7 @@ FUNC(TickType,MEM_GetOsTick) GetOsTick( void )
 {
 	return OsTickCounter;
 }
+
 FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
 {
     if (OsTickCounter >= prevTick) {
@@ -327,11 +333,12 @@ FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
 FUNC(StatusType,MEM_Schedule)       Schedule ( void )
 {
 	StatusType ercd = E_OK;
-	
+
 	OSTimeDly(1);
 	
 	return ercd;
 }
+
 FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 {
 	uint32 i;

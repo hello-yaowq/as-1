@@ -357,6 +357,9 @@ void OSTaskStatHook (void)
 
 void OSTimeTickHook (void)
 {
+#if OS_TMR_EN > 0u
+	OSTmrSignal();
+#endif
 }
 
 /*
