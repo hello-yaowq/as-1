@@ -189,7 +189,11 @@ static void nmAddtoPresent(NetIdType NetId,NodeIdType NodeId)
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.SMode == SignalActivation)
 			{
 				#ifdef __SMALL_OS__
+				#ifdef __WINDOWS__
+				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+				#else
 				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
+				#endif
 				#endif
 				(void)ActivateTask(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId);
 			}
@@ -222,7 +226,11 @@ static void nmAddtoLimphome(NetIdType NetId,NodeIdType NodeId)
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.SMode == SignalActivation)
 			{
 				#ifdef __SMALL_OS__
+				#ifdef __WINDOWS__
+				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+				#else
 				(void)SetEvent(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
+				#endif
 				#endif
 				(void)ActivateTask(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId);
 			}
@@ -325,7 +333,11 @@ static void nmNormalStandard(NetIdType NetId,NMPduType* NMPDU)
 				else if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalActivation)
 				{
 					#ifdef __SMALL_OS__
+					#ifdef __WINDOWS__
+					(void)SetEvent2(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+					#else
 					(void)SetEvent(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
+					#endif
 					#endif
 					(void)ActivateTask(NM_ControlBlock[NetId].nmRingDataInd.TaskId);
 				}

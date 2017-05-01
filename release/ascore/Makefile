@@ -775,9 +775,9 @@ endif
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=ucosii
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=ucosii debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
 ifeq ($(host),Linux)
 else
 	gcc -O2 -shared -Wall -o $(exe-dir)/backtrace.dll $(INFRASTRUCTURE)/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__

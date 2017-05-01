@@ -22,7 +22,11 @@ STATIC EventMaskType EventBit[TASK_NUM];
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifdef __WINDOWS__
+StatusType SetEvent2 ( TaskType tskid , EventMaskType mask )
+#else
 StatusType SetEvent ( TaskType tskid , EventMaskType mask )
+#endif
 {
 	StatusType ercd = E_OK;
 
