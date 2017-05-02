@@ -227,16 +227,20 @@ rtos?=atk2-sc4
 ifeq ($(compiler),arm920t-gcc)
 link-script = $(src-dir)/linker-common.lds
 else
-$(error compiler arm gcc not supported for board lm3s6965evb)
+$(error compiler arm gcc not supported for board s3c2440)
 endif
 def-y += -DCHIP_S3C2440A
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
-		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM
+		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 def-y += -DUSE_DET
 def-y += -DTEXT_BASE=0x30000000
-endif	# lm3s6965evb end
+ifeq ($(sgapp),none)
+else
+def-y += -DUSE_GUI
+endif
+endif	# s3c2440 end
 
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
@@ -263,6 +267,7 @@ ifeq ($(host), Linux)
 #COMPILER_PREFIX = arm-linux-gnueabi-
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = /usr
+ldflags-y += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-eabi/4.8.2
 else
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
@@ -284,6 +289,7 @@ ifeq ($(host), Linux)
 #COMPILER_PREFIX = arm-linux-gnueabi-
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = /usr
+ldflags-y += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-eabi/4.8.2
 else
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
@@ -658,6 +664,13 @@ dep-at91sam3s:
 	@(echo "  >> prepare link for AT91SAM3S done")
 
 dep-s3c2440a:
+ifeq ($(sgapp),none)
+else
+	@(make SG)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/SgRes TRUE)
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/SgDesign/$(sgapp)/src TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/gui FALSE)
+endif
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)

@@ -16,6 +16,8 @@
 	h        = '480'
 	layer    = '0'
 	refresh  = 'NULL'
+	cache    = 'NULL'
+	weight   = '500'
 	>
 	<SgBMP 
 		name   = 'WatchBackground' 
@@ -34,6 +36,8 @@
 	h        = '14'	
 	layer    = '1'
 	refresh  = 'RefreshPointerHour'	
+	cache    = 'NULL'
+	weight   = '20'
 	>
 	<SgBMP 
 		name='PointerHour' 
@@ -52,6 +56,8 @@
 	h        = '12'		
 	layer    = '2'
 	refresh  = 'RefreshPointerMinute'		
+	cache    = 'NULL'
+	weight   = '20'
 	>
 	<SgBMP 
 		name='sgwPointerMinute' 
@@ -70,6 +76,8 @@
 	h        = '15'			
 	layer    = '3'
 	refresh  = 'RefresPointerSecond'
+	cache    = 'NULL'
+	weight   = '20'
 	>
 	<SgBMP 
 		name='PointerSecond' 
@@ -88,6 +96,8 @@
 	h        = '16'			
 	layer    = '3'
 	refresh  = 'RefreshDate'
+	cache    = 'NULL'
+	weight   = '20'
 	>
 	<SgTXT refer='Chinese16x16' />
 </SgWidget>

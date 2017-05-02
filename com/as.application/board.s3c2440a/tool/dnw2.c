@@ -7,11 +7,11 @@
 
 /* http://blog.chinaunix.net/uid-23086242-id-2552828.html
  * sudo apt-get install libusb-dev
- * gcc dnw2.c -o dnw2 -lusb
+ * gcc dnw2.c -o dnw2 -lusb -D__DNW_USB_TOOL__
  * this is very good
  */
 
-
+#ifdef __DNW_USB_TOOL__
 
 #include <stdio.h>
 #include <usb.h>
@@ -154,3 +154,5 @@ int main(int argc, char *argv[])
         if(0==remain) printf("Done!\n");
         return 0;
 }
+
+#endif /* __DNW_USB_TOOL__ */
