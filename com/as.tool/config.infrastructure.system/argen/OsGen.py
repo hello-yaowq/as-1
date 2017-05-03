@@ -23,6 +23,7 @@ from .gen_freertos import *
 from .gen_toppers_atk2_sc4 import *
 from .gen_contiki import *
 from .gen_ucosii import *
+from .gen_trampoline import *
 import glob
 
 __all__ = ['OsGen']
@@ -34,7 +35,8 @@ __osgen__ = {'freeosek':gen_freeosek,
              'atk2-sc4':gen_toppers_atk2_sc4,
              'contiki':gen_contiki,
              'posix':gen_toppers_osek,
-             'ucosii':gen_ucosii
+             'ucosii':gen_ucosii,
+             'trampoline':gen_trampolone
             }
 
 def getOsRef(os_list):

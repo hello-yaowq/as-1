@@ -83,6 +83,9 @@ endif
 ifeq ($(rtos),ucosii)
 tcpip=none
 endif
+ifeq ($(rtos),trampoline)
+tcpip=none
+endif
 
 ifeq ($(host),Linux)
 def-y += -D__LINUX__
@@ -484,8 +487,13 @@ ifeq ($(host),Linux)
 else	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/mingw TRUE)
 endif	
-endif 
-
+endif
+ifeq ($(rtos),trampoline)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix TRUE)
+endif
 ifeq ($(gui),openVG)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg/win32 FALSE)
