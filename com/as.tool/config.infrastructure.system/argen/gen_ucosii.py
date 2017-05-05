@@ -109,10 +109,10 @@ def genForuCOSII_C(gendir,os_list):
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     task_list = uCOSII_TaskList(os_list)
     for id,task in enumerate(task_list):
-        fp.write('static uint8 TaskStk%s[%s];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('static uint8 TaskStk%s[%s*8];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
     fp.write('CONST(task_declare_t,AUTOMATIC)  TaskList[TASK_NUM] = \n{\n')
     for id,task in enumerate(task_list):
-        fp.write('\tDeclareTask(%-32s, %-5s, %s, %s),\n'%(GAGet(task,'Name'),GAGet(task,'Autostart').upper(),'OSDEFAULTAPPMODE',GAGet(task,'StackSize')))
+        fp.write('\tDeclareTask(%-32s, %-5s, %s, %s*8),\n'%(GAGet(task,'Name'),GAGet(task,'Autostart').upper(),'OSDEFAULTAPPMODE',GAGet(task,'StackSize')))
     fp.write('};\n\n')
     
     alarm_list = ScanFrom(os_list,'Alarm')

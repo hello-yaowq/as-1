@@ -6,7 +6,7 @@
 ; Put pointer to task name into the return value (%o0).
 ; -------------------------------------------------------------------
 */
-#include "includes.h"
+#include "ucos_ii.h"
 
 #define  ARM_SYS_MODE   (0x0000001FL)
 
@@ -100,10 +100,12 @@ void OSTaskReturnHook(OS_TCB *ptcb)
 ;	A stub for now. Fill in if needed.
 ; -------------------------------------------------------------------
 */
-void
-OSTimeTickHook (
-void)
+void OSTimeTickHook (void)
 {
+#if OS_TMR_EN > 0u
+	OSTmrSignal();
+#endif
+
 }
 
 #endif //OS_CPU_HOOKS_EN

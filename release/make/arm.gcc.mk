@@ -39,34 +39,34 @@ dir-y += $(src-dir)
 
 VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
-	
+
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
 obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))		
 ofj-y += $(patsubst %.of,$(src-dir)/%.h,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.of)))))
 #common rules	
-	
+
 $(obj-dir)/%.o:%.S
 	@echo
 	@echo "  >> AS $(notdir $<)"	
 	$(Q) $(AS) $(asflags-y) $(def-y) $(inc-y) -o $@ -c $<
-	
+
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<	
 	$(Q) $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
-	
+
 ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
 else
 -include $(obj-dir)/as.dep
 endif
-	
+
 .PHONY:all clean
 
 $(obj-dir):
 	@mkdir -p $(obj-dir)
-	
+
 $(exe-dir):
 	@mkdir -p $(exe-dir)	
 
@@ -76,7 +76,7 @@ exe:$(obj-dir) $(exe-dir) $(ofj-y) $(obj-y)
 	@echo "  >> LD $(target-y).exe"
 	$(Q) $(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
-	
+
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
 	$(Q) $(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
@@ -90,7 +90,7 @@ lib:$(obj-dir) $(exe-dir) $(obj-y)
 clean-obj:
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*
-	
+
 clean-obj-src:clean-obj
 	@rm -fv $(src-dir)/*
 

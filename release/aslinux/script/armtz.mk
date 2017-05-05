@@ -58,7 +58,7 @@ optee_client:
 asoptee_client:optee_client
 	@(cd optee_client; make)
 
-all-legency: asoptee_client asoptee_os asqemutz asqemutztest 
+all-legency: asqemutz asqemutztest 
 	@(echo "  >> build done")
 
 # after reading https://github.com/OP-TEE/build, so drop the above action, using repo.

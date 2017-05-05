@@ -1,6 +1,6 @@
 #include "regs.h"
 #include "interrupts.h"
-#include "includes.h"
+#include "ucos_ii.h"
 
 extern INTERRUPT_VECTOR g_VectorTable[BCM2835_INTC_TOTAL_IRQ];
 
