@@ -196,9 +196,9 @@ typedef struct {
 	uint8 ar_patch_version;    /**< Autosar spec. numbers */
 } Std_VersionInfoType;
 
-
+#ifndef __use_os_trampoline__
 typedef uint8 CoreIdType;
-
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

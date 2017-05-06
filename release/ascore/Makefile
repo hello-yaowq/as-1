@@ -91,10 +91,13 @@ ifeq ($(host),Linux)
 def-y += -D__LINUX__
 # my computer is 64 bit 
 def-y += -D__X86_64__
+ifeq ($(rtos),trampoline)
+inc-y += -I$(src-dir)/viper
+endif
 else
 def-y += -D__WINDOWS__
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
-endif	
+endif
 # slect GUI openVG/GTK 
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
@@ -267,7 +270,7 @@ endif # end of bcm2835
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
 inc-y += -I$(inc-dir)
-
+def-y += -D__use_os_$(rtos)__
 ifeq ($(rtos),ucosii)
 inc-y += -I$(src-dir)/ucosii
 VPATH += $(src-dir)/ucosii
@@ -515,7 +518,9 @@ ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix/viper)
+	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
 endif
 ifeq ($(gui),openVG)	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/openvg/vg FALSE)

@@ -36,7 +36,7 @@ __osgen__ = {'freeosek':gen_freeosek,
              'contiki':gen_contiki,
              'posix':gen_toppers_osek,
              'ucosii':gen_ucosii,
-             'trampoline':gen_trampolone
+             'trampoline':gen_trampoline
             }
 
 def getOsRef(os_list):
