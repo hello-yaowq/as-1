@@ -94,11 +94,9 @@ void tpl_viper_init(void)
     }
     else
     {        
-#ifdef TRAMPOLINE_BASE_PATH
-        viper_path = TRAMPOLINE_BASE_PATH"/viper";
-#else
-        viper_path = "../viper";
-#endif
+
+        viper_path = ".";
+
         strcpy(viper_exe, viper_path);
         strcat(viper_exe, "/viper");
 

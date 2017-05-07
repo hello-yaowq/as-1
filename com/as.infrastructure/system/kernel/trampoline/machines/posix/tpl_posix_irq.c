@@ -245,3 +245,25 @@ void tpl_posix_siginit(void)
 #endif /*(defined WITH_AUTOSAR && !defined NO_SCHEDTABLE) || ... */
 }
 
+static uint32_t isrDisableCounter = 0;
+imask_t __Irq_Save(void)
+{
+	isrDisableCounter ++ ;
+	if(1u == isrDisableCounter)
+	{
+		tpl_disable_interrupts();
+	}
+	return 0;
+}
+
+void Irq_Restore(imask_t irq_state)
+{
+
+	isrDisableCounter --;
+	if(0u == isrDisableCounter)
+	{
+		tpl_enable_interrupts();
+	}
+
+	(void)irq_state;
+}

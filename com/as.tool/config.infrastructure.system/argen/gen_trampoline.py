@@ -74,7 +74,7 @@ typedef uint8 tpl_activate_counter;
  * defined in the application, it can be uint8 (8 events), uint16 (16 events) or
  * uint32 (32 events).
  */
-typedef uint8 tpl_event_mask;
+typedef uint32 tpl_event_mask;
 
 /**
  * tpl_alarm_type is used for alarm identifiers.
@@ -146,7 +146,7 @@ def Trampoline_TaskList(os_list):
             flag = False
             for i,it in enumerate(ret_list):
                 iprio = int(GAGet(it,'Priority'))
-                if(prio < iprio):
+                if(prio > iprio):
                     ret_list.insert(i, task)
                     flag = True
                     break
@@ -179,24 +179,25 @@ def genForTrampolineMisc_H(gendir,os_list):
 #define WITH_USEPARAMETERACCESS          NO
 #define WITH_USERESSCHEDULER             YES
 #define WITH_SYSTEM_CALL                 NO
-#define WITH_MEMORY_PROTECTION           YES
+#define WITH_MEMORY_PROTECTION           NO
 #define WITH_MEMMAP                      YES
 #define WITH_COMPILER_SETTINGS           NO
-#define WITH_AUTOSAR                     YES
-#define WITH_PROTECTION_HOOK             YES
-#define WITH_STACK_MONITORING            YES
-#define WITH_AUTOSAR_TIMING_PROTECTION   YES
+#define WITH_AUTOSAR                     NO
+#define WITH_PROTECTION_HOOK             NO
+#define WITH_STACK_MONITORING            NO
+#define WITH_AUTOSAR_TIMING_PROTECTION   NO
 #define AUTOSAR_SC                       0
-#define WITH_OSAPPLICATION               YES
-#define WITH_OSAPPLICATION_STARTUP_HOOK  YES
-#define WITH_OSAPPLICATION_SHUTDOWN_HOOK YES
-#define WITH_TRACE                       YES
+#define WITH_OSAPPLICATION               NO
+#define WITH_OSAPPLICATION_STARTUP_HOOK  NO
+#define WITH_OSAPPLICATION_SHUTDOWN_HOOK NO
+#define WITH_TRACE                       NO
 #define WITH_IT_TABLE                    NO
 #define WITH_COM                         YES
 #define WITH_IOC                         YES
 #define WITH_MODULES_INIT                NO
 #define WITH_INIT_BOARD                  NO
 #define WITH_ISR2_PRIORITY_MASKING       NO
+#define WITH_SEMAPHORE                   NO
 
 /* Defines related to the key part of a ready list entry.
  * The key part has in the most significant bits the priority of the job and
@@ -213,6 +214,7 @@ def genForTrampolineMisc_H(gendir,os_list):
     task_list = Trampoline_TaskList(os_list)
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
+        if(0==id): fp.write('#define IDLE_TASK_ID TASK_ID_%s\n'%(GAGet(task,'Name')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
 
     for id,task in enumerate(task_list):
@@ -233,8 +235,8 @@ def genForTrampolineMisc_H(gendir,os_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
 
-    fp.write('#define TASK_COUNT TASK_NUM\n')
-    fp.write('#define EXTENDED_TASK_COUNT TASK_NUM\n')
+    fp.write('#define TASK_COUNT TASK_NUM-1\n')
+    fp.write('#define EXTENDED_TASK_COUNT TASK_NUM-1\n')
     fp.write('#define ALARM_COUNT ALARM_NUM\n')
     fp.write('#define RESOURCE_COUNT RES_NUMBER\n')
 
@@ -245,7 +247,6 @@ def genForTrampolineMisc_H(gendir,os_list):
     fp.write('#define APP_COUNT 1\n')
     fp.write('#define NUMBER_OF_OBJECTS 0\n')
     fp.write('#define RES_SCHEDULER_PRIORITY 3\n')
-    fp.write('#define IDLE_TASK_ID    TASK_COUNT + ISR_COUNT\n')
 
     fp.write('\n#define TRACE_FORMAT() tpl_trace_format_txt();\n')
     fp.write('#define TRACE_FILE "trampoline_os_trace.txt"\n')
@@ -273,9 +274,19 @@ def genForTrampolineMisc_H(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    fp.write('''extern CONSTP2CONST(char, AUTOMATIC, OS_APPL_DATA) proc_name_table[TASK_COUNT + ISR_COUNT + 1];
+extern CONST(tpl_tick, OS_CONST) OSTICKSPERBASE;
+extern CONST(tpl_tick, OS_CONST) OSMAXALLOWEDVALUE;
+extern CONST(tpl_tick, OS_CONST) OSMINCYCLE;\n\n''')
+    
+
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    for id,task in enumerate(task_list):
+        fp.write('extern void %s_function(void);\n'%(GAGet(task,'Name')))
+    for alarm in alarm_list:
+        fp.write('extern void %s_callback(void);\n'%(GAGet(alarm,'Name')))
     fp.write('#endif /* TPL_APP_CONFIG_H */\n')
     fp.close()
 
@@ -302,6 +313,21 @@ def genForTrampoline_C(gendir,os_list):
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Os.h"\n')
+    fp.write('''#include "tpl_app_config.h"
+
+#include "tpl_os_internal_types.h"
+#include "tpl_machine.h"
+#include "tpl_os_interrupt.h"
+#include "tpl_os_interrupt_kernel.h"
+#include "tpl_os_alarm_kernel.h"
+#include "tpl_os_alarm.h"
+#include "tpl_os_resource_kernel.h"
+#include "tpl_os_resource.h"
+#include "tpl_os_event_kernel.h"
+#include "tpl_os_event.h"
+#include "tpl_os_action.h"
+#include "tpl_os_kernel.h"
+#include "tpl_os_definitions.h"\n\n''')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -309,10 +335,197 @@ def genForTrampoline_C(gendir,os_list):
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     task_list = Trampoline_TaskList(os_list)
+    fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_task_app_mode[TASK_COUNT] = {\n')
+    for task in task_list:
+        fp.write('\tOSDEFAULTAPPMODE, /* %s */\n'%(GAGet(task,'Name')))
+    fp.write('};\n\n')
     
     alarm_list = ScanFrom(os_list,'Alarm')
+    fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_alarm_app_mode[ALARM_COUNT] = {\n')
+    for alarm in alarm_list:
+        fp.write('\tOSDEFAULTAPPMODE, /* %s */\n'%(GAGet(alarm,'Name')))
+    fp.write('};\n\n')
+    # resource generation not supported now, as ascore doesn't use any
+    fp.write('''
+/**
+ * The scheduler resource descriptor.
+ * One scheduler resource is defined per core.
+ *
+ * @see #RES_SCHEDULER
+ */
 
+VAR(tpl_resource, OS_VAR) res_sched_rez_desc = {
+  RES_SCHEDULER_PRIORITY,   /*  ceiling priority                            */
+  0,                        /*  owner_prev_priority                         */
+  INVALID_PROC_ID,          /*  owner                                       */
+#if WITH_OSAPPLICATION == YES
+  INVALID_OSAPPLICATION_ID, /*  OS Application id                           */
+#endif
+  NULL                      /*  next_res                                    */
+};
+CONSTP2VAR(tpl_resource, AUTOMATIC, OS_APPL_DATA)
+tpl_resource_table[RESOURCE_COUNT] = {
+  &res_sched_rez_desc
+};\n\n''')
+
+    fp.write('''CONST(tpl_tick, OS_CONST) OSTICKSPERBASE = 1;
+CONST(tpl_tick, OS_CONST) OSMAXALLOWEDVALUE = ((tpl_tick)-1)/2;
+CONST(tpl_tick, OS_CONST) OSMINCYCLE = 1;
+
+VAR(tpl_counter, OS_VAR) SystemCounter_counter_desc = {
+  /* ticks per base       */  1,
+  /* max allowed value    */  ((tpl_tick)-1)/2,
+  /* minimum cycle        */  1,
+  /* current tick         */  0,
+  /* current date         */  0,
+#if WITH_OSAPPLICATION == YES
+    /* OS Application id    */  
+#endif
+    /* first alarm          */  NULL_PTR,
+    /* next alarm to raise  */  NULL_PTR
+};
+
+TickType OsTickCounter = 0;
+
+TickType GetOsTick(void)
+{
+    return OsTickCounter;
+}
+
+FUNC(tpl_bool, OS_CODE) tpl_call_counter_tick()
+{
+  OsTickCounter ++;
+  if(0u == OsTickCounter)
+  {
+    OsTickCounter = 0;
+  }
+
+  tpl_counter_tick(&SystemCounter_counter_desc);
+
+  if (tpl_kern.need_schedule)
+  {
+    tpl_schedule_from_running();
+    LOCAL_SWITCH_CONTEXT(0)
+  }
+
+  return TRUE;
+}\n\n''')
+
+    for task in task_list:
+        fp.write('tpl_stack_word %s_stack_zone[%s/sizeof(tpl_stack_word)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('struct TPL_STACK %s_stack = {%s_stack_zone, %s};\n'%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('struct TPL_CONTEXT %s_context;\n'%(GAGet(task,'Name')))
+        fp.write('''CONST(tpl_proc_static, OS_CONST) %s_task_stat_desc = {
+  /* context                  */  &%s_context,
+  /* stack                    */  &%s_stack,
+  /* entry point (function)   */  %s_function,
+  /* internal ressource       */  NULL,
+  /* task id                  */  TASK_ID_%s,
+#if WITH_OSAPPLICATION == YES
+  /* OS application id        */  
+#endif
+  /* task base priority       */  TASK_NUM - TASK_ID_%s - 1,
+  /* max activation count     */  1,
+  /* task type                */  TASK_EXTENDED,
+#if WITH_AUTOSAR_TIMING_PROTECTION == YES
+
+  /* execution budget */        0,
+  /* timeframe        */        0, 
+  /* pointer to the timing
+     protection descriptor    */ NULL
+#endif
+};
+
+VAR(tpl_proc, OS_VAR) %s_task_desc = {
+  /* resources                      */  NULL,
+#if WITH_OSAPPLICATION == YES
+  /* if > 0 the process is trusted  */  0,    
+#endif /* WITH_OSAPPLICATION */
+  /* activate count                 */  0,
+  /* task priority                  */  0,
+  /* task state                     */  SUSPENDED
+};\n\n'''%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name')))
+    fp.write('CONSTP2CONST(tpl_proc_static, AUTOMATIC, OS_APPL_DATA) tpl_stat_proc_table[TASK_COUNT+ISR_COUNT+NUMBER_OF_CORES] = {\n')
+    for task in task_list:
+        fp.write('\t&%s_task_stat_desc,\n'%(GAGet(task,'Name')))
+    fp.write('};\n')
+
+    fp.write('CONSTP2VAR(tpl_proc, AUTOMATIC, OS_APPL_DATA) tpl_dyn_proc_table[TASK_COUNT+ISR_COUNT+NUMBER_OF_CORES] = {\n')
+    for task in task_list:
+        fp.write('\t&%s_task_desc,\n'%(GAGet(task,'Name')))
+    fp.write('};\n\n')
+    for alarm in alarm_list:
+        if(GAGet(alarm,'Autostart').upper()=='FALSE'):
+            autostart='ALARM_SLEEP'
+        else:
+            autostart='ALARM_AUTOSTART'
+        fp.write('''CONST(tpl_callback_action, OS_CONST) %s_action = {
+  {
+    /* action function  */  tpl_action_callback
+  },
+  /* callback           */  %s_callback
+};\n'''%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
+        fp.write('''CONST(tpl_alarm_static, OS_CONST) %s_static = {
+  {
+    /* pointer to counter           */  &SystemCounter_counter_desc,
+    /* pointer to the expiration    */  tpl_raise_alarm
+#if (WITH_TRACE == YES)
+    /* id of the alarm for tracing  */  , ALARM_ID_%s
+#endif
+#if WITH_OSAPPLICATION == YES
+    /* OS application id            */  ,INVALID_OSAPPLICATION_ID 
+#endif
+  },
+  /* action of the alarm  */  (tpl_action *)&%s_action
+};
+VAR(tpl_time_obj, OS_VAR) %s_alarm_desc = {
+    /* pointer to the static part   */  (tpl_time_obj_static *)&%s_static,
+    /* next alarm                   */  NULL,
+    /* prev alarm                   */  NULL,
+    /* cycle                        */  %s,
+    /* date                         */  %s,
+    /* State of the alarm           */  %s
+};\n\n'''%(GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Period'),
+           GAGet(alarm,'StartTime'),autostart))
+    fp.write('CONSTP2VAR(tpl_time_obj, AUTOMATIC, OS_APPL_DATA) tpl_alarm_table[ALARM_COUNT] = {\n')
+    for alarm in alarm_list:
+        fp.write('\t&%s_alarm_desc,\n'%(GAGet(alarm,'Name')))
+    fp.write('};\n\n')
+    fp.write('VAR(tpl_heap_entry, OS_VAR) tpl_ready_list[TASK_NUM];\n')
+    fp.write('VAR(tpl_rank_count, OS_VAR) tpl_tail_for_prio[TASK_NUM];\n')
+    fp.write('''/**
+ * @internal
+ *
+ * tpl_kern gather informations on the current executing object and
+ * the previous one
+ */
+VAR(tpl_kern_state, OS_VAR) tpl_kern =
+{
+  NULL,                      /* no running task static descriptor   */
+  &TaskIdle_task_stat_desc,  /* elected task to run is idle task    */
+  NULL,                      /* no running task dynamic descriptor  */
+  &TaskIdle_task_desc,       /* elected task to run is idle task    */
+  INVALID_PROC_ID,           /* no running task so no ID            */
+  INVALID_PROC_ID,           /* idle task has no ID                 */
+  NO_NEED_SWITCH,            /* no context switch needed at start   */
+  FALSE,                     /* no schedule needed at start         */
+#if WITH_MEMORY_PROTECTION == YES
+  1,                         /* at early system startup, we run in  */
+                             /*  kernel mode, so in trusted mode    */
+#endif /* WITH_MEMORY_PROTECTION */
+};\n''')
+    fp.write('CONSTP2CONST(char, AUTOMATIC, OS_APPL_DATA) proc_name_table[TASK_COUNT + ISR_COUNT + NUMBER_OF_CORES] = {\n')
+    for task in task_list:
+        fp.write('\t"%s",\n'%(GAGet(task,'Name')))
+    fp.write('};\n\n')
+    for task in task_list:
+        fp.write('VAR(tpl_task_events,OS_VAR) %s_events = {0,0};\n'%(GAGet(task,'Name')))
+    fp.write('CONSTP2VAR(tpl_task_events, AUTOMATIC, OS_APPL_DATA) tpl_task_events_table[EXTENDED_TASK_COUNT] = {\n');
+    for task in task_list[:-1]:
+        fp.write('\t&%s_events,\n'%(GAGet(task,'Name')))
+    fp.write('};\n\n')
     fp.close()
+
 def gen_trampoline(gendir,os_list):
     genForTrampolineMisc_H(gendir,os_list)
     genForTrampoline_H(gendir,os_list)

@@ -28,7 +28,7 @@
 #include "tpl_os_definitions.h"
 
 #if WITH_SYSTEM_CALL == NO
-
+#if WITH_MEMORY_PROTECTION == YES
 #include "tpl_as_memprot.h"
 #include "tpl_as_memprot_kernel.h"
 
@@ -85,9 +85,9 @@ FUNC(AccessType, OS_CODE) CheckTaskMemoryAccess (
 
 #define API_STOP_SEC_CODE
 #include "tpl_memmap.h"
-
+#endif /* WITH_MEMORY_PROTECTION == YES */
 #else
-#error "This file should not be part of your project since WITH_SYSTEM_CALL is YES"
+#warning "This file should not be part of your project since WITH_SYSTEM_CALL is YES"
 #endif /* WITH_SYSTEM_CALL */
 
 /* End of file tpl_as_memprot.c */

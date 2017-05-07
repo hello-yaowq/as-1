@@ -520,6 +520,7 @@ ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix/viper)
+	@(cd $(src-dir)/viper; make; cp viper $(CURDIR) -v)
 	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
 endif
 ifeq ($(gui),openVG)	
@@ -869,9 +870,9 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=trampoline
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=trampoline debug=true
 ifeq ($(host),Linux)
 else
 	gcc -O2 -shared -Wall -o $(exe-dir)/backtrace.dll $(INFRASTRUCTURE)/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__

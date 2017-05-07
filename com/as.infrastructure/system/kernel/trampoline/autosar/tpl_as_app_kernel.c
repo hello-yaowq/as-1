@@ -25,6 +25,7 @@
  */
 
 #include "tpl_as_app_kernel.h"
+#if WITH_OSAPPLICATION==YES
 #include "tpl_os_kernel.h"
 #include "tpl_os_task_kernel.h"
 #include "tpl_os_alarm_kernel.h"
@@ -616,4 +617,5 @@ FUNC(void, OS_CODE) tpl_osapp_shutdown_hooks(void)
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
 
+#endif /* WITH_OSAPPLICATION==YES */
 /*  End of file tpl_as_app_kernel.c  */

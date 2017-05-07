@@ -25,10 +25,11 @@
  */
 
 #ifndef WITH_SYSTEM_CALL
-
+#include "tpl_as_definitions.h"
+#if WITH_AUTOSAR == YES
 #include "tpl_as_trusted_fct.h"
 #include "tpl_as_trusted_fct_kernel.h"
-#include "tpl_as_definitions.h"
+
 
 #define OS_START_SEC_CODE
 #include "tpl_memmap.h"
@@ -52,7 +53,7 @@ FUNC(StatusType, OS_CODE) CallTrustedFunction(
 
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
-
+#endif /* WITH_AUTOSAR == YES */
 #else
 #error "This file should not be part of your project since WITH_SYSTEM_CALL is defined"
 #endif /* WITH_SYSTEM_CALL */

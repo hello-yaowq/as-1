@@ -28,6 +28,7 @@
 #include "tpl_os_errorhook.h"
 #include "tpl_os_kernel.h"
 #include "tpl_os_task_kernel.h"
+#include "tpl_os_event_kernel.h"
 #include "tpl_machine_interface.h"
 #include "tpl_trace.h"
 

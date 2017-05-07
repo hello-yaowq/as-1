@@ -23,9 +23,9 @@
  * $Author$
  * $URL$
  */
-
-#include "tpl_as_trusted_fct_kernel.h"
 #include "tpl_as_definitions.h"
+#if WITH_AUTOSAR == YES
+#include "tpl_as_trusted_fct_kernel.h"
 #include "tpl_os_kernel.h"
 
 #if TRUSTED_FCT_COUNT > 0
@@ -70,5 +70,5 @@ FUNC(void, OS_CODE) tpl_exit_trusted_function_service(void)
 
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
-
+#endif /* WITH_AUTOSAR == YES */
 /* End of file tpl_as_trusted_fct_kernel.c */

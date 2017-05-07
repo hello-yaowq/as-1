@@ -28,6 +28,7 @@
 
 #include "tpl_as_counter_kernel.h"
 #include "tpl_os_kernel.h"
+#if WITH_AUTOSAR == YES
 #include "tpl_os_errorhook.h"
 #include "tpl_machine_interface.h"
 #include "tpl_as_error.h"
@@ -256,5 +257,5 @@ FUNC(tpl_status, OS_CODE) tpl_get_elapsed_counter_value_service(
 
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
-
+#endif /* WITH_AUTOSAR == YES */
 /* End of file tpl_as_counter_kernel.c */

@@ -24,7 +24,8 @@
  * $Author$
  * $URL$
  */
-
+#include "tpl_as_definitions.h"
+#if WITH_MEMORY_PROTECTION == YES
 #include "tpl_as_memprot_kernel.h"
 #include "tpl_os_mem_prot.h"
 
@@ -137,5 +138,5 @@ FUNC(tpl_access, OS_CODE) tpl_check_task_memory_access(
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
 
-
+#endif /* WITH_MEMORY_PROTECTION == YES */
 /* End of file tpl_as_memprot_kernel.c */

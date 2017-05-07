@@ -29,7 +29,7 @@
 #include "tpl_os_alarm_kernel.h"
 #include "tpl_os_timeobj_kernel.h"
 #include "tpl_trace.h"
-
+#if WITH_TRACE == YES
 #define OS_START_SEC_CODE
 #include "tpl_memmap.h"
 
@@ -434,3 +434,4 @@ FUNC(void, OS_CODE) tpl_trace_tpl_terminate()
 
 #define OS_STOP_SEC_CODE
 #include "tpl_memmap.h"
+#endif /* WITH_TRACE == YES */

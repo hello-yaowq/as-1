@@ -22,10 +22,10 @@
  * $Author:$
  * $URL:$
  */
-
+#include "tpl_os_definitions.h"
+#if WITH_SEMAPHORE == YES
 #include "tpl_os_semaphore_kernel.h"
 #include "tpl_os_kernel.h"
-#include "tpl_os_definitions.h"
 #include "tpl_os_error.h"
 #include "tpl_machine_interface.h"
 
@@ -161,5 +161,4 @@ FUNC(tpl_status, OS_CODE) tpl_sem_post_service(CONST(SemType, AUTOMATIC) sem_id)
   return E_OK;
 }
 
-
-
+#endif /* WITH_SEMAPHORE == YES */
