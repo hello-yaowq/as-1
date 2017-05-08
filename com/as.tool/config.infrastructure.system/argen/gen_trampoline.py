@@ -44,7 +44,7 @@ typedef uint8 tpl_rank_count;
  * @warning This data type must be signed
  * because -1 is used for INVALID_TASK and INVALID_ISR
  */
-typedef sint8 tpl_proc_id;
+typedef sint16 tpl_proc_id;
 
 /**
  * tpl_appmode_mask is used for AUTOSTART objects.
@@ -59,7 +59,7 @@ typedef uint8 tpl_appmode_mask;
  *
  * @warning This type must be signed.
  */
-typedef sint8 tpl_priority;
+typedef sint16 tpl_priority;
 
 /**
  * tpl_activate_counter is used to count
@@ -209,12 +209,12 @@ def genForTrampolineMisc_H(gendir,os_list):
  * - RANK_MASK is the mask to get only the rank.
  */
 #define PRIORITY_SHIFT                   1
-#define PRIORITY_MASK                    6
+#define PRIORITY_MASK                    0xFE
 #define RANK_MASK                        1\n\n''');
     task_list = Trampoline_TaskList(os_list)
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
-        if(0==id): fp.write('#define IDLE_TASK_ID TASK_ID_%s\n'%(GAGet(task,'Name')))
+    fp.write('#define IDLE_TASK_ID%-28s %s\n'%(' ',id))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
 
     for id,task in enumerate(task_list):
@@ -337,13 +337,19 @@ def genForTrampoline_C(gendir,os_list):
     task_list = Trampoline_TaskList(os_list)
     fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_task_app_mode[TASK_COUNT] = {\n')
     for task in task_list:
-        fp.write('\tOSDEFAULTAPPMODE, /* %s */\n'%(GAGet(task,'Name')))
+        mask = 0
+        if(GAGet(task,'Autostart').upper() == 'TRUE'):
+            mask = '(1<<OSDEFAULTAPPMODE)'
+        fp.write('\t%s, /* %s */\n'%(mask,GAGet(task,'Name')))
     fp.write('};\n\n')
     
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_alarm_app_mode[ALARM_COUNT] = {\n')
     for alarm in alarm_list:
-        fp.write('\tOSDEFAULTAPPMODE, /* %s */\n'%(GAGet(alarm,'Name')))
+        mask = 0
+        if(GAGet(alarm,'Autostart').upper() == 'TRUE'):
+            mask = '(1<<OSDEFAULTAPPMODE)'
+        fp.write('\t%s, /* %s */\n'%(mask,GAGet(alarm,'Name')))
     fp.write('};\n\n')
     # resource generation not supported now, as ascore doesn't use any
     fp.write('''
@@ -491,8 +497,8 @@ VAR(tpl_time_obj, OS_VAR) %s_alarm_desc = {
     for alarm in alarm_list:
         fp.write('\t&%s_alarm_desc,\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
-    fp.write('VAR(tpl_heap_entry, OS_VAR) tpl_ready_list[TASK_NUM];\n')
-    fp.write('VAR(tpl_rank_count, OS_VAR) tpl_tail_for_prio[TASK_NUM];\n')
+    fp.write('VAR(tpl_heap_entry, OS_VAR) tpl_ready_list[TASK_NUM+1];\n')
+    fp.write('VAR(tpl_rank_count, OS_VAR) tpl_tail_for_prio[TASK_NUM+1];\n')
     fp.write('''/**
  * @internal
  *

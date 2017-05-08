@@ -93,6 +93,7 @@ def-y += -D__LINUX__
 def-y += -D__X86_64__
 ifeq ($(rtos),trampoline)
 inc-y += -I$(src-dir)/viper
+def-y += -DWITH_DEBUG=YES
 endif
 else
 def-y += -D__WINDOWS__
@@ -520,6 +521,7 @@ ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/posix/viper)
+	pgrep viper|xargs -i kill -9 {}
 	@(cd $(src-dir)/viper; make; cp viper $(CURDIR) -v)
 	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
 endif
@@ -874,6 +876,7 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 92:
 	make all board=posix compiler=posix-gcc gui=GTK rtos=trampoline debug=true
 ifeq ($(host),Linux)
+	pgrep viper|xargs -i kill -9 {}
 else
 	gcc -O2 -shared -Wall -o $(exe-dir)/backtrace.dll $(INFRASTRUCTURE)/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__
 	@cp -v $(exe-dir)/backtrace.dll C:/MinGW/bin
