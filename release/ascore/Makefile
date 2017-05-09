@@ -261,6 +261,9 @@ else
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
 endif
+ifeq ($(rtos),trampoline)
+def-y += -DWITH_SYSTEM_CALL=YES
+endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
@@ -770,6 +773,14 @@ ifeq ($(rtos),ucosii)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/raspi/gnu TRUE)
 endif
+ifeq ($(rtos),trampoline)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-a TRUE)
+	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
+endif
+
 	@(make BSW)
 	@(cd  $(src-dir); rm -fv Dem* J1939Tp* Lin* NvM* Fee* Ea* Eep* Fls* RPmsg* Ipc* VirtQ* Rproc*)
 	@(echo "  >> prepare link for bcm2835 done")
@@ -858,9 +869,9 @@ endif
 
 # ---------------------------------- [ qemu-rpi bcm2835 ] ----------------------------- #
 41:
-	make dep board=bcm2835 compiler=gcc rtos=ucosii
+	make dep board=bcm2835 compiler=gcc rtos=trampoline
 42:
-	make all board=bcm2835 compiler=gcc rtos=ucosii debug=true
+	make all board=bcm2835 compiler=gcc rtos=trampoline debug=true
 
 $(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz:
 	@wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz

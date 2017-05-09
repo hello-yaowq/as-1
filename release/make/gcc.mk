@@ -57,7 +57,8 @@ VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
 
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
-obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))		
+obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))
+obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))		
 ofj-y += $(patsubst %.of,$(src-dir)/%.h,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.of)))))
 #common rules	
 
@@ -74,6 +75,12 @@ $(obj-dir)/%.o:%.s
 	@echo
 	@echo "  >> AS $(notdir $<)"	
 	$(Q) $(AS) $(asflags-y) $(def-y) $(inc-y) -o $@ -c $<
+
+$(obj-dir)/%.o:%.S
+	@echo
+	@echo "  >> AS $(notdir $<)"	
+	$(Q) $(AS) -E $(asflags-y) $(def-y) $(inc-y) -o $<.s -c $<
+	$(Q) $(AS) $(asflags-y) $(def-y) $(inc-y) -o $@ -c $<.s
 
 $(obj-dir)/%.o:%.c
 	@echo

@@ -1,15 +1,21 @@
 #include "regs.h"
 #include "interrupts.h"
+#ifdef USE_UCOSII
 #include "ucos_ii.h"
-
+#else
+#define OS_TICKS_PER_SEC 1000
+#endif
 extern INTERRUPT_VECTOR g_VectorTable[BCM2835_INTC_TOTAL_IRQ];
 
 static void tickISR()
 {
+	#ifdef USE_UCOSII
 	OSTimeTick();
+	#endif
 
 	timerRegs->CLI = 0;
 }
+
 
 void timer_init( void )
 {

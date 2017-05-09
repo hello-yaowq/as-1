@@ -162,8 +162,8 @@ def genForTrampolineMisc_H(gendir,os_list):
     fp.write('#include "tpl_config_def.h"\n\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('''#define TARGET_ARCH                      "posix"
-#define TARGET_CHIP                      ""
-#define TARGET_BOARD                     ""
+#define TARGET_CHIP                      "anything"
+#define TARGET_BOARD                     "anything"
 #define NUMBER_OF_CORES                  1
 #define WITH_OS_EXTENDED                 YES
 #define WITH_ORTI                        NO
@@ -178,10 +178,12 @@ def genForTrampolineMisc_H(gendir,os_list):
 #define WITH_USEGETSERVICEID             NO
 #define WITH_USEPARAMETERACCESS          NO
 #define WITH_USERESSCHEDULER             YES
+#ifndef WITH_SYSTEM_CALL
 #define WITH_SYSTEM_CALL                 NO
+#endif
 #define WITH_MEMORY_PROTECTION           NO
-#define WITH_MEMMAP                      YES
-#define WITH_COMPILER_SETTINGS           NO
+#define WITH_MEMMAP                      NO
+#define WITH_COMPILER_SETTINGS           YES
 #define WITH_AUTOSAR                     NO
 #define WITH_PROTECTION_HOOK             NO
 #define WITH_STACK_MONITORING            NO
@@ -314,7 +316,6 @@ def genForTrampoline_C(gendir,os_list):
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Os.h"\n')
     fp.write('''#include "tpl_app_config.h"
-
 #include "tpl_os_internal_types.h"
 #include "tpl_machine.h"
 #include "tpl_os_interrupt.h"
@@ -335,7 +336,7 @@ def genForTrampoline_C(gendir,os_list):
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     task_list = Trampoline_TaskList(os_list)
-    fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_task_app_mode[TASK_COUNT] = {\n')
+    fp.write('CONST(tpl_appmode_mask, OS_CONST) tpl_task_app_mode[TASK_NUM] = {\n')
     for task in task_list:
         mask = 0
         if(GAGet(task,'Autostart').upper() == 'TRUE'):

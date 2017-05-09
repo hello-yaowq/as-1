@@ -55,7 +55,7 @@ FUNC(StatusType, OS_CODE) CallTrustedFunction(
 #include "tpl_memmap.h"
 #endif /* WITH_AUTOSAR == YES */
 #else
-#error "This file should not be part of your project since WITH_SYSTEM_CALL is defined"
+#warning "This file should not be part of your project since WITH_SYSTEM_CALL is defined"
 #endif /* WITH_SYSTEM_CALL */
 
 /* End of file tpl_as_trusted_fct.c */

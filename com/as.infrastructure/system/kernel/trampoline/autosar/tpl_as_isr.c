@@ -77,7 +77,7 @@ FUNC(StatusType, OS_CODE) EnableInterruptSource (VAR(ISRType, AUTOMATIC) isr_id)
 #include "tpl_memmap.h"
 
 #else
-#error "This file should not be part of your project since WITH_SYSTEM_CALL is defined"
+#warning "This file should not be part of your project since WITH_SYSTEM_CALL is defined"
 #endif /* WITH_SYSTEM_CALL */
 
 /* End of file tpl_as_isr.c */
