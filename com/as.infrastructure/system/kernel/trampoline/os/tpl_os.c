@@ -18,7 +18,7 @@
  */
 
 #include "tpl_os.h"
-
+#if WITH_SYSTEM_CALL == NO
 #include "tpl_os_os_kernel.h"
 #include "tpl_os_os.h"
 #include "tpl_os_interrupt_kernel.h"
@@ -466,5 +466,5 @@ StatusType WaitEvent ( EventMaskType mask )
 }
 
 
-
+#endif /* WITH_SYSTEM_CALL == NO */
 /* End of file tpl_os.c */

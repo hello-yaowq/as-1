@@ -225,12 +225,17 @@
  */
 #define OSServiceId_GetTaskState    23
 
+#define OSServiceId_SetEvent    24
+#define OSServiceId_GetEvent    25
+#define OSServiceId_ClearEvent  26
+#define OSServiceId_WaitEvent   27
+
 /**
  * @def SYSCALL_COUNT
  *
  * Number of system calls
  */
-#define SYSCALL_COUNT      24
+#define SYSCALL_COUNT      28
 #define SYSCALL_COUNT_ISR1 8
 
 #endif

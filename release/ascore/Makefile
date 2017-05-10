@@ -263,6 +263,7 @@ COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
 endif
 ifeq ($(rtos),trampoline)
 def-y += -DWITH_SYSTEM_CALL=YES
+def-y += -DWITH_DEBUG=YES
 endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN

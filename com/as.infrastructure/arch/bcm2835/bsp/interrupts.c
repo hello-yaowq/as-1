@@ -90,6 +90,10 @@ emit_interrupt:
 	}
 }
 
+void tpl_arm_subarch_irq_handler ()
+{
+	OS_CPU_IRQ_ISR_Handler();
+}
 
 static void stubHandler(int nIRQ, void *pParam) {
 	/**
@@ -157,3 +161,27 @@ int DisableInterrupts() {
 	irqDisable();
 	return 0;
 }
+
+static unsigned long isrDisableCounter = 0;
+unsigned long __attribute__((weak)) __Irq_Save(void)
+{
+	isrDisableCounter ++ ;
+	if(1u == isrDisableCounter)
+	{
+		irqDisable();
+	}
+	return 0;
+}
+
+void __attribute__((weak)) Irq_Restore(unsigned long irq_state)
+{
+
+	isrDisableCounter --;
+	if(0u == isrDisableCounter)
+	{
+		irqEnable();
+	}
+
+	(void)irq_state;
+}
+

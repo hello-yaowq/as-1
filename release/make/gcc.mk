@@ -79,8 +79,7 @@ $(obj-dir)/%.o:%.s
 $(obj-dir)/%.o:%.S
 	@echo
 	@echo "  >> AS $(notdir $<)"	
-	$(Q) $(AS) -E $(asflags-y) $(def-y) $(inc-y) -o $<.s -c $<
-	$(Q) $(AS) $(asflags-y) $(def-y) $(inc-y) -o $@ -c $<.s
+	$(Q) $(AS) $(asflags-y) $(def-y) $(inc-y) -o $@ -c $<
 
 $(obj-dir)/%.o:%.c
 	@echo

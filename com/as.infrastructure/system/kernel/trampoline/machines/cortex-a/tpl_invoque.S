@@ -211,6 +211,34 @@ CancelAlarm:
   swi #OSServiceId_CancelAlarm
   ldmfd sp!,{lr}
   mov pc,lr
+  .global SetEvent
+SetEvent:
+  stmfd sp!,{lr}
+  mov r3,#OSServiceId_SetEvent
+  swi #OSServiceId_SetEvent
+  ldmfd sp!,{lr}
+  mov pc,lr
+  .global GetEvent
+GetEvent:
+  stmfd sp!,{lr}
+  mov r3,#OSServiceId_GetEvent
+  swi #OSServiceId_GetEvent
+  ldmfd sp!,{lr}
+  mov pc,lr
+  .global WaitEvent
+WaitEvent:
+  stmfd sp!,{lr}
+  mov r3,#OSServiceId_WaitEvent
+  swi #OSServiceId_WaitEvent
+  ldmfd sp!,{lr}
+  mov pc,lr
+  .global ClearEvent
+ClearEvent:
+  stmfd sp!,{lr}
+  mov r3,#OSServiceId_ClearEvent
+  swi #OSServiceId_ClearEvent
+  ldmfd sp!,{lr}
+  mov pc,lr
 
 
 #define API_STOP_SEC_CODE

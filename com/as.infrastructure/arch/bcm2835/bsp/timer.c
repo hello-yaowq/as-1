@@ -34,3 +34,30 @@ void timer_init( void )
 	EnableInterrupt(64);
 }
 
+void tpl_disable_os_interrupts(void)
+{
+	DisableInterrupt(64);
+}
+
+void tpl_enable_os_interrupts(void)
+{
+	EnableInterrupt(64);
+}
+
+void tpl_init_machine(void)
+{
+
+}
+
+void tpl_shutdown(void)
+{
+    /* FIXME: this is does not conform to AUTOSAR OS specifications,
+     * should return to main with initial context */
+    DisableInterrupts ();
+
+    /* TODO : fall into very low consumption mode : all
+     * internal CPU clocks are disabled.
+     */
+
+    while (1);
+}
