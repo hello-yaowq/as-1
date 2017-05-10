@@ -32,7 +32,11 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_XCP
+#if defined(__LINUX__) || defined(__WINDOWS__)
 uint8_t xcpSimMTAMemory[1024];
+#else
+uint8_t xcpSimMTAMemory[32];
+#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_STMO
@@ -310,3 +314,8 @@ TASK(TaskLwip)
 	OS_TASK_END();
 }
 #endif
+
+void __error__(char *pcFilename, unsigned long ulLine)
+{
+	printf(" error @ %d of %s\n",ulLine,pcFilename);
+}
