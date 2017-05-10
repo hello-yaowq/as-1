@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "regs.h"
 #include "interrupts.h"
 #ifdef USE_UCOSII
@@ -9,9 +10,13 @@ extern INTERRUPT_VECTOR g_VectorTable[BCM2835_INTC_TOTAL_IRQ];
 
 static void tickISR()
 {
+	printf("*");
 	#ifdef USE_UCOSII
 	OSTimeTick();
-	#endif
+	#else
+	extern void tpl_call_counter_tick();
+	tpl_call_counter_tick();	
+    #endif
 
 	timerRegs->CLI = 0;
 }

@@ -27,6 +27,40 @@
 
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
+#include <stdio.h>
+#include <assert.h>
+#define DEBUG_LOW		1
+#define DEBUG_MEDIUM	2
+#define DEBUG_HIGH		3
+#define DEBUG_NONE		4
+
+#ifndef DEBUG_LVL
+#define DEBUG_LVL		2
+#endif
+
+#define CH_ISR		0
+#define CH_PROC		1
+
+
+#if defined(USE_DEBUG_PRINTF)
+#define DEBUG(_level,...) \
+	do { \
+		if(_level>=DEBUG_LVL) { \
+			printf (__VA_ARGS__); \
+		}; \
+	} while(0);
+
+#else
+#define DEBUG(_level,...)
+#endif
+
+#if defined(USE_LDEBUG_PRINTF)
+#define LDEBUG_PRINTF(format,...) 	printf(format,## __VA_ARGS__ )
+#define LDEBUG_FPUTS(_str) 			fputs((_str),stdout)
+#else
+#define LDEBUG_PRINTF(format,...)
+#define LDEBUG_FPUTS(_str)
+#endif
 
 //*****************************************************************************
 //

@@ -23,6 +23,7 @@
  * $URL: http://trampoline.rts-software.org/svn/trunk/os/tpl_os_stm_kernel.c $
  */
 
+#include "Std_Types.h"
 #include "tpl_os_definitions.h"
 /*#include "tpl_os_errorhook.h"
 #include "tpl_os_kernel.h"

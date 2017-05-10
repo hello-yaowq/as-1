@@ -49,9 +49,10 @@ dir-y += $(src-dir)
 
 VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))	
-	
+
 obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))		
-obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))		
+obj-y += $(patsubst %.s,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.s)))))
+obj-y += $(patsubst %.S,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.S)))))
 ofj-y += $(patsubst %.of,$(src-dir)/%.h,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.of)))))
 #common rules	
 
@@ -63,31 +64,36 @@ $(src-dir)/%.h:%.of
 	@$(CC) -S $(patsubst %.h,%.c,$@) -o $@h $(cflags-y) $(inc-y) $(def-y)
 	@sed -n '/#define/p' $@h > $@
 	@rm $@h $(patsubst %.h,%.c,$@)
-	
+
 $(obj-dir)/%.o:%.s
 	@echo
 	@echo "  >> AS $(notdir $<)"	
-	@$(AS) $(asflags-y) $(def-y) -o $@ -c $<
-	
+	@$(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
+
+$(obj-dir)/%.o:%.S
+	@echo
+	@echo "  >> AS $(notdir $<)"	
+	@$(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
+
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<	
 	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
-	
+
 	@$(CS) -D $@ > $@.s
-	
+
 ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
 else
 -include $(obj-dir)/as.dep
 endif
-	
+
 .PHONY:all clean
 
 $(obj-dir):
 	@mkdir -p $(obj-dir)
-	
+
 $(exe-dir):
 	@mkdir -p $(exe-dir)	
 
@@ -99,7 +105,7 @@ exe:$(obj-dir) $(exe-dir) $(ofj-y) $(obj-y)
 	@$(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19
 	@$(BIN) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).bin
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
-	
+
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
 	@$(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
@@ -113,7 +119,7 @@ lib:$(obj-dir) $(exe-dir) $(obj-y)
 clean-obj:
 	@rm -fv $(obj-dir)/*
 	@rm -fv $(exe-dir)/*
-	
+
 clean-obj-src:clean-obj
 	@rm -fv $(src-dir)/*
 
