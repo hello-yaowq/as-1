@@ -61,7 +61,7 @@ FUNC(void, OS_CODE) StartOS(
     tpl_init_core();
 #endif
   }
-  printf("StartOS(%d)\n",mode);
+
   tpl_start_os(mode);
   /*
    * tpl_start_os does not return since the idle task will run

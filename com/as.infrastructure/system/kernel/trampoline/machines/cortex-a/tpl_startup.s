@@ -54,14 +54,19 @@ reset:
     mov sp,#0x8000
 
     ;@ (PSR_FIQ_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
-;   mov r0,#0xD1
-;   msr cpsr_c,r0
-;   mov sp,#0x4000
+   mov r0,#0xD1
+   msr cpsr_c,r0
+   mov sp,#0x6000
+
+    ;@ (PSR_SVC_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
+    mov r0,#0xD3
+    msr cpsr_c,r0
+	mov sp,#0x4000
 
     ;@ (PSR_SYS_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
     mov r0,#0xDF
     msr cpsr_c,r0
-	mov sp,#0x4000
+	mov sp,#0x2000
 
 	ldr r0, =__bss_start
 	ldr r1, =__bss_end
