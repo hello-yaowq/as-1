@@ -56,11 +56,16 @@
 #define OS_TICKS_PER_SEC        100u   /* Set the number of ticks in one second                        */
 #endif
 
+#ifdef __9S12__
+#define OS_TASK_TMR_STK_SIZE    256u
+#define OS_TASK_STAT_STK_SIZE   256u
+#define OS_TASK_IDLE_STK_SIZE   256u
+#else
                                        /* --------------------- TASK STACK SIZE ---------------------- */
 #define OS_TASK_TMR_STK_SIZE    1024u   /* Timer      task stack size (# of OS_STK wide entries)        */
 #define OS_TASK_STAT_STK_SIZE   1024u   /* Statistics task stack size (# of OS_STK wide entries)        */
 #define OS_TASK_IDLE_STK_SIZE   1024u   /* Idle       task stack size (# of OS_STK wide entries)        */
-
+#endif
 
                                        /* --------------------- TASK MANAGEMENT ---------------------- */
 #define OS_TASK_CHANGE_PRIO_EN    1u   /*     Include code for OSTaskChangePrio()                      */
@@ -139,7 +144,11 @@
 
 
                                        /* --------------------- TIMER MANAGEMENT --------------------- */
+#ifdef __9S12__
+#define OS_TMR_EN                 0u
+#else
 #define OS_TMR_EN                 1u   /* Enable (1) or Disable (0) code generation for TIMERS         */
+#endif
 #define OS_TMR_CFG_MAX           16u   /*     Maximum number of timers                                 */
 #define OS_TMR_CFG_NAME_EN        1u   /*     Determine timer names                                    */
 #define OS_TMR_CFG_WHEEL_SIZE     8u   /*     Size of timer wheel (#Spokes)                            */

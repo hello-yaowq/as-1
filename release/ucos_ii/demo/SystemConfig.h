@@ -21,11 +21,15 @@
 *                                            TASK STACK SIZES
 *********************************************************************************************************
 */
-
+#ifdef __9S12__
+#define MainTask_StkSize 256
+#define App1Task_StkSize 256
+#define App2Task_StkSize 256
+#else
 #define MainTask_StkSize 1024
 #define App1Task_StkSize 1024
 #define App2Task_StkSize 1024
-
+#endif
 #define OS_IDLE_PRIO OS_TASK_IDLE_PRIO
 #define OS_STAT_PRIO OS_TASK_STAT_PRIO
 
