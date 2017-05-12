@@ -13,11 +13,11 @@
 # * for more details.
 # */
 
-# CPU architecture setting: win32 posix cm3 raspi 9s12xep100 ...
+# CPU architecture setting: win32 posix cm3 raspi 9s12xep100 dos ...
 ifeq ($(shell uname), Linux)
 export ARCH ?= 9s12xep100
 else
-export ARCH ?= 9s12xep100
+export ARCH ?= dos
 endif
 
 TARGET = ucOS_II_Demo
@@ -43,6 +43,11 @@ LD = gcc
 endif
 
 ifeq (${ARCH}, win32)
+CC = gcc
+LD = gcc
+endif
+
+ifeq (${ARCH}, dos)
 CC = gcc
 LD = gcc
 endif
@@ -102,7 +107,13 @@ ifeq (${ARCH}, posix)
 LDFLAGS += -lpthread
 LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
 endif
+
 ifeq (${ARCH}, win32)
+LDFLAGS += -lwinmm
+LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
+endif
+
+ifeq (${ARCH}, dos)
 LDFLAGS += -lwinmm
 LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
 endif
@@ -132,6 +143,12 @@ ifeq (${ARCH}, win32)
 VPATH += ${KERNEL}/portable/win32
 CFLAGS += -I${KERNEL}/portable/win32
 obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/os_trace.o 
+endif
+
+ifeq (${ARCH}, dos)
+VPATH += ${KERNEL}/portable/dos
+CFLAGS += -I${KERNEL}/portable/dos
+obj-y += ${obj-dir}/os_cpu_c.o
 endif
 
 ifeq (${ARCH}, cm3)
@@ -206,6 +223,8 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel $(out-dir)/$(TARGET))
 
 dep-win32:
+
+dep-dos:
 
 dep-posix:
 

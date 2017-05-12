@@ -46,7 +46,7 @@ void Initialize_PLL(void)
     SYNR = 2;
 #endif 
 
-    REFDV = 1;                   /* PLLCLK=2×OSCCLK×(SYNR+1)/(REFDV+1)＝64MHz ,fbus=32M */
+    REFDV = 1;
     PLLCTL_PLLON = 1;
 
     while (CRGFLG_LOCK == 0);
@@ -57,7 +57,6 @@ void Initialize_RTI(void)
 {
 	CRGINT_RTIE=1;
 	RTICTL = 0x70;
-	/* period = 16 x 10E-6 x （0+1）x 2E（7+9）=0.004096s=4.096ms */
 	CRGINT = 1; /* enable interrupt */
 }
 #endif /* __arch_9s12xep100 */
@@ -78,6 +77,10 @@ int main(void)
 	Initialize_PLL();
 	Sci_Init();
 #endif
+
+#ifdef __arch_dos__
+	VCInit();
+#endif
 	OSInit();
 
 	OSTaskCreate(MainTask, (void *)0, &MainTask_Stk[MainTask_StkSize-1], MainTask_Prio);
@@ -91,6 +94,10 @@ void MainTask(void *p_arg)
 
 #ifdef __arch_9s12xep100__
 	Initialize_RTI(); /* start the system tick timer */
+#endif
+
+#ifdef __arch_dos__
+	timeSetEvent(1000/OS_TICKS_PER_SEC, 0, OSTickISR, 0, TIME_PERIODIC);
 #endif
 
 	OSStatInit();
