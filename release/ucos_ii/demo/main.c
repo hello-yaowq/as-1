@@ -115,20 +115,22 @@ void MainTask(void *p_arg)
 /* App1Task */
 void App1Task(void *p_arg)
 {
+	int i = 0;
 	p_arg = p_arg;
 	while(1)
 	{
-		printf("Hello,I am PC!\n");
+		printf("Hello,I am PC %d!\n",i++);
 		OSTimeDlyHMSM(0, 0, 1, 0);
 	}
 }
 /* App2Task */
 void App2Task(void *p_arg)
 {
+	int i = 0;
 	p_arg = p_arg;
 	while(1)
 	{
-		printf("Hello,uCOS-II!\n");
+		printf("Hello,uCOS-II %d!\n",i++);
 		OSTimeDlyHMSM(0, 0, 2, 0);
 	}
 }

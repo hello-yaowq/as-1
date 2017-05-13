@@ -70,7 +70,7 @@ typedef unsigned int OS_CPU_SR;                /* Define size of CPU status regi
 *             into the CPU's status register.
 *********************************************************************************************************
 */
-extern	 BOOLEAN FlagEn;
+extern	 OS_CPU_SR FlagEn;
 #define  OS_CRITICAL_METHOD    1
 
 #if      OS_CRITICAL_METHOD == 1
@@ -115,7 +115,7 @@ extern	 BOOLEAN FlagEn;
 */
 extern void VCInit(void);
 extern void CALLBACK OSTickISR(unsigned int a,unsigned int b,unsigned long c,unsigned long d,unsigned long e);
-
+extern void OSCtxSw(void);
 
 #if OS_CRITICAL_METHOD == 3                      /* Allocate storage for CPU status register           */
 OS_CPU_SR  OSCPUSaveSR(void);

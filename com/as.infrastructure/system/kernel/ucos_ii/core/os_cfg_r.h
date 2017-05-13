@@ -60,8 +60,12 @@
 #define OS_TASK_TMR_STK_SIZE    256u
 #define OS_TASK_STAT_STK_SIZE   256u
 #define OS_TASK_IDLE_STK_SIZE   256u
+#elif defined(__arch_dos__)
+#define OS_TASK_TMR_STK_SIZE    4096u
+#define OS_TASK_STAT_STK_SIZE   4096u
+#define OS_TASK_IDLE_STK_SIZE   4096u
 #else
-                                       /* --------------------- TASK STACK SIZE ---------------------- */
+                                      /* --------------------- TASK STACK SIZE ---------------------- */
 #define OS_TASK_TMR_STK_SIZE    1024u   /* Timer      task stack size (# of OS_STK wide entries)        */
 #define OS_TASK_STAT_STK_SIZE   1024u   /* Statistics task stack size (# of OS_STK wide entries)        */
 #define OS_TASK_IDLE_STK_SIZE   1024u   /* Idle       task stack size (# of OS_STK wide entries)        */
