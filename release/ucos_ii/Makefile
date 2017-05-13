@@ -148,7 +148,7 @@ endif
 ifeq (${ARCH}, dos)
 VPATH += ${KERNEL}/portable/dos
 CFLAGS += -I${KERNEL}/portable/dos
-obj-y += ${obj-dir}/os_cpu_c.o
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o
 endif
 
 ifeq (${ARCH}, cm3)

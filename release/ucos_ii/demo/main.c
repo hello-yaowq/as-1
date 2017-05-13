@@ -13,6 +13,10 @@
 #pragma LINK_INFO DERIVATIVE "MC9S12XEP100"
 #endif
 
+#ifdef __arch_dos__
+#include "pc.h"
+#endif
+
 OS_STK MainTask_Stk[MainTask_StkSize];
 OS_STK App1Task_Stk[App1Task_StkSize];
 OS_STK App2Task_Stk[App2Task_StkSize];
@@ -79,9 +83,16 @@ int main(void)
 #endif
 
 #ifdef __arch_dos__
-	VCInit();
+	PC_DispClrScr(DISP_FGND_WHITE + DISP_BGND_BLACK);      /* Clear the screen                         */
 #endif
-	OSInit();
+
+	OSInit();                                              /* Initialize uC/OS-II                      */
+
+#ifdef __arch_dos__
+	PC_DOSSaveReturn();                                    /* Save environment to return to DOS        */
+	PC_VectSet(uCOS, OSCtxSw);
+#endif
+
 
 	OSTaskCreate(MainTask, (void *)0, &MainTask_Stk[MainTask_StkSize-1], MainTask_Prio);
 	OSStart();
@@ -97,7 +108,10 @@ void MainTask(void *p_arg)
 #endif
 
 #ifdef __arch_dos__
-	timeSetEvent(1000/OS_TICKS_PER_SEC, 0, OSTickISR, 0, TIME_PERIODIC);
+    OS_ENTER_CRITICAL();
+    PC_VectSet(0x08, OSTickISR);                           /* Install uC/OS-II's clock tick ISR        */
+    PC_SetTickRate(OS_TICKS_PER_SEC);                      /* Reprogram tick rate                      */
+    OS_EXIT_CRITICAL();
 #endif
 
 	OSStatInit();
@@ -107,7 +121,7 @@ void MainTask(void *p_arg)
 		OSTaskCreate(App1Task, (void *)0, &App1Task_Stk[App1Task_StkSize-1], App1Task_Prio);
 		OSTaskCreate(App2Task, (void *)0, &App2Task_Stk[App2Task_StkSize-1], App2Task_Prio);
 		printf("Hello,I am Main!\n");
-		OSTimeDlyHMSM(0, 1, 0, 0);
+		OSTimeDlyHMSM(0, 0, 5, 0);
 		printf("Hello,Main End!\n");
         OSTaskDel(MainTask_Prio);
 	}
