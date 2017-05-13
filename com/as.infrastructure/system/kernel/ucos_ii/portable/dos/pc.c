@@ -16,6 +16,7 @@
 #include "ucos_ii.h"
 #include <stdio.h>
 #include <conio.h>
+#include <stdlib.h>
 
 static BOOLEAN lock=FALSE;
 static HANDLE  hStdOut = NULL;
@@ -84,9 +85,7 @@ void PC_DispStr(INT8U x, INT8U y, INT8U * s, INT8U color)
 {   COORD pos;
 
 #ifdef DEBUG_PC
-    _log("PC_DispStr: \n");
-	_log(s);//printf("PC_DispStr: %s\n", s);
-	_log("\n");
+	printf("PC_DispStr: %s\n", s);
     return;
 #endif
 
@@ -141,9 +140,7 @@ void PC_DispChar(INT8U x, INT8U y, INT8U c, INT8U color)
 {   COORD pos;
 
 #ifdef DEBUG_PC
-    _log("PC_DispChar: \n");
-	_log(s);//printf("PC_DispStr: %s\n", s);
-	_log("\n");
+	printf("PC_DispChar: %c", c);
     return;
 #endif
 
@@ -191,7 +188,7 @@ void PC_DispClrScr(INT8U color)
 {   COORD pos;
 
 #ifdef DEBUG_PC
-    _log("PC_DispClrScr\n");
+    printf("PC_DispClrScr\n");
     return;
 #endif
 
@@ -380,4 +377,14 @@ void PC_DOSSaveReturn(void)
 void    PC_SetTickRate(INT16U freq)
 {
 	timeSetEvent(1000/freq, 0, OSTickISR, 0, TIME_PERIODIC);
+}
+
+void PC_DOSReturn(void)
+{
+	exit(0);
+}
+
+int random(int a)
+{
+	return rand()%a;
 }

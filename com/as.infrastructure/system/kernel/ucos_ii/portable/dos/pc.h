@@ -55,7 +55,9 @@
 #define DISP_BGND_YELLOW          (BACKGROUND_RED  | BACKGROUND_GREEN | BACKGROUND_INTENSITY)
 #define DISP_BGND_WHITE           (BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY)
 #define DISP_BGND_GRAY            (BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED)
-#define DISP_BGND_LIGHT_GRAY      (BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED)         //???
+#define DISP_BGND_LIGHT_GRAY      (BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED)
+
+#define DISP_BLINK                0x80
 
 /*$PAGE */
 /*
@@ -80,3 +82,8 @@ void  PC_VectSet(INT8U irq, void (*isr)(void));
 void *PC_VectGet(INT8U irq);
 
 void PC_DOSSaveReturn(void);
+void PC_DOSReturn(void);
+void PC_SetTickRate(INT16U freq);
+
+
+int random(int a);
