@@ -464,7 +464,9 @@ void OSTCBInitHook (OS_TCB *ptcb)
 */
 void OSTimeTickHook (void)
 {
-
+#if OS_TMR_EN > 0u
+	OSTmrSignal();
+#endif
 }
 
 
