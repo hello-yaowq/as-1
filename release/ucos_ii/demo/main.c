@@ -65,7 +65,7 @@ void Initialize_RTI(void)
 }
 #endif /* __arch_9s12xep100 */
 
-int main(void)
+int demo_main(void)
 {
 #ifdef __arch_raspi__
 	uart_init();
@@ -151,4 +151,18 @@ void App2Task(void *p_arg)
 
 void OSDebugInit()
 {
+}
+
+int main(int argc,char* argv[])
+{
+#ifdef __arch_dos__
+	extern int  ex_main (void);
+	if( (2 == argc) && (0 == strcmp(argv[1],"ex")))
+	{
+		return ex_main();
+	}
+#endif
+
+
+	return demo_main();
 }
