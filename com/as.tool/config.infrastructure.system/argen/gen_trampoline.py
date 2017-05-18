@@ -362,13 +362,13 @@ def genForTrampoline_C(gendir,os_list):
  */
 
 VAR(tpl_resource, OS_VAR) res_sched_rez_desc = {
-  RES_SCHEDULER_PRIORITY,   /*  ceiling priority                            */
-  0,                        /*  owner_prev_priority                         */
-  INVALID_PROC_ID,          /*  owner                                       */
+  .ceiling_priority = RES_SCHEDULER_PRIORITY,
+  .owner_prev_priority= 0,
+  .owner = INVALID_PROC_ID,
 #if WITH_OSAPPLICATION == YES
-  INVALID_OSAPPLICATION_ID, /*  OS Application id                           */
+  .app_id = INVALID_OSAPPLICATION_ID,
 #endif
-  NULL                      /*  next_res                                    */
+  .next_res = NULL
 };
 CONSTP2VAR(tpl_resource, AUTOMATIC, OS_APPL_DATA)
 tpl_resource_table[RESOURCE_COUNT] = {
@@ -380,16 +380,16 @@ CONST(tpl_tick, OS_CONST) OSMAXALLOWEDVALUE = ((tpl_tick)-1)/2;
 CONST(tpl_tick, OS_CONST) OSMINCYCLE = 1;
 
 VAR(tpl_counter, OS_VAR) SystemCounter_counter_desc = {
-  /* ticks per base       */  1,
-  /* max allowed value    */  ((tpl_tick)-1)/2,
-  /* minimum cycle        */  1,
-  /* current tick         */  0,
-  /* current date         */  0,
+  .ticks_per_base =  1,
+  .max_allowed_value = ((tpl_tick)-1)/2,
+  .min_cycle = 1,
+  .current_tick = 0,
+  .current_date = 0,
 #if WITH_OSAPPLICATION == YES
-    /* OS Application id    */  
+    .app_id = INVALID_OSAPPLICATION_ID;  
 #endif
-    /* first alarm          */  NULL_PTR,
-    /* next alarm to raise  */  NULL_PTR
+    .first_to = NULL_PTR,
+    .next_to = NULL_PTR
 };
 
 TickType OsTickCounter = 0;
@@ -423,34 +423,32 @@ FUNC(tpl_bool, OS_CODE) tpl_call_counter_tick()
         fp.write('struct TPL_STACK %s_stack = {%s_stack_zone, %s};\n'%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'StackSize')))
         fp.write('struct TPL_CONTEXT %s_context;\n'%(GAGet(task,'Name')))
         fp.write('''CONST(tpl_proc_static, OS_CONST) %s_task_stat_desc = {
-  /* context                  */  &%s_context,
-  /* stack                    */  &%s_stack,
-  /* entry point (function)   */  %s_function,
-  /* internal ressource       */  NULL,
-  /* task id                  */  TASK_ID_%s,
+  .context = &%s_context,
+  .stack = &%s_stack,
+  .entry = %s_function,
+  .internal_resource = NULL,
+  .id = TASK_ID_%s,
 #if WITH_OSAPPLICATION == YES
-  /* OS application id        */  
+  .app_id = INVALID_OSAPPLICATION_ID,
 #endif
-  /* task base priority       */  TASK_NUM - TASK_ID_%s - 1,
-  /* max activation count     */  1,
-  /* task type                */  TASK_EXTENDED,
+  .base_priority = TASK_NUM - TASK_ID_%s - 1,
+  .max_activate_count = 1,
+  .type = TASK_EXTENDED,
 #if WITH_AUTOSAR_TIMING_PROTECTION == YES
-
-  /* execution budget */        0,
-  /* timeframe        */        0, 
-  /* pointer to the timing
-     protection descriptor    */ NULL
+  .executionbudget = 0,
+  .timeframe = 0, 
+  .timing_protection = NULL
 #endif
 };
 
 VAR(tpl_proc, OS_VAR) %s_task_desc = {
-  /* resources                      */  NULL,
+  .resources = NULL,
 #if WITH_OSAPPLICATION == YES
-  /* if > 0 the process is trusted  */  0,    
+  .trusted_counter =  0,    
 #endif /* WITH_OSAPPLICATION */
-  /* activate count                 */  0,
-  /* task priority                  */  0,
-  /* task state                     */  SUSPENDED
+  .activate_count = 0,
+  .priority = 0,
+  .state =  SUSPENDED
 };\n\n'''%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name')))
     fp.write('CONSTP2CONST(tpl_proc_static, AUTOMATIC, OS_APPL_DATA) tpl_stat_proc_table[TASK_COUNT+ISR_COUNT+NUMBER_OF_CORES] = {\n')
     for task in task_list:
@@ -467,31 +465,29 @@ VAR(tpl_proc, OS_VAR) %s_task_desc = {
         else:
             autostart='ALARM_AUTOSTART'
         fp.write('''CONST(tpl_callback_action, OS_CONST) %s_action = {
-  {
-    /* action function  */  tpl_action_callback
-  },
-  /* callback           */  %s_callback
+  .b_desc.action = tpl_action_callback,
+  .tpl_callback_func = %s_callback
 };\n'''%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
         fp.write('''CONST(tpl_alarm_static, OS_CONST) %s_static = {
-  {
-    /* pointer to counter           */  &SystemCounter_counter_desc,
-    /* pointer to the expiration    */  tpl_raise_alarm
+  .b_desc = {
+    .counter = &SystemCounter_counter_desc,
+    .expire = tpl_raise_alarm,
 #if (WITH_TRACE == YES)
-    /* id of the alarm for tracing  */  , ALARM_ID_%s
+    .timeobj_id = ALARM_ID_%s,
 #endif
 #if WITH_OSAPPLICATION == YES
-    /* OS application id            */  ,INVALID_OSAPPLICATION_ID 
+    .app_id = INVALID_OSAPPLICATION_ID,
 #endif
   },
-  /* action of the alarm  */  (tpl_action *)&%s_action
+  .action = &%s_action
 };
 VAR(tpl_time_obj, OS_VAR) %s_alarm_desc = {
-    /* pointer to the static part   */  (tpl_time_obj_static *)&%s_static,
-    /* next alarm                   */  NULL,
-    /* prev alarm                   */  NULL,
-    /* cycle                        */  %s,
-    /* date                         */  %s,
-    /* State of the alarm           */  %s
+    .stat_part = (tpl_time_obj_static *)&%s_static,
+    .next_to = NULL,
+    .prev_to = NULL,
+    .cycle = %s,
+    .date = %s,
+    .state = %s
 };\n\n'''%(GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Name'),GAGet(alarm,'Period'),
            GAGet(alarm,'StartTime'),autostart))
     fp.write('CONSTP2VAR(tpl_time_obj, AUTOMATIC, OS_APPL_DATA) tpl_alarm_table[ALARM_COUNT] = {\n')
@@ -508,17 +504,17 @@ VAR(tpl_time_obj, OS_VAR) %s_alarm_desc = {
  */
 VAR(tpl_kern_state, OS_VAR) tpl_kern =
 {
-  NULL,                      /* no running task static descriptor   */
-  &TaskIdle_task_stat_desc,  /* elected task to run is idle task    */
-  NULL,                      /* no running task dynamic descriptor  */
-  &TaskIdle_task_desc,       /* elected task to run is idle task    */
-  INVALID_PROC_ID,           /* no running task so no ID            */
-  INVALID_PROC_ID,           /* idle task has no ID                 */
-  NO_NEED_SWITCH,            /* no context switch needed at start   */
-  FALSE,                     /* no schedule needed at start         */
+  .s_running = NULL,                      /* no running task static descriptor   */
+  .s_elected = &TaskIdle_task_stat_desc,  /* elected task to run is idle task    */
+  .running = NULL,                        /* no running task dynamic descriptor  */
+  .elected = &TaskIdle_task_desc,         /* elected task to run is idle task    */
+  .running_id = INVALID_PROC_ID,          /* no running task so no ID            */
+  .elected_id = INVALID_PROC_ID,          /* idle task has no ID                 */
+  .need_switch = NO_NEED_SWITCH,          /* no context switch needed at start   */
+  .need_schedule = FALSE,                 /* no schedule needed at start         */
 #if WITH_MEMORY_PROTECTION == YES
-  1,                         /* at early system startup, we run in  */
-                             /*  kernel mode, so in trusted mode    */
+  .running_trusted = 1,                  /* at early system startup, we run in  */
+                                         /*  kernel mode, so in trusted mode    */
 #endif /* WITH_MEMORY_PROTECTION */
 };\n''')
     fp.write('CONSTP2CONST(char, AUTOMATIC, OS_APPL_DATA) proc_name_table[TASK_COUNT + ISR_COUNT + NUMBER_OF_CORES] = {\n')
