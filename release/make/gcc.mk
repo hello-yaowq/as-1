@@ -101,23 +101,27 @@ $(obj-dir):
 $(exe-dir):
 	@mkdir -p $(exe-dir)	
 
+ifeq ($(host), Linux)
 include $(wildcard $(obj-dir)/*.d)
+else
+-include $(obj-dir)/as.dep
+endif
 
 exe:$(obj-dir) $(exe-dir) $(ofj-y) $(obj-y) 
 	@echo "  >> LD $(target-y).exe"
-	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
+	$(Q) $(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
 	@$(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19
 	@$(BIN) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).bin
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
-	@$(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
+	$(Q) $(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).LIB"
-	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
+	$(Q) $(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 
 clean-obj:

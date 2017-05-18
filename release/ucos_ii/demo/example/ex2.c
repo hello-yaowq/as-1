@@ -20,7 +20,7 @@
 *********************************************************************************************************
 */
 
-#define          TASK_STK_SIZE     512                /* Size of each task's stacks (# of WORDs)       */
+#define          TASK_STK_SIZE     4096                /* Size of each task's stacks (# of WORDs)       */
 
 #define          TASK_START_ID       0                /* Application tasks IDs                         */
 #define          TASK_CLK_ID         1
@@ -103,7 +103,7 @@ void ex_main (void)
     ptos        = &TaskStartStk[TASK_STK_SIZE - 1];        /* TaskStart() will use Floating-Point      */
     pbos        = &TaskStartStk[0];
     size        = TASK_STK_SIZE;
-    OSTaskStkInit_FPE_x86(&ptos, &pbos, &size);            
+    OSTaskStkInit_FPE_x86(&ptos, &pbos, &size);
     OSTaskCreateExt(TaskStart,
                    (void *)0,
                    ptos,

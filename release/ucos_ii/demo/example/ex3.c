@@ -19,7 +19,7 @@
 *********************************************************************************************************
 */
 
-#define          TASK_STK_SIZE     512                /* Size of each task's stacks (# of WORDs)       */
+#define          TASK_STK_SIZE     4096                /* Size of each task's stacks (# of WORDs)       */
 
 #define          TASK_START_ID       0                /* Application tasks                             */
 #define          TASK_CLK_ID         1

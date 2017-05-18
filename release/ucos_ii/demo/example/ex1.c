@@ -57,16 +57,15 @@ int  ex_main (void)
     PC_DispClrScr(DISP_FGND_WHITE + DISP_BGND_BLACK);      /* Clear the screen                         */
 
     OSInit();                                              /* Initialize uC/OS-II                      */
-    printf("%s %d\n", __func__, __LINE__);
+
     PC_DOSSaveReturn();                                    /* Save environment to return to DOS        */
     PC_VectSet(uCOS, OSCtxSw);                             /* Install uC/OS-II's context switch vector */
-    printf("%s %d\n", __func__, __LINE__);
+
     RandomSem   = OSSemCreate(1);                          /* Random number semaphore                  */
-    printf("%s %d\n", __func__, __LINE__);
-    OSTaskCreate(TaskStart, (void *)0, &TaskStartStk[TASK_STK_SIZE - 1], 0);
-    printf("%s %d\n", __func__, __LINE__);
+
+    OSTaskCreate(TaskStart, (void *)0, &TaskStartStk[TASK_STK_SIZE - 1], 1);
+
     OSStart();                                             /* Start multitasking                       */
-    printf("%s %d\n", __func__, __LINE__);
 }
 
 

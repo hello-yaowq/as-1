@@ -20,7 +20,7 @@
 *********************************************************************************************************
 */
 
-#define  TASK_STK_SIZE                 512       /* Size of each task's stacks (# of WORDs)            */
+#define  TASK_STK_SIZE                 4096       /* Size of each task's stacks (# of WORDs)            */
 #define  N_TASKS                        10       /* Number of identical tasks                          */
 
 /*
@@ -64,7 +64,7 @@ void  ex_main (void)
     OSTaskCreateExt(TaskStart,
                     (void *)0,
                     &TaskStartStk[TASK_STK_SIZE - 1],
-                    0,                                     /* Task priority = 0                        */
+                    1,                                     /* Task priority = 1                        */
                     0,
                     &TaskStartStk[0],
                     TASK_STK_SIZE,
