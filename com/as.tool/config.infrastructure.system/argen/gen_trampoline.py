@@ -466,7 +466,7 @@ VAR(tpl_proc, OS_VAR) %s_task_desc = {
             autostart='ALARM_AUTOSTART'
         fp.write('''CONST(tpl_callback_action, OS_CONST) %s_action = {
   .b_desc.action = tpl_action_callback,
-  .tpl_callback_func = %s_callback
+  .callback = %s_callback
 };\n'''%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
         fp.write('''CONST(tpl_alarm_static, OS_CONST) %s_static = {
   .b_desc = {
