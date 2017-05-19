@@ -265,7 +265,7 @@ COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
 endif
 ifeq ($(rtos),trampoline)
 def-y += -DWITH_SYSTEM_CALL=YES
-def-y += -DWITH_DEBUG=YES
+def-y += -DWITH_DEBUG=YES -DNO_OKI_PIPELINE_BUG
 endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
@@ -886,7 +886,7 @@ $(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz:
 
 qemuparams?="-nographic"
 qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
-	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe)
+	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -s -S)
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:

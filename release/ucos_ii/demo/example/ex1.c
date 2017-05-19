@@ -84,7 +84,7 @@ static void  TaskStart (void *pdata)
 
 
     pdata = pdata;                                         /* Prevent compiler warning                 */
-    printf("%s %d\n", __func__, __LINE__);
+
     TaskStartDispInit();                                   /* Initialize the display                   */
 
     OS_ENTER_CRITICAL();
@@ -229,8 +229,8 @@ static void  Task (void *pdata)
 
     for (;;) {
         OSSemPend(RandomSem, 0, &err);           /* Acquire semaphore to perform random numbers        */
-        x = random(80);                          /* Find X position where task number will appear      */
-        y = random(16);                          /* Find Y position where task number will appear      */
+        x = random()%80;                          /* Find X position where task number will appear      */
+        y = random()%16;                          /* Find Y position where task number will appear      */
         OSSemPost(RandomSem);                    /* Release semaphore                                  */
                                                  /* Display the task number on the screen              */
         PC_DispChar(x, y + 5, *(char *)pdata, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);

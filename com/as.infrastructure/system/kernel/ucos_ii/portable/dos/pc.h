@@ -10,7 +10,8 @@
    * By   : Werner Zimmermann
    *********************************************************************************************************
  */
-
+#ifndef _PC_H_
+#define _PC_H_
 #define PC_CHECK_RECURSIVE_CALLS        FALSE           //Set to TRUE, if you want to check whether the keyboard
                                                         //and display functions are called recursively, i.e.
                                                         //the previous call could not be finished before the
@@ -86,4 +87,7 @@ void PC_DOSReturn(void);
 void PC_SetTickRate(INT16U freq);
 
 
-int random(int a);
+int random(void);
+
+#endif /* _PC_H_ */
+

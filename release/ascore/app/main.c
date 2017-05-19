@@ -27,5 +27,6 @@ int main(int argc,char* argv[])
 {
 	ASENVINIT(argc,argv);
 	EcuM_Init();
+	while(1);
 	return 0;
 }

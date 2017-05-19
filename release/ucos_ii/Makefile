@@ -15,7 +15,7 @@
 
 # CPU architecture setting: win32 posix cm3 raspi 9s12xep100 dos ...
 ifeq ($(shell uname), Linux)
-export ARCH ?= 9s12xep100
+export ARCH ?= posix
 else
 export ARCH ?= dos
 endif
@@ -104,7 +104,7 @@ LDFLAGS += -O0 -g
 endif
 
 ifeq (${ARCH}, posix)
-LDFLAGS += -lpthread
+LDFLAGS += -lpthread -lncurses -lm
 LDFLAGS += -Wl,-Map,${out-dir}/${TARGET}.map
 endif
 
@@ -136,7 +136,14 @@ endif
 ifeq (${ARCH}, posix)
 VPATH += ${KERNEL}/portable/posix
 CFLAGS += -I${KERNEL}/portable/posix
-obj-y += ${obj-dir}/os_cpu_c.o
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o
+VPATH += ${CURDIR}/demo/example
+# choose one example: ex1/ex2/ex3/ex4
+ex ?= ex1
+obj-y += ${obj-dir}/${ex}.o
+ifeq (${ex},ex3)
+CFLAGS += -DNO_TASK_STAT_HOOK -DNO_OS_TASK_SWITCH_HOOK
+endif
 endif
 
 ifeq (${ARCH}, win32)

@@ -13,7 +13,7 @@
 #pragma LINK_INFO DERIVATIVE "MC9S12XEP100"
 #endif
 
-#ifdef __arch_dos__
+#if defined(__arch_dos__) || defined(__arch_posix__)
 #include "pc.h"
 #endif
 
@@ -82,13 +82,13 @@ int demo_main(void)
 	Sci_Init();
 #endif
 
-#ifdef __arch_dos__
+#if defined(__arch_dos__) || defined(__arch_posix__)
 	PC_DispClrScr(DISP_FGND_WHITE + DISP_BGND_BLACK);      /* Clear the screen                         */
 #endif
 
 	OSInit();                                              /* Initialize uC/OS-II                      */
 
-#ifdef __arch_dos__
+#if defined(__arch_dos__) || defined(__arch_posix__)
 	PC_DOSSaveReturn();                                    /* Save environment to return to DOS        */
 	PC_VectSet(uCOS, OSCtxSw);
 #endif
@@ -101,13 +101,18 @@ int demo_main(void)
 
 void MainTask(void *p_arg)
 {
+#if defined(__arch_dos__) || defined(__arch_posix__)
+#if      OS_CRITICAL_METHOD == 3
+	OS_CPU_SR cpu_sr;
+#endif
+#endif
 	p_arg = p_arg;
 
 #ifdef __arch_9s12xep100__
 	Initialize_RTI(); /* start the system tick timer */
 #endif
 
-#ifdef __arch_dos__
+#if defined(__arch_dos__) || defined(__arch_posix__)
     OS_ENTER_CRITICAL();
     PC_VectSet(0x08, OSTickISR);                           /* Install uC/OS-II's clock tick ISR        */
     PC_SetTickRate(OS_TICKS_PER_SEC);                      /* Reprogram tick rate                      */
@@ -155,7 +160,7 @@ void OSDebugInit()
 
 int main(int argc,char* argv[])
 {
-#ifdef __arch_dos__
+#if defined(__arch_dos__) || defined(__arch_posix__)
 	extern int  ex_main (void);
 	if( (2 == argc) && (0 == strcmp(argv[1],"ex")))
 	{

@@ -384,7 +384,7 @@ void PC_DOSReturn(void)
 	exit(0);
 }
 
-int random(int a)
+int random(void)
 {
-	return rand()%a;
+	return rand();
 }
