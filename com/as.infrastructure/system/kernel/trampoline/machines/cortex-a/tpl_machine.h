@@ -35,9 +35,9 @@
  */
 #define USER_TASKS_ARM_MODE 0x1F
 
-typedef struct ARM_CONTEXT *tpl_context;
+typedef struct TPL_CONTEXT *tpl_context;
 
-extern struct ARM_CONTEXT idle_task_context;
+extern struct TPL_CONTEXT idle_task_context;
 
 /**
  * @def SIZE_OF_IDLE_TASK

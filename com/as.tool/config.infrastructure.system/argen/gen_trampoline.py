@@ -419,12 +419,11 @@ FUNC(tpl_bool, OS_CODE) tpl_call_counter_tick()
 }\n\n''')
 
     for task in task_list:
-        fp.write('tpl_stack_word %s_stack_zone[%s/sizeof(tpl_stack_word)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
-        fp.write('struct TPL_STACK %s_stack = {%s_stack_zone, %s};\n'%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('tpl_stack_word %s_stack_zone[(%s*4)/sizeof(tpl_stack_word)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
         fp.write('struct TPL_CONTEXT %s_context;\n'%(GAGet(task,'Name')))
         fp.write('''CONST(tpl_proc_static, OS_CONST) %s_task_stat_desc = {
   .context = &%s_context,
-  .stack = &%s_stack,
+  .stack = { .stack_zone = %s_stack_zone, .stack_size = sizeof(%s_stack_zone) },
   .entry = %s_function,
   .internal_resource = NULL,
   .id = TASK_ID_%s,
@@ -449,7 +448,7 @@ VAR(tpl_proc, OS_VAR) %s_task_desc = {
   .activate_count = 0,
   .priority = 0,
   .state =  SUSPENDED
-};\n\n'''%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name')))
+};\n\n'''%(GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name'),GAGet(task,'Name')))
     fp.write('CONSTP2CONST(tpl_proc_static, AUTOMATIC, OS_APPL_DATA) tpl_stat_proc_table[TASK_COUNT+ISR_COUNT+NUMBER_OF_CORES] = {\n')
     for task in task_list:
         fp.write('\t&%s_task_stat_desc,\n'%(GAGet(task,'Name')))

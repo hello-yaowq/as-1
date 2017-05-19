@@ -75,11 +75,6 @@ typedef enum
 /**
  * ARM core registers
  */
-struct ARM_CONTEXT {
-  uint32 r[16];
-  uint32 psr;
-};
-
 struct TPL_CONTEXT {
   uint32 r[16];
   uint32 psr;
@@ -88,7 +83,7 @@ struct TPL_CONTEXT {
 /**
  * ARM generic platform context
  */
-typedef struct ARM_CONTEXT arm_context;
+typedef struct TPL_CONTEXT arm_context;
 
 /**
  * default size of an element in a stack

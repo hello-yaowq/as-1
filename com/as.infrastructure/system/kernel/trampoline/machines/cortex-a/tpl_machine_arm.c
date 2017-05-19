@@ -161,7 +161,7 @@ void tpl_os_enable_interrupts(void) {}
 FUNC(void, OS_CODE) tpl_init_context(
     CONST(tpl_proc_id, OS_APPL_DATA) proc_id)
 {
-  struct ARM_CONTEXT *core_context;
+  struct TPL_CONTEXT *core_context;
   const tpl_proc_static *the_proc;
 
   /* initialize shortcuts */
