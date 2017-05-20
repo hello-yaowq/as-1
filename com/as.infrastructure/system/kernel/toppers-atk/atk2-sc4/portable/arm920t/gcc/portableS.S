@@ -30,39 +30,6 @@
 .equ    NOINT,              0xc0
 
     .section .text
-    .global Irq_Restore
-    .type   Irq_Restore, %function
-/* void Irq_Restore( imask_t intsts ); */
-Irq_Restore:
-    msr cpsr, r0
-    mov pc, lr
-
-    .global __Irq_Save
-    .type   __Irq_Save, %function
-/* imask_t __Irq_Save( void ); */
-__Irq_Save:
-    mrs r0, cpsr
-    orr r1, r0, #NOINT
-    msr cpsr_c, r1
-    mov pc, lr
-
-/* void x_lock_all_int(void)   */
-    .global x_lock_all_int
-    .type   x_lock_all_int, %function
-x_lock_all_int:
-    mrs r0, cpsr
-    orr r0, r0, #NOINT
-    msr cpsr_c, r0
-    mov pc, lr
-
-/* void x_unlock_all_int(void) */
-    .global x_unlock_all_int
-    .type   x_unlock_all_int, %function
-x_unlock_all_int:
-    mrs r0, cpsr
-    bic r0, r0, #NOINT
-    msr cpsr_c, r0
-    mov pc, lr
 
     .global  knl_dispatch_r
     .type   knl_dispatch_r, %function

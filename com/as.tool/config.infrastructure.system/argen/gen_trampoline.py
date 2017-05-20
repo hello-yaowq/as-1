@@ -252,6 +252,18 @@ def genForTrampolineMisc_H(gendir,os_list):
 
     fp.write('\n#define TRACE_FORMAT() tpl_trace_format_txt();\n')
     fp.write('#define TRACE_FILE "trampoline_os_trace.txt"\n')
+
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
+            isr_num = int(GAGet(isr,'Vector'),10)+1
+    for id,isr in enumerate(isr_list):
+        fp.write('#define ISR_ID_%-32s %s\n'%(GAGet(isr,'Name'),id))
+    fp.write('#define ISR_MAX%-32s %s\n\n'%(' ',len(isr_list)))
+    for id,isr in enumerate(isr_list):
+        fp.write('#define ISR_VECTOR_%-32s %s\n'%(GAGet(isr,'Name'),GAGet(isr,'Vector')))
+    fp.write('#define ISR_NUM%-35s  %s\n\n'%(' ',isr_num))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -332,6 +344,9 @@ def genForTrampoline_C(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    isr_list = ScanFrom(os_list,'ISR')
+    for isr in isr_list:
+        fp.write('extern ISR(%s);\n'%(GAGet(isr,'Name')))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
@@ -526,6 +541,20 @@ VAR(tpl_kern_state, OS_VAR) tpl_kern =
     for task in task_list[:-1]:
         fp.write('\t&%s_events,\n'%(GAGet(task,'Name')))
     fp.write('};\n\n')
+    isr_num = 0
+    for isr in isr_list:
+        if((int(GAGet(isr,'Vector'),10)+1)>isr_num):
+            isr_num = int(GAGet(isr,'Vector'),10)+1
+    if(isr_num > 0):
+        fp.write('const tpl_callback_func tisr_pc[ %s ] = {\n'%('ISR_NUM'))
+        for iid in range(isr_num):
+            iname = 'NULL'
+            for isr in isr_list:
+                if(iid == int(GAGet(isr,'Vector'))):
+                    iname = '%s_function'%(GAGet(isr,'Name'))
+                    break
+            fp.write('\t%s, /* %s */\n'%(iname,iid))
+        fp.write('};\n\n')
     fp.close()
 
 def gen_trampoline(gendir,os_list):

@@ -261,6 +261,7 @@ vector_undef:
     b vector_undef
 
     .align  5
+    .weak vector_swi
 vector_swi:
     b vector_swi
 
@@ -309,4 +310,43 @@ stack_setup:
     mov     pc,lr                   /* The LR register may be not valid for the mode changes.*/
 
 /*/*}*/
+	.section .text
+    .global Irq_Restore
+    .type   Irq_Restore, %function
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
+    msr cpsr, r0
+    mov pc, lr
 
+    .global __Irq_Save
+    .type   __Irq_Save, %function
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
+    mrs r0, cpsr
+    orr r1, r0, #NOINT
+    msr cpsr_c, r1
+    mov pc, lr
+
+/* void x_lock_all_int(void)   */
+    .global tpl_disable_os_interrupts
+    .type   tpl_disable_os_interrupts, %function
+    .global x_lock_all_int
+    .type   x_lock_all_int, %function
+tpl_disable_os_interrupts:
+x_lock_all_int:
+    mrs r0, cpsr
+    orr r0, r0, #NOINT
+    msr cpsr_c, r0
+    mov pc, lr
+
+/* void x_unlock_all_int(void) */
+	.global tpl_enable_os_interrupts
+	.type   tpl_enable_os_interrupts, %function
+    .global x_unlock_all_int
+    .type   x_unlock_all_int, %function
+tpl_enable_os_interrupts:
+x_unlock_all_int:
+    mrs r0, cpsr
+    bic r0, r0, #NOINT
+    msr cpsr_c, r0
+    mov pc, lr

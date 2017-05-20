@@ -32,6 +32,8 @@
  * this architecture, FIQ are category 1 interrupts)
  */
 .global tpl_primary_irq_handler
+.global vector_irq
+vector_irq:
 tpl_primary_irq_handler:
   @push {r0-r12, lr}
   @bl trace_in

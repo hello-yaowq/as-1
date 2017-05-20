@@ -40,6 +40,8 @@
  * mechanism.
  */
 .global tpl_primary_syscall_handler
+.global vector_swi
+vector_swi:
 tpl_primary_syscall_handler:
   /**********************
    * KERNEL ENTER STAGE *

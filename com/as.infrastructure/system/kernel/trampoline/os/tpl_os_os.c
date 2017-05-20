@@ -32,6 +32,7 @@
 
 extern FUNC(void, OS_CODE) tpl_start_os(CONST(AppModeType, AUTOMATIC) mode);
 
+void __attribute__ ((weak)) tpl_init_machine(void) {}
 /**
  * Starts Trampoline
  *
