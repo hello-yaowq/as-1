@@ -15,6 +15,7 @@
 
 #if defined(__arch_dos__) || defined(__arch_posix__)
 #include "pc.h"
+#include "rs232.h"
 #endif
 
 OS_STK MainTask_Stk[MainTask_StkSize];
@@ -166,8 +167,76 @@ int main(int argc,char* argv[])
 	{
 		return ex_main();
 	}
-#endif
 
+	extern int tool_main(const char* comport);
+	if( (3 == argc) && (0 == strcmp(argv[1],"-c")))
+	{
+		return tool_main(argv[2]);
+	}
+#endif
 
 	return demo_main();
 }
+
+
+#if defined(__arch_dos__) || defined(__arch_posix__)
+int tool_main(const char* comport)
+{
+	char chr;
+	int ret;
+	char r_cache[1024];
+	size_t r_size = 0;
+	int port = atoi(comport);
+	INT8U x,y,c;
+	INT16S key;
+
+	if( 0 != RS232_OpenComport(port,115200,"8N1"))
+	{
+		return -1;
+	}
+
+	PC_DOSSaveReturn();
+	PC_DispClrScr(DISP_FGND_WHITE + DISP_BGND_BLACK);      /* Clear the screen                         */
+
+	while(1)
+	{
+		ret = RS232_PollComport(port,(unsigned char*)&chr,1);
+		if( 1 == ret )
+		{
+			if(('\n' == chr) || ('\r' == chr))
+			{ /* CMD: '$XYC...STRING...' */
+				if((r_size > 4) && ('$' == r_cache[0]))
+				{
+					x = r_cache[1];
+					y = r_cache[2];
+					c = r_cache[3];
+					r_cache[r_size] = '\0';
+					PC_DispStr(x,y,&r_cache[4],c);
+				}
+				r_size = 0;
+			}
+			else
+			{
+				r_cache[r_size] = chr;
+				r_size++; 
+				if(r_size >= sizeof(r_cache))
+				{
+					r_size = 0; /* reset as some error */
+				}
+			}
+		}
+
+		if(PC_GetKey(&key))
+		{
+			ret = RS232_SendByte(port, key);
+			if(0 != ret)
+			{
+				break; /* something wrong*/
+			}
+		}
+	}
+
+	return 0;
+}
+#endif
+

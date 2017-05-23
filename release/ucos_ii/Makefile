@@ -135,8 +135,9 @@ endif
 
 ifeq (${ARCH}, posix)
 VPATH += ${KERNEL}/portable/posix
-CFLAGS += -I${KERNEL}/portable/posix
-obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o
+VPATH += ${COM}/as.tool/lua/can/rs232
+CFLAGS += -I${KERNEL}/portable/posix -I${COM}/as.tool/lua/can/rs232
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o ${obj-dir}/rs232.o
 VPATH += ${CURDIR}/demo/example
 # choose one example: ex1/ex2/ex3/ex4
 ex ?= ex1
@@ -154,8 +155,9 @@ endif
 
 ifeq (${ARCH}, dos)
 VPATH += ${KERNEL}/portable/dos
-CFLAGS += -I${KERNEL}/portable/dos
-obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o
+VPATH += ${COM}/as.tool/lua/can/rs232
+CFLAGS += -I${KERNEL}/portable/dos -I${COM}/as.tool/lua/can/rs232
+obj-y += ${obj-dir}/os_cpu_c.o ${obj-dir}/pc.o ${obj-dir}/rs232.o
 VPATH += ${CURDIR}/demo/example
 # choose one example: ex1/ex2/ex3/ex4
 ex ?= ex1

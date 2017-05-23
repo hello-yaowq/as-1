@@ -34,8 +34,26 @@
    *              To have the ASCII character 'A' with a white letter on a blue background.
    *********************************************************************************************************
  */
+#ifndef __RS232__
 #include <windows.h>
 #include "ucos_ii.h"
+#else
+typedef unsigned char  BOOLEAN;
+typedef unsigned char  INT8U;                    /* Unsigned  8 bit quantity                           */
+typedef signed   char  INT8S;                    /* Signed    8 bit quantity                           */
+typedef unsigned short INT16U;                   /* Unsigned 16 bit quantity                           */
+typedef signed   short INT16S;                   /* Signed   16 bit quantity                           */
+typedef unsigned long  INT32U;                   /* Unsigned 32 bit quantity                           */
+typedef signed   long  INT32S;                   /* Signed   32 bit quantity                           */
+#define FOREGROUND_BLUE1
+#define FOREGROUND_GREEN2
+#define FOREGROUND_RED4
+#define FOREGROUND_INTENSITY8
+#define BACKGROUND_BLUE16
+#define BACKGROUND_GREEN32
+#define BACKGROUND_RED64
+#define BACKGROUND_INTENSITY128
+#endif
 //#define DEBUG_PC
 
 

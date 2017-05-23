@@ -13,10 +13,11 @@
  */
 
 #include "pc.h"
-#include "ucos_ii.h"
 #include <stdio.h>
-#include <conio.h>
 #include <stdlib.h>
+#ifndef __RS232__
+#include "ucos_ii.h"
+#include <conio.h>
 
 static BOOLEAN lock=FALSE;
 static HANDLE  hStdOut = NULL;
@@ -388,3 +389,40 @@ int random(void)
 {
 	return rand();
 }
+#else /* __RS232__ */
+void PC_DispChar(INT8U x, INT8U y, INT8U c, INT8U color)
+{
+	printf("$%c%c%c%c\n",x,y,color,c);
+}
+void PC_DispClrScr(INT8U bgnd_color) {}
+void PC_DispStr(INT8U x, INT8U y, INT8U * s, INT8U color)
+{
+	printf("$%c%c%c%s\n",x,y,color,s);
+}
+
+void PC_ElapsedInit(void) {}
+void PC_ElapsedStart(INT8U n) {}
+INT32U PC_ElapsedStop(INT8U n) { return 1; }
+
+void PC_GetDateTime(char *s)
+{
+    sprintf(s, "%s %s", __DATE__, __TIME__);
+}
+BOOLEAN PC_GetKey(INT16S * c) { return 0; }
+
+void  PC_VectSet(INT8U irq, void (*isr)(void)) {}
+void *PC_VectGet(INT8U irq) { return NULL;}
+
+void PC_DOSSaveReturn(void) {}
+void PC_DOSReturn(void) {}
+void PC_SetTickRate(INT16U freq) {}
+
+int random(void)
+{
+	int rand0;
+	int rand1;
+	int rand2;
+	
+	return rand0^rand1^rand2;
+}
+#endif
