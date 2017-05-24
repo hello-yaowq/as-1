@@ -103,7 +103,11 @@ void PC_DispStr(INT8U x, INT8U y, INT8U * s, INT8U color)
         hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     if ((x>79) || (y>24))					// Check for valid cursor position
-        MessageBox(NULL, "Invalid screen position in PC_DispStr()", "ucos-II", MB_OK);
+    {
+    	char msg[1024];
+    	sprintf(msg,"Invalid screen position in PC_DispStr(%d,%d)",x,y);
+        MessageBox(NULL, msg, "ucos-II", MB_OK);
+    }
 
     pos.X = x;							// Set cursor position
     pos.Y = y;
@@ -392,12 +396,30 @@ int random(void)
 #else /* __RS232__ */
 void PC_DispChar(INT8U x, INT8U y, INT8U c, INT8U color)
 {
+#if      OS_CRITICAL_METHOD == 3
+	OS_CPU_SR cpu_sr;
+#endif
+	OS_ENTER_CRITICAL();
 	printf("$%c%c%c%c\n",x,y,color,c);
+	OS_EXIT_CRITICAL();
 }
-void PC_DispClrScr(INT8U bgnd_color) {}
+void PC_DispClrScr(INT8U bgnd_color)
+{
+#if      OS_CRITICAL_METHOD == 3
+	OS_CPU_SR cpu_sr;
+#endif
+	OS_ENTER_CRITICAL();
+	printf("$$%c\n",bgnd_color);
+	OS_EXIT_CRITICAL();
+}
 void PC_DispStr(INT8U x, INT8U y, INT8U * s, INT8U color)
 {
+#if      OS_CRITICAL_METHOD == 3
+	OS_CPU_SR cpu_sr;
+#endif
+	OS_ENTER_CRITICAL();
 	printf("$%c%c%c%s\n",x,y,color,s);
+	OS_EXIT_CRITICAL();
 }
 
 void PC_ElapsedInit(void) {}
@@ -417,12 +439,8 @@ void PC_DOSSaveReturn(void) {}
 void PC_DOSReturn(void) {}
 void PC_SetTickRate(INT16U freq) {}
 
-int random(void)
+INT8U random(INT8U max)
 {
-	int rand0;
-	int rand1;
-	int rand2;
-	
-	return rand0^rand1^rand2;
+	return rand()%max;
 }
 #endif

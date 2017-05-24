@@ -24,7 +24,7 @@ struct TPL_STACK {
     tpl_stack_word      *stack_zone;
     tpl_stack_size      stack_size; 
 };
-typedef struct TPL_STACK *tpl_stack;
+typedef struct TPL_STACK tpl_stack;
 extern struct TPL_STACK idle_task_stack;
 
 struct TPL_CONTEXT {

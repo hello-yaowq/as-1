@@ -182,9 +182,9 @@ int main(int argc,char* argv[])
 #if defined(__arch_dos__) || defined(__arch_posix__)
 int tool_main(const char* comport)
 {
-	char chr;
+	INT8U chr;
 	int ret;
-	char r_cache[1024];
+	INT8U r_cache[1024];
 	size_t r_size = 0;
 	int port = atoi(comport);
 	INT8U x,y,c;
@@ -212,6 +212,11 @@ int tool_main(const char* comport)
 					c = r_cache[3];
 					r_cache[r_size] = '\0';
 					PC_DispStr(x,y,&r_cache[4],c);
+				}
+				else if((3==r_size) && ('$' == r_cache[0]) && ('$' == r_cache[1]))
+				{
+					c = r_cache[2];
+					PC_DispClrScr(c);
 				}
 				r_size = 0;
 			}

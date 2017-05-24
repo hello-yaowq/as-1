@@ -124,8 +124,8 @@ FUNC(void, OS_CODE) tpl_create_context(
     sigaction(SIGUSR1, &new_action, &old_action);
 
     /* 3 : prepare the new stack */
-    new_stack.ss_sp = (tpl_stat_proc_table[proc_id]->stack)->stack_zone;
-    new_stack.ss_size = (tpl_stat_proc_table[proc_id]->stack)->stack_size;
+    new_stack.ss_sp = (tpl_stat_proc_table[proc_id]->stack).stack_zone;
+    new_stack.ss_size = (tpl_stat_proc_table[proc_id]->stack).stack_size;
     new_stack.ss_flags = 0;
     sigaltstack(&new_stack, &old_stack);
 

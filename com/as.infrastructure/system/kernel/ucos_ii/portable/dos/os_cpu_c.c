@@ -18,7 +18,6 @@
 
 #include "ucos_ii.h"
 
-
 static HANDLE  mainhandle;
 static CONTEXT Context;
 OS_CPU_SR FlagEn = 1;
@@ -97,7 +96,7 @@ OS_STK *OSTaskStkInit (void (*task)(void *pd), void *pdata, OS_STK *ptos, INT16U
     *--stk = (INT32U)0x11111111;                /* EBP = 0x11111111                                             */
     *--stk = (INT32U)0x22222222;                /* ESI = 0x22222222                                             */
     *--stk = (INT32U)0x33333333;                /* EDI = 0x33333333                                             */
-    *--stk = (INT32U)1;                			/* ISR Flag: enabled                                            */
+    //*--stk = (INT32U)1;                			/* ISR Flag: enabled                                            */
                              
     return ((OS_STK *)stk);
 }
@@ -139,12 +138,10 @@ void OSStartHighRdy(void)
 	 * http://www.cnblogs.com/zhuyp1015/archive/2012/05/01/2478099.html*/
 	asm (
 		 "mov  (%0), %%esp \n" /* restore contex */
-		 "pop %%eax         \n"
-		 "mov %%eax, (%1)   \n"
 		 "popal		        \n"   /* restore all general registers, in sum 8 */
 		 "popfl		        \n"   /* restore the flag register */
 		 "ret		        \n"   /* ret  = pop eip, in protection mode, not allowed to use eip */
-			:: "a"(OSTCBCur),"b"(&FlagEn) :
+			:: "a"(OSTCBCur) :
 		);
 #else
 	_asm{
@@ -194,9 +191,8 @@ void OSCtxSw(void)
 		"push %1             \n"/* start from nextstart when the task switch back */
 		"pushfl				 \n" /* flag register */
 		"pushal				 \n" /* store EAX -- EDI */
-		"push %2             \n"
 		"mov %%esp, %0	     \n" /* store current stack esp to OSTCBCur */
-		: "=a"(OSTCBCur->OSTCBStkPtr) : "a"(addr), "b" (FlagEn):
+		: "=a"(OSTCBCur->OSTCBStkPtr) : "a"(addr):
 	);
 #else
 	_asm{
@@ -214,12 +210,10 @@ void OSCtxSw(void)
 #ifdef __GNUC__
 	asm (
 		 "mov  (%0), %%esp \n" /* restore contex */
-		 "pop %%eax         \n"
-		 "mov %%eax, (%1)   \n"
 		 "popal		        \n"   /* restore all general registers, in sum 8 */
 		 "popfl		        \n"   /* restore the flag register */
 		 "ret		        \n"   /* ret  = pop eip, in protection mode, not allowed to use eip */
-			:: "a"(OSTCBCur),"b"(&FlagEn) :
+			:: "a"(OSTCBCur) :
 	);
 #else
 	_asm{
@@ -271,7 +265,6 @@ void OSIntCtxSw(void)
 	*--sp = Context.Ebp;
 	*--sp = Context.Esi;
 	*--sp = Context.Edi;
-	*--sp = FlagEn;
 	OSTCBCur->OSTCBStkPtr = (OS_STK *)sp;	/* here save the esp, this is the right one */
 	
 	OSTCBCur = OSTCBHighRdy;
@@ -280,7 +273,6 @@ void OSIntCtxSw(void)
 	
 	
 	//restore all registers
-	FlagEn = *sp++;
 	Context.Edi = *sp++;
 	Context.Esi = *sp++;
 	Context.Ebp = *sp++;

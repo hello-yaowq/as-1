@@ -13,7 +13,7 @@ ldflags-y += -lc -lgcc -L$(COMPILER_DIR)/arm-none-eabi/lib -L$(COMPILER_DIR)/lib
 endif
 ifeq ($(rtos),trampoline)
 def-y += -DWITH_SYSTEM_CALL=YES
-def-y += -DWITH_DEBUG=YES -DNO_OKI_PIPELINE_BUG
+def-y += -DWITH_DEBUG=YES
 endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
