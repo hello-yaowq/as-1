@@ -15,6 +15,7 @@
 /* LUA version is 5.3.1 */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "lascanlib.h"
+#include "lasdevlib.h"
 #include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -30,11 +31,17 @@ static const luaL_Reg aslib[] = {
 		{"can_open", luai_can_open},
 		{"can_log",  luai_can_log},
 		{"time",     luai_as_time},
+		{"open",     luai_as_open},
+		{"read",     luai_as_read},
+		{"write",     luai_as_write},
+		{"ioctl",     luai_as_ioctl},
+		{"close",     luai_as_close},
 		{NULL,NULL}
 };
 static const luaL_open_t open_ops[] =
 {
 	luai_canlib_open,
+	luai_asdevlib_open,
 	NULL
 };
 static const luaL_open_t close_ops[] =

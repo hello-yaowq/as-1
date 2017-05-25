@@ -17,11 +17,21 @@ require("as")
 require("s19")
 require("os")
 
-local function hexs(data)
+local function hext(data) -- this is for table
   ss = "["
   len = rawlen(data)
   for i=1,len,1 do
     ss = string.format("%s%02X,",ss,data[i])
+  end
+  ss = string.format("%s],",ss)
+  return ss
+end
+
+local function hexs(data) -- this is for string
+  ss = "["
+  len = rawlen(data)
+  for i=1,len,1 do
+    ss = string.format("%s%02X,",ss,string.byte(data,i))
   end
   ss = string.format("%s],",ss)
   return ss
@@ -76,4 +86,15 @@ function test_can_amb()
   end
 end
 
-test_can_amb()
+function test_asdev()
+  fd = as.open("COM14",115200,"8N1")
+  len,data = as.read(fd)
+  if len > 0 then
+    print("rx string is: ",rawlen(data),data)
+    print("rx raw data is: ",hexs(data))
+  end
+end
+
+test_asdev()
+
+print("Test END")

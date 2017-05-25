@@ -32,6 +32,7 @@
 #ifdef USE_SHELL
 #include "shell.h"
 #endif
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define SHELL_CMD_CACHE_SIZE  4096
 /* ============================ [ TYPES     ] ====================================================== */
@@ -156,6 +157,7 @@ void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 #endif /* USE_RPMSG */
 int main(int argc,char* argv[])
 {
+	ASENVINIT(argc,argv);
 #ifdef USE_SHELL
 	if( argc != 1 )
 	{
