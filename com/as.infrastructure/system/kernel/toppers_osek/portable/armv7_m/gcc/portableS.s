@@ -22,25 +22,6 @@
     .extern callevel,tcxb_sp,tcxb_pc,activate_r,knl_dispatch_started
     .extern knl_system_stack_top
 
-    .section .text
-    .global Irq_Restore
-    .type   Irq_Restore, %function
-/* void Irq_Restore( imask_t intsts ); */
-Irq_Restore:
-    mrs     r1, primask
-    msr     primask, r0
-    mov     r0, r1
-    bx      lr
-
-    .global __Irq_Save
-    .type   __Irq_Save, %function
-/* imask_t __Irq_Save( void ); */
-__Irq_Save:
-    mrs     r0, primask
-    ldr     r1, = 0x1 /* TS_PMK_D */
-    msr     primask, r1
-    bx      lr
-
     .global knl_activate_r
     .type   knl_activate_r, %function
 knl_activate_r:

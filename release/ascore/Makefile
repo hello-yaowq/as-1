@@ -124,9 +124,9 @@ endif
 
 # ---------------------------------- [ lm3s6965evb  ] ---------------------------------- #
 21:
-	make dep board=lm3s6965evb compiler=cortexm3-gcc rtos=toppers_osek
+	make dep board=lm3s6965evb compiler=cortexm3-gcc rtos=trampoline
 22:
-	make all board=lm3s6965evb compiler=cortexm3-gcc rtos=toppers_osek debug=true
+	make all board=lm3s6965evb compiler=cortexm3-gcc rtos=trampoline debug=true
 23:
 	make all board=lm3s6965evb compiler=cortexm3-gcc rtos=toppers_osek debug=false
 

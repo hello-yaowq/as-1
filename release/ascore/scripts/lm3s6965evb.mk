@@ -16,6 +16,13 @@ def-y += -DUSE_DET
 inc-y += -I$(src-dir)/library -I$(src-dir)/library/src
 ldflags-y += -L$(src-dir)/library -llm3sdriver
 
+ifeq ($(rtos),trampoline)
+def-y += -DWITH_SYSTEM_CALL=YES
+def-y += -DWITH_DEBUG=YES
+def-y += -DSVCall_IRQn=-5
+endif
+
+include scripts/cortex_m3.mk
 
 dep-lm3s6965evb-library:	
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/lm3s/DriverLib library)
@@ -51,6 +58,16 @@ endif
 ifeq ($(compiler),cortexm3-icc)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/icc FALSE)
 endif
+endif
+ifeq ($(rtos),trampoline)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-m3 TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers_osek/portable/armv7_m/gcc/startup.s tpl_startup.S)
+	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
+	@(cd $(src-dir);echo "#include	\"hw_ints.h\"" > cmsis_wrapper.h)
+	@(cd $(src-dir);echo "#include	\"core_cm3.h\"" >> cmsis_wrapper.h)
 endif
 	@(cd $(inc-dir);$(LNFS) $(CMSIS))
 	@(make BSW)

@@ -17,7 +17,12 @@
 	.fpu softvfp
 	.thumb
 
-#include "portable.h"
+.macro DEFAULT_ISR_HANDLER name=
+  .thumb_func
+  .weak \name
+\name:
+1: b 1b /* endless loop */
+.endm
 
 	.global __vector_table
 
@@ -344,3 +349,33 @@ LoopFillZerobss:
 	bl	main
 	b	.
 .size	reset_handler, .-reset_handler
+
+    .section .text
+    .global Irq_Restore
+    .type   Irq_Restore, %function
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
+    mrs     r1, primask
+    msr     primask, r0
+    mov     r0, r1
+    bx      lr
+
+    .global __Irq_Save
+    .type   __Irq_Save, %function
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
+    mrs     r0, primask
+    ldr     r1, = 0x1 /* TS_PMK_D */
+    msr     primask, r1
+    bx      lr
+
+DEFAULT_ISR_HANDLER knl_isr_process
+DEFAULT_ISR_HANDLER nmi_handler
+DEFAULT_ISR_HANDLER hard_fault_handler
+DEFAULT_ISR_HANDLER mpu_fault_handler
+DEFAULT_ISR_HANDLER bus_fault_handler
+DEFAULT_ISR_HANDLER usage_fault_handler
+DEFAULT_ISR_HANDLER debug_monitor_handler
+DEFAULT_ISR_HANDLER knl_system_tick
+DEFAULT_ISR_HANDLER knl_dispatch_entry		
+

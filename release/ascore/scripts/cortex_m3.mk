@@ -1,3 +1,4 @@
+
 ifeq ($(compiler),cortexm3-gcc)
 CMSIS = $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS
 ifeq ($(host), Linux)
@@ -8,11 +9,12 @@ ldflags-y += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-e
 else
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
-
+ldflags-y += -lc -lgcc -L$(COMPILER_DIR)/arm-none-eabi/lib -L$(COMPILER_DIR)/lib/gcc/arm-none-eabi/4.8.3
 #COMPILER_PREFIX = arm-linux-gnueabihf-
 #COMPILER_DIR = C:/opt/Linaro/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04
 endif
 inc-y += -I$(inc-dir)/CMSIS/Include
+
 include ../make/cortexm3.gcc.mk
 endif
 
