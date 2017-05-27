@@ -7,6 +7,7 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
+* 2016-May-27: Nowdays, almost no real work, most of my time is spent on study of AGL security feature(SMACK,Cynara,Security-Manager), that's good but feel boring, still hope to do something related a real product. And ddd trampoline os which is AUTOSAR compatible, the most amazimg part of it is that the management ready queue by bubble sort algorithm dynamicaly, but bring up failed, but it doesn't matter as that I just want to read the code of it, if necessary, it will not be a problem to bring it up.
 * 2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost have no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
 * 2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
 
@@ -25,6 +26,7 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [toppers-atk2](https://www.toppers.jp/atk2.html)
 * small : this OS is developed by me, OSEK BCC1 conformed
 * [contiki](http://contiki-os.org/)
+* [trampoline](https://github.com/TrampolineRTOS/trampoline)
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
@@ -36,9 +38,11 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
 
 ## 5. Lua Script Integrated
-* support CAN device: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
+* support CAN device by lascanlib: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
+* support miscellaneous device by lasdevlib with the smae API interface "open/read/write/ioctl/close": rs232
 
 ## 6. aslinux simulation environment on QEMU
+* Now use one [makefile](https://github.com/parai/as/blob/master/release/aslinux/makefile) to bring up the QEMU [AGL](https://www.automotivelinux.org/) environment.
 * very simple and easy, with one single [Makefile](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) to build out the kernel and the rootfs, and a [shell script](https://github.com/parai/as/blob/master/release/aslinux/script/run-vexpress.sh) to kick off the qemu virtual machine to execute that kernel and mount that rootfs.(for details check my [github.io page](http://parai.github.io/as/navigations/categories.html) on category linux)
 * aslinux build step
 

@@ -159,6 +159,7 @@ asncurse:$(download)/ncurses-6.0
 dep-arm:asreadline asncurse
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/device TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
 	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
