@@ -18,6 +18,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define PPARAM(p) ((LAS_RS232ParamType*)p)
+#define AS_LOG_LAS_DEV 0
 /* ============================ [ TYPES     ] ====================================================== */
 enum
 {
@@ -31,9 +32,9 @@ typedef struct {
 /* ============================ [ DECLARES  ] ====================================================== */
 static int lasdev_open  (const char* device, lua_State *L, void** param);
 static int lasdev_read  (void* param,lua_State *L);
-static int lasdev_write (void* param);
-static int lasdev_close (void* param);
-static void lasdev_ioctl(void* param);
+static int lasdev_write (void* param,const char* data,size_t size);
+static void lasdev_close(void* param);
+static int lasdev_ioctl (void* param,int type, const char* data,size_t size);
 /* ============================ [ DATAS     ] ====================================================== */
 const LAS_DeviceOpsType rs232_dev_ops = {
 	.name = "COM",
@@ -47,7 +48,6 @@ const LAS_DeviceOpsType rs232_dev_ops = {
 static int lasdev_open  (const char* device, lua_State *L, void** param)
 {
 	char* modes;
-	const LAS_DeviceOpsType* ops;
 	size_t ls;
 	int is_num,n,baudrate,port;
 
@@ -66,12 +66,12 @@ static int lasdev_open  (const char* device, lua_State *L, void** param)
 			 return luaL_error(L,"incorrect argument baudrate to function '%s'",__func__);
 		}
 
-		modes = lua_tolstring(L, 3, &ls);
+		modes = (char*)lua_tolstring(L, 3, &ls);
 		if(0 == ls)
 		{
 			 return luaL_error(L,"incorrect argument mode to function '%s','8N1' is an example",__func__);
 		}
-		ASLOG(ON,"rs232 open(%d,%d,%s)\n",port,baudrate,modes);
+        ASLOG(LAS_DEV,"rs232 open(%d,%d,%s)\n",port,baudrate,modes);
 
 		PPARAM(*param)->mode = RW_STRING_MODE;
 		if(4u == strlen(modes))
@@ -101,9 +101,9 @@ static int lasdev_read  (void* param,lua_State *L)
 	int len;
 	int table_index,i;
 
-	len = RS232_PollComport(PPARAM(param)->port,data,sizeof(data)-1);
+	len = RS232_PollComport(PPARAM(param)->port,(unsigned char*)data,sizeof(data)-1);
 
-	ASLOG(ON,"rs232 %d = read(%d)\n",len,*((LAS_RS232ParamType*)param));
+	ASLOG(LAS_DEV,"rs232 %d = read(%d)\n",len,*((LAS_RS232ParamType*)param));
 
 	lua_pushinteger(L,len);
 
@@ -131,19 +131,21 @@ static int lasdev_read  (void* param,lua_State *L)
 
 	return 2;
 }
-static int lasdev_write (void* param)
+static int lasdev_write (void* param,const char* data,size_t ls)
 {
-
-	return 0;
+	return RS232_SendBuf(PPARAM(param)->port,(unsigned char*)data,ls);
 }
-static int lasdev_close (void* param)
+static void lasdev_close (void* param)
 {
 	RS232_CloseComport(PPARAM(param)->port);
 	free(param);
-	return 0;
 }
-static void lasdev_ioctl(void* param)
+static int lasdev_ioctl(void* param,int type, const char* data,size_t size)
 {
-
+	(void) param;
+	(void) type;
+	(void) data;
+	(void) size;
+	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

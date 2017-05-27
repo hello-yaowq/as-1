@@ -42,6 +42,7 @@ dep-lm3s6965evb:dep-lm3s6965evb-library
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(cd $(src-dir);rm -f EcuM_Flexible.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/SchM TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/lm3s/mcal TRUE)

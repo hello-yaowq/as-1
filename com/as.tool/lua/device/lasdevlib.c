@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_LAS_DEV 0
 /* ============================ [ TYPES     ] ====================================================== */
 struct LAS_Dev_s {
 	char name[LAS_DEVICE_NAME_SIZE];
@@ -117,6 +118,7 @@ static void freeDev(struct LAS_DevList_s*h)
 	}
 	pthread_mutex_unlock(&h->q_lock);
 }
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void luai_asdevlib_open(void)
 {
@@ -224,28 +226,177 @@ int luai_as_read  (lua_State *L)
 		return luaL_error(L, "%s (fd) API should has 1 arguments",__func__);
 	}
 }
+
 int luai_as_write  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
-	if(3==n)
+	if(3 == n)
 	{
-		return 1;
+		int fd;
+		int is_num;
+		size_t ls,len;
+		struct LAS_Dev_s* d;
+		char* data;
+
+		fd = lua_tounsignedx(L, 1, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument fd to function '%s'",__func__);
+		}
+
+		data = (char*)lua_tolstring(L, 2, &ls);
+		if(0 == ls)
+		{
+			int i = 0;
+
+			ls = luaL_len ( L , 2 ) ;
+			data = malloc(ls);
+
+			lua_pushvalue(L, 2);
+			lua_pushnil(L);
+			while (lua_next(L, -2))
+			{
+				lua_pushvalue(L, -2);
+				data[i] = (char)lua_tounsignedx(L, -2,&is_num);
+				ASLOG(LAS_DEV,"write: data[%d] = %d\n",i,data[i]);
+				if(!is_num)
+				{
+					return luaL_error(L,"invalid data[%d] to function '%s'",i,__func__);
+				}
+				else
+				{
+					i ++;
+				}
+
+				lua_pop(L, 2);
+			}
+			lua_pop(L, 1);
+		}
+		else
+		{
+			ASLOG(LAS_DEV,"write string is '%s'\n",data);
+		}
+
+	    len = lua_tounsignedx(L, 3, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument size to function '%s'",__func__);
+		}
+
+		if(len > ls)
+		{
+			len = ls;
+		}
+
+		d = getDev2(fd);
+		if(NULL == d)
+		{
+			 return luaL_error(L,"fd(%d) is not existed '%s'",fd,__func__);
+		}
+
+		if(d->ops->write != NULL)
+		{
+			lua_pushinteger(L, d->ops->write(d->param,data,len));
+			return 1;
+		}
+		else
+		{
+			return luaL_error(L, "%s for %s is not supported",__func__,d->name);
+		}
 	}
 	else
 	{
-		return luaL_error(L, "%s (fd) API should has 1 arguments",__func__);
+		return luaL_error(L, "%s (fd,data,size) API should has 3 arguments",__func__);
 	}
 }
+
 int luai_as_ioctl  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
-	if(3==n)
+	if(4==n)
 	{
+		int fd,type;
+		int is_num;
+		size_t ls,len;
+		struct LAS_Dev_s* d;
+		char* data;
+
+		fd = lua_tounsignedx(L, 1, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument fd to function '%s'",__func__);
+		}
+
+		type = lua_tounsignedx(L, 2, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument type to function '%s'",__func__);
+		}
+
+		data = (char*)lua_tolstring(L, 3, &ls);
+		if(0 == ls)
+		{
+			int i = 0;
+
+			ls = luaL_len ( L , 3 ) ;
+			data = malloc(ls);
+
+			lua_pushvalue(L, 3);
+			lua_pushnil(L);
+			while (lua_next(L, -2))
+			{
+				lua_pushvalue(L, -2);
+				data[i] = (char)lua_tounsignedx(L, -2,&is_num);
+				ASLOG(LAS_DEV,"ioctl %d: data[%d] = %d\n",type,i,data[i]);
+				if(!is_num)
+				{
+					return luaL_error(L,"invalid data[%d] to function '%s'",i,__func__);
+				}
+				else
+				{
+					i ++;
+				}
+
+				lua_pop(L, 2);
+			}
+			lua_pop(L, 1);
+		}
+		else
+		{
+			ASLOG(LAS_DEV,"ioctl string is '%s'\n",data);
+		}
+
+	    len = lua_tounsignedx(L, 3, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument size to function '%s'",__func__);
+		}
+
+		if(len > ls)
+		{
+			len = ls;
+		}
+
+		d = getDev2(fd);
+		if(NULL == d)
+		{
+			 return luaL_error(L,"fd(%d) is not existed '%s'",fd,__func__);
+		}
+
+		if(d->ops->ioctl != NULL)
+		{
+			lua_pushinteger(L, d->ops->ioctl(d->param,type,data,len));
+			return 1;
+		}
+		else
+		{
+			return luaL_error(L, "%s for %s is not supported",__func__,d->name);
+		}
 		return 1;
 	}
 	else
 	{
-		return luaL_error(L, "%s (fd) API should has 1 arguments",__func__);
+		return luaL_error(L, "%s (fd) API should has 4 arguments",__func__);
 	}
 }
 
@@ -254,7 +405,30 @@ int luai_as_close  (lua_State *L)
 	int n = lua_gettop(L);  /* number of arguments */
 	if(1==n)
 	{
-		return 1;
+		int fd;
+		int is_num;
+		struct LAS_Dev_s* d;
+
+		fd = lua_tounsignedx(L, 1, &is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument fd to function '%s'",__func__);
+		}
+		d = getDev2(fd);
+		if(NULL == d)
+		{
+			 return luaL_error(L,"fd(%d) is not existed '%s'",fd,__func__);
+		}
+
+		if(d->ops->close != NULL)
+		{
+			d->ops->close(d->param);
+		}
+		else
+		{
+			return luaL_error(L, "%s for %s is not supported",__func__,d->name);
+		}
+		return 0;
 	}
 	else
 	{

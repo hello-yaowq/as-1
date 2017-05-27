@@ -87,6 +87,10 @@ function test_can_amb()
 end
 
 function test_asdev()
+  as.ioctl(12,7,{1,2,3},3)
+  as.ioctl(12,6,"Hello World",3)
+  as.write(12,"Hello World",3)
+  as.write(12,{1,2,3},3)
   fd = as.open("COM14",115200,"8N1")
   len,data = as.read(fd)
   if len > 0 then
