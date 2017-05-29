@@ -16,9 +16,22 @@
 #include "lasdevlib.h"
 #include "rs232.h"
 #include "asdebug.h"
+#ifdef __WINDOWS__
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#else
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define PPARAM(p) ((LAS_RS232ParamType*)p)
 #define AS_LOG_LAS_DEV 0
+/* QEMU TCP 127.0.0.1:1103 't' = 0x74, 'c' = 0x63, 'p' = 0x70 */
+#define CAN_TCP_SERIAL_PORT 0x746370
 /* ============================ [ TYPES     ] ====================================================== */
 enum
 {
@@ -28,6 +41,7 @@ enum
 typedef struct {
 	int port;
 	int mode;
+	int s;
 } LAS_RS232ParamType;
 /* ============================ [ DECLARES  ] ====================================================== */
 static int lasdev_open  (const char* device, lua_State *L, void** param);
@@ -51,7 +65,14 @@ static int lasdev_open  (const char* device, lua_State *L, void** param)
 	size_t ls;
 	int is_num,n,baudrate,port;
 
-	port = atoi(&device[3])-1;
+	if(0 == strcmp(device,"COMTCP"))
+	{
+		port = CAN_TCP_SERIAL_PORT;
+	}
+	else
+	{
+		port = atoi(&device[3])-1;
+	}
 
 	*param = malloc(sizeof(LAS_RS232ParamType));
 
@@ -83,9 +104,56 @@ static int lasdev_open  (const char* device, lua_State *L, void** param)
 			modes[3] = 0;
 		}
 
-		if(0 == RS232_OpenComport(port,baudrate,modes))
+		if(CAN_TCP_SERIAL_PORT == port)
+		{
+			int s,rv;
+			struct sockaddr_in addr;
+			#ifdef __WINDOES__
+			{
+				WSADATA wsaData;
+				WSAStartup(MAKEWORD(2, 2), &wsaData);
+			}
+			#endif
+
+			rv = TRUE;
+			memset(&addr,0,sizeof(addr));
+			addr.sin_family = AF_INET;
+			addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+			addr.sin_port = htons(1103);
+
+			if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+				ASWARNING("Serial TCP open failed!\n");
+				rv = FALSE;
+			}
+
+			if( rv )
+			{
+				/* Connect to server. */
+				if(connect(s, (struct sockaddr*) & addr, sizeof (addr)) < 0)
+				{
+					#ifdef __WINDOES__
+					ASWARNING("Serial TCP connect failed: %d\n", WSAGetLastError());
+					closesocket(s);
+					#else
+					ASWARNING("Serial TCP connect failed!\n");
+					close(s);
+					#endif
+					rv = FALSE;
+				}
+			}
+
+			if(rv)
+			{
+				PPARAM(*param)->s = s;
+				return 1;
+			}
+		}
+		else if(0 == RS232_OpenComport(port,baudrate,modes))
 		{
 			return 1;
+		}
+		else
+		{
 		}
 	}
 	else
@@ -101,7 +169,15 @@ static int lasdev_read  (void* param,lua_State *L)
 	int len;
 	int table_index,i;
 
-	len = RS232_PollComport(PPARAM(param)->port,(unsigned char*)data,sizeof(data)-1);
+
+	if(CAN_TCP_SERIAL_PORT == PPARAM(param)->port)
+	{
+		len = recv(PPARAM(param)->s,data,sizeof(data)-1,0);
+	}
+	else
+	{
+		len = RS232_PollComport(PPARAM(param)->port,(unsigned char*)data,sizeof(data)-1);
+	}
 
 	ASLOG(LAS_DEV,"rs232 %d = read(%d)\n",len,*((LAS_RS232ParamType*)param));
 
@@ -133,11 +209,41 @@ static int lasdev_read  (void* param,lua_State *L)
 }
 static int lasdev_write (void* param,const char* data,size_t ls)
 {
-	return RS232_SendBuf(PPARAM(param)->port,(unsigned char*)data,ls);
+	int size = 0;
+
+	if( CAN_TCP_SERIAL_PORT == PPARAM(param)->port)
+	{
+		if(ls == (size_t)send(PPARAM(param)->s, (const char*)data, ls,0))
+		{
+			/* send OK */
+			size = ls;
+		}
+		else
+		{
+			ASWARNING("Serial TCP send message failed!\n");
+		}
+	}
+	else
+	{
+		size = RS232_SendBuf(PPARAM(param)->port,(unsigned char*)data,ls);
+	}
+
+	return size;
 }
 static void lasdev_close (void* param)
 {
-	RS232_CloseComport(PPARAM(param)->port);
+	if( CAN_TCP_SERIAL_PORT == PPARAM(param)->port)
+	{
+		#ifdef __WINDOES__
+		closesocket(PPARAM(param)->s);
+		#else
+		close(PPARAM(param)->s);
+		#endif
+	}
+	else
+	{
+		RS232_CloseComport(PPARAM(param)->port);
+	}
 	free(param);
 }
 static int lasdev_ioctl(void* param,int type, const char* data,size_t size)

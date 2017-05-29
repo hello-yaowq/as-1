@@ -112,6 +112,17 @@ function test_asdev()
   end
 end
 
-test_can_tcp()
+function test_ascomtcp()
+  fd = as.open("COMTCP",115200,"8N1")
+  while true do
+    len,data = as.read(fd)
+    if len > 0 then
+      print("rx string is: ",rawlen(data),data)
+    end
+    as.write(fd,"Hello World",-1);
+  end
+end
+
+test_ascomtcp()
 
 print("Test END")
