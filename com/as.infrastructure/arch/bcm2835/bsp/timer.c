@@ -10,7 +10,6 @@ extern INTERRUPT_VECTOR g_VectorTable[BCM2835_INTC_TOTAL_IRQ];
 
 static void tickISR()
 {
-	printf("*");
 	#ifdef USE_UCOSII
 	OSTimeTick();
 	#else
