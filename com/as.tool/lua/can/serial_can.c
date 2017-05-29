@@ -19,9 +19,23 @@
 #include <sys/queue.h>
 #include <pthread.h>
 #include "asdebug.h"
+#ifdef __WINDOWS__
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#else
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_SERIAL_CACHE_SIZE  64
 #define AS_LOG_RS232   AS_LOG_STDOUT
+
+/* QEMU TCP 127.0.0.1:1103 't' = 0x74, 'c' = 0x63, 'p' = 0x70 */
+#define CAN_TCP_SERIAL_PORT 0x746370
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SerialHandle_s
 {
@@ -30,6 +44,7 @@ struct Can_SerialHandle_s
 	uint32_t baudrate;
 	char r_cache[CAN_SERIAL_CACHE_SIZE+1];
 	int  r_size;
+	int  s; /* socket handle used only by QEMU TCP 127.0.0.1:1103 */
 	can_device_rx_notification_t rx_notification;
 	STAILQ_ENTRY(Can_SerialHandle_s) entry;
 };
@@ -93,7 +108,59 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 	}
 	else
 	{
-		if( 0 == RS232_OpenComport(port,baudrate,"8N1"))
+		if(CAN_TCP_SERIAL_PORT == port)
+		{
+			int s;
+			struct sockaddr_in addr;
+			#ifdef __WINDOES__
+			{
+				WSADATA wsaData;
+				WSAStartup(MAKEWORD(2, 2), &wsaData);
+			}
+			#endif
+
+			memset(&addr,0,sizeof(addr));
+			addr.sin_family = AF_INET;
+			addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+			addr.sin_port = htons(1103);
+
+			if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+				ASWARNING("CAN Serial TCP open failed!\n");
+				rv = FALSE;
+			}
+
+			if( rv )
+			{
+				/* Connect to server. */
+				if(connect(s, (struct sockaddr*) & addr, sizeof (addr)) < 0)
+				{
+					#ifdef __WINDOES__
+					ASWARNING("CAN Serial TCP connect failed: %d\n", WSAGetLastError());
+					closesocket(s);
+					#else
+					ASWARNING("CAN Serial TCP connect failed!\n");
+					close(s);
+					#endif
+					rv = FALSE;
+				}
+			}
+
+			if(rv)
+			{
+				handle = malloc(sizeof(struct Can_SerialHandle_s));
+				asAssert(handle);
+				handle->s = s;
+				handle->busid = busid;
+				handle->port = port;
+				handle->baudrate = baudrate;
+				handle->rx_notification = rx_notification;
+				handle->r_size = 0;
+				handle->r_cache[CAN_SERIAL_CACHE_SIZE] = '\0';
+				STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
+				ASLOG(STDOUT,"CAN Serial TCP open OK\n");
+			}
+		}
+		else if( 0 == RS232_OpenComport(port,baudrate,"8N1"))
 		{	/* open port OK */
 			handle = malloc(sizeof(struct Can_SerialHandle_s));
 			asAssert(handle);
@@ -147,7 +214,18 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 		string[size] = '\0';
 		ASLOG(OFF,"can serial write:: %s",string);
 
-		if(size == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
+		if( CAN_TCP_SERIAL_PORT == handle->port)
+		{
+			if(size == send(handle->s, (const char*)string, size,0))
+			{
+				/* send OK */
+			}
+			else
+			{
+				ASWARNING("CAN Serial TCP send message failed!\n");
+			}
+		}
+		else if(size == RS232_SendBuf((int)handle->port,(unsigned char*)string,size))
 		{
 			/* send OK */
 		}
@@ -172,7 +250,18 @@ static void serial_close(uint32_t port)
 	{
 		STAILQ_REMOVE(&serialH->head,handle,Can_SerialHandle_s,entry);
 
-		RS232_CloseComport(handle->port);
+		if(CAN_TCP_SERIAL_PORT == port)
+		{
+			#ifdef __WINDOES__
+			closesocket(handle->s);
+			#else
+			close(handle->s);
+			#endif
+		}
+		else
+		{
+			RS232_CloseComport(handle->port);
+		}
 
 		free(handle);
 
@@ -257,7 +346,15 @@ static void * rx_daemon(void * param)
 			int size;
 			do
 			{
-				size = RS232_PollComport((int)handle->port,(unsigned char*)&chr,1);
+				if(CAN_TCP_SERIAL_PORT == handle->port)
+				{
+					size = recv(handle->s,&chr,1,0);
+				}
+				else
+				{
+					size = RS232_PollComport((int)handle->port,(unsigned char*)&chr,1);
+				}
+
 				if(1u == size)
 				{
 					handle->r_cache[handle->r_size++] = chr;

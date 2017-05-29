@@ -65,6 +65,19 @@ function test_can_serail()
   end
 end
 
+function test_can_tcp()
+  data = {}
+  as.can_open(0,"serial",0x746370,115200)
+  while true do
+	ercd,canid,data = as.can_read(0,-1)
+	if ercd == true then
+	  print(string.format("canid=%03X, data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]",canid,
+		data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8]))
+      as.can_write(0,canid,data)
+	end
+  end
+end
+
 function test_can_vcan()
   data = {}
   as.can_open(0,"socket",32,115200)
@@ -99,6 +112,6 @@ function test_asdev()
   end
 end
 
-test_asdev()
+test_can_tcp()
 
 print("Test END")
