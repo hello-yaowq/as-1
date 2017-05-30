@@ -114,12 +114,22 @@ end
 
 function test_ascomtcp()
   fd = as.open("COMTCP",115200,"8N1")
+  ss = ""
   while true do
     len,data = as.read(fd)
     if len > 0 then
-      print("rx string is: ",rawlen(data),data)
+      for i=1,len,1 do
+		-- is '\n' or '\r' end of string:
+        if string.byte(data,i) == 10 or string.byte(data,i) == 13 then
+		  print(ss)
+		  -- as.write(fd,"SCAN000401080104000000000000\n",-1);
+		  ss = ""
+		else        
+		  ss = string.format("%s%c",ss,string.byte(data,i))
+      	end
+      end
     end
-    as.write(fd,"Hello World",-1);
+    
   end
 end
 
