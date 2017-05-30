@@ -12,7 +12,10 @@ static void tickISR()
 {
 	#ifdef USE_UCOSII
 	OSTimeTick();
-	#else
+    #elif defined(__AS_BOOTLOADER__)
+	extern void OsTick(void);
+	OsTick();
+    #else
 	extern void tpl_call_counter_tick();
 	tpl_call_counter_tick();	
     #endif
@@ -65,3 +68,4 @@ void tpl_shutdown(void)
 
     while (1);
 }
+

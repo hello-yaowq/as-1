@@ -114,3 +114,19 @@ GET32:
 .globl dummy
 dummy:
     bx lr
+
+.extern OS_CPU_IRQ_ISR_Handler
+.global OS_CPU_IRQ_ISR
+.weak OS_CPU_IRQ_ISR
+OS_CPU_IRQ_ISR:
+
+    /* store caller-saved registers */
+    stmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+    bl OS_CPU_IRQ_ISR_Handler
+
+ 	/* restore caller-saved registers */
+    ldmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+    /* return to interrupted task */
+    subs pc,lr,#4

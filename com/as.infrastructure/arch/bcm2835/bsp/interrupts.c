@@ -185,3 +185,7 @@ void __attribute__((weak)) Irq_Restore(unsigned long irq_state)
 	(void)irq_state;
 }
 
+void  __attribute__((weak)) Irq_Enable(void)
+{
+	irqEnable();
+}

@@ -25,14 +25,6 @@ static inline void delay(int32_t count)
          : : [count]"r"(count) : "cc");
 }
  
-size_t strlen(const char* str)
-{
-    size_t ret = 0;
-    while ( str[ret] != 0 )
-        ret++;
-    return ret;
-}
- 
     // The GPIO registers base address.
 #define GPIO_BASE  0x20200000
  

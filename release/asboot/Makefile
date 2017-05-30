@@ -30,7 +30,7 @@ LUA   = $(prj-dir)/com/as.tool/lua
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
-debug ?= TRUE
+debug ?= true
 ifeq ($(host), Linux)
 PY27 = python2
 PY34 = python3
@@ -117,6 +117,21 @@ clean:
 	make all board=stm32f107vc-flsdrv compiler=cortexm3-icc debug=true
 27:
 	make all board=stm32f107vc-flsdrv compiler=cortexm3-icc debug=false
+
+# ---------------------------------- [ qemu-rpi bcm2835 ] ----------------------------- #
+41:
+	make dep board=bcm2835 compiler=gcc
+42:
+	make all board=bcm2835 compiler=gcc
+
+$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz:
+	@wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz
+	@tar xf $@
+
+qemuparams?="-nographic"
+qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
+#	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -s -S)
+	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:

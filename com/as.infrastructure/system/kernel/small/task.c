@@ -60,6 +60,7 @@ STATIC AppModeType				AppMode;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern FUNC(void,MEM_OsAlarmInit)    OsAlarmInit ( void );
 extern FUNC(void,MEM_OsResourceInit) OsResourceInit ( void );
+extern void StartOsTick(void);
 
 STATIC FUNC(void,MEM_TASK_INIT)         Init   ( void );
 STATIC FUNC(TaskType,MEM_TASK_GETBIT)   GetBit ( void  );

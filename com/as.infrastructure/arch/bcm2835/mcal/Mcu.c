@@ -87,12 +87,20 @@ Mcu_ResetType Mcu_GetResetReason( void )
 	return MCU_POWER_ON_RESET;
 }
 
+#ifdef __AS_BOOTLOADER__
+void StartOsTick(void)
+{
+	timer_init();
+}
+#endif
 void Mcu_DistributePllClock( void )
 {
 	uart_init();
 	InitInterruptController();
 	DisableInterrupts();
-    timer_init();
+#ifndef __AS_BOOTLOADER__
+	timer_init();
+#endif
 
 	printf(" >> bcm2835 rpi2 startup done\n");
 }
