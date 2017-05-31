@@ -1,4 +1,4 @@
-link-script = $(src-dir)/linker-common.lds
+link-script = $(src-dir)/linker-boot.lds
 def-y += -DCHIP_S3C2440A
 def-y += -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM

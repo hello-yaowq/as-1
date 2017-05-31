@@ -339,3 +339,50 @@ void Mcu_DistributePllClock( void )
 	start_mmu();
 	Usart_Init();
 }
+
+#ifdef __AS_BOOTLOADER__
+void StartOsTick(void) {
+	/* timer4, pre = 15+1 */
+	TCFG0 &= 0xffff00ff;
+	TCFG0 |= 15 << 8;
+	/* all are interrupt mode,set Timer 4 MUX 1/4 */
+	TCFG1  &= 0xfff0ffff;
+	TCFG1  |= 0x00010000;
+
+	TCNTB4 = (uint32_t)(McuE_GetSystemClock() / (4 *16* 1000)) - 1;	/* 1000 ticks per second */
+	/* manual update */
+	TCON = TCON & (~(0x0f<<20)) | (0x02<<20);
+
+	/* enable interrupt */
+	INTMSK &= ~BIT_TIMER4;
+
+    /* start timer4, reload */
+	TCON = TCON & (~(0x0f<<20)) | (0x05<<20);
+}
+
+void knl_isr_handler(void)
+{
+	 uint32_t intno;
+
+	intno = INTOFFSET;
+	if(14 == intno)
+	{
+		OsTick();
+	}
+	else
+	{
+		while(1);
+	}
+
+	/* clear interrupt */
+	if(intno < 32)
+	{
+		SRCPND |= (1<<intno);
+		INTPND = INTPND;
+	}
+	else if(intno < 46)
+	{
+		SUBSRCPND |= (1<<(intno-32));
+	}
+}
+#endif

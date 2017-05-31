@@ -332,8 +332,11 @@ __Irq_Save:
     .type   tpl_disable_os_interrupts, %function
     .global x_lock_all_int
     .type   x_lock_all_int, %function
+    .global Irq_Disable
+    .type   Irq_Disable, %function
 tpl_disable_os_interrupts:
 x_lock_all_int:
+Irq_Disable:
     mrs r0, cpsr
     orr r0, r0, #NOINT
     msr cpsr_c, r0
@@ -344,9 +347,31 @@ x_lock_all_int:
 	.type   tpl_enable_os_interrupts, %function
     .global x_unlock_all_int
     .type   x_unlock_all_int, %function
+    .global Irq_Enable
+    .type   Irq_Enable, %function
 tpl_enable_os_interrupts:
 x_unlock_all_int:
+Irq_Enable:
     mrs r0, cpsr
     bic r0, r0, #NOINT
     msr cpsr_c, r0
     mov pc, lr
+
+	.global vector_irq
+	.weak   vector_irq
+	.type   vector_irq, %function
+	.extern knl_isr_handler
+vector_irq:
+    /* store caller-saved registers */
+    stmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+	bl Irq_Disable
+
+    bl knl_isr_handler
+
+	bl Irq_Enable
+ 	/* restore caller-saved registers */
+    ldmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+    /* return to interrupted task */
+    subs pc,lr,#4
