@@ -133,6 +133,12 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 #	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -s -S)
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
 
+# ---------------------------------- [ s3c2440a    ] ---------------------------------- #
+51:
+	make dep board=s3c2440a compiler=arm920t-gcc
+52:
+	make all board=s3c2440a compiler=arm920t-gcc
+
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc
