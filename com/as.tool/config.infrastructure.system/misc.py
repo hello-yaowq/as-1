@@ -49,14 +49,20 @@ def test_autosar():
     
     package=ws.createPackage('Constant', role='Constant')
     package.createConstant('C_AntiLockBrakingActive_IV', '/DataType/InactiveActive_T', 3)
+    package.createConstant('C_TelltaleAntiLockBrakingActive_IV', '/DataType/OnOff_T', 0)
     
     package = ws.createPackage('PortInterface', role='PortInterface')
     package.createSenderReceiverInterface("AntiLockBrakingActive_I", autosar.DataElement('AntiLockBrakingStatus', '/DataType/InactiveActive_T'))
+    package.createSenderReceiverInterface("TelltaleAntiLockBrakingActive_I", autosar.DataElement('TelltaleAntiLockBrakingStatus', '/DataType/OnOff_T'))
 
     package=ws.createPackage("ComponentType", role="ComponentType")
     swc = package.createApplicationSoftwareComponent('AntiLockBraking')
-    swc.createProvidePort('AntiLockBrakingActive', 'AntiLockBrakingActive_I', initValueRef='C_AntiLockBrakingActive_IV')
+    swc.createRequirePort('AntiLockBrakingActive', 'AntiLockBrakingActive_I', initValueRef='C_AntiLockBrakingActive_IV')
+    swc.createProvidePort('TelltaleAntiLockBrakingActive', 'TelltaleAntiLockBrakingActive_I', initValueRef='C_TelltaleAntiLockBrakingActive_IV')
     
+    portAccessList = ['AntiLockBrakingActive', 'TelltaleAntiLockBrakingActive']
+    swc.behavior.createRunnable('AntiLockBrakingActive_run', portAccess=portAccessList)
+    swc.behavior.createTimingEvent('AntiLockBrakingActive_run', period=20)
     rtegen = autosar.RteGenerator()
     rtegen.writeComponentHeaders(swc, 'derived')
 
