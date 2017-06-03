@@ -371,7 +371,9 @@ void SchM_RunMemory(void)
 /**
  * Startup task.
  */
-DECLARE_WEAK void SchM_StartupHook(void){}
+#ifndef __WINDOWS__
+void __weak SchM_StartupHook(void){}
+#endif
 TASK(SchM_Startup){
 
 #if defined(USE_NM) || defined(USE_CANSM) || defined(USE_COMM) || defined(USE_CANIF)

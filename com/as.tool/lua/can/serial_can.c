@@ -13,17 +13,18 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef __WINDOWS__
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#endif
 #include "rs232.h"
 #include "Std_Types.h"
 #include "lascanlib.h"
 #include <sys/queue.h>
 #include <pthread.h>
 #include "asdebug.h"
-#ifdef __WINDOWS__
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <windows.h>
-#else
+#ifdef __LINUX__
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>

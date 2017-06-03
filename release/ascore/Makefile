@@ -175,9 +175,9 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=trampoline
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=trampoline debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
 ifeq ($(host),Linux)
 	pgrep viper|xargs -i kill -9 {}
 else

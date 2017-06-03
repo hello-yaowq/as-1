@@ -272,9 +272,9 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	appmode = Mode;
 	ASTRACE(OS);
 
-	StartupHook();
-
 	object_initialize();
+
+	StartupHook();
 
 	while(1)
 	{

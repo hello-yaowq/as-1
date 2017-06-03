@@ -87,7 +87,7 @@
 #define DECLARE_WEAK
 #define __simple __simple
 #else
-#define DECLARE_WEAK			__attribute__ ((weak))
+#define DECLARE_WEAK			__attribute__((weak))
 #define __simple
 
 #ifndef __naked
