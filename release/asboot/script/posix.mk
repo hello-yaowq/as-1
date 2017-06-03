@@ -97,5 +97,6 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 endif	
+	@(make OS)
 	@(make BSW)
 	@(echo "  >> prepare link for posix done")

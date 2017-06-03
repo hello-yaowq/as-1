@@ -27,8 +27,8 @@
 #else
 #define FL_ERASE_PER_CYCLE 1
 #endif
-#define FL_WRITE_PER_CYCLE (512/FLASH_WRITE_SIZE)
-#define FL_READ_PER_CYCLE  (512/FLASH_WRITE_SIZE)
+#define FL_WRITE_PER_CYCLE (4096/FLASH_WRITE_SIZE)
+#define FL_READ_PER_CYCLE  (4096/FLASH_WRITE_SIZE)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void application_main(void); /* Symbol exposed in linker.lds */

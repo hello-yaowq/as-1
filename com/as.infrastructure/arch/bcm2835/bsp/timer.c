@@ -19,7 +19,6 @@ static void tickISR()
 	extern void tpl_call_counter_tick();
 	tpl_call_counter_tick();	
     #endif
-
 	timerRegs->CLI = 0;
 }
 

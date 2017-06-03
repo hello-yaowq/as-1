@@ -14,7 +14,11 @@ endif
 
 def-y += -DUSE_MCU -DUSE_SCHM -DUSE_ECUM -DUSE_KERNEL
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PDUR -DUSE_CANTP -DUSE_DCM
-
+# define __LINUX__ if want the Flash Driver to be builtin
+# def-y += -D__LINUX__
+# chcck the linker-app.lds
+def-y += -DFLS_START_ADDRESS=0x00040000
+def-y += -DFLS_END_ADDRESS=0x08000000
 ifeq ($(compiler),gcc)
 include ../make/gcc.mk
 endif
@@ -46,11 +50,13 @@ dep-bcm2835:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/bcm2835/bsp TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/bcm2835/mcal/Can.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/RamFlash.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/bcm2835/mcal/Mcu.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.c)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_ConfigTypes.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script TRUE)	
 	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
+	@(make OS)
 	@(make BSW)
 	@(echo "  >> prepare link for BCM2835 done")		

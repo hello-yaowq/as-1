@@ -3,10 +3,13 @@
 <AUTOSAR>
 <OS>
 <General Comment="*" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" />
+<ApplicationModeList Max="TBD" />
+<ApplicationList Max="TBD" />
 <TaskList Max="TBD" />
 <AlarmList Max="TBD" />
 <CounterList Max="TBD" />
 <ResourceList Max="TBD" />
+<InternalResourceList Max="TBD" />
 </OS>
 <EcuC>
 <PduList Max="TBD">
@@ -121,12 +124,17 @@
 <MemoryList Max="TBD">
 <Memory Comment="*" Identifier="0xFF" Name="Flash">
 <MemoryReadInfoList Max="TBD">
-<MemoryInfo AddressHigh="0x00010000" AddressLow="0x00000000" Comment="0~64K for bootloader" Name="Bootloader">
+<MemoryInfo AddressHigh="0x00010000" AddressLow="0x00000000" Comment="0~64K for bootloader for STM32F107VC" Name="Bootloader">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 </MemoryInfo>
-<MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="64K~256K for application" Name="Application">
+<MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="64K~256K for application for STM32F017VC" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="0x08000000" AddressLow="0x00040000" Comment="*" Name="AppBcm2835">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
@@ -134,6 +142,11 @@
 </MemoryReadInfoList>
 <MemoryWriteInfoList Max="TBD">
 <MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="*" Name="Application">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="0x08000000" AddressLow="0x00040000" Comment="*" Name="AppBcm2835">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
@@ -312,4 +325,12 @@
 <General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="OFF" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="ON" RamBlockStatusApi="ON" StandardJobQueueSize="8" VersionInfoApi="OFF" />
 <BlockList Max="TBD" />
 </NvM>
+<Xcp>
+<General Comment="*" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_STATIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="0" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="56" XcpOdtEntriesCount="112" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
+<XcpStaticDaqList Max="TBD" />
+<XcpEventChannelList Max="TBD" />
+</Xcp>
+<Rte>
+<SwcList Max="TBD" />
+</Rte>
 </AUTOSAR>

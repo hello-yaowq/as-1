@@ -51,5 +51,6 @@ dep-s3c2440a:
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Mcu_Cfg.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/script TRUE)	
 	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
+	@(make OS)
 	@(make BSW)
-	@(echo "  >> prepare link for BCM2835 done")		
+	@(echo "  >> prepare link for s3c2440a done")		

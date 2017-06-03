@@ -70,15 +70,12 @@ BSW:
 	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) true)
 
 OS:
-ifeq ($(board),stm32f107vc-flsdrv)
-else
-	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)	
-endif
+	@(cd $(src-dir)/config.infrastructure.system;$(XCC) $(src-dir) false)
 
 studio:
 	@(cd $(src-dir)/config.infrastructure.system;$(STUDIO) $(src-dir))	
 
-dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board) OS
+dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
 
 all:exe
 
@@ -123,6 +120,11 @@ clean:
 	make dep board=bcm2835 compiler=gcc
 42:
 	make all board=bcm2835 compiler=gcc
+
+43:
+	make dep board=bcm2835-flsdrv compiler=gcc
+44:
+	make all board=bcm2835-flsdrv compiler=gcc
 
 $(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz:
 	@wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz

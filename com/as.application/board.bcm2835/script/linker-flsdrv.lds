@@ -16,8 +16,7 @@ SECTIONS
 {
     .text :
     {
-        *(.rodata.FlashHeader)
+        *(.data.*)
         *(.text*)
-        *(.rodata*)
     } > FLASH
 }

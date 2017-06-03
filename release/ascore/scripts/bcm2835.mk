@@ -1,7 +1,11 @@
-
+use-boot?=yes
 asflasg-y += -mcpu=arm1176jzf-s -fpic
 cflags-y  += -mcpu=arm1176jzf-s -fpic
+ifeq ($(use-boot),yes)
+link-script = $(src-dir)/linker-app.lds
+else
 link-script = $(src-dir)/linker.lds
+endif
 ifeq ($(host), Linux)
 COMPILER_PREFIX = arm-none-eabi-
 COMPILER_DIR = /usr

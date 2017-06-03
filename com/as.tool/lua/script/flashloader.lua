@@ -27,14 +27,9 @@ local dcm_chl = 0
 local FLASH_WRITE_SIZE = 512
 local FLASH_READ_SIZE  = 512
 
-local l_bootloader = "/home/parai/workspace/as/release/asboot/out/posix.exe &"
-local l_flsdrv = "/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19"
-local l_app = "/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19"
+local l_flsdrv = nil
+local l_app = nil
 
-if os.name() == "nt" then
-  l_flsdrv = "D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19"
-  l_app = "D:/repository/as/release/ascore/out/stm32f107vc.s19"
-end
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
 function enter_extend_session()
@@ -73,7 +68,7 @@ function security_extds_access()
     print("  >> security access request seed ok!")
     seed = (res[3]<<24) + (res[4]<<16) + (res[5]<<8) +(res[6]<<0)
     key = seed ~ 0x78934673
-    print(type(key),key)
+
     ercd,res = dcm.transmit(dcm_chl,{0x27,0x02,(key>>24)&0xFF,(key>>16)&0xFF,(key>>8)&0xFF,(key>>0)&0xFF})
     if (false == ercd) then
       print("  >> security access send key failed!")
@@ -110,11 +105,44 @@ end
 
 
 function routine_erase_flash()
-  ercd,res = dcm.transmit(dcm_chl,{0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0xFF})
-  -- start address = 0x00010000 = 64K 
-  -- end   address = 0x00040000 = 256K, so size =  0x00030000
-  -- identifier 0xFF
+
+  srecord = s19.open(l_app)
   
+  if( nil == srecord ) then
+    print("  >> invalid application srecord file!")
+    return false
+  end
+  
+  secnbr = rawlen(srecord)
+  for i=1,secnbr,1 do
+    ss = srecord[i]
+	eaddr = ss["addr"]+ss["size"]
+  end
+
+  addr =  srecord[1]["addr"]
+  size = eaddr - addr;
+
+  data = {}
+  data[1] = 0x31
+  data[2] = 0x01 -- routine start
+  data[3] = 0xFF -- address and length format
+  data[4] = 0x01 -- address and length format
+
+  data[5] = (addr>>24)&0xFF
+  data[6] = (addr>>16)&0xFF
+  data[7] = (addr>>8)&0xFF
+  data[8] = (addr>>0)&0xFF
+
+  sz = math.floor((size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
+
+  data[9]  = (sz>>24)&0xFF
+  data[10] = (sz>>16)&0xFF
+  data[11] = (sz>>8)&0xFF
+  data[12] = (sz>>0)&0xFF
+  data[13] = 0xFF -- memory identifier
+
+  ercd,res = dcm.transmit(dcm_chl,data)
+
   if (false == ercd) then
     print("  >> routine erase flash failed!")
   else
@@ -134,10 +162,13 @@ function request_upload(addr,size,mem)
   data[5] = (addr>>16)&0xFF
   data[6] = (addr>>8)&0xFF
   data[7] = (addr>>0)&0xFF
-  data[8] = (size>>24)&0xFF
-  data[9] = (size>>16)&0xFF
-  data[10] = (size>>8)&0xFF
-  data[11] = (size>>0)&0xFF
+
+  sz = math.floor((size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
+
+  data[8] = (sz>>24)&0xFF
+  data[9] = (sz>>16)&0xFF
+  data[10] = (sz>>8)&0xFF
+  data[11] = (sz>>0)&0xFF
   data[12] = mem -- memory identifier
  
   ercd,res = dcm.transmit(dcm_chl,data)
@@ -172,10 +203,13 @@ function request_download(addr,size,mem)
   data[5] = (addr>>16)&0xFF
   data[6] = (addr>>8)&0xFF
   data[7] = (addr>>0)&0xFF
-  data[8] = (size>>24)&0xFF
-  data[9] = (size>>16)&0xFF
-  data[10] = (size>>8)&0xFF
-  data[11] = (size>>0)&0xFF
+
+  sz = math.floor((size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
+
+  data[8] = (sz>>24)&0xFF
+  data[9] = (sz>>16)&0xFF
+  data[10] = (sz>>8)&0xFF
+  data[11] = (sz>>0)&0xFF
   data[12] = mem -- memory identifier
  
   ercd,res = dcm.transmit(dcm_chl,data)
@@ -223,7 +257,7 @@ function download_one_record(addr,size,data,mem)
       left_size = left_size - ability
     else
       sz = math.floor((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
-      left_size = 0
+	  left_size = 0
     end
 
     --print(string.format("next pos=%X,sz=%X,ability=%X",pos,sz,ability))
@@ -281,14 +315,13 @@ function upload_one_record(addr,size,mem)
     if (left_size > sz) then
       left_size = left_size - sz
     else
+      sz = left_size
       left_size = 0
     end
     
     for i=1,sz,1 do
       record[pos+i] = res[2+i]
     end
-
-    assert(sz == rawlen(res) - 2)
     
     pos = pos + sz
 
@@ -451,39 +484,47 @@ function routine_test_jump_to_application()
   else
     print("  >> routine test jump to application ok!")
   end
-  
+  os.usleep(5000000)
   return ercd
   
 end
 
 operation_list = {enter_extend_session, security_extds_access,
                   enter_program_session,security_prgs_access,
-                  download_flash_driver,check_flash_driver,
-                  routine_erase_flash, download_application,check_application,
+                  download_flash_driver, -- check_flash_driver,
+                  routine_erase_flash, download_application, -- check_application,
 				          routine_test_jump_to_application
 }
 
 function main(argc,argv)
   data = {}
   if argc == 0 then
-	as.can_open(can_bus,"rpmsg",0,1000000)
+  	 print("Usage: flashloader.lua flsdrv app device port baudrate")
+	 return
   else
-	--as.can_open(can_bus,"serial",3,115200)	-- COM4
-	--as.can_open(can_bus,"serial",3,57600)
-	os.execute("sudo modprobe vcan")
-	os.execute("sudo ip link add dev can0 type vcan")
-	os.execute("sudo ip link set up can0")
-	as.can_open(can_bus,"socket",0,1000000)
-
-  if os.name() == "posix" then
-	  os.execute(l_bootloader)
-	  os.usleep(1000)
-  end
+    l_flsdrv = argv[1]
+    l_app = argv[2]
+	device = argv[3] -- serial socket peak vxl tcp	
+	port = argv[4]
+	baudrate = argv[5]
+	if device == "socket" then
+      if os.name() == "posix" then
+        os.execute("sudo modprobe vcan")
+	    os.execute("sudo ip link add dev can0 type vcan")
+	    os.execute("sudo ip link set up can0")
+	  end
+	end
+	if device == "tcp" then
+      device = "serial" -- special treatment for QEMU serial tcp:127.0.0.1:1103 
+      port = 0x746370
+      baudrate = 1000000
+	end
+	as.can_open(can_bus,device,port,baudrate)
   end
   os.execute("mkdir laslog")
   as.can_log("laslog/flash-loader.asc")
   dcm.init(dcm_chl,can_bus,0x732,0x731)
-  
+
   for i=1,rawlen(operation_list),1 do
     ercd = operation_list[i]()
     if false == ercd then
