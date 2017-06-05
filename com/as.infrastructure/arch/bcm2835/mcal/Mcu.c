@@ -93,15 +93,15 @@ void StartOsTick(void)
 	timer_init();
 }
 #endif
+extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
 	uart_init();
 	InitInterruptController();
 	DisableInterrupts();
-	/* for application bcm2835, need to reset the handler array*/
-	extern unsigned int _start;
-	memcpy((void*)(0x8000+4*8),(void*)(((unsigned int)(&_start))+4*8),32);
 #ifndef __AS_BOOTLOADER__
+	/* for application bcm2835, need to reset the handler array*/
+	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);
 	timer_init();
 #endif
 

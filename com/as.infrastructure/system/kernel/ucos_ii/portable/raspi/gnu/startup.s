@@ -28,9 +28,37 @@ swi_handler:        .word swi   ;@  to be modified
 prefetch_handler:   .word prefetch_abort
 data_handler:       .word data_abort
 unused_handler:     .word unused
-irq_handler:        .word OS_CPU_IRQ_ISR    ;@  irqHandler to be modified
+irq_handler:        .word irq   ;@  irqHandler to be modified
 fiq_handler:        .word fiq
 
+reset_dummy: .word 0xdeadbeef
+undefined_instruction:
+	ldr pc,__undefined_handler
+swi:
+	ldr pc,__swi_handler
+prefetch_abort:
+	ldr pc,__prefetch_handler
+data_abort:
+	ldr pc,__data_handler
+unused:
+	ldr pc,__unused_handler
+irq:
+	ldr pc,__irq_handler
+fiq:
+	ldr pc,__fiq_handler
+
+.global shadow_handler
+;@ shadow exception handler for support the bootloader and applicaiton
+;@ check Mcu.c
+shadow_handler: .word 0xdeadbeef
+__undefined_handler:  .word undefined_instruction
+__swi_handler:        .word swi   ;@  to be modified
+__prefetch_handler:   .word prefetch_abort
+__data_handler:       .word data_abort
+__unused_handler:     .word unused
+__irq_handler:        .word OS_CPU_IRQ_ISR    ;@  irqHandler to be modified
+__fiq_handler:        .word fiq
+		
 reset:
 	;@	In the reset handler, we need to copy our interrupt vector table to 0x0000, its currently at 0x8000
 
@@ -80,24 +108,6 @@ zero_loop:
 	b main									;@ We're ready?? Lets start main execution!
 	.section .text
 
-undefined_instruction:
-	b undefined_instruction
-
-swi:
-	b swi
-
-prefetch_abort:
-	b prefetch_abort
-
-data_abort:
-	b data_abort
-
-unused:
-	b unused
-
-fiq:
-	b fiq
-	
 hang:
 	b hang
 
