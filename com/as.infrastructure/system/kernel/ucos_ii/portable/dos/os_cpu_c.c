@@ -406,7 +406,7 @@ void OSTaskDelHook (OS_TCB *ptcb)
 *                 task being switched out (i.e. the preempted task).
 *********************************************************************************************************
 */
-#ifndef NO_TASK_STAT_HOOK
+#ifndef NO_OS_TASK_SWITCH_HOOK
 void OSTaskSwHook (void)
 {
 }
@@ -422,7 +422,7 @@ void OSTaskSwHook (void)
 * Arguments  : none
 *********************************************************************************************************
 */
-#ifndef NO_OS_TASK_SWITCH_HOOK
+#ifndef NO_TASK_STAT_HOOK
 void OSTaskStatHook (void)
 {
 }
