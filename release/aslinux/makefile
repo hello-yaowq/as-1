@@ -115,8 +115,12 @@ ifeq (${security}, smack)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 endif
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-multimedia`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-agl`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-demo`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-extra/meta-app-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 ifeq (${security}, selinux)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-selinux`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 endif
@@ -154,7 +158,7 @@ ifeq (${security}, selinux)
 
 endif
 # install others
-	@echo "CORE_IMAGE_EXTRA_INSTALL += \"python cryptsetup\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"python cryptsetup af-binder\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
 
 $(rootfs)/system.img:
