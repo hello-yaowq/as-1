@@ -36,6 +36,16 @@ typedef enum
 
 
 // Channels	
+#define DIO_CHL_TelltaleTPMS                             0
+#define DIO_CHL_TelltaleLowOil                           1
+#define DIO_CHL_TelltalePosLamp                          2
+#define DIO_CHL_TelltaleTurnLeft                         3
+#define DIO_CHL_TelltaleTurnRight                        4
+#define DIO_CHL_TelltaleAutoCruise                       5
+#define DIO_CHL_TelltaleHighBeam                         6
+#define DIO_CHL_TelltaleSeatbeltDriver                   7
+#define DIO_CHL_TelltaleSeatbeltPassenger                8
+#define DIO_CHL_TelltaleAirbag                           9
 #define DIO_CHANNEL_NAME_LEDS_LED4	52
 #define DIO_CHANNEL_NAME_LEDS_LED5	53
 

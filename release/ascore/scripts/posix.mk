@@ -86,6 +86,8 @@ inc-y += -I$(src-dir)/lwip/src/include/ipv4
 endif
 def-y += -DAUTOSTART_ENABLE
 
+dir-y += $(src-dir)/swc/telltale
+
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
@@ -115,6 +117,9 @@ endif
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
 #	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/test FALSE)
+	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/rte TRUE)
+	@(cd $(src-dir);mkdir -p swc; cd swc; $(LNFS) $(APPLICATION)/swc/telltale)
+	@(cd $(src-dir);$(PY34) swc/telltale/swc.py)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
 	@(cd $(src-dir); rm infrastructure.xml)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board) TRUE)

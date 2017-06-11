@@ -20,4 +20,5 @@
 				Callback="TBD" 
 				Comment="*" />
 	</Os>
+	<KSM> <RteIdle><Running/></RteIdle> </KSM>
 </AS>

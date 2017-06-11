@@ -30,9 +30,10 @@ def main():
             'SeatbeltDriver','SeatbeltPassenger','Airbag']
     
     package=ws.createPackage('Constant', role='Constant')
-    for tt in ttList:
+    for id,tt in enumerate(ttList):
         package.createConstant('C_%sStatus_IV'%(tt), '/DataType/InactiveActive_T', 3)
         package.createConstant('C_Telltale%sStatus_IV'%(tt), '/DataType/OnOff_T', 0)
+        print("#define DIO_CHL_Telltale%-32s %s"%(tt,id))
     
     package = ws.createPackage('PortInterface', role='PortInterface')
     for tt in ttList:
@@ -41,10 +42,10 @@ def main():
 
     package=ws.createPackage("ComponentType", role="ComponentType")
     swc = package.createApplicationSoftwareComponent('Telltale')
-    for tt in ttList:
+    for id,tt in enumerate(ttList):
         swc.createRequirePort('%sStatusPort'%(tt), '%sStatus_I'%(tt), initValueRef='C_%sStatus_IV'%(tt))
         swc.createProvidePort('Telltale%sStatusPort'%(tt), 'Telltale%sStatus_I'%(tt), initValueRef='C_Telltale%sStatus_IV'%(tt))
-    
+        print("\tDIO_CHL_Telltale%s,"%(tt))
     portAccessList = []
     for tt in ttList:
         portAccessList.append('%sStatusPort'%(tt))
