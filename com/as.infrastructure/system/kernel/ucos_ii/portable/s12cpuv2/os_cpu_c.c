@@ -33,6 +33,10 @@ OS_STK *OSTaskStkInit(void (*task)(void *pd), void *p_arg, OS_STK *ptos, INT16U 
     INT16U *wstk;
     INT8U  *bstk;
 
+    volatile INT16U D = (INT16U) p_arg;
+
+    D = ((D>>8)&0xFF) + ((D<<8)&0xFF00);
+
     opt     =  opt;                                             /* 'opt' is not used, prevent warning                   */
     wstk    =  (INT16U *)ptos;                                  /* Load stack pointer                                   */
     *--wstk =  (INT16U)p_arg;                                   /* Simulate call to function with argument              */
@@ -40,7 +44,7 @@ OS_STK *OSTaskStkInit(void (*task)(void *pd), void *p_arg, OS_STK *ptos, INT16U 
     *--wstk =  (INT16U)(((INT32U)task) >> 8);                   /* Put task return address on top of stack              */
     *--wstk =  (INT16U)0x2222;                                  /* Y Register                                           */
     *--wstk =  (INT16U)0x1111;                                  /* X Register                                           */
-    *--wstk =  (INT16U)p_arg;                                   /* D Register                                           */
+    *--wstk =  (INT16U)D;                                   /* D Register                                           */
 #if (CPU_TYPE==CPU_HC9S12X)
     *--wstk =  (INT16U)0x0080;                                  /* CCR: Disable STOP, Int. Level = 0. User Mode         */
 #endif
