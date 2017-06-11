@@ -25,5 +25,14 @@
 
 void Telltale_run(void)
 {	/* period is 20ms */
-
+	Rte_Write_Telltale_TelltaleAirbagStatusPort_TelltaleAirbagStatus(OnOff_On);
+	Rte_Write_Telltale_TelltaleAutoCruiseStatusPort_TelltaleAutoCruiseStatus(OnOff_1Hz);
+	Rte_Write_Telltale_TelltaleHighBeamStatusPort_TelltaleHighBeamStatus(OnOff_3Hz);
+	Rte_Write_Telltale_TelltaleLowOilStatusPort_TelltaleLowOilStatus(OnOff_1Hz);
+	Rte_Write_Telltale_TelltalePosLampStatusPort_TelltalePosLampStatus(OnOff_2Hz);
+	Rte_Write_Telltale_TelltaleSeatbeltDriverStatusPort_TelltaleSeatbeltDriverStatus(OnOff_3Hz);
+	Rte_Write_Telltale_TelltaleSeatbeltPassengerStatusPort_TelltaleSeatbeltPassengerStatus(OnOff_1Hz);
+	Rte_Write_Telltale_TelltaleTPMSStatusPort_TelltaleTPMSStatus(OnOff_2Hz);
+	Rte_Write_Telltale_TelltaleTurnLeftStatusPort_TelltaleTurnLeftStatus(OnOff_3Hz);
+	Rte_Write_Telltale_TelltaleTurnRightStatusPort_TelltaleTurnRightStatus(OnOff_3Hz);
 }
