@@ -26,6 +26,7 @@ from pyas.flashloader import *
 from pyas.ascan import *
 from asdcm import *
 from asxcp import *
+from assg import *
 
 class AsAction(QAction):
     action=QtCore.pyqtSignal(str)
@@ -35,9 +36,10 @@ class AsAction(QAction):
  
     def onAction(self):
         self.action.emit(self.text())
-    
+
 class Window(QMainWindow):
-    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan,'Dcm':UIDcm,'Xcp':UIXcp}
+    UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan,'Dcm':UIDcm,'Xcp':UIXcp,
+             'Sg':UISg }
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent) 
         self.creGui()
@@ -45,7 +47,7 @@ class Window(QMainWindow):
            
     def closeEvent(self,Event):
         pass
-    
+
     def creMenu(self):
         # easySAR Module
         tMenu=self.menuBar().addMenu(self.tr('MyApp'))
@@ -53,7 +55,7 @@ class Window(QMainWindow):
             sItem=AsAction(self.tr(name),self) 
             sItem.action.connect(self.onAction)
             tMenu.addAction(sItem)
-            
+
     def onAction(self,text):
         for i in range(self.tabWidget.count()):
             if(text == str(self.tabWidget.tabText(i))):
@@ -62,7 +64,7 @@ class Window(QMainWindow):
             if(text == name):
                 self.tabWidget.addTab(ui(), name)
                 return
-    
+
     def creGui(self):
         wid = QWidget()
         grid = QVBoxLayout()
@@ -72,12 +74,13 @@ class Window(QMainWindow):
 
         self.setCentralWidget(wid)
         self.creMenu()
-        
+
+        self.onAction('Sg')
         self.onAction('Can')
         self.onAction('Flashloader')
         self.onAction('Dcm')
         self.onAction('Xcp')
-        
+
         self.setMinimumSize(1200, 600)
 
 def main():
@@ -91,6 +94,6 @@ def main():
     mWain = Window()
     mWain.show()
     sys.exit(app.exec_()) 
-    
+
 if(__name__ == '__main__'):
     main()
