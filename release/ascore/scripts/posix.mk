@@ -88,6 +88,9 @@ def-y += -DAUTOSTART_ENABLE
 
 dir-y += $(src-dir)/swc/telltale
 
+dir-y += $(download)/json-c
+def-y += -D_MSC_VER
+
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
@@ -105,7 +108,17 @@ endif
 
 ascontiki:$(download)/contiki
 
-dep-posix: $(download) aslwip ascontiki dep-as-virtual
+$(download)/json-c:
+	@(cd $(download);git clone https://github.com/json-c/json-c.git;)
+ifeq ($(host),Linux)
+	@(cd $(download)/json-c;sh ./autogen.sh; ./configure; make)
+else
+	@(cd $(download)/json-c;cp config.h.win32 cp config.h;cp json_config.h.win32 cp json_config.h)
+endif
+
+asjson-c:$(download)/json-c
+
+dep-posix: $(download) aslwip ascontiki dep-as-virtual asjson-c
 ifeq ($(sgapp),none)
 else
 	@(make SG)
