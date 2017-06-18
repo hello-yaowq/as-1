@@ -36,7 +36,7 @@
 
 
 //#define USE_LDEBUG_PRINTF
-#include "debug.h"
+#include "asdebug.h"
 
 #define ECUM_STR   "ECUM:"
 

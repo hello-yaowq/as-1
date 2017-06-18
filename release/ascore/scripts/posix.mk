@@ -89,8 +89,10 @@ def-y += -DAUTOSTART_ENABLE
 dir-y += $(src-dir)/swc/telltale
 
 dir-y += $(download)/json-c
+ifeq ($(host),Linux)
+else
 def-y += -D_MSC_VER
-
+endif
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 

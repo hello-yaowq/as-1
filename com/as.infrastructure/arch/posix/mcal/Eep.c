@@ -70,9 +70,6 @@
 #include <assert.h>
 #include <string.h>
 
-//#define USE_LDEBUG_PRINTF	1
-#include "debug.h"
-
 #include "asdebug.h"
 
 #define AS_LOG_EEP 0

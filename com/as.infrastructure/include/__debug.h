@@ -27,7 +27,7 @@
  * Do not use this in a header file. Should be used in the *.c file like this.
  *
  * #define USE_DEBUG_PRINTF
- * #include "debug.h"
+ * #include "asdebug.h"
  *
  * Macro's for debugging and tracing
  *

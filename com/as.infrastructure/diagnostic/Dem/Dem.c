@@ -58,7 +58,7 @@
 #include "Dem_Lcfg.h"
 
 #define USE_DEBUG_PRINTF
-#include "debug.h"
+#include "asdebug.h"
 /*
  * Local defines
  */

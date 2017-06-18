@@ -24,7 +24,7 @@
 #include "PduR.h"
 
 #include <string.h>
-#include "debug.h"
+#include "asdebug.h"
 #if defined(USE_DET)
 #include "Det.h"
 #endif

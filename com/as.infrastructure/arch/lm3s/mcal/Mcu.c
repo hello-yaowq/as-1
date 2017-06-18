@@ -30,7 +30,7 @@
 //#include "isr.h"
 
 //#define USE_LDEBUG_PRINTF 1
-#include "debug.h"
+#include "asdebug.h"
 #include "hw_memmap.h"
 #include "hw_types.h"
 #include "gpio.h"

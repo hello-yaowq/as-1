@@ -19,6 +19,7 @@
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #include <sys/time.h>
 #endif
+#include "__debug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #ifdef CONFIG_ARCH_VEXPRESS
 #define USE_DET

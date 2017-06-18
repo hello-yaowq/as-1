@@ -27,10 +27,6 @@
 #include <string.h>
 //#include "Ramlog.h"
 
-//#define USE_LDEBUG_PRINTF 1
-//#include "debug.h"
-
-
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x)  (sizeof(_x)/sizeof((_x)[0]))
 #endif

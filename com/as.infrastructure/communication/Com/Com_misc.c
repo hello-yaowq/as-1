@@ -22,7 +22,7 @@
 #include "Com.h"
 #include "Com_Internal.h"
 #include "Com_misc.h"
-#include "debug.h"
+#include "asdebug.h"
 //#include "Cpu.h"
 #include "asdebug.h"
 static void Com_ReadDataSegment(uint8 *dest, const uint8 *source, uint8 destByteLength,

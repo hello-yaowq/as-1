@@ -18,7 +18,7 @@
 
 
 #include <string.h>
-#include "debug.h"
+#include "asdebug.h"
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif

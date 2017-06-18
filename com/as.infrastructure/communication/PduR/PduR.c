@@ -30,7 +30,7 @@
 #include "Dem.h"
 #endif
 #include "PduR.h"
-#include "debug.h"
+#include "asdebug.h"
 
 /*
  * The state of the PDU router.

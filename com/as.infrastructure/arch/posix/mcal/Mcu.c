@@ -29,7 +29,7 @@
 //#include "isr.h"
 
 //#define USE_LDEBUG_PRINTF 1
-#include "debug.h"
+#include "asdebug.h"
 
 
 void Mcu_Init(const Mcu_ConfigType *configPtr)

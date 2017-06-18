@@ -23,7 +23,7 @@
 #include "Com_Internal.h"
 #include "Com_misc.h"
 #include <string.h>
-#include "debug.h"
+#include "asdebug.h"
 //#include "Cpu.h"
 
 #define timerDec(timer) \

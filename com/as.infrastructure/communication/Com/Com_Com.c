@@ -26,7 +26,7 @@
 #include "Com.h"
 #include "Com_Internal.h"
 #include "Com_misc.h"
-#include "debug.h"
+#include "asdebug.h"
 #include "PduR.h"
 #if defined(USE_DET)
 #include "Det.h"

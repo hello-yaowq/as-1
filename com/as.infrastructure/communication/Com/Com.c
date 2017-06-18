@@ -24,8 +24,6 @@
 #include "Com_Arc_Types.h"
 #include "Com_Internal.h"
 #include "Com_misc.h"
-#include "debug.h"
-//#include "Cpu.h"
 #include "asdebug.h"
 
 /* TODO: Better way to get endianness across all compilers? */

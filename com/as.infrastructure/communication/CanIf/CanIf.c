@@ -25,7 +25,7 @@
 #include "CanIf_Cbk.h"
 #include <string.h>
 
-#include "debug.h"
+#include "asdebug.h"
 #include "PduR.h"
 
 #if defined(USE_CANTP)

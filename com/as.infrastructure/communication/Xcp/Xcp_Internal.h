@@ -32,7 +32,7 @@
 #ifdef USE_DET
 #define USE_DEBUG_PRINTF
 #endif
-#include "debug.h"
+#include "asdebug.h"
 #undef  DEBUG_LVL
 #define DEBUG_LVL DEBUG_HIGH
 
