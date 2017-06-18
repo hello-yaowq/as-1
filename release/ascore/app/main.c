@@ -30,3 +30,14 @@ int main(int argc,char* argv[])
 	while(1);
 	return 0;
 }
+
+#ifdef __WINDOWS__
+#include <time.h>
+int gmtime_s(struct tm* now,time_t * t)
+{
+	struct tm* lt = localtime(&t);
+	memcpy(now,lt,sizeof(struct tm));
+
+	return 0;
+}
+#endif

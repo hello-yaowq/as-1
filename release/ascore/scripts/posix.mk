@@ -89,10 +89,23 @@ def-y += -DAUTOSTART_ENABLE
 dir-y += $(src-dir)/swc/telltale
 
 dir-y += $(download)/json-c
+def-y += -DUSE_JSONC
 ifeq ($(host),Linux)
 else
 def-y += -D_MSC_VER
 endif
+
+# for mingw need to install gnutls from ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.0.22-w32.zip
+dir-y += $(download)/libmicrohttpd-0.9.55/src/microhttpd
+inc-y += -I$(download)/libmicrohttpd-0.9.55/src/include
+ifeq ($(host),Linux)
+inc-y += -I$(download)/libmicrohttpd-0.9.55/
+else
+inc-y += -I$(download)/libmicrohttpd-0.9.55/w32/common
+endif
+def-y += -DUSE_MICROHTTPD -D__forceinline=inline
+ldflags-y += -lgnutls
+
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
@@ -119,6 +132,21 @@ else
 endif
 
 asjson-c:$(download)/json-c
+
+$(download)/libmicrohttpd-0.9.55.tar.gz:
+	@(cd $(download);wget ftp://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.55.tar.gz)
+
+$(download)/libmicrohttpd-0.9.55:$(download)/libmicrohttpd-0.9.55.tar.gz
+	@(cd $(download);tar xf libmicrohttpd-0.9.55.tar.gz)
+
+aslibmicrohttpd:$(download)/libmicrohttpd-0.9.55
+ifeq ($(host),Linux)
+	@(cd $(download)/libmicrohttpd-0.9.55; sh ./configure)
+endif
+	@(cd $(download)/libmicrohttpd-0.9.55;	\
+		sed -i "28c #ifdef HTTPS_SUPPORT" src/microhttpd/connection_https.c; \
+		sed -i "200c #endif /* HTTPS_SUPPORT */" src/microhttpd/connection_https.c; \
+		rm src/microhttpd/test_*.c -v)
 
 dep-posix: $(download) aslwip ascontiki dep-as-virtual asjson-c
 ifeq ($(sgapp),none)
