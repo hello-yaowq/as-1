@@ -41,3 +41,12 @@ int gmtime_s(struct tm* now,time_t * t)
 	return 0;
 }
 #endif
+#ifdef __TERMUX__
+int _isnan()
+{
+	return 0;
+}
+void _finite()
+{
+}
+#endif

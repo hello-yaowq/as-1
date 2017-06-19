@@ -20,7 +20,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 #if defined(__LINUX__)
+#ifndef __TERMUX__
 #include <execinfo.h>
+#endif
 #endif
 
 /* ============================ [ MACROS    ] ====================================================== */
@@ -146,6 +148,7 @@ char* ashex(unsigned long a)
 #if defined(__LINUX__)
 void  asPrintCallStack(void)
 {
+	#ifndef __TERMUX__
 	int blen,i;
 	void* buffer[256];
 	char** names;
@@ -158,6 +161,7 @@ void  asPrintCallStack(void)
 	}
 
 	free(names);
+	#endif
 }
 #endif
 

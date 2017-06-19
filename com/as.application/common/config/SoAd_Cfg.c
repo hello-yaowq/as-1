@@ -13,6 +13,7 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef USE_SOAD
 #include "SoAd.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -52,3 +53,4 @@ Std_ReturnType SoAd_DoIp_Arc_GetFurtherActionRequired(uint8* buf)
 {
 	return E_OK;
 }
+#endif

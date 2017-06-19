@@ -5,7 +5,11 @@ ifeq ($(compiler),posix-gcc)
 COMPILER_DIR = 
 include ../make/posix.mk
 endif
-
+# android termux command system
+termux ?= no
+ifeq ($(termux),yes)
+def-y += -D__TERMUX__
+endif
 ifeq ($(board),posix)
 ifeq ($(host),Linux)
 def-y += -D__LINUX__

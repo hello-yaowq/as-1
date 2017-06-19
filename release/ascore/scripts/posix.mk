@@ -1,4 +1,5 @@
-
+# android termux command system
+termux ?= no
 ifeq ($(rtos),contiki)
 tcpip=contiki
 else
@@ -16,6 +17,12 @@ tcpip=none
 endif
 ifeq ($(rtos),trampoline)
 tcpip=none
+endif
+
+ifeq ($(termux),yes)
+tcpip=none
+sgapp=none
+def-y += -D__TERMUX__
 endif
 
 ifeq ($(host),Linux)
