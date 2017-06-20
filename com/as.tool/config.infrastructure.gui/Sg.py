@@ -1,4 +1,3 @@
-from colorsys import rgb_to_yiq
 __hh__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
@@ -17,17 +16,25 @@ __hh__ = '''
  '''
  
 import sys,os
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+try:
+    from PyQt5 import QtCore, QtGui
+    from PyQt5.QtGui import *
+    from PyQt5.QtCore import *
+    from PyQt5.QtWidgets import *
+    __qt_support=True
+except ModuleNotFoundError:
+    __qt_support=False
+
 import xml.etree.ElementTree as ET
 import re
 import glob
 
 reSgBMP = re.compile(r'SgBMP\{(\d+)\}')
 reSgTXT = re.compile(r'SgTXT\{(\d+)\}')
-qtApp = QApplication(sys.argv)
+try:
+    qtApp = QApplication(sys.argv)
+except NameError:
+    pass
 
 __SGL_MAX = 0
 
@@ -40,12 +47,18 @@ class Sg():
         self.file = file
         self.option = option
     def toU8Dot(self,fp,X=0,Y=0):
+
         name = os.path.basename(self.file)
         name = name[:name.find('.')]
         code = hex(ord(name))[2:].upper()
         aname = os.path.abspath(self.file)
         fp.write('static const uint8 sgf_dot_%s[] = \n{'%(code))
-        IM = QImage(self.file)
+
+        try:
+            IM = QImage(self.file)
+        except NameError:
+            fp.write('\t0\n};\n')
+            return
         fp.write('\n\t%s,%s,/* size(w,h) */'%(IM.size().width(),IM.size().height()))
         for y in range(0,IM.size().height()):
             fp.write('\n\t')
@@ -97,6 +110,9 @@ class Sg():
         fp.write('\t/*p=*/%s_bmp\n};\n'%(name))
 
 def GetSgImage(IML=[],fp=None):
+    if(__qt_support==False):
+        fp.write('#include "Sg.h"\n')
+        return
     for image in IML:
         if(fp != None):
             Sg(image[0]).toU8Pixel(fp,image[1],image[2])
@@ -121,7 +137,10 @@ def GenearteSgBMP(widget,fph,fpc):
     fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size))
     for i,(file,x,y) in enumerate(IML):
         name = CName(os.path.basename(file))
-        fp.write('\t&%s_BMP,\n'%(name))
+        if(__qt_support==False):
+            fp.write('\tNULL,\n')
+        else:
+            fp.write('\t&%s_BMP,\n'%(name))
         fph.write("#define SGR_%-32s %s\n"%(name.upper(),i))
     fp.write('};\n\n')
     
@@ -296,9 +315,11 @@ def GenerateSg(file):
     fph.close()
     fpc.close()
     print(">>>>>>>> DONE! <<<<<<<<<")
+ 
 if(__name__ == '__main__'):
     if(len(sys.argv) == 2):
         GenerateSg(sys.argv[1])
+        
 
             
         

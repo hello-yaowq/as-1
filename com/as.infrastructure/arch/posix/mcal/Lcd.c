@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef USE_GUI
+#ifdef USE_LCD
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifdef GUI_USE_GTK
 #include <gtk/gtk.h>

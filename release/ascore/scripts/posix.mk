@@ -21,7 +21,7 @@ endif
 
 ifeq ($(termux),yes)
 tcpip=none
-sgapp=none
+#sgapp=none
 def-y += -D__TERMUX__
 endif
 
@@ -77,7 +77,11 @@ def-y += -DUSE_STMO
 def-y += -D__AS_CAN_BUS__ -DAUTOSAR_SIMULATOR
 ifeq ($(sgapp),none)
 else
-def-y += -DUSE_GUI 
+def-y += -DUSE_GUI
+ifeq ($(termux),yes)
+else
+def-y += -DUSE_LCD
+endif
 ifeq ($(gui),GTK)			 
 def-y += -DGUI_USE_GTK			 
 else	 # openVG

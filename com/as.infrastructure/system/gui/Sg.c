@@ -17,7 +17,6 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
-#include "SgRes.h"
 #include <math.h>
 
 /* ============================ [ MACROS    ] ====================================================== */
@@ -25,11 +24,14 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_LCD
 static boolean sgUpdateInProcessing  = FALSE;
 static uint8   sgLayer = 0;
 static uint32  sgWI    = 0;
 static uint32  sgX     = 0;
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_LCD
 static void	SgDrawDot(uint32 x, uint32 y,const uint8* d,uint32 c)
 {
 	uint8 w,h;
@@ -266,7 +268,9 @@ static void SgCache(void)
 		}
 	}
 }
+#endif /* USE_LCD */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifdef USE_LCD
 void Sg_Init(void)
 {
 	uint32 x,y;
@@ -349,4 +353,12 @@ boolean Sg_IsDataReady ( void )
 
 	return isReady;
 }
+#else /* USE_LCD */
+void Sg_Init(void)
+{
+}
+void Sg_ManagerTask(void)
+{
+}
+#endif /* USE_LCD */
 #endif /* USE_GUI */

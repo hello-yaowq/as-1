@@ -16,6 +16,8 @@
 #include "Os.h"
 #ifdef USE_GUI
 #include "Sg.h"
+#endif
+#ifdef USE_LCD
 #include "Lcd.h"
 #endif
 #ifdef USE_STMO
@@ -153,8 +155,10 @@ void StartupHook(void)
 #ifdef USE_STMO
 	Stmo_Init(&Stmo_ConfigData);
 #endif
-#ifdef USE_GUI
+#ifdef USE_LCD
 	Lcd_Init();
+#endif
+#ifdef USE_GUI
 	Sg_Init();
 #endif
 

@@ -12,7 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef USE_GUI
+#ifdef USE_LCD
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "SgDraw.h"
 #include "Lcd.h"
@@ -225,4 +225,4 @@ void Sg_FillEllipse(int x, int y, int a, int b, uint32 color)
 		Sg_DrawPixel(x-dx, y, color);
    }
 }
-#endif /* USE_GUI */
+#endif /* USE_LCD */
