@@ -32,7 +32,7 @@ endif
 
 #common flags
 cflags-y  += -std=gnu99
-cflags-y  += -mstructure-size-boundary=8 -ffreestanding
+cflags-y  += -ffreestanding
 cflags-y  += -W -Wall
 
 ldflags-y += -Map $(exe-dir)/$(target-y).map
