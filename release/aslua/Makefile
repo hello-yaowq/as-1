@@ -94,10 +94,10 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=  -ldl -lreadline
 else
-ldflags-y +=-lwinmm -lwsock32
+ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
-ldflags-y += -lm -lpthread
+ldflags-y += -lm -lpthread -lstdc++
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
@@ -120,7 +120,7 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=  -ldl -lreadline
 else
-ldflags-y +=-lwinmm 
+ldflags-y +=-lwinmm -lwsock32
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lm -lpthread
@@ -132,6 +132,9 @@ inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
 def-y += -DUSE_DET
+
+inc-y += -I$(LUA)/device/websock
+ldflags-y += -L$(LUA)/device/websock/out -laws -lwsock32
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -156,10 +159,13 @@ $(download)/ncurses-6.0:$(download)/ncurses-6.0.tar.gz
 asncurse:$(download)/ncurses-6.0
 	@(cd $(download)/ncurses-6.0; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all)
 
-dep-arm:asreadline asncurse
+aslibaws:$(LUA)/device/websock/out/libaws.a
+	@(cd $(LUA)/device/websock; make all)
+
+dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
 	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
@@ -167,10 +173,10 @@ dep-arm:asreadline asncurse
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(echo "  >> prepare link for posix done")
 
-dep-posix:
+dep-posix: aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
 	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
 	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)

@@ -13,9 +13,6 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "lasdevlib.h"
-#include "rs232.h"
-#include "asdebug.h"
 #ifdef __WINDOWS__
 #include <winsock2.h>
 #include <Ws2tcpip.h>
@@ -23,10 +20,13 @@
 #else
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #endif
+#include <sys/types.h>
+#include "lasdevlib.h"
+#include "rs232.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define PPARAM(p) ((LAS_RS232ParamType*)p)
 #define AS_LOG_LAS_DEV 0

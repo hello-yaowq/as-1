@@ -41,6 +41,7 @@ struct LAS_DevList_s {
 static const LAS_DeviceOpsType* devOps [] =
 {
 	&rs232_dev_ops,
+	&websock_dev_ops,
 	NULL
 };
 static int _fd = 0; /* file identifier start from 0 */

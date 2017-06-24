@@ -96,7 +96,6 @@ static struct afb_ws_list afbwsList = {
 	.head = STAILQ_HEAD_INITIALIZER(afbwsList.head)
 };
 /* ============================ [ LOCALS    ] ====================================================== */
-
 /*
  * callback for writing data
  */

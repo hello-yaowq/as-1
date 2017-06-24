@@ -6,26 +6,68 @@ exe-dir = $(CURDIR)/out
 prj-dir = $(subst /com/as.tool/lua/device/websock,,$(CURDIR))
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 LUA   = $(prj-dir)/com/as.tool/lua
+download = $(prj-dir)/release/download
+
 host = $(shell uname)
 
 ifeq ($(host), Linux)
-COMPILER_DIR ?= /usr
-COMPILER_PREFIX =
 cflags-y += -D__LINUX__
 else
-COMPILER_DIR ?= C:/MinGw
-COMPILER_PREFIX =
 cflags-y += -D__WINDOWS__
 endif
 
 cflags-y += -I$(INFRASTRUCTURE)/include
 ldflags-y += -lwsock32
 
+dir-y += $(download)/json-c
+inc-y += -I$(download)
+def-y += -DUSE_JSONC
+ifeq ($(host),Linux)
+else
+def-y += -D_MSC_VER
+endif
+
+# for mingw need to install gnutls from ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.0.22-w32.zip
+dir-y += $(download)/libmicrohttpd-0.9.55/src/microhttpd
+inc-y += -I$(download)/libmicrohttpd-0.9.55/src/include
+ifeq ($(host),Linux)
+inc-y += -I$(download)/libmicrohttpd-0.9.55/
+else
+inc-y += -I$(download)/libmicrohttpd-0.9.55/w32/common
+endif
+def-y += -DUSE_MICROHTTPD -D__forceinline=inline
+ldflags-y += -lgnutls
+
+$(download)/json-c:
+	@(cd $(download);git clone https://github.com/json-c/json-c.git;)
+ifeq ($(host),Linux)
+	@(cd $(download)/json-c;sh ./autogen.sh; ./configure; make)
+else
+	@(cd $(download)/json-c;cp config.h.win32 cp config.h;cp json_config.h.win32 cp json_config.h)
+endif
+
+asjson-c:$(download)/json-c
+
+$(download)/libmicrohttpd-0.9.55.tar.gz:
+	@(cd $(download);wget ftp://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.55.tar.gz)
+
+$(download)/libmicrohttpd-0.9.55:$(download)/libmicrohttpd-0.9.55.tar.gz
+	@(cd $(download);tar xf libmicrohttpd-0.9.55.tar.gz)
+
+aslibmicrohttpd:$(download)/libmicrohttpd-0.9.55
+ifeq ($(host),Linux)
+	@(cd $(download)/libmicrohttpd-0.9.55; sh ./configure)
+endif
+	@(cd $(download)/libmicrohttpd-0.9.55;	\
+		sed -i "28c #ifdef HTTPS_SUPPORT" src/microhttpd/connection_https.c; \
+		sed -i "200c #endif /* HTTPS_SUPPORT */" src/microhttpd/connection_https.c; \
+		rm src/microhttpd/test_*.c -frv)
+
 default:all
 
-include $(prj-dir)/release/make/gcc.mk
+include $(prj-dir)/release/make/posix.mk
 
-all:lib
+all: asjson-c aslibmicrohttpd lib
 
 clean:clean-obj
 

@@ -19,11 +19,11 @@ LD  = $(CC)
 AR  ?= ar
 RM  ?= rm
 
-export verbose ?= no
-ifeq ($(verbose),no)
-Q=@
-else
+export V ?= 0
+ifeq ($(V),1)
 Q=
+else
+Q=@
 endif
 
 # generate pre-preocess C files if set to yes
