@@ -17,7 +17,10 @@ cflags-y += -D__WINDOWS__
 endif
 
 cflags-y += -I$(INFRASTRUCTURE)/include
+ifeq ($(host), Linux)
+else
 ldflags-y += -lwsock32
+endif
 
 dir-y += $(download)/json-c
 inc-y += -I$(download)

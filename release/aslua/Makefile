@@ -134,7 +134,11 @@ def-y += -D$(board)_board
 def-y += -DUSE_DET
 
 inc-y += -I$(LUA)/device/websock
-ldflags-y += -L$(LUA)/device/websock/out -laws -lwsock32
+ldflags-y += -L$(LUA)/device/websock/out -laws
+ifeq ($(host), Linux)
+else
+ldflags-y += -lwsock32
+endif
 
 $(inc-dir)/utility:
 	@mkdir -p $@
