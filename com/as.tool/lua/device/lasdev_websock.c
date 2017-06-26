@@ -39,6 +39,8 @@ static void on_text (void *, char *, size_t size);
 static void on_binary (void *, char *, size_t size);
 static void on_error (void *, uint16_t code, const void *, size_t size);
 static void on_hangup (void *);
+static void on_call (void *);
+static void on_event (void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const LAS_DeviceOpsType websock_dev_ops = {
 	.name = "websock",
@@ -111,7 +113,7 @@ static int lasdev_write (void* param,const char* data,size_t size)
 }
 static void lasdev_close(void* param)
 {
-	return 0;
+
 }
 static int lasdev_ioctl (void* param,int type, const char* data,size_t size)
 {

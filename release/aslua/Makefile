@@ -120,13 +120,19 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=  -ldl -lreadline
 else
-ldflags-y +=-lwinmm -lwsock32
+ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lm -lpthread
 cflags-y +=-Wextra 
 def-y    += -D__AS_PY_CAN__
 endif	# pyas end
+
+termux?=no
+ifeq ($(termux),yes)
+def-y += -D__TERMUX__
+endif
+
 
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
@@ -135,6 +141,7 @@ def-y += -DUSE_DET
 
 inc-y += -I$(LUA)/device/websock
 ldflags-y += -L$(LUA)/device/websock/out -laws
+
 ifeq ($(host), Linux)
 else
 ldflags-y += -lwsock32
@@ -163,8 +170,11 @@ $(download)/ncurses-6.0:$(download)/ncurses-6.0.tar.gz
 asncurse:$(download)/ncurses-6.0
 	@(cd $(download)/ncurses-6.0; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all)
 
-aslibaws:$(LUA)/device/websock/out/libaws.a
+$(LUA)/device/websock/out/libaws.a:
 	@(cd $(LUA)/device/websock; make all)
+
+aslibaws:$(LUA)/device/websock/out/libaws.a
+
 
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)

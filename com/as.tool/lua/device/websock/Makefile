@@ -15,7 +15,10 @@ cflags-y += -D__LINUX__
 else
 cflags-y += -D__WINDOWS__
 endif
-
+termux?=no
+ifeq ($(termux), yes)
+cflags-y += -D__TERMUX__
+endif
 cflags-y += -I$(INFRASTRUCTURE)/include
 ifeq ($(host), Linux)
 else
@@ -56,8 +59,6 @@ $(download)/libmicrohttpd-0.9.55.tar.gz:
 
 $(download)/libmicrohttpd-0.9.55:$(download)/libmicrohttpd-0.9.55.tar.gz
 	@(cd $(download);tar xf libmicrohttpd-0.9.55.tar.gz)
-
-aslibmicrohttpd:$(download)/libmicrohttpd-0.9.55
 ifeq ($(host),Linux)
 	@(cd $(download)/libmicrohttpd-0.9.55; sh ./configure)
 endif
@@ -65,6 +66,8 @@ endif
 		sed -i "28c #ifdef HTTPS_SUPPORT" src/microhttpd/connection_https.c; \
 		sed -i "200c #endif /* HTTPS_SUPPORT */" src/microhttpd/connection_https.c; \
 		rm src/microhttpd/test_*.c -frv)
+
+aslibmicrohttpd:$(download)/libmicrohttpd-0.9.55
 
 default:all
 
