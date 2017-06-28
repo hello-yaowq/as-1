@@ -14,6 +14,8 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <sys/types.h>
+#include <sys/queue.h>
+#include <pthread.h>
 #include "lasdevlib.h"
 #include "afb-wsj1.h"
 #include "asocket.h"
@@ -22,11 +24,21 @@
 #define PPARAM(p) ((LAS_WebsockParamType*)p)
 #define AS_LOG_LAS_DEV 0
 /* ============================ [ TYPES     ] ====================================================== */
-typedef struct {
+typedef struct LAS_WebsockServerParamStruct {
+	int s; /* client accepted by server */
+	struct afb_wsj1 * wsj1;
+	STAILQ_ENTRY(LAS_WebsockServerParamStruct) entry;	
+} LAS_WebsockServerParamType;
+typedef struct LAS_WebsockParamStruct {
 	char* uri;
 	int port;
 	int s;
+	int is_server;
+	pthread_t thread; /* server thread to accept client connection */
 	struct afb_wsj1 * wsj1;
+	STAILQ_ENTRY(LAS_WebsockParamStruct) centry;
+	STAILQ_ENTRY(LAS_WebsockParamStruct) sentry;
+	STAILQ_HEAD(,LAS_WebsockServerParamStruct) shead;
 } LAS_WebsockParamType;
 /* ============================ [ DECLARES  ] ====================================================== */
 static int lasdev_open  (const char* device, lua_State *L, void** param);
@@ -34,13 +46,13 @@ static int lasdev_read  (void* param,lua_State *L);
 static int lasdev_write (void* param,const char* data,size_t size);
 static void lasdev_close(void* param);
 static int lasdev_ioctl (void* param,int type, const char* data,size_t size);
-static void on_close (void *, uint16_t code, char *, size_t size);
-static void on_text (void *, char *, size_t size);
-static void on_binary (void *, char *, size_t size);
-static void on_error (void *, uint16_t code, const void *, size_t size);
-static void on_hangup (void *);
-static void on_call (void *);
-static void on_event (void *);
+ 
+static void on_hangup(void *closure, struct afb_wsj1 *wsj1);
+static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg);
+static void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg);
+static void on_reply(void *closure, struct afb_wsj1_msg *msg);
+static void* server_main(void* param);
+
 /* ============================ [ DATAS     ] ====================================================== */
 const LAS_DeviceOpsType websock_dev_ops = {
 	.name = "websock",
@@ -56,6 +68,8 @@ static const struct afb_wsj1_itf wsj1_itf =
 	.on_call = on_call,
 	.on_event = on_event
 };
+static STAILQ_HEAD(,LAS_WebsockParamStruct) serverHead = STAILQ_HEAD_INITIALIZER(serverHead);
+static STAILQ_HEAD(,LAS_WebsockParamStruct) clientHead = STAILQ_HEAD_INITIALIZER(clientHead);
 /* ============================ [ LOCALS    ] ====================================================== */
 static int lasdev_open  (const char* device, lua_State *L, void** param)
 {
@@ -91,11 +105,22 @@ static int lasdev_open  (const char* device, lua_State *L, void** param)
 		}
 
 		*param = malloc(sizeof(LAS_WebsockParamType));
-
+		asAssert(*param);
 		PPARAM(*param)->s = s;
 		PPARAM(*param)->port = port;
 		PPARAM(*param)->uri = strdup(uri);
-		PPARAM(*param)->wsj1 = afb_wsj1_create(s,0,0);
+		PPARAM(*param)->is_server = is_server;
+		if(is_server)
+		{
+			STAILQ_INSERT_TAIL(&serverHead,PPARAM(*param),sentry);
+			pthread_create(&(PPARAM(*param)->thread),NULL,server_main,*param);
+		}
+		else
+		{
+			PPARAM(*param)->wsj1 = afb_wsj1_create(s,&wsj1_itf,*param);
+			STAILQ_INSERT_TAIL(&clientHead,PPARAM(*param),centry);
+		}
+		return 1;
 	}
 	else
 	{
@@ -109,7 +134,8 @@ static int lasdev_read  (void* param,lua_State *L)
 }
 static int lasdev_write (void* param,const char* data,size_t size)
 {
-	return 0;
+	afb_wsj1_call_s(PPARAM(param)->wsj1, "hello", "ping", "null", on_reply,"anykey");
+	return size;
 }
 static void lasdev_close(void* param)
 {
@@ -118,5 +144,41 @@ static void lasdev_close(void* param)
 static int lasdev_ioctl (void* param,int type, const char* data,size_t size)
 {
 	return 0;
+}
+ 
+void on_hangup(void *closure, struct afb_wsj1 *wsj1)
+{
+	printf("%s\n",__func__);
+}
+void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg)
+{
+	printf("ON-CALL %s/%s(%s)\n", api, verb, afb_wsj1_msg_object_s(msg));
+}
+void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
+{
+		printf("ON-EVENT %s(%s)\n", event, afb_wsj1_msg_object_s(msg));
+}
+static void on_reply(void *closure, struct afb_wsj1_msg *msg)
+{
+	printf("ON-REPLY %s: %s\n", (char*)closure, afb_wsj1_msg_object_s(msg));
+}
+
+static void* server_main(void* param)
+{
+	int s;
+	LAS_WebsockServerParamType *sp;
+	while(PPARAM(param)->is_server)
+	{
+		s = ask_accept(PPARAM(param)->s);
+		if(s > 0)
+		{
+			sp = malloc(sizeof(LAS_WebsockServerParamType));
+			asAssert(sp);
+			sp->s = s;
+			sp->wsj1 = afb_wsj1_create(s,&wsj1_itf,param);
+		}
+	}
+	STAILQ_REMOVE(&serverHead,PPARAM(param),LAS_WebsockParamStruct,sentry);
+	free(param);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

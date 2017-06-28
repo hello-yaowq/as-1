@@ -121,8 +121,24 @@ int ask_create(int is_server,char * uri,int port)
 	{
 		s = -1;
 	}
+	else
+	{
+		#ifdef __WINDOWS__
+		/* set to non blocking mode */
+		u_long iMode = 1;
+		ioctlsocket(s, FIONBIO, &iMode);
+		#endif
+	}
 
 	return s;
+}
+int ask_accept(int s)
+{
+	int cs;
+
+	cs = accept(s,0,0);
+
+	return cs;
 }
 
 ssize_t ask_readv(int s,const struct iovec * iov, int iocnt)
@@ -134,7 +150,7 @@ ssize_t ask_readv(int s,const struct iovec * iov, int iocnt)
 	i = 0;
 
 	do {
-		tmp = recv(s,iov[i].iov_base,iov[i].iov_len,0);
+		tmp = recv(s,iov[i].iov_base,iov[i].iov_len,MSG_DONTWAIT);
 		if(tmp > 0)
 		{
 			len += tmp;
@@ -142,7 +158,23 @@ ssize_t ask_readv(int s,const struct iovec * iov, int iocnt)
 
 		if(tmp < 0)
 		{
-			len = -1;
+#ifdef __WINDOWS__
+			if(10035 != WSAGetLastError())
+#else
+			if(errno != EAGAIN)
+#endif
+			{
+#ifdef __WINDOWS__
+				printf("websocket TCP %d recv failed: %d\n", s, WSAGetLastError());
+				closesocket(s);
+				len = -1;
+#else
+				//TODO:how to determine a connection error other than socket buffer empty.
+				//printf("websocket TCP %d recv failed!\n",s);perror("::");
+				//close(s);
+				//len = -1;
+#endif
+			}
 			break;
 		}
 

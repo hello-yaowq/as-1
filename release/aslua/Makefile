@@ -70,13 +70,13 @@ include ../make/arm.gcc.mk
 endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #
+def-y    += -DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1
 ifeq ($(board),arm)
 def-y += -DLUA_USE_LINUX
 def-y += -D__LINUX__
 ldflags-y += -lrt -lm -lpthread -lg -ldl -lc
 ldflags-y += /usr/arm-linux-gnueabi/lib/libgcc_s.so.1
 ldflags-y += -lreadline -L$(download)/readline -lncurses -L$(download)/ncurses-6.0/lib
-def-y    += -DLUA_COMPAT_5_2
 inc-y += -I$(download)
 endif # board arm
 
@@ -102,7 +102,6 @@ ldflags-y += -lm -lpthread -lstdc++
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
-def-y    += -DLUA_COMPAT_5_2
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
 endif	# posix end
 
@@ -131,6 +130,7 @@ endif	# pyas end
 termux?=no
 ifeq ($(termux),yes)
 def-y += -D__TERMUX__
+inc-y += -I$(download)
 endif
 
 
@@ -170,11 +170,13 @@ $(download)/ncurses-6.0:$(download)/ncurses-6.0.tar.gz
 asncurse:$(download)/ncurses-6.0
 	@(cd $(download)/ncurses-6.0; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all)
 
-$(LUA)/device/websock/out/libaws.a:
+
+libaws:
 	@(cd $(LUA)/device/websock; make all)
 
-aslibaws:$(LUA)/device/websock/out/libaws.a
+$(LUA)/device/websock/out/libaws.a:libaws
 
+aslibaws:$(LUA)/device/websock/out/libaws.a
 
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)

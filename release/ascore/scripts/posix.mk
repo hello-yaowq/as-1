@@ -22,6 +22,7 @@ endif
 ifeq ($(termux),yes)
 tcpip=none
 #sgapp=none
+trace_callstack=no
 def-y += -D__TERMUX__
 endif
 
@@ -42,14 +43,17 @@ ifeq ($(host),Linux)
 ldflags-y +=-lrt
 ldflags-y +=-ldl -lreadline
 else
-ldflags-y +=-lwinmm -lwsock32
+ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ifeq ($(sgapp),none)
 else
+ifeq ($(termux),yes)
+else
 cflags-y  += `pkg-config --cflags gtk+-3.0`
 ldflags-y += `pkg-config --cflags gtk+-3.0` \
 			 `pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0`
+endif
 endif
 ldflags-y += -lpthread
 ldflags-y += -lstdc++ -lm
@@ -99,22 +103,13 @@ def-y += -DAUTOSTART_ENABLE
 
 dir-y += $(src-dir)/swc/telltale
 
-dir-y += $(download)/json-c
-def-y += -DUSE_JSONC
-ifeq ($(host),Linux)
-else
-def-y += -D_MSC_VER
-endif
+inc-y += -I$(LUA)/device/websock
+ldflags-y += -L$(LUA)/device/websock/out -laws
 
-# for mingw need to install gnutls from ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.0.22-w32.zip
-dir-y += $(download)/libmicrohttpd-0.9.55/src/microhttpd
-inc-y += -I$(download)/libmicrohttpd-0.9.55/src/include
-ifeq ($(host),Linux)
-inc-y += -I$(download)/libmicrohttpd-0.9.55/
+ifeq ($(host), Linux)
 else
-inc-y += -I$(download)/libmicrohttpd-0.9.55/w32/common
+ldflags-y += -lwsock32
 endif
-def-y += -DUSE_MICROHTTPD -D__forceinline=inline
 ldflags-y += -lgnutls
 
 ifeq ($(compiler),posix-gcc)
@@ -134,32 +129,12 @@ endif
 
 ascontiki:$(download)/contiki
 
-$(download)/json-c:
-	@(cd $(download);git clone https://github.com/json-c/json-c.git;)
-ifeq ($(host),Linux)
-	@(cd $(download)/json-c;sh ./autogen.sh; ./configure; make)
-else
-	@(cd $(download)/json-c;cp config.h.win32 cp config.h;cp json_config.h.win32 cp json_config.h)
-endif
+$(LUA)/device/websock/out/libaws.a:
+	@(cd $(LUA)/device/websock; make all)
 
-asjson-c:$(download)/json-c
+aslibaws:$(LUA)/device/websock/out/libaws.a
 
-$(download)/libmicrohttpd-0.9.55.tar.gz:
-	@(cd $(download);wget ftp://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.55.tar.gz)
-
-$(download)/libmicrohttpd-0.9.55:$(download)/libmicrohttpd-0.9.55.tar.gz
-	@(cd $(download);tar xf libmicrohttpd-0.9.55.tar.gz)
-
-aslibmicrohttpd:$(download)/libmicrohttpd-0.9.55
-ifeq ($(host),Linux)
-	@(cd $(download)/libmicrohttpd-0.9.55; sh ./configure)
-endif
-	@(cd $(download)/libmicrohttpd-0.9.55;	\
-		sed -i "28c #ifdef HTTPS_SUPPORT" src/microhttpd/connection_https.c; \
-		sed -i "200c #endif /* HTTPS_SUPPORT */" src/microhttpd/connection_https.c; \
-		rm src/microhttpd/test_*.c -v)
-
-dep-posix: $(download) aslwip ascontiki dep-as-virtual asjson-c
+dep-posix: $(download) aslwip ascontiki dep-as-virtual aslibaws
 ifeq ($(sgapp),none)
 else
 	@(make SG)

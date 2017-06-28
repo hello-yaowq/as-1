@@ -32,6 +32,7 @@ struct iovec
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern int ask_create(int is_server,char * uri,int port);
+int ask_accept(int s);
 extern ssize_t ask_readv(int s,const struct iovec * iov, int iocnt);
 extern ssize_t ask_writev(int s,const struct iovec * iov, int iocnt);
 #endif /* _ASOCKET_H_ */

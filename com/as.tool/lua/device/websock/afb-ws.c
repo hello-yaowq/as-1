@@ -78,6 +78,7 @@ static void aws_on_binary(struct afb_ws *ws, int last, size_t size);
 static void aws_on_continue(struct afb_ws *ws, int last, size_t size);
 static void aws_on_readable(struct afb_ws *ws);
 static void aws_on_error(struct afb_ws *ws, uint16_t code, const void *data, size_t size);
+static void* daemon_main(void* param);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct websock_itf aws_itf = {
 	.writev = (void*)aws_writev,
@@ -98,6 +99,7 @@ static struct afb_ws_list afbwsList = {
 	.q_lock=PTHREAD_MUTEX_INITIALIZER,
 	.head = STAILQ_HEAD_INITIALIZER(afbwsList.head)
 };
+static pthread_t daemonThread;
 /* ============================ [ LOCALS    ] ====================================================== */
 /*
  * callback for writing data
@@ -294,7 +296,19 @@ static void aws_on_error(struct afb_ws *ws, uint16_t code, const void *data, siz
 	else
 		afb_ws_hangup(ws);
 }
-
+static void* daemon_main(void* param)
+{
+	while(!STAILQ_EMPTY(&afbwsList.head))
+	{
+		struct afb_ws* ws;
+		(void)pthread_mutex_lock(&afbwsList.q_lock);
+		STAILQ_FOREACH(ws,&afbwsList.head,entry)
+		{
+			aws_on_readable(ws);
+		}
+		(void)pthread_mutex_unlock(&afbwsList.q_lock);
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /*
  * Creates the afb_ws structure for the file descritor
@@ -329,6 +343,11 @@ struct afb_ws *afb_ws_create(int fd, const struct afb_ws_itf *itf, void *closure
 	if (result->ws == NULL)
 		goto error2;
 	(void)pthread_mutex_lock(&afbwsList.q_lock);
+	if(STAILQ_EMPTY(&afbwsList.head))
+	{
+		pthread_create(&daemonThread,NULL,daemon_main,NULL);
+	}
+
 	STAILQ_INSERT_TAIL(&afbwsList.head,result,entry);
 	(void)pthread_mutex_unlock(&afbwsList.q_lock);
 
@@ -481,13 +500,4 @@ int afb_ws_binary_v(struct afb_ws *ws, const struct iovec *iovec, int count)
 	}
 	return websock_binary_v(ws->ws, 1, iovec, count);
 }
-void aws_round_robin(void)
-{
-	struct afb_ws* ws;
-	(void)pthread_mutex_lock(&afbwsList.q_lock);
-	STAILQ_FOREACH(ws,&afbwsList.head,entry)
-	{
-		aws_on_readable(ws);
-	}
-	(void)pthread_mutex_unlock(&afbwsList.q_lock);
-}
+

@@ -79,7 +79,7 @@
 
 (global-font-lock-mode 1) 
 (setq default-directory "~/") 
-(set-scroll-bar-mode nil)
+;;(set-scroll-bar-mode nil)
 
 ;;(setq inhibit-startup-message t) 
 ;;(setq indent-tabs-mode t)

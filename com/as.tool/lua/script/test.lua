@@ -133,6 +133,16 @@ function test_ascomtcp()
   end
 end
 
-test_ascomtcp()
+function test_aswebsock()
+  ss = as.open("websock01","127.0.0.1",8080,1)
+  cs0 = as.open("websock02","127.0.0.1",8080,0)
+  cs1 = as.open("websock03","127.0.0.1",8080,0)
+  as.write(cs0,"x",-1)
+  as.write(cs1,"x",-1)
+  as.write(ss,"x",-1)
+  os.usleep(1000000)
+end
+
+test_aswebsock()
 
 print("Test END")
