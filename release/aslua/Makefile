@@ -171,8 +171,11 @@ asncurse:$(download)/ncurses-6.0
 	@(cd $(download)/ncurses-6.0; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all)
 
 
+cleanaws:
+	@(cd $(LUA)/device/websock; make clean)
+
 libaws:
-	@(cd $(LUA)/device/websock; make all)
+	@(cd $(LUA)/device/websock; make all CC=$(COMPILER_PREFIX)gcc AR=$(COMPILER_PREFIX)ar)
 
 $(LUA)/device/websock/out/libaws.a:libaws
 

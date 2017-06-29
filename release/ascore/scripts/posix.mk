@@ -110,7 +110,7 @@ ifeq ($(host), Linux)
 else
 ldflags-y += -lwsock32
 endif
-ldflags-y += -lgnutls
+#ldflags-y += -lgnutls
 
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror

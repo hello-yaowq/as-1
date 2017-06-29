@@ -19,6 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <errno.h>
 #ifdef __WINDOWS__
 #include <winsock2.h>
 #include <Ws2tcpip.h>

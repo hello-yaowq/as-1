@@ -42,7 +42,6 @@ else
 inc-y += -I$(download)/libmicrohttpd-0.9.55/w32/common
 endif
 def-y += -DUSE_MICROHTTPD -D__forceinline=inline
-ldflags-y += -lgnutls
 
 $(download)/json-c:
 	@(cd $(download);git clone https://github.com/json-c/json-c.git;)
