@@ -159,7 +159,7 @@ static int lasdev_write (void* param,const char* data,size_t size)
 				obj = &data[len];
 				if(PPARAM(param)->wsj1)
 				{
-					err = afb_wsj1_call_s(PPARAM(param)->wsj1, api, verb, obj, on_reply,"anykey");
+					err = afb_wsj1_call_s(PPARAM(param)->wsj1, api, verb, obj, on_reply,param);
 				}
 				else
 				{
@@ -198,6 +198,11 @@ void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_m
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(LAS_DEV,"ON-CALL %s/%s(%s) on %s<%d> %s:%d\n", api, verb, afb_wsj1_msg_object_s(msg),LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
+	int rv=afb_wsj1_reply_s(msg, "{\"hi\": \"this is an example\"}", "122346", 0);
+	if(rv)
+		printf("reply failed\n");
+	else
+		printf("reply okay\n");
 }
 void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
 {
@@ -207,7 +212,7 @@ void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
 static void on_reply(void *closure, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(LAS_DEV,"ON-REPLY %s: %s  on %s<%d> %s:%d\n", (char*)closure, afb_wsj1_msg_object_s(msg),LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
+	ASLOG(LAS_DEV,"ON-REPLY : %s  on %s<%d> %s:%d\n",afb_wsj1_msg_object_s(msg),LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
 }
 
 static void* server_main(void* param)

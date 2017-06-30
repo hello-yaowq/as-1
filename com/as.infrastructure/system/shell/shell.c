@@ -52,8 +52,9 @@ struct shellWord {
 /* ----------------------------[Private function prototypes]-----------------*/
 
 static int shellHelp(int argc, char *argv[] );
+#ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
-
+#endif
 
 /* ----------------------------[Private variables]---------------------------*/
 struct shellWord shellWorld;

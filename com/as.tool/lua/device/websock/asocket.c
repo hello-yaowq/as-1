@@ -183,7 +183,7 @@ ssize_t ask_readv(int s,const struct iovec * iov, int iocnt)
 		{
 			break;
 		}
-	} while((i++) <iocnt);
+	} while((++i) <iocnt);
 
 	return len;
 }
@@ -207,7 +207,7 @@ ssize_t ask_writev(int s,const struct iovec * iov, int iocnt)
 			len = -1;
 			break;
 		}
-	} while((i++) <iocnt);
+	} while((++i) <iocnt);
 
 	return len;
 }
