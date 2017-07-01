@@ -70,6 +70,7 @@ static uint32           lcdHeight   = 0;
 static uint8            lcdPixel    = 0;
 
 /* ============================ [ DECLARES  ] ====================================================== */
+extern int AsWsjOnline(void);
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef GUI_USE_GTK
 #if(cfgLcdHandle == LCD_DRAWING_AREA)
@@ -215,6 +216,17 @@ static void* Lcd_Thread(void* param)
 #endif
 {
 	GtkWidget* pWindow;
+#ifdef __WINDOWS__
+	Sleep(1);
+#else
+	usleep(1000000);
+#endif
+	if(AsWsjOnline())
+	{
+		free(pLcdBuffer);
+		return 0;
+	}
+
 	PRINTF("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
 	pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -345,6 +357,14 @@ static LONG WINAPI windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 static DWORD Lcd_Thread(LPVOID param)
 {
 	HWND window;
+
+	Sleep(1);
+	if(AsWsjOnline())
+	{
+		free(pLcdBuffer);
+		return 0;
+	}
+
 	{
 		WNDCLASS wndclass;
 		wndclass.style		   = 0;

@@ -100,11 +100,12 @@ function test_can_amb()
 end
 
 function test_asdev()
+
   as.ioctl(12,7,{1,2,3},3)
   as.ioctl(12,6,"Hello World",3)
   as.write(12,"Hello World",3)
   as.write(12,{1,2,3},3)
-  fd = as.open("COM14",115200,"8N1")
+  fd = as.open("COM14",string.format("%d\0%s",115200,"8N1"))
   len,data = as.read(fd)
   if len > 0 then
     print("rx string is: ",rawlen(data),data)
@@ -113,7 +114,7 @@ function test_asdev()
 end
 
 function test_ascomtcp()
-  fd = as.open("COMTCP",115200,"8N1")
+  fd = as.open("COMTCP",string.format("%d\0%s",115200,"8N1"))
   ss = ""
   while true do
     len,data = as.read(fd)
@@ -135,15 +136,17 @@ end
 
 function test_aswebsock()
 
-  ss = as.open("websock01","127.0.0.1",8080,1)
-  cs0 = as.open("websock02","127.0.0.1",8080,0)
-  cs1 = as.open("websock03","127.0.0.1",8080,0)
+  ss = as.open("websock01",string.format("%s\0%d\0%d","127.0.0.1",8080,1))
+  cs0 = as.open("websock02",string.format("%s\0%d\0%d","127.0.0.1",8080,0))
+  cs1 = as.open("websock03",string.format("%s\0%d\0%d","127.0.0.1",8080,0))
   ds = string.format("c%s\0%s\0%s","hello","ping","null")
   as.write(cs0,ds,-1)
   ds = string.format("c%s\0%s\0%s","gui","refresh","null")
   as.write(cs1,ds,-1)
   as.write(ss,ds,-1)
-  os.usleep(1000000)
+  while true do
+    os.usleep(1000000)
+  end
 end
 
 test_aswebsock()

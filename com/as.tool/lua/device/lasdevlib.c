@@ -136,9 +136,10 @@ int luai_as_open  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
 
-	if(n > 1)
+	if(n == 2)
 	{
 		const char* device_name;
+		const char* option;
 		const LAS_DeviceOpsType* ops;
 		size_t ls;
 		struct LAS_Dev_s* d;
@@ -147,6 +148,12 @@ int luai_as_open  (lua_State *L)
 		if((0 == ls) || (ls > LAS_DEVICE_NAME_SIZE))
 		{
 			 return luaL_error(L,"incorrect argument device name to function '%s'",__func__);
+		}
+
+		option = lua_tolstring(L, 2, &ls);
+		if(0 == ls)
+		{
+			 return luaL_error(L,"incorrect argument device option to function '%s'",__func__);
 		}
 
 		d = getDev(device_name);
@@ -163,7 +170,7 @@ int luai_as_open  (lua_State *L)
 				d = malloc(sizeof(struct LAS_Dev_s));
 				strcpy(d->name,device_name);
 
-				rv = ops->open(device_name,L,&d->param);
+				rv = ops->open(device_name,option,&d->param);
 
 				if(rv)
 				{
@@ -190,7 +197,7 @@ int luai_as_open  (lua_State *L)
 	}
 	else
 	{
-		return luaL_error(L, "%s (\"device name\",mode) API should has 2 arguments",__func__);
+		return luaL_error(L, "%s (\"device name\",\"device option\") API should has 2 arguments",__func__);
 	}
 }
 int luai_as_read  (lua_State *L)
@@ -215,7 +222,21 @@ int luai_as_read  (lua_State *L)
 		}
 		if(d->ops->read != NULL)
 		{
-			return d->ops->read(d->param,L);
+			char* data;
+			int len = d->ops->read(d->param,&data);
+
+			lua_pushinteger(L,len);
+
+			if(len > 0)
+			{
+				lua_pushlstring(L,data,len);
+			}
+			else
+			{
+				lua_pushnil(L);
+			}
+
+			return 1;
 		}
 		else
 		{

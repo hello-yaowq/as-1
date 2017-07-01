@@ -120,6 +120,7 @@
  * Env Definition:
  * 0: program name
  * 1: OSEK NM Node ID
+ * 2: remote gui websock uri:port, e.g "127.0.0.1:8080" or "null" to disable remote gui to use local SG.
  */
 
 #if defined(__LINUX__) || defined(__WINDOWS__)

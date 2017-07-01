@@ -45,8 +45,8 @@ typedef struct LAS_WebsockParamStruct {
 	STAILQ_HEAD(,LAS_WebsockParamStruct) shead;
 } LAS_WebsockParamType;
 /* ============================ [ DECLARES  ] ====================================================== */
-static int lasdev_open  (const char* device, lua_State *L, void** param);
-static int lasdev_read  (void* param,lua_State *L);
+static int lasdev_open  (const char* device, const char* option, void** param);
+static int lasdev_read  (void* param, char** pdata);
 static int lasdev_write (void* param,const char* data,size_t size);
 static void lasdev_close(void* param);
 static int lasdev_ioctl (void* param,int type, const char* data,size_t size);
@@ -75,68 +75,53 @@ static const struct afb_wsj1_itf wsj1_itf =
 static STAILQ_HEAD(,LAS_WebsockParamStruct) serverHead = STAILQ_HEAD_INITIALIZER(serverHead);
 static STAILQ_HEAD(,LAS_WebsockParamStruct) clientHead = STAILQ_HEAD_INITIALIZER(clientHead);
 /* ============================ [ LOCALS    ] ====================================================== */
-static int lasdev_open  (const char* device, lua_State *L, void** param)
+static int lasdev_open  (const char* device, const char* option, void** param)
 {
 	char* uri;
+	char* p;
 	int s,port,is_server,is_num,n;
-	size_t ls;
-	n = lua_gettop(L);
-	if(4==n)
+	/* option format "uri\0port\0server", e.g. "127.0.0.1\08080\01" */
+	uri = option;
+	p = uri + strlen(uri)+1;
+	port = atoi(p);
+	p = p + strlen(p)+1;
+	is_server = atoi(p);
+
+	s = ask_create(is_server,uri,port);
+	if(s < 0)
 	{
-		uri = lua_tolstring(L, 2, &ls);
-		if(0 == ls)
-		{
-			 return luaL_error(L,"incorrect argument uri name to function '%s'",__func__);
-		}
+		ASWARNING("create websock %s on %s:%d failed at function '%s'",
+				is_server?"server":"client",uri,port,__func__);
 
-		port = lua_tounsignedx(L, 3,&is_num);
-		if(!is_num)
-		{
-			 return luaL_error(L,"incorrect argument port to function '%s'",__func__);
-		}
+		return 0;
+	}
 
-		is_server = lua_tounsignedx(L, 4,&is_num);
-		if(!is_num)
-		{
-			 return luaL_error(L,"incorrect argument port to function '%s'",__func__);
-		}
+	*param = malloc(sizeof(LAS_WebsockParamType));
+	asAssert(*param);
+	PPARAM(*param)->s = s;
+	PPARAM(*param)->port = port;
+	PPARAM(*param)->uri = strdup(uri);
+	PPARAM(*param)->is_server = is_server;
 
-		s = ask_create(is_server,uri,port);
-		if(s < 0)
-		{
-			return luaL_error(L,"create websock %s on %s:%d failed at function '%s'",
-					is_server?"server":"client",uri,port,__func__);
-		}
-
-		*param = malloc(sizeof(LAS_WebsockParamType));
-		asAssert(*param);
-		PPARAM(*param)->s = s;
-		PPARAM(*param)->port = port;
-		PPARAM(*param)->uri = strdup(uri);
-		PPARAM(*param)->is_server = is_server;
-		if(is_server)
-		{
-			STAILQ_INSERT_TAIL(&serverHead,PPARAM(*param),sentry);
-			STAILQ_INIT(&PPARAM(*param)->shead);
-			PPARAM(*param)->wsj1 = NULL;
-			PPARAM(*param)->pp = NULL;
-			pthread_create(&(PPARAM(*param)->thread),NULL,server_main,*param);
-		}
-		else
-		{
-			PPARAM(*param)->wsj1 = afb_wsj1_create(s,&wsj1_itf,*param);
-			PPARAM(*param)->pp = NULL;
-			STAILQ_INSERT_TAIL(&clientHead,PPARAM(*param),centry);
-		}
-		return 1;
+	if(is_server)
+	{
+		STAILQ_INSERT_TAIL(&serverHead,PPARAM(*param),sentry);
+		STAILQ_INIT(&PPARAM(*param)->shead);
+		PPARAM(*param)->wsj1 = NULL;
+		PPARAM(*param)->pp = NULL;
+		pthread_create(&(PPARAM(*param)->thread),NULL,server_main,*param);
 	}
 	else
 	{
-		return luaL_error(L, "%s (%s, baudrate,\"modes\") API should has 3 arguments",__func__);
+		PPARAM(*param)->wsj1 = afb_wsj1_create(s,&wsj1_itf,*param);
+		PPARAM(*param)->pp = NULL;
+		STAILQ_INSERT_TAIL(&clientHead,PPARAM(*param),centry);
 	}
-	return 0;
+
+	ASLOG(LAS_DEV,"websock %s<%d> online %s:%d\n",LAS_WS_NAME(PPARAM(*param)->is_server),PPARAM(*param)->s,PPARAM(*param)->uri,PPARAM(*param)->port);
+	return 1;
 }
-static int lasdev_read  (void* param,lua_State *L)
+static int lasdev_read  (void* param,char** pdata)
 {
 	return 0;
 }
@@ -189,12 +174,12 @@ static int lasdev_ioctl (void* param,int type, const char* data,size_t size)
 	return 0;
 }
  
-void on_hangup(void *closure, struct afb_wsj1 *wsj1)
+static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(LAS_DEV,"ON-HANGUP on %s<%d> %s:%d\n",LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
 }
-void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg)
+static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(LAS_DEV,"ON-CALL %s/%s(%s) on %s<%d> %s:%d\n", api, verb, afb_wsj1_msg_object_s(msg),LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
@@ -204,7 +189,7 @@ void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_m
 	else
 		printf("reply okay\n");
 }
-void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
+static void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(LAS_DEV,"ON-EVENT %s(%s)  on %s<%d> %s:%d\n", event, afb_wsj1_msg_object_s(msg),LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
@@ -236,5 +221,7 @@ static void* server_main(void* param)
 	}
 	STAILQ_REMOVE(&serverHead,PPARAM(param),LAS_WebsockParamStruct,sentry);
 	free(param);
+
+	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
