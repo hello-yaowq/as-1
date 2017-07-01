@@ -139,8 +139,6 @@ static int lasdev_read  (void* param,char** pdata)
 {
 	char data[4097]; /* maximum read size 4096 */
 	int len;
-	int table_index,i;
-
 
 	if(CAN_TCP_SERIAL_PORT == PPARAM(param)->port)
 	{

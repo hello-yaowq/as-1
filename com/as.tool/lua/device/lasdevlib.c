@@ -123,13 +123,23 @@ static void freeDev(struct LAS_DevList_s*h)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void luai_asdevlib_open(void)
 {
-	if(!devListH.initialized)
+	if(devListH.initialized)
 	{
 		freeDev(&devListH);
 	}
 	devListH.initialized = TRUE;
 	STAILQ_INIT(&devListH.head);
 
+}
+
+void luai_asdevlib_close(void)
+{
+	if(devListH.initialized)
+	{
+		freeDev(&devListH);
+	}
+
+	devListH.initialized = FALSE;
 }
 
 int luai_as_open  (lua_State *L)
@@ -236,7 +246,7 @@ int luai_as_read  (lua_State *L)
 				lua_pushnil(L);
 			}
 
-			return 1;
+			return 2;
 		}
 		else
 		{

@@ -73,6 +73,10 @@ static char cmdBuf[CMDLINE_MAX];
 
 /* ----------------------------[Private functions]---------------------------*/
 
+char __weak SHELL_getc(void)
+{
+	return 0;
+}
 /**
  * Removes backspace from string s and returns the null
  * terminated string in d.

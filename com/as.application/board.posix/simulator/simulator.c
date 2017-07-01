@@ -66,16 +66,19 @@ static void on_call(void *closure, const char *api, const char *verb, struct afb
 		printf("reply failed\n");
 	else
 		printf("reply okay\n");
+	afb_wsj1_msg_unref(msg);
 }
 static void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(ON,"ON-EVENT %s(%s)  on socket <%d> %s:%d\n", event, afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
+	afb_wsj1_msg_unref(msg);
 }
 static void on_reply(void *closure, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	ASLOG(ON,"ON-REPLY : %s  on socket <%d> %s:%d\n",afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
+	afb_wsj1_msg_unref(msg);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 KSM(Simulator,Init)

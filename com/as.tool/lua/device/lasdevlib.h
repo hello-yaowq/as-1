@@ -46,6 +46,7 @@ extern const LAS_DeviceOpsType websock_dev_ops;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void luai_asdevlib_open(void);
+void luai_asdevlib_close(void);
 int luai_as_open  (lua_State *L);
 int luai_as_read  (lua_State *L);
 int luai_as_write  (lua_State *L);

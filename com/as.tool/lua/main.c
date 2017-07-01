@@ -162,6 +162,7 @@ int main(int argc,char* argv[])
 	if( argc != 1 )
 	{
 		lua_main(argc,argv);
+		luaclose_as();
 	}
 	else
 	{
@@ -171,6 +172,7 @@ int main(int argc,char* argv[])
 	}
 #else
 	lua_main(argc,argv);
+	luaclose_as();
 #endif
 	return 0;
 }

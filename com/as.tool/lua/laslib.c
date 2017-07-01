@@ -47,6 +47,7 @@ static const luaL_open_t open_ops[] =
 static const luaL_open_t close_ops[] =
 {
 	luai_canlib_close,
+	luai_asdevlib_close,
 	NULL
 };
 static struct timeval m0;

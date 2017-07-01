@@ -99,7 +99,7 @@ ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lm -lpthread -lstdc++
 # inter processor communication		 
-def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
+#def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
 dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version

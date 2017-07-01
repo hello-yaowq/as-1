@@ -16,6 +16,7 @@ require("cantp")
 require("as")
 require("s19")
 require("os")
+json = require("json")
 
 local function hext(data) -- this is for table
   ss = "["
@@ -135,18 +136,33 @@ function test_ascomtcp()
 end
 
 function test_aswebsock()
-
-  ss = as.open("websock01",string.format("%s\0%d\0%d","127.0.0.1",8080,1))
-  cs0 = as.open("websock02",string.format("%s\0%d\0%d","127.0.0.1",8080,0))
-  cs1 = as.open("websock03",string.format("%s\0%d\0%d","127.0.0.1",8080,0))
+  port = 8081
+  ss = as.open("websock01",string.format("%s\0%d\0%d","127.0.0.1",port,1))
+  cs0 = as.open("websock02",string.format("%s\0%d\0%d","127.0.0.1",port,0))
+  cs1 = as.open("websock03",string.format("%s\0%d\0%d","127.0.0.1",port,0))
   ds = string.format("c%s\0%s\0%s","hello","ping","null")
   as.write(cs0,ds,-1)
+  while true do
+    len,data = as.read(ss)
+    if len > 0 then
+      print("CALL",data)
+      ds = string.format("r%s\0%s\0%s",json.decode(data).param,"okay","null")
+      as.write(ss,ds,-1)
+      break
+    end
+  end
+  
+  
   ds = string.format("c%s\0%s\0%s","gui","refresh","null")
   as.write(cs1,ds,-1)
-  as.write(ss,ds,-1)
   while true do
-    os.usleep(1000000)
+    len,data = as.read(ss)
+    if len > 0 then
+      print("CALL",data)
+      break
+    end
   end
+  os.usleep(1000000)
 end
 
 test_aswebsock()
