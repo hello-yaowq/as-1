@@ -26,7 +26,7 @@
 typedef int (*lasdev_open_t)  (const char* device, const char* option, void** param);
 typedef int (*lasdev_read_t)  (void* param,char** pdata);
 typedef int (*lasdev_write_t) (void* param,const char* data,size_t size);
-typedef int (*lasdev_ioctl_t) (void* param,int type, const char* data,size_t size);
+typedef int (*lasdev_ioctl_t) (void* param,int type, const char* data,size_t size,char** rdata);
 typedef void (*lasdev_close_t) (void* param);
 
 typedef struct

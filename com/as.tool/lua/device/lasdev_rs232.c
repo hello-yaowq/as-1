@@ -47,7 +47,7 @@ static int lasdev_open  (const char* device, const char* option, void** param);
 static int lasdev_read  (void* param,char** data);
 static int lasdev_write (void* param,const char* data,size_t size);
 static void lasdev_close(void* param);
-static int lasdev_ioctl (void* param,int type, const char* data,size_t size);
+static int lasdev_ioctl (void* param,int type, const char* data,size_t size,char** rdata);
 /* ============================ [ DATAS     ] ====================================================== */
 const LAS_DeviceOpsType rs232_dev_ops = {
 	.name = "COM",
@@ -199,12 +199,13 @@ static void lasdev_close (void* param)
 	}
 	free(param);
 }
-static int lasdev_ioctl(void* param,int type, const char* data,size_t size)
+static int lasdev_ioctl(void* param,int type, const char* data,size_t size,char** rdata)
 {
 	(void) param;
 	(void) type;
 	(void) data;
 	(void) size;
+	(void) rdata;
 	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

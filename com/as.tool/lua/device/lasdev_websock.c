@@ -17,6 +17,7 @@
 #include <sys/queue.h>
 #include <pthread.h>
 #include <signal.h>
+#include <unistd.h>
 #include "lasdevlib.h"
 #include "afb-wsj1.h"
 #include "asocket.h"
@@ -26,9 +27,9 @@
 #define PPARAM(p) ((LAS_WebsockParamType*)p)
 #define AS_LOG_LAS_DEV 0
 
-#define LAS_WEBSOCK_SERVER 1
-#define LAS_WEBSOCK_CLIENT 0
-#define LAS_WEBSOCK_ACCEPT 0xacceecca
+#define LAS_WEBSOCK_SERVER ((int)1)
+#define LAS_WEBSOCK_CLIENT ((int)0)
+#define LAS_WEBSOCK_ACCEPT ((int)0xacceecca)
 
 #define LAS_WS_NAME(s) (((s)==LAS_WEBSOCK_SERVER)?"SERVER":((s)==LAS_WEBSOCK_CLIENT)?"CLIENT":((s)==LAS_WEBSOCK_ACCEPT)?"SRVACCEPT":"UNKNOWN")
 
@@ -41,9 +42,9 @@
 struct LAS_WebsockParamStruct;
 typedef struct LAS_MessgaeStruct {
 	int type;
-	char* api;
-	char* verb;
-	char* event;
+	const char* api;
+	const char* verb;
+	const char* event;
 	struct afb_wsj1_msg* msg;
 	struct LAS_WebsockParamStruct* param;
 	STAILQ_ENTRY(LAS_MessgaeStruct) next;
@@ -61,7 +62,8 @@ typedef struct LAS_WebsockParamStruct {
 	STAILQ_ENTRY(LAS_WebsockParamStruct) sentry;
 	STAILQ_ENTRY(LAS_WebsockParamStruct) aentry;	
 	STAILQ_HEAD(,LAS_WebsockParamStruct) shead;
-	STAILQ_HEAD(,LAS_MessgaeStruct) msgL;
+	STAILQ_HEAD(,LAS_MessgaeStruct) msgL; /* received message list */
+	STAILQ_HEAD(,LAS_MessgaeStruct) msgR; /* message has been read */
 	pthread_mutex_t mutex;
 } LAS_WebsockParamType;
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -69,7 +71,7 @@ static int lasdev_open  (const char* device, const char* option, void** param);
 static int lasdev_read  (void* param, char** pdata);
 static int lasdev_write (void* param,const char* data,size_t size);
 static void lasdev_close(void* param);
-static int lasdev_ioctl (void* param,int type, const char* data,size_t size);
+static int lasdev_ioctl (void* param,int type, const char* data,size_t size,char** rdata);
  
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1);
 static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg);
@@ -98,9 +100,10 @@ static STAILQ_HEAD(,LAS_WebsockParamStruct) clientHead = STAILQ_HEAD_INITIALIZER
 /* ============================ [ LOCALS    ] ====================================================== */
 static int lasdev_open  (const char* device, const char* option, void** param)
 {
-	char* uri;
-	char* p;
+	const char* uri;
+	const char* p;
 	int s,port,is_server,is_num,n;
+	(void)device;
 	/* option format "uri\0port\0server", e.g. "127.0.0.1\08080\01" */
 	uri = option;
 	p = uri + strlen(uri)+1;
@@ -131,6 +134,7 @@ static int lasdev_open  (const char* device, const char* option, void** param)
 #endif
 
 	STAILQ_INIT(&PPARAM(*param)->msgL);
+	STAILQ_INIT(&PPARAM(*param)->msgR);
 
 	if(is_server)
 	{
@@ -192,14 +196,16 @@ static int lasdev_read  (void* param,char** pdata)
 	if(!STAILQ_EMPTY(&tp->msgL))
 	{
 		LAS_MessgaeType* msg = STAILQ_FIRST(&tp->msgL);
+		STAILQ_REMOVE_HEAD(&tp->msgL,next);
 		switch(msg->type)
 		{
 			case LAS_CALL:
-				format = "{ \"api\":\"%s\",\"verb\":\"%s\",\"obj\":\"%s\",\"param\":\"%p\" }";
-				len = strlen(msg->api)+strlen(msg->verb)+strlen(afb_wsj1_msg_object_s(msg->msg))+strlen(format)-8+1+sizeof(void*)*2+2;
+				format = "{ \"api\":\"%s\",\"verb\":\"%s\",\"obj\":\"%s\",\"param\":\"%p\",\"msg\":\"%p\" }";
+				len = strlen(msg->api)+strlen(msg->verb)+strlen(afb_wsj1_msg_object_s(msg->msg))+strlen(format)-10+1+sizeof(void*)*4+4;
 				data = malloc(len);
 				asAssert(data);
-				len = snprintf(data,len,format,msg->api,msg->verb,afb_wsj1_msg_object_s(msg->msg),tp);
+				len = snprintf(data,len,format,msg->api,msg->verb,afb_wsj1_msg_object_s(msg->msg),tp,msg);
+				STAILQ_INSERT_TAIL(&tp->msgR,msg,next);
 				break;
 			case LAS_EVENT:
 				format = "{ \"event\":\"%s\",\"obj\":\"%s\"}";
@@ -207,6 +213,8 @@ static int lasdev_read  (void* param,char** pdata)
 				data = malloc(len);
 				asAssert(data);
 				len = snprintf(data,len,format,msg->event,afb_wsj1_msg_object_s(msg->msg));
+				afb_wsj1_msg_unref(msg->msg);
+				free(msg);
 				break;
 			case LAS_REPLY:
 				format = "{ \"reply\":\"?\",\"obj\":\"%s\"}";
@@ -214,32 +222,72 @@ static int lasdev_read  (void* param,char** pdata)
 				data = malloc(len);
 				asAssert(data);
 				len = snprintf(data,len,format,afb_wsj1_msg_object_s(msg->msg));
+				afb_wsj1_msg_unref(msg->msg);
+				free(msg);
 				break;
 			default:
 				asAssert(0);
 				break;
 		}
-
-		STAILQ_REMOVE_HEAD(&tp->msgL,next);
-		afb_wsj1_msg_unref(msg->msg);
-		free(msg);
 	}
 	pthread_mutex_unlock(&tp->mutex);
 	*pdata = data;
 	return len;
 }
+
+static LAS_WebsockParamType *find_server_accept_param(LAS_WebsockParamType * param,const char* cp)
+{
+	void* vp;
+	LAS_WebsockParamType *tp,*p;
+	sscanf(cp,"%p",&vp);
+	tp = NULL;
+	pthread_mutex_lock(&param->mutex);
+	STAILQ_FOREACH(p,&param->shead,aentry)
+	{
+		if((void*)p == vp)
+		{
+			tp = p;
+			break;
+		}
+	}
+	pthread_mutex_unlock(&param->mutex);
+
+	return tp;
+}
+
+static LAS_MessgaeType *find_rmsg(LAS_WebsockParamType * param,const char* mc)
+{
+	void* vp;
+	LAS_MessgaeType *tp,*p;
+	sscanf(mc,"%p",&vp);
+	tp = NULL;
+	pthread_mutex_lock(&param->mutex);
+	STAILQ_FOREACH(p,&param->msgR,next)
+	{
+		if((void*)p == vp)
+		{
+			tp = p;
+			break;
+		}
+	}
+	pthread_mutex_unlock(&param->mutex);
+
+	return tp;
+}
 static int lasdev_write (void* param,const char* data,size_t size)
 {
 	int err=0;
 	int len;
-	const char* api;
-	const char* verb;
-	const char* obj;
+
 	if(size > 3)
 	{
 		switch(data[0])
 		{
 			case 'c':
+			{
+				const char* api;
+				const char* verb;
+				const char* obj;
 				api = &data[1];
 				len = strlen(api)+2;
 				verb = &data[len];
@@ -250,21 +298,101 @@ static int lasdev_write (void* param,const char* data,size_t size)
 					err = afb_wsj1_call_s(PPARAM(param)->wsj1, api, verb, obj, on_reply,param);
 				}
 				else
-				{
-					ASWARNING("%s websock call on server is not supported\n",__func__);
-					err = -3;					
+				{	/* server wsj1 is null */
+					const char* cp;
+					LAS_WebsockParamType * tp;
+					len += strlen(obj)+1;
+					cp = &data[len];
+					if((size_t)len < size)
+					{
+						tp = find_server_accept_param(PPARAM(param),cp);
+						if(NULL == tp)
+						{
+							ASWARNING("%s websock call on server with wrong param<%s>, not exist.\n",__func__,cp);
+							err = -__LINE__;
+						}
+						else
+						{
+							err = afb_wsj1_call_s(tp->wsj1, api, verb, obj, on_reply,tp);
+						}
+					}
+					else
+					{
+						ASWARNING("%s websock call on server without param, wrong format.\n",__func__);
+						err = -__LINE__;
+					}
 				}
 				break;
+			}
+			case 'r':
+			{
+				int iserror;
+				const char* status;
+				const char* obj;
+				const char* mc;
+				const char* cp;
+
+				status = &data[1];
+				len = strlen(status)+2;
+				obj = &data[len];
+				len += strlen(obj)+1;
+				cp = &data[len];
+				len += strlen(cp)+1;
+				mc = &data[len];
+				if((size_t)len < size)
+				{
+					LAS_WebsockParamType * tp;
+					tp = find_server_accept_param(PPARAM(param),cp);
+					if(NULL == tp)
+					{
+						ASWARNING("%s websock repply on server with wrong param<%s>, not exist.\n",__func__,cp);
+						err = -__LINE__;
+					}
+					else
+					{
+						LAS_MessgaeType* msg;
+						msg = find_rmsg(tp,mc);
+						if(NULL == msg)
+						{
+							ASWARNING("%s websock repply on server with wrong msg<%s>, not exist.\n",__func__,mc);
+							err = -__LINE__;
+						}
+						else
+						{
+							if(strcmp(status,"okay"))
+							{
+								iserror = 0;
+							}
+							else
+							{
+								iserror = 1;
+							}
+							ASLOG(LAS_DEV,"REPLY-CALL %s to %s/%s(%s) on %s<%d> %s:%d\n", obj, msg->api, msg->verb, afb_wsj1_msg_object_s(msg->msg),LAS_WS_NAME(tp->is_server),tp->s,tp->uri,tp->port);
+							err = afb_wsj1_reply_s(msg->msg, obj, "lua:parai@foxmail.com", iserror);
+							STAILQ_REMOVE(&tp->msgR,msg,LAS_MessgaeStruct,next);
+							afb_wsj1_msg_unref(msg->msg);
+							free(msg);
+						}
+					}
+				}
+				else
+				{
+					ASWARNING("%s websock reply with wrong format.\n",__func__);
+					err = -__LINE__;
+				}
+
+				break;
+			}
 			default:
 				ASWARNING("%s websock wrong data format\n",__func__);
-				err = -2;
+				err = -__LINE__;
 				break;
 		}
 	}
 	else
 	{
 		ASWARNING("%s websock wrong data size\n",__func__);
-		err = -1;
+		err = -__LINE__;
 	}
 	return err;
 }
@@ -312,9 +440,49 @@ static void lasdev_close(void* param)
 	close(PPARAM(param)->s);
 	free(param);
 }
-static int lasdev_ioctl (void* param,int type, const char* data,size_t size)
+static int lasdev_ioctl (void* param,int type, const char* data,size_t size,char** rdata)
 {
-	return 0;
+	int rv = 0;
+	switch(type)
+	{
+		case 0:
+			if(LAS_WEBSOCK_SERVER == PPARAM(param)->is_server)
+			{
+				LAS_WebsockParamType *p;
+				int pn=0;
+				char* buffer;
+				const char* header = "{ \"params\": [ ";
+				pthread_mutex_lock(&PPARAM(param)->mutex);
+				STAILQ_FOREACH(p,&PPARAM(param)->shead,aentry)
+				{
+					pn ++;
+				}
+				pn = strlen(header)+4+(sizeof(void*)*2+6)*pn-1;
+				buffer = malloc(pn);
+				asAssert(buffer);
+				rv += snprintf(buffer,pn-rv,header);
+				STAILQ_FOREACH(p,&PPARAM(param)->shead,aentry)
+				{
+					rv += snprintf(&buffer[rv],pn-rv,"\"%p\", ",p);
+				}
+				buffer[rv-2] = ' ';
+				rv = rv -1;
+				rv += snprintf(&buffer[rv],pn-rv,"] }");
+				buffer[rv] = 0;
+				*rdata = buffer;
+				pthread_mutex_unlock(&PPARAM(param)->mutex);
+			}
+			else
+			{
+				rv = -__LINE__;
+			}
+			break;
+		default:
+			rv = -__LINE__;
+			break;
+	}
+
+	return rv;
 }
  
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
@@ -392,7 +560,8 @@ static void* server_main(void* param)
 			pthread_mutex_init(&sp->mutex, NULL);
 			#endif
 			STAILQ_INIT(&sp->msgL);
-			sp->wsj1 = afb_wsj1_create(s,&wsj1_itf,sp);
+			STAILQ_INIT(&sp->msgR);
+			sp->wsj1 = afb_wsj1_create(s,(struct afb_wsj1_itf *)&wsj1_itf,sp);
 			pthread_mutex_lock(&PPARAM(param)->mutex);
 			STAILQ_INSERT_TAIL(&PPARAM(param)->shead,sp,aentry);
 			pthread_mutex_unlock(&PPARAM(param)->mutex);

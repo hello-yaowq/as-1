@@ -352,7 +352,7 @@ static void wsj1_on_text(struct afb_wsj1 *wsj1, char *text, size_t size)
 			wsj1->itf->on_event(wsj1->closure, msg->event, msg);
 		break;
 	}
-	afb_wsj1_msg_unref(msg);
+	/* afb_wsj1_msg_unref(msg); unref by lua. */
 	return;
 
 bad_header:

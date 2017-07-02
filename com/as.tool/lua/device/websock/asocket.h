@@ -26,12 +26,14 @@ struct iovec
 	char* iov_base;
 	size_t iov_len;
 };
+#else
+struct iovec;
 #endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern int ask_create(int is_server,char * uri,int port);
+extern int ask_create(int is_server,const char * uri,int port);
 extern int ask_accept(int s);
 extern ssize_t ask_readv(int s,const struct iovec * iov, int iocnt);
 extern ssize_t ask_writev(int s,const struct iovec * iov, int iocnt);

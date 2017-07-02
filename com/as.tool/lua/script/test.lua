@@ -136,17 +136,24 @@ function test_ascomtcp()
 end
 
 function test_aswebsock()
-  port = 8081
+  port = 8080
   ss = as.open("websock01",string.format("%s\0%d\0%d","127.0.0.1",port,1))
   cs0 = as.open("websock02",string.format("%s\0%d\0%d","127.0.0.1",port,0))
   cs1 = as.open("websock03",string.format("%s\0%d\0%d","127.0.0.1",port,0))
+  os.usleep(1000)
+  rv,data = as.ioctl(ss,0,"nil",-1);
+  print("accept param:",data)
+  ps = json.decode(data)
+  print(ps.params[0],ps.params[1],ps.params[2])
   ds = string.format("c%s\0%s\0%s","hello","ping","null")
   as.write(cs0,ds,-1)
   while true do
     len,data = as.read(ss)
     if len > 0 then
       print("CALL",data)
-      ds = string.format("r%s\0%s\0%s",json.decode(data).param,"okay","null")
+      msg=json.decode(data)
+      robj = { hi="this is an example" }
+      ds = string.format("r%s\0%s\0%s\0%s","okay",json.encode(robj),msg.param,msg.msg)
       as.write(ss,ds,-1)
       break
     end
@@ -159,6 +166,10 @@ function test_aswebsock()
     len,data = as.read(ss)
     if len > 0 then
       print("CALL",data)
+      msg=json.decode(data)
+      robj = { hi="this is an example2" }
+      ds = string.format("r%s\0%s\0%s\0%s","okay",json.encode(robj),msg.param,msg.msg)
+      as.write(ss,ds,-1)
       break
     end
   end

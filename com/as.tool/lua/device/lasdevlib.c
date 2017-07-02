@@ -328,8 +328,17 @@ int luai_as_write  (lua_State *L)
 
 		if(d->ops->write != NULL)
 		{
-			lua_pushinteger(L, d->ops->write(d->param,data,len));
-			return 1;
+			int rv = d->ops->write(d->param,data,len);
+
+			if(rv < 0)
+			{
+				return luaL_error(L, "%s write on device %s failed(%d)\n",__func__,d->name,rv);
+			}
+			else
+			{
+				lua_pushinteger(L, rv);
+				return 1;
+			}
 		}
 		else
 		{
@@ -398,7 +407,7 @@ int luai_as_ioctl  (lua_State *L)
 			ASLOG(LAS_DEV,"ioctl string is '%s'\n",data);
 		}
 
-	    len = lua_tounsignedx(L, 3, &is_num);
+	    len = lua_tounsignedx(L, 4, &is_num);
 		if(!is_num)
 		{
 			 return luaL_error(L,"incorrect argument size to function '%s'",__func__);
@@ -417,8 +426,25 @@ int luai_as_ioctl  (lua_State *L)
 
 		if(d->ops->ioctl != NULL)
 		{
-			lua_pushinteger(L, d->ops->ioctl(d->param,type,data,len));
-			return 1;
+			char* rdata;
+			int rv = d->ops->ioctl(d->param,type,data,len,&rdata);
+			if(rv < 0)
+			{
+				return luaL_error(L, "%s ioctl on device %s failed(%d)\n",__func__,d->name,rv);
+			}
+			else
+			{
+				lua_pushinteger(L, rv);
+				if(rv > 0)
+				{
+					lua_pushlstring(L,rdata,rv);
+					return 2;
+				}
+				else
+				{
+					return 1;
+				}
+			}
 		}
 		else
 		{

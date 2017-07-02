@@ -76,7 +76,7 @@ static void aws_on_close(struct afb_ws *ws, uint16_t code, size_t size);
 static void aws_on_text(struct afb_ws *ws, int last, size_t size);
 static void aws_on_binary(struct afb_ws *ws, int last, size_t size);
 static void aws_on_continue(struct afb_ws *ws, int last, size_t size);
-static void aws_on_readable(struct afb_ws *ws);
+static int aws_on_readable(struct afb_ws *ws);
 static void aws_on_error(struct afb_ws *ws, uint16_t code, const void *data, size_t size);
 static void* daemon_main(void* param);
 /* ============================ [ DATAS     ] ====================================================== */
@@ -157,7 +157,7 @@ static void aws_disconnect(struct afb_ws *ws, int call_on_hangup)
 /*
  * callback on incoming data
  */
-static void aws_on_readable(struct afb_ws *ws)
+static int aws_on_readable(struct afb_ws *ws)
 {
 	int rc;
 
@@ -165,6 +165,8 @@ static void aws_on_readable(struct afb_ws *ws)
 	rc = websock_dispatch(ws->ws, 0);
 	if (rc < 0 )
 		afb_ws_hangup(ws);
+
+	return rc;
 }
 
 /*
@@ -304,10 +306,16 @@ static void* daemon_main(void* param)
 		(void)pthread_mutex_lock(&afbwsList.q_lock);
 		STAILQ_FOREACH(ws,&afbwsList.head,entry)
 		{
-			aws_on_readable(ws);
+			int rc = aws_on_readable(ws);
+			if(rc < 0)
+			{
+				break;/* something wrong, the ws maybe closed */
+			}
 		}
 		(void)pthread_mutex_unlock(&afbwsList.q_lock);
 	}
+
+	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /*
@@ -394,9 +402,17 @@ int afb_ws_is_connected(struct afb_ws *ws)
  */
 int afb_ws_close(struct afb_ws *ws, uint16_t code, const char *reason)
 {
+	int lock;
 	if (ws->ws == NULL) {
 		/* disconnected */
 		return -1;
+	}
+
+	lock = pthread_mutex_trylock(&afbwsList.q_lock);
+	STAILQ_REMOVE(&afbwsList.head,ws,afb_ws,entry);
+	if(0==lock)
+	{
+		pthread_mutex_unlock(&afbwsList.q_lock);
 	}
 	return websock_close(ws->ws, code, reason, reason == NULL ? 0 : strlen(reason));
 }

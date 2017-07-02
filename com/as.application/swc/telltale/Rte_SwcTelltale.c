@@ -80,11 +80,11 @@ static const Dio_ChannelType TellatleChannel[eTelltaleMax] =
 
 static const TimerType    TellatleHzCfg[eTelltaleStatusMax][2] =
 { /* { duty, period } */
-	{mMS2Ticks(1000), mMS2Ticks(1000)}, /* eTelltaleStatusOff */
-	{mMS2Ticks(0),    mMS2Ticks(1000)}, /* eTelltaleStatusOn */
-	{mMS2Ticks(500),  mMS2Ticks(1000)}, /* eTelltaleStatus1Hz */
-	{mMS2Ticks(250),  mMS2Ticks(500) }, /* eTelltaleStatus2Hz */
-	{mMS2Ticks(167),  mMS2Ticks(333) }, /* eTelltaleStatus3Hz */
+	{mMS2Ticks(1000), mMS2Ticks(1000)-1}, /* eTelltaleStatusOff */
+	{mMS2Ticks(0),    mMS2Ticks(0)   -1}, /* eTelltaleStatusOn */
+	{mMS2Ticks(500),  mMS2Ticks(1000)-1}, /* eTelltaleStatus1Hz */
+	{mMS2Ticks(250),  mMS2Ticks(500) -1}, /* eTelltaleStatus2Hz */
+	{mMS2Ticks(167),  mMS2Ticks(333) -1}, /* eTelltaleStatus3Hz */
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 static OnOff_T TelltaleStatus[eTelltaleMax];
@@ -114,7 +114,7 @@ void Swc_TelltaleManager(void)
 		else
 		{
 			TellatleLevel[i] = STD_HIGH; /* on the Telltale */
-			if(TellatleTimer[i] >= TellatleHzCfg[i][1])
+			if(TellatleTimer[i] > TellatleHzCfg[i][1])
 			{ /* reach the period */
 				TellatleTimer[i] = 0;
 				TellatleLevel[i] = STD_LOW; /* off the Telltale */
