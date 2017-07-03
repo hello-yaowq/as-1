@@ -200,7 +200,7 @@ static int lasdev_read  (void* param,char** pdata)
 		switch(msg->type)
 		{
 			case LAS_CALL:
-				format = "{ \"api\":\"%s\",\"verb\":\"%s\",\"obj\":\"%s\",\"param\":\"%p\",\"msg\":\"%p\" }";
+				format = "{ \"api\":\"%s\",\"verb\":\"%s\",\"obj\":%s,\"param\":\"%p\",\"msg\":\"%p\" }";
 				len = strlen(msg->api)+strlen(msg->verb)+strlen(afb_wsj1_msg_object_s(msg->msg))+strlen(format)-10+1+sizeof(void*)*4+4;
 				data = malloc(len);
 				asAssert(data);
@@ -208,7 +208,7 @@ static int lasdev_read  (void* param,char** pdata)
 				STAILQ_INSERT_TAIL(&tp->msgR,msg,next);
 				break;
 			case LAS_EVENT:
-				format = "{ \"event\":\"%s\",\"obj\":\"%s\"}";
+				format = "{ \"event\":\"%s\",\"obj\":%s}";
 				len = strlen(msg->event)+strlen(afb_wsj1_msg_object_s(msg->msg))+strlen(format)-4+1;
 				data = malloc(len);
 				asAssert(data);
@@ -217,7 +217,7 @@ static int lasdev_read  (void* param,char** pdata)
 				free(msg);
 				break;
 			case LAS_REPLY:
-				format = "{ \"reply\":\"?\",\"obj\":\"%s\"}";
+				format = "{ \"reply\":\"?\",\"obj\":%s}";
 				len = strlen(afb_wsj1_msg_object_s(msg->msg))+strlen(format)-2+1;
 				data = malloc(len);
 				asAssert(data);
@@ -232,6 +232,11 @@ static int lasdev_read  (void* param,char** pdata)
 	}
 	pthread_mutex_unlock(&tp->mutex);
 	*pdata = data;
+	if(len > 0)
+	{
+		data[len]=0;
+		ASLOG(LAS_DEV,"aws read '%s'\n",data);
+	}
 	return len;
 }
 

@@ -18,28 +18,35 @@
 #include <sys/time.h>
 #include <time.h>
 #endif
+#ifdef USE_AWS
 #include "afb-wsj1.h"
 #include "asocket.h"
+#endif
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef USE_AWS
 typedef struct {
 	char* uri;
 	int port;
 	int s;
 	struct afb_wsj1 * wsj1;
 } LAS_WebsockParamType;
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void Can_SimulatorRunning(void);
+#ifdef USE_AWS
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1);
 static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg);
 static void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg);
 static void on_reply(void *closure, struct afb_wsj1_msg *msg);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 
 #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 static clock_t previous = 0;
 #endif
+#ifdef USE_AWS
 static const struct afb_wsj1_itf wsj1_itf =
 {
 	.on_hangup = on_hangup,
@@ -51,7 +58,9 @@ static LAS_WebsockParamType wsParam =
 {
 	.s = -1,
 };
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_AWS
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
@@ -80,9 +89,11 @@ static void on_reply(void *closure, struct afb_wsj1_msg *msg)
 	ASLOG(ON,"ON-REPLY : %s  on socket <%d> %s:%d\n",afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
 	afb_wsj1_msg_unref(msg);
 }
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 KSM(Simulator,Init)
 {
+#ifdef USE_AWS	
 	int s,port;
 	char* p;
 	char* uri = strdup(ASENV(2));
@@ -110,6 +121,7 @@ KSM(Simulator,Init)
 		free(uri);
 		ASLOG(STDOUT,"websock wsj offline\n");
 	}
+#endif
 	KGS(Simulator,Running);
 }
 KSM(Simulator,Start)

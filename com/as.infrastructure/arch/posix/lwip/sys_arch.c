@@ -30,14 +30,18 @@
 
 #include "Os.h"
 #include "asdebug.h"
-#include "mbox.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_LWIP 1
+/* define LWIP_POSIX_ARCH to disable osek base lwip sys arch, use the original unix posix based one */ 
+#define LWIP_POSIX_ARCH
+#ifndef LWIP_POSIX_ARCH
 /* This is the number of threads that can be started with sys_thread_new()
  * Cannot be modified at the moment. No need to support slip/ppp */
 #define SYS_THREAD_MAX 1
 #define SYS_SEM_MAX 22
+#endif /* LWIP_POSIX_ARCH */
 /* ============================ [ TYPES     ] ====================================================== */
+#ifndef LWIP_POSIX_ARCH
 struct semlist_t
 {
 	sys_sem_t val;
@@ -46,22 +50,29 @@ struct semlist_t
 	TaskType task[SYS_SEM_MAX];
 	u8_t taskIndex;
 };
+#endif /* LWIP_POSIX_ARCH */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifndef LWIP_POSIX_ARCH
 err_t ethernetif_input(struct netif *netif, struct pbuf *p);
 err_t ethernetif_init(struct netif *netif);
+#endif /* LWIP_POSIX_ARCH */
 /* ============================ [ DATAS     ] ====================================================== */
 static struct netif netif;
 static boolean tcpip_initialized = FALSE;
 static lwip_thread_fn tcpip_thread = NULL;
+#ifndef LWIP_POSIX_ARCH
 static u16_t nextthread = 0;
 static struct semlist_t semlist[SYS_SEM_MAX];
+#endif /* LWIP_POSIX_ARCH */
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifndef LWIP_POSIX_ARCH
 static void sys_sleep(TickType tick)
 {
 	SetRelAlarm(ALARM_ID_Alarm_Lwip, tick, 0);
 	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
 	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
 }
+#endif /* LWIP_POSIX_ARCH */
 /* Eth Isr routine */
 static void Eth_Isr(void)
 {
@@ -73,6 +84,7 @@ static void Eth_Isr(void)
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef LWIP_POSIX_ARCH
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short
@@ -460,15 +472,15 @@ void pre_sys_init(void)
 	// keep track of how many threads have been created
 	nextthread = 0;
 }
+#else
+void pre_sys_init(void){}
+#endif /* LWIP_POSIX_ARCH */
 
-void netbios_init(void)
-{
-
-}
 #ifdef USE_LWIP
 TASK(TaskLwip)
 {
 	OS_TASK_BEGIN();
+#ifndef LWIP_POSIX_ARCH	
 #ifdef USE_LWIP
 	for(;;) {
 		WaitEvent(EVENT_MASK_START_TCPIP);
@@ -480,6 +492,7 @@ TASK(TaskLwip)
 		}
 	}
 #endif
+#endif /* LWIP_POSIX_ARCH */
 	OsTerminateTask(TaskLwip);
 
 	OS_TASK_END();
@@ -492,6 +505,7 @@ ALARM(Alarm_Lwip)
 #endif
 }
 #endif
+#ifndef LWIP_POSIX_ARCH
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 		void *arg, int stacksize, int prio)
 {
@@ -510,6 +524,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 
 	return TASK_ID_tcpip_task;
 }
+#endif /* LWIP_POSIX_ARCH */
 
 static void
 tcpip_init_done(void *arg)

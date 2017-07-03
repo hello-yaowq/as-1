@@ -16,6 +16,7 @@ require("cantp")
 require("as")
 require("s19")
 require("os")
+require("aws")
 json = require("json")
 
 local function hext(data) -- this is for table
@@ -176,6 +177,22 @@ function test_aswebsock()
   os.usleep(1000000)
 end
 
-test_aswebsock()
+function test_aws_pkg()
+  port = 8080
+  s = aws.server("127.0.0.1",port)
+  c = aws.client("127.0.0.1",port)
+  obj = { hi="this is an example call" }  
+  aws.call(c,"hello","ping",obj)
+  msg = aws.pend_msg(s)
+  print(json.encode(msg))
+  obj = { hi="this is an example reply" }  
+  aws.reply_okay(s,msg,obj)
+  msg = aws.pend_msg(c)
+  print(json.encode(msg))
+  lst = aws.srvlst(s)
+  print(json.encode(lst))
+end
+
+test_aws_pkg()
 
 print("Test END")

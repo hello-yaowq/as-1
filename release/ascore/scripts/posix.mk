@@ -9,9 +9,7 @@ else
 tcpip=none
 endif
 endif
-ifeq ($(rtos),smallos)
-tcpip=none
-endif
+
 ifeq ($(rtos),ucosii)
 tcpip=none
 endif
@@ -20,8 +18,6 @@ tcpip=none
 endif
 
 ifeq ($(termux),yes)
-tcpip=none
-#sgapp=none
 trace_callstack=no
 def-y += -D__TERMUX__
 endif
@@ -103,6 +99,7 @@ def-y += -DAUTOSTART_ENABLE
 
 dir-y += $(src-dir)/swc/telltale
 
+def-y += -DUSE_AWS
 inc-y += -I$(LUA)/device/websock
 ldflags-y += -L$(LUA)/device/websock/out -laws
 
@@ -168,6 +165,9 @@ ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
 	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/arch TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/ports/unix/sys_arch.c sys_arch2.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/ports/unix/include/arch/sys_arch.h lwip_sys_arch.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/netbios.c)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)

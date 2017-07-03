@@ -31,9 +31,13 @@
  */
 #ifndef __SYS_ARCH_H__
 #define __SYS_ARCH_H__
-
 #include "Os.h"
 #include "Std_Types.h"
+/* define LWIP_POSIX_ARCH to disable osek base lwip sys arch, use the original unix posix based one */ 
+#ifdef __SMALL_OS__
+#define LWIP_POSIX_ARCH
+#endif
+#ifndef LWIP_POSIX_ARCH
 
 #define SYS_MBOX_NULL 0
 #define SYS_SEM_NULL  0
@@ -45,6 +49,8 @@ void pre_sys_init(void);
 typedef uint8 sys_sem_t;
 typedef void* sys_mbox_t;
 typedef TaskType sys_thread_t;
-
+#else
+#include "lwip_sys_arch.h"
+#endif
 #endif /* __SYS_RTXC_H__ */
 

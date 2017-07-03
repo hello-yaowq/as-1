@@ -134,12 +134,22 @@ typedef enum {
 #endif
 
 typedef enum {
+#ifndef O_NONBLOCK 
 	O_NONBLOCK = 0x0004
+#else
+	_O_NONBLOCK = 0x0004
+#endif
 } SoAd_FcntlFlagType;	/** @req SOAD118 */
 
 typedef enum {
+#ifndef F_GETFL
 	F_GETFL = 0x0003,	// Get file status flags
+#endif
+#ifndef F_SETFL	
 	F_SETFL = 0x0004	// Set file status flags
+#else
+	_F_SETFL = 0x0004
+#endif
 } SoAd_FcntlCmdType;	/** @req SOAD119 */
 
 typedef enum {
