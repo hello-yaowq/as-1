@@ -32,8 +32,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_LWIP 1
-/* define LWIP_POSIX_ARCH to disable osek base lwip sys arch, use the original unix posix based one */ 
-#define LWIP_POSIX_ARCH
+
 #ifndef LWIP_POSIX_ARCH
 /* This is the number of threads that can be started with sys_thread_new()
  * Cannot be modified at the moment. No need to support slip/ppp */

@@ -72,7 +72,8 @@ default:all
 
 include $(prj-dir)/release/make/posix.mk
 
-all: asjson-c aslibmicrohttpd lib
+all: asjson-c aslibmicrohttpd
+	make lib
 
 clean:clean-obj
 

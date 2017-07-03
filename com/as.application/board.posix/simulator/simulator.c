@@ -153,5 +153,9 @@ uint32_t FlashDriverRam[1024];
 
 int AsWsjOnline(void)
 {
+#ifdef USE_AWS
 	return (wsParam.s > 0);
+#else
+	return 0;
+#endif
 }
