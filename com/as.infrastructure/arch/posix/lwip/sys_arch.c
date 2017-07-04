@@ -571,8 +571,12 @@ struct netif * LwIP_Init(void)
 	Set_MAC_Address(macaddress);
 
 	/* Add network interface to the netif_list */
+#ifdef __WINDOWS__
 	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
-
+#else
+	extern err_t tapif_init(struct netif *netif);
+	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &tapif_init, &tcpip_input);
+#endif
 	/*  Registers the default network interface.*/
 	netif_set_default(&netif);
 
@@ -596,6 +600,9 @@ struct netif * LwIP_Init(void)
 #ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
+#ifdef LWIP_POSIX_ARCH
+	http_server_netconn_init();
+#endif /* LWIP_POSIX_ARCH */	
 	KGS(LwipIdle,Running);
 }
 

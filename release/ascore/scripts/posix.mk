@@ -168,6 +168,7 @@ ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/ports/unix/sys_arch.c sys_arch2.c)
 	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/ports/unix/include/arch/sys_arch.h lwip_sys_arch.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/netbios.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/apps/httpserver TRUE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)

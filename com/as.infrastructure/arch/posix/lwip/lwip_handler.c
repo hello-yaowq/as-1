@@ -55,8 +55,9 @@
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 #define AS_LOG_TAP 1
-
+#ifdef __WINDOWS__
 #define USE_AS_ETH
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -87,6 +88,7 @@ remove_route(void)
 static void log_msg(unsigned char* frame,size_t len,bool read)
 {
 	size_t i,j;
+	if(!AS_LOG_TAP) return;
 	printf("\n%8s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  length=%d\n",read?"read":"write",(int)len);
 	for(i=0; i<(len+15)/16; i++)
 	{
