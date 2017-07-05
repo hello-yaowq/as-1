@@ -108,6 +108,7 @@ typedef struct
 	void*         (*rf)(void*);	/* refresh resource according to the cache */
 	void          (*cf)(void*);	/* cache current status/data of the widget */
 	uint16          weight;     /* weight of this widget */
+	char*           name;
 }SgSRC;	/* static resource configuration */
 /*		  	  Width (w)
  * 		  + ---------- x

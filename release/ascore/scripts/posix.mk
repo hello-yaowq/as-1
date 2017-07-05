@@ -1,10 +1,10 @@
 # android termux command system
 termux ?= no
 ifeq ($(rtos),contiki)
-tcpip=contiki
+tcpip?=contiki
 else
 ifeq ($(host),Linux)
-tcpip=lwip
+tcpip?=lwip
 else
 tcpip=none
 endif
@@ -100,7 +100,7 @@ def-y += -DAUTOSTART_ENABLE
 dir-y += $(src-dir)/swc/telltale
 
 def-y += -DUSE_AWS
-inc-y += -I$(LUA)/device/websock
+inc-y += -I$(LUA)/device/websock -I$(download)
 ldflags-y += -L$(LUA)/device/websock/out -laws
 
 ifeq ($(host), Linux)

@@ -112,7 +112,6 @@ KSM(Simulator,Init)
 			wsParam.wsj1 = afb_wsj1_create(s,&wsj1_itf,&wsParam);
 			asAssert(wsParam.wsj1);
 			ASLOG(STDOUT,"websock wsj(%d) online %s:%d\n",s,uri,port);
-			afb_wsj1_call_s(wsParam.wsj1, "gui", "hello", NULL, on_reply,&wsParam);
 		}
 	}
 
@@ -158,4 +157,13 @@ int AsWsjOnline(void)
 #else
 	return 0;
 #endif
+}
+void AsWsjCall(const char* api,const char* verb,const char* obj)
+{
+#ifdef USE_AWS
+	ASLOG(ON,"CALL: %s/%s '%s'\n",api,verb,obj);
+	afb_wsj1_call_s(wsParam.wsj1, api, verb, obj, on_reply, &wsParam);
+#else
+#endif
+
 }

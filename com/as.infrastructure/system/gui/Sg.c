@@ -18,11 +18,13 @@
 #include "Sg.h"
 #include "SgDraw.h"
 #include <math.h>
-
+#include "json-c/json.h"
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern int AsWsjOnline(void);
+extern void AsWsjCall(const char* api,const char* verb,const char* obj);
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_LCD
 static boolean sgUpdateInProcessing  = FALSE;
@@ -270,6 +272,46 @@ static void SgCache(void)
 }
 #endif /* USE_LCD */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void Sg_WsjRefresh(void)
+{
+	uint32 i;
+	SgWidget* w;
+	json_object* var;
+	json_object* atr;
+	json_object* obj = json_object_new_object();
+	for(i=0;i<SGW_MAX;i++)
+	{
+		w = &SGWidget[i];
+   		if(NULL != w->src->cf)
+		{
+			w->src->cf(w);
+		}
+		switch(w->src->t)
+		{
+			case SGT_DMP:
+				break;
+			case SGT_BMP:
+				if(NULL != w->src->rf)
+				{
+					w->src->rf(w);
+				}
+				var = json_object_new_object();
+				atr = json_object_new_int(w->l);
+				json_object_object_add(var,"layer",atr);		
+				atr = json_object_new_int(w->d);
+				json_object_object_add(var,"degree",atr);
+				json_object_object_add(obj,w->src->name,var);
+				break;
+			case SGT_TXT:
+				break;
+			default:
+				assert(0);
+				break;
+		}
+	}
+	AsWsjCall("Sg","refresh",json_object_to_json_string_length(obj,NULL,NULL));
+	json_object_put(obj);
+}
 #ifdef USE_LCD
 void Sg_Init(void)
 {
@@ -292,6 +334,11 @@ void Sg_ManagerTask(void)
 	SgWidget* w;
 	uint32_t weight=0;
 
+	if(AsWsjOnline())
+	{
+		Sg_WsjRefresh();
+		return;
+	}
 	if(sgUpdateInProcessing)
 	{
 		/* do nothing as now, only 1 buffer is used */
@@ -356,9 +403,15 @@ boolean Sg_IsDataReady ( void )
 #else /* USE_LCD */
 void Sg_Init(void)
 {
+
 }
 void Sg_ManagerTask(void)
 {
+
+	if(AsWsjOnline())
+	{
+		Sg_WsjRefresh();
+	}
 }
 #endif /* USE_LCD */
 #endif /* USE_GUI */

@@ -223,6 +223,7 @@ static void* Lcd_Thread(void* param)
 #endif
 	if(AsWsjOnline())
 	{
+		lcdThread = NULL;	
 		free(pLcdBuffer);
 		return 0;
 	}
@@ -361,6 +362,7 @@ static DWORD Lcd_Thread(LPVOID param)
 	Sleep(1);
 	if(AsWsjOnline())
 	{
+		lcdThread = NULL;
 		free(pLcdBuffer);
 		return 0;
 	}

@@ -71,7 +71,7 @@ static void sys_sleep(TickType tick)
 	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
 	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
 }
-#endif /* LWIP_POSIX_ARCH */
+
 /* Eth Isr routine */
 static void Eth_Isr(void)
 {
@@ -82,6 +82,7 @@ static void Eth_Isr(void)
 		tcpip_input(p, &netif);
 	}
 }
+#endif /* LWIP_POSIX_ARCH */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef LWIP_POSIX_ARCH
 /*
@@ -618,8 +619,10 @@ KSM(LwipIdle,Stop)
 
 KSM(LwipIdle,Running)
 {
+#ifndef LWIP_POSIX_ARCH
 #ifdef USE_LWIP
 	Eth_Isr();
 #endif
+#endif /* LWIP_POSIX_ARCH */
 }
 #endif
