@@ -19,6 +19,7 @@
 #include "lwip/mem.h"
 #include "lwip/memp.h"
 #include "lwip/tcpip.h"
+#include "lwip/inet.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
 #include "ethernetif.h"
