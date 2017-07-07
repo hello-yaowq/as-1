@@ -141,7 +141,7 @@ void luai_asdevlib_close(void)
 
 	devListH.initialized = FALSE;
 }
-
+#ifndef __AS_PY_DEV__
 int luai_as_open  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
@@ -493,3 +493,159 @@ int luai_as_close  (lua_State *L)
 		return luaL_error(L, "%s (fd) API should has 1 arguments",__func__);
 	}
 }
+#else /* __AS_PY_DEV__ */
+int asdev_open(const char* device_name, const char* option)
+{
+	const LAS_DeviceOpsType* ops;
+	struct LAS_Dev_s* d;
+	int rv;
+	d = getDev(device_name);
+	if(NULL != d)
+	{
+		printf("LAS device(%s) is already opened '%s'",device_name,__func__);
+		rv = -__LINE__;
+	}
+	else
+	{
+		ops = search_ops(device_name);
+		if(NULL != ops)
+		{
+			d = malloc(sizeof(struct LAS_Dev_s));
+			strcpy(d->name,device_name);
+
+			rv = ops->open(device_name,option,&d->param);
+
+			if(rv)
+			{
+				d->fd = _fd++;
+				d->ops = ops;
+				pthread_mutex_lock(&devListH.q_lock);
+				STAILQ_INSERT_TAIL(&devListH.head,d,entry);
+				pthread_mutex_unlock(&devListH.q_lock);
+			}
+			else
+			{
+				free(d);
+				printf("%s device <%s> failed!",__func__,device_name);
+			}
+		}
+		else
+		{
+			printf("%s device <%s> is not known by lua!",__func__,device_name);
+			rv = -__LINE__;
+				
+		}
+	}
+
+	return rv;
+}
+
+int asdev_write(int fd, unsigned char* data, unsigned long len)
+{
+	int rv;
+	struct LAS_Dev_s* d;
+	d = getDev2(fd);
+	if(NULL == d)
+	{
+		printf("fd(%d) is not existed '%s'",fd,__func__);
+		rv = -__LINE__;
+	}
+	else if(d->ops->write != NULL)
+	{
+		rv = d->ops->write(d->param,data,len);
+
+		if(rv < 0)
+		{
+			printf("%s write on device %s failed(%d)\n",__func__,d->name,rv);
+		}
+	}
+	else
+	{
+		printf("%s for %s is not supported",__func__,d->name);
+		rv = -__LINE__;
+	}
+	return rv;
+}
+
+int asdev_read(int fd, unsigned char** data)
+{
+	int rv;
+	struct LAS_Dev_s* d;
+
+	d = getDev2(fd);
+	if(NULL == d)
+	{
+		printf("fd(%d) is not existed '%s'",fd,__func__);
+		rv = -__LINE__;
+	}
+	else if(d->ops->read != NULL)
+	{
+		rv = d->ops->read(d->param,data);
+
+		if(rv > 0)
+		{
+
+		}
+		else
+		{
+			*data=NULL;
+		}
+
+	}
+	else
+	{
+		printf("%s for %s is not supported",__func__,d->name);
+		rv = -__LINE__;
+	}
+	return rv;
+}
+
+int asdev_ioctl(int fd, int type, unsigned char* data,unsigned long len, unsigned char** rdata)
+{
+	struct LAS_Dev_s* d;
+	int rv;
+	d = getDev2(fd);
+	if(NULL == d)
+	{
+		printf("fd(%d) is not existed '%s'",fd,__func__);
+		rv = -__LINE__;
+	}
+	else if(d->ops->ioctl != NULL)
+	{
+		rv = d->ops->ioctl(d->param,type,data,len,rdata);
+		if(rv < 0)
+		{
+			printf("%s ioctl on device %s failed(%d)\n",__func__,d->name,rv);
+			rv = -__LINE__;
+		}
+	}
+	else
+	{
+		printf("%s for %s is not supported",__func__,d->name);
+		rv = -__LINE__;
+	}
+	return rv;
+}
+int asdev_close(int fd)
+{
+	struct LAS_Dev_s* d;
+	int rv;
+	d = getDev2(fd);
+	if(NULL == d)
+	{
+		printf("fd(%d) is not existed '%s'",fd,__func__);
+		rv = -__LINE__;
+	}
+	else if(d->ops->close != NULL)
+	{
+		d->ops->close(d->param);
+		rv = 1;
+	}
+	else
+	{
+		printf("%s for %s is not supported",__func__,d->name);
+		rv = -__LINE__;
+	}
+	return rv;	
+}
+#endif /* __AS_PY_DEV__ */

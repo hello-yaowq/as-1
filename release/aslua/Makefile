@@ -125,6 +125,7 @@ endif
 ldflags-y += -lm -lpthread
 cflags-y +=-Wextra 
 def-y    += -D__AS_PY_CAN__
+def-y    += -D__AS_PY_DEV__
 endif	# pyas end
 
 termux?=no
@@ -226,6 +227,7 @@ endif
 # check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
 pysip:$(exe-dir)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.h)
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyasdev.h)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
 	@echo $(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)
@@ -234,6 +236,7 @@ pysip:$(exe-dir)
 
 dep-pyas:
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/device TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/pyas TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 ifeq ($(host),Linux)
