@@ -21,6 +21,8 @@ void CacheTelltale##name(SgWidget* w)	\
 }										\
 void* RefreshTelltale##name(SgWidget* w) { return 0; }
 
+extern int AsWsjOnline(void);
+
 void CacheClusterTachoPointer(SgWidget* w){}
 void* RefreshClusterTachoPointer(SgWidget* w)
 {
@@ -28,7 +30,14 @@ void* RefreshClusterTachoPointer(SgWidget* w)
 
 	Stmo_GetPosDegree(STMO_ID_TACHO,&degree);
 
-	w->d = (degree/STMO_ONE_DEGREE)%360;
+	if(!AsWsjOnline())
+	{
+		w->d = (degree/STMO_ONE_DEGREE)%360;
+	}
+	else
+	{
+		w->d = degree;
+	}
 
 	return 0;
 }
@@ -41,7 +50,14 @@ void* RefreshClusterSpeedPointer(SgWidget* w)
 
 	Stmo_GetPosDegree(STMO_ID_SPEED,&degree);
 
-	w->d = (degree/STMO_ONE_DEGREE)%360;
+	if(!AsWsjOnline())
+	{
+		w->d = (degree/STMO_ONE_DEGREE)%360;
+	}
+	else
+	{
+		w->d = degree;
+	}
 
 	return 0;
 }
@@ -54,7 +70,15 @@ void* RefreshClusterTempPointer(SgWidget* w)
 
 	Stmo_GetPosDegree(STMO_ID_TEMP,&degree);
 
-	w->d = (degree/STMO_ONE_DEGREE)%360;
+	if(!AsWsjOnline())
+	{
+		w->d = (degree/STMO_ONE_DEGREE)%360;
+	}
+	else
+	{
+		w->d = degree;
+	}
+
 	return 0;
 }
 
@@ -66,7 +90,15 @@ void* RefreshClusterFuelPointer(SgWidget* w)
 
 	Stmo_GetPosDegree(STMO_ID_FUEL,&degree);
 
-	w->d = (degree/STMO_ONE_DEGREE)%360;
+	if(!AsWsjOnline())
+	{
+		w->d = (degree/STMO_ONE_DEGREE)%360;
+	}
+	else
+	{
+		w->d = degree;
+	}
+
 	return 0;
 }
 

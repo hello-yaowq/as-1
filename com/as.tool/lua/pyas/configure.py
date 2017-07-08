@@ -32,6 +32,7 @@ def sip_makefile(sipfile,output):
     if(os.name=='nt'):
        makefile.extra_libs.append('PCANBasic')
        makefile.extra_libs.append('wsock32')
+    makefile.extra_libs.append('aws')
     # Generate the Makefile itself.
     makefile.generate()
     

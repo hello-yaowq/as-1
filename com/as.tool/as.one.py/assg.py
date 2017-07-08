@@ -24,6 +24,7 @@ from binascii import hexlify, unhexlify
 import sys,os
 import xml.etree.ElementTree as ET
 from pyas.dcm import *
+from pyas.asdev import *
 import traceback,re
 
 __all__ = ['UISg']
@@ -64,13 +65,30 @@ class SgItem(QGraphicsItem):
                 self.img.append(QImage(bg))
 
         self.setPos(self.cfg[iX],self.cfg[iY])
+        self.Layer = 1
+        self.Degree = 0
 
     def boundingRect(self):
         # x,y,width,height
         cfg = self.cfg
         return QRectF(-cfg[iLength]-cfg[iOffset],-cfg[iLength]-cfg[iOffset],(cfg[iLength]+cfg[iOffset])*2,(cfg[iLength]+cfg[iOffset])*2)
 
+    def setPosDegree(self,Degree):
+        self.Degree = Degree
+
+    def setPosLayer(self,Layer):
+        self.Layer = Layer
+        if(self.Layer == 255):
+            self.setVisible(False);
+        else:
+            self.setVisible(True);
+
     def paint(self, painter, option, widget):
+        if(self.Layer == 255):
+            self.setVisible(False);
+            return
+        else:
+            self.setVisible(True);
         Image = self.img[self.iim]
         painter.drawImage(0,0,Image)
         
@@ -93,6 +111,8 @@ class SgPointer(QGraphicsItem):
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
         self.setZValue(1)
         self.setPos(self.cfg[iX],self.cfg[iY])
+        self.Layer = 1
+        self.Degree = 0
 
     def boundingRect(self):
         # x,y,width,height
@@ -101,17 +121,26 @@ class SgPointer(QGraphicsItem):
 
     def getPosDegree(self):
         return self.Degree
-    
+
+    def setPosLayer(self,Layer):
+        self.Layer = Layer        
+        if(self.Layer == 255):
+            self.setVisible(False);
+        else:
+            self.setVisible(True);
+
     def setPosDegree(self,Degree):
         cfg = self.cfg
-        if(Degree <= (cfg[iRange]*100+cMechanicalZero) and Degree >= 0):
-            self.Degree = Degree
-        else:
-            raise Exception('Wrong Degree Value %s'%(Degree))
+        self.Degree = Degree+18000+cMechanicalZero
         # Set Degree 
         self.setRotation((self.Degree-cMechanicalZero)/100+cfg[iStart])
 
     def paint(self, painter, option, widget):
+        if(self.Layer == 255):
+            self.setVisible(False);
+            return
+        else:
+            self.setVisible(True);
         cfg = self.cfg
         painter.setPen(QtCore.Qt.NoPen)
         painter.setBrush(QtGui.QBrush(QtGui.QColor((cfg[iColor]>>16)&0xFF,(cfg[iColor]>>8)&0xFF,(cfg[iColor]>>0)&0xFF)))
@@ -169,6 +198,13 @@ class SgWidget(QGraphicsView):
                 sg = SgItem(self.xmlpath,w)
                 self.widgets[w.attrib['name']]={'sg':sg}
                 self.scene().addItem(sg)
+    def refresh(self,obj):
+        for name,ite in self.widgets.items():
+            if(name=='Background'): continue
+            wobj = obj[name]
+            wgt = ite['sg']
+            wgt.setPosDegree(int(wobj['degree']))
+            wgt.setPosLayer(int(wobj['layer']))
 
     def drawBackground(self,painter,rect ):
         Image = self.widgets['Background']
@@ -190,6 +226,9 @@ class UISg(QWidget):
         self.btnOpenXml = QPushButton('...')
         grid.addWidget(self.btnOpenXml,0,2)
         self.vbox.addLayout(grid)
+        
+        self.aws = aws()
+        self.fd = self.aws.server('127.0.0.1',8080)
 
         if(os.name == 'nt'):
             default_xml = 'D:/repository/as/release/ascore/SgDesign/virtual_cluster/Sg.xml'
@@ -203,6 +242,14 @@ class UISg(QWidget):
         self.leXml.setText(default_xml)
 
         self.btnOpenXml.clicked.connect(self.on_btnOpenXml_clicked)
+        
+        self.startTimer(5)
+
+    def timerEvent(self,event):
+        msg = self.aws.poll(self.fd)
+        if(msg != None):
+            self.sgWidget.refresh(msg['obj'])
+            self.aws.reply(self.fd,msg,{'hi':'this is as GUI daemon!'})
 
     def loadXml(self,xml):
         self.sgWidget.loadXml(xml)

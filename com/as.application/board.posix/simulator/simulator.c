@@ -64,29 +64,25 @@ static LAS_WebsockParamType wsParam =
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(ON,"ON-HANGUP on socket <%d> %s:%d\n",param->s,param->uri,param->port);
+	ASLOG(OFF,"ON-HANGUP on socket <%d> %s:%d\n",param->s,param->uri,param->port);
 }
 static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(ON,"ON-CALL %s/%s(%s) on socket <%d> %s:%d\n", api, verb, afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
-	int rv=afb_wsj1_reply_s(msg, "{\"hi\": \"this is an example\"}", "122346", 0);
-	if(rv)
-		printf("reply failed\n");
-	else
-		printf("reply okay\n");
+	ASLOG(OFF,"ON-CALL %s/%s(%s) on socket <%d> %s:%d\n", api, verb, afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
+	afb_wsj1_reply_s(msg, "{\"hi\": \"this is an example\"}", "122346", 0);
 	afb_wsj1_msg_unref(msg);
 }
 static void on_event(void *closure, const char *event, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(ON,"ON-EVENT %s(%s)  on socket <%d> %s:%d\n", event, afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
+	ASLOG(OFF,"ON-EVENT %s(%s)  on socket <%d> %s:%d\n", event, afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
 	afb_wsj1_msg_unref(msg);
 }
 static void on_reply(void *closure, struct afb_wsj1_msg *msg)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(ON,"ON-REPLY : %s  on socket <%d> %s:%d\n",afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
+	ASLOG(OFF,"ON-REPLY : %s  on socket <%d> %s:%d\n",afb_wsj1_msg_object_s(msg),param->s,param->uri,param->port);
 	afb_wsj1_msg_unref(msg);
 }
 #endif
@@ -161,7 +157,7 @@ int AsWsjOnline(void)
 void AsWsjCall(const char* api,const char* verb,const char* obj)
 {
 #ifdef USE_AWS
-	ASLOG(ON,"CALL: %s/%s '%s'\n",api,verb,obj);
+	ASLOG(OFF,"CALL: %s/%s '%s'\n",api,verb,obj);
 	afb_wsj1_call_s(wsParam.wsj1, api, verb, obj, on_reply, &wsParam);
 #else
 #endif

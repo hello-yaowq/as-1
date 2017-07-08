@@ -502,8 +502,8 @@ int asdev_open(const char* device_name, const char* option)
 	d = getDev(device_name);
 	if(NULL != d)
 	{
-		printf("LAS device(%s) is already opened '%s'",device_name,__func__);
-		rv = -__LINE__;
+		printf("LAS device(%s) is already opened '%s'\n",device_name,__func__);
+		rv = -__LINE__; asAssert(0);
 	}
 	else
 	{
@@ -522,17 +522,19 @@ int asdev_open(const char* device_name, const char* option)
 				pthread_mutex_lock(&devListH.q_lock);
 				STAILQ_INSERT_TAIL(&devListH.head,d,entry);
 				pthread_mutex_unlock(&devListH.q_lock);
+                rv = d->fd;
 			}
 			else
 			{
 				free(d);
-				printf("%s device <%s> failed!",__func__,device_name);
+				printf("%s device <%s> failed!\n",__func__,device_name);
+                rv = -__LINE__; asAssert(0);
 			}
 		}
 		else
 		{
-			printf("%s device <%s> is not known by lua!",__func__,device_name);
-			rv = -__LINE__;
+			printf("%s device <%s> is not known by lua!\n",__func__,device_name);
+			rv = -__LINE__; asAssert(0);
 				
 		}
 	}
@@ -547,8 +549,8 @@ int asdev_write(int fd, unsigned char* data, unsigned long len)
 	d = getDev2(fd);
 	if(NULL == d)
 	{
-		printf("fd(%d) is not existed '%s'",fd,__func__);
-		rv = -__LINE__;
+		printf("fd(%d) is not existed '%s'\n",fd,__func__);
+		rv = -__LINE__; asAssert(0);
 	}
 	else if(d->ops->write != NULL)
 	{
@@ -561,8 +563,8 @@ int asdev_write(int fd, unsigned char* data, unsigned long len)
 	}
 	else
 	{
-		printf("%s for %s is not supported",__func__,d->name);
-		rv = -__LINE__;
+		printf("%s for %s is not supported\n",__func__,d->name);
+		rv = -__LINE__; asAssert(0);
 	}
 	return rv;
 }
@@ -575,8 +577,8 @@ int asdev_read(int fd, unsigned char** data)
 	d = getDev2(fd);
 	if(NULL == d)
 	{
-		printf("fd(%d) is not existed '%s'",fd,__func__);
-		rv = -__LINE__;
+		printf("fd(%d) is not existed '%s'\n",fd,__func__);
+		rv = -__LINE__; asAssert(0);
 	}
 	else if(d->ops->read != NULL)
 	{
@@ -594,8 +596,8 @@ int asdev_read(int fd, unsigned char** data)
 	}
 	else
 	{
-		printf("%s for %s is not supported",__func__,d->name);
-		rv = -__LINE__;
+		printf("%s for %s is not supported\n",__func__,d->name);
+		rv = -__LINE__; asAssert(0);
 	}
 	return rv;
 }
@@ -607,8 +609,8 @@ int asdev_ioctl(int fd, int type, unsigned char* data,unsigned long len, unsigne
 	d = getDev2(fd);
 	if(NULL == d)
 	{
-		printf("fd(%d) is not existed '%s'",fd,__func__);
-		rv = -__LINE__;
+		printf("fd(%d) is not existed '%s'\n",fd,__func__);
+		rv = -__LINE__; asAssert(0);
 	}
 	else if(d->ops->ioctl != NULL)
 	{
@@ -616,13 +618,13 @@ int asdev_ioctl(int fd, int type, unsigned char* data,unsigned long len, unsigne
 		if(rv < 0)
 		{
 			printf("%s ioctl on device %s failed(%d)\n",__func__,d->name,rv);
-			rv = -__LINE__;
+			rv = -__LINE__; asAssert(0);
 		}
 	}
 	else
 	{
-		printf("%s for %s is not supported",__func__,d->name);
-		rv = -__LINE__;
+		printf("%s for %s is not supported\n",__func__,d->name);
+		rv = -__LINE__; asAssert(0);
 	}
 	return rv;
 }
@@ -633,8 +635,8 @@ int asdev_close(int fd)
 	d = getDev2(fd);
 	if(NULL == d)
 	{
-		printf("fd(%d) is not existed '%s'",fd,__func__);
-		rv = -__LINE__;
+		printf("fd(%d) is not existed '%s'\n",fd,__func__);
+		rv = -__LINE__; asAssert(0);
 	}
 	else if(d->ops->close != NULL)
 	{
@@ -643,8 +645,8 @@ int asdev_close(int fd)
 	}
 	else
 	{
-		printf("%s for %s is not supported",__func__,d->name);
-		rv = -__LINE__;
+		printf("%s for %s is not supported\n",__func__,d->name);
+		rv = -__LINE__; asAssert(0);
 	}
 	return rv;	
 }

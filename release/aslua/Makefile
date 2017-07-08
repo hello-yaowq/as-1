@@ -230,6 +230,7 @@ pysip:$(exe-dir)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyasdev.h)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir);$(LNFS) $(LUA)/device/websock/out/libaws.a)
 	@echo $(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)
 	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))	
 	@echo "  >> pysip build done "
