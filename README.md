@@ -7,6 +7,7 @@ automotive software and its tool-chain
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
 ## Status
+* 2016-July-8: Recently done AGL application framework(afbinder) study, I think somehow it behaves the same as AUTOSAR VFB, the main part of afbiner is for the purpose of cummunication and remote call, I think it was good, so integrate part of the code into as, base on that part, implement a remote GUI daemon assg.py, which shows a log of performance improvment than the original one C Sg. 
 * 2016-May-27: Nowdays, almost no real work, most of my time is spent on study of AGL security feature(SMACK,Cynara,Security-Manager), that's good but feel boring, still hope to do something related a real product. And ddd trampoline os which is AUTOSAR compatible, the most amazimg part of it is that the management ready queue by bubble sort algorithm dynamicaly, but bring up failed, but it doesn't matter as that I just want to read the code of it, if necessary, it will not be a problem to bring it up.
 * 2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost have no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
 * 2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
@@ -45,6 +46,10 @@ because I am not powerful so I decided to develop small but smart part of automo
 * Now use one [makefile](https://github.com/parai/as/blob/master/release/aslinux/makefile) to bring up the QEMU [AGL](https://www.automotivelinux.org/) environment.
 * very simple and easy, with one single [Makefile](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) to build out the kernel and the rootfs, and a [shell script](https://github.com/parai/as/blob/master/release/aslinux/script/run-vexpress.sh) to kick off the qemu virtual machine to execute that kernel and mount that rootfs.(for details check my [github.io page](http://parai.github.io/as/navigations/categories.html) on category linux)
 * aslinux build step
+
+## 7. Other 3rd part package
+* LWIP
+* afbindef/websock
 
 ```sh
 git clone https://github.com/parai/as.git

@@ -225,6 +225,10 @@ class UISg(QWidget):
         grid.addWidget(self.leXml,0,1)
         self.btnOpenXml = QPushButton('...')
         grid.addWidget(self.btnOpenXml,0,2)
+        grid.addWidget(QLabel('websock server:'),1,0)
+        self.leWsj= QLineEdit('127.0.0.1:8080')
+        self.leWsj.setDisabled(True)
+        grid.addWidget(self.leWsj,1,1)
         self.vbox.addLayout(grid)
         
         self.aws = aws()

@@ -22,7 +22,66 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static int _eval(const char **expr)
+{
+	int number=0;
+	int result=0;
+	char operator = '+';
+
+	while(**expr != '\0')
+	{
+		if(**expr == '(')
+		{
+			(*expr)++;
+			number = eval(expr);
+		}
+		else
+		{
+			while((**expr != ')') && (**expr != '+') && (**expr != '-') && (**expr !=  '*') && (**expr != '/') && (**expr != '\0'))
+			{
+				number = number*10 + (**expr) - '0';
+				(*expr)++;
+			}
+		}
+
+		switch(operator)
+		{
+			case '+':
+				result=result+number;
+				break;
+			case '-':
+				result=result-number;
+				break;
+			case '*':
+				result=result*number;
+				break;
+			case '/':
+				result=result/number;
+				break;
+		}
+
+		if(**expr == ')')
+		{
+			(*expr) ++;
+			break;
+		}
+
+		if(**expr != '\0')
+		{
+			operator=**expr;
+			(*expr) ++;
+		}
+
+		number = 0;
+	}
+
+	return result;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
+int eval(const char *expr)
+{
+	return _eval(&expr);
+}
 void *memset (void *__s, int __c, size_t __n)
 {
 	size_t i;
