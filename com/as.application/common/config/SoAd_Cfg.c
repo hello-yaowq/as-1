@@ -16,16 +16,17 @@
 #ifdef USE_SOAD
 #include "SoAd.h"
 /* ============================ [ MACROS    ] ====================================================== */
-
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT] =
 {
 	{
-		.SocketRemoteIpAddress = "127.0.0.1",
-		.SocketRemotePort = 0x8000,
+		.SocketRemoteIpAddress = "172.18.0.200",
+		.SocketRemotePort = 8989,
 		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
+        .SocketLocalPort = 8989,
+        .AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	}
 };
 const SoAd_ConfigType SoAd_Config =

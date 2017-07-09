@@ -30,7 +30,9 @@
 #if defined(USE_UDPNM)
 #include "UdpNm.h"
 #endif
+#include "asdebug.h"
 
+#define AS_LOG_SOAD 1
 
 typedef enum {
   SOAD_UNINITIALIZED = 0,
@@ -229,9 +231,9 @@ static void socketCreate(uint16 sockNr)
     	sockType = SOCK_DGRAM;
     }
 
-
     sockFd = lwip_socket(AF_INET, sockType, 0);
     if (sockFd >= 0) {
+        ASLOG(SOAD,"SoAd create socket[%d] on lwip %d okay.\n",sockNr,sockFd);
     	memset((char *)&sLocalAddr, 0, sizeof(sLocalAddr));
 
     	int on = 1;
@@ -247,7 +249,8 @@ static void socketCreate(uint16 sockNr)
     	sLocalAddr.sin_port = htons(SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
 
     	if(lwip_bind(sockFd, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr)) >= 0) {
-
+            ASLOG(SOAD,"SoAd bind socket[%d] on lwip %d(port=%d) okay.\n",sockNr,sockFd,
+                SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
             if (!SocketAdminList[sockNr].SocketProtocolIsTcp) {
             	// Now the UDP socket is ready for receive/transmit
             	SocketAdminList[sockNr].SocketHandle = sockFd;
@@ -255,18 +258,22 @@ static void socketCreate(uint16 sockNr)
             } else {
                 if  ( lwip_listen(sockFd, 20) == 0 ){	// NOTE: What number of the backlog?
                 	// Now the TCP socket is ready for receive/transmit
+                    ASLOG(SOAD,"SoAd listen socket[%d] on lwip %d okay.\n",sockNr,sockFd);
                 	SocketAdminList[sockNr].SocketHandle = sockFd;
                 	SocketAdminList[sockNr].SocketState = SOCKET_TCP_LISTENING;
                 } else {
+                    ASLOG(SOAD,"SoAd listen socket[%d] on lwip %d failed.\n",sockNr,sockFd);
                 	lwip_close(sockFd);
                 }
             }
     	} else {
+            ASLOG(SOAD,"SoAd bind socket[%d] on lwip %d failed.\n",sockNr,sockFd);
     		lwip_close(sockFd);
     	}
     } else {
     	// Socket creation failed
     	// Do nothing, try again later
+        ASLOG(SOAD,"SoAd create socket[%d] failed! try again later.\n",sockNr);
     }
 }
 

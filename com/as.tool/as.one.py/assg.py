@@ -251,9 +251,10 @@ class UISg(QWidget):
 
     def timerEvent(self,event):
         msg = self.aws.poll(self.fd)
-        if(msg != None):
+        while(msg != None):
             self.sgWidget.refresh(msg['obj'])
             self.aws.reply(self.fd,msg,{'hi':'this is as GUI daemon!'})
+            msg = self.aws.poll(self.fd)
 
     def loadXml(self,xml):
         self.sgWidget.loadXml(xml)

@@ -32,8 +32,8 @@
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
 
 
-#define LWIP_DEBUG 1
-
+#define LWIP_DEBUG 0
+#if LWIP_DEBUG == 1
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
 #define ETHARP_DEBUG                    LWIP_DBG_ON
@@ -70,6 +70,7 @@
 #define SNMP_MSG_DEBUG                  LWIP_DBG_ON
 #define SNMP_MIB_DEBUG                  LWIP_DBG_ON
 #define DNS_DEBUG                       LWIP_DBG_ON
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef __WINDOWS__
 #include <errno.h>
