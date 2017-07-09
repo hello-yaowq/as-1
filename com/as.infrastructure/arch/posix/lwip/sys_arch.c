@@ -595,15 +595,16 @@ struct netif * LwIP_Init(void)
 
 	netbios_init();
 
+#ifdef LWIP_POSIX_ARCH
+	http_server_netconn_init();
+#endif /* LWIP_POSIX_ARCH */
+
 	return &netif;
 #endif /* USE_LWIP */
 }
 #ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
-#ifdef LWIP_POSIX_ARCH
-	http_server_netconn_init();
-#endif /* LWIP_POSIX_ARCH */	
 	KGS(LwipIdle,Running);
 }
 

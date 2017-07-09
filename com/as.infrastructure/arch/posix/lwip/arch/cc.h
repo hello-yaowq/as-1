@@ -34,6 +34,7 @@
 
 #include "Std_Types.h"
 #include <stdio.h>
+#include "asdebug.h"
 
 #ifndef BYTE_ORDER
 #define BYTE_ORDER LITTLE_ENDIAN
@@ -63,6 +64,6 @@ typedef u32_t sys_prot_t;
 
 #define LWIP_PLATFORM_DIAG(x) printf x
 
-#define LWIP_PLATFORM_ASSERT(x) do { if(!(x)) while(1); } while(0)
+#define LWIP_PLATFORM_ASSERT(x) do { printf(x); asAssert(0); } while(0)
 
 #endif /* __CC_H__ */
