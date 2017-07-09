@@ -25,9 +25,7 @@
 #endif
 
 #include <string.h>
-#ifndef assert
-#define assert(cond) if (!((cond))) { while(1); }
-#endif
+#include "asdebug.h"
 
 #define DOIP_PROTOCOL_VERSION	2
 
@@ -497,7 +495,7 @@ static void startAllSocketsAliveCheck() {
 }
 
 static void registerSocket(uint16 slotIndex, uint16 sockNr, uint16 activationType, uint16 sa) {
-	assert(slotIndex < DOIP_MAX_TESTER_CONNECTIONS);
+	asAssert(slotIndex < DOIP_MAX_TESTER_CONNECTIONS);
 
 	connectionStatus[slotIndex].sockNr = sockNr;
 	connectionStatus[slotIndex].sa = sa;

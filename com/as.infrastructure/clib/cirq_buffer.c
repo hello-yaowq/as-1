@@ -99,8 +99,8 @@ CirqBufferType *CirqBuffDynCreate( size_t size, size_t dataSize ) {
 
 
 int CirqBuffDynDestroy(CirqBufferType *cPtr ) {
-	free(cPtr->bufStart);
-	free(cPtr);
+	asfree(cPtr->bufStart);
+	asfree(cPtr);
 	return 0;
 }
 

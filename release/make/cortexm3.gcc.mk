@@ -22,6 +22,12 @@ S19 = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)objcopy -O srec --srec-forceS3 --sre
 BIN = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)objcopy -O binary
 
 RM  = rm
+export V ?= 0
+ifeq ($(V),1)
+Q=
+else
+Q=@
+endif
 
 #common flags
 asflags-y += -mcpu=cortex-m3  -mthumb
@@ -61,25 +67,25 @@ $(src-dir)/%.h:%.of
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@cp -v $< $(patsubst %.h,%.c,$@)
-	@$(CC) -S $(patsubst %.h,%.c,$@) -o $@h $(cflags-y) $(inc-y) $(def-y)
+	$Q $(CC) -S $(patsubst %.h,%.c,$@) -o $@h $(cflags-y) $(inc-y) $(def-y)
 	@sed -n '/#define/p' $@h > $@
 	@rm $@h $(patsubst %.h,%.c,$@)
 
 $(obj-dir)/%.o:%.s
 	@echo
 	@echo "  >> AS $(notdir $<)"	
-	@$(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
+	$Q $(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
 
 $(obj-dir)/%.o:%.S
 	@echo
 	@echo "  >> AS $(notdir $<)"	
-	@$(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
+	$Q $(AS) $(asflags-y) $(inc-y) $(def-y) -o $@ -c $<
 
 $(obj-dir)/%.o:%.c
 	@echo
 	@echo "  >> CC $(notdir $<)"
 	@gcc -c $(inc-y) $(def-y) -MM -MF $(patsubst %.o,%.d,$@) -MT $@ $<	
-	@$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
+	$Q $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ -c $<	
 
 	@$(CS) -D $@ > $@.s
 
@@ -101,19 +107,19 @@ include $(wildcard $(obj-dir)/*.d)
 
 exe:$(obj-dir) $(exe-dir) $(ofj-y) $(obj-y) 
 	@echo "  >> LD $(target-y).exe"
-	@$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
-	@$(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19
-	@$(BIN) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).bin
+	$Q $(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
+	$Q $(S19) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).s19
+	$Q $(BIN) $(exe-dir)/$(target-y).exe  $(exe-dir)/$(target-y).bin
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
 
 dll:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).DLL"
-	@$(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
+	$Q $(CC) -shared $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll 
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).LIB"
-	@$(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
+	$Q $(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)  
 	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
 
 clean-obj:

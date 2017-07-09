@@ -35,7 +35,7 @@
 
 #include <string.h>
 
-#include <assert.h>
+#include "asdebug.h"
 
 #define DOIP_PROTOCOL_VERSION	2
 
@@ -514,7 +514,7 @@ static void startAllSocketsAliveCheck() {
 }
 
 static void registerSocket(uint16 slotIndex, uint16 sockNr, uint16 activationType, uint16 sa) {
-	assert(slotIndex < DOIP_MAX_TESTER_CONNECTIONS);
+	asAssert(slotIndex < DOIP_MAX_TESTER_CONNECTIONS);
 
 	connectionStatus[slotIndex].sockNr = sockNr;
 	connectionStatus[slotIndex].sa = sa;
@@ -1162,6 +1162,9 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 		nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
 		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].ConnectionHandle);
 		if (nBytes >= 8) {
+#ifdef __LINUX__
+            asmem(rxBuffer,nBytes);
+#endif
 			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
 			if (((rxBuffer[0] == 1) || (rxBuffer[0] == 2)) && (((uint8)(~rxBuffer[1]) == 1) || ((uint8)(~rxBuffer[1]) == 2))) {
 			//if ((rxBuffer[0] == DOIP_PROTOCOL_VERSION) && ((uint8)(~rxBuffer[1]) == DOIP_PROTOCOL_VERSION)) {

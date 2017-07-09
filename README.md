@@ -15,8 +15,8 @@ because I am not powerful so I decided to develop small but smart part of automo
 ## Key Point
 
 ### 1. Integrated ArcCore AUTOSAR 3.1 BSW
-* Communication: Can CanIf PduR Com 
-* Diagnostic: CanTp Dcm
+* Communication: Can CanIf PduR Com SoAd
+* Diagnostic: CanTp Dcm DoIP
 * System: EcuM SchM
 * Memory: Fls Fee Eep Ea NvM MemIf
 
@@ -47,10 +47,6 @@ because I am not powerful so I decided to develop small but smart part of automo
 * very simple and easy, with one single [Makefile](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) to build out the kernel and the rootfs, and a [shell script](https://github.com/parai/as/blob/master/release/aslinux/script/run-vexpress.sh) to kick off the qemu virtual machine to execute that kernel and mount that rootfs.(for details check my [github.io page](http://parai.github.io/as/navigations/categories.html) on category linux)
 * aslinux build step
 
-## 7. Other 3rd part package
-* LWIP
-* afbindef/websock
-
 ```sh
 git clone https://github.com/parai/as.git
 cd $(patch-to)/as/release/aslinux
@@ -67,6 +63,10 @@ cp /usr/arm-linux-gnueabi/lib/*.so* $(path-to)/as/release/aslinux/build/out/root
 # then the sdcard need to be rebuilt
 cd $(path-to)/as/release/aslinux/build && make sdcard
 ```
+
+## 7. Other 3rd part package
+* LWIP
+* afbindef/websock
 
 ## Setup Environment
 
