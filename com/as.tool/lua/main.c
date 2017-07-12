@@ -134,21 +134,31 @@ void RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 }
 char SHELL_getc(void)
 {
+
 	char chr;
-	while(0 == shCmdCache.counter)
+	if(RPmsg_IsOnline())
 	{
-		usleep(1);
+		while(0 == shCmdCache.counter)
+		{
+			usleep(1);
+		}
+		(void)pthread_mutex_lock(&shCmdCache.w_lock);
+		chr = shCmdCache.cmd[shCmdCache.r_pos];
+		shCmdCache.r_pos++;
+		if(shCmdCache.r_pos >= SHELL_CMD_CACHE_SIZE)
+		{
+			shCmdCache.r_pos = 0;
+		}
+		shCmdCache.counter--;
+		(void)pthread_mutex_unlock(&shCmdCache.w_lock);
 	}
-	(void)pthread_mutex_lock(&shCmdCache.w_lock);
-	chr = shCmdCache.cmd[shCmdCache.r_pos];
-	shCmdCache.r_pos++;
-	if(shCmdCache.r_pos >= SHELL_CMD_CACHE_SIZE)
+	else
 	{
-		shCmdCache.r_pos = 0;
+		chr = getchar();
 	}
-	shCmdCache.counter--;
-	(void)pthread_mutex_unlock(&shCmdCache.w_lock);
+
 	return chr;
+
 }
 void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 {
