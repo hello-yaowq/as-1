@@ -54,6 +54,8 @@
 <Pdu Comment="*" Name="OSEK_NM_RX" Size="64" />
 <Pdu Comment="*" Name="XCP_RX" Size="64" />
 <Pdu Comment="*" Name="XCP_TX" Size="64" />
+<Pdu Comment="*" Name="SOAD_RX" Size="64" />
+<Pdu Comment="*" Name="SOAD_TX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -141,6 +143,16 @@
 <Destination Comment="*" Module="Com" Name="ComMsgAbs" PduRef="RxMsgAbsInfo" />
 </DestinationList>
 </Source>
+<Source Comment="*" Module="SoAd" Name="SOAD_RX" PduRef="SOAD_RX">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="Dcm" Name="DCM_SOAD_RX" PduRef="SOAD_RX" />
+</DestinationList>
+</Source>
+<Source Comment="*" Module="Dcm" Name="SOAD_TX" PduRef="SOAD_TX">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="SoAd" Name="DCM_SOAD_TX" PduRef="SOAD_TX" />
+</DestinationList>
+</Source>
 </RoutineList>
 </PduR>
 <Com>
@@ -181,6 +193,8 @@
 <Buffer Comment="*" Name="Buffer2" Size="512" />
 <Buffer Comment="*" Name="Buffer3" Size="512" />
 <Buffer Comment="*" Name="Buffer4" Size="512" />
+<Buffer Comment="*" Name="Buffer5" Size="512" />
+<Buffer Comment="*" Name="Buffer6" Size="512" />
 </BufferList>
 <SessionList Max="TBD">
 <Session Comment="*" Identifier="1" Name="DS" P2ServerMaxTimeMs="5000" P2StartServerMaxTimeMs="500" />
@@ -216,6 +230,16 @@
 <RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="RxDiagP2A" />
 </RxChannelList>
 <TxChannel Comment="*" Name="TxChannel2" PduRef="TxDiagP2A" />
+</Connection>
+</ConnectionList>
+</Protocol>
+<Protocol Comment="*" Name="DoIP" ProtocolID="UDS_ON_DOIP" RxBufferRef="Buffer5" ServiceTableRef="ServiceTableP2P" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer6">
+<ConnectionList Max="TBD">
+<Connection Comment="*" Name="Connection1">
+<RxChannelList Max="TBD">
+<RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="SOAD_RX" />
+</RxChannelList>
+<TxChannel Comment="*" Name="TxChannel2" PduRef="SOAD_TX" />
 </Connection>
 </ConnectionList>
 </Protocol>
