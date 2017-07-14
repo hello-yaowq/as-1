@@ -268,6 +268,9 @@ def GenC():
 #if PDUR_J1939TP_SUPPORT == STD_ON
 #include "J1939Tp.h"
 #endif
+#ifdef USE_SOAD
+#include "SoAd.h"
+#endif
 #if(PDUR_ZERO_COST_OPERATION == STD_OFF)
 const PduRDestPdu_type PduR_PduRDestination[] = {
 %s

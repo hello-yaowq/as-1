@@ -63,7 +63,7 @@ typedef uint8 Dcm_ProtocolType;
 #define DCM_ROE_ON_FLEXRAY				((Dcm_ProtocolType)0x04)
 #define DCM_PERIODIC_TRANS_ON_CAN		((Dcm_ProtocolType)0x05)
 #define DCM_PERIODIC_TRANS_ON_FLEXRAY	((Dcm_ProtocolType)0x06)
-
+#define DCM_UDS_ON_DOIP					((Dcm_ProtocolType)0x07)
 /*
  * Dcm_ReturnReadMemoryType
  */

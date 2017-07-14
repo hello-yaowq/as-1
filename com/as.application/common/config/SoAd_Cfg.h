@@ -17,6 +17,8 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 
 /* ============================ [ MACROS    ] ====================================================== */
+#define SOAD_ID_SOAD_RX 0
+#define SOAD_ID_SOAD_TX 0
 #define SOAD_SOCKET_COUNT 1
 #define SOAD_PDU_ROUTE_COUNT 0
 

@@ -15,6 +15,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifdef USE_SOAD
 #include "SoAd.h"
+#include "PduR.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -29,9 +30,19 @@ static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT]
         .AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	}
 };
+static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[]=
+{
+	{
+		.addressValue=0,
+		.txPdu=PDUR_ID_SOAD_TX,
+		.rxPdu=PDUR_ID_SOAD_RX
+
+	},
+};
 const SoAd_ConfigType SoAd_Config =
 {
 	.SocketConnection = SoAd_SocketConnection,
+	.DoIpTargetAddresses = SoAd_DoIpTargetAddresses,
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

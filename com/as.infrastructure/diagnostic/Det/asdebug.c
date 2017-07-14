@@ -220,7 +220,19 @@ char* asEnvGet(int index)
 	}
 	else
 	{
-		asAssert(0);
+		/* default env */
+		switch(index)
+		{
+			case 1: /* OSEK NM node ID */
+				return "0";
+				break;
+			case 2: /* remote gui websock uri:port */
+				return "127.0.0.1:8080";
+				break;
+			default:
+				asAssert(0);
+				break;
+		}
 	}
 
 	return NULL;
