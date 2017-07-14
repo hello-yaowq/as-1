@@ -201,7 +201,7 @@ void SoAd_SocketStatusCheck(uint16 sockNr, int sockHandle)
 uint16 SoAd_SendIpMessage(uint16 sockNr, uint32 msgLen, uint8* buff)
 {
 	uint16 bytesSent;
-
+	ASMEM(SOAD,"TX",buff,msgLen);
 	if (SocketAdminList[sockNr].SocketProtocolIsTcp) {
 		bytesSent = lwip_send(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
 	} else {

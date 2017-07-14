@@ -14,7 +14,13 @@ __lic__ = '''
  * for more details.
  */
  '''
-from .cantp import *
+
+try:
+    from .cantp import *
+    from .doip import *
+except:
+    from cantp import *
+    from doip import *
 
 __all__ = ['dcm']
                 
@@ -42,8 +48,11 @@ class dcm():
                 0x93:"voltage too low",0x00:"positive response",0x11:"service not supported",
                 0x12:"sub function not supported",0x13:"incorrect message length or invalid format",0x78:"response pending",
                 0x7F:"service not supported in active session"}
-    def __init__(self,busid,rxid,txid,cfgSTmin=10,cfgBS=8,padding=0x55):
-        self.cantp = cantp(busid,rxid,txid,cfgSTmin,cfgBS,padding)
+    def __init__(self,busid_or_uri,rxid_or_port,txid=None,cfgSTmin=10,cfgBS=8,padding=0x55):
+        if(txid != None):
+            self.cantp = cantp(busid_or_uri,rxid_or_port,txid,cfgSTmin,cfgBS,padding)
+        else:
+            self.cantp = doip(busid_or_uri,rxid_or_port)
 
     def __get_service_name__(self,serviceid):
         try:
@@ -113,8 +122,6 @@ class dcm():
         return ercd,response
 
 if(__name__ == '__main__'):
-    # open COM4
-    can_open(0,'serial',3,115200)
-    dcm  = dcm(0,0x732,0x731)
+    dcm  = dcm('172.18.0.200',8989)
     res = dcm.transmit([0x10,0x03])
     

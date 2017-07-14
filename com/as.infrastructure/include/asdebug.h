@@ -67,9 +67,15 @@
 			printf(fmt,##__VA_ARGS__);						\
 	}while(0)
 #endif
+
+#define ASMEM(level,prefix,p,len)							\
+	if((AS_LOG_##level) >= AS_LOG_DEFAULT) {				\
+        asmem(#level " " prefix, p, len);					\
+	}
 #else	/* USE_DET */
 #define ASLOG(level,fmt,...)
 #define ASWARNING(fmt,...)
+#define ASMEM(level,prefix,p,len)
 #endif
 
 #ifdef USE_DET
@@ -148,7 +154,7 @@ typedef struct timeval asperf_t;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef CONFIG_ARCH_VEXPRESS
 extern void  aslog(const char* module,const char* format,...);
-extern void  asmem(const void* address,size_t size);
+extern void  asmem(const char* prefix,const void* address,size_t size);
 extern char* ashex(unsigned long a);
 extern char* aswho(void);
 extern void  asAssertErrorHook(void);

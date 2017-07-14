@@ -39,6 +39,8 @@
 
 #define DOIP_PROTOCOL_VERSION	2
 
+#define AS_LOG_SOAD 1
+
 // Generic doip header negative acknowledge codes
 #define DOIP_E_INCORRECT_PATTERN_FORMAT	0x00
 #define DOIP_E_UNKNOWN_PAYLOAD_TYPE		0x01
@@ -517,6 +519,7 @@ static void registerSocket(uint16 slotIndex, uint16 sockNr, uint16 activationTyp
 	asAssert(slotIndex < DOIP_MAX_TESTER_CONNECTIONS);
 
 	connectionStatus[slotIndex].sockNr = sockNr;
+	connectionStatus[slotIndex].activationType = (uint8)activationType;
 	connectionStatus[slotIndex].sa = sa;
 
 	connectionStatus[slotIndex].generalInactivityTimer = 0;
@@ -824,7 +827,6 @@ LookupSaTaResultType lookupSaTa(uint16 connectionIndex, uint16 sa, uint16 ta, ui
 	uint16 i;
 	uint16 routingActivationIndex = 0xffff;
 
-
 	if (0xffff == connectionIndex) {
 		// Connection not registered!
 		return LOOKUP_SA_TA_SAERR;
@@ -1080,52 +1082,26 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 		lookupResult = lookupSaTa(connectionIndex, sa, ta, &targetIndex);
 		if (lookupResult == LOOKUP_SA_TA_OK) {
 			// Send diagnostic message to PduR
-		    PduLengthType len;
-			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
+			PduLengthType len=0;
+			result = PduR_SoAdTpProvideRxBuffer(SoAd_Config.DoIpTargetAddresses[targetIndex].rxPdu,diagnosticMessageLength,&pduInfo);
+			if (result == BUFREQ_OK) {
 
-				result = PduR_SoAdTpStartOfReception(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, diagnosticMessageLength, &len);
-				if (result == BUFREQ_OK && len > 0) {
-					pduInfo.SduLength = diagnosticMessageLength;
-					associateTargetWithConnectionIndex(targetIndex, connectionIndex);
+				pduInfo.SduLength = diagnosticMessageLength;
+				associateTargetWithConnectionIndex(targetIndex, connectionIndex);
 
-					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
-					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, diagnosticMessageLength, 0);
+				(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
 
-					/* Let pdur copy received data */
-					if(len < diagnosticMessageLength)
-					{
-						PduInfoType pduInfoChunk;
-						PduLengthType lenToSend = diagnosticMessageLength;
-						/* We need to copy in smaller parts */
-						pduInfoChunk.SduDataPtr = pduInfo.SduDataPtr;
-
-						while(lenToSend > 0)
-						{
-							if(lenToSend >= len){
-								PduR_SoAdTpCopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfoChunk, &len);
-								lenToSend -= len;
-							}else{
-								PduR_SoAdTpCopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfoChunk, &lenToSend);
-								lenToSend = 0;
-							}
-						}
-					}else{
-						PduR_SoAdTpCopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfo, &len);
-					}
-
-					/* Finished reception */
-					(void)PduR_SoAdTpRxIndication(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, NTFRSLT_OK);
-
-					// Send diagnostic message positive ack
-					createAndSendDiagnosticAck(sockNr, sa, ta);
-				}
-				else if (result != BUFREQ_BUSY){
-					createAndSendDiagnosticNack(sockNr, sa, ta, DOIP_E_DIAG_OUT_OF_MEMORY);
-					discardIpMessage(SocketAdminList[sockNr].ConnectionHandle, payloadLength + 8, rxBuffer);
-					DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_DIAG_MSG_ID, SOAD_E_SHALL_NOT_HAPPEN);
+				/* Let pdur copy received data */
+				while(len < diagnosticMessageLength)
+				{
+					len += lwip_recv(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo.SduDataPtr[len]), diagnosticMessageLength-len, 0);
 				}
 
-				SoAd_BufferFree(pduInfo.SduDataPtr);
+				/* Finished reception */
+				(void)PduR_SoAdTpRxIndication(SoAd_Config.DoIpTargetAddresses[targetIndex].rxPdu, NTFRSLT_OK);
+
+				// Send diagnostic message positive ack
+				createAndSendDiagnosticAck(sockNr, sa, ta);
 			}
 			else
 			{
@@ -1162,9 +1138,7 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 		nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
 		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].ConnectionHandle);
 		if (nBytes >= 8) {
-#ifdef __LINUX__
-            asmem(rxBuffer,nBytes);
-#endif
+			ASMEM(SOAD,"RX",rxBuffer,nBytes);
 			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
 			if (((rxBuffer[0] == 1) || (rxBuffer[0] == 2)) && (((uint8)(~rxBuffer[1]) == 1) || ((uint8)(~rxBuffer[1]) == 2))) {
 			//if ((rxBuffer[0] == DOIP_PROTOCOL_VERSION) && ((uint8)(~rxBuffer[1]) == DOIP_PROTOCOL_VERSION)) {

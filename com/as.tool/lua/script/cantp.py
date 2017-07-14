@@ -14,8 +14,10 @@ __lic__ = '''
  * for more details.
  */
  '''
-
-from .can import *
+try:
+    from .can import *
+except:
+    from can import *
 import time
 
 

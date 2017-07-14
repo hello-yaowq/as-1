@@ -15,7 +15,10 @@ __lic__ = '''
  */
  '''
  
-from .AS import *
+try:
+    from .AS import *
+except:
+    from AS import *
 
 __all__ = ['can_open','can_write','can_read']
 

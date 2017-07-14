@@ -26,23 +26,59 @@ static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT]
 		.SocketRemoteIpAddress = "172.18.0.200",
 		.SocketRemotePort = 8989,
 		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
-        .SocketLocalPort = 8989,
-        .AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
+		.SocketLocalPort = 8989,
+		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	}
 };
-static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[]=
+static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[SOAD_SOCKET_COUNT]=
 {
 	{
-		.addressValue=0,
+		.addressValue=0xfeed,  /* this 16 bit ta */
 		.txPdu=PDUR_ID_SOAD_TX,
 		.rxPdu=PDUR_ID_SOAD_RX
 
+	},
+};
+static const DoIp_TesterConfigType SoAd_DoIpTesters[DOIP_TESTER_COUNT] =
+{
+	{
+		.address = 0xdead,
+	},
+	{
+		.address = 0xbeef,
+	}
+};
+static const DoIp_RoutingActivationConfigType SoAd_DoIpRoutingActivations[DOIP_ROUTINGACTIVATION_COUNT] =
+{
+	{
+		.activationNumber = 0xda,
+		.authenticationCallback = NULL,
+		.confirmationCallback = NULL
+	},
+	{
+		.activationNumber = 0xbe,
+		.authenticationCallback = NULL,
+		.confirmationCallback = NULL
+	},
+};
+static const DoIp_RoutingActivationToTargetAddressMappingType SoAd_DoIpRoutingActivationToTargetAddressMap[DOIP_ROUTINGACTIVATION_TO_TARGET_RELATION_COUNT] =
+{
+	{
+		.routingActivation = 0,
+		.target = 0,
+	},
+	{
+		.routingActivation = 1,
+		.target = 0,
 	},
 };
 const SoAd_ConfigType SoAd_Config =
 {
 	.SocketConnection = SoAd_SocketConnection,
 	.DoIpTargetAddresses = SoAd_DoIpTargetAddresses,
+	.DoIpTesters= SoAd_DoIpTesters,
+	.DoIpRoutingActivations = SoAd_DoIpRoutingActivations,
+	.DoIpRoutingActivationToTargetAddressMap = SoAd_DoIpRoutingActivationToTargetAddressMap
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

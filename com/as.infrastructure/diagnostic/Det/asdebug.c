@@ -69,20 +69,19 @@ void aslog(const char* module,const char* format,...)
 
 	va_end(args);
 }
-
-void asmem(const void* address,size_t size)
+#endif
+void asmem(const char* prefix, const void* address,size_t size)
 {
 	uint32 i,j;
 	uint8 *src;
 	src = (uint8*)address;
-	printf("@%s:\n",__aswho);
 	if(8 == sizeof(unsigned long))
 	{
-		printf("     address    :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+		printf("%16s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
 	}
 	else
 	{
-		printf(" address :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+		printf("%8s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
 	}
 
 	for(i=0; i<(size+15)/16; i++)
@@ -96,8 +95,9 @@ void asmem(const void* address,size_t size)
 		{
 			printf("%08X ::",(uint32_t)a);
 		}
-
+#if defined(__WINDOWS__) || defined(__LINUX__)
 		fflush(stdout);
+#endif
 		for(j=0;j<16;j++)
 		{
 			if((i*16+j)<size)
@@ -123,10 +123,11 @@ void asmem(const void* address,size_t size)
 		}
 		printf("\n");
 	}
-
+#if defined(__WINDOWS__) || defined(__LINUX__)
     fflush(stdout);
+#endif
 }
-
+#if defined(__WINDOWS__) || defined(__LINUX__)
 char* ashex(unsigned long a)
 {
 	char *buf = (char*)malloc(20);
