@@ -122,6 +122,9 @@ class dcm():
         return ercd,response
 
 if(__name__ == '__main__'):
-    dcm  = dcm('172.18.0.200',8989)
-    res = dcm.transmit([0x10,0x03])
+    from can import *
+    #can_open(0,'socket',0,115200)
+    #diag  = dcm(0,0x732,0x731)
+    diag  = dcm('172.18.0.200',8989)
+    res = diag.transmit([0x10,0x01])
     

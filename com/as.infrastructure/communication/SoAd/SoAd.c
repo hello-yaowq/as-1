@@ -32,7 +32,7 @@
 #endif
 #include "asdebug.h"
 
-#define AS_LOG_SOAD 1
+#define AS_LOG_SOAD 0
 
 typedef enum {
   SOAD_UNINITIALIZED = 0,
@@ -422,9 +422,9 @@ static void socketUdpRead(uint16 sockNr)
 	case SOAD_AUTOSAR_CONNECTOR_PDUR:
 		if (SocketAdminList[sockNr].SocketRouteRef != NULL) {
 			struct sockaddr_in fromAddr;
-		    socklen_t fromAddrLen = sizeof(fromAddr);
-		    int nBytes;
-		    PduInfoType pduInfo;
+			socklen_t fromAddrLen = sizeof(fromAddr);
+			int nBytes;
+			PduInfoType pduInfo;
 
 			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
 			    nBytes = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK, (struct sockaddr*)&fromAddr, &fromAddrLen);

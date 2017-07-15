@@ -554,7 +554,6 @@ void DspUdsDiagnosticSessionControl(const PduInfoType *pduRxData, PduIdType txPd
 	Dcm_SesCtrlType reqSessionType;
 	Std_ReturnType result;
 	Dcm_ProtocolType activeProtocolID;
-
 	if (pduRxData->SduLength == 2) {
 		reqSessionType = pduRxData->SduDataPtr[1];
 		// Check if type exist in session table
@@ -570,7 +569,6 @@ void DspUdsDiagnosticSessionControl(const PduInfoType *pduRxData, PduIdType txPd
 				dspUdsSessionControlData.sessionPending = TRUE;
 				dspUdsSessionControlData.session = reqSessionType;
 				dspUdsSessionControlData.sessionPduId = txPduId;
-
 				pduTxData->SduDataPtr[1] = reqSessionType;
 
 				if( E_OK == DslGetActiveProtocol(&activeProtocolID) ) {

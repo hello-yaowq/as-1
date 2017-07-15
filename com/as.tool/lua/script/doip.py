@@ -56,7 +56,6 @@ class doip():
             self.routingActivationResponseCode=data[4]
             if(self.routingActivationResponseCode != 0x10):
                 raise Exception('  >> DoIP: do Routing Activation request failed as %s!'%(self.__rapc[self.routingActivationResponseCode]))
-            
 
     def checkResponse(self,res):
         ackcode = (res[2] << 8) + res[3]
@@ -81,9 +80,10 @@ class doip():
 
     def read(self):
         return self.sock.recv(4096)
-    
+
     def receive(self):
         ''' for UDS only '''
+        # DoIP protocal response
         res = self.sock.recv(4096)
         ercd,data=self.checkResponse(res)
         if(ercd==False):
@@ -92,16 +92,34 @@ class doip():
         else:
             ackcode=data[0]
             data=data[1]
-            print("UDS RX:",ackcode,data)
             if(0x8003 == ackcode): #0x8003->Diagnostic Message Negative Acknowledge
                 nackCode=data[4]
                 raise Exception('  >> DoIP: do UDS request failed as %s!'%(self.__diagAck[nackCode]))
-            return True,data
+        # Dcm protocol response
+        res = self.sock.recv(4096)
+        ercd,data=self.checkResponse(res)
+        if(ercd==False):
+            raise Exception('  >> DoIP: do UDS request failed as %s!'%(self.__generalAck[data]))
+            return False,None
+        else:
+            ackcode=data[0]
+            data=data[1]
+            assert(0x8001 == ackcode) #// 0x8001->Diagnostic message
+            sa = (data[0] << 8) + data[1]
+            ta = (data[2] << 8) + data[3]
+            assert(ta == self.sa and sa == self.ta)
+            return True,data[4:]
 
     def transmit(self,payload,payloadType=0x8001):
         ''' generally for UDS purpose '''
         if(payloadType==0x8001):
-            payload = [(self.sa>>8)&0xFF,self.sa&0xFF,(self.ta>>8)&0xFF,self.ta&0xFF] + payload
+            try:
+                payload = [(self.sa>>8)&0xFF,self.sa&0xFF,(self.ta>>8)&0xFF,self.ta&0xFF] + payload
+            except TypeError:
+                data = [(self.sa>>8)&0xFF,self.sa&0xFF,(self.ta>>8)&0xFF,self.ta&0xFF]
+                for i in payload:
+                    data.append(i)
+                payload = data
         len = self.write(payloadType, payload)
         if(payloadType==0x8001):
             if(len > 0):

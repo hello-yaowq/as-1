@@ -39,7 +39,7 @@
 
 #define DOIP_PROTOCOL_VERSION	2
 
-#define AS_LOG_SOAD 1
+#define AS_LOG_SOAD 0
 
 // Generic doip header negative acknowledge codes
 #define DOIP_E_INCORRECT_PATTERN_FORMAT	0x00
@@ -376,7 +376,6 @@ static void handleVehicleIdentificationReq(uint16 sockNr, uint32 payloadLength, 
 static boolean isSourceAddressKnown(uint16 sa) {
 	boolean saKnown = FALSE;
 	uint16 i;
-
 
 	for (i = 0; (i < DOIP_TESTER_COUNT) && (FALSE == saKnown); i++) {
 		if (SoAd_Config.DoIpTesters[i].address  == sa) {
@@ -1056,15 +1055,13 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 #ifdef USE_PDUR
 	LookupSaTaResultType lookupResult;
     BufReq_ReturnType result;
-    PduInfoType pduInfo;
+    PduInfoType *pduInfo;
 	uint16 sa;
 	uint16 ta;
 	uint16 targetIndex;
 	uint16 connectionIndex;
 	uint16 diagnosticMessageLength = payloadLength - 4;
 	uint16 i;
-
-
 
 	if (payloadLength >= 4) {
 		sa = (rxBuffer[8] << 8) | rxBuffer[9];
@@ -1086,7 +1083,7 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 			result = PduR_SoAdTpProvideRxBuffer(SoAd_Config.DoIpTargetAddresses[targetIndex].rxPdu,diagnosticMessageLength,&pduInfo);
 			if (result == BUFREQ_OK) {
 
-				pduInfo.SduLength = diagnosticMessageLength;
+				pduInfo->SduLength = diagnosticMessageLength;
 				associateTargetWithConnectionIndex(targetIndex, connectionIndex);
 
 				(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
@@ -1094,7 +1091,7 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 				/* Let pdur copy received data */
 				while(len < diagnosticMessageLength)
 				{
-					len += lwip_recv(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo.SduDataPtr[len]), diagnosticMessageLength-len, 0);
+					len += lwip_recv(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo->SduDataPtr[len]), diagnosticMessageLength-len, 0);
 				}
 
 				/* Finished reception */
@@ -1301,17 +1298,15 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 	Std_ReturnType returnCode = E_OK;
 #ifdef USE_PDUR
 	PduInfoType txPduInfo;
-	PduInfoType txPayloadPduInfo;
 	uint16 socketNr;
 	uint16 bytesSent;
-
 	/*
 	 * Find which target the incoming Pdu belongs to:
 	 */
 	uint16 i;
 	uint16 targetIndex = 0xffff;
 	for (i = 0; i < DOIP_TARGET_COUNT; i++) {
-		if (SoAd_Config.DoIpTargetAddresses[i].rxPdu == SoAdSrcPduId) {
+		if (SoAd_Config.DoIpTargetAddresses[i].txPdu == SoAdSrcPduId) {
 			// Match!
 			targetIndex = i;
 			break;
@@ -1322,7 +1317,6 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 		// Did not find corresponding target. Most likely due to faulty configuration.
 		return E_NOT_OK;
 	}
-
 
 	if (PduAdminList[SoAdSrcPduId].PduStatus == PDU_IDLE ) {
 		socketNr = SoAd_Config.PduRoute[SoAdSrcPduId].DestinationSocketRef->SocketId;
@@ -1335,7 +1329,8 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 
 				if(SoAd_BufferGet(txPduInfo.SduLength, &txPduInfo.SduDataPtr))
 				{
-					PduLengthType availableData;
+					BufReq_ReturnType result;
+					PduInfoType *txPayloadPduInfo;
 
 					uint16 connectionId = targetConnectionMap[targetIndex];
 					uint16 ta = connectionStatus[connectionId].sa; // Target of response is the source of the initiating party...
@@ -1358,10 +1353,12 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 					txPduInfo.SduDataPtr[10] = ta >> 8;
 					txPduInfo.SduDataPtr[11] = ta >> 0;
 
-					// Copy the Pdu to the tx buffer
-					txPayloadPduInfo.SduDataPtr = txPduInfo.SduDataPtr + 12; // The actual SDU payload is after header
-					txPayloadPduInfo.SduLength = SoAdSrcPduInfoPtr->SduLength;
-					PduR_SoAdTpCopyTxData(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId, &txPayloadPduInfo, /* retry */NULL, &availableData );
+					result = PduR_SoAdTpProvideTxBuffer(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId,
+							&txPayloadPduInfo, 0);
+
+					asAssert(BUFREQ_OK == result );
+
+					memcpy(&txPduInfo.SduDataPtr[12],txPayloadPduInfo->SduDataPtr,SoAdSrcPduInfoPtr->SduLength);
 
 					// Then send the diagnostic message and confirm transmission to PduR
 					bytesSent = SoAd_SendIpMessage(socketNr, txPduInfo.SduLength, txPduInfo.SduDataPtr);

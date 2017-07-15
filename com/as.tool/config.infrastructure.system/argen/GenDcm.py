@@ -633,6 +633,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
                 cstr += '\t{// %s->%s->%s\n'%(GAGet(pro,'Name'), GAGet(con,'Name'), GAGet(tx,'Name'));
                 cstr += '\t\t.DslMainConnectionParent =  &DslMainConnectionList[%s],\n'%(cid);
                 cstr += '\t\t.DcmDslProtocolTxPduId =  PDUR_ID_%s,\n'%(GAGet(tx,'PduRef'));
+                cstr += '\t\t.DcmDslProtocolDcmTxPduId =  DCM_ID_%s,\n'%(GAGet(tx,'PduRef'));
                 cstr += '\t\t.Arc_EOL =  FALSE\n'
                 cstr += '\t},\n'
         cid += len(GLGet(con,'RxChannelList'));

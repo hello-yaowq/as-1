@@ -110,6 +110,7 @@
 #define SOAD_E_NOCONNECTOR			0x5Cu
 #define SOAD_E_INVALID_TXPDUID		0x5Du
 #define SOAD_E_PARAM_POINTER		0x5Eu
+#define SOAD_E_UPPERBUFF			0x5Fu
 
 // Other error codes reported by this module
 #define SOAD_E_UL_RXBUFF			0xfau

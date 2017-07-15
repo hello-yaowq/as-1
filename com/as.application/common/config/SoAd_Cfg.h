@@ -17,10 +17,15 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 
 /* ============================ [ MACROS    ] ====================================================== */
-#define SOAD_ID_SOAD_RX 0
-#define SOAD_ID_SOAD_TX 0
-#define SOAD_SOCKET_COUNT 1
-#define SOAD_PDU_ROUTE_COUNT 0
+#define SOAD_DEV_ERROR_DETECT STD_ON
+
+#define SOADTP_ID_SOAD_RX 0
+#define SOADTP_ID_SOAD_TX 0
+#define SOADIF_ID_SOAD_RX 1
+#define SOADIF_ID_SOAD_TX 1
+#define SOAD_PDU_ROUTE_COUNT 2
+
+#define SOAD_SOCKET_COUNT 2
 
 #define SOAD_DOIP_ANNOUNCE_WAIT 100
 
@@ -37,11 +42,11 @@
 #define SOAD_SOCKET_ROUTE_COUNT 0
 
 
-#define DOIP_MAX_TESTER_CONNECTIONS 2
-#define DOIP_TARGET_COUNT 2
-#define DOIP_TESTER_COUNT 2
-#define DOIP_ROUTINGACTIVATION_COUNT 2
-#define DOIP_ROUTINGACTIVATION_TO_TARGET_RELATION_COUNT 2
+#define DOIP_MAX_TESTER_CONNECTIONS 1
+#define DOIP_TARGET_COUNT 1
+#define DOIP_TESTER_COUNT 1
+#define DOIP_ROUTINGACTIVATION_COUNT 1
+#define DOIP_ROUTINGACTIVATION_TO_TARGET_RELATION_COUNT 1
 
 #define DOIP_MAINFUNCTION_PERIOD_TIME 10
 #define DOIP_ALIVECHECK_RESPONSE_TIMEOUT 1000

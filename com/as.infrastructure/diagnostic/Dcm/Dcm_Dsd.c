@@ -24,6 +24,9 @@
 #include "Dcm.h"
 #include "Dcm_Internal.h"
 #include "MemMap.h"
+#include "asdebug.h"
+
+#define AS_LOG_DCM 0
 
 typedef struct {
 	const PduInfoType 				*pduRxData;
@@ -300,7 +303,7 @@ void DsdHandleRequest(void)
 	const Dcm_DsdServiceType *sidConfPtr = NULL;
 
 	currentSid = msgData.pduRxData->SduDataPtr[0];	/** @req DCM198 */
-
+	ASMEM(DCM,"REQ",msgData.pduRxData->SduDataPtr,msgData.pduRxData->SduLength);
 	/** @req DCM178 */
 	//lint --e(506, 774)	PC-Lint exception Misra 13.7, 14.1 Allow configuration variables in boolean expression
 	if ((DCM_RESPOND_ALL_REQUEST == STD_ON) || ((currentSid & 0x7Fu) < 0x40)) {		/** @req DCM084 */

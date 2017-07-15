@@ -982,7 +982,7 @@ void DslTxConfirmation(PduIdType dcmTxPduId, NotifResultType result) {
 			startS3SessionTimer(runtime, protocolRow); /** @req DCM141 */
 			releaseExternalRxTxBuffers(protocolRow, runtime); /** @req DCM118 *//** @req DCM352 *//** @req DCM353 *//** @req DCM354 */
 			externalBufferReleased = TRUE;
-		//	ASLOG( DCM, "Released external buffer OK!\n");
+			ASLOG( DCM, "Released external buffer OK!\n");
 			DsdDataConfirmation(mainConnection->DslProtocolTx->DcmDslProtocolTxPduId, result); /** @req DCM117 *//** @req DCM235 */
 			break;
 		}

@@ -66,6 +66,16 @@ def str2int(sstr):
 
 __dcm__ = dcm(0,0x732,0x731)
 
+def switch_to_doip(state):
+    global __dcm__
+
+    if(state):
+        __dcm__ = dcm('172.18.0.200',8989)
+        print("switch to UDS on DoIP mode")
+    else:
+        __dcm__ = dcm(0,0x732,0x731)
+        print("switch to UDS on CAN mode")
+
 def Dcm_TransmitMessage(req):
     ercd,res = __dcm__.transmit(req)
     if(ercd==True):
@@ -438,6 +448,10 @@ class UIDcm(QWidget):
         grid.addWidget(self.leDml,0,1)
         self.btnOpenDml = QPushButton('...')
         grid.addWidget(self.btnOpenDml,0,2)
+
+        self.cbxDoIpMode = QCheckBox("DoIp mode")
+        grid.addWidget(self.cbxDoIpMode,1,0)
+
         self.vbox.addLayout(grid)
         self.tabWidget = QTabWidget(self)
         self.vbox.addWidget(self.tabWidget)
@@ -452,7 +466,10 @@ class UIDcm(QWidget):
         self.loadDml(default_dml)
 
         self.btnOpenDml.clicked.connect(self.on_btnOpenDml_clicked)
-    
+        self.cbxDoIpMode.stateChanged .connect(self.on_cbxDoIpMode_stateChanged )
+    def on_cbxDoIpMode_stateChanged(self,state):
+        switch_to_doip(state)
+
     def loadDml(self,dml):
         self.tabWidget.clear()
         root = ET.parse(dml).getroot()
