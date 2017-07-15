@@ -97,7 +97,7 @@ else
 ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
-ldflags-y += -lm -lpthread -lstdc++
+ldflags-y += -lm -lstdc++
 # inter processor communication		 
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
@@ -122,7 +122,7 @@ else
 ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
 endif
-ldflags-y += -lm -lpthread
+ldflags-y += -lm
 cflags-y +=-Wextra 
 def-y    += -D__AS_PY_CAN__
 def-y    += -D__AS_PY_DEV__
@@ -142,6 +142,8 @@ def-y += -DUSE_DET
 
 inc-y += -I$(LUA)/device/websock
 ldflags-y += -L$(LUA)/device/websock/out -laws
+
+ldflags-y += -lpthread
 
 ifeq ($(host), Linux)
 else
@@ -237,7 +239,7 @@ pysip:$(exe-dir)
 
 dep-pyas:
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device TRUE)
+	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/pyas TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 ifeq ($(host),Linux)

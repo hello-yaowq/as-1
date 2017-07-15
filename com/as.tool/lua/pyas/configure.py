@@ -25,14 +25,14 @@ def sip_makefile(sipfile,output):
     # Add the library we are wrapping.  The name doesn't include any platform
     # specific prefixes or extensions (e.g. the "lib" prefix on UNIX, or the
     # ".dll" extension on Windows).
-    makefile.extra_libs = [module,'pthread','m']
+    makefile.extra_libs = [module,'aws','pthread','m']
     makefile.extra_lib_dirs = [output]
     makefile.extra_defines  = []
     makefile.extra_cflags = ['--std=gnu99']
     if(os.name=='nt'):
        makefile.extra_libs.append('PCANBasic')
+       makefile.extra_libs.append('pyas')
        makefile.extra_libs.append('wsock32')
-    makefile.extra_libs.append('aws')
     # Generate the Makefile itself.
     makefile.generate()
     

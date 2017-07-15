@@ -28,7 +28,9 @@
  */
 
 #include <string.h>
-
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 char *_strtok_r( char *s, const char *delim, char **lasts, int skip_leading_delim )
 {
 	register char *spanp;
@@ -101,4 +103,18 @@ char* stpcpy(char* __to, const char* __from)
 	}
 
 	return dst;
+}
+
+int vasprintf(char **ret, const char *format, va_list ap)
+{
+	size_t size;
+	int len;
+	va_list aq;
+
+	__va_copy(aq, ap);
+	len = vsnprintf(NULL, 0, format, aq);
+	va_end(aq);
+	if (len < 0 || (*ret = malloc(size = len + 1)) == NULL)
+		return -1;
+	return vsnprintf(*ret, size, format, ap);
 }

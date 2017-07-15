@@ -24,6 +24,9 @@
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <windows.h>
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0
+#endif
 /* Link with ws2_32.lib */
 #ifndef __GNUC__
 #pragma comment(lib, "Ws2_32.lib")
