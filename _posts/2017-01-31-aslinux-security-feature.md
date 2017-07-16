@@ -36,3 +36,7 @@ comments: true
 
   So for linux, whether the fs\_mgr should be ported to do this job to mount the verity block by a special fs_tab with flags "verity=/dev/mmcblk0p1" for example, or use the linux tool [dmsetup:veritysetup](https://gitlab.com/cryptsetup/cryptsetup/wikis/DMVerity).
 
+# [IMA/EVM](https://sourceforge.net/p/linux-ima/wiki/Home/) 
+
+* [src](http://elixir.free-electrons.com/linux/v4.13-rc1/source/security/integrity) 
+* [evmctl](https://sourceforge.net/p/linux-ima/ima-evm-utils/ci/master/tree): README is important
