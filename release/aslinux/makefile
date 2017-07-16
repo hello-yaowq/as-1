@@ -19,7 +19,7 @@ VERSION?=morty
 POKY?=agl
 
 # valid: x86, arm, arm64
-export ARCH?=x86
+export ARCH?=arm
 
 ifeq (${ARCH},arm)
 export MACHINE?=vexpress-qemu
@@ -37,7 +37,7 @@ export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/us
 endif
 
 ifeq (${ARCH},arm)
-export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/arm-poky-linux-guneabi/arm-poky-linux-gnueabi-
+export  CROSS_COMPILE?=$(CURDIR)/$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-
 endif
 
 ifeq (${ARCH},arm64)
@@ -92,8 +92,8 @@ $(CURDIR)/$(POKY)/meta-qt5:
 # ----------------------------- [ 3rd PART ] ----------------------------------------------------------
 $(CURDIR)/$(POKY)/meta-mender:
 	@(cd $(POKY); git clone -b $(VERSION) https://github.com/mendersoftware/meta-mender.git)
-	@(echo " >> update ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass 108: set count to 2097152")
-	@(sed -i 's/count=0 seek=/count=2097152 seek=/g' ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass)
+#	@(echo " >> update ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass 108: set count to 2097152")
+#	@(sed -i 's/count=0 seek=/count=2097152 seek=/g' ${POKY}/meta-mender/meta-mender-core/classes/mender-sdimg.bbclass)
 
 $(CURDIR)/$(POKY)/oe-meta-go:
 	@(cd $(POKY); git clone https://github.com/mem/oe-meta-go.git)
@@ -121,6 +121,7 @@ endif
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-agl`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-demo`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-extra/meta-app-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-agl-security`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 ifeq (${security}, selinux)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-selinux`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 endif
@@ -160,6 +161,9 @@ endif
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"python cryptsetup af-binder\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
+ifeq (${MACHINE},vexpress-qemu)
+	@echo "MENDER_STORAGE_TOTAL_SIZE_MB = \"4096\"" >> $(POKY)/poky/build/conf/local.conf
+endif
 
 $(rootfs)/system.img:
 	@dd if=/dev/zero of=$@ bs=1G count=2
@@ -231,6 +235,8 @@ $(CURDIR)/.qemuarm.qemuboot.conf:
 	@echo "qb_kernel_cmdline_append = console=ttyAMA0,115200 console=tty" >> $@
 	@echo "qb_default_kernel = .zImage.bin" >> $@
 
+$(CURDIR)/.vexpress-qemu.qemuboot.conf:
+
 $(CURDIR)/.qemuarm64.qemuboot.conf:
 	@echo "[config_bsp]" > $@
 	@echo "machine = qemuarm64" >> $@
@@ -262,7 +268,13 @@ $(CURDIR)/.system.img.ext4:
 # for example do debug kernel, do: export qemuparams="-s -S"
 export qemuparams?="-nographic"
 runqemu:$(CURDIR)/.${MACHINE}.qemuboot.conf $(CURDIR)/.system.img.ext4
+ifeq (${MACHINE},vexpress-qemu)
+	$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/qemu-system-arm -M vexpress-a9 -m 512M -kernel .zImage -dtb .zImage-vexpress-v2p-ca9.dtb -drive file=.system.img.ext4,if=sd \
+		-net nic,macaddr=52:54:00:e3:b1:96 -net user,hostfwd=tcp::8822-:22 -display vnc=:23 $(qemuparams) \
+		-append "root=/dev/mmcblk0 rw console=ttyAMA0,115200 console=tty"
+else
 	@(export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$(POKY)/poky/scripts/;$(POKY)/poky/scripts/runqemu $< qemuparams="$(qemuparams)")
+endif
 
 runmender:
 	@(export BUILDDIR=${POKY}/poky/build;$(POKY)/meta-mender/meta-mender-qemu/scripts/mender-qemu)
@@ -284,7 +296,11 @@ ifeq (${ARCH},x86)
 endif
 ifeq (${ARCH},arm)
 	@(ln -fs kernel4.8/arch/${ARCH}/boot/zImage .zImage)
+ifeq (${MACHINE},vexpress-qemu)
+	@(ln -fs kernel4.8//arch/${ARCH}/boot/dts/vexpress-v2p-ca9.dtb .zImage-vexpress-v2p-ca9.dtb)
+else
 	@(ln -fs kernel4.8//arch/${ARCH}/boot/dts/versatile-pb.dtb .zImage-versatile-pb.dtb)
+endif
 endif
 ifeq (${ARCH},arm64)
 	@(ln -fs kernel4.8/arch/${ARCH}/boot/Image .Image)
