@@ -26,7 +26,7 @@ def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE
 def-y += -DUSE_DET
 
 ifeq ($(compiler),gcc)
-ldflags-y += -mstructure-size-boundary=8
+cflags-y += -mstructure-size-boundary=8
 include ../make/gcc.mk
 endif
 

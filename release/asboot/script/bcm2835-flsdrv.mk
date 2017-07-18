@@ -16,7 +16,7 @@ def-y += -DFLASH_DRIVER_DYNAMIC_DOWNLOAD
 def-y += -DFLS_START_ADDRESS=0x00040000
 def-y += -DFLS_END_ADDRESS=0x08000000
 ifeq ($(compiler),gcc)
-ldflags-y += -mstructure-size-boundary=8
+cflags-y += -mstructure-size-boundary=8
 include ../make/gcc.mk
 endif
 

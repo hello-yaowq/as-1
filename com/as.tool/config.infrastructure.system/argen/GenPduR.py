@@ -270,6 +270,9 @@ def GenC():
 #endif
 #ifdef USE_SOAD
 #include "SoAd.h"
+#else
+#define SOADTP_ID_SOAD_RX 0
+#define SOADTP_ID_SOAD_TX 0
 #endif
 #if(PDUR_ZERO_COST_OPERATION == STD_OFF)
 const PduRDestPdu_type PduR_PduRDestination[] = {
