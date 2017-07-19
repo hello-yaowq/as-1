@@ -91,13 +91,19 @@ void StartOsTick(void)
 	timer_init();
 }
 #endif
+
+void tpl_shutdown(void)
+{
+	DisableInterrupts();
+	while(1);
+}
 extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
 	serial_init();
 	vic_setup();
 	irq_init();
-	(void)__Irq_Save();
+	DisableInterrupts();
 #ifndef __AS_BOOTLOADER__
 	/* for application bcm2835, need to reset the handler array*/
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);

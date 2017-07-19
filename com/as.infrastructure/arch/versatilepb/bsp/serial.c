@@ -66,11 +66,22 @@ static inline void  serial_wait()
 	} while (readl(__iobase + UARTFR) & (1 << 5));
 }
 
+int uart_rxed()
+{
+	return ((readl(__iobase + UARTFR)&(1 << 6)) != 0);
+}
+
+char uart_rxdata()
+{
+	char ch = (readl(__iobase + UARTDR)&0xFF);
+	
+	return ch;
+}
+
 static int serial_irq_handler(void *ctx)
 {
 	(void) ctx;
-	writel(__iobase + UARTDR, readl(__iobase + UARTDR) + 1);
-
+	Can_MainFunction_Read_InISR();
 	clear_rxe_irq();
 	return 0;
 }

@@ -1,4 +1,6 @@
-#include <asm/asm.h>
+
+
+#define ENTRY(name)	.text; .global name; name:
 
 ENTRY(__mmu_getttbl)
 	mrc		p15, #0, r0, c2, c0, #0

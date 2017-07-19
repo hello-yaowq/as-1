@@ -70,6 +70,7 @@ ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-a TRUE)
 	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
 endif
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(make BSW)
 	@(cd  $(src-dir); rm -fv Dem* J1939Tp* Lin* NvM* Fee* Ea* Eep* Fls* RPmsg* Ipc* VirtQ* Rproc*)
 	@(echo "  >> prepare link for $(board) done")
