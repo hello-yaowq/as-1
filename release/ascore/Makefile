@@ -173,6 +173,12 @@ qemuparams?="-nographic"
 qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 #	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -s -S)
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
+# ---------------------------------- [ versatilepb ] ----------------------------- #
+51:
+	make dep board=versatilepb compiler=gcc rtos=trampoline
+52:
+	make all board=versatilepb compiler=gcc rtos=trampoline debug=true
+
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos

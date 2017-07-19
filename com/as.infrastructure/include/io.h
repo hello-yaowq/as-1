@@ -16,17 +16,25 @@
 #ifndef IO_H_
 #define IO_H_
 
-#define WRITE8(address, value)      (*(uint8_t*)(address) = (value))
-#define READ8(address)              ((uint8_t)(*(uint8_t*)(address)))
+#define writel WRITE32
+#define writew WRITE32
+#define writeb WRITE8
 
-#define WRITE16(address, value)     (*(vuint16_t*)(address) = (value))
-#define READ16(address)             ((uint16_t)(*(vuint16_t*)(address)))
+#define readl READ32
+#define readw READ32
+#define readb READ8
 
-#define WRITE32(address, value)     (*(vuint32_t*)(address) = (value))
-#define READ32(address)             ((uint32_t)(*(vuint32_t*)(address)))
+#define WRITE8(address, value)      (*(volatile uint8_t*)(address) = (value))
+#define READ8(address)              ((uint8_t)(*(volatile uint8_t*)(address)))
 
-#define WRITE64(address, value)     (*(vuint64_t*)(address) = (value))
-#define READ64(address)             ((uint64_t)(*(vuint64_t*)(address)))
+#define WRITE16(address, value)     (*(volatile uint16_t*)(address) = (value))
+#define READ16(address)             ((uint16_t)(*(volatile uint16_t*)(address)))
+
+#define WRITE32(address, value)     (*(volatile uint32_t*)(address) = (value))
+#define READ32(address)             ((uint32_t)(*(volatile uint32_t*)(address)))
+
+#define WRITE64(address, value)     (*(volatile uint64_t*)(address) = (value))
+#define READ64(address)             ((uint64_t)(*(volatile uint64_t*)(address)))
 
 /* Not aligned reads */
 #define READ32_NA(address )			( (((uint32_t)(((uint8_t *)address)[0]))<<24) +	\
@@ -37,8 +45,8 @@
 #define READ16_NA(address )			( (((uint16_t)(((uint8_t *)address)[0]))<<8) +	\
 									  (((uint16_t)(((uint8_t *)address)[1]))) )
 
-#define SET32(  _addr, _val)		(*(vuint32_t*)(_addr) |= (_val))
-#define CLEAR32(_addr, _val)		(*(vuint32_t*)(_addr) &= ~(_val))
+#define SET32(  _addr, _val)		(*(volatile uint32_t*)(_addr) |= (_val))
+#define CLEAR32(_addr, _val)		(*(volatile uint32_t*)(_addr) &= ~(_val))
 
 
 /* READWRITE macros
