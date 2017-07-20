@@ -144,11 +144,12 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 	make dep board=versatilepb-flsdrv compiler=gcc
 54:
 	make all board=versatilepb-flsdrv compiler=gcc
-
+qemu-ver:
+	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server)
 # ---------------------------------- [ s3c2440a    ] ---------------------------------- #
-51:
+31:
 	make dep board=s3c2440a compiler=arm920t-gcc
-52:
+32:
 	make all board=s3c2440a compiler=arm920t-gcc
 
 # ---------------------------------- [ posix       ] ---------------------------------- #

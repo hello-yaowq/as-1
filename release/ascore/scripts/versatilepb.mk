@@ -1,4 +1,4 @@
-use-boot?=no
+use-boot?=yes
 termux?=no
 asflasg-y += -mcpu=arm926ej-s -marm -fpic
 cflags-y  += -mcpu=arm926ej-s -marm -fpic
