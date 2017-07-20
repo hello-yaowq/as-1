@@ -180,8 +180,8 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 	make all board=versatilepb compiler=gcc rtos=trampoline debug=true
 
 qemu-ver:
-	@(qemu-system-arm -m 64 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server)
-#	@(qemu-system-arm -m 64 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial stdio -gdb tcp::1234 -S)
+	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server)
+#	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial stdio -gdb tcp::1234 -S)
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:

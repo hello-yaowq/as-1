@@ -76,6 +76,10 @@ void tpl_arm_subarch_irq_handler ()
 {
 	vic_irq_handler(NULL);
 }
+void OS_CPU_IRQ_ISR_Handler()
+{
+	vic_irq_handler(NULL);
+}
 static int vic_init()
 {
 	return 0;

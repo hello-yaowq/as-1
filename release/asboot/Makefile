@@ -134,6 +134,16 @@ qemuparams?="-nographic"
 qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 #	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -s -S)
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
+# ---------------------------------- [ versatilepb ] ----------------------------- #
+51:
+	make dep board=versatilepb compiler=gcc
+52:
+	make all board=versatilepb compiler=gcc
+
+53:
+	make dep board=versatilepb-flsdrv compiler=gcc
+54:
+	make all board=versatilepb-flsdrv compiler=gcc
 
 # ---------------------------------- [ s3c2440a    ] ---------------------------------- #
 51:
