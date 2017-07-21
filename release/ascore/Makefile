@@ -54,7 +54,7 @@ DEPC  = $(PY34) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
-S19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
+PYS19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 #sgapp ?= watch
 ifeq ($(host), Linux)
 sgapp ?= virtual_cluster
@@ -110,7 +110,7 @@ clean:
 12:
 	make all board=stm32f107vc compiler=cortexm3-gcc rtos=toppers_osek debug=true
 ifeq ($(use-boot),yes)
-	@($(S19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
+	@($(PYS19) -m ../asboot/out/stm32f107vc.s19 out/stm32f107vc.s19 -o out/boot_app.s19)
 endif
 13:
 	make all board=stm32f107vc compiler=cortexm3-gcc rtos=toppers_osek debug=false	

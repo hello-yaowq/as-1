@@ -9,6 +9,7 @@ MEMORY
 	RESERVED	(r)		: ORIGIN = 0x00000000, LENGTH = 32K
 	INIT_RAM	(rwx)	: ORIGIN = 0x00008000, LENGTH = 32K
 	RAM			(rwx)	: ORIGIN = 0x00010000, LENGTH = 128K
+	APPRAM	    (rwx)	: ORIGIN = 0x00040000, LENGTH = 128M
 }
 
 ENTRY(_start)
@@ -67,18 +68,7 @@ SECTIONS {
 	} > RAM
 	__bss_end = .;
     _end = .;
-	/**
-	 *	Place HEAP here???
-	 **/
-    heap_low = .; /* for _sbrk */
-    . = . + 0x10000; /* 64kB of heap memory */
-    heap_top = .; /* for _sbrk */
-    . = . + 0x10000; /* 64kB of stack memory */
-    stack_top = .; /* for startup.s */
 
-	/**
-	 *	Stack starts at the top of the RAM, and moves down!
-	 **/
-	_estack = ORIGIN(RAM) + LENGTH(RAM);
+	INCLUDE .app_s19.c.lds
 }
 

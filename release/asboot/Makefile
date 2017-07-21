@@ -48,6 +48,7 @@ DEPC  = $(PY27) $(prj-dir)/release/make/dep.py
 XCC   = $(PY34) xcc.py
 STUDIO = $(PY34) studio.py
 SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+PYS19   = $(PY34) $(prj-dir)/com/as.tool/lua/script/s19.py
 
 use_nvm?=no
 led_app?=yes

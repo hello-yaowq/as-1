@@ -61,6 +61,7 @@ dep-versatilepb:
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.bcm2835/common/Mcu_ConfigTypes.h)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.bcm2835/script TRUE)	
 	@(cd $(src-dir);rm -fv Can_Cfg.c Can_Cfg.h Can_Lcfg.c Can_PBCfg.c)
+	@(cd $(src-dir);$(PYS19) -c $(prj-dir)/release/ascore/out/$(board).s19 -o app_s19.c)
 	@(make OS)
 	@(make BSW)
 	@(echo "  >> prepare link for VERSATILEPB done")		
