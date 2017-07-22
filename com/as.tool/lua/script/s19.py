@@ -117,17 +117,17 @@ class s19:
                 if(((i>0) and (((i+1)%32) == 0)) or (i+1 == size)):
                     sz = i- last_i + 1
                     addr = address + last_i
-                    fp.write('\t%s\n'%(cstr))
+                    fp.write('\t/* %08X */ %s\n'%(addr,cstr))
                     last_i = i + 1
                     cstr = ''
             fp.write('};\n\n')
+
         fp.close()
         # generate the link script
         fp = open('../../.%s.lds'%(file),'w')
         for ss in self.data:
             address = ss['address']
-            fp.write('\t. = 0x%X;\n'%(address))
-            fp.write('\t.app._%X : {\n'%(address))
+            fp.write('\t.app._%X 0x%X : {\n'%(address,address))
             fp.write('\t\tKEEP(*(.app._%X))\n'%(address))
             fp.write('\t} > APPRAM\n')
         fp.close()

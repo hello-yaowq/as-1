@@ -17,6 +17,7 @@
 #include "Flash.h"
 #include "Os.h"
 #include "asdebug.h"
+#include "CanIf.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define BL_FLASH_IDENTIFIER   0xFF
 #define BL_EEPROM_IDENTIFIER  0xEE
@@ -46,6 +47,7 @@ static uint8   blMemoryIdentifier;
 static uint32  blMemoryAddress;
 static uint32  blMemorySize;
 static uint32* blMemoryData;
+static TimerType appTimer;
 /* ============================ [ LOCALS    ] ====================================================== */
 static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize)
 {
@@ -243,6 +245,7 @@ Dcm_ReturnEraseMemoryType Dcm_EraseMemory(Dcm_OpStatusType OpStatus,
 
 	ASLOG(BL,"Dcm_EraseMemory(%X,%X,%X,%X)\n",
 			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
+	StopTimer(&appTimer);
 	if(DCM_INITIAL == OpStatus)
 	{
 		blMemoryIdentifier = MemoryIdentifier;
@@ -342,4 +345,35 @@ Std_ReturnType BL_TestJumpToApplicatin(uint8 *inBuffer, uint8 *outBuffer, Dcm_Ne
 	*errorCode = DCM_E_REQUEST_OUT_OF_RANGE;
 
 	return E_NOT_OK;
+}
+
+void BL_Init(void)
+{
+	static const uint8 CanSduPtr[8] = {
+		0x02,0x10,0x02,0x55,0x55,0x55,0x55,0x55
+	};
+	StartTimer(&appTimer);
+	/* TODO: check previous update request from application */
+	if(1)
+	{	/* simulation call to enter program session */
+		CanIf_RxIndication(CANIF_CHL_LS,0x731,8,CanSduPtr);
+	}
+}
+
+void BL_MainFunction(void)
+{
+	if(GetTimer(&appTimer) > 5000)
+	{
+		imask_t imask;
+
+		Irq_Save(imask);
+
+		ASLOG(BL,"appTimer timeout, jump to application!\n");
+		application_main();
+
+		Irq_Restore(imask);
+		/* impossible return, failed */
+
+		StopTimer(&appTimer);
+	}
 }

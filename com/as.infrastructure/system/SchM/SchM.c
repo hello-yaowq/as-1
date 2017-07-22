@@ -320,6 +320,10 @@
 
 #include "asdebug.h"
 
+#ifdef __AS_BOOTLOADER__
+extern void BL_Init(void);
+extern void BL_MainFunction(void);
+#endif
 SCHM_DECLARE(CAN_WRITE);
 SCHM_DECLARE(CAN_READ);
 SCHM_DECLARE(CAN_BUSOFF);
@@ -454,6 +458,9 @@ TASK(SchM_Startup){
 	}
 #endif
 
+#ifdef __AS_BOOTLOADER__
+	BL_Init();
+#endif
 	OsTerminateTask(SchM_Startup);
 
 	OS_TASK_END();
@@ -507,6 +514,10 @@ TASK(SchM_BswService) {
 		SCHM_MAINFUNCTION_WDGM_ALIVESUPERVISION();
 
 		SCHM_MAINFUNCTION_SOAD();
+
+		#ifdef __AS_BOOTLOADER__
+		BL_MainFunction();
+		#endif
 		break;
 	}
 	OsTerminateTask(SchM_BswService);
