@@ -26,6 +26,9 @@
 #ifdef USE_XCP
 #include "Xcp.h"
 #endif
+#ifdef USE_FATFS
+#include "ff.h"
+#endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -188,6 +191,35 @@ TASK(TaskApp)
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
+#endif
+
+#ifdef USE_FATFS
+{
+	char buffer[32];
+	static int tstnbr = 0;
+	FIL fil;
+	UINT len=0;
+	if(tstnbr == 0)
+	{
+		f_open(&fil,"hello.txt",FA_READ);
+		f_read(&fil,buffer,sizeof(buffer)-1,&len);
+		buffer[len] = 0;
+		ASLOG(ON,">> FatFS test read: '%s'\n",buffer);
+		f_close(&fil);
+	}
+	else if(tstnbr == 1)
+	{
+		char* str="Test Write Of FatFs\n";
+		f_open(&fil,"FatFs.txt",FA_READ|FA_WRITE|FA_CREATE_ALWAYS);
+		f_write(&fil,str,strlen(str),&len);
+		f_close(&fil);
+	}
+	else
+	{
+		/* do nothing */
+	}
+	tstnbr ++;
+}
 #endif
 
 #ifdef USE_XCP

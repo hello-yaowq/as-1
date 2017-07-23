@@ -78,6 +78,7 @@ DSTATUS disk_initialize (
 			ASLOG(FATFS,"simulation on old " FATFS_IMG "\n");
 			fclose(fp);
 		}
+		stat = 0;
 		break;
 	}
 	case DEV_USB :
