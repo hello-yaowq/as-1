@@ -13,6 +13,8 @@
 # * for more details.
 # */
 #common compilers
+COMPILER_DIR?=/usr
+COMPILER_PREFIX?=
 AS  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
 CC  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
 LD  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)ld

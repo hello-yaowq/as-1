@@ -103,6 +103,10 @@ def-y += -DUSE_AWS
 inc-y += -I$(LUA)/device/websock -I$(download)
 ldflags-y += -L$(LUA)/device/websock/out -laws
 
+def-y += -DUSE_FATFS
+inc-y += -I$(download)/ff13/source
+ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13
+
 ifeq ($(host), Linux)
 else
 ldflags-y += -lwsock32
@@ -131,7 +135,12 @@ $(LUA)/device/websock/out/libaws.a:
 
 aslibaws:$(LUA)/device/websock/out/libaws.a
 
-dep-posix: $(download) aslwip ascontiki dep-as-virtual aslibaws
+$(INFRASTRUCTURE)/system/fs/out/libff13.a:
+	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=ff13)
+
+aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13.a
+
+dep-posix: $(download) aslwip ascontiki dep-as-virtual aslibaws aslibfatfs
 ifeq ($(sgapp),none)
 else
 	@(make SG)

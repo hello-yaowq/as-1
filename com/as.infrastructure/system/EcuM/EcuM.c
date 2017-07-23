@@ -88,7 +88,9 @@
 #if defined(USE_SCHM)
 #include "SchM.h"
 #endif
-
+#ifdef USE_FATFS
+#include "ff.h"
+#endif
 //#define USE_LDEBUG_PRINTF
 #include "asdebug.h"
 /* ----------------------------[private define]------------------------------*/
@@ -98,7 +100,9 @@
 /* ----------------------------[private variables]---------------------------*/
 
 EcuM_GlobalType EcuM_World;
-
+#ifdef USE_FATFS
+static FATFS FatFs;		/* FatFs work area needed for each volume */
+#endif
 /* ----------------------------[private functions]---------------------------*/
 
 /* ----------------------------[public functions]----------------------------*/
@@ -240,6 +244,10 @@ void EcuM_StartupTwo(void)
 		tickTimerElapsed = GetTimer(&nvmTimer);
 		/* The timeout EcuMNvramReadAllTimeout is in ms */
 	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < EcuM_World.config->EcuMNvramReadAllTimeout) );
+#endif
+
+#ifdef USE_FATFS
+	f_mount(&FatFs, "", 1);
 #endif
 
 	// Initialize drivers that need NVRAM data
