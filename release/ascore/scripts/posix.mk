@@ -103,9 +103,13 @@ def-y += -DUSE_AWS
 inc-y += -I$(LUA)/device/websock -I$(download)
 ldflags-y += -L$(LUA)/device/websock/out -laws
 
+ifeq ($(EMAIL),parai@foxmail.com)
+# on Travis CI, download ff13 always failed
+else
 def-y += -DUSE_FATFS
 inc-y += -I$(download)/ff13/source
 ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13
+endif
 
 ifeq ($(host), Linux)
 else
@@ -136,7 +140,10 @@ $(LUA)/device/websock/out/libaws.a:
 aslibaws:$(LUA)/device/websock/out/libaws.a
 
 $(INFRASTRUCTURE)/system/fs/out/libff13.a:
+ifeq ($(EMAIL),parai@foxmail.com)
+else
 	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=ff13)
+endif
 
 aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13.a
 
