@@ -109,6 +109,14 @@ else
 def-y += -DUSE_FATFS
 inc-y += -I$(download)/ff13/source
 ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13
+def-y += -DCONFIG_USE_DEFAULT_CFG=1
+inc-y += -I$(download)/lwext4/include
+ldflags-y += -llwext4
+ifeq ($(host), Linux)
+dir-y += $(download)/lwext4/blockdev/linux
+else
+dir-y += $(download)/lwext4/blockdev/windows
+endif
 endif
 
 ifeq ($(host), Linux)
@@ -145,7 +153,13 @@ else
 	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=ff13)
 endif
 
-aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13.a
+$(INFRASTRUCTURE)/system/fs/out/liblwext4.a:
+ifeq ($(EMAIL),parai@foxmail.com)
+else
+	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=lwext4)
+endif
+
+aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13.a $(INFRASTRUCTURE)/system/fs/out/liblwext4.a
 
 dep-posix: $(download) aslwip ascontiki dep-as-virtual aslibaws aslibfatfs
 ifeq ($(sgapp),none)
