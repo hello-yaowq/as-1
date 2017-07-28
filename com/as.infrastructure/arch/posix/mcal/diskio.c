@@ -19,14 +19,22 @@
 #include <time.h>
 #include "diskio.h"
 #include "asdebug.h"
+#include "ext4.h"
+#ifdef __LINUX__
+#include "file_dev.h"
+#else
+#include "file_windows.h"
+#endif
 
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_FATFS 0
+#define AS_LOG_EXTFS 0
 /* Definitions of physical drive number for each drive */
 #define DEV_MMC		0	/* Example: Map MMC/SD card to physical drive 0 : default */
 #define DEV_RAM		1	/* Example: Map Ramdisk to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
 #define FATFS_IMG	"FatFs.img"
+#define EXTFS_IMG	"ExtFs.img"
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -218,4 +226,43 @@ DWORD get_fattime (void)
 	return time(0);
 }
 
+void ext_mount(void)
+{
+    int rc;
+    struct ext4_blockdev * bd;
+    FILE* fp = fopen(EXTFS_IMG,"r");
+    if(NULL == fp)
+    {
+        system("dd if=/dev/zero of=" EXTFS_IMG " bs=1M count=32");
+        system("sudo mkfs.ext4 " EXTFS_IMG);
+        ASLOG(EXTFS,"simulation on new created 32Mb " EXTFS_IMG "\n");
+    }
+    else
+    {
+        ASLOG(EXTFS,"simulation on old " EXTFS_IMG "\n");
+        fclose(fp);
+    }
+
+#ifdef __WINDOWS__
+    file_windows_name_set(EXTFS_IMG);
+    bd = file_windows_dev_get();
+
+#else
+    file_dev_name_set(EXTFS_IMG);
+    bd = file_dev_get();
+#endif
+    rc = ext4_device_register(bd, EXTFS_IMG);
+    if(rc != EOK)
+    {
+        ASLOG(EXTFS, "register ext4 device failed\n");
+    }
+
+	rc = ext4_mount(EXTFS_IMG, "/", false);
+	if (rc != EOK)
+    {
+        ASLOG(EXTFS, "mount ext4 device failed\n");
+    }
+
+    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/‘ OK\n");
+}
 #endif /* USE_FATFS */

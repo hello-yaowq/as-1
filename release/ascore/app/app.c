@@ -28,6 +28,7 @@
 #endif
 #ifdef USE_FATFS
 #include "ff.h"
+#include "ext4.h"
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
@@ -209,7 +210,7 @@ TASK(TaskApp)
 	}
 	else if(tstnbr == 1)
 	{
-		char* str="Test Write Of FatFs\n";
+		char* str="Test Write Of FatFs!\n";
 		f_open(&fil,"FatFs.txt",FA_READ|FA_WRITE|FA_CREATE_ALWAYS);
 		f_write(&fil,str,strlen(str),&len);
 		f_close(&fil);
@@ -219,6 +220,20 @@ TASK(TaskApp)
 		/* do nothing */
 	}
 	tstnbr ++;
+}
+{
+    ext4_file fil;
+    size_t len;
+    char* str="Test Write Of ExtFs, Hello World!\n";
+	static int tstnbr = 0;
+	if(tstnbr == 0)
+    {
+        ext4_fopen(&fil,"/hello.txt","a+");
+        //ext4_fopen2(&fil,"/hello.txt",O_RDWR|O_CREAT);
+        ext4_fwrite(&fil,str,strlen(str),&len);
+        ext4_fclose(&fil);
+    }
+    tstnbr ++;
 }
 #endif
 
