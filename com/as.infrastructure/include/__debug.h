@@ -47,9 +47,11 @@
  *   TODO:
  *
  */
-
+#ifdef CONFIG_ARCH_VEXPRESS
+#else
 #include <stdio.h>
 #include <assert.h>
+#endif
 #define DEBUG_LOW		1
 #define DEBUG_MEDIUM	2
 #define DEBUG_HIGH		3
