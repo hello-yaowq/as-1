@@ -1,14 +1,20 @@
 # Makefile for asvirt-remoteproc
 
-# native, arm, x86
-ARCH ?= native
+# arm, x86
+ARCH ?= x86
 
-ifeq ($(ARCH),native)
+ifeq ($(ARCH),x86)
 BUILDER ?= /lib/modules/$(shell uname -r)/build
+KVERSION ?= $(shell uname -r|cut -d "-" -f 1)
 endif
 
+MAJOR = $(shell echo $(KVERSION) | cut -d "." -f 1)
+MINOR = $(shell echo $(KVERSION) | cut -d "." -f 2)
+PATCH = $(shell echo $(KVERSION) | cut -d "." -f 3)
+
+
 obj-m += asvirt_remoteproc.o
-obj-m += rproc-asvirt/RPmsg.o \
+asvirt_remoteproc-objs := rproc-asvirt/RPmsg.o \
 		rproc-asvirt/RPmsg_Cfg.o \
 		rproc-asvirt/Rproc_Cfg.o \
 		rproc-asvirt/VirtQ.o \
@@ -20,6 +26,9 @@ default:all
 
 dep:
 	@(cd rproc-asvirt;make dep)
+	@(wget https://raw.githubusercontent.com/torvalds/linux/v$(MAJOR).$(MINOR)/drivers/remoteproc/remoteproc_internal.h -O remoteproc_internal.h)
+	@(cd rproc-asvirt;mv Std_Types.h .tmp; cp `readlink -f .tmp` ./Std_Types.h -v; sed -i "17c #define CONFIG_ARCH_VEXPRESS 1" Std_Types.h)
+	@(cd rproc-asvirt;mv Ipc.c .tmp; cp `readlink -f .tmp` ./Ipc.c -v; sed -i "15c #define CONFIG_ARCH_VEXPRESS 1" Ipc.c)
 
 all:
 	$(MAKE) -C $(BUILDER) M=$(PWD) modules
