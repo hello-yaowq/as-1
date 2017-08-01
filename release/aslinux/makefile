@@ -269,6 +269,7 @@ $(CURDIR)/.system.img.ext4:
 export qemuparams?="-nographic"
 runqemu:$(CURDIR)/.${MACHINE}.qemuboot.conf $(CURDIR)/.system.img.ext4
 ifeq (${MACHINE},vexpress-qemu)
+# need modify /etc/fstab for not to do mount of uboot and data, and disable service /etc/systemd/system/multi-user.target.wants/mender.service by linked to /dev/null
 	$(POKY)/poky/build/tmp/sysroots/x86_64-linux/usr/bin/qemu-system-arm -M vexpress-a9 -m 512M -kernel .zImage -dtb .zImage-vexpress-v2p-ca9.dtb -drive file=.system.img.ext4,if=sd \
 		-net nic,macaddr=52:54:00:e3:b1:96 -net user,hostfwd=tcp::8822-:22 -display vnc=:23 $(qemuparams) \
 		-append "root=/dev/mmcblk0 rw console=ttyAMA0,115200 console=tty"
