@@ -66,7 +66,7 @@ $(HOME)/bin/repo:
 $(CURDIR)/agl:$(HOME)/bin/repo
 	@mkdir -p $@
 	@(cd agl;export REPO_URL='https://mirrors.tuna.tsinghua.edu.cn/git/git-repo/';  \
-		repo init -b $(VERSION) -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo; repo sync)
+		repo init -b dab -m dab_4.0.0.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo; repo sync)
 	@(cd agl/meta-openembedded/meta-oe/recipes-devtools; mkdir -p sip; cd sip; wget http://cgit.openembedded.org/meta-openembedded/plain/meta-oe/recipes-devtools/sip/sip_4.19.bb)
 
 # ----------------------------- [ yocto ] -----------------------------------------------------
@@ -115,13 +115,15 @@ ifeq (${security}, smack)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-intel-iot-security/meta-security-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 endif
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-oe`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-python`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-efl`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-openembedded/meta-multimedia`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-qt5`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-amb`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-agl`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-demo`\"" >> $(POKY)/poky/build/conf/bblayers.conf
-	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl-extra/meta-app-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
-	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-agl-security`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-app-framework`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-agl/meta-ivi-common`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 ifeq (${security}, selinux)
 	@echo "BBLAYERS += \"`readlink -f $(POKY)/meta-selinux`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 endif
@@ -161,6 +163,8 @@ endif
 # install others
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"python cryptsetup af-binder\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "CORE_IMAGE_EXTRA_INSTALL += \"strace e2fsprogs attr openssh canutils\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "CORE_IMAGE_EXTRA_INSTALL += \"af-main af-binder low-level-can-service\"" >> $(POKY)/poky/build/conf/local.conf
+	@echo "AGL_EXTRA_IMAGE_FSTYPES = \"ext4\"" >> $(POKY)/poky/build/conf/local.conf
 ifeq (${MACHINE},vexpress-qemu)
 	@echo "MENDER_STORAGE_TOTAL_SIZE_MB = \"4096\"" >> $(POKY)/poky/build/conf/local.conf
 endif
