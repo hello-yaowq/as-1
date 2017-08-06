@@ -29,8 +29,9 @@
 #include "irq.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
-
+#define RESET() ((reset_t)(0x8000))()
 /* ============================ [ TYPES     ] ====================================================== */
+typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void timer_init();
 /* ============================ [ DATAS     ] ====================================================== */
@@ -72,7 +73,8 @@ Std_ReturnType Mcu_InitClock( const Mcu_ClockType ClockSetting ) {
 }
 
 void Mcu_PerformReset( void ) {
-
+    DisableInterrupts();
+    RESET();
 }
 
 Mcu_PllStatusType Mcu_GetPllStatus( void ) {
@@ -108,6 +110,8 @@ void Mcu_DistributePllClock( void )
 	/* for application bcm2835, need to reset the handler array*/
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);
 	timer_init();
+#else
+	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*32),32);
 #endif
 
 	printf(" >> versatilepb startup done,start @%p\n",&_start);

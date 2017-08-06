@@ -524,6 +524,8 @@ function main(argc,argv)
   os.execute("mkdir laslog")
   as.can_log("laslog/flash-loader.asc")
   dcm.init(dcm_chl,can_bus,0x732,0x731)
+  
+  os.usleep(1000000)
 
   for i=1,rawlen(operation_list),1 do
     ercd = operation_list[i]()

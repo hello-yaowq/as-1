@@ -203,7 +203,7 @@
 </SessionList>
 <SecurityList Max="TBD">
 <Security Comment="*" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="6" KeySize="4" Name="PRGS" SeedSize="4" />
-<Security Comment="*" CompareKeyCallback="Diag_CompareKeyEXTDS" GetSeedCallback="Diag_GetSeedEXTDS" Identifier="7" KeySize="4" Name="EXTDS" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="Diag_CompareKeyEXTDS" GetSeedCallback="Diag_GetSeedEXTDS" Identifier="1" KeySize="4" Name="EXTDS" SeedSize="4" />
 <Security Comment="Level 0, is the default for each session when enterred" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="0" KeySize="4" Name="DS" SeedSize="4" />
 </SecurityList>
 <DIDControlRecordList Max="TBD" />

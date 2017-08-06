@@ -15,6 +15,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Dcm.h"
 #include "Os.h"
+#include "Mcu.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_DIAG 1
@@ -40,6 +41,11 @@ Std_ReturnType Diag_RequestServiceIndication(uint8 *requestData, uint16 dataSize
 Std_ReturnType Diag_GetSesChgPer(Dcm_SesCtrlType sesCtrlTypeActive,
                                             Dcm_SesCtrlType sesCtrlTypeNew)
 {
+    if(sesCtrlTypeNew == 0x02)
+    { /* enter program session, reset */
+        ASLOG(DIAG,"!!!Enter Program Session!!!\n");
+        Mcu_PerformReset();
+    }
     return E_OK;
 }
 

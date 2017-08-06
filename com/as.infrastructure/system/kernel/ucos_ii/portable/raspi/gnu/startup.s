@@ -58,7 +58,17 @@ __data_handler:       .word data_abort
 __unused_handler:     .word unused
 __irq_handler:        .word OS_CPU_IRQ_ISR    ;@  irqHandler to be modified
 __fiq_handler:        .word fiq
-		
+
+.global shadow_handler2
+shadow_handler2: .word 0xdeadbeef
+__undefined_handler2:  .word undefined_instruction
+__swi_handler2:        .word swi   ;@  to be modified
+__prefetch_handler2:   .word prefetch_abort
+__data_handler2:       .word data_abort
+__unused_handler2:     .word unused
+__irq_handler2:        .word OS_CPU_IRQ_ISR    ;@  irqHandler to be modified
+__fiq_handler2:        .word fiq
+
 reset:
 	;@	In the reset handler, we need to copy our interrupt vector table to 0x0000, its currently at 0x8000
 

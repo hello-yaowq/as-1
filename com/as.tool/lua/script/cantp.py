@@ -162,6 +162,7 @@ class cantp():
                 elif(self.state == CANTP_ST_SEND_CF):
                     if(self.STmin > 0):
                         self.STmin = self.STmin - 1
+                        time.sleep(0.001)
                     if(self.STmin == 0):
                       ercd = self.__sendCF__(request)
                 else:

@@ -362,7 +362,7 @@ void BL_Init(void)
 
 void BL_MainFunction(void)
 {
-	if(GetTimer(&appTimer) > 5000)
+	if(GetTimer(&appTimer) > 50)
 	{
 		imask_t imask;
 
