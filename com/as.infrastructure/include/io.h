@@ -15,14 +15,20 @@
 
 #ifndef IO_H_
 #define IO_H_
-
+#ifndef IO_VALUE_FIRST
 #define writel WRITE32
 #define writew WRITE32
 #define writeb WRITE8
+#else
+#define writel(v,a) WRITE32(a,v)
+#define writew(v,a) WRITE32(a,v)
+#define writeb(v,a) WRITE8(a,v)
+#endif
 
 #define readl READ32
 #define readw READ32
 #define readb READ8
+
 
 #define WRITE8(address, value)      (*(volatile uint8_t*)(address) = (value))
 #define READ8(address)              ((uint8_t)(*(volatile uint8_t*)(address)))

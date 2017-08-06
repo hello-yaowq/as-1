@@ -102,6 +102,7 @@ void tpl_shutdown(void)
 extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
+    pci_init();
 	serial_init();
 	vic_setup();
 	irq_init();
