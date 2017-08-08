@@ -28,6 +28,13 @@ import glob
 
 __all__ = ['OsGen']
 
+def gen_osal(gendir,os_list):
+    gen_ucosii(gendir,os_list)
+    os_ref = getOsRef(os_list)
+    os.system('sed -i "23c #define __%s__" %s/Os_Cfg.h'%(os_ref.upper(),gendir))
+    if(os_ref == 'rtthread'):
+        os.system('sed -i "16c #include <rtthread.h>" %s/Os_Cfg.c'%(gendir))
+    
 __osgen__ = {'freeosek':gen_freeosek,
              'toppers_osek':gen_toppers_osek,
              'smallos':gen_smallos,
@@ -36,7 +43,9 @@ __osgen__ = {'freeosek':gen_freeosek,
              'contiki':gen_contiki,
              'posix':gen_toppers_osek,
              'ucosii':gen_ucosii,
-             'trampoline':gen_trampoline
+             'trampoline':gen_trampoline,
+             'rtthread':gen_osal
+             
             }
 
 def getOsRef(os_list):

@@ -44,3 +44,6 @@ ifeq ($(tcpip),lwip)
 endif
 
 aslwip: $(download)/lwip $(download)/lwip-contrib
+
+$(download)/rt-thread:
+	@(cd $(download); git clone https://github.com/RT-Thread/rt-thread.git)

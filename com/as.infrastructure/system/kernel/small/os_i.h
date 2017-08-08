@@ -17,29 +17,39 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef USE_UCOSII
+#ifdef USE_OSAL
 #define DeclareTask(Name,Autostart,AppMode,StackSize)		\
     {											\
-        .main = TaskMain##Name,							\
+        .main = TaskMain##Name,					\
         .priority = TASK_ID_##Name,				\
         .autostart = Autostart,					\
         .app_mode = AppMode,					\
 		.stk_size = StackSize,					\
-		.pstk = TaskStk##Name					\
+		.pstk = TaskStk##Name,					\
+		.name = #Name                           \
     }
+
+#define DeclareAlarm(Name)						\
+    {											\
+	    .main = AlarmMain##Name,				\
+		.name = #Name                           \
+    }
+
 #else
 #define DeclareTask(Name,Autostart,AppMode)		\
     {											\
-        .main = TaskMain##Name,							\
+        .main = TaskMain##Name,					\
         .priority = TASK_ID_##Name,				\
         .autostart = Autostart,					\
         .app_mode = AppMode						\
     }
-#endif
+
 #define DeclareAlarm(Name)						\
     {											\
-        .main = AlarmMain##Name						\
+        .main = AlarmMain##Name					\
     }
+
+#endif
 
 #define    E_OS_ACCESS             	  (StatusType)1
 #define    E_OS_CALLEVEL              (StatusType)2
@@ -105,9 +115,10 @@ typedef struct
     task_priority_t priority;	/*! priority also represent the task id, the same as TaskType */
     boolean         autostart;
     AppModeType     app_mode;	/*! means task runnable modes */
-#ifdef USE_UCOSII
+#ifdef USE_OSAL
     uint16          stk_size;
     uint8*          pstk;
+	char*           name;
 #endif
 }task_declare_t;
 
@@ -115,6 +126,10 @@ typedef struct
 {
     alarm_main_t main;
     /* No Autostart support */
+#ifdef USE_OSAL
+	char*           name;
+#endif
+
 }alarm_declare_t;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */

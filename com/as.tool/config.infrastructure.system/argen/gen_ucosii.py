@@ -99,7 +99,7 @@ def genForuCOSII_C(gendir,os_list):
     fp = open('%s/Os_Cfg.c'%(gendir),'w')
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
-    fp.write('#include "ucos_ii.h"\n')
+    fp.write('#include "ucos_ii.h"\n\n\n\n\n\n\n\n')
     fp.write('#include "Os.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')

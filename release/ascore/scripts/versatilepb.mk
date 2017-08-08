@@ -1,4 +1,5 @@
 use-boot?=yes
+usepci?=no
 termux?=no
 asflasg-y += -mcpu=arm926ej-s -marm -fpic
 cflags-y  += -mcpu=arm926ej-s -marm -fpic
@@ -30,7 +31,12 @@ def-y += -DMEMORY_SIZE=0x8000000
 def-y += -DSYSTEM_REGION_START=0x10000000
 def-y += -DSYSTEM_REGION_END=0x101f4000
 def-y += -DPAGE_SIZE=0x1000
-
+ifeq ($(usepci),yes)
+def-y += -DUSE_PCI
+endif
+ifeq ($(rtos),rtthread)
+def-y += -DUSE_OSAL
+endif
 ifeq ($(compiler),gcc)
 cflags-y += -mstructure-size-boundary=8
 ifeq ($(termux),yes)
@@ -42,7 +48,7 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-versatilepb:
+dep-versatilepb: $(download)/rt-thread
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -63,15 +69,25 @@ dep-versatilepb:
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/bsp TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
+ifeq ($(usepci),yes)
 	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci.h -O pci.h)
 	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci_regs.h -O pci_regs.h)
 	@(cd $(src-dir);sed -i "20c #include \"pci_regs.h\"" pci.h)
+endif
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-a TRUE)
 	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
+endif
+ifeq ($(rtos),rtthread)
+	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/include TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/libcpu/arm/arm926 TRUE)
+	@(cd $(src-dir); rm -f *_rvds.S *_iar.S)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(make BSW)

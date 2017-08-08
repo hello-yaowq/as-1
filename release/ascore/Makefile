@@ -175,9 +175,9 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 	@(./qemu-system-arm -cpu arm1176 -m 128 -M raspi ${qemuparams} -kernel out/bcm2835.exe -serial tcp:127.0.0.1:1103,server)
 # ---------------------------------- [ versatilepb ] ----------------------------- #
 51:
-	make dep board=versatilepb compiler=gcc rtos=trampoline
+	make dep board=versatilepb compiler=gcc rtos=rtthread
 52:
-	make all board=versatilepb compiler=gcc rtos=trampoline debug=true
+	make all board=versatilepb compiler=gcc rtos=rtthread debug=true
 
 qemu-ver:
 	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server)

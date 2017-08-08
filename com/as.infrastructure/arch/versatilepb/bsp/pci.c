@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_PCI
 /* ============================ [ INCLUDES  ] ====================================================== */
 #define IO_VALUE_FIRST
 #include "Std_Types.h"
@@ -105,3 +106,4 @@ int pci_init(void)
 
 	return rv;
 }
+#endif
