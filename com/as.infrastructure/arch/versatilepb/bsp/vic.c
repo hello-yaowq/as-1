@@ -80,6 +80,19 @@ void OS_CPU_IRQ_ISR_Handler()
 {
 	vic_irq_handler(NULL);
 }
+
+uint32_t rt_interrupt_from_thread;
+uint32_t rt_interrupt_to_thread;
+uint32_t rt_thread_switch_interrupt_flag;
+
+void rt_hw_trap_udef(void) { while(1); }
+void rt_hw_trap_swi(void) { while(1); }
+void rt_hw_trap_pabt(void) { while(1); }
+void rt_hw_trap_dabt(void) { while(1); }
+void rt_hw_trap_resv(void) { while(1); }
+void rt_hw_trap_fiq(void) { while(1); }
+void rt_hw_trap_irq(void) { vic_irq_handler(NULL); }
+
 static int vic_init()
 {
 	return 0;

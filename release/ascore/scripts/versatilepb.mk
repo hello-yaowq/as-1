@@ -36,6 +36,8 @@ def-y += -DUSE_PCI
 endif
 ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
+# heap size 2Mb
+def-y += -DRT_HEAP_SIZE=0x2000000
 endif
 ifeq ($(compiler),gcc)
 cflags-y += -mstructure-size-boundary=8
@@ -84,10 +86,22 @@ endif
 ifeq ($(rtos),rtthread)
 	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/include TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src/irq.c rt_irq.c)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src/timer.c rt_timer.c)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/libcpu/arm/arm926 TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/asm9260t/platform/rt_low_level_gcc.inc)
 	@(cd $(src-dir); rm -f *_rvds.S *_iar.S)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir); cp $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-a/tpl_startup.S startup.S)
+	@(cd $(src-dir); head start_gcc.S -n 58 | tail -n 10 >> startup.S);
+	@(cd $(src-dir); tail start_gcc.S -n 50 >> startup.S)
+	@(cd $(src-dir); sed -i "3c #" startup.S)
+	@(cd $(src-dir); sed -i "32c irq_handler: .word IRQ_Handler" startup.S)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+#	@(cd $(src-dir); rm *.lds -f)
+#	@(cd $(src-dir); cp $(download)/rt-thread/bsp/asm9260t/link_scripts/sdram.ld linker-app.lds -fv)
+#	@(cd $(src-dir); sed -i "6c . = 0x8000;" linker-app.lds)
+	@(cd $(src-dir); rm trap.c start_gcc.S)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(make BSW)

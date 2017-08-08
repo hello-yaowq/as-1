@@ -31,9 +31,16 @@ __all__ = ['OsGen']
 def gen_osal(gendir,os_list):
     gen_ucosii(gendir,os_list)
     os_ref = getOsRef(os_list)
-    os.system('sed -i "23c #define __%s__" %s/Os_Cfg.h'%(os_ref.upper(),gendir))
+    os.system('sed -i "23c #define __%s_OS__" %s/Os_Cfg.h'%(os_ref.upper(),gendir))
     if(os_ref == 'rtthread'):
         os.system('sed -i "16c #include <rtthread.h>" %s/Os_Cfg.c'%(gendir))
+        fp = open('%s/Os_Cfg.c'%(gendir),'a')
+        fp.write('''void tpl_call_counter_tick(void)
+{
+  OsTick();
+  rt_tick_increase();
+}\n\n''')
+
     
 __osgen__ = {'freeosek':gen_freeosek,
              'toppers_osek':gen_toppers_osek,

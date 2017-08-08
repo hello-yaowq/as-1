@@ -20,18 +20,19 @@
 #define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern rt_uint8_t *heap;
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter;
+#ifdef RT_USING_HEAP
+static rt_uint8_t heap[RT_HEAP_SIZE];
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
-static uint32_t isrDisableCounter = 0;
-
 #if RT_THREAD_PRIORITY_MAX  < TASK_NUM
 #error please set RT_THREAD_PRIORITY_MAX  bigger than TASK_NUM
 #endif
 static struct rt_thread taskId[TASK_NUM];
-static struct rt_event taskEvent[TASK_NUM];
-static struct rt_timer osTmr[ALARM_NUM];
+static struct rt_event  taskEvent[TASK_NUM];
+static struct rt_timer  osTmr[ALARM_NUM];
+static int              osTmrStatus[ALARM_NUM]; /* 0: stop; 1: start*/
 
 static void _TaskProcess(void *p_arg)
 {
@@ -44,7 +45,7 @@ static void _TaskProcess(void *p_arg)
 
 }
 
-static void _AlarmProcess(void *ptmr, void *parg)
+static void _AlarmProcess(void *parg)
 {
 	AlarmList[(uint32)parg].main();
 }
@@ -73,7 +74,7 @@ FUNC(StatusType,MEM_ACTIVATE_TASK) 	 TerminateTask   ( void )
 {
 	StatusType ercd = E_OK;
 	/*   This is just empty, let the Task return form then main entry to
-	 * the uCOS_TaskProcess handle, and then the Task wait its next activation
+	 * the _TaskProcess handle, and then the Task wait its next activation
 	 * by set the activation event<OS_EVENT_TASK_ACTIVATION> */
 	return ercd;
 }
@@ -81,6 +82,23 @@ FUNC(StatusType,MEM_ACTIVATE_TASK) 	 TerminateTask   ( void )
 FUNC(StatusType,MEM_GetTaskID) 		GetTaskID     ( TaskRefType TaskID )
 {
 	StatusType ercd = E_OK;
+	rt_thread_t curThread;
+
+	rt_enter_critical();
+
+	curThread = rt_thread_self();
+
+	if(curThread->init_priority < TASK_NUM)
+	{
+		*TaskID = curThread->init_priority;
+	}
+	else
+	{
+		ercd = E_OS_ACCESS;
+		asAssert(0);
+	}
+
+	rt_exit_critical();
 
 	return ercd;
 }
@@ -111,7 +129,7 @@ FUNC(StatusType,MEM_SetEvent)        SetEvent        ( TaskType tskid , EventMas
 		rt_err_t err = rt_event_send(&taskEvent[tskid],mask);
 		if(err != RT_EOK)
 		{
-			ercd = -err;
+			ercd = E_OS_ACCESS;
 		}
 	}
 	else
@@ -136,7 +154,7 @@ StatusType ClearEvent ( EventMaskType mask )
 		rt_err_t err = rt_event_recv(&taskEvent[tskid],mask,RT_EVENT_FLAG_OR|RT_EVENT_FLAG_CLEAR,0,NULL);
 		if(err != RT_EOK)
 		{
-			ercd = -err;
+			ercd = E_OS_ACCESS;
 		}
 	}
 	else
@@ -163,7 +181,7 @@ StatusType GetEvent ( TaskType tskid , EventMaskRefType p_mask )
 			}
 			else
 			{
-				ercd = -err;
+				ercd = E_OS_ACCESS;
 			}
 		}
 	}
@@ -184,10 +202,10 @@ StatusType WaitEvent ( EventMaskType mask )
 
 	if (tskid < TASK_NUM)
 	{
-		rt_err_t err = rt_event_recv(&taskEvent[tskid],mask),RT_EVENT_FLAG_OR,-1,NULL);
+		rt_err_t err = rt_event_recv(&taskEvent[tskid],mask,RT_EVENT_FLAG_OR,-1,NULL);
 		if(err != RT_EOK)
 		{
-			ercd = -err;
+			ercd = E_OS_ACCESS;
 		}
 	}
 	else
@@ -229,9 +247,22 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 
 	if(AlarmId < ALARM_NUM)
 	{
-		if(NULL == osTmr[AlarmId])
+		if(0 == osTmrStatus[AlarmId])
 		{
+			rt_err_t err;
+			rt_timer_init(&osTmr[AlarmId],AlarmList[AlarmId].name, _AlarmProcess, (void*)AlarmId,
+						  Cycle?Cycle:Increment,
+						  Cycle?RT_TIMER_FLAG_PERIODIC:RT_TIMER_FLAG_ONE_SHOT);
 
+			err = rt_timer_start(&osTmr[AlarmId]);
+			if(RT_EOK != err)
+			{
+				ercd = E_OS_ACCESS;
+			}
+			else
+			{
+				osTmrStatus[AlarmId] = 1;
+			}
 		}
 		else
 		{
@@ -255,9 +286,25 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 	StatusType ercd = E_OK;
 	if(AlarmId < ALARM_NUM)
 	{
-		if(NULL != osTmr[AlarmId])
+		if(0 != osTmrStatus[AlarmId])
 		{
-
+			rt_err_t err = rt_timer_stop(&osTmr[AlarmId]);
+			if(RT_EOK == err)
+			{
+				err = rt_timer_delete(&osTmr[AlarmId]);
+				if(RT_EOK != err)
+				{
+					ercd = E_OS_ACCESS;
+				}
+				else
+				{
+					osTmrStatus[AlarmId] = 0;
+				}
+			}
+			else
+			{
+				ercd = E_OS_ACCESS;
+			}
 		}
 		else
 		{
@@ -278,7 +325,7 @@ FUNC(TickType,MEM_GetOsTick) GetOsTick( void )
 
 FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
 {
-    if (OsTickCounter >= prevTick) {
+	if (OsTickCounter >= prevTick) {
 		return(OsTickCounter - prevTick);
 	}
 	else {
@@ -290,7 +337,7 @@ FUNC(StatusType,MEM_Schedule)       Schedule ( void )
 {
 	StatusType ercd = E_OK;
 
-	rt_thread_sleep(1);
+	rt_thread_yield();
 	
 	return ercd;
 }
@@ -301,30 +348,27 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	rt_err_t  ercd;
 	const task_declare_t* td;
 
-    /* init tick */
-    rt_system_tick_init();
-
-    /* init kernel object */
-    rt_system_object_init();
-
-    /* init timer system */
-    rt_system_timer_init();
+	rt_system_tick_init();
+	rt_system_object_init();
+	rt_system_scheduler_init();
+	rt_system_timer_init();
 
 #ifdef RT_USING_HEAP
-    /* init memory system */
-    rt_system_heap_init((void *)heap, (void *)&heap[RT_HEAP_SIZE - 1]);
+	/* init memory system */
+	rt_system_heap_init((void *)heap, (void *)&heap[RT_HEAP_SIZE - 1]);
 #endif
 
+	memset(osTmrStatus,0,sizeof(osTmrStatus));
 	for(i=0;i<TASK_NUM;i++)
 	{
 		td = &TaskList[i];
-		ercd = rt_thread_init(&taskId[i],td->name,td->main,(void*)i,td->pstk,td->stk_size,td->priority,1);
+		ercd = rt_thread_init(&taskId[i],td->name,_TaskProcess,(void*)i,td->pstk,td->stk_size,td->priority,1);
 		asAssert(ercd==RT_EOK);
 		ercd = rt_event_init(&taskEvent[i],td->name,0);
 		asAssert(ercd==RT_EOK);
 		ercd = rt_thread_startup(&taskId[i]);
 		asAssert(ercd==RT_EOK);		
-		if(td->app_mode&Mode)
+		if(td->autostart)
 		{
 			ActivateTask(i);
 		}
@@ -332,14 +376,12 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 
 	StartupHook();
 
-    /* init timer thread */
-    rt_system_timer_thread_init();
+	rt_system_timer_thread_init();
+	rt_thread_idle_init();
 
-    /* init idle thread */
-    rt_thread_idle_init();
+	EnableInterrupts();
+	rt_system_scheduler_start();
 
-    /* start scheduler */
-    rt_system_scheduler_start();
 }
 
 FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )

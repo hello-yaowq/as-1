@@ -30,6 +30,7 @@
 
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -99,6 +100,15 @@ void tpl_shutdown(void)
 	DisableInterrupts();
 	while(1);
 }
+#ifdef __RTTHREAD_OS__
+void rt_low_level_init(void)
+{
+}
+void tpl_primary_syscall_handler(void)
+{
+	while(1);
+}
+#endif
 extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
@@ -118,4 +128,5 @@ void Mcu_DistributePllClock( void )
 #endif
 
 	printf(" >> versatilepb startup done,start @%p\n",&_start);
+
 }

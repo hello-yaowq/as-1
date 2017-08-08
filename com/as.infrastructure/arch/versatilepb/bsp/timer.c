@@ -37,10 +37,11 @@ int timer_irq_handler(void *ctx)
     #if defined(__AS_BOOTLOADER__)
 	extern void OsTick(void);
 	OsTick();
-    #else
+	#else
 	extern void tpl_call_counter_tick();
 	tpl_call_counter_tick();	
     #endif
+
 	(void) ctx;
 	return 0;
 }

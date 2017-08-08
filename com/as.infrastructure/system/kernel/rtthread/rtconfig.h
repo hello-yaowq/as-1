@@ -21,13 +21,13 @@
 // <bool name="RT_THREAD_DEBUG" description="Thread debug enable" default="false" />
 // #define RT_THREAD_DEBUG
 // <bool name="RT_USING_OVERFLOW_CHECK" description="Thread stack over flow detect" default="true" />
-#define RT_USING_OVERFLOW_CHECK
+//#define RT_USING_OVERFLOW_CHECK
 // <bool name="RT_USING_INTERRUPT_INFO" description="Show more interrupt description" default="true" />
-#define RT_USING_INTERRUPT_INFO
+//#define RT_USING_INTERRUPT_INFO
 // </section>
 
 // <bool name="RT_USING_HOOK" description="Using hook functions" default="true" />
-#define RT_USING_HOOK
+//#define RT_USING_HOOK
 // <section name="RT_USING_TIMER_SOFT" description="Using software timer which will start a thread to handle soft-timer" default="true" >
 // #define RT_USING_TIMER_SOFT
 // <integer name="RT_TIMER_THREAD_PRIO" description="The priority level of timer thread" default="4" />
