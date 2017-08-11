@@ -21,8 +21,9 @@
 #define TM_PRINTF_LONGLONG
 #define TM_PRINTF_PRECISION
 #define TM_PRINTF_SPECIAL
+#ifndef TM_PRINTF_BUF_SIZE
 #define TM_PRINTF_BUF_SIZE 512
-
+#endif
 #define isdigit(c)  ((unsigned)((c) - '0') < 10)
 
 #define ZEROPAD     (1 << 0)	/* pad with zero */
@@ -41,6 +42,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void __putchar(char chr);
+extern void __puts(const char * pszInfo);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static long divide(long *n, long base)
@@ -216,7 +218,7 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 	return buf;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-size_t strlen (const char *s)
+size_t __weak strlen (const char *s)
 {
 	const char *sc;
 
@@ -541,17 +543,23 @@ int printf (const char *__restrict fmt, ...)
 {
 	va_list args;
 	unsigned long length;
+#ifndef WITH_PUTS	
 	unsigned long i;
-	static char tm_log_buf[TM_PRINTF_BUF_SIZE];
+	static 
+#endif
+	char tm_log_buf[TM_PRINTF_BUF_SIZE];
 
 	va_start(args, fmt);
 
+#ifndef WITH_PUTS
 	imask_t imask;
 
 	Irq_Save(imask);
+#endif
 
 	length = vsnprintf(tm_log_buf, sizeof(tm_log_buf), fmt, args);
 
+#ifndef WITH_PUTS
 	for(i=0;i<length;i++)
 	{
 		if('\n' == tm_log_buf[i])
@@ -562,6 +570,9 @@ int printf (const char *__restrict fmt, ...)
 	}
 
 	Irq_Restore(imask);
+#else
+	__puts(tm_log_buf);
+#endif
 
 	va_end(args);
 
@@ -572,9 +583,12 @@ int puts(const char* pstr)
 {
 	int len = 0;
 
+#ifndef WITH_PUTS
+
 	imask_t imask;
 
 	Irq_Save(imask);
+
 	while('\0' == pstr[len])
 	{
 		if('\n' == pstr[len])
@@ -586,6 +600,11 @@ int puts(const char* pstr)
 	}
 
 	Irq_Restore(imask);
+#else
+	len = strlen(pstr);
+	__puts(pstr);
+#endif
+
 	return len;
 }
 

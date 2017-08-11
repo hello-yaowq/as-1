@@ -183,6 +183,18 @@ qemu-ver:
 	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server)
 #	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial stdio -gdb tcp::1234 -S)
 
+# ---------------------------------- [ i386 ] ----------------------------- #
+61:
+	make dep board=i386 compiler=gcc rtos=tinix
+62:
+	make all board=i386 compiler=gcc rtos=tinix debug=true
+	mkdir -p tmp
+	sudo mount -t vfat out/TINIX.IMG tmp
+	sudo cp out/i386.exe tmp/kernel.bin
+	sudo umount tmp
+
+qemu-i386:
+	qemu-system-i386 -fda out/TINIX.IMG -boot a -m 64M
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos

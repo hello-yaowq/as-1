@@ -47,12 +47,17 @@ cflags-y += -O2
 asflags-y += -O2
 endif
 #remove unused code and data to save ROM/RAM usage
+ifeq ($(no-gcs),yes)
+else
 cflags-y += -ffunction-sections -fdata-sections
 ldflags-y += --gc-sections
+endif
 # supress printf_chk memcpy_chk and so on
 cflags-y += -U_FORTIFY_SOURCE
-
+ifeq ($(no-lds),yes)
+else
 ldflags-y += -static -T $(link-script)
+endif
 dir-y += $(src-dir)
 
 VPATH += $(dir-y)

@@ -40,7 +40,8 @@ def gen_osal(gendir,os_list):
   OsTick();
   rt_tick_increase();
 }\n\n''')
-
+    else:
+        os.system('sed -i "16c /* COMMON OSAL */" %s/Os_Cfg.c'%(gendir))
     
 __osgen__ = {'freeosek':gen_freeosek,
              'toppers_osek':gen_toppers_osek,
@@ -51,8 +52,8 @@ __osgen__ = {'freeosek':gen_freeosek,
              'posix':gen_toppers_osek,
              'ucosii':gen_ucosii,
              'trampoline':gen_trampoline,
-             'rtthread':gen_osal
-             
+             'rtthread':gen_osal,
+             'tinix':gen_osal,
             }
 
 def getOsRef(os_list):
