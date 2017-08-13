@@ -186,15 +186,24 @@ qemu-ver:
 # ---------------------------------- [ i386 ] ----------------------------- #
 61:
 	make dep board=i386 compiler=gcc rtos=tinix
-62:
+floppy.img:
+	wget https://github.com/bajdcc/tinix/raw/master/floppy.img
+
+62: floppy.img
 	make all board=i386 compiler=gcc rtos=tinix debug=true
 	mkdir -p tmp
-	sudo mount -t vfat out/TINIX.IMG tmp
+	sudo mount -t vfat out/TINIX.IMG tmp -o loop
 	sudo cp out/i386.exe tmp/kernel.bin
+	sudo umount tmp
+	sudo mount -t vfat floppy.img tmp -o loop
+	sudo cp out/i386.exe tmp/boot/oskernel
 	sudo umount tmp
 
 qemu-i386:
 	qemu-system-i386 -fda out/TINIX.IMG -boot a -m 64M
+
+qemu-i386-grub:
+	qemu-system-i386 -fda floppy.img -boot a -m 64M
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos

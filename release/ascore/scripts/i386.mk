@@ -46,6 +46,7 @@ endif
 
 dep-i386: $(obj-dir) $(exe-dir)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
+	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config FALSE)
 	@(cd $(src-dir);sed -e "5c <OsRef name='$(rtos)'/>" infrastructure.xml > $(board)_infrastructure.xml)
@@ -75,7 +76,7 @@ endif
 	@(echo "  >> prepare link for $(board) done")
 
 $(obj-dir)/%.o:%.asm
-	nasm -f elf -o $@ $<
+	(cd $(src-dir);nasm -f elf -o $@ $<)
 
 $(obj-dir)/boot.bin:$(src-dir)/boot/boot.asm
 	(cd $(src-dir)/boot;nasm -o $@ $<)
@@ -90,6 +91,7 @@ $(exe-dir)/TINIX.IMG:
 	mkdir -p tmp
 	sudo mount -t vfat $@ tmp
 	sudo cp $(obj-dir)/loader.bin tmp
+	sudo sync
 	sudo umount tmp
 
 boot:$(obj-dir)/boot.bin $(obj-dir)/loader.bin $(exe-dir)/TINIX.IMG

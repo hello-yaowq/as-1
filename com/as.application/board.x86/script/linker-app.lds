@@ -4,7 +4,7 @@ SECTIONS {
 /* Entry point of Tinix
  * It must be as same as 'KernelEntryPointPhyAddr' in load.inc!!!
  */
-    . = 0x30400;
+    . = 0x400400;
 	.init : {
 		KEEP(*(.init))
 	}

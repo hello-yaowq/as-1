@@ -3,27 +3,50 @@
 		;;                                kernel.asm
 		;;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		;;                                                      Forrest Yu, 2005
+		;;  updated by parai for the support of multiboot
 		;;  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-		SELECTOR_KERNEL_CS	equ	8
+		%include "sconst.inc"
+
+		;;/* the magic number for the multiboot header.  */
+		MULTIBOOT_HEADER_MAGIC equ 0x1BADB002
+
+		;;/* the flags for the multiboot header.  */
+		MULTIBOOT_HEADER_FLAGS equ 0x00000003
 
 		;;  导入函数
 		extern	cstart
+		extern	main
 
 		;;  导入全局变量
 		extern	gdt_ptr
 
-
 		[SECTION .bss]
 		StackSpace		resb	2 * 1024
+		global StackTop
 StackTop:						; 栈顶
 
 		[section .init]			; 代码在此
-		
+
 		global _start			; 导出 _start
 
 _start:
+		jmp	multiboot_entry
+
+		;;/* Align 32 bits boundary.  */
+		align	4
+
+	;;/* multiboot header.  */
+multiboot_header:
+
+		;;/* magic */
+		dd	MULTIBOOT_HEADER_MAGIC
+		;; /* flags */
+		dd	MULTIBOOT_HEADER_FLAGS
+		;; /* checksum */
+		dd	-(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
 		;;  此时内存看上去是这样的（更详细的内存情况在 LOADER.ASM 中有说明）：
 		;;               ┃                                    ┃
 		;;               ┃                 ...                ┃
@@ -64,7 +87,7 @@ _start:
 		;;
 		;;
 
-
+multiboot_entry:
 		;;  把 esp 从 LOADER 挪到 KERNEL
 		mov	esp, StackTop		; 堆栈在 bss 段中
 
@@ -76,8 +99,9 @@ _start:
 		jmp	SELECTOR_KERNEL_CS:csinit
 csinit:							; “这个跳转指令强制使用刚刚初始化的结构”——<<OS:D&I 2nd>> P90.
 
-		push	0
-		popfd					; Pop top of stack into EFLAGS
+	xor	eax, eax
+	mov	ax, SELECTOR_TSS
+	ltr	ax
 
-		hlt
-		
+	jmp	main
+

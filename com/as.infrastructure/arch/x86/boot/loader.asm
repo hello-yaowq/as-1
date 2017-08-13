@@ -659,6 +659,7 @@ DispMemInfo:
 ; ---------------------------------------------------------------------------
 
 ; 启动分页机制 --------------------------------------------------------------
+;; https://github.com/SamyPesse/How-to-Make-a-Computer-Operating-System/blob/master/Chapter-8/README.md
 SetupPaging:
 	; 根据内存大小计算应初始化多少PDE以及多少页表
 	xor	edx, edx
@@ -681,7 +682,7 @@ SetupPaging:
 	xor	eax, eax
 	mov	eax, PageTblBase | PG_P  | PG_USU | PG_RWW
 .1:
-	stosd
+	stosd				; store EAX at address ES:(E)DI
 	add	eax, 4096		; 为了简化, 所有页表在内存中是连续的.
 	loop	.1
 
@@ -718,7 +719,7 @@ SetupPaging:
 InitKernel:	; 遍历每一个 Program Header，根据 Program Header 中的信息来确定把什么放进内存，放到什么位置，以及放多少。
 	xor	esi, esi
 	mov	cx, word [BaseOfKernelFilePhyAddr + 2Ch]; ┓ ecx <- pELFHdr->e_phnum
-	movzx	ecx, cx					; ┛
+	movzx	ecx, cx								; ┛
 	mov	esi, [BaseOfKernelFilePhyAddr + 1Ch]	; esi <- pELFHdr->e_phoff
 	add	esi, BaseOfKernelFilePhyAddr		; esi <- OffsetOfKernel + pELFHdr->e_phoff
 .Begin:
@@ -726,12 +727,12 @@ InitKernel:	; 遍历每一个 Program Header，根据 Program Header 中的信�
 	cmp	eax, 0				; PT_NULL
 	jz	.NoAction
 	push	dword [esi + 010h]		; size	┓
-	mov	eax, [esi + 04h]		;	┃
+	mov	eax, [esi + 04h]				;	┃
 	add	eax, BaseOfKernelFilePhyAddr	;	┣ ::memcpy(	(void*)(pPHdr->p_vaddr),
-	push	eax				; src	┃		uchCode + pPHdr->p_offset,
+	push	eax						; src	┃		uchCode + pPHdr->p_offset,
 	push	dword [esi + 08h]		; dst	┃		pPHdr->p_filesz;
-	call	MemCpy				;	┃
-	add	esp, 12				;	┛
+	call	MemCpy						;	┃
+	add	esp, 12							;	┛
 .NoAction:
 	add	esi, 020h			; esi += pELFHdr->e_phentsize
 	dec	ecx

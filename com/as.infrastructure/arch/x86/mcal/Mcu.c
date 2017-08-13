@@ -17,20 +17,18 @@
 #include "Std_Types.h"
 #include "Mcu.h"
 #include "Os.h"
-#include "mmu.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_MCU 1
-/* GDT and IDT size */
-#define GDT_SIZE 128
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void enable_int(void);
 extern void disable_int(void);
+
 /* ============================ [ DATAS     ] ====================================================== */
-uint8_t         gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
-descriptor_t    gdt[GDT_SIZE];
+
 static unsigned long isrDisableCounter = 0;
+
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
@@ -105,24 +103,6 @@ void tpl_primary_syscall_handler(void)
 void Mcu_DistributePllClock( void )
 {
 
-}
-
-void cstart(void)
-{
-	ASLOG(MCU,"cstart begins\n");
-	
-	/* copy the GDT of LOADER to the new GDT */
-	memcpy(&gdt,    /* New GDT */
-		   (void*)(*((uint32_t*)(&gdt_ptr[2]))),   /* Base  of Old GDT */
-		   *((uint16_t*)(&gdt_ptr[0])) + 1    /* Limit of Old GDT */
-		);
-	/* gdt_ptr[6] has 6 bytes : 0~15:Limit  16~47:Base, acting as parameter of instruction sgdt & lgdt */
-	uint16_t* p_gdt_limit = (uint16_t*)(&gdt_ptr[0]);
-	uint32_t* p_gdt_base  = (uint32_t*)(&gdt_ptr[2]);
-	*p_gdt_limit = GDT_SIZE * sizeof(descriptor_t) - 1;
-	*p_gdt_base  = (uint32_t)&gdt;
-
-	ASLOG(MCU,"cstart finished\n");
 }
 
 int EnableInterrupts() {
