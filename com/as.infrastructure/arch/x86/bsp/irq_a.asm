@@ -5,6 +5,7 @@ extern	spurious_irq
 extern	clock_handler
 extern	disp_str
 extern	delay
+extern	TaskProcess
 
 extern	p_proc_ready
 extern	tss
@@ -16,6 +17,7 @@ extern	StackTop
 
 global	sys_call
 global	restart
+global	task_entry
 global	divide_error
 global	single_step_exception
 global	nmi
@@ -291,3 +293,8 @@ restart_reenter:
 	popad
 	add	esp, 4
 	iretd
+
+task_entry:
+	push eax
+	call TaskProcess
+	jmp $

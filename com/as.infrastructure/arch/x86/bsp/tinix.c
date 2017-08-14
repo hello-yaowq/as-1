@@ -64,6 +64,8 @@ int sys_get_ticks (void);
 int sys_write	(char* buf, int len, PROCESS* p_proc);
 void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t limit, uint16_t attribute);
 uint32_t seg2phys(uint16_t seg);
+void restart(void);
+void task_entry(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint8_t         gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
 mmu_descriptor_t    gdt[GDT_SIZE];
@@ -85,15 +87,6 @@ TickType				OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void init_ldt(void)
 {
-	/* 填充 GDT 中 TSS 这个描述符 */
-	memset(&tss, 0, sizeof(tss));
-	tss.ss0		= SELECTOR_KERNEL_DS;
-	init_descriptor(&gdt[INDEX_TSS],
-			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
-			sizeof(tss) - 1,
-			DA_386TSS);
-	tss.iobase	= sizeof(tss);	/* 没有I/O许可位图 */
-
 	/* 填充 GDT 中每个进程的 LDT 的描述符 */
 	int i;
 	PROCESS* p_proc	= proc_table;
@@ -107,8 +100,8 @@ static void init_ldt(void)
 		selector_ldt += 1 << 3;
 	}
 }
-
-static void TaskProcess(uint32_t tskid)
+/* ============================ [ FUNCTIONS ] ====================================================== */
+void TaskProcess(uint32_t tskid)
 {
 	const task_declare_t* td;
 	td = &TaskList[tskid];
@@ -119,7 +112,6 @@ static void TaskProcess(uint32_t tskid)
 		while(1);
 	}
 }
-/* ============================ [ FUNCTIONS ] ====================================================== */
 
 void cstart(void)
 {
@@ -144,6 +136,16 @@ void cstart(void)
 	*p_idt_base = (uint32_t)&idt;
 
 	init_prot();
+
+	/* 填充 GDT 中 TSS 这个描述符 */
+	memset(&tss, 0, sizeof(tss));
+	tss.ss0		= SELECTOR_KERNEL_DS;
+	init_descriptor(&gdt[INDEX_TSS],
+			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
+			sizeof(tss) - 1,
+			DA_386TSS);
+	tss.iobase	= sizeof(tss);	/* 没有I/O许可位图 */
+
 	ASLOG(TINIX,"cstart finished\n");
 }
 
@@ -260,6 +262,8 @@ void StartOS(AppModeType app_mode)
 		p_proc++;
 		selector_ldt += 1 << 3;
 	}
+
+	p_proc_ready = proc_table;
 
 	restart();
 }

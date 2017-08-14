@@ -21,6 +21,7 @@
 
 		;;  导入全局变量
 		extern	gdt_ptr
+		extern	idt_ptr
 
 		[SECTION .bss]
 		StackSpace		resb	2 * 1024
@@ -95,7 +96,7 @@ multiboot_entry:
 		call	cstart			; 在此函数中改变了gdt_ptr，让它指向新的GDT
 		lgdt	[gdt_ptr]		; 使用新的GDT
 
-		;; lidt	[idt_ptr]
+		lidt	[idt_ptr]
 		jmp	SELECTOR_KERNEL_CS:csinit
 csinit:							; “这个跳转指令强制使用刚刚初始化的结构”——<<OS:D&I 2nd>> P90.
 
