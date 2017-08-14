@@ -28,12 +28,20 @@
 #define	PRINTER_IRQ	7
 #define	AT_WINI_IRQ	14	/* at winchester */
 
+/* 8253/8254 PIT (Programmable Interval Timer) */
+#define TIMER0          0x40	/* I/O port for timer channel 0 */
+#define TIMER_MODE      0x43	/* I/O port for timer mode control */
+#define RATE_GENERATOR	0x34	/* 00-11-010-0 : Counter0 - LSB then MSB - rate generator - binary */
+#define TIMER_FREQ	1193182L/* clock frequency for timer in PC and AT */
+#define HZ	1000	/* clock freq (software settable on IBM-PC) */
+
 typedef	void	(*t_pf_irq_handler)	(int irq);
 
 t_pf_irq_handler	irq_table[NR_IRQ];
 
 
 void spurious_irq(int irq);
+extern void OsTick(void);
 /*======================================================================*
                             init_8259A
  *======================================================================*/
@@ -72,4 +80,15 @@ void put_irq_handler(int irq, t_pf_irq_handler handler)
 void spurious_irq(int irq)
 {
 	printf("spurious_irq: %d\n",irq);
+}
+
+void init_clock(void)
+{
+	/* 初始化 8253 PIT */
+	out_byte(TIMER_MODE, RATE_GENERATOR);
+	out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
+	out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
+
+	put_irq_handler(CLOCK_IRQ, OsTick);	/* 设定时钟中断处理程序 */
+	enable_irq(CLOCK_IRQ);				/* 让8259A可以接收时钟中断 */
 }

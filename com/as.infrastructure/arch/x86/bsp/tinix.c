@@ -66,6 +66,7 @@ void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t limit, u
 uint32_t seg2phys(uint16_t seg);
 void restart(void);
 void task_entry(void);
+extern void init_clock(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint8_t         gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
 mmu_descriptor_t    gdt[GDT_SIZE];
@@ -105,11 +106,27 @@ void TaskProcess(uint32_t tskid)
 {
 	const task_declare_t* td;
 	td = &TaskList[tskid];
+	TimerType timer = 0;
+	uint32_t counter = 0;
 
+	ASLOG(TINIX,"%s is ready!\n",td->name);
+
+	StartTimer(&timer);
 	while(1)
 	{
-		td->main();
-		while(1);
+		if(GetTimer(&timer) > 1000)
+		{
+			counter ++;
+			ASLOG(TINIX,"%s loop %d times!\n",td->name,counter);
+			StartTimer(&timer);
+
+			if(tskid == (TASK_NUM-1))
+			{
+				disp_pos = 0;
+			}
+
+			//td->main();
+		}
 	}
 }
 
@@ -159,6 +176,18 @@ FUNC(StatusType,MEM_ACTIVATE_TASK) 	 TerminateTask   ( void )
 {
 	StatusType ercd = E_OK;
 	return ercd;
+}
+
+FUNC(void,MEM_OsTick)         OsTick       ( void )
+{
+	OsTickCounter ++;
+
+	if(0u == OsTickCounter)
+	{
+		OsTickCounter = 0;
+	}
+	/* each task one tick slot */
+	p_proc_ready = &proc_table[(p_proc_ready->pid+1)<TASK_NUM?(p_proc_ready->pid+1):0];
 }
 
 FUNC(TickType,MEM_GetOsTick)         GetOsTick       ( void )
@@ -251,7 +280,7 @@ void StartOS(AppModeType app_mode)
 		p_proc->regs.fs		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
 		p_proc->regs.ss		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
 		p_proc->regs.gs		= (SELECTOR_KERNEL_GS & SA_RPL_MASK) | rpl;
-		p_proc->regs.eip	= (uint32_t)TaskProcess;
+		p_proc->regs.eip	= (uint32_t)task_entry;
 		p_proc->regs.esp	= (uint32_t)&(td->pstk[td->stk_size]);
 		p_proc->regs.eflags	= eflags;
 
@@ -264,6 +293,8 @@ void StartOS(AppModeType app_mode)
 	}
 
 	p_proc_ready = proc_table;
+
+	init_clock();
 
 	restart();
 }
