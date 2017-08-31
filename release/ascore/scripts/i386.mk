@@ -1,6 +1,6 @@
 use-boot?=yes
 termux?=no
-asflasg-y +=
+asflags-y += -m32
 cflags-y  += -m32 -fno-builtin -fno-stack-protector
 ldflags-y += -melf_i386
 ifeq ($(use-boot),yes)
@@ -20,10 +20,16 @@ def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 def-y += -DUSE_DET
-def-y += -DUSE_OSAL
+ifeq ($(rtos),tinix)
 def-y += -DWITH_PUTS -Dprintf=printk -DTM_PRINTF_BUF_SIZE=128
-
+endif
 inc-y += -I/usr/include/newlib
+
+ifeq ($(rtos),rtthread)
+def-y += -DUSE_OSAL
+# heap size 8Mb
+def-y += -DRT_HEAP_SIZE=0x8000000
+endif
 
 #no-gcs=yes
 #no-lds=yes
@@ -62,11 +68,23 @@ dep-i386: $(obj-dir) $(exe-dir)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/boot)
-	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/x86/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
 ifeq ($(rtos),tinix)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+endif
+ifeq ($(rtos),rtthread)
+	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/include TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/libcpu/ia32 TRUE)
+	@(cd $(src-dir); rm linker-app.lds)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/x86/x86_ram.lds linker-app.lds)
+	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/include TRUE)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/ TRUE)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/misclib.c)

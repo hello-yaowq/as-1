@@ -18,15 +18,18 @@
 #include "Mcu.h"
 #include "Os.h"
 #include "asdebug.h"
+#ifdef __RTTHREAD_OS__
+#include <rtthread.h>
+#include <rthw.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_MCU 1
+#define enable_int() asm("sti")
+#define disable_int() asm("cli")
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void enable_int(void);
-extern void disable_int(void);
-
 /* ============================ [ DATAS     ] ====================================================== */
-
 static unsigned long isrDisableCounter = 0;
 
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -34,6 +37,9 @@ static unsigned long isrDisableCounter = 0;
 void __putchar(char ch)
 {
 	(void)ch;
+#ifdef __RTTHREAD_OS__
+	rt_console_putc(ch);
+#endif
 }
 
 #ifndef __GNUC__
@@ -141,4 +147,31 @@ void  Irq_Enable(void)
 {
 	enable_int();
 }
+
+#ifdef __RTTHREAD_OS__
+extern unsigned char __bss_start[];
+extern unsigned char __bss_end[];
+extern void main(void);
+extern void rt_hw_console_init(void);
+
+void rt_hw_clear_bss(void)
+{
+    unsigned char *dst;
+    dst = __bss_start;
+    while (dst < __bss_end)
+        *dst++ = 0;
+}
+
+void rtthread_startup(void)
+{
+    rt_hw_clear_bss();
+
+    rt_hw_interrupt_init();
+
+    rt_hw_console_init();
+    rt_console_set_device("console");
+
+	main();
+}
+#endif /* __RTTHREAD_OS__ */
 

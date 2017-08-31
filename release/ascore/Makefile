@@ -185,12 +185,12 @@ qemu-ver:
 
 # ---------------------------------- [ i386 ] ----------------------------- #
 61:
-	make dep board=i386 compiler=gcc rtos=tinix
+	make dep board=i386 compiler=gcc rtos=rtthread
 floppy.img:
 	wget https://github.com/bajdcc/tinix/raw/master/floppy.img
 
 62: floppy.img
-	make all board=i386 compiler=gcc rtos=tinix debug=true
+	make all board=i386 compiler=gcc rtos=rtthread debug=true
 	mkdir -p tmp
 	sudo mount -t vfat out/TINIX.IMG tmp -o loop
 	sudo cp out/i386.exe tmp/kernel.bin
