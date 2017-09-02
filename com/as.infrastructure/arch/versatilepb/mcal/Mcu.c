@@ -27,7 +27,9 @@
 #include "Os.h"
 #include "serial.h"
 #include "irq.h"
-
+#ifdef USE_PCI
+#include "pci_core.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
 
@@ -112,12 +114,26 @@ void tpl_primary_syscall_handler(void)
 extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
-	#ifdef USE_PCI
-    pci_init();
-	#endif
 	serial_init();
 	vic_setup();
 	irq_init();
+	#ifdef USE_PCI
+	pci_init();
+	pci_search_all_device();
+#if 1
+	{/* test of hello tic */
+		int i;
+		pci_dev *pdev =find_pci_dev_from_id(0x1337,0x0001);
+		enable_pci_resource(pdev);
+		printf("hello tic mem addr[] = { ");
+		for(i=0;i<6;i++)
+		{
+			printf("0x%x,",pdev->mem_addr[i]);
+		}
+		printf(" };\n");
+	}
+#endif
+	#endif
 	DisableInterrupts();
 #ifndef __AS_BOOTLOADER__
 	/* for application bcm2835, need to reset the handler array*/

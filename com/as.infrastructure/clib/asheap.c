@@ -79,7 +79,9 @@
 #include "asdebug.h"
 
 #define configUSE_MALLOC_FAILED_HOOK 1
+#ifndef configTOTAL_HEAP_SIZE
 #define configTOTAL_HEAP_SIZE (8*1024)
+#endif
 
 #define configASSERT(x) asAssert(x)
 

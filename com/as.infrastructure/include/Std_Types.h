@@ -179,6 +179,18 @@ typedef double                      float64;
 
 typedef uint8                       Std_ReturnType;
 
+typedef uint8  BYTE;
+typedef uint16 WORD;
+typedef uint32 DWORD;
+
+typedef uint32 u32;
+typedef uint16 u16;
+typedef uint8  u8;
+
+typedef sint32 s32;
+typedef sint16 s16;
+typedef sint8  s8;
+
 typedef uint32 imask_t;
 
 typedef struct {

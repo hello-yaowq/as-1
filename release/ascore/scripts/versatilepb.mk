@@ -1,5 +1,5 @@
-use-boot?=yes
-usepci?=no
+use-boot?=no
+usepci?=yes
 termux?=no
 asflasg-y += -mcpu=arm926ej-s -marm -fpic
 cflags-y  += -mcpu=arm926ej-s -marm -fpic
@@ -37,8 +37,9 @@ endif
 ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
 # heap size 2Mb
-def-y += -DRT_HEAP_SIZE=0x2000000
+def-y += -DRT_HEAP_SIZE=0x200000
 endif
+def-y += -DconfigTOTAL_HEAP_SIZE=0x200000
 ifeq ($(compiler),gcc)
 cflags-y += -mstructure-size-boundary=8
 ifeq ($(termux),yes)
@@ -50,7 +51,16 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-versatilepb: $(download)/rt-thread
+$(src-dir)/pci.download.done:
+ifeq ($(usepci),yes)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci.h -O pci.h)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci_regs.h -O pci_regs.h)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/linux/pci_ids.h -O pci_ids.h)
+	@(cd $(src-dir);sed -i "20c #include \"pci_regs.h\"" pci.h)
+endif
+	@touch $@
+
+dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -69,18 +79,15 @@ dep-versatilepb: $(download)/rt-thread
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/bcm2835/bsp/linker.lds)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/bsp TRUE)
+	@(cd $(src-dir);mv pci.c pci-versatilepb.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
-ifeq ($(usepci),yes)
-	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci.h -O pci.h)
-	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci_regs.h -O pci_regs.h)
-	@(cd $(src-dir);sed -i "20c #include \"pci_regs.h\"" pci.h)
-endif
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/autosar TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/machines/cortex-a TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 	@(cd $(src-dir);rm tpl_os_stm_kernel.c)
 endif
 ifeq ($(rtos),rtthread)

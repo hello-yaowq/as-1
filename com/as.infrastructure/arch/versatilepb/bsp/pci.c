@@ -17,9 +17,8 @@
 #define IO_VALUE_FIRST
 #include "Std_Types.h"
 #include "asdebug.h"
-#include "pci.h"
-
-typedef uint32_t u32;
+#include "pci_core.h"
+#include "irq.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_PCI 1
 
@@ -39,6 +38,15 @@ static void *versatile_pci_base = 0x10001000;
 static void *versatile_cfg_base[2] = { 0x41000000, 0x42000000 };
 static u32 pci_slot_ignore;
 /* ============================ [ LOCALS    ] ====================================================== */
+static void *versatile_map_bus(unsigned int busnr,
+				       unsigned int devfn, int offset)
+{
+	if (pci_slot_ignore & (1 << PCI_SLOT(devfn)))
+		return NULL;
+
+	return versatile_cfg_base[1] + ((busnr << 16) | (devfn << 8) | offset);
+}
+
 static int versatile_pci_probe(void)
 {
 	int ret, i, myslot = -1;
@@ -106,4 +114,95 @@ int pci_init(void)
 
 	return rv;
 }
+
+int pci_generic_config_write(unsigned int busnr, unsigned int devfn,
+			     int where, int size, u32 val)
+{
+	void *addr;
+
+	addr = versatile_map_bus(busnr, devfn, where);
+	if (!addr)
+	{
+		return -__LINE__;
+	}
+	if (size == 1)
+		writeb(val, addr);
+	else if (size == 2)
+		writew(val, addr);
+	else
+		writel(val, addr);
+
+	return 0;
+}
+
+int pci_generic_config_read(unsigned int busnr, unsigned int devfn,
+			      int where, int size, u32 *val)
+{
+	void *addr;
+
+	addr = versatile_map_bus(busnr, devfn, where & ~0x3);
+
+	if (!addr) {
+		*val = ~0;
+		return -__LINE__;
+	}
+
+	*val = readl(addr);
+
+	if (size <= 2)
+		*val = (*val >> (8 * (where & 3))) & ((1 << (size * 8)) - 1);
+
+	return 0;
+}
+
+/* Lunatic */
+DWORD pci_read_config_reg32(pci_reg *reg, BYTE offset)
+{
+    DWORD value;
+	
+	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 4, &value);
+    
+    return value;
+}
+
+WORD pci_read_config_reg16(pci_reg *reg, BYTE offset)
+{
+	DWORD value;
+	
+	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 2, &value);
+    
+    return (WORD)value;
+}
+
+BYTE pci_read_config_reg8(pci_reg *reg, BYTE offset)
+{
+	DWORD value;
+	
+	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 1, &value);
+    
+    return (BYTE)value;
+}
+
+void pci_write_config_reg32(pci_reg *reg, BYTE offset, const DWORD value)
+{
+	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 4, value);
+}
+
+void pci_write_config_reg16(pci_reg *reg, BYTE offset ,const WORD value)
+{
+	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 2, value);
+}
+
+void pci_write_config_reg8(pci_reg *reg, BYTE offset, const BYTE value)
+{
+	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 1, value);
+}
+
+
+int pci_disable_IRQ_line(DWORD irq) { irq_disable_line(irq); return 0; }
+int pci_enable_IRQ_line(DWORD irq)  { irq_enable_line(irq); return 0; }
+int pci_sys_set_irq_handle(DWORD irq, void(*handle)(void)) { return irq_install_isr(irq,handle); }
+int pci_sys_irq_set_level_trigger(DWORD irq) { return 1; }
+int pci_sys_irq_set_edge_trigger(DWORD irq)  { return 1; }
+
 #endif
