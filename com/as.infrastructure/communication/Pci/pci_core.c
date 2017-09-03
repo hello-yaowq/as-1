@@ -19,11 +19,14 @@
  *   https://github.com/grandemk/qemu_devices/blob/master/driver_pci.c
  * https://www.mindshare.com/files/ebooks/PCI%20System%20Architecture%20(4th%20Edition).pdf
  * http://nairobi-embedded.org/linux_pci_device_driver.html
+ * https://en.wikipedia.org/wiki/PCI_configuration_space
+ * http://wiki.osdev.org/PCI
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pci_core.h"
-
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_PCI 1
 /* sys API wrapper */
 #define _sys_printf    printf
 #define _sys_kmalloc   asmalloc
@@ -333,6 +336,7 @@ void disable_pci_interrupt(pci_dev *device) {
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
+/* check http://wiki.osdev.org/PCI#Base_Address_Registers */
 static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		DWORD *addr_size, int *prefetch) {
 	DWORD orig = pci_read_config_reg32(&device->dev, offset);
@@ -353,10 +357,6 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 
 		addr = orig & ~0xf;
 
-		if (addr <= 0) {
-			break;
-		}
-
 		switch (type & 6) {
 		case 0:
 		case 2:
@@ -365,13 +365,13 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 				pci_write_config_reg32(&device->dev, offset, orig);
 				return;
 			} else if (0x10 <= tmp && 0xff >= tmp) {
-				size = ~tmp & 0xff;
+				size = ((~tmp) & 0xff) + 1;
 			} else if (0x100 <= tmp && 0xffff >= tmp) {
-				size = ~tmp & 0xffff;
+				size = ((~tmp) & 0xffff) + 1;
 			} else if (0x10000 <= tmp && 0xffffff >= tmp) {
-				size = ~tmp & 0xffffff;
+				size = ((~tmp) & 0xffffff) + 1;
 			} else if (0x1000000 <= tmp && 0xffffffff >= tmp) {
-				size = ~tmp & 0xffffffff;
+				size = ((~tmp) & 0xffffffff) + 1;
 			}
 			break;
 		case 4:
@@ -379,6 +379,13 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 			break;
 		}
 
+		if((addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL))
+		{
+			addr = device->vendor->mmio_cfg->mem_addr[(offset-0x10)/4];
+			asAssert(size == device->vendor->mmio_cfg->mem_size[(offset-0x10)/4]);
+			asAssert((addr & 0x0f) == 0); /* 16-Byte Aligned Base Address */
+			orig = (orig & ~0xf) | addr;
+		}
 		*base_addr = addr;
 		*addr_size = size;
 
@@ -394,21 +401,17 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		tmp = pci_read_config_reg32(&device->dev, offset) & ~0x3;
 		addr = orig & ~0x3;
 
-		if (addr <= 0) {
-			break;
-		}
-
 		if (0x4 > tmp) {
 			/* これは無効 */
 			break;
 		} else if (0x4 <= tmp && 0xff >= tmp) {
-			size = ~tmp & 0xff;
+			size = ((~tmp) & 0xff) + 1;
 		} else if (0x100 <= tmp && 0xffff >= tmp) {
-			size = ~tmp & 0xffff;
+			size = ((~tmp) & 0xffff) + 1;
 		} else if (0x10000 <= tmp && 0xffffff >= tmp) {
-			size = ~tmp & 0xffffff;
+			size = ((~tmp) & 0xffffff) + 1;
 		} else if (0x1000000 <= tmp && 0xffffffff >= tmp) {
-			size = ~tmp & 0xffffffff;
+			size = ((~tmp) & 0xffffffff) + 1;
 		}
 
 		*base_addr = addr;

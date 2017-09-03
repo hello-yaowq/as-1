@@ -123,14 +123,24 @@ void Mcu_DistributePllClock( void )
 #if 1
 	{/* test of hello tic */
 		int i;
+		uint32* p;
 		pci_dev *pdev =find_pci_dev_from_id(0x1337,0x0001);
 		enable_pci_resource(pdev);
 		printf("hello tic mem addr[] = { ");
 		for(i=0;i<6;i++)
 		{
-			printf("0x%x,",pdev->mem_addr[i]);
+			printf("(0x%x, 0x%x)", pdev->mem_addr[i], pdev->mem_size[i]);
 		}
 		printf(" };\n");
+		printf("hello tic io  addr[] = { ");
+		for(i=0;i<6;i++)
+		{
+			printf("(0x%x, 0x%x)", pdev->io_addr[i], pdev->io_size[i]);
+		}
+		printf(" };\n");
+
+		p = pdev->mem_addr[1];
+		p[0] = 0x123;
 	}
 #endif
 	#endif

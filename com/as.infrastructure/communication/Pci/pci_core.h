@@ -23,17 +23,25 @@
 
 /* ============================ [ MACROS    ] ====================================================== */
 #define     PCI_DEVICE(vid, did, name)                              \
-	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), 0xff}
+	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), 0xff, mmiocfg_##vid##_##did}
 
 #define     PCI_BRIDGE(vid, did, name, bridge)                          \
-	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), (bridge)}
+	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), (bridge), NULL}
 
 /* ============================ [ TYPES     ] ====================================================== */
+typedef struct
+{
+	DWORD					mem_addr[6];
+	DWORD					mem_size[6];
+	WORD					io_addr[6];
+	WORD					io_size[6];
+} pci_mmio_cfg;
 typedef struct __pci_vendor_info {
 	WORD			vendor_id;			/* vendor id */
 	WORD			device_id;			/* device id */
 	const char		*name;			/* device name */
 	BYTE			bridge_type;	/* bridge type or 0xff */
+	const pci_mmio_cfg* mmio_cfg;
 } pci_vendor_info;
 
 typedef struct __pci_device_info {

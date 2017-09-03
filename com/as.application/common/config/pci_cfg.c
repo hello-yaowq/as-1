@@ -25,9 +25,27 @@
 
 #define PCI_VENDOR_ID_HELLO_TIC 0x1337
 #define PCI_DEVICE_ID_0001 0x0001
+
+#define mmiocfg_NCR_LSI_53C895A      NULL
+#define mmiocfg_APPLE_003F           NULL
+#define mmiocfg_XILINX_0300          NULL
+#define mmiocfg_REDHAT_QUMRANET_1000 NULL
+#define mmiocfg_REDHAT_QUMRANET_1001 NULL
+#define mmiocfg_REDHAT_QUMRANET_1005 NULL
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+static uint32 __attribute__((aligned(16))) mem_HELLO_TIC_0001[0x40];
+static const pci_mmio_cfg mmiocfg_HELLO_TIC_0001[1] =
+{
+	{
+		.mem_addr = {0,(DWORD)mem_HELLO_TIC_0001,0,0,0,0},
+		.mem_size={0,0x40,0,0,0,0},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
+	}
+};
+
 /* in the order of vendor id and then device id, both from small to big */
 /* https://github.com/qemu/qemu/blob/master/docs/specs/pci-ids.txt */
 const pci_vendor_info  pci_vendor_list[PCI_VENDOR_NUM] = 
