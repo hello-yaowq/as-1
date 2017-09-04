@@ -386,6 +386,14 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 			asAssert((addr & 0x0f) == 0); /* 16-Byte Aligned Base Address */
 			orig = (orig & ~0xf) | addr;
 		}
+		else
+		{
+			_sys_printf("Error: PCI device %04X:%04X need %s mmio with size 0x%08X for BAR%d\n", \
+					device->vendor_id, device->device_id, \
+					(type & 8)?"    prefetchable":"non-prefetchable", \
+					size, (offset-0x10)/4);
+		}
+
 		*base_addr = addr;
 		*addr_size = size;
 

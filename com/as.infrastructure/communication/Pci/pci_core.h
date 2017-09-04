@@ -28,6 +28,13 @@
 #define     PCI_BRIDGE(vid, did, name, bridge)                          \
 	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), (bridge), NULL}
 
+/* linux compatible version API */
+#define pci_bus_read_config_byte(pdev,offset)     pci_read_config_reg8(&(pdev->dev),offset)
+#define pci_bus_read_config_word(pdev,offset)     pci_read_config_reg16(&(pdev->dev),offset)
+#define pci_bus_read_config_dword(pdev,offset)    pci_read_config_reg32(&(pdev->dev),offset)
+#define pci_bus_write_config_byte(pdev,offset,v)  pci_write_config_reg8(&(pdev->dev),offset,v)
+#define pci_bus_write_config_word(pdev,offset,v)  pci_write_config_reg16(&(pdev->dev),offset,v)
+#define pci_bus_write_config_dword(pdev,offset,v) pci_write_config_reg32(&(pdev->dev),offset,v)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {

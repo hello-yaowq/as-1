@@ -29,12 +29,34 @@
 #define mmiocfg_NCR_LSI_53C895A      NULL
 #define mmiocfg_APPLE_003F           NULL
 #define mmiocfg_XILINX_0300          NULL
-#define mmiocfg_REDHAT_QUMRANET_1000 NULL
-#define mmiocfg_REDHAT_QUMRANET_1001 NULL
 #define mmiocfg_REDHAT_QUMRANET_1005 NULL
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcip"))) memp_REDHAT_QUMRANET_1000[0x20];
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) memnp_REDHAT_QUMRANET_1000[0x10];
+static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1000[1] =
+{
+	{
+		.mem_addr = {0,0,0,0,(DWORD)memp_REDHAT_QUMRANET_1000,(DWORD)memnp_REDHAT_QUMRANET_1000},
+		.mem_size={0,0,0,0,0x20,0x10},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
+	}
+};
+
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcip"))) memp_REDHAT_QUMRANET_1001[0x40];
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) memnp_REDHAT_QUMRANET_1001[0x10];
+static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1001[1] =
+{
+	{
+		.mem_addr = {0,0,0,0,(DWORD)memp_REDHAT_QUMRANET_1001,(DWORD)memnp_REDHAT_QUMRANET_1001},
+		.mem_size={0,0,0,0,0x40,0x10},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
+	}
+};
+
 static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_HELLO_TIC_0001[0x40];
 static const pci_mmio_cfg mmiocfg_HELLO_TIC_0001[1] =
 {
