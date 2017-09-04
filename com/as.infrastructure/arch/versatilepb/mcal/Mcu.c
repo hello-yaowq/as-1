@@ -140,7 +140,7 @@ void Mcu_DistributePllClock( void )
 		printf(" };\n");
 
 		p = pdev->mem_addr[1];
-		p[0] = 0x123;
+		p[0] = 12345678;
 	}
 #endif
 	#endif

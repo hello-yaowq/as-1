@@ -52,7 +52,15 @@ static int versatile_pci_probe(void)
 	int ret, i, myslot = -1;
 	u32 val;
 	void *local_pci_cfg_base;
-
+	/* according to http://elixir.free-electrons.com/linux/v4.8/source/arch/arm/boot/dts/versatile-pb.dts */
+	/* downstream I/O */
+	/* TODO: pci_remap_iospace(res, 0x43000000); */
+	/* non-prefetchable memory */
+	writel(0x50000000 >> 28, PCI_IMAP(1));
+	writel(PHYS_OFFSET >> 28, PCI_SMAP(1));
+	/* prefetchable memory */
+	writel(0x60000000 >> 28, PCI_IMAP(2));
+	writel(PHYS_OFFSET >> 28, PCI_SMAP(2));
 	/*
 	 * We need to discover the PCI core first to configure itself
 	 * before the main PCI probing is performed
