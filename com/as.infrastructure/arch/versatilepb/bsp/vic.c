@@ -7,6 +7,7 @@
 #include "irq.h"
 
 #define __iobase	0x10140000
+#define __sic_iobase	0x10003000
 
 
 enum VICRegisters
@@ -56,6 +57,22 @@ enum VICRegisters
 	VECT_CTRL_15	= 0x23c,
 };
 
+/* according to vpb_sic_read & vpb_sic_write qemu/hw/arm/versatilepb.c
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0224i/Cacgfedh.html */
+enum SICRegisters
+{
+	SIC_STATUS		= 0x000,	/* Read Status of interrupt (after mask) */
+	SIC_RAWSTAT		= 0x004,	/* Read Status of interrupt (before mask) */
+	SIC_ENABLE		= 0x008,	/* Read Interrupt mask */
+	SIC_ENSET		= 0x008,	/* Write Set bits HIGH to enable the corresponding interrupt signals */
+	SIC_ENCLR		= 0x00c,	/* Write Set bits HIGH to mask the corresponding interrupt signals */
+	SIC_SOFTINTSET	= 0x010,	/* Read/write Set software interrupt */
+	SIC_SOFTINTCLR	= 0x014,	/* Write Clear software interrupt */
+	SIC_PICENABLE	= 0x020,	/* Read Read status of pass-through mask (allows interrupt to pass directly to the primary interrupt controller) */
+	SIC_PICENSET	= 0x020,	/* Write Set bits HIGH to set the corresponding interrupt pass-through mask bits */
+	SIC_PICENCLR	= 0x024,	/* Write Set bits HIGH to clear the corresponding interrupt pass-through mask bits */
+};
+
 /* IRQ Handler ISR dispatcher
  * called from irq_handler_entry (start.s)
  */
@@ -64,6 +81,15 @@ static int vic_irq_handler(void *cpu)
  	uint32_t irqstatus = readl(__iobase + IRQ_STATUS);
 	uint32_t i = 0;
 	for (i = 0; i < 32; i++) {
+		if (irqstatus & 1) {
+			__irq_call_isr(i, cpu);
+			break;
+		}
+		irqstatus >>= 1;
+	}
+
+	irqstatus = readl(__sic_iobase + SIC_STATUS);
+	for (i = 32; i < 64; i++) {
 		if (irqstatus & 1) {
 			__irq_call_isr(i, cpu);
 			break;
@@ -100,17 +126,31 @@ static int vic_init()
 
 static int vic_enable_line(int num)
 {
-	if (num > 31)
+	if (num > 63)
 		return -1;
-	writel(__iobase + INT_ENABLE, (1 << num));
+	if(num < 32)
+	{
+		writel(__iobase + INT_ENABLE, (1 << num));
+	}
+	else
+	{
+		writel(__sic_iobase + SIC_ENSET, (1 << (num-32)));
+	}
 	return 0;
 }
 
 static int vic_disable_line(int num)
 {
-	if (num > 31)
+	if (num > 63)
 		return -1;
-	writel(__iobase + INT_CLEAR, (1 << num));
+	if(num < 32)
+	{
+		writel(__iobase + INT_CLEAR, (1 << num));
+	}
+	else
+	{
+		writel(__sic_iobase + SIC_ENCLR, (1 << (num-32)));
+	}
 	return 0;
 }
 

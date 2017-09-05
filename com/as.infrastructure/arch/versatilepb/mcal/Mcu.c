@@ -27,12 +27,13 @@
 #include "Os.h"
 #include "serial.h"
 #include "irq.h"
+#include "asdebug.h"
 #ifdef USE_PCI
 #include "pci_core.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
-
+//#define TEST_HELLO_TIC
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -111,6 +112,18 @@ void tpl_primary_syscall_handler(void)
 	while(1);
 }
 #endif
+
+#ifdef TEST_HELLO_TIC
+static pci_dev *pdev = NULL;
+void hello_tic_isr(void)
+{
+	uint32* p;
+	asAssert(pdev != NULL);
+	p = pdev->mem_addr[1];
+	printf("Hello Tic ISR\n");
+	p[2] = 0;	/* ack irq */
+}
+#endif
 extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
@@ -120,27 +133,36 @@ void Mcu_DistributePllClock( void )
 	#ifdef USE_PCI
 	pci_init();
 	pci_search_all_device();
-#if 1
+#ifdef TEST_HELLO_TIC
 	{/* test of hello tic */
 		int i;
 		uint32* p;
-		pci_dev *pdev =find_pci_dev_from_id(0x1337,0x0001);
+		pdev =find_pci_dev_from_id(0x1337,0x0001);
 		enable_pci_resource(pdev);
+		pci_bus_write_config_byte(pdev,0x3c,0x43/* 67 ?*/);
+		pci_register_irq(32+30,hello_tic_isr);
 		printf("hello tic mem addr[] = { ");
 		for(i=0;i<6;i++)
 		{
 			printf("(0x%x, 0x%x)", pdev->mem_addr[i], pdev->mem_size[i]);
 		}
 		printf(" };\n");
-		printf("hello tic io  addr[] = { ");
+		printf("hello tic io addr[] = { ");
 		for(i=0;i<6;i++)
 		{
 			printf("(0x%x, 0x%x)", pdev->io_addr[i], pdev->io_size[i]);
 		}
 		printf(" };\n");
 
+		for(i=0;i<16;i++)
+		{
+			printf("%02x = %08X\n", 4*i, pci_bus_read_config_dword(pdev,4*i));
+		}
+
 		p = pdev->mem_addr[1];
 		p[0] = 12345678;
+
+		p[2] = 1;	/* assert irq */
 	}
 #endif
 	#endif

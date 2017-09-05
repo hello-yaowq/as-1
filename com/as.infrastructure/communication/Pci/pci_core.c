@@ -311,28 +311,28 @@ int pci_unregister_irq(DWORD irq_num) {
 void disable_pci_resource(pci_dev *device) {
 	WORD value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
-	value &= ~0x3;
+	value &= ~0x103;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void enable_pci_resource(pci_dev *device) {
 	WORD value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
-	value |= 0x3;
+	value |= 0x103;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void enable_pci_interrupt(pci_dev *device) {
 	WORD value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
-	value |= 0x400;
+	value &= ~0x400;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void disable_pci_interrupt(pci_dev *device) {
 	WORD value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
-	value &= ~0x400;
+	value |= 0x400;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 

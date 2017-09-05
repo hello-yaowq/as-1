@@ -6,7 +6,7 @@
 #include "io.h"
 #include "irq.h"
 
-isr_callback_t isr_handler_table[32] = { NULL };
+isr_callback_t isr_handler_table[64] = { NULL };
 
 struct irq_ctrl *__irqctrl = NULL;
 
@@ -30,7 +30,7 @@ void irq_handler(void* cpu)
 
 int __irq_call_isr(int num, void *cpu)
 {
-	if (num > 31) {
+	if (num > 63) {
 		return -1;
 	}
 	if (isr_handler_table[num])
@@ -46,7 +46,7 @@ void irq_init()
 
 int irq_install_isr(int num, isr_callback_t isr)
 {
-	if (num > 31)
+	if (num > 63)
 		return -1;
 
 	if (isr_handler_table[num])
@@ -58,7 +58,7 @@ int irq_install_isr(int num, isr_callback_t isr)
 
 int irq_uninstall_isr(int num)
 {
-	if (num > 31)
+	if (num > 63)
 		return -1;
 
 	if (!isr_handler_table[num])
