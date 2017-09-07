@@ -170,14 +170,14 @@ static int traverse_pci_dev(void) {
 
 		for (i = 0; i < 6; i++) {
 			if (p->mem_addr[i] != 0 && p->mem_size[i] != 0) {
-				_sys_printf(" mem: %x..%x\n", p->mem_addr[i],
+				_sys_printf(" mem[%d]: %x..%x\n", i, p->mem_addr[i],
 						p->mem_addr[i] + p->mem_size[i]);
 			}
 		}
 
 		for (i = 0; i < 6; i++) {
 			if (p->io_addr[i] != 0) {
-				_sys_printf(" i/o: %x..%x\n", p->io_addr[i],
+				_sys_printf(" i/o[%d]: %x..%x\n", i, p->io_addr[i],
 						p->io_addr[i] + p->io_size[i]);
 			}
 		}
@@ -293,49 +293,6 @@ static void get_pci_resouce(pci_dev *device) {
 
 }
 
-int pci_register_irq(DWORD irq_num, void (*handler)()) {
-	disable_IRQ_line(irq_num);
-	if (_sys_irq_set_level_trigger(irq_num)) {
-		_sys_set_irq_handle(irq_num, handler);
-		enable_IRQ_line(irq_num);
-		return 1;
-	}
-	return 0;
-}
-
-int pci_unregister_irq(DWORD irq_num) {
-	disable_IRQ_line(irq_num);
-	return (_sys_irq_set_edge_trigger(irq_num));
-}
-
-void disable_pci_resource(pci_dev *device) {
-	WORD value;
-	value = pci_read_config_reg16(&device->dev, 0x04);
-	value &= ~0x103;
-	pci_write_config_reg16(&device->dev, 0x04, value);
-}
-
-void enable_pci_resource(pci_dev *device) {
-	WORD value;
-	value = pci_read_config_reg16(&device->dev, 0x04);
-	value |= 0x103;
-	pci_write_config_reg16(&device->dev, 0x04, value);
-}
-
-void enable_pci_interrupt(pci_dev *device) {
-	WORD value;
-	value = pci_read_config_reg16(&device->dev, 0x04);
-	value &= ~0x400;
-	pci_write_config_reg16(&device->dev, 0x04, value);
-}
-
-void disable_pci_interrupt(pci_dev *device) {
-	WORD value;
-	value = pci_read_config_reg16(&device->dev, 0x04);
-	value |= 0x400;
-	pci_write_config_reg16(&device->dev, 0x04, value);
-}
-
 /* check http://wiki.osdev.org/PCI#Base_Address_Registers */
 static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		DWORD *addr_size, int *prefetch) {
@@ -422,6 +379,12 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 			size = ((~tmp) & 0xffffffff) + 1;
 		}
 
+		if(addr == 0)
+		{
+			_sys_printf("Error: PCI device %04X:%04X need port io with size 0x%08X for BAR%d\n", \
+					device->vendor_id, device->device_id, \
+					size, (offset-0x10)/4);
+		}
 		*base_addr = addr;
 		*addr_size = size;
 
@@ -435,6 +398,49 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 	enable_pci_resource(device);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
+int pci_register_irq(DWORD irq_num, void (*handler)()) {
+	disable_IRQ_line(irq_num);
+	if (_sys_irq_set_level_trigger(irq_num)) {
+		_sys_set_irq_handle(irq_num, handler);
+		enable_IRQ_line(irq_num);
+		return 1;
+	}
+	return 0;
+}
+
+int pci_unregister_irq(DWORD irq_num) {
+	disable_IRQ_line(irq_num);
+	return (_sys_irq_set_edge_trigger(irq_num));
+}
+
+void disable_pci_resource(pci_dev *device) {
+	WORD value;
+	value = pci_read_config_reg16(&device->dev, 0x04);
+	value &= ~0x103;
+	pci_write_config_reg16(&device->dev, 0x04, value);
+}
+
+void enable_pci_resource(pci_dev *device) {
+	WORD value;
+	value = pci_read_config_reg16(&device->dev, 0x04);
+	value |= 0x103;
+	pci_write_config_reg16(&device->dev, 0x04, value);
+}
+
+void enable_pci_interrupt(pci_dev *device) {
+	WORD value;
+	value = pci_read_config_reg16(&device->dev, 0x04);
+	value &= ~0x400;
+	pci_write_config_reg16(&device->dev, 0x04, value);
+}
+
+void disable_pci_interrupt(pci_dev *device) {
+	WORD value;
+	value = pci_read_config_reg16(&device->dev, 0x04);
+	value |= 0x400;
+	pci_write_config_reg16(&device->dev, 0x04, value);
+}
+
 pci_dev *find_pci_dev_from_id(DWORD vendor_id, DWORD device_id) {
 	pci_dev *ptr;
 

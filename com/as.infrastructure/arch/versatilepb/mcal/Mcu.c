@@ -30,6 +30,7 @@
 #include "asdebug.h"
 #ifdef USE_PCI
 #include "pci_core.h"
+#include "virtio_net.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
@@ -133,6 +134,7 @@ void Mcu_DistributePllClock( void )
 	#ifdef USE_PCI
 	pci_init();
 	pci_search_all_device();
+	virtio_net_init();
 #ifdef TEST_HELLO_TIC
 	{/* test of hello tic */
 		int i;
