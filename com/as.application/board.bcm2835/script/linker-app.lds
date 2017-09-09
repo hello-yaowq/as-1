@@ -9,7 +9,8 @@ MEMORY
 	RESERVED	(r)		: ORIGIN = 0x00000000, LENGTH = 32K
 	INIT_RAM	(rwx)	: ORIGIN = 0x00040000, LENGTH = 32K
 	RAM			(rwx)	: ORIGIN = 0x00050000, LENGTH = 128M
-	/* This PCINP PCIP is for versatilepb */
+	/* This PCIIO PCINP PCIP is for versatilepb */
+	PCIIO		(rw)	: ORIGIN = 0x43000000, LENGTH = 16M
 	PCINP		(rw)	: ORIGIN = 0x50000000, LENGTH = 256M
 	PCIP		(rw)	: ORIGIN = 0x60000000, LENGTH = 256M
 }
@@ -76,6 +77,12 @@ SECTIONS {
 	 *	Stack starts at the top of the RAM, and moves down!
 	 **/
 	_estack = ORIGIN(RAM) + LENGTH(RAM);
+
+	.pciio :
+	{
+		*(.pciio)
+		*(.pciio.*)
+	} > PCIIO
 
 	.pcinp :
 	{

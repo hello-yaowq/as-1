@@ -40,8 +40,8 @@ typedef struct
 {
 	DWORD					mem_addr[6];
 	DWORD					mem_size[6];
-	WORD					io_addr[6];
-	WORD					io_size[6];
+	DWORD					io_addr[6];
+	DWORD					io_size[6];
 } pci_mmio_cfg;
 typedef struct __pci_vendor_info {
 	WORD			vendor_id;			/* vendor id */
@@ -69,8 +69,8 @@ typedef struct __pci_dev {
 	struct __pci_dev		*next;
 	DWORD					mem_addr[6];
 	DWORD					mem_size[6];
-	WORD					io_addr[6];
-	WORD					io_size[6];
+	DWORD					io_addr[6];
+	DWORD					io_size[6];
 	BYTE					irq_num;
 	BYTE					intr_num;
 	WORD					vendor_id;

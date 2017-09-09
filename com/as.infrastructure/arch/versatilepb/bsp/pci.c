@@ -13,6 +13,10 @@
  * for more details.
  */
 #ifdef USE_PCI
+/* http://infocenter.arm.com/help/topic/com.arm.doc.dui0224i/DUI0224I_realview_platform_baseboard_for_arm926ej_s_ug.pdf
+ * 3.15 PCI interface  p141
+ * 4.17 PCI controller p241
+ */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #define IO_VALUE_FIRST
 #include "Std_Types.h"
@@ -54,7 +58,11 @@ static int versatile_pci_probe(void)
 	void *local_pci_cfg_base;
 	/* according to http://elixir.free-electrons.com/linux/v4.8/source/arch/arm/boot/dts/versatile-pb.dts */
 	/* downstream I/O */
-	/* TODO: pci_remap_iospace(res, 0x43000000); */
+	/* TODO: pci_remap_iospace(res, 0x43000000);
+	 * MMU is not implemented, so can't map  IO 0x43000000..0x4300ffff -> 0x00000000
+	 */
+	//writel(0x43000000 >> 28, PCI_IMAP(0));
+	//writel(PHYS_OFFSET >> 28, PCI_SMAP(0));
 	/* non-prefetchable memory */
 	writel(0x50000000 >> 28, PCI_IMAP(1));
 	writel(PHYS_OFFSET >> 28, PCI_SMAP(1));

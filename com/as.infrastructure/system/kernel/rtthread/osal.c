@@ -23,7 +23,12 @@
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter;
 #ifdef RT_USING_HEAP
+#ifdef __X86__
+extern unsigned char __bss_end[];
+#define heap &__bss_end
+#else
 static rt_uint8_t heap[RT_HEAP_SIZE];
+#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #if RT_THREAD_PRIORITY_MAX  < TASK_NUM
@@ -355,7 +360,7 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 
 #ifdef RT_USING_HEAP
 	/* init memory system */
-	rt_system_heap_init((void *)heap, (void *)&heap[RT_HEAP_SIZE - 1]);
+	rt_system_heap_init((void *)heap, (void *)(((uint32)heap)+ RT_HEAP_SIZE));
 #endif
 
 	memset(osTmrStatus,0,sizeof(osTmrStatus));

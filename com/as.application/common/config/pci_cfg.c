@@ -57,14 +57,15 @@ static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1001[1] =
 	}
 };
 
+static uint32 __attribute__((aligned(4))) __attribute__((section(".pciio"))) io_HELLO_TIC_0001[0x10];
 static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_HELLO_TIC_0001[0x40];
 static const pci_mmio_cfg mmiocfg_HELLO_TIC_0001[1] =
 {
 	{
 		.mem_addr = {0,(DWORD)mem_HELLO_TIC_0001,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
-		.io_addr = {0,0,0,0,0,0},
-		.io_size={0,0,0,0,0,0},
+		.io_addr = {(DWORD)io_HELLO_TIC_0001,0,0,0,0,0},
+		.io_size={0x10,0,0,0,0,0},
 	}
 };
 

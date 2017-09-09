@@ -31,6 +31,7 @@ def-y += -DUSE_OSAL
 def-y += -DRT_HEAP_SIZE=0x8000000
 endif
 
+def-y += -D__X86__
 #no-gcs=yes
 #no-lds=yes
 # Entry point of Tinix
@@ -79,12 +80,13 @@ ifeq ($(rtos),rtthread)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/libcpu/ia32 TRUE)
 	@(cd $(src-dir); rm linker-app.lds)
-	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/x86/x86_ram.lds linker-app.lds)
+	@(cd $(src-dir); cp -v $(download)/rt-thread/bsp/x86/x86_ram.lds linker-app.lds)
 	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/include TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/ TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
-	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
+#	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
+	@(cd $(src-dir); sed -i "37c .bss : { *(.bss) *(.bss.*) }" linker-app.lds)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/misclib.c)

@@ -34,7 +34,7 @@
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
-//#define TEST_HELLO_TIC
+#define TEST_HELLO_TIC
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -138,7 +138,7 @@ void Mcu_DistributePllClock( void )
 #ifdef TEST_HELLO_TIC
 	{/* test of hello tic */
 		int i;
-		uint32* p;
+		uint32 *pmem,*pio;
 		pdev =find_pci_dev_from_id(0x1337,0x0001);
 		enable_pci_resource(pdev);
 		pci_bus_write_config_byte(pdev,0x3c,0x43/* 67 ?*/);
@@ -160,11 +160,15 @@ void Mcu_DistributePllClock( void )
 		{
 			printf("%02x = %08X\n", 4*i, pci_bus_read_config_dword(pdev,4*i));
 		}
+#if 0
+		pmem = pdev->mem_addr[1];
+		pmem[0] = 12345678;
 
-		p = pdev->mem_addr[1];
-		p[0] = 12345678;
-
-		p[2] = 1;	/* assert irq */
+		pmem[2] = 1;	/* assert irq */
+#else
+		pio = pdev->mem_addr[0];
+		pio[0] = 987654321;
+#endif
 	}
 #endif
 	#endif

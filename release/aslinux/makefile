@@ -138,7 +138,7 @@ ifeq (${MACHINE},vexpress-qemu)
 	@echo "IMAGE_FSTYPES = \"ext4\"" >> $(POKY)/poky/build/conf/local.conf
 	@echo "INHERIT += \"rm_work\""  >> $(POKY)/poky/build/conf/local.conf
 endif
-	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
+#	@echo "BBLAYERS += \"`readlink -f meta-as`\"" >> $(POKY)/poky/build/conf/bblayers.conf
 ifeq (${security}, smack)
 # check README of $(POKY)/meta-intel-iot-security/meta-security-smack: enable smack
 	@echo "OVERRIDES .= \":smack\"" >> $(POKY)/poky/build/conf/local.conf
@@ -283,6 +283,9 @@ endif
 
 runmender:
 	@(export BUILDDIR=${POKY}/poky/build;$(POKY)/meta-mender/meta-mender-qemu/scripts/mender-qemu)
+
+killqemu:
+	pgrep qemu | xargs -i kill -9 {}
 
 kernel-menuconfig:
 	@(cd kernel4.8;make menuconfig O=.)

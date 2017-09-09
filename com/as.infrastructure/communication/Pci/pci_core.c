@@ -378,8 +378,14 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		} else if (0x1000000 <= tmp && 0xffffffff >= tmp) {
 			size = ((~tmp) & 0xffffffff) + 1;
 		}
-
-		if(addr == 0)
+		if((addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL) \
+				&& (size == device->vendor->mmio_cfg->io_size[(offset-0x10)/4]))
+		{
+			addr = device->vendor->mmio_cfg->io_addr[(offset-0x10)/4];
+			asAssert((addr & 0x03) == 0); /* 4-Byte Aligned Base Address */
+			orig = (orig & ~0x3) | addr;
+		}
+		else
 		{
 			_sys_printf("Error: PCI device %04X:%04X need port io with size 0x%08X for BAR%d\n", \
 					device->vendor_id, device->device_id, \

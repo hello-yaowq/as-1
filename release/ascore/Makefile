@@ -206,7 +206,7 @@ qemu-i386:
 	qemu-system-i386 -fda out/TINIX.IMG -boot a -m 64M
 
 qemu-i386-grub:
-	qemu-system-i386 -fda floppy.img -boot a -m 64M
+	qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos

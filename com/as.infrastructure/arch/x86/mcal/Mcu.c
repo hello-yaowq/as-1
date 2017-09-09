@@ -171,6 +171,10 @@ void rtthread_startup(void)
     rt_hw_console_init();
     rt_console_set_device("console");
 
+    rt_hw_board_init();
+
+    rt_show_version();
+
 	main();
 }
 #endif /* __RTTHREAD_OS__ */
