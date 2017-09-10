@@ -23,8 +23,10 @@
 #define PCI_DEVICE_ID_1005 0x1005
 #define PCI_DEVICE_ID_003F 0x003F
 
-#define PCI_VENDOR_ID_HELLO_TIC 0x1337
-#define PCI_DEVICE_ID_0001 0x0001
+#define PCI_VENDOR_ID_ASDEV 0xcaac
+#define PCI_DEVICE_ID_ASCAN 0x0001
+#define PCI_DEVICE_ID_ASNET 0x0002
+#define PCI_DEVICE_ID_ASBLK 0x0003
 
 #define mmiocfg_NCR_LSI_53C895A      NULL
 #define mmiocfg_APPLE_003F           NULL
@@ -33,7 +35,9 @@
 #ifdef __X86__
 #define mmiocfg_REDHAT_QUMRANET_1000 NULL
 #define mmiocfg_REDHAT_QUMRANET_1001 NULL
-#define mmiocfg_HELLO_TIC_0001       NULL
+#define mmiocfg_ASDEV_ASCAN       NULL
+#define mmiocfg_ASDEV_ASNET       NULL
+#define mmiocfg_ASDEV_ASBLK       NULL
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -63,11 +67,33 @@ static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1001[1] =
 	}
 };
 
-static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_HELLO_TIC_0001[0x40];
-static const pci_mmio_cfg mmiocfg_HELLO_TIC_0001[1] =
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_ASDEV_ASCAN[0x40];
+static const pci_mmio_cfg mmiocfg_ASDEV_ASCAN[1] =
 {
 	{
-		.mem_addr = {0,(DWORD)mem_HELLO_TIC_0001,0,0,0,0},
+		.mem_addr = {0,(DWORD)mem_ASDEV_ASCAN,0,0,0,0},
+		.mem_size={0,0x40,0,0,0,0},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
+	}
+};
+
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_ASDEV_ASNET[0x40];
+static const pci_mmio_cfg mmiocfg_ASDEV_ASNET[1] =
+{
+	{
+		.mem_addr = {0,(DWORD)mem_ASDEV_ASNET,0,0,0,0},
+		.mem_size={0,0x40,0,0,0,0},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
+	}
+};
+
+static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_ASDEV_ASBLK[0x40];
+static const pci_mmio_cfg mmiocfg_ASDEV_ASBLK[1] =
+{
+	{
+		.mem_addr = {0,(DWORD)mem_ASDEV_ASBLK,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},
@@ -81,7 +107,9 @@ const pci_vendor_info  pci_vendor_list[PCI_VENDOR_NUM] =
 	PCI_DEVICE( NCR,          LSI_53C895A,    "NCR LSI_53C895A"),
 	PCI_DEVICE( APPLE,               003F,    "apple ?"),
 	PCI_DEVICE( XILINX,              0300,    "xilinx ?"),
-	PCI_DEVICE( HELLO_TIC,           0001,    "hello tic"),
+	PCI_DEVICE( ASDEV,               ASCAN,   "as can virtul bus"),
+	PCI_DEVICE( ASDEV,               ASNET,   "as net virtul bus"),
+	PCI_DEVICE( ASDEV,               ASBLK,   "as blk virtul bus"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1000,    "REDHAT_QUMRANET network device (legacy)"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1001,    "REDHAT_QUMRANET block device (legacy)"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1005,    "REDHAT_QUMRANET entropy generator device (legacy)"),

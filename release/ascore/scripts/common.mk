@@ -51,9 +51,8 @@ $(download)/rt-thread:
 $(download)/qemu:
 	@(cd $(download); git clone https://github.com/qemu/qemu.git; \
 		cd qemu; git submodule update --init dtc ; \
-		cd hw/char; wget https://raw.githubusercontent.com/grandemk/qemu_devices/master/hello_tic.c; \
-		sed -i "18c #include \"qemu/osdep.h\"" hello_tic.c; \
-		echo "obj-$\(CONFIG_PCI) += hello_tic.o" >> Makefile.objs)
+		cd hw/char; $(LNFS) $(prj-dir)/com/as.tool/qemu/hw/char TRUE; \
+		cat Makefile >> Makefile.objs)
 
 asqemu:$(download)/qemu
 	@(cd $(download)/qemu; ./configure; make)

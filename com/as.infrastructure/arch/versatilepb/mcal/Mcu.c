@@ -134,12 +134,12 @@ void Mcu_DistributePllClock( void )
 	#ifdef USE_PCI
 	pci_init();
 	pci_search_all_device();
-	virtio_net_init();
+	//virtio_net_init();
 #ifdef TEST_HELLO_TIC
 	{/* test of hello tic */
 		int i;
 		uint32 *pmem,*pio;
-		pdev =find_pci_dev_from_id(0x1337,0x0001);
+		pdev =find_pci_dev_from_id(0xcaac,0x0003);
 		enable_pci_resource(pdev);
 		pci_bus_write_config_byte(pdev,0x3c,0x43/* 67 ?*/);
 		pci_register_irq(32+30,hello_tic_isr);
@@ -160,7 +160,7 @@ void Mcu_DistributePllClock( void )
 		{
 			printf("%02x = %08X\n", 4*i, pci_bus_read_config_dword(pdev,4*i));
 		}
-#if 0
+#if 1
 		pmem = pdev->mem_addr[1];
 		pmem[0] = 12345678;
 

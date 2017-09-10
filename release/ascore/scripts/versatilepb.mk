@@ -40,6 +40,8 @@ def-y += -DUSE_OSAL
 def-y += -DRT_HEAP_SIZE=0x200000
 endif
 def-y += -DconfigTOTAL_HEAP_SIZE=0x200000
+# heap size 2Mb
+def-y += -DconfigTOTAL_PAGE_COUNT=4096
 ifeq ($(compiler),gcc)
 cflags-y += -mstructure-size-boundary=8
 ifeq ($(termux),yes)
@@ -73,6 +75,7 @@ dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done
 	@(cd $(src-dir);mv pci.c pci-versatilepb.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
