@@ -57,3 +57,12 @@ $(download)/qemu:
 
 asqemu:$(download)/qemu
 	@(cd $(download)/qemu; ./configure; make)
+
+$(src-dir)/pci.download.done:
+ifeq ($(usepci),yes)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci.h -O pci.h)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/uapi/linux/pci_regs.h -O pci_regs.h)
+	@(cd $(src-dir);wget https://raw.githubusercontent.com/torvalds/linux/v4.8/include/linux/pci_ids.h -O pci_ids.h)
+	@(cd $(src-dir);sed -i "20c #include \"pci_regs.h\"" pci.h)
+endif
+	@touch $@

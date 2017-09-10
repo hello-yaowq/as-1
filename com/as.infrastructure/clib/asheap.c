@@ -96,7 +96,7 @@
 #define traceFREE( pv, xBlockSize )  ASLOG(HEAP, " free(%p,%d)\n",pv, xBlockSize)
 
 
-#define portBYTE_ALIGNMENT 1
+#define portBYTE_ALIGNMENT 4
 
 #if portBYTE_ALIGNMENT == 32
 	#define portBYTE_ALIGNMENT_MASK ( 0x001f )
@@ -519,8 +519,46 @@ uint8_t *puc;
 	}
 }
 
+void* kzmalloc(size_t size)
+{
+
+	void* p = asmalloc(size);
+	if(NULL != p)
+	{
+		memset(p,0,size);
+	}
+
+	return p;
+}
+
 void vApplicationMallocFailedHook(void)
 {
 	ASLOG(HEAP,"asmalloc failed\n");
 	asAssert(0);
 }
+#ifdef configTOTAL_PAGE_COUNT
+static u8 __attribute__((aligned(4096))) page_buffer[PAGE_SIZE*configTOTAL_PAGE_COUNT];
+static u32 page_pos=0;
+static u32 page_left=configTOTAL_PAGE_COUNT;
+
+void* palloc(size_t size)
+{
+	void* p;
+	u32 pg   = (size+PAGE_SIZE-1)/PAGE_SIZE;
+
+	if(pg <= page_left)
+	{
+		p = &page_buffer[page_pos];
+		page_left -= pg;
+		page_pos += pg*PAGE_SIZE;
+
+		memset(p,0,pg*PAGE_SIZE); /* not necessary as in bss, but make sure 0 */
+	}
+	else
+	{
+		p = NULL;
+	}
+
+	return p;
+}
+#endif

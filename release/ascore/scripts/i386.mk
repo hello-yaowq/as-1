@@ -1,5 +1,6 @@
 use-boot?=yes
 termux?=no
+usepci?=yes
 asflags-y += -m32
 cflags-y  += -m32 -fno-builtin -fno-stack-protector
 ldflags-y += -melf_i386
@@ -24,13 +25,18 @@ ifeq ($(rtos),tinix)
 def-y += -DWITH_PUTS -Dprintf=printk -DTM_PRINTF_BUF_SIZE=128
 endif
 inc-y += -I/usr/include/newlib
-
+ifeq ($(usepci),yes)
+def-y += -DUSE_PCI
+endif
 ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
 # heap size 8Mb
-def-y += -DRT_HEAP_SIZE=0x8000000
+def-y += -DRT_HEAP_SIZE=0x800000
 endif
 
+# heap size 2Mb
+def-y += -DconfigTOTAL_HEAP_SIZE=0x200000
+def-y += -DPAGE_SIZE=4096 -DconfigTOTAL_PAGE_COUNT=4096
 def-y += -D__X86__
 #no-gcs=yes
 #no-lds=yes
@@ -51,7 +57,7 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-i386: $(obj-dir) $(exe-dir)
+dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -74,7 +80,11 @@ dep-i386: $(obj-dir) $(exe-dir)
 ifeq ($(rtos),tinix)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+else
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp/pci-x86.c)
 endif
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/misclib.c)
 ifeq ($(rtos),rtthread)
 	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/include TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)

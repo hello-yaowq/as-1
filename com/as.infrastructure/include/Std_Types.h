@@ -183,10 +183,12 @@ typedef uint8  BYTE;
 typedef uint16 WORD;
 typedef uint32 DWORD;
 
+typedef uint64 u64;
 typedef uint32 u32;
 typedef uint16 u16;
 typedef uint8  u8;
 
+typedef sint64 s64;
 typedef sint32 s32;
 typedef sint16 s16;
 typedef sint8  s8;
@@ -222,5 +224,7 @@ extern imask_t __Irq_Save(void);
 extern void Irq_Restore(imask_t irq_state);
 
 extern void *asmalloc( size_t xWantedSize );
-extern void asfree( void *pv );
+extern void  asfree( void *pv );
+extern void* kzmalloc(size_t size);
+extern void* palloc(size_t size);
 #endif /* STD_TYPES_H */

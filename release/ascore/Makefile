@@ -206,7 +206,10 @@ qemu-i386:
 	qemu-system-i386 -fda out/TINIX.IMG -boot a -m 64M
 
 qemu-i386-grub:
-	qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio
+	qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio \
+		-device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
+		-drive file=floppy.img,if=virtio,format=raw -show-cursor -usb -usbdevice tablet -device virtio-rng-pci \
+		-D qemu.log
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos

@@ -168,6 +168,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 
 	if(CAN_EMPTY_MESSAGE_BOX == swPduHandle)
 	{
+#ifndef __X86__
 		printf("SCAN%02X%04X%02X",hth,(unsigned int)pduInfo->id,pduInfo->length);
 		asAssert(pduInfo->length <= 8);
 		for(i=0;i<pduInfo->length;i++)	/* maximum 16 */
@@ -175,7 +176,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 			printf("%02X",pduInfo->sdu[i]);
 		}
 		printf("\n");
-
+#endif
 		swPduHandle = pduInfo->swPduHandle;
 	}
 	else

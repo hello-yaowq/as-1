@@ -313,7 +313,11 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		tmp = pci_read_config_reg32(&device->dev, offset) & ~0xf;
 
 		addr = orig & ~0xf;
-
+#ifdef __X86__
+		if(addr <= 0){
+			break;
+		}
+#endif
 		switch (type & 6) {
 		case 0:
 		case 2:
@@ -335,7 +339,7 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 			/* 64bitだよ〜ん */
 			break;
 		}
-
+#ifndef __X86__
 		if((addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL))
 		{
 			addr = device->vendor->mmio_cfg->mem_addr[(offset-0x10)/4];
@@ -350,7 +354,7 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 					(type & 8)?"    prefetchable":"non-prefetchable", \
 					size, (offset-0x10)/4);
 		}
-
+#endif
 		*base_addr = addr;
 		*addr_size = size;
 
@@ -365,7 +369,11 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		/* i/o */
 		tmp = pci_read_config_reg32(&device->dev, offset) & ~0x3;
 		addr = orig & ~0x3;
-
+#ifdef __X86__
+		if(addr <= 0){
+			break;
+		}
+#endif
 		if (0x4 > tmp) {
 			/* これは無効 */
 			break;
@@ -378,6 +386,7 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 		} else if (0x1000000 <= tmp && 0xffffffff >= tmp) {
 			size = ((~tmp) & 0xffffffff) + 1;
 		}
+#ifndef __X86__
 		if((addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL) \
 				&& (size == device->vendor->mmio_cfg->io_size[(offset-0x10)/4]))
 		{
@@ -391,6 +400,7 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 					device->vendor_id, device->device_id, \
 					size, (offset-0x10)/4);
 		}
+#endif
 		*base_addr = addr;
 		*addr_size = size;
 

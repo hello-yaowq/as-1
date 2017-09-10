@@ -22,6 +22,10 @@
 #include <rtthread.h>
 #include <rthw.h>
 #endif
+#ifdef USE_PCI
+#include "pci_core.h"
+#include "virtio_net.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_MCU 1
 #define enable_int() asm("sti")
@@ -30,8 +34,6 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static unsigned long isrDisableCounter = 0;
-
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
@@ -108,7 +110,12 @@ void tpl_primary_syscall_handler(void)
 #endif
 void Mcu_DistributePllClock( void )
 {
-
+	#ifdef USE_PCI
+	pci_init();
+	pci_search_all_device();
+	virtio_net_init();
+	virtio_net_start();
+	#endif
 }
 
 int EnableInterrupts() {
@@ -123,24 +130,14 @@ int DisableInterrupts() {
 
 imask_t __Irq_Save(void)
 {
-	isrDisableCounter ++ ;
-	if(1u == isrDisableCounter)
-	{
-		disable_int();
-	}
-	return 0;
+	imask_t level;
+	__asm__ __volatile__("pushfl ; popl %0 ; cli":"=g" (level): :"memory");
+	return level;
 }
 
 void Irq_Restore(imask_t irq_state)
 {
-
-	isrDisableCounter --;
-	if(0u == isrDisableCounter)
-	{
-		enable_int();
-	}
-
-	(void)irq_state;
+	 __asm__ __volatile__("pushl %0 ; popfl": :"g" (irq_state):"memory", "cc");
 }
 
 void  Irq_Enable(void)

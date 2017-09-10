@@ -84,6 +84,53 @@
     	((uint8_t *)address)[1] = ((value&0xff)); \
 	} while(0)
 
+#ifdef __X86__
+static __inline unsigned char inb(int port)
+{
+	unsigned char data;
+	__asm __volatile("inb %w1,%0" : "=a" (data) : "d" (port));
+	return data;
+}
+
+static __inline unsigned short inw(int port)
+{
+	unsigned short data;
+	__asm __volatile("inw %w1,%0" : "=a" (data) : "d" (port));
+	return data;
+}
+
+static __inline unsigned int inl(int port)
+{
+	unsigned int data;
+	__asm __volatile("inl %w1,%0" : "=a" (data) : "d" (port));
+	return data;
+}
+
+static __inline void outb(int port, unsigned char data)
+{
+	__asm __volatile("outb %0,%w1" : : "a" (data), "d" (port));
+}
+
+static __inline void outw(int port, unsigned short data)
+{
+	__asm __volatile("outw %0,%w1" : : "a" (data), "d" (port));
+}
+
+static __inline void outl(unsigned short dest_port, unsigned int input_data)
+{
+	asm volatile (
+		"outl       %%eax, %%dx"
+		:: "d" (dest_port), "a"((unsigned int)input_data));
+}
+
+#else
+#define inb(p) readb(p)
+#define inw(p) readw(p)
+#define inl(p) readl(p)
+#define outb(p,v) WRITE8(p,v)
+#define outw(p,v) WRITE16(p,v)
+#define outl(p,v) WRITE32(p,v)
+#endif /* __X86 */
 
 
 #endif /* IO_H_ */

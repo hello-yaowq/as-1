@@ -23,12 +23,7 @@
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter;
 #ifdef RT_USING_HEAP
-#ifdef __X86__
-extern unsigned char __bss_end[];
-#define heap &__bss_end
-#else
 static rt_uint8_t heap[RT_HEAP_SIZE];
-#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #if RT_THREAD_PRIORITY_MAX  < TASK_NUM

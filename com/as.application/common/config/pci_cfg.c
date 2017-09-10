@@ -30,9 +30,15 @@
 #define mmiocfg_APPLE_003F           NULL
 #define mmiocfg_XILINX_0300          NULL
 #define mmiocfg_REDHAT_QUMRANET_1005 NULL
+#ifdef __X86__
+#define mmiocfg_REDHAT_QUMRANET_1000 NULL
+#define mmiocfg_REDHAT_QUMRANET_1001 NULL
+#define mmiocfg_HELLO_TIC_0001       NULL
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+#ifndef __X86__
 static uint32 __attribute__((aligned(16))) __attribute__((section(".pcip"))) memp_REDHAT_QUMRANET_1000[0x20];
 static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) memnp_REDHAT_QUMRANET_1000[0x10];
 static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1000[1] =
@@ -57,18 +63,17 @@ static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1001[1] =
 	}
 };
 
-static uint32 __attribute__((aligned(4))) __attribute__((section(".pciio"))) io_HELLO_TIC_0001[0x10];
 static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) mem_HELLO_TIC_0001[0x40];
 static const pci_mmio_cfg mmiocfg_HELLO_TIC_0001[1] =
 {
 	{
 		.mem_addr = {0,(DWORD)mem_HELLO_TIC_0001,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
-		.io_addr = {(DWORD)io_HELLO_TIC_0001,0,0,0,0,0},
-		.io_size={0x10,0,0,0,0,0},
+		.io_addr = {0,0,0,0,0,0},
+		.io_size={0,0,0,0,0,0},
 	}
 };
-
+#endif /* __X86__ */
 /* in the order of vendor id and then device id, both from small to big */
 /* https://github.com/qemu/qemu/blob/master/docs/specs/pci-ids.txt */
 const pci_vendor_info  pci_vendor_list[PCI_VENDOR_NUM] = 
