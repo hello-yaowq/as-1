@@ -30,11 +30,9 @@
 #include "asdebug.h"
 #ifdef USE_PCI
 #include "pci_core.h"
-#include "virtio_net.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8000))()
-#define TEST_HELLO_TIC
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -134,43 +132,6 @@ void Mcu_DistributePllClock( void )
 	#ifdef USE_PCI
 	pci_init();
 	pci_search_all_device();
-	//virtio_net_init();
-#ifdef TEST_HELLO_TIC
-	{/* test of hello tic */
-		int i;
-		uint32 *pmem,*pio;
-		pdev =find_pci_dev_from_id(0xcaac,0x0003);
-		enable_pci_resource(pdev);
-		pci_bus_write_config_byte(pdev,0x3c,0x43/* 67 ?*/);
-		pci_register_irq(32+30,hello_tic_isr);
-		printf("hello tic mem addr[] = { ");
-		for(i=0;i<6;i++)
-		{
-			printf("(0x%x, 0x%x)", pdev->mem_addr[i], pdev->mem_size[i]);
-		}
-		printf(" };\n");
-		printf("hello tic io addr[] = { ");
-		for(i=0;i<6;i++)
-		{
-			printf("(0x%x, 0x%x)", pdev->io_addr[i], pdev->io_size[i]);
-		}
-		printf(" };\n");
-
-		for(i=0;i<16;i++)
-		{
-			printf("%02x = %08X\n", 4*i, pci_bus_read_config_dword(pdev,4*i));
-		}
-#if 1
-		pmem = pdev->mem_addr[1];
-		pmem[0] = 12345678;
-
-		pmem[2] = 1;	/* assert irq */
-#else
-		pio = pdev->mem_addr[0];
-		pio[0] = 987654321;
-#endif
-	}
-#endif
 	#endif
 	DisableInterrupts();
 #ifndef __AS_BOOTLOADER__

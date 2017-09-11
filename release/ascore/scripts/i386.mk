@@ -76,7 +76,11 @@ dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/boot)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/x86/mcal TRUE)
+ifeq ($(usepci),yes)
+	@(cd $(src-dir);rm -vf Can.c)
+else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
+endif
 ifeq ($(rtos),tinix)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)

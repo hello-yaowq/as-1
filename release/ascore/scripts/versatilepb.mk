@@ -74,7 +74,11 @@ dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/bsp TRUE)
 	@(cd $(src-dir);mv pci.c pci-versatilepb.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/$(board)/mcal TRUE)
+ifeq ($(usepci),yes)
+	@(cd $(src-dir);rm -vf Can.c)
+else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
+endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)

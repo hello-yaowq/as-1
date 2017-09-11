@@ -48,6 +48,9 @@ static Property ascan_properties[] = {
 
 DEFINE_PROP_END_OF_LIST(), };
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void luai_canlib_open(void);
+extern void luai_canlib_close(void);
+
 static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size);
 static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size);
@@ -237,7 +240,8 @@ static void pci_ascandev_uninit(PCIDevice *dev) {
 }
 
 static void qdev_pci_ascandev_reset(DeviceState *dev) {
-	/* TODO init here */
+	luai_canlib_close();
+	luai_canlib_open();
 }
 
 /* Called when the device is defined

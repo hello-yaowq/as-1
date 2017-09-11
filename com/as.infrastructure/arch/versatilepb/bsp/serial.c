@@ -81,7 +81,9 @@ char uart_rxdata()
 static int serial_irq_handler(void *ctx)
 {
 	(void) ctx;
+#ifndef USE_PCI
 	Can_MainFunction_Read_InISR();
+#endif
 	clear_rxe_irq();
 	return 0;
 }
