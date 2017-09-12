@@ -24,6 +24,19 @@
 /* sizes must be power of 2 in PCI */
 #define ASCAN_IO_SIZE 1<<4
 #define ASCAN_MMIO_SIZE 1<<6
+
+enum{
+	REG_BUS_NAME  = 0x00,
+	REG_BUSID     = 0x04,
+	REG_PORT      = 0x08,
+	REG_CANID     = 0x0C,
+	REG_CANDLC    = 0x10,
+	REG_CANDL     = 0x14,
+	REG_CANDH     = 0x18,
+	REG_CANSTATUS = 0x1C,
+	REG_CMD       = 0x1C,
+};
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct PCIASCANDevState {
 	PCIDevice parent_obj;
@@ -42,6 +55,17 @@ typedef struct PCIASCANDevState {
 	int threw_irq;
 	/* id of the device, writable */
 	int id;
+
+	char bus_name[64];
+	uint32_t bn_pos;
+
+	uint32_t busid;
+	uint32_t port;
+	uint32_t canid;
+	uint32_t candlc;
+	uint32_t candl;
+	uint32_t candh;
+
 } PCIASCANDevState;
 
 static Property ascan_properties[] = {
@@ -50,6 +74,9 @@ DEFINE_PROP_END_OF_LIST(), };
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void luai_canlib_open(void);
 extern void luai_canlib_close(void);
+extern int can_open(unsigned long busid,const char* device_name,unsigned long port, unsigned long baudrate);
+extern int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
+extern int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsigned long *dlc,unsigned char* data);
 
 static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size);
 static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
@@ -100,6 +127,7 @@ static const TypeInfo pci_ascan_info = {
 	.instance_size = sizeof(PCIASCANDevState),
 	.class_init = pci_ascandev_class_init,
 };
+
 /* ============================ [ LOCALS    ] ====================================================== */
 static void ascan_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
@@ -168,25 +196,78 @@ static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 	PCIASCANDevState *d = (PCIASCANDevState *) opaque;
-	PCIDevice *pci_dev = (PCIDevice *) opaque;
 
 	switch (addr) {
-	case 4:
+	case REG_BUS_NAME:
 		/* change the id */
-		d->id = value;
-		break;
-	case 8:
-		if (value) {
-			/* throw an interrupt */
-			d->threw_irq = 1;
-			pci_irq_assert(pci_dev);
-
-		} else {
-			/*  ack interrupt */
-			pci_irq_deassert(pci_dev);
-			d->threw_irq = 0;
+		if(d->bn_pos < (sizeof(d->bus_name)-1))
+		{
+			d->bus_name[d->bn_pos] = value;
+			d->bn_pos++;
 		}
 		break;
+	case REG_BUSID:
+		d->busid = value;
+		break;
+	case REG_PORT:
+		d->port = value;
+		break;
+	case REG_CANID:
+		d->canid = value;
+	break;
+	case REG_CANDLC:
+		d->candlc = value;
+	break;
+	case REG_CANDL:
+		d->candl = value;
+	break;
+	case REG_CANDH:
+		d->candh = value;
+	break;
+	case REG_CMD:
+		switch(value)
+		{
+			case 0:
+				d->bn_pos = 0; /* do this command first before config bus name */
+				memset(d->bus_name, 0, sizeof(d->bus_name));
+			break;
+			case 1:
+			{
+				int rv = can_open(d->busid, d->bus_name, d->port, 1000000);
+				if(TRUE == rv)
+				{
+					printf("start %s busid(%d) port(%d) okay\n", d->bus_name, d->busid,  d->port);
+				}
+				else
+				{
+					printf("please start up %s for simulation:\n"
+							"\tsudo modprobe vcan\n"
+							"\tsudo ip link add dev can%d type vcan\n"
+							"\tsudo ip link set up can%d\n",
+							(0==strcmp(d->bus_name,"socket"))?"vcan":d->bus_name,
+									d->port,d->port);
+				}
+			}
+			break;
+			case 2:
+			{
+				uint8_t data[8];
+				data[0] = (d->candl>>0)&0xFF;
+				data[1] = (d->candl>>8)&0xFF;
+				data[2] = (d->candl>>16)&0xFF;
+				data[3] = (d->candl>>24)&0xFF;
+				data[4] = (d->candh>>0)&0xFF;
+				data[5] = (d->candh>>8)&0xFF;
+				data[6] = (d->candh>>16)&0xFF;
+				data[7] = (d->candh>>24)&0xFF;
+				can_write(d->busid,d->canid,d->candlc,data);
+			}
+			break;
+			default:
+				printf ("%s: Bad command 0x%x\n", __func__, (int)value);
+			break;
+		}
+	break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 

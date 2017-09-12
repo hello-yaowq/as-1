@@ -14,6 +14,8 @@
 # */
 target-y = $(board)
 
+export forceclib?=no
+
 obj-dir = $(CURDIR)/obj/$(board)
 exe-dir = $(CURDIR)/out
 src-dir = $(CURDIR)/src/$(board)
@@ -124,7 +126,11 @@ ldflags-y += $(src-dir)/PCANBasic.lib
 endif
 ldflags-y += -lm
 cflags-y +=-Wextra 
+ifeq ($(forceclib),yes)
+def-y += -D__AS_CAN_BUS__
+else
 def-y    += -D__AS_PY_CAN__
+endif
 def-y    += -D__AS_PY_DEV__
 endif	# pyas end
 

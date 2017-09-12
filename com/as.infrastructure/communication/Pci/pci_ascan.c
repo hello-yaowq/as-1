@@ -57,12 +57,15 @@
 #define CAN_EMPTY_MESSAGE_BOX 0xFFFF
 
 enum{
-	REG_DEV_NAME  = 0x00,
+	REG_BUS_NAME  = 0x00,
 	REG_BUSID     = 0x04,
-	REG_CANID     = 0x08,
-	REG_CANDLC    = 0x0C,
-	REG_CANDATA   = 0x10,
-	REG_CANSTATUS = 0x14,
+	REG_PORT      = 0x08,
+	REG_CANID     = 0x0C,
+	REG_CANDLC    = 0x10,
+	REG_CANDL     = 0x14,
+	REG_CANDH     = 0x18,
+	REG_CANSTATUS = 0x1C,
+	REG_CMD       = 0x1C,
 };
 /* ============================ [ TYPES     ] ====================================================== */
 typedef enum
@@ -200,6 +203,8 @@ void Can_Init( const Can_ConfigType *config )
 		Can_Global.initRun = CAN_READY;
 
 		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
+			char* p;
+			imask_t irq_state;
 			canHwConfig = GET_CONTROLLER_CONFIG(configId);
 			ctlrId = canHwConfig->CanControllerId;
 
@@ -215,6 +220,20 @@ void Can_Init( const Can_ConfigType *config )
 			canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 
 			Can_InitController(ctlrId, canHwConfig);
+
+			Irq_Save(irq_state);
+			writel(__iobase+REG_CMD, 0); /* CMD init, reset bus name */
+
+			for(p="socket"; *p != '\0'; p++)
+			{
+				writel(__iobase+REG_BUS_NAME, *p);
+			}
+
+			writel(__iobase+REG_BUSID, ctlrId);
+			writel(__iobase+REG_PORT,  ctlrId);
+
+			writel(__iobase+REG_CMD, 1); /* CMD start open device */
+			Irq_Restore(irq_state);
 
 			/* Loop through all Hoh:s and map them into the HTHMap */
 			const Can_HardwareObjectType* hoh;
@@ -257,7 +276,6 @@ void Can_InitController( uint8 controller, const Can_ControllerConfigType *confi
 
 	canUnit->state = CANIF_CS_STOPPED;
 	Can_EnableControllerInterrupts(cId);
-
 }
 
 Can_ReturnType Can_SetControllerMode( uint8 controller, Can_StateTransitionType transition )
@@ -332,7 +350,15 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 		Irq_Save(irq_state);
 		if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 		{
-
+			uint32_t val;
+			writel(__iobase+REG_BUSID, controller);
+			writel(__iobase+REG_CANID, pduInfo->id);
+			writel(__iobase+REG_CANDLC, pduInfo->length);
+			val = pduInfo->sdu[0] + (pduInfo->sdu[1]<<8) + (pduInfo->sdu[2]<<16) + (pduInfo->sdu[3]<<24);
+			writel(__iobase+REG_CANDL, val);
+			val = pduInfo->sdu[4] + (pduInfo->sdu[5]<<8) + (pduInfo->sdu[6]<<16) + (pduInfo->sdu[7]<<24);
+			writel(__iobase+REG_CANDH, val);
+			writel(__iobase+REG_CMD, 2);
 			ASLOG(CAN,"CAN%d ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",controller,
 				pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],
 				pduInfo->sdu[4],pduInfo->sdu[5],pduInfo->sdu[6],pduInfo->sdu[7]);

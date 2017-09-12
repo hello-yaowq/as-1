@@ -48,17 +48,17 @@ aslwip: $(download)/lwip $(download)/lwip-contrib
 $(download)/rt-thread:
 	@(cd $(download); git clone https://github.com/RT-Thread/rt-thread.git)
 
-$(prj-dir)/release/aslua/out/libpyas.a:
-	(cd $(prj-dir)/release/aslua; make 81; make 82)
+$(download)/qemu/hw/char/libpyas.a:
+	(cd $(prj-dir)/release/aslua; make 81; make 82 forceclib=yes)
 
-$(download)/qemu:
+$(download)/qemu: $(download)/qemu/hw/char/libpyas.a
 	@(cd $(download); git clone https://github.com/qemu/qemu.git; \
 		cd qemu; git submodule update --init dtc ; \
 		cd hw/char; $(LNFS) $(prj-dir)/com/as.tool/qemu/hw/char TRUE; \
-		$(LNFS) $(prj-dir)/release/aslua/out/libpyas.a; \
+		cp $(prj-dir)/release/aslua/out/libpyas.a .; \
 		cat Makefile >> Makefile.objs)
 
-asqemu:$(download)/qemu $(prj-dir)/release/aslua/out/libpyas.a
+asqemu:$(download)/qemu
 	@(cd $(download)/qemu; ./configure; make)
 
 $(src-dir)/pci.download.done:
