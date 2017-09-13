@@ -18,12 +18,19 @@
 #include "hw/pci/pci.h"
 #include "qemu/event_notifier.h"
 #include <time.h>
+#include <sys/queue.h>
+#include <pthread.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define TYPE_PCI_ASCAN_DEV "pci-ascan"
 #define PCI_ASCAN_DEV(obj)     OBJECT_CHECK(PCIASCANDevState, (obj), TYPE_PCI_ASCAN_DEV)
 /* sizes must be power of 2 in PCI */
 #define ASCAN_IO_SIZE 1<<4
 #define ASCAN_MMIO_SIZE 1<<6
+
+enum {
+	FLG_RX = 0x01,
+	FLG_TX = 0x02,
+};
 
 enum{
 	REG_BUS_NAME  = 0x00,
@@ -38,6 +45,15 @@ enum{
 };
 
 /* ============================ [ TYPES     ] ====================================================== */
+struct Can_Bus_s {
+	uint32_t busid;
+
+	uint32_t canid;
+	uint32_t candlc;
+	uint32_t candl;
+	uint32_t candh;
+	STAILQ_ENTRY(Can_Bus_s) entry;	/* entry for Can_PduQueue_s, sort by CANID queue*/
+};
 typedef struct PCIASCANDevState {
 	PCIDevice parent_obj;
 
@@ -56,8 +72,13 @@ typedef struct PCIASCANDevState {
 	/* id of the device, writable */
 	int id;
 
+	pthread_t thread;
+	STAILQ_HEAD(,Can_Bus_s) head;
+
 	char bus_name[64];
 	uint32_t bn_pos;
+
+	uint32_t flag;
 
 	uint32_t busid;
 	uint32_t port;
@@ -129,6 +150,38 @@ static const TypeInfo pci_ascan_info = {
 };
 
 /* ============================ [ LOCALS    ] ====================================================== */
+#if 0
+static struct Can_Bus_s* getBus(PCIASCANDevState *d, uint32_t busid)
+{
+	struct Can_Bus_s* b;
+
+	STAILQ_FOREACH(b, &d->head, entry)
+	{
+		if(b->busid == busid)
+		{
+			break;
+		}
+	}
+
+	return b;
+}
+#endif
+
+static void * daemon_thread(void * param)
+{
+	PCIASCANDevState *d = (PCIASCANDevState *) param;
+	PCIDevice *pci_dev = (PCIDevice *) param;
+	struct Can_Bus_s* b;
+
+	(void)pci_dev;
+
+	STAILQ_FOREACH(b, &d->head, entry)
+	{
+
+	}
+
+	return NULL;
+}
 static void ascan_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 	int i;
@@ -176,15 +229,14 @@ static uint64_t ascan_ioread(void *opaque, hwaddr addr, unsigned size) {
 
 static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 	PCIASCANDevState *d = (PCIASCANDevState *) opaque;
-
+	PCIDevice *pci_dev = (PCIDevice *) opaque;
+	uint64_t rv;
 	switch (addr) {
-	case 0:
-		/* also irq status */
-		return d->threw_irq;
-		break;
-	case 4:
-		/* Id of the device */
-		return d->id;
+	case REG_CANSTATUS:
+		pci_irq_deassert(pci_dev);
+		rv = d->flag;
+		d->flag = 0;
+		return rv;
 		break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
@@ -196,7 +248,7 @@ static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 	PCIASCANDevState *d = (PCIASCANDevState *) opaque;
-
+	PCIDevice *pci_dev = (PCIDevice *) opaque;
 	switch (addr) {
 	case REG_BUS_NAME:
 		/* change the id */
@@ -208,6 +260,7 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		break;
 	case REG_BUSID:
 		d->busid = value;
+		assert(value < 8);
 		break;
 	case REG_PORT:
 		d->port = value;
@@ -236,6 +289,15 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				int rv = can_open(d->busid, d->bus_name, d->port, 1000000);
 				if(TRUE == rv)
 				{
+					struct Can_Bus_s *p = malloc(sizeof(struct Can_Bus_s));
+					assert(p);
+					p->busid = d->busid;
+
+					if(STAILQ_EMPTY(&d->head))
+					{
+						pthread_create(&(d->thread), NULL, daemon_thread, d);
+					}
+					STAILQ_INSERT_TAIL(&d->head, p, entry);
 					printf("start %s busid(%d) port(%d) okay\n", d->bus_name, d->busid,  d->port);
 				}
 				else
@@ -251,6 +313,7 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 			break;
 			case 2:
 			{
+				int rv;
 				uint8_t data[8];
 				data[0] = (d->candl>>0)&0xFF;
 				data[1] = (d->candl>>8)&0xFF;
@@ -260,7 +323,12 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				data[5] = (d->candh>>8)&0xFF;
 				data[6] = (d->candh>>16)&0xFF;
 				data[7] = (d->candh>>24)&0xFF;
-				can_write(d->busid,d->canid,d->candlc,data);
+				rv = can_write(d->busid,d->canid,d->candlc,data);
+				if(TRUE == rv)
+				{
+					d->flag |= FLG_TX<<(4*d->busid);
+					pci_irq_assert(pci_dev);
+				}
 			}
 			break;
 			default:
@@ -290,8 +358,10 @@ static int pci_ascandev_init(PCIDevice *pci_dev) {
 	d->dma_buf = malloc(d->dma_size);
 	d->id = 0xcaac;
 	d->threw_irq = 0;
+	d->flag = 0;
 	uint8_t *pci_conf;
 
+	STAILQ_INIT(&d->head);
 	/* create the memory region representing the MMIO and PIO
 	 * of the device
 	 */
@@ -321,6 +391,14 @@ static void pci_ascandev_uninit(PCIDevice *dev) {
 }
 
 static void qdev_pci_ascandev_reset(DeviceState *dev) {
+	PCIASCANDevState *d = (PCIASCANDevState *) dev;
+	while(FALSE == STAILQ_EMPTY(&d->head))
+	{
+		struct Can_Bus_s *p = STAILQ_FIRST(&d->head);
+		STAILQ_REMOVE_HEAD(&d->head,entry);
+
+		free(p);
+	}
 	luai_canlib_close();
 	luai_canlib_open();
 }

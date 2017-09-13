@@ -56,6 +56,11 @@
 
 #define CAN_EMPTY_MESSAGE_BOX 0xFFFF
 
+enum {
+	FLG_RX = 0x01,
+	FLG_TX = 0x02,
+};
+
 enum{
 	REG_BUS_NAME  = 0x00,
 	REG_BUSID     = 0x04,
@@ -174,7 +179,33 @@ static const Can_HardwareObjectType * Can_FindHoh( Can_Arc_HTHType hth , uint32*
 
 static void can_isr(void)
 {
-	ASLOG(CAN,"can isr\n");
+	uint32 flag = readl(__iobase+REG_CANSTATUS);
+	Can_UnitType *canUnit;
+	const Can_ControllerConfigType *canHwConfig;
+	uint8 ctlrId;
+
+	ASLOG(CAN,"can isr flag is 0x%08X\n", flag);
+	if(Can_Global.initRun == CAN_READY)
+	{
+		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
+			canHwConfig = GET_CONTROLLER_CONFIG(configId);
+			ctlrId = canHwConfig->CanControllerId;
+
+			canUnit = GET_PRIVATE_DATA(ctlrId);
+			if(flag&(FLG_TX<<(4*ctlrId)))
+			{
+				if(CAN_EMPTY_MESSAGE_BOX != canUnit->swPduHandle)
+				{
+					if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
+					{
+						Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
+						ASLOG(CAN,"TxComfirm(%d,%d)\n",configId,canUnit->swPduHandle);
+					}
+					canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
+				}
+			}
+		}
+	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Can_Init( const Can_ConfigType *config )
@@ -198,6 +229,7 @@ void Can_Init( const Can_ConfigType *config )
 		pci_bus_write_config_byte(pdev,0x3c,0x43);
 		pci_register_irq(32+30,can_isr);
 		#endif
+		enable_pci_interrupt(pdev);
 
 		Can_Global.config = config;
 		Can_Global.initRun = CAN_READY;
