@@ -76,7 +76,7 @@ typedef struct virtqueue
 	uint32 num_added;
 
 	uint32 idx;
-	WORD iobase;
+	uint16 iobase;
 
 }VirtQ_QueueType;
 

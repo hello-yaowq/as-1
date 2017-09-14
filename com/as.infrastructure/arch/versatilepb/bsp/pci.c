@@ -172,53 +172,53 @@ int pci_generic_config_read(unsigned int busnr, unsigned int devfn,
 }
 
 /* Lunatic */
-DWORD pci_read_config_reg32(pci_reg *reg, BYTE offset)
+uint32 pci_read_config_reg32(pci_reg *reg, uint8 offset)
 {
-    DWORD value;
+    uint32 value;
 	
 	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 4, &value);
     
     return value;
 }
 
-WORD pci_read_config_reg16(pci_reg *reg, BYTE offset)
+uint16 pci_read_config_reg16(pci_reg *reg, uint8 offset)
 {
-	DWORD value;
+	uint32 value;
 	
 	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 2, &value);
     
-    return (WORD)value;
+    return (uint16)value;
 }
 
-BYTE pci_read_config_reg8(pci_reg *reg, BYTE offset)
+uint8 pci_read_config_reg8(pci_reg *reg, uint8 offset)
 {
-	DWORD value;
+	uint32 value;
 	
 	pci_generic_config_read(reg->bus, reg->fn, offset|(reg->dev<<11), 1, &value);
     
-    return (BYTE)value;
+    return (uint8)value;
 }
 
-void pci_write_config_reg32(pci_reg *reg, BYTE offset, const DWORD value)
+void pci_write_config_reg32(pci_reg *reg, uint8 offset, const uint32 value)
 {
 	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 4, value);
 }
 
-void pci_write_config_reg16(pci_reg *reg, BYTE offset ,const WORD value)
+void pci_write_config_reg16(pci_reg *reg, uint8 offset ,const uint16 value)
 {
 	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 2, value);
 }
 
-void pci_write_config_reg8(pci_reg *reg, BYTE offset, const BYTE value)
+void pci_write_config_reg8(pci_reg *reg, uint8 offset, const uint8 value)
 {
 	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 1, value);
 }
 
 
-int pci_disable_IRQ_line(DWORD irq) { irq_disable_line(irq); return 0; }
-int pci_enable_IRQ_line(DWORD irq)  { irq_enable_line(irq); return 0; }
-int pci_sys_set_irq_handle(DWORD irq, void(*handle)(void)) { return irq_install_isr(irq,handle); }
-int pci_sys_irq_set_level_trigger(DWORD irq) { return 1; }
-int pci_sys_irq_set_edge_trigger(DWORD irq)  { return 1; }
+int pci_disable_IRQ_line(uint32 irq) { irq_disable_line(irq); return 0; }
+int pci_enable_IRQ_line(uint32 irq)  { irq_enable_line(irq); return 0; }
+int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return irq_install_isr(irq,handle); }
+int pci_sys_irq_set_level_trigger(uint32 irq) { return 1; }
+int pci_sys_irq_set_edge_trigger(uint32 irq)  { return 1; }
 
 #endif

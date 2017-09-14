@@ -38,44 +38,44 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
-	DWORD					mem_addr[6];
-	DWORD					mem_size[6];
-	WORD					io_addr[6];
-	WORD					io_size[6];
+	uint32					mem_addr[6];
+	uint32					mem_size[6];
+	uint16					io_addr[6];
+	uint16					io_size[6];
 } pci_mmio_cfg;
 typedef struct __pci_vendor_info {
-	WORD			vendor_id;			/* vendor id */
-	WORD			device_id;			/* device id */
+	uint16			vendor_id;			/* vendor id */
+	uint16			device_id;			/* device id */
 	const char		*name;			/* device name */
-	BYTE			bridge_type;	/* bridge type or 0xff */
+	uint8			bridge_type;	/* bridge type or 0xff */
 	const pci_mmio_cfg* mmio_cfg;
 } pci_vendor_info;
 
 typedef struct __pci_device_info {
 	pci_vendor_info		info;
-	DWORD				base_addr;
-	BYTE				base_class;
-	BYTE				sub_class;
+	uint32				base_addr;
+	uint8				base_class;
+	uint8				sub_class;
 } pci_device_info;
 
 typedef struct __pci_res {
-	BYTE		bus;		/* バス番号 */
-	BYTE		dev;		/* デバイス番号 */
-	BYTE		fn;			/* 機能番号 */
+	uint8		bus;		/* バス番号 */
+	uint8		dev;		/* デバイス番号 */
+	uint8		fn;			/* 機能番号 */
 } pci_reg;
 
 typedef struct __pci_dev {
 	int						pci_num;
 	struct __pci_dev		*next;
-	DWORD					mem_addr[6];
-	DWORD					mem_size[6];
-	WORD					io_addr[6];
-	WORD					io_size[6];
-	BYTE					irq_num;
-	BYTE					intr_num;
-	WORD					vendor_id;
-	WORD					device_id;
-	WORD					subsys_id;
+	uint32					mem_addr[6];
+	uint32					mem_size[6];
+	uint16					io_addr[6];
+	uint16					io_size[6];
+	uint8					irq_num;
+	uint8					intr_num;
+	uint16					vendor_id;
+	uint16					device_id;
+	uint16					subsys_id;
 	pci_vendor_info			*vendor;
 	pci_reg					dev;
 	void*					priv;
@@ -92,13 +92,13 @@ int pci_generic_config_write(unsigned int busnr, unsigned int devfn,
 int pci_generic_config_read(unsigned int busnr, unsigned int devfn,
 							int where, int size, u32 *val);
 
-BYTE pci_read_config_reg8(pci_reg*, BYTE);
-WORD pci_read_config_reg16(pci_reg*, BYTE);
-DWORD pci_read_config_reg32(pci_reg*, BYTE);
+uint8 pci_read_config_reg8(pci_reg*, uint8);
+uint16 pci_read_config_reg16(pci_reg*, uint8);
+uint32 pci_read_config_reg32(pci_reg*, uint8);
 
-void pci_write_config_reg8(pci_reg*, BYTE, const BYTE);
-void pci_write_config_reg16(pci_reg*, BYTE, const WORD);
-void pci_write_config_reg32(pci_reg*, BYTE, const DWORD);
+void pci_write_config_reg8(pci_reg*, uint8, const uint8);
+void pci_write_config_reg16(pci_reg*, uint8, const uint16);
+void pci_write_config_reg32(pci_reg*, uint8, const uint32);
 
 void disable_pci_resource(pci_dev*);
 void enable_pci_resource(pci_dev*);
@@ -106,11 +106,11 @@ void enable_pci_resource(pci_dev*);
 void enable_pci_interrupt(pci_dev*);
 void disable_pci_interrupt(pci_dev*);
 
-int pci_register_irq(DWORD irq_num, void (*handler)());
-int pci_unregister_irq(DWORD irq_num);
+int pci_register_irq(uint32 irq_num, void (*handler)());
+int pci_unregister_irq(uint32 irq_num);
 
 pci_dev *find_pci_dev_from_reg(pci_reg *reg);
-pci_dev *find_pci_dev_from_id(DWORD vendor_id, DWORD device_id);
+pci_dev *find_pci_dev_from_id(uint32 vendor_id, uint32 device_id);
 
 void pci_search_all_device(void);
 #endif /* _PCI_CORE_H_ */

@@ -39,46 +39,46 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 static void do_pci_search_all_device(void);
-static pci_vendor_info *search_vendor_info(WORD vendor_id, WORD device_id);
+static pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id);
 static int insert_new_pcidev(pci_dev *pci);
 static void print_device_type(pci_dev *device);
 static int check_multiple(pci_dev *device);
 static void get_pci_resouce(pci_dev *device);
-static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
-		DWORD *addr_size, int *prefetch);
+static void pciDecodeBar(pci_dev *device, uint8 offset, uint32 *base_addr,
+		uint32 *addr_size, int *prefetch);
 
 extern void __putchar(char ch);
 extern void *asmalloc(size_t xWantedSize);
 
-extern int pci_disable_IRQ_line(DWORD irq);
-extern int pci_enable_IRQ_line(DWORD irq);
-extern int pci_sys_set_irq_handle(DWORD irq, void (*handle)(void));
-extern int pci_sys_irq_set_level_trigger(DWORD irq);
-extern int pci_sys_irq_set_edge_trigger(DWORD irq);
+extern int pci_disable_IRQ_line(uint32 irq);
+extern int pci_enable_IRQ_line(uint32 irq);
+extern int pci_sys_set_irq_handle(uint32 irq, void (*handle)(void));
+extern int pci_sys_irq_set_level_trigger(uint32 irq);
+extern int pci_sys_irq_set_edge_trigger(uint32 irq);
 
 /* ============================ [ DATAS     ] ====================================================== */
 static pci_dev *pci_root = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
-static int disable_IRQ_line(DWORD irq) {
+static int disable_IRQ_line(uint32 irq) {
 	return pci_disable_IRQ_line(irq);
 }
-static int enable_IRQ_line(DWORD irq) {
+static int enable_IRQ_line(uint32 irq) {
 	return pci_enable_IRQ_line(irq);
 }
-static int _sys_set_irq_handle(DWORD irq, void (*handle)(void)) {
+static int _sys_set_irq_handle(uint32 irq, void (*handle)(void)) {
 	return pci_sys_set_irq_handle(irq, handle);
 }
-static int _sys_irq_set_level_trigger(DWORD irq) {
+static int _sys_irq_set_level_trigger(uint32 irq) {
 	return pci_sys_irq_set_level_trigger(irq);
 }
-static int _sys_irq_set_edge_trigger(DWORD irq) {
+static int _sys_irq_set_edge_trigger(uint32 irq) {
 	return pci_sys_irq_set_edge_trigger(irq);
 }
 
 /*
  バイナリーサーチで、デバイスを探す
  */
-static pci_vendor_info *search_vendor_info(WORD vendor_id, WORD device_id) {
+static pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id) {
 	int min, max;
 	int median;
 	int tmp;
@@ -188,9 +188,9 @@ static int traverse_pci_dev(void) {
 
 static void do_pci_search_all_device(void) {
 	pci_dev device;
-	DWORD tmp;
+	uint32 tmp;
 	int i = 0;
-	DWORD bus_id, device_num, function_num;
+	uint32 bus_id, device_num, function_num;
 
 	for (bus_id = 0; bus_id <= 255; bus_id++) {
 		for (device_num = 0; device_num <= 31; device_num++) {
@@ -208,13 +208,13 @@ static void do_pci_search_all_device(void) {
 
 					tmp = pci_read_config_reg32(&device.dev, 0x0);
 
-					device.vendor_id = (DWORD) tmp;
-					device.device_id = (DWORD) (tmp >> 16);
+					device.vendor_id = (uint32) tmp;
+					device.device_id = (uint32) (tmp >> 16);
 					device.pci_num = i;
 
-					device.irq_num = (BYTE) (pci_read_config_reg16(&device.dev,
+					device.irq_num = (uint8) (pci_read_config_reg16(&device.dev,
 							0x3c) & 0xff);
-					device.intr_num = (BYTE) ((pci_read_config_reg16(
+					device.intr_num = (uint8) ((pci_read_config_reg16(
 							&device.dev, 0x3c) >> 8) & 0xff);
 
 					device.dev.bus = bus_id;
@@ -244,9 +244,9 @@ static void do_pci_search_all_device(void) {
 }
 
 static int check_multiple(pci_dev *device) {
-	DWORD value;
+	uint32 value;
 	value = pci_read_config_reg32(&device->dev, 0x0c);
-	if ((BYTE) (value >> 16) & 0x80) {
+	if ((uint8) (value >> 16) & 0x80) {
 		return 1;
 	} else {
 		return 0;
@@ -254,9 +254,9 @@ static int check_multiple(pci_dev *device) {
 }
 
 static void print_device_type(pci_dev *device) {
-	DWORD value;
+	uint32 value;
 	value = pci_read_config_reg32(&device->dev, 0xc);
-	switch ((BYTE) (value >> 16) & 0x7F) {
+	switch ((uint8) (value >> 16) & 0x7F) {
 	case 0x0:
 		_sys_printf(" (normal device)");
 		break;
@@ -270,9 +270,9 @@ static void print_device_type(pci_dev *device) {
 }
 
 static void get_pci_resouce(pci_dev *device) {
-	DWORD offset;
+	uint32 offset;
 	int i;
-	DWORD base_addr, addr_size;
+	uint32 base_addr, addr_size;
 	int prefetch;
 
 	for (i = 0; i < 6; i++) {
@@ -294,13 +294,13 @@ static void get_pci_resouce(pci_dev *device) {
 }
 
 /* check http://wiki.osdev.org/PCI#Base_Address_Registers */
-static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
-		DWORD *addr_size, int *prefetch) {
-	DWORD orig = pci_read_config_reg32(&device->dev, offset);
-	DWORD type = orig & 0xf;
-	DWORD addr;
-	DWORD size;
-	DWORD tmp;
+static void pciDecodeBar(pci_dev *device, uint8 offset, uint32 *base_addr,
+		uint32 *addr_size, int *prefetch) {
+	uint32 orig = pci_read_config_reg32(&device->dev, offset);
+	uint32 type = orig & 0xf;
+	uint32 addr;
+	uint32 size;
+	uint32 tmp;
 
 	disable_pci_resource(device);
 	pci_write_config_reg32(&device->dev, offset, 0xffffffff);
@@ -414,7 +414,7 @@ static void pciDecodeBar(pci_dev *device, BYTE offset, DWORD *base_addr,
 	enable_pci_resource(device);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-int pci_register_irq(DWORD irq_num, void (*handler)()) {
+int pci_register_irq(uint32 irq_num, void (*handler)()) {
 	disable_IRQ_line(irq_num);
 	if (_sys_irq_set_level_trigger(irq_num)) {
 		_sys_set_irq_handle(irq_num, handler);
@@ -424,40 +424,40 @@ int pci_register_irq(DWORD irq_num, void (*handler)()) {
 	return 0;
 }
 
-int pci_unregister_irq(DWORD irq_num) {
+int pci_unregister_irq(uint32 irq_num) {
 	disable_IRQ_line(irq_num);
 	return (_sys_irq_set_edge_trigger(irq_num));
 }
 
 void disable_pci_resource(pci_dev *device) {
-	WORD value;
+	uint16 value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
 	value &= ~0x103;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void enable_pci_resource(pci_dev *device) {
-	WORD value;
+	uint16 value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
 	value |= 0x103;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void enable_pci_interrupt(pci_dev *device) {
-	WORD value;
+	uint16 value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
 	value &= ~0x400;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
 void disable_pci_interrupt(pci_dev *device) {
-	WORD value;
+	uint16 value;
 	value = pci_read_config_reg16(&device->dev, 0x04);
 	value |= 0x400;
 	pci_write_config_reg16(&device->dev, 0x04, value);
 }
 
-pci_dev *find_pci_dev_from_id(DWORD vendor_id, DWORD device_id) {
+pci_dev *find_pci_dev_from_id(uint32 vendor_id, uint32 device_id) {
 	pci_dev *ptr;
 
 	for (ptr = pci_root; !(ptr == NULL); ptr = ptr->next) {

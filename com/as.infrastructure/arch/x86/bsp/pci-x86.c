@@ -24,10 +24,10 @@
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* Lunatic */
-DWORD pci_read_config_reg32(pci_reg *reg, BYTE offset)
+uint32 pci_read_config_reg32(pci_reg *reg, uint8 offset)
 {
-    DWORD value, orig;
-    DWORD ret;
+    uint32 value, orig;
+    uint32 ret;
 
     value = 0x80000000UL;
     value |= (offset & 0xfc);
@@ -44,10 +44,10 @@ DWORD pci_read_config_reg32(pci_reg *reg, BYTE offset)
     return ret;
 }
 
-WORD pci_read_config_reg16(pci_reg *reg, BYTE offset)
+uint16 pci_read_config_reg16(pci_reg *reg, uint8 offset)
 {
-    DWORD value, orig;
-    WORD  ret;
+    uint32 value, orig;
+    uint16  ret;
 
     value = 0x80000000UL;
     value |= (offset & 0xfc);
@@ -64,10 +64,10 @@ WORD pci_read_config_reg16(pci_reg *reg, BYTE offset)
     return ret;
 }
 
-BYTE pci_read_config_reg8(pci_reg *reg, BYTE offset)
+uint8 pci_read_config_reg8(pci_reg *reg, uint8 offset)
 {
-    DWORD value, orig;
-    BYTE  ret;
+    uint32 value, orig;
+    uint8  ret;
 
     value = 0x80000000UL;
     value |= (offset & 0xfc);
@@ -84,9 +84,9 @@ BYTE pci_read_config_reg8(pci_reg *reg, BYTE offset)
     return ret;
 }
 
-void pci_write_config_reg32(pci_reg *reg, BYTE offset, const DWORD value)
+void pci_write_config_reg32(pci_reg *reg, uint8 offset, const uint32 value)
 {
-    DWORD tmp_reg, orig;
+    uint32 tmp_reg, orig;
 
     tmp_reg = 0x80000000UL;
     tmp_reg |= (offset & 0xfc);
@@ -101,9 +101,9 @@ void pci_write_config_reg32(pci_reg *reg, BYTE offset, const DWORD value)
     outl(CONFIG_ADDRESS_REG, orig);
 }
 
-void pci_write_config_reg16(pci_reg *reg, BYTE offset ,const WORD value)
+void pci_write_config_reg16(pci_reg *reg, uint8 offset ,const uint16 value)
 {
-    DWORD  tmp_reg, orig;
+    uint32  tmp_reg, orig;
 
     tmp_reg = 0x80000000UL;
     tmp_reg |= (offset & 0xfc);
@@ -118,9 +118,9 @@ void pci_write_config_reg16(pci_reg *reg, BYTE offset ,const WORD value)
     outl(CONFIG_ADDRESS_REG, orig);
 }
 
-void pci_write_config_reg8(pci_reg *reg, BYTE offset, const BYTE value)
+void pci_write_config_reg8(pci_reg *reg, uint8 offset, const uint8 value)
 {
-    DWORD tmp_reg, orig;
+    uint32 tmp_reg, orig;
 
     tmp_reg = 0x80000000UL;
     tmp_reg |= (offset & 0xfc);
@@ -140,9 +140,9 @@ void pci_init(void)
 
 }
 
-int pci_disable_IRQ_line(DWORD irq) { rt_hw_interrupt_mask(irq); return 0; }
-int pci_enable_IRQ_line(DWORD irq)  { rt_hw_interrupt_umask(irq); return 0; }
-int pci_sys_set_irq_handle(DWORD irq, void(*handle)(void)) { return rt_hw_interrupt_install(irq,handle,NULL,"PCI-ISR"); }
-int pci_sys_irq_set_level_trigger(DWORD irq) { return 1; }
-int pci_sys_irq_set_edge_trigger(DWORD irq)  { return 1; }
+int pci_disable_IRQ_line(uint32 irq) { rt_hw_interrupt_mask(irq); return 0; }
+int pci_enable_IRQ_line(uint32 irq)  { rt_hw_interrupt_umask(irq); return 0; }
+int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return rt_hw_interrupt_install(irq,handle,NULL,"PCI-ISR"); }
+int pci_sys_irq_set_level_trigger(uint32 irq) { return 1; }
+int pci_sys_irq_set_edge_trigger(uint32 irq)  { return 1; }
 #endif

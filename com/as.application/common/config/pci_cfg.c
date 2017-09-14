@@ -48,7 +48,7 @@ static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) me
 static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1000[1] =
 {
 	{
-		.mem_addr = {0,0,0,0,(DWORD)memp_REDHAT_QUMRANET_1000,(DWORD)memnp_REDHAT_QUMRANET_1000},
+		.mem_addr = {0,0,0,0,(uint32)memp_REDHAT_QUMRANET_1000,(uint32)memnp_REDHAT_QUMRANET_1000},
 		.mem_size={0,0,0,0,0x20,0x10},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},
@@ -60,7 +60,7 @@ static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) me
 static const pci_mmio_cfg mmiocfg_REDHAT_QUMRANET_1001[1] =
 {
 	{
-		.mem_addr = {0,0,0,0,(DWORD)memp_REDHAT_QUMRANET_1001,(DWORD)memnp_REDHAT_QUMRANET_1001},
+		.mem_addr = {0,0,0,0,(uint32)memp_REDHAT_QUMRANET_1001,(uint32)memnp_REDHAT_QUMRANET_1001},
 		.mem_size={0,0,0,0,0x40,0x10},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},
@@ -71,7 +71,7 @@ static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) me
 static const pci_mmio_cfg mmiocfg_ASDEV_ASCAN[1] =
 {
 	{
-		.mem_addr = {0,(DWORD)mem_ASDEV_ASCAN,0,0,0,0},
+		.mem_addr = {0,(uint32)mem_ASDEV_ASCAN,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},
@@ -82,7 +82,7 @@ static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) me
 static const pci_mmio_cfg mmiocfg_ASDEV_ASNET[1] =
 {
 	{
-		.mem_addr = {0,(DWORD)mem_ASDEV_ASNET,0,0,0,0},
+		.mem_addr = {0,(uint32)mem_ASDEV_ASNET,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},
@@ -93,7 +93,7 @@ static uint32 __attribute__((aligned(16))) __attribute__((section(".pcinp"))) me
 static const pci_mmio_cfg mmiocfg_ASDEV_ASBLK[1] =
 {
 	{
-		.mem_addr = {0,(DWORD)mem_ASDEV_ASBLK,0,0,0,0},
+		.mem_addr = {0,(uint32)mem_ASDEV_ASBLK,0,0,0,0},
 		.mem_size={0,0x40,0,0,0,0},
 		.io_addr = {0,0,0,0,0,0},
 		.io_size={0,0,0,0,0,0},

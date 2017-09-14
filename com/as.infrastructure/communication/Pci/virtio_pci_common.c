@@ -28,7 +28,7 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void virtio_pci_setup_vqs(pci_dev* pdev)
 {
-	WORD iobase = pdev->io_addr[0];
+	uint16 iobase = pdev->io_addr[0];
 	u32 i, val, size;
 	VirtPci_DeviveType* dev = kzmalloc(sizeof(VirtPci_DeviveType));
 	asAssert(dev);

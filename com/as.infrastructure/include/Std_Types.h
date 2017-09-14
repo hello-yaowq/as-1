@@ -179,10 +179,6 @@ typedef double                      float64;
 
 typedef uint8                       Std_ReturnType;
 
-typedef uint8  BYTE;
-typedef uint16 WORD;
-typedef uint32 DWORD;
-
 typedef uint64 u64;
 typedef uint32 u32;
 typedef uint16 u16;

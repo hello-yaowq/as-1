@@ -43,7 +43,7 @@ static void handler(void)
 void virtio_net_init(void)
 {
 	int i = 0;
-	WORD iobase=0;
+	uint16 iobase=0;
 	uint32 features,val;
 	pdev = find_pci_dev_from_id(0x1af4, 0x1000);
 	asAssert(pdev);
