@@ -72,8 +72,9 @@ typedef struct PCIASCANDevState {
 	/* id of the device, writable */
 	int id;
 
-	pthread_t thread;
 	STAILQ_HEAD(,Can_Bus_s) head;
+
+	struct Can_Bus_s* curbus;	/* current bus for reading data */
 
 	char bus_name[64];
 	uint32_t bn_pos;
@@ -150,7 +151,6 @@ static const TypeInfo pci_ascan_info = {
 };
 
 /* ============================ [ LOCALS    ] ====================================================== */
-#if 0
 static struct Can_Bus_s* getBus(PCIASCANDevState *d, uint32_t busid)
 {
 	struct Can_Bus_s* b;
@@ -165,23 +165,33 @@ static struct Can_Bus_s* getBus(PCIASCANDevState *d, uint32_t busid)
 
 	return b;
 }
-#endif
 
-static void * daemon_thread(void * param)
+static void checkBus(PCIASCANDevState *d)
 {
-	PCIASCANDevState *d = (PCIASCANDevState *) param;
-	PCIDevice *pci_dev = (PCIDevice *) param;
 	struct Can_Bus_s* b;
-
-	(void)pci_dev;
 
 	STAILQ_FOREACH(b, &d->head, entry)
 	{
+		if(d->flag&(FLG_RX<<(4*b->busid)))
+		{
+			/* already has message ready for read */
+		}
+		else
+		{
+			int rv;
+			uint8_t  data[8];
+			rv = can_read(b->busid, -1, (unsigned long*)&b->canid, (unsigned long*)&b->candlc, data);
 
+			if(TRUE == rv)
+			{
+				d->flag |= FLG_RX<<(4*b->busid);
+				b->candl = data[0] + (data[1]<<8) + (data[2]<<16) + (data[3]<<24);
+				b->candh = data[4] + (data[5]<<8) + (data[6]<<16) + (data[7]<<24);
+			}
+		}
 	}
-
-	return NULL;
 }
+
 static void ascan_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 	int i;
@@ -234,10 +244,27 @@ static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 	switch (addr) {
 	case REG_CANSTATUS:
 		pci_irq_deassert(pci_dev);
+		checkBus(d);
 		rv = d->flag;
 		d->flag = 0;
 		return rv;
-		break;
+	break;
+	case REG_CANID:
+		assert(d->curbus);
+		return d->curbus->canid;
+	break;
+	case REG_CANDLC:
+		assert(d->curbus);
+		return d->curbus->candlc;
+	break;
+	case REG_CANDL:
+		assert(d->curbus);
+		return d->curbus->candl;
+	break;
+	case REG_CANDH:
+		assert(d->curbus);
+		return d->curbus->candh;
+	break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 		return 0x0;
@@ -292,11 +319,6 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 					struct Can_Bus_s *p = malloc(sizeof(struct Can_Bus_s));
 					assert(p);
 					p->busid = d->busid;
-
-					if(STAILQ_EMPTY(&d->head))
-					{
-						pthread_create(&(d->thread), NULL, daemon_thread, d);
-					}
 					STAILQ_INSERT_TAIL(&d->head, p, entry);
 					printf("start %s busid(%d) port(%d) okay\n", d->bus_name, d->busid,  d->port);
 				}
@@ -331,6 +353,10 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				}
 			}
 			break;
+			case 3:
+				d->curbus = getBus(d, d->busid);
+				assert(d->curbus);
+				break;
 			default:
 				printf ("%s: Bad command 0x%x\n", __func__, (int)value);
 			break;

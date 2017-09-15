@@ -289,7 +289,7 @@ void Can_Init( const Can_ConfigType *config ) {
 	STAILQ_INIT(&canUnit->rQ.pduHead);
 	(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
 	#else
-	if(FALSE == can_open(configId,"socket",configId,canHwConfig->CanControllerBaudRate*1000))
+	if(FALSE == can_open(configId,"socket",ctlrId,canHwConfig->CanControllerBaudRate*1000))
 	{
 #ifdef __LINUX__
 		ASLOG(STDOUT,"please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can0 type vcan\n\tsudo ip link set up can0\n");

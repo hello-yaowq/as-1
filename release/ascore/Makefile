@@ -196,9 +196,9 @@ floppy.img:
 	make all board=i386 compiler=gcc rtos=rtthread debug=true
 	mkdir -p tmp
 	sudo mount -t vfat out/TINIX.IMG tmp -o loop
-	sudo cp out/i386.exe tmp/kernel.bin
+	sudo cp out/i386.exe tmp/kernel.bin && sync
 	sudo umount tmp
-	sudo mount -t vfat floppy.img tmp -o loop
+	sudo mount -t vfat floppy.img tmp -o loop && sync
 	sudo cp out/i386.exe tmp/boot/oskernel
 	sudo umount tmp
 
@@ -206,10 +206,11 @@ qemu-i386:
 	qemu-system-i386 -fda out/TINIX.IMG -boot a -m 64M
 
 qemu-i386-grub:
-	qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio \
+	$(download)/qemu/i386-softmmu/qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio \
 		-device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
 		-drive file=floppy.img,if=virtio,format=raw -show-cursor -usb -usbdevice tablet -device virtio-rng-pci \
-		-D qemu.log
+		-device pci-ascan -device pci-asnet -device pci-asblk \
+
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
