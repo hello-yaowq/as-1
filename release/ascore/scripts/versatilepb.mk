@@ -1,6 +1,11 @@
 use-boot?=no
 usepci?=yes
 termux?=no
+ifeq ($(host),Linux)
+tcpip?=lwip
+else
+tcpip=none
+endif
 asflasg-y += -mcpu=arm926ej-s -marm -fpic
 cflags-y  += -mcpu=arm926ej-s -marm -fpic
 ifeq ($(use-boot),yes)
@@ -26,6 +31,10 @@ def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 def-y += -DUSE_DET
+ifeq ($(tcpip),lwip)
+def-y += -DUSE_SOAD
+def-y += -DUSE_LWIP
+endif
 # 128MB
 def-y += -DMEMORY_SIZE=0x8000000
 def-y += -DSYSTEM_REGION_START=0x10000000
@@ -42,6 +51,12 @@ endif
 def-y += -DconfigTOTAL_HEAP_SIZE=0x200000
 # heap size 2Mb
 def-y += -DconfigTOTAL_PAGE_COUNT=4096
+
+ifeq ($(tcpip),lwip)
+inc-y += -I$(src-dir)/lwip/src/include
+inc-y += -I$(src-dir)/lwip/src/include/ipv4
+endif
+
 ifeq ($(compiler),gcc)
 cflags-y += -mstructure-size-boundary=8
 ifeq ($(termux),yes)
@@ -53,7 +68,8 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done
+dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done aslwip
+	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -80,6 +96,8 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)
@@ -107,6 +125,24 @@ ifeq ($(rtos),rtthread)
 #	@(cd $(src-dir); cp $(download)/rt-thread/bsp/asm9260t/link_scripts/sdram.ld linker-app.lds -fv)
 #	@(cd $(src-dir); sed -i "6c . = 0x8000;" linker-app.lds)
 	@(cd $(src-dir); rm trap.c start_gcc.S)
+endif
+ifeq ($(tcpip),lwip)
+	@(cd $(src-dir);rm -f lwip_timers.c timers.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
+ifeq ($(rtos),rtthread)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core/mem.c lwip_mem.c)
+endif
+	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/netif TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/api TRUE)
+	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
+	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/arch TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/netbios.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/lwipopts.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/sys_arch.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/ethernetif.h)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/apps/httpserver TRUE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(make BSW)

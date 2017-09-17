@@ -25,6 +25,7 @@
 #include "lwip/tcpip.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
+#include "lwip/inet.h"
 #include "lwip_handler.h"
 #include "ethernetif.h"
 

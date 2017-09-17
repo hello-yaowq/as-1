@@ -1,6 +1,11 @@
 use-boot?=yes
 termux?=no
 usepci?=yes
+ifeq ($(host),Linux)
+tcpip?=lwip
+else
+tcpip=none
+endif
 asflags-y += -m32
 cflags-y  += -m32 -fno-builtin -fno-stack-protector
 ldflags-y += -melf_i386
@@ -21,6 +26,10 @@ def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 def-y += -DUSE_CAN -DUSE_CANIF -DUSE_PRUR -DUSE_COM -DUSE_COMM -DUSE_CANTP -DUSE_CANNM	\
 		 -DUSE_DCM -DUSE_CANNM -DUSE_CANSM -DUSE_PDUR -DUSE_NM -DUSE_OSEKNM -DUSE_XCP
 def-y += -DUSE_DET
+ifeq ($(tcpip),lwip)
+def-y += -DUSE_SOAD
+def-y += -DUSE_LWIP
+endif
 ifeq ($(rtos),tinix)
 def-y += -DWITH_PUTS -Dprintf=printk -DTM_PRINTF_BUF_SIZE=128
 endif
@@ -32,6 +41,11 @@ ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
 # heap size 8Mb
 def-y += -DRT_HEAP_SIZE=0x800000
+endif
+
+ifeq ($(tcpip),lwip)
+inc-y += -I$(src-dir)/lwip/src/include
+inc-y += -I$(src-dir)/lwip/src/include/ipv4
 endif
 
 # heap size 2Mb
@@ -57,7 +71,8 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done
+dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done aslwip
+	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)
 	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common FALSE)
@@ -89,6 +104,8 @@ else
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/misclib.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
 ifeq ($(rtos),rtthread)
 	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/include TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/src TRUE)
@@ -101,6 +118,24 @@ ifeq ($(rtos),rtthread)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
 #	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
 	@(cd $(src-dir); sed -i "37c .bss : { *(.bss) *(.bss.*) }" linker-app.lds)
+endif
+ifeq ($(tcpip),lwip)
+	@(cd $(src-dir);rm -f lwip_timers.c timers.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core TRUE)
+ifeq ($(rtos),rtthread)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/core/mem.c lwip_mem.c)
+endif
+	@(cd $(src-dir);rm icmp6.c inet6.c ip6_addr.c ip6.c)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/netif TRUE)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip/src/api TRUE)
+	@(cd $(src-dir);rm ethernetif.c;mv timers.c lwip_timers.c)
+	@(cd $(inc-dir)/arch;$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/arch TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/netbios.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/lwip/lwipopts.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/sys_arch.c)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/lwip/ethernetif.h)
+	@(cd $(src-dir);$(LNFS) $(download)/lwip-contrib/apps/httpserver TRUE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/stdio_printf.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/misclib.c)
