@@ -118,6 +118,7 @@ ifeq ($(rtos),rtthread)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
 #	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
 	@(cd $(src-dir); sed -i "37c .bss : { *(.bss) *(.bss.*) }" linker-app.lds)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/components/finsh TRUE)
 endif
 ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);rm -f lwip_timers.c timers.c)

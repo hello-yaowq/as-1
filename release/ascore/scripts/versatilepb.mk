@@ -125,6 +125,7 @@ ifeq ($(rtos),rtthread)
 #	@(cd $(src-dir); cp $(download)/rt-thread/bsp/asm9260t/link_scripts/sdram.ld linker-app.lds -fv)
 #	@(cd $(src-dir); sed -i "6c . = 0x8000;" linker-app.lds)
 	@(cd $(src-dir); rm trap.c start_gcc.S)
+	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/components/finsh TRUE)
 endif
 ifeq ($(tcpip),lwip)
 	@(cd $(src-dir);rm -f lwip_timers.c timers.c)

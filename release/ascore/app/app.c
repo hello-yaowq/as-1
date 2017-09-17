@@ -184,6 +184,19 @@ TASK(TaskApp)
 {
 	OS_TASK_BEGIN();
 	ASLOG(OFF,"TaskApp is running\n");
+#ifdef __RTTHREAD_OS__
+	{
+		static int counter = 0;
+		counter ++;
+		if(counter > 200)
+		{
+			ASLOG(ON,"rt-thread is running\n");
+			list_thread();
+			list_event();
+			counter = 0;
+		}
+	}
+#endif
 #ifdef USE_STMO
 	sample_pointer();
 	Stmo_MainFunction();

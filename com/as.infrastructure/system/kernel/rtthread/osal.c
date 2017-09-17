@@ -130,6 +130,7 @@ FUNC(StatusType,MEM_SetEvent)        SetEvent        ( TaskType tskid , EventMas
 		if(err != RT_EOK)
 		{
 			ercd = E_OS_ACCESS;
+			asAssert(0);
 		}
 	}
 	else
@@ -155,6 +156,7 @@ StatusType ClearEvent ( EventMaskType mask )
 		if(err != RT_EOK)
 		{
 			ercd = E_OS_ACCESS;
+			asAssert(0);
 		}
 	}
 	else
@@ -182,6 +184,7 @@ StatusType GetEvent ( TaskType tskid , EventMaskRefType p_mask )
 			else
 			{
 				ercd = E_OS_ACCESS;
+				asAssert(0);
 			}
 		}
 	}
@@ -206,6 +209,7 @@ StatusType WaitEvent ( EventMaskType mask )
 		if(err != RT_EOK)
 		{
 			ercd = E_OS_ACCESS;
+			asAssert(0);
 		}
 	}
 	else
