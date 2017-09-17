@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <sys/poll.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define TYPE_PCI_ASNET_DEV "pci-asnet"
 #define PCI_ASNET_DEV(obj)     OBJECT_CHECK(PCIASNETDevState, (obj), TYPE_PCI_ASNET_DEV)
@@ -89,11 +90,11 @@ typedef struct PCIASNETDevState {
 
 	uint32_t rxlength;
 	uint32_t rxpos;
-	uint32_t rxdata[2048/4];	/* hope the same CPU endian */
+	uint8_t rxdata[2048];
 
 	uint32_t txlength;
 	uint32_t txpos;
-	uint32_t txdata[2048/4];	/* hope the same CPU endian */
+	uint8_t txdata[2048];
 
 	uint32_t flag;
 } PCIASNETDevState;
@@ -206,13 +207,20 @@ static int low_level_output(PCIASNETDevState *d)
 
 static int low_level_input(PCIASNETDevState *d)
 {
-	d->rxlength = read(d->fd, d->rxdata, sizeof(d->rxdata));
-
-	if(d->rxlength > 0)
-	{
-		return 0;
+	fd_set fdset;
+	int ret;
+	struct timeval val = {0 , 0};
+	FD_ZERO(&fdset);
+	FD_SET(d->fd, &fdset);
+	/* Wait for a packet to arrive. */
+	ret = select(d->fd + 1, &fdset, NULL, NULL, &val);
+	if(ret == 1) {
+		d->rxlength = read(d->fd, d->rxdata, sizeof(d->rxdata));
+		if(d->rxlength > 0)
+		{
+			return 0;
+		}
 	}
-
 	return -1;
 }
 
@@ -247,7 +255,7 @@ static void tapif_init(PCIASNETDevState *d,const char* name)
 		return;
 	}
 
-	if(!low_level_probe(d,name != NULL ? name : ifr.ifr_name))
+	if(low_level_probe(d,name != NULL ? name : ifr.ifr_name))
 	{
 		perror("asnet low_level_probe failed");
 		return;
@@ -293,7 +301,7 @@ static uint64_t asnet_ioread(void *opaque, hwaddr addr, unsigned size) {
 
 static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size) {
 	PCIASNETDevState *d = (PCIASNETDevState *) opaque;
-
+	uint64_t val;
 	switch (addr) {
 	case REG_MACL:
 		return (d->hwaddr[0]+(d->hwaddr[1]<<8)+(d->hwaddr[2]<<16)+(d->hwaddr[3]<<24));
@@ -304,28 +312,23 @@ static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size) {
 		return d->mtu;
 		break;
 	case REG_DATA:
-	{
-		uint32_t val;
 		assert(d->rxpos < (sizeof(d->rxdata)/sizeof(d->rxdata[0])));
 		val = d->rxdata[d->rxpos];
 		d->rxpos++;
-
 		return val;
 		break;
-	}
 	case REG_LENGTH:
 		d->rxpos = 0;
-		return d->rxlength;
+		val = d->rxlength;
+		d->rxlength = 0;
+		return val;
 		break;
 	case REG_NETSTATUS:
-	{
-		uint32_t flag;
 		checkBus(d);
-		flag = d->flag;
+		val = d->flag;
 		d->flag = 0;
-		return flag;
+		return val;
 		break;
-	}
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 		return 0x0;
@@ -358,7 +361,7 @@ static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		switch (value)
 		{
 		case 0: /* init */
-			if(d->fd)
+			if(d->fd > 0)
 			{
 				printf ("%s: asnet alreay online!\n", __func__);
 			}
@@ -370,7 +373,7 @@ static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		case 1: /* TX */
 			if(0 == low_level_output(d))
 			{
-				pci_irq_assert(d->parent_obj);
+				pci_irq_assert(&d->parent_obj);
 			}
 			break;
 		default:
@@ -399,6 +402,7 @@ static int pci_asnetdev_init(PCIDevice *pci_dev) {
 	d->dma_size = 0x1ffff * sizeof(char);
 	d->dma_buf = malloc(d->dma_size);
 	d->fd = -1;
+	d->rxlength = 0;
 	uint8_t *pci_conf;
 
 	/* create the memory region representing the MMIO and PIO

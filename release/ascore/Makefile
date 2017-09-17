@@ -181,7 +181,6 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 
 qemu-ver: floppy.img
 	@($(download)/qemu/arm-softmmu/qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server  \
-		-device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
 		-drive file=floppy.img,if=virtio,format=raw -show-cursor -usb -usbdevice tablet -device virtio-rng-pci \
 		-device pci-ascan -device pci-asnet -device pci-asblk )
 #	@(qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial stdio -gdb tcp::1234 -S)
@@ -207,7 +206,6 @@ qemu-i386:
 
 qemu-i386-grub:
 	$(download)/qemu/i386-softmmu/qemu-system-i386 -fda floppy.img -boot a -m 64M -serial stdio \
-		-device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
 		-drive file=floppy.img,if=virtio,format=raw -show-cursor -usb -usbdevice tablet -device virtio-rng-pci \
 		-device pci-ascan -device pci-asnet -device pci-asblk \
 

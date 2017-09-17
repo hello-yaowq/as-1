@@ -46,7 +46,7 @@ void virtio_net_init(void)
 	uint16 iobase=0;
 	uint32 features,val;
 	pdev = find_pci_dev_from_id(0x1af4, 0x1000);
-	asAssert(pdev);
+	if(NULL == pdev) return;
 	enable_pci_resource(pdev);
 	iobase = pdev->io_addr[0];
 
@@ -100,7 +100,7 @@ void virtio_net_start(void)
 	VirtQ_QueueType *rvq,*tvq;
 	void* p;
 	uint32 i;
-	asAssert(pdev);
+	if(NULL == pdev) return;
 
 	dev = pdev->priv;
 

@@ -32,7 +32,7 @@
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
 
 
-#define LWIP_DEBUG 0
+#define LWIP_DEBUG 1
 #if LWIP_DEBUG == 1
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON

@@ -93,6 +93,7 @@
 									<listOptionValue builtIn="false" value="NO_SYS=0"/>
 									<listOptionValue builtIn="false" value="SOCKET_ETHERNET_DRIVER"/>
 									<listOptionValue builtIn="false" value="USE_PCI"/>
+									<listOptionValue builtIn="false" value="USE_LWIP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -163,6 +164,7 @@
 									<listOptionValue builtIn="false" value="USE_SOAD"/>
 									<listOptionValue builtIn="false" value="NO_SYS=0"/>
 									<listOptionValue builtIn="false" value="USE_PCI"/>
+									<listOptionValue builtIn="false" value="USE_LWIP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

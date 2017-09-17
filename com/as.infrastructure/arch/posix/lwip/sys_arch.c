@@ -74,7 +74,7 @@ static void sys_sleep(TickType tick)
 }
 
 /* Eth Isr routine */
-static void Eth_Isr(void)
+void __weak Eth_Isr(void)
 {
 	/* move received packet into a new pbuf */
 	struct pbuf *p = low_level_input();
@@ -86,6 +86,10 @@ static void Eth_Isr(void)
 #endif /* LWIP_POSIX_ARCH */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef LWIP_POSIX_ARCH
+struct netif* sys_get_netif(void)
+{
+	return &netif;
+}
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short
@@ -532,6 +536,9 @@ tcpip_init_done(void *arg)
 {
 	tcpip_initialized = TRUE;
 }
+void __weak Ethernet_Configuration(void) {}
+void __weak Set_MAC_Address(uint8_t *macaddress) {}
+void __weak EnableEthDMAIrq(void) {}
 struct netif * LwIP_Init(void)
 {
 #ifdef USE_LWIP
@@ -596,9 +603,7 @@ struct netif * LwIP_Init(void)
 
 	netbios_init();
 
-#ifdef LWIP_POSIX_ARCH
 	http_server_netconn_init();
-#endif /* LWIP_POSIX_ARCH */
 
 	return &netif;
 #endif /* USE_LWIP */
