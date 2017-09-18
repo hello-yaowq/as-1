@@ -184,6 +184,7 @@ void sys_mbox_post(sys_mbox_t *mbox, void *msg)
 	{
 		sys_sleep(1);
 	}
+	Schedule();
 }
 
 
@@ -602,9 +603,9 @@ struct netif * LwIP_Init(void)
 	EnableEthDMAIrq();
 
 	netbios_init();
-
+#ifdef LWIP_POSIX_ARCH
 	http_server_netconn_init();
-
+#endif
 	return &netif;
 #endif /* USE_LWIP */
 }

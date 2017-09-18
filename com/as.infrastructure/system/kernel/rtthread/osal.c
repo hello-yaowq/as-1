@@ -251,7 +251,12 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 
 	if(AlarmId < ALARM_NUM)
 	{
-		if(0 == osTmrStatus[AlarmId])
+		if(0 != osTmrStatus[AlarmId])
+		{  /* fix for when porting LWIP stack, need to re-start alarm if already started */
+			ercd = CancelAlarm(AlarmId);
+		}
+
+		if(E_OK == ercd)
 		{
 			rt_err_t err;
 			rt_timer_init(&osTmr[AlarmId],AlarmList[AlarmId].name, _AlarmProcess, (void*)AlarmId,
@@ -267,10 +272,6 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 			{
 				osTmrStatus[AlarmId] = 1;
 			}
-		}
-		else
-		{
-			ercd = E_OS_STATE;
 		}
 	}
 	else
@@ -292,22 +293,17 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 	{
 		if(0 != osTmrStatus[AlarmId])
 		{
-			rt_err_t err = rt_timer_stop(&osTmr[AlarmId]);
-			if(RT_EOK == err)
+			rt_err_t err;
+			/* timer maybe already stopped, so no check of the error code */
+			(void)rt_timer_stop(&osTmr[AlarmId]);
+			err = rt_timer_delete(&osTmr[AlarmId]);
+			if(RT_EOK != err)
 			{
-				err = rt_timer_delete(&osTmr[AlarmId]);
-				if(RT_EOK != err)
-				{
-					ercd = E_OS_ACCESS;
-				}
-				else
-				{
-					osTmrStatus[AlarmId] = 0;
-				}
+				ercd = E_OS_ACCESS;
 			}
 			else
 			{
-				ercd = E_OS_ACCESS;
+				osTmrStatus[AlarmId] = 0;
 			}
 		}
 		else
