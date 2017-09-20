@@ -13,10 +13,13 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifndef __TAPTEST__
 #include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci/pci.h"
 #include "qemu/event_notifier.h"
+#endif /* __TAPTEST__ */
+#include <stdint.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -66,6 +69,7 @@ enum{
 };
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct PCIASNETDevState {
+#ifndef __TAPTEST__
 	PCIDevice parent_obj;
 
 	/* for PIO */
@@ -78,6 +82,7 @@ typedef struct PCIASNETDevState {
 	unsigned int dma_size;
 	/* buffer copied with the dma operation on RAM */
 	char *dma_buf;
+#endif
 
 	int fd;
 
@@ -98,11 +103,13 @@ typedef struct PCIASNETDevState {
 
 	uint32_t flag;
 } PCIASNETDevState;
-
+#ifndef __TAPTEST__
 static Property asnet_properties[] = {
 
 DEFINE_PROP_END_OF_LIST(), };
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifndef __TAPTEST__
 static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size);
 static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size);
@@ -110,7 +117,9 @@ static uint64_t asnet_ioread(void *opaque, hwaddr addr, unsigned size);
 static void asnet_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size);
 static void pci_asnetdev_class_init(ObjectClass *klass, void *data);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
+#ifndef __TAPTEST__
 /*
  * Callbacks called when the Memory Region
  * representing the MMIO space is
@@ -152,7 +161,68 @@ static const TypeInfo pci_asnet_info = {
 	.instance_size = sizeof(PCIASNETDevState),
 	.class_init = pci_asnetdev_class_init,
 };
+#endif /* __TAPTEST__ */
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef __TAPTEST__
+void asmem(const char* prefix, const void* address,size_t size)
+{
+	uint32_t i,j;
+	uint8_t *src;
+	src = (uint8_t*)address;
+	if(8 == sizeof(unsigned long))
+	{
+		printf("%16s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
+	}
+	else
+	{
+		printf("%8s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
+	}
+
+	for(i=0; i<(size+15)/16; i++)
+	{
+		unsigned long a = (unsigned long)src+i*16;
+		if( 8 == sizeof(unsigned long))
+		{
+			printf("%08X%08X ::",(uint32_t)(a>>32),(uint32_t)a);
+		}
+		else
+		{
+			printf("%08X ::",(uint32_t)a);
+		}
+
+		fflush(stdout);
+
+		for(j=0;j<16;j++)
+		{
+			if((i*16+j)<size)
+			{
+				printf(" %02X",src[i*16+j]);
+			}
+			else
+			{
+				printf("   ");
+			}
+		}
+		printf("\t");
+		for(j=0;j<16;j++)
+		{
+			if(((i*16+j)<size) && isprint(src[i*16+j]))
+			{
+				printf("%c",src[i*16+j]);
+			}
+			else
+			{
+				printf(".");
+			}
+		}
+		printf("\n");
+	}
+
+    fflush(stdout);
+
+}
+
+#endif
 static int low_level_probe(PCIASNETDevState *d,const char *name)
 {
 	int len;
@@ -280,6 +350,7 @@ static void tapif_init(PCIASNETDevState *d,const char* name)
 		}
 	}
 }
+#ifndef __TAPTEST__
 static void asnet_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 
@@ -476,3 +547,28 @@ static void pci_asnet_register_types(void) {
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* macro actually defining our device and registering it in qemu*/
 type_init(pci_asnet_register_types);
+#else /* __TAPTEST__ */
+int main(int argc, char* argv[])
+{
+	PCIASNETDevState d;
+	int counter=0;
+
+	memset(&d, 0, sizeof(d));
+
+	d.gw=(172<<0)+(18<<8)+(0<<16)+(1<<24);
+	d.netmask=(255<<0)+(255<<8)+(255<<16)+(0<<24);
+
+	tapif_init(&d, NULL);
+	while(1)
+	{
+		checkBus(&d);
+		if(d.flag&FLG_RX)
+		{
+			printf("get something %d times\n", counter++);
+			d.flag = 0;
+			asmem("input", d.rxdata, d.rxlength);
+		}
+	}
+	return 0;
+}
+#endif /* __TAPTEST__ */

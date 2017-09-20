@@ -68,6 +68,14 @@ static struct semlist_t semlist[SYS_SEM_MAX];
 #ifndef LWIP_POSIX_ARCH
 static void sys_sleep(TickType tick)
 {
+	TaskType tskid = -1;
+	GetTaskID(&tskid);
+	if(tskid != TASK_ID_tcpip_task)
+	{
+		ASLOG(ERROR,"LWIP Sleep API only for tcpip task\n");
+		asAssert(0);
+		return;
+	}
 	SetRelAlarm(ALARM_ID_Alarm_Lwip, tick, 0);
 	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
 	ClearEvent(EVENT_MASK_SLEEP_TCPIP);

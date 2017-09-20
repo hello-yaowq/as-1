@@ -125,7 +125,7 @@ struct pbuf * low_level_input(void)
 {
 	imask_t irq_state;
 	struct pbuf *p, *q;
-	u16_t len,pos;
+	u16_t len,len2,pos;
 	char *bufptr;
 
 	if(NULL == __iobase) return NULL;
@@ -133,14 +133,14 @@ struct pbuf * low_level_input(void)
 	Irq_Save(irq_state);
 	/* Obtain the size of the packet and put it into the "len"
 	variable. */
-	len = readl(__iobase+REG_LENGTH);
+	len = len2 = readl(__iobase+REG_LENGTH);
 
 	pos = 0;
-	while(len > 0)
+	while(len2 > 0)
 	{
 		buf[pos] = readl(__iobase+REG_DATA);
 		pos ++;
-		len --;
+		len2 --;
 	}
 
 	Irq_Restore(irq_state);
