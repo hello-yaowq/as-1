@@ -47,6 +47,7 @@ ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
 # heap size 2Mb
 def-y += -DRT_HEAP_SIZE=0x200000
+def-y += -DIDLE_THREAD_STACK_SIZE=4096
 endif
 def-y += -DconfigTOTAL_HEAP_SIZE=0x200000
 # heap size 2Mb

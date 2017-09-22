@@ -41,6 +41,7 @@ ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
 # heap size 8Mb
 def-y += -DRT_HEAP_SIZE=0x800000
+def-y += -DIDLE_THREAD_STACK_SIZE=4096
 endif
 
 ifeq ($(tcpip),lwip)

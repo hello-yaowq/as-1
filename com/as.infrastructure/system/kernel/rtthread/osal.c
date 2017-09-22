@@ -337,7 +337,7 @@ FUNC(StatusType,MEM_Schedule)       Schedule ( void )
 {
 	StatusType ercd = E_OK;
 
-	rt_thread_yield();
+	rt_thread_sleep(1);
 	
 	return ercd;
 }

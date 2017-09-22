@@ -159,6 +159,8 @@ void rt_hw_clear_bss(void)
         *dst++ = 0;
 }
 
+#define INTTIMER0 0
+extern void tpl_call_counter_tick(void);
 void rtthread_startup(void)
 {
     rt_hw_clear_bss();
@@ -169,7 +171,7 @@ void rtthread_startup(void)
     rt_console_set_device("console");
 
     rt_hw_board_init();
-
+	rt_hw_interrupt_install(INTTIMER0, tpl_call_counter_tick, RT_NULL, "tick");
     rt_show_version();
 
 	main();

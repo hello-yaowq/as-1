@@ -150,18 +150,16 @@ struct pbuf * low_level_input(void)
 	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
 
 	if(p != NULL) {
-		for(q = p; q != NULL; q = q->next) {
-			/* We iterate over the pbuf chain until we have read the entire
+		/* We iterate over the pbuf chain until we have read the entire
 			packet into the pbuf. */
-			bufptr = &buf[0];
-			for(q = p; q != NULL; q = q->next) {
-				/* Read enough bytes to fill this pbuf in the chain. The
-				available data in the pbuf is given by the q->len
-				variable. */
-				/* read data into(q->payload, q->len); */
-				memcpy(q->payload, bufptr, q->len);
-				bufptr += q->len;
-			}
+		bufptr = &buf[0];
+		for(q = p; q != NULL; q = q->next) {
+			/* Read enough bytes to fill this pbuf in the chain. The
+			   available data in the pbuf is given by the q->len
+			   variable. */
+			/* read data into(q->payload, q->len); */
+			memcpy(q->payload, bufptr, q->len);
+			bufptr += q->len;
 		}
 	/* acknowledge that packet has been read(); */
 	} else {
