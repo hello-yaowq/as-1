@@ -73,11 +73,33 @@ void Eth_Isr(void)
 		{
 			#ifdef USE_LWIP
 			extern struct netif* sys_get_netif(void);
+			struct eth_hdr *ethhdr;
 			/* move received packet into a new pbuf */
 			struct pbuf *p = low_level_input();
-
+			struct netif* netif = sys_get_netif();
 			if(p!=NULL){
-				tcpip_input(p, sys_get_netif());
+				ethhdr = (struct eth_hdr *)p->payload;
+
+				switch(htons(ethhdr->type)) {
+					/* IP or ARP packet? */
+					case ETHTYPE_IP:
+					case ETHTYPE_ARP:
+					#if PPPOE_SUPPORT
+						/* PPPoE packet? */
+					case ETHTYPE_PPPOEDISC:
+					case ETHTYPE_PPPOE:
+					#endif /* PPPOE_SUPPORT */
+						/* full packet send to tcpip_thread to process */
+						if (ethernet_input(p, netif) != ERR_OK) {
+							LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
+							pbuf_free(p);
+							p = NULL;
+						}
+						break;
+					default:
+						pbuf_free(p);
+						break;
+				}
 			}
 			#endif
 		}
@@ -222,6 +244,8 @@ err_t tapif_init(struct netif *netif)
 	netif->name[1] = IFNAME1;
 	netif->output = etharp_output;
 	netif->linkoutput = low_level_output;
+
+	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 	return ERR_OK;
 }
 #endif

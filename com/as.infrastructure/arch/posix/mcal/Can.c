@@ -292,9 +292,9 @@ void Can_Init( const Can_ConfigType *config ) {
 	if(FALSE == can_open(configId,"socket",ctlrId,canHwConfig->CanControllerBaudRate*1000))
 	{
 #ifdef __LINUX__
-		ASLOG(STDOUT,"please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can0 type vcan\n\tsudo ip link set up can0\n");
+		ASLOG(STDOUT,"please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can%d type vcan\n\tsudo ip link set up can%d\n", ctlrId, ctlrId);
 #else
-		ASLOG(STDOUT,"please start the windows socket can bus driver /com/as.tool/lua/script/ascan_socket_server.exe 0\n");
+		ASLOG(STDOUT,"please start the windows socket can bus driver /com/as.tool/lua/script/ascan_socket_server.exe %d\n", ctlrId);
 #endif
 		asAssert(0);
 	}
