@@ -1,18 +1,21 @@
-target-y ?= ff13
+target ?= ff13
+board ?= native
+
+target-y = $(target)-$(board)
 
 src-dir = $(CURDIR)
-obj-dir = $(CURDIR)/obj
+obj-dir = $(CURDIR)/obj/$(board)
 exe-dir = $(CURDIR)/out
 
 prj-dir = $(subst /com/as.infrastructure/system/fs,,$(CURDIR))
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 download = $(prj-dir)/release/download
 
-ifeq ($(target-y),ff13)
+ifeq ($(target-y),ff13-$(board))
 dir-y += $(download)/ff13/source
 endif
 
-ifeq ($(target-y),lwext4)
+ifeq ($(target-y),lwext4-$(board))
 dir-y += $(download)/lwext4/src
 inc-y += -I$(download)/lwext4/include
 def-y += -DCONFIG_USE_DEFAULT_CFG=1
@@ -38,13 +41,13 @@ $(download)/ffsample.zip:
 $(download)/ffsample:$(download)/ffsample.zip
 	@(cd $(download);mkdir ffsample;cd ffsample;unzip $(download)/ffsample.zip)
 
-aslibff13:$(download)/ff13
+aslibff13-$(board):$(download)/ff13
 #$(download)/ffsample
 
 $(download)/lwext4:
 	@(cd $(download);git clone https://github.com/gkostka/lwext4.git)
 
-asliblwext4:$(download)/lwext4
+asliblwext4-$(board):$(download)/lwext4
 
 all: aslib$(target-y)
 	make lib

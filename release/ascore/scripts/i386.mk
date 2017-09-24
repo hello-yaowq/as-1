@@ -6,20 +6,20 @@ tcpip?=lwip
 else
 tcpip=none
 endif
-asflags-y += -m32
-cflags-y  += -m32 -fno-builtin -fno-stack-protector
-ldflags-y += -melf_i386
+export asflags-y += -m32
+export cflags-y  += -m32 -fno-builtin -fno-stack-protector
+export ldflags-y += -melf_i386
 ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
 else
 link-script = $(src-dir)/linker.lds
 endif
 ifeq ($(host), Linux)
-COMPILER_PREFIX = 
-COMPILER_DIR = /usr
+export COMPILER_PREFIX = 
+export COMPILER_DIR = /usr
 else
-COMPILER_PREFIX = 
-COMPILER_DIR = C:/MinGW
+export COMPILER_PREFIX = 
+export COMPILER_DIR = C:/MinGW
 endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
@@ -36,6 +36,16 @@ endif
 inc-y += -I/usr/include/newlib
 ifeq ($(usepci),yes)
 def-y += -DUSE_PCI
+ifeq ($(EMAIL),parai@foxmail.com)
+# on Travis CI, download ff13 always failed
+else
+def-y += -DUSE_FATFS
+inc-y += -I$(download)/ff13/source
+ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13-$(board)
+def-y += -DCONFIG_USE_DEFAULT_CFG=1
+inc-y += -I$(download)/lwext4/include
+ldflags-y += -llwext4-$(board)
+endif
 endif
 ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
@@ -72,7 +82,7 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done aslwip
+dep-i386: $(obj-dir) $(exe-dir) $(src-dir)/pci.download.done aslwip aslibfatfs
 	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)

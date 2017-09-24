@@ -6,20 +6,20 @@ tcpip?=lwip
 else
 tcpip=none
 endif
-asflasg-y += -mcpu=arm926ej-s -marm -fpic
-cflags-y  += -mcpu=arm926ej-s -marm -fpic
+export asflasg-y += -mcpu=arm926ej-s -marm -fpic
+export cflags-y  += -mcpu=arm926ej-s -marm -fpic
 ifeq ($(use-boot),yes)
 link-script = $(src-dir)/linker-app.lds
 else
 link-script = $(src-dir)/linker.lds
 endif
 ifeq ($(host), Linux)
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = /usr
+export COMPILER_PREFIX = arm-none-eabi-
+export COMPILER_DIR = /usr
 ldflags-y += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-eabi/4.8.2
 else
-COMPILER_PREFIX = arm-none-eabi-
-COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
+export COMPILER_PREFIX = arm-none-eabi-
+export COMPILER_DIR = C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32
 ldflags-y += -lc -lgcc -L$(COMPILER_DIR)/arm-none-eabi/lib -L$(COMPILER_DIR)/lib/gcc/arm-none-eabi/4.8.3
 endif
 ifeq ($(rtos),trampoline)
@@ -42,6 +42,16 @@ def-y += -DSYSTEM_REGION_END=0x101f4000
 def-y += -DPAGE_SIZE=0x1000
 ifeq ($(usepci),yes)
 def-y += -DUSE_PCI
+ifeq ($(EMAIL),parai@foxmail.com)
+# on Travis CI, download ff13 always failed
+else
+def-y += -DUSE_FATFS
+inc-y += -I$(download)/ff13/source
+ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13-$(board)
+def-y += -DCONFIG_USE_DEFAULT_CFG=1
+inc-y += -I$(download)/lwext4/include
+ldflags-y += -llwext4-$(board)
+endif
 endif
 ifeq ($(rtos),rtthread)
 def-y += -DUSE_OSAL
@@ -69,7 +79,7 @@ endif
 include ../make/gcc.mk
 endif
 
-dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done aslwip
+dep-versatilepb: $(download)/rt-thread $(src-dir)/pci.download.done aslwip aslibfatfs
 	@(mkdir -p $(inc-dir)/arch)
 	@(cd $(src-dir);$(LNFS) $(ASCONFIG))
 	@(cd $(src-dir);$(LNFS) $(ASCORE)/app FALSE)

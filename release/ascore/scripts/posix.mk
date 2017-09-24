@@ -108,10 +108,10 @@ ifeq ($(EMAIL),parai@foxmail.com)
 else
 def-y += -DUSE_FATFS
 inc-y += -I$(download)/ff13/source
-ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13
+ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13-$(board)
 def-y += -DCONFIG_USE_DEFAULT_CFG=1
 inc-y += -I$(download)/lwext4/include
-ldflags-y += -llwext4
+ldflags-y += -llwext4-$(board)
 ifeq ($(host), Linux)
 dir-y += $(download)/lwext4/blockdev/linux
 else
@@ -130,36 +130,6 @@ ifeq ($(compiler),posix-gcc)
 COMPILER_DIR = 
 include ../make/posix.mk
 endif
-
-$(download)/contiki:
-ifeq (${rtos},contiki)
-	@(cd $(download);git clone https://github.com/contiki-os/contiki.git;\
-		cd contiki;git checkout 3.x;	\
-		cd core/sys;	\
-		sed -e "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, \\\\" process.h > process.h2;	\
-		mv process.h2 process.h)
-endif
-
-ascontiki:$(download)/contiki
-
-$(LUA)/device/websock/out/libaws.a:
-	@(cd $(LUA)/device/websock; make all)
-
-aslibaws:$(LUA)/device/websock/out/libaws.a
-
-$(INFRASTRUCTURE)/system/fs/out/libff13.a:
-ifeq ($(EMAIL),parai@foxmail.com)
-else
-	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=ff13)
-endif
-
-$(INFRASTRUCTURE)/system/fs/out/liblwext4.a:
-ifeq ($(EMAIL),parai@foxmail.com)
-else
-	@(cd $(INFRASTRUCTURE)/system/fs; make all target-y=lwext4)
-endif
-
-aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13.a $(INFRASTRUCTURE)/system/fs/out/liblwext4.a
 
 dep-posix: $(download) aslwip ascontiki dep-as-virtual aslibaws aslibfatfs
 ifeq ($(sgapp),none)
