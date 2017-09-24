@@ -6,12 +6,6 @@ automotive software and its tool-chain
 ## why this repository
 because I am not powerful so I decided to develop small but smart part of automotive software.
 
-## Status
-* 2016-July-8: Recently done AGL application framework(afbinder) study, I think somehow it behaves the same as AUTOSAR VFB, the main part of afbiner is for the purpose of cummunication and remote call, I think it was good, so integrate part of the code into as, base on that part, implement a remote GUI daemon assg.py, which shows a log of performance improvment than the original one C Sg. 
-* 2016-May-27: Nowdays, almost no real work, most of my time is spent on study of AGL security feature(SMACK,Cynara,Security-Manager), that's good but feel boring, still hope to do something related a real product. And ddd trampoline os which is AUTOSAR compatible, the most amazimg part of it is that the management ready queue by bubble sort algorithm dynamicaly, but bring up failed, but it doesn't matter as that I just want to read the code of it, if necessary, it will not be a problem to bring it up.
-* 2016-Dec-24: Moving from AUTOSAR platform to linux, so now I almost have no update on AUTOSAR software stack, but many research on linux platform, generally focus on the driver system study.
-* 2016-Jan-24:  Now I have porting toppers-atk2-sc4 on arm920t(s3c2440a) and arm-cortex-m3, but now I feel confused about what to do for the next step. 
-
 ## Key Point
 
 ### 1. Integrated ArcCore AUTOSAR 3.1 BSW
@@ -24,13 +18,17 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [toppers_osek](https://www.toppers.jp/osek-os.html)
 * [FreeOSEK](http://opensek.sourceforge.net/)
 * [FreeRTOS](http://www.freertos.org/)
+* [ucos ii](https://www.micrium.com/)
 * [toppers-atk2](https://www.toppers.jp/atk2.html)
 * small : this OS is developed by me, OSEK BCC1 conformed
 * [contiki](http://contiki-os.org/)
 * [trampoline](https://github.com/TrampolineRTOS/trampoline)
+* [rtthread](https://github.com/RT-Thread/rt-thread)
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
+
+![as configure tool](http://parai.github.io/as/images/config.infrastructure.system.png)
 
 ## 4. AUTOSAR & LINUX communication
 * [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
@@ -38,9 +36,12 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [rpmsg](https://www.kernel.org/doc/Documentation/rpmsg.txt)
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
 
-## 5. Lua Script Integrated
-* support CAN device by lascanlib: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
+## 5. Lua & Python Integrated
+* support CAN device by lascanlib or pyas: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
 * support miscellaneous device by lasdevlib with the smae API interface "open/read/write/ioctl/close": rs232
+* a powerful python as.one.py tool: Dcm Xcp Bootloader and others.
+
+![as.one.py bootloader](http://parai.github.io/as/images/python3-asone-tool.png)
 
 ## 6. aslinux simulation environment on QEMU
 * Now use one [makefile](https://github.com/parai/as/blob/master/release/aslinux/makefile) to bring up the QEMU [AGL](https://www.automotivelinux.org/) environment.
@@ -65,8 +66,11 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ```
 
 ## 7. Other 3rd part package
-* LWIP
-* afbindef/websock
+* [LWIP](http://savannah.nongnu.org/projects/lwip/)
+* [afbindef/websock](https://github.com/automotive-grade-linux/docs-agl/blob/master/docs/app-framework/index.md)
+* qemu PCI sample driver: [asnet](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asnet.c) [ascan](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/ascan.c) [asblk](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asblk.c)
+* [FatFS](http://elm-chan.org/fsw/ff/00index_e.html)
+* [lwext4](https://github.com/gkostka/lwext4.git)
 
 ## Setup Environment
 
