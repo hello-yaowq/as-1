@@ -19,3 +19,8 @@ This [object detection model](https://github.com/tensorflow/models/tree/master/o
 
 For the tool [protoc](https://github.com/google/protobuf), if ubuntu just use apt-get to install the necessary version, if win, download it from the [github](https://github.com/google/protobuf/releases/tag/v2.6.1).
 
+Here is a [CSDN](http://m.blog.csdn.net/xiaoxiao123jun/article/details/76605928) sample that use object detection model to process video.
+
+## reference
+
+[deep learning boot](http://www.deeplearningbook.org/)
