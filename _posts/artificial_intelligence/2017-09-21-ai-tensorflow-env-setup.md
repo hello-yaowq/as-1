@@ -23,4 +23,6 @@ Here is a [CSDN](http://m.blog.csdn.net/xiaoxiao123jun/article/details/76605928)
 
 ## reference
 
-[deep learning boot](http://www.deeplearningbook.org/)
+[deep learning book](http://www.deeplearningbook.org/)
+[octave](https://www.gnu.org/software/octave/)
+
