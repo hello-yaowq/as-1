@@ -44,7 +44,8 @@ inc-y += -I$(download)/ff13/source
 ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13-$(board)
 def-y += -DCONFIG_USE_DEFAULT_CFG=1
 inc-y += -I$(download)/lwext4/include
-ldflags-y += -llwext4-$(board)
+#ldflags-y += -llwext4-$(board)
+#def-y += -DUSE_LWEXT4
 endif
 endif
 ifeq ($(rtos),rtthread)

@@ -107,6 +107,7 @@ ifeq ($(EMAIL),parai@foxmail.com)
 # on Travis CI, download ff13 always failed
 else
 def-y += -DUSE_FATFS
+def-y += -DUSE_LWEXT4
 inc-y += -I$(download)/ff13/source
 ldflags-y += -L$(INFRASTRUCTURE)/system/fs/out -lff13-$(board)
 def-y += -DCONFIG_USE_DEFAULT_CFG=1

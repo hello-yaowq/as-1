@@ -28,8 +28,7 @@
 #define TPL_DOW_H
 
 #include "tpl_app_define.h"
-
-#if defined(__unix__) || defined(__APPLE__)
+#include "asdebug.h"
 
 #if WITH_DEBUG == YES
 #include <stdio.h>
@@ -37,20 +36,12 @@
 #endif
 
 #if WITH_DEBUG == YES
-#define DOW_ASSERT(cond)    assert(cond);
+#define DOW_ASSERT(cond)    asAssert(cond);
 #define DOW_DO(action)      action
 #define WITH_DOW
 #else
 #define DOW_ASSERT(cond)
 #define DOW_DO(action)
-#endif
-
-/* __unix__ */
-#else
-#define DOW_ASSERT(cond)
-#define DOW_DO(action)
-
-/* __unix__ */
 #endif
 
 /* TPL_DOW_H */

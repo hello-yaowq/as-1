@@ -213,7 +213,7 @@ TASK(TaskApp)
 {
 	char buffer[32];
 	static int tstnbr = 0;
-	FIL fil;
+	static FIL fil;
 	UINT len=0;
 	if(tstnbr == 0)
 	{
@@ -236,6 +236,8 @@ TASK(TaskApp)
 	}
 	tstnbr ++;
 }
+#endif
+#ifdef USE_LWEXT4
 {
     ext4_file fil;
     size_t len;

@@ -90,6 +90,8 @@
 #endif
 #ifdef USE_FATFS
 #include "ff.h"
+#endif
+#ifdef USE_LWEXT4
 extern void ext_mount(void);
 #endif
 //#define USE_LDEBUG_PRINTF
@@ -249,7 +251,9 @@ void EcuM_StartupTwo(void)
 
 #ifdef USE_FATFS
 	f_mount(&FatFs, "", 1);
-    ext_mount();
+#endif
+#ifdef USE_LWEXT4
+	ext_mount();
 #endif
 
 	// Initialize drivers that need NVRAM data

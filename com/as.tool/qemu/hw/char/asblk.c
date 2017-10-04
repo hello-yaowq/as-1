@@ -24,6 +24,24 @@
 /* sizes must be power of 2 in PCI */
 #define ASBLK_IO_SIZE 1<<4
 #define ASBLK_MMIO_SIZE 1<<6
+
+#define MAX_BLK 4
+
+enum {
+	FLG_RX = 0x01,
+	FLG_TX = 0x02,
+};
+
+enum{
+	REG_BLKID     = 0x00,
+	REG_BLKSZ     = 0x04,
+	REG_BLKNBR    = 0x08,
+	REG_DATA      = 0x0C,
+	REG_LENGTH    = 0x10,
+	REG_BLKSTATUS = 0x14,
+	REG_CMD       = 0x18,
+};
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct PCIASBLKDevState {
 	PCIDevice parent_obj;
@@ -42,6 +60,16 @@ typedef struct PCIASBLKDevState {
 	int threw_irq;
 	/* id of the device, writable */
 	int id;
+
+	uint32_t blkid;
+	uint32_t blksz;
+	uint32_t blknbr;
+
+	FILE* fp[MAX_BLK];
+	uint8_t data[1024*1024];
+	uint32_t rwpos;
+	uint32_t length;
+	uint32_t flag;
 } PCIASBLKDevState;
 
 static Property asblk_properties[] = {
@@ -100,29 +128,8 @@ static const TypeInfo pci_asblk_info = {
 /* ============================ [ LOCALS    ] ====================================================== */
 static void asblk_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
-	int i;
-	PCIASBLKDevState *d = (PCIASBLKDevState *) opaque;
-	PCIDevice *pci_dev = (PCIDevice *) opaque;
 
 	switch (addr) {
-	case 0:
-		if (value) {
-			/* throw an interrupt */
-			d->threw_irq = 1;
-			pci_irq_assert(pci_dev);
-
-		} else {
-			/*  ack interrupt */
-			pci_irq_deassert(pci_dev);
-			d->threw_irq = 0;
-		}
-		break;
-	case 4:
-		/* throw a random DMA */
-		for (i = 0; i < d->dma_size; ++i)
-			d->dma_buf[i] = rand();
-		cpu_physical_memory_write(value, (void *) d->dma_buf, d->dma_size);
-		break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 	}
@@ -130,13 +137,8 @@ static void asblk_iowrite(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static uint64_t asblk_ioread(void *opaque, hwaddr addr, unsigned size) {
-	PCIASBLKDevState *d = (PCIASBLKDevState *) opaque;
 
 	switch (addr) {
-	case 0:
-		/* irq status */
-		return d->threw_irq;
-		break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 		return 0x0;
@@ -145,15 +147,25 @@ static uint64_t asblk_ioread(void *opaque, hwaddr addr, unsigned size) {
 
 static uint64_t asblk_mmioread(void *opaque, hwaddr addr, unsigned size) {
 	PCIASBLKDevState *d = (PCIASBLKDevState *) opaque;
-
+	uint64_t rv;
 	switch (addr) {
-	case 0:
-		/* also irq status */
-		return d->threw_irq;
+	case REG_DATA:
+		rv = d->data[d->rwpos];
+		d->rwpos++;
+		assert(d->rwpos<sizeof(d->data));
+		return rv;
 		break;
-	case 4:
-		/* Id of the device */
-		return d->id;
+	case REG_LENGTH:
+		assert(d->blkid<MAX_BLK);
+		assert(d->fp[d->blkid]);
+		fseek(d->fp[d->blkid], 0L, SEEK_END);
+		rv = ftell(d->fp[d->blkid]);
+		return rv;
+		break;
+	case REG_BLKSTATUS:
+		rv = d->flag;
+		d->flag = 0;
+		return rv;
 		break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
@@ -165,23 +177,114 @@ static uint64_t asblk_mmioread(void *opaque, hwaddr addr, unsigned size) {
 static void asblk_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
 	PCIASBLKDevState *d = (PCIASBLKDevState *) opaque;
-	PCIDevice *pci_dev = (PCIDevice *) opaque;
 
 	switch (addr) {
-	case 4:
-		/* change the id */
-		d->id = value;
+	case REG_BLKID:
+		assert(value<MAX_BLK);
+		d->blkid = value;
 		break;
-	case 8:
-		if (value) {
-			/* throw an interrupt */
-			d->threw_irq = 1;
-			pci_irq_assert(pci_dev);
+	case REG_BLKSZ:
+		assert(d->blksz <= sizeof(d->data));
+		d->blksz = value;
+		d->rwpos = 0;
+		break;
+	case REG_BLKNBR:
+		d->blknbr = value;
+		d->rwpos  = 0;
+		break;
+	case REG_DATA:
+		assert(d->rwpos<sizeof(d->data));
+		d->data[d->rwpos] = value;
+		d->rwpos++;
+		break;
+	case REG_CMD:
+		switch(value) {
+		case 0: /* init */
+			assert(d->blkid<MAX_BLK);
+			if(NULL == d->fp[d->blkid])
+			{
+				char img[64];
+				snprintf(img, sizeof(img), "asblk%d.img", d->blkid);
+				d->fp[d->blkid]=fopen(img,"rb+");
+				if(NULL == d->fp[d->blkid])
+				{
+					char cmd[128];
+					snprintf(cmd, sizeof(cmd), "dd if=/dev/zero of=%s bs=1M count=32", img);
+					if(0 == system(cmd)) { /* do nothing */}
+					snprintf(cmd, sizeof(cmd), "sudo mkfs.%s %s", (0==d->blkid)?"fat":"ext4", img);
+					if(0 == system(cmd))  { /* do nothing */}
+					printf("asblk simulation on new created 32Mb %s %s\n", (0==d->blkid)?"vfat":"ext4", img);
+					d->fp[d->blkid]=fopen(img,"rb+");
+					assert(d->fp[d->blkid]);
+				}
+				else
+				{
+					/* open sucessfully */
+				}
+			}
+			break;
+		case 1: /* read */
+		{
+			int len;
+			assert(d->blkid<MAX_BLK);
+			assert(d->fp[d->blkid]);
+			assert(d->blksz <= sizeof(d->data));
 
-		} else {
-			/*  ack interrupt */
-			pci_irq_deassert(pci_dev);
-			d->threw_irq = 0;
+			if(0 != fseek(d->fp[d->blkid],d->blksz*d->blknbr,SEEK_SET))
+			{
+				printf ("%s: seek block %d of img %d failed: ", __func__, d->blknbr, d->blkid);
+				perror("");
+			
+			}
+			else
+			{
+				len=fread(d->data,sizeof(char),d->blksz,d->fp[d->blkid]);
+
+				if(len!=d->blksz)
+				{
+					printf ("%s: read block %d of img %d failed: ", __func__, d->blknbr, d->blkid);
+					perror("");
+				}
+				else
+				{
+					d->flag |= FLG_RX;
+				}
+			}
+			break;
+		}
+		case 2: /* write */
+		{
+			int len;
+			assert(d->blkid<MAX_BLK);
+			assert(d->fp[d->blkid]);
+			assert(d->blksz <= sizeof(d->data));
+
+			if(0 != fseek(d->fp[d->blkid],d->blksz*d->blknbr,SEEK_SET))
+			{
+				printf ("%s: seek block %d of img %d failed: ", __func__, d->blknbr, d->blkid);
+				perror("");
+			
+			}
+			else
+			{
+				len=fwrite(d->data,sizeof(char),d->blksz,d->fp[d->blkid]);
+
+				if(len!=d->blksz)
+				{
+					printf ("%s: write block %d of img %d failed with ercd=%d",
+							__func__, d->blknbr, d->blkid, len);
+					perror("");
+				}
+				else
+				{
+					d->flag |= FLG_TX;
+				}
+			}
+			break;
+		}
+		default:
+			printf ("%s: unsupported command 0x%x\n", __func__, (int)value);
+			break;
 		}
 		break;
 	default:
@@ -208,6 +311,7 @@ static int pci_asblkdev_init(PCIDevice *pci_dev) {
 	d->threw_irq = 0;
 	uint8_t *pci_conf;
 
+	memset(d->fp, 0, sizeof(d->fp));
 	/* create the memory region representing the MMIO and PIO
 	 * of the device
 	 */
@@ -221,9 +325,9 @@ static int pci_asblkdev_init(PCIDevice *pci_dev) {
 
 	pci_conf = pci_dev->config;
 	/* also in ldd, a pci device has 4 pin for interrupt
-	 * here we use pin B.
+	 * here we use pin D.
 	 */
-	pci_conf[PCI_INTERRUPT_PIN] = 0x02;
+	pci_conf[PCI_INTERRUPT_PIN] = 0x04;
 
 	return 0;
 }
