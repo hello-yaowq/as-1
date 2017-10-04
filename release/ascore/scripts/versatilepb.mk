@@ -112,8 +112,8 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
 ifeq ($(rtos),askar)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/askar/kernel TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/include TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/portable/arm TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/askar/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/askar/portable/arm TRUE)
 endif
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)

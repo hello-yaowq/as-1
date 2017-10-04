@@ -27,3 +27,28 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType pMask )
 
 	return ercd;
 }
+
+StatusType ClearEvent( EventMaskType Mask )
+{
+	StatusType ercd = E_OK;
+
+
+	return ercd;
+}
+
+StatusType GetEvent  ( TaskType TaskID , EventMaskRefType pEvent )
+{
+	StatusType ercd = E_OK;
+
+
+	return ercd;
+}
+
+StatusType WaitEvent ( EventMaskType Mask )
+{
+	StatusType ercd = E_OK;
+
+
+	return ercd;
+}
+

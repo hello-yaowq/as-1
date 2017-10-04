@@ -18,18 +18,19 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TickType				OsTickCounter = 1;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-StatusType IncrementCounter(CounterType CounterID)
+StatusType SetRelAlarm ( AlarmType AlarmID , TickType Increment ,TickType Cycle )
 {
-	StatusType ercd = E_OK;
 
-	return ercd;
 }
 
-
-TickType GetOsTick(void)
+StatusType SetAbsAlarm ( AlarmType AlarmID , TickType Start ,TickType Cycle )
 {
-	return OsTickCounter;
+
+}
+
+StatusType CancelAlarm ( AlarmType AlarmID )
+{
+
 }

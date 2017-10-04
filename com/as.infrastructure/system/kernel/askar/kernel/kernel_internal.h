@@ -31,14 +31,25 @@ typedef struct
 	void* pStack;
 	uint32_t stackSize;
 	TaskMainEntryType entry;
+	boolean autoStart;
 } TaskConstType;
 
 typedef struct
 {
 	TaskContextType context;
+	StatusType state;
+
+	const TaskConstType* pConst;
 } TaskVarType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern TaskVarType* RunningVar;
+extern unsigned int CallLevel;
+extern const TaskConstType TaskConstArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+extern void Os_TaskInit(void);
+
+extern void Os_PortInitContext(TaskVarType* pTaskVar);
+extern void Os_PortStartDispatch(void);
 #endif /* KERNEL_INTERNAL_H_ */

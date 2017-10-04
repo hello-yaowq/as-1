@@ -18,12 +18,69 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+TaskVarType* RunningVar;
+unsigned int CallLevel;
+boolean      NeedSched;
+
+static TaskVarType TaskVarArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 StatusType ActivateTask ( TaskType TaskID )
 {
 	StatusType ercd = E_OK;
 
+	TaskVarType* pTaskVar;
+
+	if( TaskID < TASK_NUM )
+	{
+		pTaskVar   = &TaskVarArray[TaskID];
+
+		if(SUSPENDED == pTaskVar->state)
+		{
+			Os_PortInitContext(pTaskVar);
+		}
+		else
+		{
+			ercd = E_OS_LIMIT;
+		}
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	return ercd;
+}
+
+StatusType TerminateTask( void )
+{
+	StatusType ercd = E_OK;
 
 	return ercd;
+}
+
+void Os_TaskInit(void)
+{
+	TaskType id;
+
+	const TaskConstType* pTaskConst;
+	TaskVarType* pTaskVar;
+
+	RunningVar = NULL;
+	NeedSched = FALSE;
+
+	for(id=0; id < TASK_NUM; id++)
+	{
+		pTaskConst = &TaskConstArray[id];
+		pTaskVar   = &TaskVarArray[id];
+
+		pTaskVar->state = SUSPENDED;
+		pTaskVar->pConst = pTaskConst;
+
+		if(TRUE == pTaskConst->autoStart)
+		{
+			(void)ActivateTask(id);
+		}
+
+		RunningVar = pTaskVar;
+	}
 }

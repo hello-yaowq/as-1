@@ -18,18 +18,14 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TickType				OsTickCounter = 1;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-StatusType IncrementCounter(CounterType CounterID)
+StatusType GetResource (ResourceType ResID)
 {
-	StatusType ercd = E_OK;
 
-	return ercd;
 }
 
-
-TickType GetOsTick(void)
+StatusType ReleaseResource ( ResourceType ResID )
 {
-	return OsTickCounter;
+
 }

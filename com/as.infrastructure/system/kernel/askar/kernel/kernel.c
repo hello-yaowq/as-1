@@ -20,9 +20,35 @@
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+/* |------------------+------------------------------------------------------| */
+/* | Syntax:          | void StartOS ( AppModeType <Mode> )                  | */
+/* |------------------+------------------------------------------------------| */
+/* | Parameter (In):  | Mode:application mode                                | */
+/* |------------------+------------------------------------------------------| */
+/* | Parameter (Out): | none                                                 | */
+/* |------------------+------------------------------------------------------| */
+/* | Description:     | The user can call this system service to start the   | */
+/* |                  | operating system in a specific mode, see chapter 5   | */
+/* |                  | (os223.doc), Application modes.                      | */
+/* |------------------+------------------------------------------------------| */
+/* | Particularities: | Only allowed outside of the operating system,        | */
+/* |                  | therefore implementation specific restrictions may   | */
+/* |                  | apply. See also chapter 11.3, System start-up,       | */
+/* |                  | especially with respect to systems where OSEK and    | */
+/* |                  | OSEKtime coexist. This call does not need to return. | */
+/* |------------------+------------------------------------------------------| */
+/* | Conformance:     | BCC1, BCC2, ECC1, ECC2                               | */
+/* |------------------+------------------------------------------------------| */
 void StartOS ( AppModeType Mode )
 {
+	(void) Mode; /* mode is not implemented */
 
+	Irq_Disable();
+
+	Os_TaskInit();
+
+	Os_PortStartDispatch();
+	while(1);
 }
 
 void ShutdownOS( StatusType Error )

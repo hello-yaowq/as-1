@@ -20,14 +20,14 @@
   .section .text
   .weak \name
 \name:
-1: b 1b /* endless loop */
+  b \name /* endless loop */
 .endm
 
 	.section .init
 	.globl _start
 ;;
 _start:
-    ldr     pc, reset
+    ldr     pc, reset_handler
     ldr     pc, _vector_undef
     ldr     pc, _vector_swi
     ldr     pc, _vector_pabt
@@ -36,6 +36,7 @@ _start:
     ldr     pc, _vector_irq
     ldr     pc, _vector_fiq
 
+reset_handler:  .word reset
 _vector_undef:  .word vector_undef
 _vector_swi:    .word vector_swi
 _vector_pabt:   .word vector_pabt
@@ -66,9 +67,9 @@ reset:
     mov sp,#0x8000
 
     ;@ (PSR_FIQ_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
-   mov r0,#0xD1
-   msr cpsr_c,r0
-   mov sp,#0x6000
+    mov r0,#0xD1
+    msr cpsr_c,r0
+    mov sp,#0x6000
 
     ;@ (PSR_SVC_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
     mov r0,#0xD3
@@ -104,3 +105,40 @@ DEFAULT_ISR_HANDLER vector_dabt
 DEFAULT_ISR_HANDLER vector_resv
 DEFAULT_ISR_HANDLER vector_irq
 DEFAULT_ISR_HANDLER vector_fiq
+
+
+	.section .text
+    .global Irq_Restore
+    .type   Irq_Restore, %function
+/* void Irq_Restore( imask_t intsts ); */
+Irq_Restore:
+    msr cpsr, r0
+    mov pc, lr
+
+    .global __Irq_Save
+    .type   __Irq_Save, %function
+/* imask_t __Irq_Save( void ); */
+__Irq_Save:
+    mrs r0, cpsr
+    orr r1, r0, #0xc0
+    msr cpsr_c, r1
+    mov pc, lr
+
+
+/* void Irq_Disable(void)   */
+    .global Irq_Disable
+    .type   Irq_Disable, %function
+Irq_Disable:
+    mrs r0, cpsr
+    orr r0, r0, #0xc0
+    msr cpsr_c, r0
+    mov pc, lr
+
+/* void Irq_Enable(void) */
+    .global Irq_Enable
+    .type   Irq_Enable, %function
+Irq_Enable:
+    mrs r0, cpsr
+    bic r0, r0, #0xc0
+    msr cpsr_c, r0
+    mov pc, lr

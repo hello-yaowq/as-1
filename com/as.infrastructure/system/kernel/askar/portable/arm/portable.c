@@ -18,18 +18,23 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TickType				OsTickCounter = 1;
+uint32 CirticalCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-StatusType IncrementCounter(CounterType CounterID)
+void Os_PortActivate(void)
 {
-	StatusType ercd = E_OK;
+	CirticalCounter = 0;
+	Irq_Enable();
 
-	return ercd;
+	RunningVar->pConst->entry();
+
+	Irq_Disable();
+	while(1);
 }
 
-
-TickType GetOsTick(void)
+void Os_PortInitContext(TaskVarType* pTaskVar)
 {
-	return OsTickCounter;
+	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4;
+	pTaskVar->context.pc = Os_PortActivate;
 }
+
