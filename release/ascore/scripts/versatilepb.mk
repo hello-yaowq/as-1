@@ -24,7 +24,7 @@ ldflags-y += -lc -lgcc -L$(COMPILER_DIR)/arm-none-eabi/lib -L$(COMPILER_DIR)/lib
 endif
 ifeq ($(rtos),trampoline)
 def-y += -DWITH_SYSTEM_CALL=YES
-def-y += -DWITH_DEBUG=YES
+#def-y += -DWITH_DEBUG=YES
 endif
 def-y += -DUSE_KERNEL -DUSE_ECUM -DUSE_SCHM -DUSE_MCU
 # network of CAN
@@ -110,6 +110,11 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/asheap.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/cirq_buffer.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/mbox.c)
+ifeq ($(rtos),askar)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/askar/kernel TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/include TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/portable/arm TRUE)
+endif
 ifeq ($(rtos),trampoline)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/os TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/trampoline/debug TRUE)

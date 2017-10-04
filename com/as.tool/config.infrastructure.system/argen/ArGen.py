@@ -50,8 +50,8 @@ __gen_engine =  {
     'EcuC':dummy
 }
 
-def ArGen(arxml,dir):
-    if(arxml.tag == 'OS'):
+def ArGen(arxml,dir, skipos=True):
+    if(arxml.tag == 'OS' and skipos):
         return # supress OS Gen
     try:
         engine = __gen_engine[arxml.tag]

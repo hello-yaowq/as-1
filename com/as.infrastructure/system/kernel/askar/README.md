@@ -22,3 +22,15 @@ Then I want to give a new name to this RTOS, how about ASKAR(Automotive oSeK Aut
 * 3. trampoline heap entry with bubble up/down
 
 The above policy 1/2 is the most common policy that used by most of other RTOS with just a little bit difference. The policy 3 is really a rare case I have never seen before on any other RTOS, but it was really a good design.
+
+### counter & alarm list
+
+freertos way is good as I think, but toppers 1/2 MAX of counter value way is also very good, I prefer freertos way.
+
+### idle task
+
+[contiki](http://contiki-os.org/) is an IoT OS that really impressed me a lot, so I plan to implement this tiny protothread(or named coroutine) and run it in the idle task.
+
+* But with idle task, there is a sacrifice of the real time as need to save the context of idle task and then switch to new high ready task, so this idle task is really optional.
+
+ 

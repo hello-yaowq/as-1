@@ -30,6 +30,10 @@ enum TimerRegisters {
 volatile uint32_t __last_tick_time = 0;
 volatile uint32_t __tick_counter = 0;
 
+void __weak tpl_call_counter_tick()
+{
+	IncrementCounter(0);
+}
 int timer_irq_handler(void *ctx)
 {
 	__tick_counter++;
@@ -38,7 +42,6 @@ int timer_irq_handler(void *ctx)
 	extern void OsTick(void);
 	OsTick();
 	#else
-	extern void tpl_call_counter_tick();
 	tpl_call_counter_tick();	
     #endif
 

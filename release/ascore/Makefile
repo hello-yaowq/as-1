@@ -179,6 +179,10 @@ qemu-rpi:$(CURDIR)/qemu-system-arm-rpi_UART1.tar.gz
 52:
 	make all board=versatilepb compiler=gcc rtos=trampoline debug=true
 
+53:
+	make dep board=versatilepb compiler=gcc rtos=askar
+54:
+	make all board=versatilepb compiler=gcc rtos=askar debug=true
 qemu-ver: floppy.img
 	@($(download)/qemu/arm-softmmu/qemu-system-arm -m 128 -M versatilepb ${qemuparams} -kernel out/versatilepb.exe -serial tcp:127.0.0.1:1103,server  \
 		-drive file=floppy.img,if=virtio,format=raw -show-cursor -usb -usbdevice tablet -device virtio-rng-pci \

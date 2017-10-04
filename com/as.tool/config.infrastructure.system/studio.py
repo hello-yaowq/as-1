@@ -136,9 +136,9 @@ class easySARGui(QMainWindow):
                         'Open or Configure a Workspace first !').exec_();
             return
         for module in self.modules:
-            ArGen(module.toArxml(),self.pdir)
+            ArGen(module.toArxml(),self.pdir, False)
         QMessageBox(QMessageBox.Information, 'Info', 
-                        'Generate OpenSAR Configuration C Code Successfully !').exec_();
+                        'Generate OpenSAR Configuration C Code Successfully !\n<%s>\n'%(self.pdir)).exec_();
     def onAction(self,text):
         I = 0
         for module in self.modules:
