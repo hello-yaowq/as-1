@@ -47,6 +47,69 @@
 #define DeclareEvent( name )      extern const EventType name
 #define DeclareResource( name )   extern const ResourceType name
 
+
+/*
+ *  OS service API IDs
+ */
+#define OSServiceId_ActivateTask				((OSServiceIdType) 0)
+#define OSServiceId_TerminateTask				((OSServiceIdType) 1)
+#define OSServiceId_ChainTask					((OSServiceIdType) 2)
+#define OSServiceId_Schedule					((OSServiceIdType) 3)
+#define OSServiceId_GetTaskID					((OSServiceIdType) 4)
+#define OSServiceId_GetTaskState				((OSServiceIdType) 5)
+#define OSServiceId_EnableAllInterrupts			((OSServiceIdType) 6)
+#define OSServiceId_DisableAllInterrupts		((OSServiceIdType) 7)
+#define OSServiceId_ResumeAllInterrupts			((OSServiceIdType) 8)
+#define OSServiceId_SuspendAllInterrupts		((OSServiceIdType) 9)
+#define OSServiceId_ResumeOSInterrupts			((OSServiceIdType) 10)
+#define OSServiceId_SuspendOSInterrupts			((OSServiceIdType) 11)
+#define OSServiceId_GetResource					((OSServiceIdType) 12)
+#define OSServiceId_ReleaseResource				((OSServiceIdType) 13)
+#define OSServiceId_SetEvent					((OSServiceIdType) 14)
+#define OSServiceId_ClearEvent					((OSServiceIdType) 15)
+#define OSServiceId_GetEvent					((OSServiceIdType) 16)
+#define OSServiceId_WaitEvent					((OSServiceIdType) 17)
+#define OSServiceId_GetAlarmBase				((OSServiceIdType) 18)
+#define OSServiceId_GetAlarm					((OSServiceIdType) 19)
+#define OSServiceId_SetRelAlarm					((OSServiceIdType) 20)
+#define OSServiceId_SetAbsAlarm					((OSServiceIdType) 21)
+#define OSServiceId_CancelAlarm					((OSServiceIdType) 22)
+#define OSServiceId_GetActiveApplicationMode	((OSServiceIdType) 23)
+#define OSServiceId_StartOS						((OSServiceIdType) 24)
+#define OSServiceId_ShutdownOS					((OSServiceIdType) 25)
+#define OSServiceId_IncrementCounter			((OSServiceIdType) 26)
+
+/*
+ *  OS Error Process Macors
+ */
+#define OSErrorGetServiceId()					(_errorhook_svcid)
+
+#define OSError_ActivateTask_TaskID()			(_errorhook_par1.tskid)
+#define OSError_ChainTask_TaskID()				(_errorhook_par1.tskid)
+#define OSError_GetTaskID_TaskID()				(_errorhook_par1.p_tskid)
+#define OSError_GetTaskState_TaskID()			(_errorhook_par1.tskid)
+#define OSError_GetTaskState_State()			(_errorhook_par2.p_state)
+#define OSError_GetResource_ResID()				(_errorhook_par1.resid)
+#define OSError_ReleaseResource_ResID()			(_errorhook_par1.resid)
+#define OSError_SetEvent_TaskID()				(_errorhook_par1.tskid)
+#define OSError_SetEvent_Mask()					(_errorhook_par2.mask)
+#define OSError_ClearEvent_Mask()				(_errorhook_par1.mask)
+#define OSError_GetEvent_TaskID()				(_errorhook_par1.tskid)
+#define OSError_GetEvent_Mask()					(_errorhook_par2.p_mask)
+#define OSError_WaitEvent_Mask()				(_errorhook_par1.mask)
+#define OSError_GetAlarmBase_AlarmID()			(_errorhook_par1.almid)
+#define OSError_GetAlarmBase_Info()				(_errorhook_par2.p_info)
+#define OSError_GetAlarm_AlarmID()				(_errorhook_par1.almid)
+#define OSError_GetAlarm_Tick()					(_errorhook_par2.p_tick)
+#define OSError_SetRelAlarm_AlarmID()			(_errorhook_par1.almid)
+#define OSError_SetRelAlarm_increment()			(_errorhook_par2.incr)
+#define OSError_SetRelAlarm_cycle()				(_errorhook_par3.cycle)
+#define OSError_SetAbsAlarm_AlarmID()			(_errorhook_par1.almid)
+#define OSError_SetAbsAlarm_start()				(_errorhook_par2.start)
+#define OSError_SetAbsAlarm_cycle()				(_errorhook_par3.cycle)
+#define OSError_CancelAlarm_AlarmID()			(_errorhook_par1.almid)
+#define OSError_IncrementCounter_CounterID()	(_errorhook_par1.cntid)
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					StatusType;
 typedef uint32					EventMaskType;
@@ -73,8 +136,30 @@ typedef struct
 typedef AlarmBaseType*			AlarmBaseRefType;
 
 typedef uint8					ResourceType;
+
+
+typedef uint8					OSServiceIdType;	/* OS service API ID */
+
+typedef union {
+		TaskType			tskid;
+		TaskRefType			p_tskid;
+		TaskStateRefType	p_state;
+		ResourceType		resid;
+		EventMaskType		mask;
+		EventMaskRefType	p_mask;
+		AlarmType			almid;
+		AlarmBaseRefType	p_info;
+		TickRefType			p_tick;
+		TickType			incr;
+		TickType			cycle;
+		TickType			start;
+		AppModeType			mode;
+		CounterType			cntid;
+} _ErrorHook_Par;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern OSServiceIdType _errorhook_svcid;
+extern _ErrorHook_Par  _errorhook_par1, _errorhook_par2, _errorhook_par3;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 StatusType ActivateTask ( TaskType TaskID );

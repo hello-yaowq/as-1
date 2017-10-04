@@ -8,7 +8,9 @@
 		ErrorHook="Text Default=ErrorHook Comment=(if NULL,no ErrorHook) PosGUI=3"
 		PreTaskHook="Text Default=PreTaskHook Comment=(if NULL,no PreTaskHook) PosGUI=4"
 		PostTaskHook="Text Default=PostTaskHook Comment=(if NULL,no PostTaskHook) PosGUI=5"
-		Comment="TextArea Default=* PosGUI=6"
+		Conformance="Enum=(BCC1,BCC2,ECC1,ECC2) Default=ECC1 PosGUI=6"
+		Status="Enum=(STANDARD,EXTENDED) Default=ECC1 PosGUI=7"
+		Comment="TextArea Default=* PosGUI=8"
 	/>
 	<ApplicationModeList Max="32">
 		<ApplicationMode 
@@ -30,7 +32,7 @@
 		<Task  
 			Name="Text Comment=(Task Name) PosGUI=0" 
 			Priority="Integer Default=32 Range=0~255 PosGUI=1" 
-			Schedule="Enum=(FULL,NON,MIXED) Default=FULL PosGUI=2" 
+			Schedule="Enum=(FULL,NON) Default=FULL PosGUI=2" 
 			StackSize="Integer Range=0~65535 Default=512 PosGUI=3" 
 			Activation="Integer Range=1~255 Default=1 PosGUI=4" 
 			Autostart="Boolean Default=True PosGUI=5" 

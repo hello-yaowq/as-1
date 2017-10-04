@@ -44,7 +44,34 @@ def GenH(gendir,os_list):
     fp.write('#include "kernel.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __ASKAR_OS__\n\n')
+    general = ScanFrom(os_list,'General')[0]
+    if(GAGet(general,'ErrorHook') != 'NULL'):
+        fp.write('#define OS_USE_ERROR_HOOK\n')
+    fp.write('#define OS_CONFORMANCE_CLASS %s\n'%(GAGet(general,'Conformance')))
+    fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
+    fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')
+    maxPrio = 0
+    multiPrio = False
+    multiAct  = False
+    prioList=[]
+    for id,task in enumerate(task_list):
+        prio = Integer(GAGet(task,'Priority'))
+        if(Integer(GAGet(task,'Activation')) > 1):
+            multiAct = True;
+        try:
+            prioList.index(prio)
+            multiPrio = True
+        except ValueError:
+            prioList.append(prio)
+        if(prio > maxPrio):
+            maxPrio = prio
+    fp.write('#define PRIORITY_NUM %s\n'%(maxPrio))
+    if(multiPrio):
+        fp.write('#define MULTIPLY_TASK_PER_PRIORITY\n')
+    if(multiAct):
+        fp.write('#define MULTIPLY_TASK_ACTIVATION\n')
+    fp.write('\n\n')
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
@@ -101,11 +128,24 @@ def GenC(gendir,os_list):
         fp.write('static uint32_t %s_Stack[(%s*4+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
     fp.write('const TaskConstType TaskConstArray[TASK_NUM] =\n{\n')
     for id,task in enumerate(task_list):
+        runPrio = GAGet(task,'Priority')
+        if(GAGet(task,'Schedule')=='NON'):
+            runPrio = 'PRIORITY_NUM'
+        maxAct = Integer(GAGet(task,'Activation'))
+        if(len(GLGet(task,'EventList')) > 0):
+            if(maxAct > 1):
+                raise Exception('Task<%s>: multiple requesting of task activation allowed for basic tasks'%(GAGet(task,'Name')))
+            maxAct = 1
         fp.write('\t{\n')
         fp.write('\t\t.pStack = %s_Stack,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.stackSize = sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
         fp.write('\t\t.entry = TaskMain%s,\n'%(GAGet(task,'Name')))
-        fp.write('\t\t.autoStart = %s\n'%(GAGet(task,'Autostart').upper()))
+        fp.write('\t\t.initPriority = %s,\n'%(GAGet(task,'Priority')))
+        fp.write('\t\t.runPriority = %s,\n'%(runPrio))
+        fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
+        fp.write('\t\t.maxActivation = %s,\n'%(maxAct))
+        fp.write('\t\t#endif\n')
+        fp.write('\t\t.autoStart = %s,\n'%(GAGet(task,'Autostart').upper()))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')

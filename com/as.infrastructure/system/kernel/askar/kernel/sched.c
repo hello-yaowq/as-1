@@ -18,31 +18,28 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-uint32 ISR2Counter;
+boolean NeedSched;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Os_PortActivate(void)
+void Sched_AddReady(TaskVarType* pTaskVar)
 {
-	/* release internal resource or NON schedule */
-	RunningVar->priority = RunningVar->pConst->runPriority;
+	if(NULL == RunningVar)
+	{
+		RunningVar = pTaskVar;
+	}
+	else if(pTaskVar->priority > RunningVar->priority)
+	{	/* preempt running task */
+		NeedSched = TRUE;
 
-	RunningVar->state = RUNNING;
-	Irq_Enable();
+		RunningVar = pTaskVar;
+	}
+	else
+	{
 
-	RunningVar->pConst->entry();
-
-	/* Should not return here */
-	TerminateTask();
+	}
 }
 
-void Os_PortInit(void)
+TaskVarType* Sched_GetHighReady(void)
 {
-	ISR2Counter = 0;
+	return NULL;
 }
-
-void Os_PortInitContext(TaskVarType* pTaskVar)
-{
-	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4;
-	pTaskVar->context.pc = Os_PortActivate;
-}
-

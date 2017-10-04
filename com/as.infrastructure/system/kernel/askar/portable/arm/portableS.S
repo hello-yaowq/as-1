@@ -21,6 +21,7 @@
 /* ============================ [ DATAS     ] ====================================================== */
 	.extern RunningVar
 	.extern CallLevel
+	.extern ISR2Counter
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 	.section .text
@@ -52,6 +53,11 @@ Os_PortResume:
 	msr     spsr, r0
 	ldmfd   sp!, {r0-r12, lr, pc}^
 
+	.global Os_PortDispatch
+	.type   Os_PortDispatch, %function
+Os_PortDispatch:
+// TODO
+
 	.global vector_irq
 	.type   vector_irq, %function
 vector_irq:
@@ -63,9 +69,9 @@ EnterISR:
 	cmp     r0, #0
 	beq     l_nosave    /* no task is running */
 
-	ldr     r0, =CirticalCounter
+	ldr     r0, =ISR2Counter
 	ldr     r2, [r0]
-	add     r2, r2, #1  /* CirticalCounter++ */
+	add     r2, r2, #1  /* ISR2Counter++ */
 	str     r2, [r0]
 
 	cmp     r2, #1      /* previous CirticalCounter==0 */
@@ -107,10 +113,6 @@ l_nosave:
 	mov     r3, #2   /* CallLevel = TCL_ISR2 */
 	str     r3,[r1]
 
-//	mrs r0, cpsr
-//	bic r0, r0, #0xc0  /* interrupt enable */
-//	msr cpsr_c, r0
-
 	bl Os_PortIsrHandler
 
 ExitISR:
@@ -120,16 +122,12 @@ ExitISR:
 
 	ldmfd   sp!, {lr}
 
-//	mrs r0, cpsr
-//	orr r0, r0, #0xc0  /* interrupt disable */
-//	msr cpsr_c, r0
-
 	ldr     r0, = RunningVar
 	ldr     r0, [r0]
 	cmp     r0, #0
 	beq     l_nodispatch
 
-	ldr     r0, =CirticalCounter
+	ldr     r0, =ISR2Counter
 	ldr     r1, [r0]
 	sub     r1, r1, #1
 	str     r1, [r0]

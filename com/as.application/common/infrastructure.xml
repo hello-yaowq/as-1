@@ -11,6 +11,8 @@
 	    		ProtectionHook="NULL" 
 	    		ShutdownHook="ShutdownHook" 
 	    		StartupHook="StartupHook" 
+	    		Conformance="ECC1"
+	    		Status="EXTENDED"
 	    		Comment="Not Used" />
 		
 		<ApplicationMode Name="OSDEFAULTAPPMODE" Comment="*" />
