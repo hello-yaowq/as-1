@@ -47,7 +47,11 @@ def GenH(gendir,os_list):
     general = ScanFrom(os_list,'General')[0]
     if(GAGet(general,'ErrorHook') != 'NULL'):
         fp.write('#define OS_USE_ERROR_HOOK\n')
-    fp.write('#define OS_CONFORMANCE_CLASS %s\n'%(GAGet(general,'Conformance')))
+    try:
+        cc = GAGet(general,'Conformance')
+    except KeyError:
+        cc = 'ECC2' # TODO: resolve conformance
+    fp.write('#define OS_CONFORMANCE_CLASS %s\n'%(cc))
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')

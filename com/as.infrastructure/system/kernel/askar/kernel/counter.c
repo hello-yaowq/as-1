@@ -21,7 +21,7 @@
 TickType				OsTickCounter = 1;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-StatusType IncrementCounter(CounterType CounterID)
+StatusType SignalCounter(CounterType CounterID)
 {
 	StatusType ercd = E_OK;
 

@@ -169,7 +169,7 @@ StatusType Schedule     ( void );
 StatusType GetTaskID    ( TaskRefType pTaskType );
 StatusType GetTaskState ( TaskType TaskID,TaskStateRefType pState );
 
-StatusType IncrementCounter(CounterType CounterID);
+StatusType SignalCounter(CounterType CounterID);
 StatusType GetAlarmBase( AlarmType AlarmID, AlarmBaseRefType pInfo );
 StatusType GetAlarm    ( AlarmType AlarmID ,TickRefType pTick );
 StatusType SetRelAlarm ( AlarmType AlarmID , TickType Increment ,TickType Cycle );

@@ -63,7 +63,7 @@ def getOsRef(os_list):
         if(each.tag == 'OsRef'):
             return each.attrib['name']
     # default os
-    return 'toppers_osek'
+    return 'askar'
     
 def OsGen(gendir):
     os_list = ScanXML(gendir,'Os')
