@@ -25,14 +25,14 @@ uint32 ISR2Counter;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
 {
-	CallLevel = TCL_TASK;
-	RunningVar = ReadyVar;
 	/* get internal resource or NON schedule */
 	RunningVar->priority = RunningVar->pConst->runPriority;
 
 	ASLOG(OS, "%s(%d) is running\n", RunningVar->pConst->name,
 			RunningVar->pConst->initPriority);
 	RunningVar->state = RUNNING;
+
+	CallLevel = TCL_TASK;
 	Irq_Enable();
 
 	RunningVar->pConst->entry();

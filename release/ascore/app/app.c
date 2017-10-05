@@ -261,7 +261,7 @@ TASK(TaskApp)
 		if(0 ==(counter%100))Xcp_MainFunction_Channel(XCP_EVCHL_1000ms);
 	}
 #endif
-
+	OsActivateTask(TaskLwip);
 	OsTerminateTask(TaskApp);
 
 	OS_TASK_END();

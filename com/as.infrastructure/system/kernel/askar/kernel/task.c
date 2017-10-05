@@ -66,6 +66,7 @@ StatusType ActivateTask ( TaskType TaskID )
 		{
 			RunningVar->state = READY;
 			Os_PortInitContext(pTaskVar);
+
 			#ifdef MULTIPLY_TASK_ACTIVATION
 			pTaskVar-> activation = 1;
 			#endif
@@ -158,7 +159,6 @@ StatusType TerminateTask( void )
 
 	if(E_OK == ercd)
 	{
-		asAssert(RunningVar->activation);
 		/* release internal resource or NON schedule */
 		RunningVar->priority = RunningVar->pConst->initPriority;
 		#ifdef MULTIPLY_TASK_ACTIVATION

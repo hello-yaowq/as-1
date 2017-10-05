@@ -29,10 +29,11 @@
 
 Os_PortIdle:
 	bl      Irq_Enable
+l_idle:
 	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
-	ble     Os_PortIdle
+	ble     l_idle
 	mov     pc, lr
 
 	.global Os_PortStartDispatch
@@ -43,6 +44,8 @@ Os_PortStartDispatch:
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     Os_PortIdle
+	ldr     r1, =RunningVar
+	str     r0, [r1]
 	ldr     sp, [r0, #0x0 ]
 	ldr     r1,[r0,#0x04]
 	mov     pc,r1
@@ -57,7 +60,25 @@ Os_PortResume:
 	.global Os_PortDispatch
 	.type   Os_PortDispatch, %function
 Os_PortDispatch:
-	b .
+	stmfd   sp, {r0-r2}
+	sub     r0, sp, #12
+	sub     r1, lr, #0              /* Adjust PC for return address to task */
+	mrs     r2, cpsr
+	stmfd   sp!, {r1}               /* Push task''s PC */
+	stmfd   sp!, {r3-r12, lr}       /* Push task''s LR,R12-R4 */
+	ldmfd   r0!, {r3-r5}            /* Load Task''s R0-R2 from stack */
+	stmfd   sp!, {r3-r5}            /* Push Task''s R0-R2 to SVC stack */
+	stmfd   sp!, {r2}               /* Push task''s SPSR */
+
+	ldr     r3, =RunningVar
+	ldr     r4, [r3]
+
+	str     sp, [r4, #0x0 ]
+
+	ldr     r12, =Os_PortResume
+	str     r12, [r4, #0x04]
+
+	b       Os_PortStartDispatch                 /* To dispatch processing */
 
 	.global vector_irq
 	.type   vector_irq, %function
