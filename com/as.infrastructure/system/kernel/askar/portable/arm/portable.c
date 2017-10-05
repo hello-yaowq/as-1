@@ -14,7 +14,9 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -23,9 +25,13 @@ uint32 ISR2Counter;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
 {
-	/* release internal resource or NON schedule */
+	CallLevel = TCL_TASK;
+	RunningVar = ReadyVar;
+	/* get internal resource or NON schedule */
 	RunningVar->priority = RunningVar->pConst->runPriority;
 
+	ASLOG(OS, "%s(%d) is running\n", RunningVar->pConst->name,
+			RunningVar->pConst->initPriority);
 	RunningVar->state = RUNNING;
 	Irq_Enable();
 

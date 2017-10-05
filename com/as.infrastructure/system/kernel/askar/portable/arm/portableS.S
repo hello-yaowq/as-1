@@ -20,6 +20,7 @@
 	.extern Os_PortIsrHandler
 /* ============================ [ DATAS     ] ====================================================== */
 	.extern RunningVar
+	.extern ReadyVar
 	.extern CallLevel
 	.extern ISR2Counter
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -28,7 +29,7 @@
 
 Os_PortIdle:
 	bl      Irq_Enable
-	ldr     r0, =RunningVar
+	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     Os_PortIdle
@@ -38,7 +39,7 @@ Os_PortIdle:
 	.type   Os_PortStartDispatch, %function
 /* void Os_PortStartDispatch( void ); */
 Os_PortStartDispatch:
-	ldr     r0, =RunningVar
+	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     Os_PortIdle
@@ -56,7 +57,7 @@ Os_PortResume:
 	.global Os_PortDispatch
 	.type   Os_PortDispatch, %function
 Os_PortDispatch:
-// TODO
+	b .
 
 	.global vector_irq
 	.type   vector_irq, %function

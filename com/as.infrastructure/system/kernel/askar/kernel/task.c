@@ -64,10 +64,13 @@ StatusType ActivateTask ( TaskType TaskID )
 		Irq_Save(imask);
 		if(SUSPENDED == pTaskVar->state)
 		{
+			RunningVar->state = READY;
 			Os_PortInitContext(pTaskVar);
 			#ifdef MULTIPLY_TASK_ACTIVATION
 			pTaskVar-> activation = 1;
 			#endif
+
+			pTaskVar->priority = pTaskVar->pConst->initPriority;
 
 			Sched_AddReady(pTaskVar);
 		}
@@ -86,8 +89,10 @@ StatusType ActivateTask ( TaskType TaskID )
 			}
 		}
 
-		if( (TCL_TASK == CallLevel) && (TRUE == NeedSched) )
+		if( (TCL_TASK == CallLevel) &&
+			(ReadyVar->priority > RunningVar->priority) )
 		{
+			Sched_Preempt();
 			Os_PortDispatch();
 		}
 
@@ -162,6 +167,7 @@ StatusType TerminateTask( void )
 		if(RunningVar->activation > 0)
 		{
 			RunningVar->state = READY;
+			Os_PortInitContext(RunningVar);
 		}
 		else
 		#endif
@@ -169,7 +175,7 @@ StatusType TerminateTask( void )
 			RunningVar->state = SUSPENDED;
 		}
 
-		RunningVar = Sched_GetHighReady();
+		Sched_GetReady();
 
 		Os_PortStartDispatch();
 	}

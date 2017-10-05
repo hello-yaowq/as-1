@@ -54,9 +54,11 @@ def GenH(gendir,os_list):
     maxPrio = 0
     multiPrio = False
     multiAct  = False
+    sumAct = 0
     prioList=[]
     for id,task in enumerate(task_list):
         prio = Integer(GAGet(task,'Priority'))
+        sumAct += Integer(GAGet(task,'Activation'))
         if(Integer(GAGet(task,'Activation')) > 1):
             multiAct = True;
         try:
@@ -67,6 +69,7 @@ def GenH(gendir,os_list):
         if(prio > maxPrio):
             maxPrio = prio
     fp.write('#define PRIORITY_NUM %s\n'%(maxPrio))
+    fp.write('#define ACTIVATION_SUM %s\n'%(sumAct+1))
     if(multiPrio):
         fp.write('#define MULTIPLY_TASK_PER_PRIORITY\n')
     if(multiAct):
@@ -142,6 +145,7 @@ def GenC(gendir,os_list):
         fp.write('\t\t.entry = TaskMain%s,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.initPriority = %s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t.runPriority = %s,\n'%(runPrio))
+        fp.write('\t\t.name = "%s",\n'%(GAGet(task,'Name')))
         fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
         fp.write('\t\t.maxActivation = %s,\n'%(maxAct))
         fp.write('\t\t#endif\n')

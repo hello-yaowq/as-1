@@ -22,13 +22,16 @@ OSServiceIdType _errorhook_svcid;
 _ErrorHook_Par  _errorhook_par1, _errorhook_par2, _errorhook_par3;
 
 TaskVarType* RunningVar;
+TaskVarType* ReadyVar;
 unsigned int CallLevel;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void Os_MiscInit(void)
 {
 	RunningVar = NULL;
+	ReadyVar   = NULL;
 	CallLevel  = TCL_NULL;
-	NeedSched = FALSE;
+
+	Sched_Init();
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------| */
@@ -58,9 +61,9 @@ void StartOS ( AppModeType Mode )
 
 	Os_MiscInit();
 	Os_PortInit();
-
 	Os_TaskInit();
 
+	Sched_GetReady();
 	Os_PortStartDispatch();
 	while(1);
 }

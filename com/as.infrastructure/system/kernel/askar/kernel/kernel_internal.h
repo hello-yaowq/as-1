@@ -142,6 +142,7 @@ typedef struct
 	TaskMainEntryType entry;
 	PriorityType initPriority;
 	PriorityType runPriority;
+	const char* name;
 	#ifdef MULTIPLY_TASK_ACTIVATION
 	uint8 maxActivation;
 	#endif
@@ -161,8 +162,8 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern TaskVarType* RunningVar;
+extern TaskVarType* ReadyVar;
 extern unsigned int CallLevel;
-extern boolean NeedSched;
 extern const TaskConstType TaskConstArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -173,7 +174,9 @@ extern void Os_PortInitContext(TaskVarType* pTaskVar);
 extern void Os_PortStartDispatch(void);
 extern void Os_PortDispatch(void);
 
-void Sched_AddReady(TaskVarType* pTaskVar);
-TaskVarType* Sched_GetHighReady(void);
+extern void Sched_Init(void);
+extern void Sched_AddReady(TaskVarType* pTaskVar);
+extern void Sched_GetReady(void);
+extern void Sched_Preempt(void);
 
 #endif /* KERNEL_INTERNAL_H_ */
