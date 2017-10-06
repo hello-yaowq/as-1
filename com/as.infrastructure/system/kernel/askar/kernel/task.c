@@ -184,6 +184,22 @@ StatusType TerminateTask( void )
 	return ercd;
 }
 
+StatusType ChainTask    ( TaskType TaskID )
+{
+}
+
+StatusType Schedule     ( void )
+{
+}
+
+StatusType GetTaskID    ( TaskRefType pTaskType )
+{
+}
+
+StatusType GetTaskState ( TaskType TaskID,TaskStateRefType pState )
+{
+}
+
 void Os_TaskInit(void)
 {
 	TaskType id;

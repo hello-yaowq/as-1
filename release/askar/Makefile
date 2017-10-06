@@ -96,6 +96,7 @@ CFLAGS += -I${KERNEL}/include \
 		  -I${COM}/as.infrastructure/include \
 		  -I${COM}/as.infrastructure/system/kernel \
 
+
 VPATH += ${KERNEL}/kernel
 obj-y += ${obj-dir}/alarm.o \
 		 ${obj-dir}/counter.o \
@@ -105,12 +106,21 @@ obj-y += ${obj-dir}/alarm.o \
 		 ${obj-dir}/sched-bubble.o \
 		 ${obj-dir}/task.o \
 
-VPATH += ${src-dir} $(CTEST)/src
+
+VPATH += ${src-dir} \
+		 $(CTEST)/src $(CURDIR)/util \
+	     ${COM}/as.infrastructure/clib \
+
+
 CFLAGS += -D$(TARGET)
+CFLAGS += -D__CTEST_WITH_PRINTF__
 CFLAGS += -I${src-dir} -I$(CTEST)/inc
 obj-y += ${obj-dir}/Os_Cfg.o \
 		 ${obj-dir}/$(TARGET).o \
 		 ${obj-dir}/ctest_rst.o \
+		 ${obj-dir}/util.o \
+		 ${obj-dir}/stdio_printf.o \
+
 
 default:all
 
@@ -138,14 +148,19 @@ ${src-dir}:
 dep-versatilepb:
 
 dep-os: $(src-dir)
-	$(XCC) $(src-dir) false
-	echo "#include \"Os.h\"" > $(src-dir)/os.h
-	echo "#include \"Std_Types.h\"" > $(src-dir)/Types.h
-
+	@$(XCC) $(src-dir) false
+	@echo "#include \"Os.h\"" > $(src-dir)/os.h
+	@echo "#include \"Std_Types.h\"" > $(src-dir)/Types.h
 
 all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	@echo "  >> LD $(TARGET)"
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
 
+test:
+	qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio
+
 clean:
-	@rm -frv ${obj-dir} ${out-dir} ${src-dir}
+	@rm -frv objs/* out/* src/*
+
+kill:
+	@pgrep qemu-system-arm|xargs -i kill -9 {}

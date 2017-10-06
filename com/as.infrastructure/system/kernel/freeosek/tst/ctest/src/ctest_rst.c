@@ -703,7 +703,11 @@ uint8 ConfTestResult;
 uint32f SequenceCounter;
 
 /*==================[internal functions definition]==========================*/
-
+#ifdef __CTEST_WITH_PRINTF__
+extern int printf(const char* fmt, ...);
+#else
+int printf(const char* fmt, ...) { return 0; }
+#endif
 /*==================[external functions definition]==========================*/
 void ASSERT
 (
@@ -714,6 +718,7 @@ void ASSERT
    if (cond)
    {
 		TestResults[(tc)>>2] |=	FAILED << ( ( tc & 3 ) * 2 );
+		printf("ASSERT:: TestCase %d FAIL\n", tc);
 		while(1);
    }
 	else
@@ -738,6 +743,7 @@ void ConfTestEvaluation
 		if ( TestResultsOk[loopi] != TestResults[loopi] )
 		{
 			testok = FALSE;
+			printf("TestCase group %d FAIL\n", loopi);
 		}
 	}
 
@@ -768,6 +774,7 @@ void Sequence
    else
    {
 		SequenceCounter |= SEQUENCE_INVALID;
+		printf("Invalid sequence %d\n", seq);
    }
 }
 
@@ -776,6 +783,7 @@ void ConfTestFinish
 	void
 )
 {
+	printf(" >> END << ");
 	while(1);
 }
 

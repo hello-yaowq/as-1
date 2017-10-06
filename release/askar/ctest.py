@@ -103,6 +103,10 @@ def test(target,case,vv):
     os.system(cmd)
     cmd='make all TARGET=%s CASE=%s'%(target, case)
     os.system(cmd)
+    c = input('do the test[y/n]:')
+    if(c != 'y'): exit(1)         
+    cmd='make test TARGET=%s CASE=%s'%(target, case)
+    os.system(cmd)
 
 if(__name__ == '__main__'):
     if(len(sys.argv) == 2 and sys.argv[1] == 'all'):
