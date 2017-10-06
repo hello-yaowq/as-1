@@ -52,3 +52,12 @@ void Os_PortInitContext(TaskVarType* pTaskVar)
 	pTaskVar->context.pc = Os_PortActivate;
 }
 
+void EnterISR(void)
+{
+	/* do nothing */
+}
+
+void LeaveISR(void)
+{
+	/* do nothing */
+}

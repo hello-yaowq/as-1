@@ -194,7 +194,7 @@ void PreTaskHook(void);
 void PostTaskHook(void);
 
 void EnterISR(void);
-void ExitISR(void);
+void LeaveISR(void);
 
 void DisableAllInterrupts( void );
 void EnableAllInterrupts ( void );

@@ -16,11 +16,12 @@
 # CPU architecture setting: versatilepb
 export ARCH ?= versatilepb
 
-TARGET = ctest_tm_01
+TARGET ?= ctest_tm_01
+CASE ?=
 
-obj-dir = $(CURDIR)/objs
-out-dir = $(CURDIR)/out
-src-dir = $(CURDIR)/src
+obj-dir = $(CURDIR)/objs/$(TARGET)/$(CASE)
+out-dir = $(CURDIR)/out/$(TARGET)/$(CASE)
+src-dir = $(CURDIR)/src/$(TARGET)/$(CASE)
 
 COM = $(CURDIR)/../../com
 KERNEL = ${COM}/as.infrastructure/system/kernel/askar
@@ -57,6 +58,9 @@ endif
 # default FLAGS
 CFLAGS += -O0 -g -D__arch_${ARCH}__ -std=gnu99
 LDFLAGS += -O0 -g
+CFLAGS += -ffunction-sections -fdata-sections
+LDFLAGS += --gc-sections
+
 
 ifeq (${ARCH}, versatilepb)
 ASFLAGS += -mcpu=arm926ej-s -marm -fpic
@@ -102,9 +106,11 @@ obj-y += ${obj-dir}/alarm.o \
 		 ${obj-dir}/task.o \
 
 VPATH += ${src-dir} $(CTEST)/src
+CFLAGS += -D$(TARGET)
 CFLAGS += -I${src-dir} -I$(CTEST)/inc
 obj-y += ${obj-dir}/Os_Cfg.o \
 		 ${obj-dir}/$(TARGET).o \
+		 ${obj-dir}/ctest_rst.o \
 
 default:all
 
@@ -132,16 +138,14 @@ ${src-dir}:
 dep-versatilepb:
 
 dep-os: $(src-dir)
-	$(REOIL) $(CTEST)/etc/$(TARGET).oil $(src-dir)/Test.xml
 	$(XCC) $(src-dir) false
 	echo "#include \"Os.h\"" > $(src-dir)/os.h
 	echo "#include \"Std_Types.h\"" > $(src-dir)/Types.h
-	touch $(src-dir)/ctest_cfg.h
 
 
-all: ${obj-dir} ${out-dir} dep-${ARCH} dep-os ${obj-y}
+all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	@echo "  >> LD $(TARGET)"
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
 
 clean:
-	@rm -frv ${obj-dir} ${out-dir}
+	@rm -frv ${obj-dir} ${out-dir} ${src-dir}

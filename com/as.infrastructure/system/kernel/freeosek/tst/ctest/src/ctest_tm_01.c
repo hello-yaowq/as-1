@@ -263,7 +263,7 @@ ISR(ISR2)
 ISR(ISR3)
 {
 	StatusType ret;
-
+	TaskType tskid;
 	EnterISR();
 
 	/* \treq TM_21 nmf B1B2E1E2 e Call TerminateTask() from ISR category 3
@@ -291,7 +291,7 @@ ISR(ISR3)
 	 *
 	 * \result Service returns E_OS_CALLEVEL
 	 */
-	ret = GetTaskID();
+	ret = GetTaskID(&tskid);
 	ASSERT(TM_38, ret != E_OS_CALLEVEL);
 
 	LeaveISR();

@@ -82,6 +82,19 @@ def GenH(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
+    fp.write('/* alternative Task ID name */')
+    for id,task in enumerate(task_list):
+        fp.write('#define %-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
+    appmode = []
+    for id,task in enumerate(task_list):
+        for mode in GLGet(task,'ApplicationModeList'):
+            if(GAGet(mode,'Name') != 'OSDEFAULTAPPMODE'):
+                try:
+                    appmode.index(GAGet(mode,'Name'))
+                except ValueError:
+                    appmode.append(GAGet(mode,'Name'))
+    for id,mode in enumerate(appmode):
+        fp.write('#define %s ((AppModeType)(1<<%s))\n'%(mode, id+1))
 
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
