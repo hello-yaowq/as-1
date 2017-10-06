@@ -82,6 +82,7 @@ static int serial_irq_handler(void *ctx)
 {
 	(void) ctx;
 #ifndef USE_PCI
+	extern void Can_MainFunction_Read_InISR(void);
 	Can_MainFunction_Read_InISR();
 #endif
 	clear_rxe_irq();

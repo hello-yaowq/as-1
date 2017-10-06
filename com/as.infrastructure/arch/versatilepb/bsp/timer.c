@@ -32,6 +32,7 @@ volatile uint32_t __tick_counter = 0;
 
 void __weak tpl_call_counter_tick()
 {
+	extern uint8 SignalCounter(uint8);
 	SignalCounter(0);
 }
 int timer_irq_handler(void *ctx)

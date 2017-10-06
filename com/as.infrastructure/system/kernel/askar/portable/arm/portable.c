@@ -30,7 +30,6 @@ void Os_PortActivate(void)
 
 	ASLOG(OS, "%s(%d) is running\n", RunningVar->pConst->name,
 			RunningVar->pConst->initPriority);
-	RunningVar->state = RUNNING;
 
 	CallLevel = TCL_TASK;
 	Irq_Enable();

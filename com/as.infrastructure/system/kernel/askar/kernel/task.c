@@ -64,7 +64,7 @@ StatusType ActivateTask ( TaskType TaskID )
 		Irq_Save(imask);
 		if(SUSPENDED == pTaskVar->state)
 		{
-			RunningVar->state = READY;
+			pTaskVar->state = READY;
 			Os_PortInitContext(pTaskVar);
 
 			#ifdef MULTIPLY_TASK_ACTIVATION
@@ -90,7 +90,8 @@ StatusType ActivateTask ( TaskType TaskID )
 			}
 		}
 
-		if( (TCL_TASK == CallLevel) &&
+		if( (E_OK == ercd) &&
+			(TCL_TASK == CallLevel) &&
 			(ReadyVar->priority > RunningVar->priority) )
 		{
 			Sched_Preempt();
@@ -149,7 +150,7 @@ StatusType ActivateTask ( TaskType TaskID )
 StatusType TerminateTask( void )
 {
 	StatusType ercd = E_OK;
-
+	imask_t mask;
 	#if(OS_STATUS == EXTENDED)
 	if( CallLevel != TCL_TASK )
 	{
@@ -159,6 +160,7 @@ StatusType TerminateTask( void )
 
 	if(E_OK == ercd)
 	{
+		Irq_Save(mask);
 		/* release internal resource or NON schedule */
 		RunningVar->priority = RunningVar->pConst->initPriority;
 		#ifdef MULTIPLY_TASK_ACTIVATION
@@ -178,26 +180,316 @@ StatusType TerminateTask( void )
 		Sched_GetReady();
 
 		Os_PortStartDispatch();
+		Irq_Restore(mask);
 	}
 
 	OSErrorNone(TerminateTask);
 	return ercd;
 }
 
+/* |------------------+-------------------------------------------------------------| */
+/* | Syntax:          | StatusType ChainTask ( TaskType <TaskID> )                  | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Parameter (In):  | TaskID Reference to the sequential succeeding task to       | */
+/* |                  | be activated.                                               | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Parameter (Out): | none                                                        | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Description:     | This service causes the termination of the calling task.    | */
+/* |                  | After termination of the calling task a succeeding task     | */
+/* |                  | <TaskID> is activated. Using this service, it ensures       | */
+/* |                  | that the succeeding task starts to run at the earliest      | */
+/* |                  | after the calling task has been terminated.                 | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Particularities: | 1. If the succeeding task is identical with the current     | */
+/* |                  | task, this does not result in multiple requests. The task   | */
+/* |                  | is not transferred to the suspended state, but will         | */
+/* |                  | immediately become ready again.                             | */
+/* |                  | 2. An internal resource assigned to the calling task is     | */
+/* |                  | automatically released, even if the succeeding task is      | */
+/* |                  | identical with the current task. Other resources occupied   | */
+/* |                  | by the calling shall have been released before ChainTask    | */
+/* |                  | is called. If a resource is still occupied in standard      | */
+/* |                  | status the behaviour is undefined.                          | */
+/* |                  | 3. If called successfully, ChainTask does not return to     | */
+/* |                  | the call level and the status can not be evaluated.         | */
+/* |                  | 4. In case of error the service returns to the calling      | */
+/* |                  | task and provides a status which can then be evaluated      | */
+/* |                  | in the application.                                         | */
+/* |                  | 5.If the service ChainTask is called successfully, this     | */
+/* |                  | enforces a rescheduling.                                    | */
+/* |                  | 6. Ending a task function without call to TerminateTask     | */
+/* |                  | or ChainTask is strictly forbidden and may leave the system | */
+/* |                  | in an undefined state.                                      | */
+/* |                  | 7. If E_OS_LIMIT is returned the activation is ignored.     | */
+/* |                  | 8. When an extended task is transferred from suspended      | */
+/* |                  | state into ready state all its events are cleared.          | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Status:          | Standard:                                                   | */
+/* |                  | 1. No return to call level                                  | */
+/* |                  | 2. Too many task activations of <TaskID>, E_OS_LIMIT        | */
+/* |                  | Extended:                                                   | */
+/* |                  | 1. Task <TaskID> is invalid, E_OS_ID                        | */
+/* |                  | 2. Calling task still occupies resources, E_OS_RESOURCE     | */
+/* |                  | 3. Call at interrupt level, E_OS_CALLEVEL                   | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Conformance:     | BCC1, BCC2, ECC1, ECC2                                      | */
+/* |------------------+-------------------------------------------------------------| */
 StatusType ChainTask    ( TaskType TaskID )
 {
-}
+	StatusType ercd = E_OK;
+	imask_t mask;
+	TaskVarType* pTaskVar;
+	
+	#if(OS_STATUS == EXTENDED)
+	if( TaskID >= TASK_NUM )
+	{
+		ercd = E_OS_ID;
+	}
+	else if( CallLevel != TCL_TASK )
+	{
+		ercd = E_OS_CALLEVEL;
+	}
+	#endif
 
+	if(E_OK == ercd)
+	{
+		pTaskVar = &TaskVarArray[TaskID];
+
+		if(pTaskVar == RunningVar)
+		{
+			Irq_Save(mask);
+			Os_PortInitContext(pTaskVar);
+			pTaskVar->priority = pTaskVar->pConst->initPriority;
+			Sched_AddReady(pTaskVar);
+			Irq_Restore(mask);
+		}
+		else
+		{
+			Irq_Save(mask);
+			if(SUSPENDED == pTaskVar->state)
+			{
+				RunningVar->state = READY;
+				Os_PortInitContext(pTaskVar);
+
+				#ifdef MULTIPLY_TASK_ACTIVATION
+				pTaskVar-> activation = 1;
+				#endif
+
+				pTaskVar->priority = pTaskVar->pConst->initPriority;
+
+				Sched_AddReady(pTaskVar);
+			}
+			else
+			{
+				#ifdef MULTIPLY_TASK_ACTIVATION
+				if(pTaskVar->activation < pTaskVar->pConst->maxActivation)
+				{
+					pTaskVar-> activation++;
+					Sched_AddReady(pTaskVar);
+				}
+				else
+				#endif
+				{
+					ercd = E_OS_LIMIT;
+				}
+			}
+			Irq_Restore(mask);
+
+			if(ercd == E_OK)
+			{
+				Irq_Save(mask);
+				/* release internal resource or NON schedule */
+				RunningVar->priority = RunningVar->pConst->initPriority;
+				#ifdef MULTIPLY_TASK_ACTIVATION
+				asAssert(RunningVar->activation > 0);
+				RunningVar->activation--;
+				if(RunningVar->activation > 0)
+				{
+					RunningVar->state = READY;
+					Os_PortInitContext(RunningVar);
+				}
+				else
+				#endif
+				{
+					RunningVar->state = SUSPENDED;
+				}
+				Irq_Restore(mask);
+			}
+		}
+
+		if(ercd == E_OK)
+		{
+			Irq_Save(mask);
+			Sched_GetReady();
+			Os_PortStartDispatch();
+			Irq_Restore(mask);
+		}
+	}
+
+	OSErrorOne(ChainTask, TaskID);
+
+	return ercd;
+
+}
+/* |------------------+-------------------------------------------------------------| */
+/* | Syntax:          | StatusType Schedule ( void )                                | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Parameter (In):  | none                                                        | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Parameter (Out): | none                                                        | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Description:     | If a higher-priority task is ready, the internal resource   | */
+/* |                  | of the task is released, the current task is put into the   | */
+/* |                  | ready state, its context is saved and the higher-priority   | */
+/* |                  | task is executed. Otherwise the calling task is continued.  | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Particularities: | Rescheduling only takes place if the task an internal       | */
+/* |                  | resource is assigned to the calling task during             | */
+/* |                  | system generation. For these tasks, Schedule enables a      | */
+/* |                  | processor assignment to other tasks with lower or equal     | */
+/* |                  | priority than the ceiling priority of the internal resource | */
+/* |                  | and higher priority than the priority of the calling task   | */
+/* |                  | in application-specific locations. When returning from      | */
+/* |                  | Schedule, the internal resource has been taken again.       | */
+/* |                  | This service has no influence on tasks with no internal     | */
+/* |                  | resource assigned (preemptable tasks).                      | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Status:          | Standard:                                                   | */
+/* |                  | 1. No error, E_OK                                           | */
+/* |                  | Extended:                                                   | */
+/* |                  | 1. Call at interrupt level, E_OS_CALLEVEL                   | */
+/* |                  | 2. Calling task occupies resources, E_OS_RESOURCE           | */
+/* |------------------+-------------------------------------------------------------| */
+/* | Conformance:     | BCC1, BCC2, ECC1, ECC2                                      | */
+/* |------------------+-------------------------------------------------------------| */
 StatusType Schedule     ( void )
 {
+	StatusType ercd = E_OK;
+	imask_t mask;
+
+	#if(OS_STATUS == EXTENDED)
+	if( CallLevel != TCL_TASK )
+	{
+		ercd = E_OS_CALLEVEL;
+	}
+	#endif
+
+	Irq_Save(mask);
+
+	RunningVar->priority = RunningVar->pConst->initPriority;
+	Sched_AddReady(RunningVar);
+	Sched_GetReady();
+	if(RunningVar != ReadyVar)
+	{
+		Os_PortDispatch();
+	}
+	RunningVar->priority = RunningVar->pConst->runPriority;
+	Irq_Restore(mask);
+
+
+	OSErrorNone(Schedule);
+
+	return ercd;
 }
 
+/* |------------------+---------------------------------------------------------| */
+/* | Syntax:          | StatusType GetTaskID ( TaskRefType <TaskID> )           | */
+/* |------------------+---------------------------------------------------------| */
+/* | Parameter (In):  | none                                                    | */
+/* |------------------+---------------------------------------------------------| */
+/* | Parameter (Out): | TaskID Reference to the task which is currently running | */
+/* |------------------+---------------------------------------------------------| */
+/* | Description:     | GetTaskID returns the information about the TaskID of   | */
+/* |                  | the task which is currently running.                    | */
+/* |------------------+---------------------------------------------------------| */
+/* | Particularities: | 1. Allowed on task level, ISR level and in several hook | */
+/* |                  | routines (see Figure 12-1(os223)).                      | */
+/* |                  | 2. This service is intended to be used by library       | */
+/* |                  | functions and hook routines.                            | */
+/* |                  | 3. If <TaskID> can't be evaluated (no task currently    | */
+/* |                  | running), the service returns INVALID_TASK as TaskType. | */
+/* |------------------+---------------------------------------------------------| */
+/* | Status:          | Standard:  No error, E_OK                               | */
+/* |                  | Extended:  No error, E_OK                               | */
+/* |------------------+---------------------------------------------------------| */
+/* | Conformance:     | BCC1, BCC2, ECC1, ECC2                                  | */
+/* |------------------+---------------------------------------------------------| */
 StatusType GetTaskID    ( TaskRefType pTaskType )
 {
+	imask_t mask;
+
+	Irq_Save(mask);
+	if(RunningVar !=  NULL)
+	{
+		*pTaskType = RunningVar - TaskVarArray;
+	}
+	else
+	{
+		*pTaskType = INVALID_TASK;
+	}
+	Irq_Restore(mask);
+
+	return E_OK;
 }
 
-StatusType GetTaskState ( TaskType TaskID,TaskStateRefType pState )
+/* |------------------+-------------------------------------------------------| */
+/* | Syntax:          | StatusType GetTaskState ( TaskType <TaskID>,          | */
+/* |                  | TaskStateRefType <State> )                            | */
+/* |------------------+-------------------------------------------------------| */
+/* | Parameter (In):  | TaskID: Task reference                                | */
+/* |------------------+-------------------------------------------------------| */
+/* | Parameter (Out): | State: Reference to the state of the task <TaskID>    | */
+/* |------------------+-------------------------------------------------------| */
+/* | Description:     | Returns the state of a task (running, ready, waiting, | */
+/* |                  | suspended) at the time of calling GetTaskState.       | */
+/* |------------------+-------------------------------------------------------| */
+/* | Particularities: | The service may be called from interrupt service      | */
+/* |                  | routines, task level, and some hook routines (see     | */
+/* |                  | Figure 12-1(os223.doc)). When a call is made from a   | */
+/* |                  | task in a full preemptive system, the result may      | */
+/* |                  | already be incorrect at the time of evaluation.       | */
+/* |                  | When the service is called for a task, which is       | */
+/* |                  | activated more than once, the state is set to         | */
+/* |                  | running if any instance of the task is running.       | */
+/* |------------------+-------------------------------------------------------| */
+/* | Status:          | Standard: No error, E_OK                              | */
+/* |                  | Extended: Task <TaskID> is invalid, E_OS_ID           | */
+/* |------------------+-------------------------------------------------------| */
+/* | Conformance:     | BCC1, BCC2, ECC1, ECC2                                | */
+/* |------------------+-------------------------------------------------------| */
+StatusType GetTaskState ( TaskType TaskID,TaskStateRefType State )
 {
+	StatusType ercd = E_OK;
+	TaskVarType* pTaskVar;
+	imask_t mask;
+
+	#if(OS_STATUS == EXTENDED)
+	if( TaskID < TASK_NUM )
+	{
+	#endif
+		Irq_Save(mask);
+		pTaskVar = &TaskVarArray[TaskID];
+		if(RunningVar == pTaskVar)
+		{
+			*State = RUNNING;
+		}
+		else
+		{
+			*State   = pTaskVar->state;
+		}
+		Irq_Restore(mask);
+	#if(OS_STATUS == EXTENDED)
+	}
+	else
+	{
+		ercd = E_OS_ID;
+
+	}
+	#endif
+
+	OSErrorTwo(GetTaskState, TaskID, State);
+	return ercd;
 }
 
 void Os_TaskInit(void)

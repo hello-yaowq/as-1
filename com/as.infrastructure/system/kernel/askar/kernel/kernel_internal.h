@@ -18,8 +18,6 @@
 #include "Os.h"
 #include "portable.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define INVALID_TASK            ((TaskType)-1)
-
 /*
  * BCC1 (only basic tasks, limited to one activation request per task and one task per
  * priority, while all tasks have different priorities)

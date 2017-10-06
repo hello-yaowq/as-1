@@ -212,7 +212,9 @@
 
 #define OTHER		139
 
+#ifndef INVALID_TASK
 #define INVALID_TASK 0xFE
+#endif
 
 #define INVALID_RESOURCE 0xFE
 

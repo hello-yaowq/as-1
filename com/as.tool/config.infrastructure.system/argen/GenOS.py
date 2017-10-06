@@ -82,9 +82,10 @@ def GenH(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
-    fp.write('/* alternative Task ID name */')
+    fp.write('/* alternative Task ID name */\n')
     for id,task in enumerate(task_list):
         fp.write('#define %-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
+    fp.write('\n\n')
     appmode = []
     for id,task in enumerate(task_list):
         for mode in GLGet(task,'ApplicationModeList'):

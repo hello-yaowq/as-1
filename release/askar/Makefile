@@ -80,10 +80,6 @@ VPATH += ${KERNEL}/portable/arm ${COM}/as.infrastructure/arch/versatilepb/bsp
 CFLAGS += -I${KERNEL}/portable/arm -I${COM}/as.infrastructure/arch/versatilepb/bsp
 obj-y += ${obj-dir}/portable.o ${obj-dir}/portableS.o ${obj-dir}/startup.o
 obj-y += ${obj-dir}/irq.o \
-		 ${obj-dir}/mm.o \
-		 ${obj-dir}/mmu_entry.o \
-		 ${obj-dir}/mmu.o \
-		 ${obj-dir}/paging.o \
 		 ${obj-dir}/pl031.o \
 		 ${obj-dir}/serial.o \
 		 ${obj-dir}/timer.o \
@@ -157,6 +153,7 @@ all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
 
 test:
+#	qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio -gdb tcp::1234 -S
 	qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio
 
 clean:

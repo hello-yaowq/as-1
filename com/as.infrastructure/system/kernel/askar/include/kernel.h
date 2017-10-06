@@ -33,6 +33,8 @@
 #define READY                      ((StatusType) 2)
 #define WAITING                    ((StatusType) 3)
 
+#define INVALID_TASK            ((TaskType)-1)
+
 /*
  *  Macro for declare Task/Alarm/ISR Entry
  */

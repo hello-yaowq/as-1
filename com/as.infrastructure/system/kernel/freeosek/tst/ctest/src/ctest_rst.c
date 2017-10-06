@@ -718,7 +718,7 @@ void ASSERT
    if (cond)
    {
 		TestResults[(tc)>>2] |=	FAILED << ( ( tc & 3 ) * 2 );
-		printf("ASSERT:: TestCase %d FAIL\n", tc);
+		printf("TestCase %03d FAIL\n", tc+1);
 		while(1);
    }
 	else
@@ -727,6 +727,7 @@ void ASSERT
 		{
 			TestResults[(tc)>>2] |=	OK << ( ( tc & 3 ) * 2 );
 		}
+		printf("TestCase %03d PASS\n", tc+1);
 	}
 }
 
@@ -743,7 +744,6 @@ void ConfTestEvaluation
 		if ( TestResultsOk[loopi] != TestResults[loopi] )
 		{
 			testok = FALSE;
-			printf("TestCase group %d FAIL\n", loopi);
 		}
 	}
 
@@ -766,15 +766,17 @@ void Sequence
    if ( (seq) == 0 )
    {
       SequenceCounter = 0;
+      printf(">> Sequence %03d PASS\n", seq);
    }
    else if ( (SequenceCounter+1) == (seq) )
    {
       SequenceCounter++;
+      printf(">> Sequence %03d PASS\n", seq);
    }
    else
    {
 		SequenceCounter |= SEQUENCE_INVALID;
-		printf("Invalid sequence %d\n", seq);
+		printf(">> Sequence %03d FAIL\n", seq);
    }
 }
 
