@@ -49,6 +49,8 @@ enum {
 #define TCL_STARTUP		((unsigned int) 0x10)	/* StartupHook */
 #define TCL_SHUTDOWN	((unsigned int) 0x20)	/* ShutdownHook */
 
+#define INVALID_PRIORITY	((PriorityType)-1)
+
 #ifdef OS_USE_ERROR_HOOK
 /* OSErrorOne/OSErrorTwo/OSErrorThree
  * a. Each API MUST keep the parameter name the same with
@@ -135,6 +137,17 @@ typedef void	(*AlarmMainEntryType)(void);
 
 typedef struct
 {
+	PriorityType ceilPrio;
+} ResourceConstType;
+
+typedef struct
+{
+	PriorityType prevPrio;
+	ResourceType prevRes;
+} ResourceVarType;
+
+typedef struct
+{
 	void* pStack;
 	uint32_t stackSize;
 	TaskMainEntryType entry;
@@ -156,6 +169,7 @@ typedef struct
 	uint8 activation;
 	#endif
 	StatusType state;
+	ResourceType currentResource;
 } TaskVarType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

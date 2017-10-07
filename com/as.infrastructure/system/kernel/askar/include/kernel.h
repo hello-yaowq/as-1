@@ -34,6 +34,8 @@
 #define WAITING                    ((StatusType) 3)
 
 #define INVALID_TASK            ((TaskType)-1)
+#define INVALID_RESOURCE        ((ResourceType)-1)
+#define INVALID_ALARM           ((AlarmType)-1)
 
 /*
  *  Macro for declare Task/Alarm/ISR Entry
@@ -42,7 +44,7 @@
 #define ISR(ISRName)             void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
 
-#define RES_SCHEDULER            (ResourceType)0 /* default resources for OS */
+#define RES_SCHEDULER            ((ResourceType)0) /* default resources for OS */
 
 #define DeclareTask( name )       extern const TaskType name
 #define DeclareAlarm( name )      extern const AlarmType name

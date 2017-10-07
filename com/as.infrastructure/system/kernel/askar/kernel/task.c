@@ -65,6 +65,7 @@ StatusType ActivateTask ( TaskType TaskID )
 		if(SUSPENDED == pTaskVar->state)
 		{
 			pTaskVar->state = READY;
+			pTaskVar->currentResource = INVALID_RESOURCE;
 			Os_PortInitContext(pTaskVar);
 
 			#ifdef MULTIPLY_TASK_ACTIVATION
@@ -156,6 +157,10 @@ StatusType TerminateTask( void )
 	{
 		ercd = E_OS_CALLEVEL;
 	}
+	else if(RunningVar->currentResource != INVALID_RESOURCE)
+	{
+		ercd = E_OS_RESOURCE;
+	}
 	#endif
 
 	if(E_OK == ercd)
@@ -246,6 +251,10 @@ StatusType ChainTask    ( TaskType TaskID )
 	{
 		ercd = E_OS_ID;
 	}
+	else if(RunningVar->currentResource != INVALID_RESOURCE)
+	{
+		ercd = E_OS_RESOURCE;
+	}
 	else if( CallLevel != TCL_TASK )
 	{
 		ercd = E_OS_CALLEVEL;
@@ -270,6 +279,7 @@ StatusType ChainTask    ( TaskType TaskID )
 			if(SUSPENDED == pTaskVar->state)
 			{
 				RunningVar->state = READY;
+				pTaskVar->currentResource = INVALID_RESOURCE;
 				Os_PortInitContext(pTaskVar);
 
 				#ifdef MULTIPLY_TASK_ACTIVATION
@@ -373,6 +383,10 @@ StatusType Schedule     ( void )
 	{
 		ercd = E_OS_CALLEVEL;
 	}
+	else if(RunningVar->currentResource != INVALID_RESOURCE)
+	{
+		ercd = E_OS_RESOURCE;
+	}
 	#endif
 
 	Irq_Save(mask);
@@ -386,7 +400,6 @@ StatusType Schedule     ( void )
 	}
 	RunningVar->priority = RunningVar->pConst->runPriority;
 	Irq_Restore(mask);
-
 
 	OSErrorNone(Schedule);
 

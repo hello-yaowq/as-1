@@ -27,8 +27,7 @@ enum TimerRegisters {
 	T2_BGLOAD	 = 0x38,
 };
 
-volatile uint32_t __last_tick_time = 0;
-volatile uint32_t __tick_counter = 0;
+static void (*callback)(void);
 
 void __weak tpl_call_counter_tick()
 {
@@ -37,21 +36,30 @@ void __weak tpl_call_counter_tick()
 }
 int timer_irq_handler(void *ctx)
 {
-	__tick_counter++;
+
 	writel(__iobase + T1_INTCTRL, 0);
-    #if defined(__AS_BOOTLOADER__)
-	extern void OsTick(void);
-	OsTick();
-	#else
-	tpl_call_counter_tick();	
-    #endif
+
+	if(NULL == callback)
+	{
+		#if defined(__AS_BOOTLOADER__)
+		extern void OsTick(void);
+		OsTick();
+		#else
+		tpl_call_counter_tick();
+		#endif
+	}
+	else
+	{
+		callback();
+	}
 
 	(void) ctx;
 	return 0;
 }
 
-void timer_init()
+void timer_init(void (*cbk)(void))
 {
+	callback = cbk;
 	/* We need to disable timer before writing new values */
 	writel(__iobase + T1_CTRL, 0);
 	/* Setup timer1 in periodic mode */
@@ -64,3 +72,10 @@ void timer_init()
 	/* enable interrupt line */
 	irq_enable_line(TIMER_IRQ_NUM);
 }
+
+void timer_stop(void)
+{
+	writel(__iobase + T1_CTRL, 0);
+	irq_disable_line(TIMER_IRQ_NUM);
+}
+

@@ -36,7 +36,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void timer_init();
+extern void timer_init(void (*cbk)(void))
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -93,7 +93,7 @@ Mcu_ResetType Mcu_GetResetReason( void )
 #ifdef __AS_BOOTLOADER__
 void StartOsTick(void)
 {
-	timer_init();
+	timer_init(NULL);
 }
 #endif
 
@@ -137,7 +137,7 @@ void Mcu_DistributePllClock( void )
 #ifndef __AS_BOOTLOADER__
 	/* for application bcm2835, need to reset the handler array*/
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);
-	timer_init();
+	timer_init(NULL);
 #else
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*32),32);
 #endif

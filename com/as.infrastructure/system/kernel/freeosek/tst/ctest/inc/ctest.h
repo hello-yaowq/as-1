@@ -216,9 +216,13 @@
 #define INVALID_TASK 0xFE
 #endif
 
+#ifndef INVALID_RESOURCE
 #define INVALID_RESOURCE 0xFE
+#endif
 
+#ifndef INVALID_ALARM
 #define INVALID_ALARM 0xFE
+#endif
 
 /** \brief Conformance Test INIT value */
 #define INIT		0
@@ -243,7 +247,7 @@
  **
  ** This macro shall implement a mechanismus to trigger the ISR2 interruption
  **/
-#define TriggerISR2()
+void TriggerISR2(void);
 
 /** \brief Initialise Alarm Counter Macro
  **
@@ -263,7 +267,7 @@
  ** This macro shall implement a mechanismus to trigger the ISR3 interruption
  ** only needed if ISR_CATEGORY_3 is ENABLE
  **/
-#define TriggerISR3()
+void TriggerISR3(void);
 #endif /* #if (ISR_CATEGORY_3 == ENABLE) */
 
 /** \brief Conformance Test Error Checking Type Extended */

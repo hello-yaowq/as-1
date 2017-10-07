@@ -108,8 +108,9 @@ def GenH(gendir,os_list):
 
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
+        if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('#define RES_ID_%-32s %s\n'%(GAGet(res,'Name'),id+1))
-    fp.write('#define RES_NUMBER %s\n\n'%(len(res_list)+1))
+    fp.write('#define RESOURCE_NUM %s\n\n'%(len(res_list)+1))
     
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
@@ -168,6 +169,17 @@ def GenC(gendir,os_list):
         fp.write('\t\t.maxActivation = %s,\n'%(maxAct))
         fp.write('\t\t#endif\n')
         fp.write('\t\t.autoStart = %s,\n'%(GAGet(task,'Autostart').upper()))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
+    fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')
+    fp.write('\t{\n')
+    fp.write('\t\t.ceilPrio = PRIORITY_NUM, /* RES_SCHEDULER */\n')
+    fp.write('\t},\n')
+    res_list = ScanFrom(os_list, 'Resource')
+    for id,res in enumerate(res_list):
+        if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
+        fp.write('\t{\n')
+        fp.write('\t\t.ceilPrio = %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')

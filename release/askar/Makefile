@@ -56,6 +56,7 @@ Q=@
 endif
 
 # default FLAGS
+ASFLAGS += -g
 CFLAGS += -O0 -g -D__arch_${ARCH}__ -std=gnu99
 LDFLAGS += -O0 -g
 CFLAGS += -ffunction-sections -fdata-sections
@@ -153,8 +154,10 @@ all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
 
 test:
-#	qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio -gdb tcp::1234 -S
-	qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio
+#	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio -gdb tcp::1234 -S" > .qemu.sh
+	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio" > .qemu.sh
+	@chmod +x .qemu.sh
+	@gnome-terminal -x $(CURDIR)/.qemu.sh
 
 clean:
 	@rm -frv objs/* out/* src/*
