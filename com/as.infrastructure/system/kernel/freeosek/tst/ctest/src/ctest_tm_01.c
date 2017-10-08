@@ -253,10 +253,10 @@ ISR(ISR2)
 	Sequence(17);
 	/* \treq TM_37 nmf B1B2E1E2 e Call GetTaskID() from ISR category 2
 	 *
-	 * \result Service returns E_OS_CALLEVEL
+	 * \result Service returns E_OK
 	 */
 	ret = GetTaskID(&TaskID);
-	ASSERT(TM_37, ret != E_OS_CALLEVEL);
+	ASSERT(TM_37, ret != E_OK);
 }
 
 #if ( ISR_CATEGORY_3 == ENABLE )
@@ -289,10 +289,10 @@ ISR(ISR3)
 
 	/* \treq TM_38 nmf B1B2E1E2 e Call GetTaskID() from ISR category 3
 	 *
-	 * \result Service returns E_OS_CALLEVEL
+	 * \result Service returns E_OK
 	 */
 	ret = GetTaskID(&tskid);
-	ASSERT(TM_38, ret != E_OS_CALLEVEL);
+	ASSERT(TM_38, ret != E_OK);
 
 	LeaveISR();
 
