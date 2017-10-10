@@ -52,6 +52,8 @@
 StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
+
 	#if(OS_STATUS == EXTENDED)
 	if( TaskID >= TASK_NUM )
 	{
@@ -69,34 +71,193 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 
 	if( E_OK == ercd )
 	{
-		
+		Irq_Save(imask);
+		TaskConstArray[TaskID].pEventVar->set |= Mask;
+		if( (0u != TaskConstArray[TaskID].pEventVar->set & TaskConstArray[TaskID].pEventVar->wait) )
+		{
+			TaskVarArray[TaskID].state = READY;
+			Sched_AddReady(TaskID);
+			if( (TCL_TASK == CallLevel) &&
+				(ReadyVar->priority > RunningVar->priority) )
+			{
+				Sched_Preempt();
+				Os_PortDispatch();
+			}
+		}
+		Irq_Restore(imask);
 	}
 
 	OSErrorTwo(SetEvent, TaskID, Mask);
 	return ercd;
 }
 
+/* |------------------+---------------------------------------------------------| */
+/* | Syntax:          | StatusType ClearEvent ( EventMaskType <Mask> )          | */
+/* |------------------+---------------------------------------------------------| */
+/* | Parameter (In)   | Mask:Mask of the events to be cleared                   | */
+/* |------------------+---------------------------------------------------------| */
+/* | Parameter (Out)  | none                                                    | */
+/* |------------------+---------------------------------------------------------| */
+/* | Description:     | The events of the extended task calling ClearEvent are  | */
+/* |                  | cleared according to the event mask <Mask>.             | */
+/* |------------------+---------------------------------------------------------| */
+/* | Particularities: | The system service ClearEvent is restricted to extended | */
+/* |                  | tasks which own the event.                              | */
+/* |------------------+---------------------------------------------------------| */
+/* | Status:          | Standard: 1.No error, E_OK                              | */
+/* |                  | Extended: 1.Call not from extended task, E_OS_ACCESS    | */
+/* |                  | 2.Call at interrupt level, E_OS_CALLEVEL                | */
+/* |------------------+---------------------------------------------------------| */
+/* | Conformance:     | ECC1, ECC2                                              | */
+/* |------------------+---------------------------------------------------------| */
 StatusType ClearEvent( EventMaskType Mask )
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
 
+	#if(OS_STATUS == EXTENDED)
+	if( CallLevel != TCL_TASK )
+	{
+		ercd = E_OS_CALLEVEL;
+	}
+	else if( NULL == RunningVar->pConst->pEventVar )
+	{
+		ercd = E_OS_ACCESS;
+	}
+	#endif
 
+	if( E_OK == ercd )
+	{
+		Irq_Save(imask);
+		RunningVar->pConst->pEventVar->set &= ~Mask;
+		Irq_Restore(imask);
+	}
+
+	OSErrorOne(ClearEvent, Mask);
 	return ercd;
 }
 
-StatusType GetEvent  ( TaskType TaskID , EventMaskRefType pEvent )
+/* |------------------+--------------------------------------------------------------| */
+/* | Syntax:          | StatusType GetEvent ( TaskType <TaskID>                      | */
+/* |                  | EventMaskRefType <Event> )                                   | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Parameter (In):  | TaskID:Task whose event mask is to be returned.              | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Parameter (Out): | Event:Reference to the memory of the return data.            | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Description:     | 1.This service returns the current state of all event bits   | */
+/* |                  | of the task <TaskID>, not the events that the task is        | */
+/* |                  | waiting for.                                                 | */
+/* |                  | 2.The service may be called from interrupt service routines, | */
+/* |                  | task level and some hook routines (see Figure 12-1).         | */
+/* |                  | 3.The current status of the event mask of task <TaskID> is   | */
+/* |                  | copied to <Event>.                                           | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Particularities: | The referenced task shall be an extended task.               | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Status:          | Standard: No error, E_OK                                     | */
+/* |                  | Extended: Task <TaskID> is invalid, E_OS_ID                  | */
+/* |                  | Referenced task <TaskID> is not an extended task,            | */
+/* |                  | E_OS_ACCESS                                                  | */
+/* |                  | Referenced task <TaskID> is in the suspended state,          | */
+/* |                  | E_OS_STATE                                                   | */
+/* |------------------+--------------------------------------------------------------| */
+/* | Conformance:     | ECC1, ECC2                                                   | */
+/* |------------------+--------------------------------------------------------------| */
+StatusType GetEvent  ( TaskType TaskID , EventMaskRefType Mask )
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
 
+	#if(OS_STATUS == EXTENDED)
+	if( TaskID >= TASK_NUM )
+	{
+		ercd = E_OS_ID;
+	}
+	else if( NULL == TaskConstArray[TaskID].pEventVar )
+	{
+		ercd = E_OS_ACCESS;
+	}
+	else if( SUSPENDED == TaskVarArray[TaskID].state )
+	{
+		ercd = E_OS_STATE;
+	}
+	#endif
 
+	if( E_OK == ercd )
+	{
+		Irq_Save(imask);
+		*Mask = TaskConstArray[TaskID].pEventVar->set;
+		Irq_Restore(imask);
+
+	}
+	OSErrorTwo(GetEvent, TaskID, Mask);
 	return ercd;
 }
 
+/* |------------------+------------------------------------------------------------| */
+/* | Syntax:          | StatusType WaitEvent ( EventMaskType <Mask> )              | */
+/* |------------------+------------------------------------------------------------| */
+/* | Parameter (In):  | Mask:Mask of the events waited for.                        | */
+/* |------------------+------------------------------------------------------------| */
+/* | Parameter (Out): | none                                                       | */
+/* |------------------+------------------------------------------------------------| */
+/* | Description:     | The state of the calling task is set to waiting, unless    | */
+/* |                  | at least one of the events specified in <Mask> has         | */
+/* |                  | already been set.                                          | */
+/* |------------------+------------------------------------------------------------| */
+/* | Particularities: | 1.This call enforces rescheduling, if the wait condition   | */
+/* |                  | occurs. If rescheduling takes place, the internal resource | */
+/* |                  | of the task is released while the task is in the waiting   | */
+/* |                  | state.                                                     | */
+/* |                  | 2.This service shall only be called from the extended task | */
+/* |                  | owning the event.                                          | */
+/* |------------------+------------------------------------------------------------| */
+/* | Status:          | Standard:No error, E_OK                                    | */
+/* |                  | Extended:Calling task is not an extended task, E_OS_ACCESS | */
+/* |                  | Calling task occupies resources, E_OS_RESOURCE             | */
+/* |                  | Call at interrupt level, E_OS_CALLEVEL                     | */
+/* |------------------+------------------------------------------------------------| */
+/* | Conformance:     | ECC1, ECC2                                                 | */
+/* |------------------+------------------------------------------------------------| */
 StatusType WaitEvent ( EventMaskType Mask )
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
 
+	#if(OS_STATUS == EXTENDED)
+	if( CallLevel != TCL_TASK )
+	{
+		ercd = E_OS_CALLEVEL;
+	}
+	else if( NULL == RunningVar->pConst->pEventVar )
+	{
+		ercd = E_OS_ACCESS;
+	}
+	else if(RunningVar->currentResource != INVALID_RESOURCE)
+	{
+		ercd = E_OS_RESOURCE;
+	}
+	#endif
 
+	if( E_OK == ercd )
+	{
+		Irq_Save(imask);
+		if( 0u != (Mask&RunningVar->pConst->pEventVar->set))
+		{
+			RunningVar->priority = RunningVar->pConst->initPriority;
+			Sched_AddReady(RunningVar - TaskVarArray);
+			Sched_GetReady();
+			if(RunningVar != ReadyVar)
+			{
+				Os_PortDispatch();
+			}
+			RunningVar->priority = RunningVar->pConst->runPriority;
+		}
+		Irq_Restore(imask);
+	}
+
+	OSErrorOne(ClearEvent, Mask);
 	return ercd;
 }
 

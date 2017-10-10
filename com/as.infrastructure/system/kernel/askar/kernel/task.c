@@ -389,17 +389,20 @@ StatusType Schedule     ( void )
 	}
 	#endif
 
-	Irq_Save(mask);
-
-	RunningVar->priority = RunningVar->pConst->initPriority;
-	Sched_AddReady((RunningVar-TaskVarArray));
-	Sched_GetReady();
-	if(RunningVar != ReadyVar)
+	if(E_OK == ercd)
 	{
-		Os_PortDispatch();
+		Irq_Save(mask);
+
+		RunningVar->priority = RunningVar->pConst->initPriority;
+		Sched_AddReady((RunningVar-TaskVarArray));
+		Sched_GetReady();
+		if(RunningVar != ReadyVar)
+		{
+			Os_PortDispatch();
+		}
+		RunningVar->priority = RunningVar->pConst->runPriority;
+		Irq_Restore(mask);
 	}
-	RunningVar->priority = RunningVar->pConst->runPriority;
-	Irq_Restore(mask);
 
 	OSErrorNone(Schedule);
 

@@ -99,17 +99,19 @@ def GenH(gendir,os_list):
 
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
-            if(GAGet(ev,'Mask')=='auto'):
+            if(GAGet(ev,'Mask').upper()=='AUTO'):
                 mask = '(1<<%s)'%(mask)
             else:
                 mask = GAGet(ev,'Mask')
             fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
+            fp.write('#define %-51s %s\n'%(GAGet(ev,'Name'),mask))
     fp.write('\n')
 
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('#define RES_ID_%-32s %s\n'%(GAGet(res,'Name'),id+1))
+        fp.write('#define %-39s %s\n'%(GAGet(res,'Name'),id+1))
     fp.write('#define RESOURCE_NUM %s\n\n'%(len(res_list)+1))
     
     counter_list = ScanFrom(os_list,'Counter')
