@@ -129,8 +129,7 @@ enum {
 #define OSErrorThree(api, param0, param1, param2)
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
-typedef unsigned int			KeyType;
-typedef KeyType					PriorityType;
+typedef uint8					PriorityType;
 
 typedef void	(*TaskMainEntryType)(void);
 typedef void	(*AlarmMainEntryType)(void);
@@ -148,9 +147,16 @@ typedef struct
 
 typedef struct
 {
+	EventMaskType set;
+	EventMaskType wait;
+} EventVarType;
+
+typedef struct
+{
 	void* pStack;
 	uint32_t stackSize;
 	TaskMainEntryType entry;
+	EventVarType* pEventVar;
 	PriorityType initPriority;
 	PriorityType runPriority;
 	const char* name;
@@ -177,9 +183,11 @@ extern TaskVarType* RunningVar;
 extern TaskVarType* ReadyVar;
 extern unsigned int CallLevel;
 extern const TaskConstType TaskConstArray[TASK_NUM];
+extern TaskVarType TaskVarArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void Os_TaskInit(void);
+extern void Os_ResourceInit(void);
 
 extern void Os_PortInit(void);
 extern void Os_PortInitContext(TaskVarType* pTaskVar);
@@ -187,7 +195,7 @@ extern void Os_PortStartDispatch(void);
 extern void Os_PortDispatch(void);
 
 extern void Sched_Init(void);
-extern void Sched_AddReady(TaskVarType* pTaskVar);
+extern void Sched_AddReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
 

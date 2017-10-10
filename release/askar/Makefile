@@ -158,6 +158,7 @@ test:
 	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio" > .qemu.sh
 	@chmod +x .qemu.sh
 	@gnome-terminal -x $(CURDIR)/.qemu.sh
+	@echo "Test for $(TARGET) $(CASE)"
 
 clean:
 	@rm -frv objs/* out/* src/*

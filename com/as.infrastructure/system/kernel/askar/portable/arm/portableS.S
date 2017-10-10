@@ -17,7 +17,9 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 	.extern Irq_Enable
+	.extern Irq_Disable
 	.extern Os_PortIsrHandler
+	.extern Sched_Preempt
 /* ============================ [ DATAS     ] ====================================================== */
 	.extern RunningVar
 	.extern ReadyVar
@@ -34,6 +36,8 @@ l_idle:
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     l_idle
+	bl      Irq_Disable
+	bl      Sched_GetReady
 	mov     pc, lr
 
 	.global Os_PortStartDispatch
@@ -149,13 +153,22 @@ ExitISR:
 	cmp     r0, #0
 	beq     l_nodispatch
 
-	ldr     r0, =ISR2Counter
-	ldr     r1, [r0]
+	ldr     r3, =ISR2Counter
+	ldr     r1, [r3]
 	sub     r1, r1, #1
-	str     r1, [r0]
+	str     r1, [r3]
 	cmp     r1, #0
 	bne     l_nodispatch
 
+	ldr     r1, = ReadyVar
+	ldr     r1, [r1]
+	cmp     r0, r1
+
+	beq     l_nopreempt
+
+	bl      Sched_Preempt
+
+l_nopreempt:
 	b       Os_PortStartDispatch                 /* To dispatch processing */
 
 l_nodispatch:

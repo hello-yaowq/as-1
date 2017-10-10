@@ -49,7 +49,7 @@ void isr2_handler(void)
 void isr3_handler(void)
 {
 	isr3Flag++;
-	printf(" >> ISRMainISR2\n");
+	printf(" >> ISRMainISR3\n");
 	ISRMainISR3();
 }
 

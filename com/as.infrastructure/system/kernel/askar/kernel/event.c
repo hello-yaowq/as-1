@@ -20,11 +20,59 @@
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-StatusType SetEvent  ( TaskType TaskID , EventMaskType pMask )
+/* |------------------+----------------------------------------------------------| */
+/* | Syntax:          | StatusType SetEvent ( TaskType <TaskID>                  | */
+/* |                  | EventMaskType <Mask> )                                   | */
+/* |------------------+----------------------------------------------------------| */
+/* | Parameter (In):  | TaskID:Reference to the task for which one or several    | */
+/* |                  | events are to be set.                                    | */
+/* |                  | Mask:Mask of the events to be set                        | */
+/* |------------------+----------------------------------------------------------| */
+/* | Parameter (Out): | none                                                     | */
+/* |------------------+----------------------------------------------------------| */
+/* | Description:     | 1.The service may be called from an interrupt service    | */
+/* |                  | routine and from the task level, but not from hook       | */
+/* |                  | routines.                                                | */
+/* |                  | 2.The events of task <TaskID> are set according to the   | */
+/* |                  | event mask <Mask>. Calling SetEvent causes the task      | */
+/* |                  | <TaskID> to be transferred to the ready state, if it     | */
+/* |                  | was waiting for at least one of the events specified     | */
+/* |                  | in <Mask>.                                               | */
+/* |------------------+----------------------------------------------------------| */
+/* | Particularities: | Any events not set in the event mask remain unchanged.   | */
+/* |------------------+----------------------------------------------------------| */
+/* | Status:          | Standard: 1.No error, E_OK                               | */
+/* |                  | Extended: 2.Task <TaskID> is invalid, E_OS_ID            | */
+/* |                  | 3.Referenced task is no extended task, E_OS_ACCESS       | */
+/* |                  | 4.Events can not be set as the referenced task is in the | */
+/* |                  | suspended state, E_OS_STATE                              | */
+/* |------------------+----------------------------------------------------------| */
+/* | Conformance:     | ECC1, ECC2                                               | */
+/* |------------------+----------------------------------------------------------| */
+StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 {
 	StatusType ercd = E_OK;
+	#if(OS_STATUS == EXTENDED)
+	if( TaskID >= TASK_NUM )
+	{
+		ercd = E_OS_ID;
+	}
+	else if( NULL == TaskConstArray[TaskID].pEventVar )
+	{
+		ercd = E_OS_ACCESS;
+	}
+	else if( SUSPENDED == TaskVarArray[TaskID].state )
+	{
+		ercd = E_OS_STATE;
+	}
+	#endif
 
+	if( E_OK == ercd )
+	{
+		
+	}
 
+	OSErrorTwo(SetEvent, TaskID, Mask);
 	return ercd;
 }
 

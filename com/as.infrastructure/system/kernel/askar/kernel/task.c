@@ -19,7 +19,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static TaskVarType TaskVarArray[TASK_NUM];
+TaskVarType TaskVarArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------------| */
@@ -74,7 +74,7 @@ StatusType ActivateTask ( TaskType TaskID )
 
 			pTaskVar->priority = pTaskVar->pConst->initPriority;
 
-			Sched_AddReady(pTaskVar);
+			Sched_AddReady(TaskID);
 		}
 		else
 		{
@@ -82,7 +82,7 @@ StatusType ActivateTask ( TaskType TaskID )
 			if(pTaskVar->activation < pTaskVar->pConst->maxActivation)
 			{
 				pTaskVar-> activation++;
-				Sched_AddReady(pTaskVar);
+				Sched_AddReady(TaskID);
 			}
 			else
 			#endif
@@ -183,8 +183,8 @@ StatusType TerminateTask( void )
 		}
 
 		Sched_GetReady();
-
 		Os_PortStartDispatch();
+
 		Irq_Restore(mask);
 	}
 
@@ -270,7 +270,7 @@ StatusType ChainTask    ( TaskType TaskID )
 			Irq_Save(mask);
 			Os_PortInitContext(pTaskVar);
 			pTaskVar->priority = pTaskVar->pConst->initPriority;
-			Sched_AddReady(pTaskVar);
+			Sched_AddReady(TaskID);
 			Irq_Restore(mask);
 		}
 		else
@@ -288,7 +288,7 @@ StatusType ChainTask    ( TaskType TaskID )
 
 				pTaskVar->priority = pTaskVar->pConst->initPriority;
 
-				Sched_AddReady(pTaskVar);
+				Sched_AddReady(TaskID);
 			}
 			else
 			{
@@ -296,7 +296,7 @@ StatusType ChainTask    ( TaskType TaskID )
 				if(pTaskVar->activation < pTaskVar->pConst->maxActivation)
 				{
 					pTaskVar-> activation++;
-					Sched_AddReady(pTaskVar);
+					Sched_AddReady(TaskID);
 				}
 				else
 				#endif
@@ -392,7 +392,7 @@ StatusType Schedule     ( void )
 	Irq_Save(mask);
 
 	RunningVar->priority = RunningVar->pConst->initPriority;
-	Sched_AddReady(RunningVar);
+	Sched_AddReady((RunningVar-TaskVarArray));
 	Sched_GetReady();
 	if(RunningVar != ReadyVar)
 	{

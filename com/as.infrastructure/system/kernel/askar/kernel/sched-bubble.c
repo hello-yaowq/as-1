@@ -19,8 +19,14 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
+	TaskType taskID;
+	PriorityType priority;
+} ReadyEntryType;
+
+typedef struct
+{
 	uint32 size;
-	TaskVarType* heap[ACTIVATION_SUM];
+	ReadyEntryType heap[ACTIVATION_SUM];
 } ReadyQueueType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -29,12 +35,12 @@ static ReadyQueueType ReadyQueue;
 static void Sched_BubbleUp(ReadyQueueType* pReadyQueue, uint32 index)
 {
 	uint32 father = index >> 1;
-	while(pReadyQueue->heap[father]->priority < pReadyQueue->heap[index]->priority)
+	while(pReadyQueue->heap[father].priority < pReadyQueue->heap[index].priority)
 	{
 		/*
-		 * if the father priority is lower then the index key, swap them
+		 * if the father priority is lower then the index priority, swap them
 		 */
-		TaskVarType* tmpVar = pReadyQueue->heap[index];
+		ReadyEntryType tmpVar = pReadyQueue->heap[index];
 		pReadyQueue->heap[index] = pReadyQueue->heap[father];
 		pReadyQueue->heap[father] = tmpVar;
 		index = father;
@@ -46,19 +52,19 @@ static void Sched_BubbleDown(ReadyQueueType* pReadyQueue, uint32 index)
 {
 	uint32 size = pReadyQueue->size;
 	uint32 child;
-	while ((child = index << 1) <= size) /* child = left */
+	while ((child = index << 1) < size) /* child = left */
 	{
 		uint32 right = child + 1;
-		if ((right <= size) &&
-			(pReadyQueue->heap[child]->priority < pReadyQueue->heap[right]->priority))
+		if ((right < size) &&
+			(pReadyQueue->heap[child].priority < pReadyQueue->heap[right].priority))
 		{
 			/* the right child exists and is greater */
 			child = right;
 		}
-		if ((pReadyQueue->heap[index]->priority < pReadyQueue->heap[child]->priority))
+		if ((pReadyQueue->heap[index].priority < pReadyQueue->heap[child].priority))
 		{
-			/* the father has a key <, swap */
-			TaskVarType* tmpVar = pReadyQueue->heap[index];
+			/* the father has a priority <, swap */
+			ReadyEntryType tmpVar = pReadyQueue->heap[index];
 			pReadyQueue->heap[index] = pReadyQueue->heap[child];
 			pReadyQueue->heap[child] = tmpVar;
 			/* go down */
@@ -78,41 +84,28 @@ void Sched_Init(void)
 	ReadyQueue.size = 0;
 }
 
-void Sched_AddReady(TaskVarType* pTaskVar)
+void Sched_AddReady(TaskType TaskID)
 {
-
-	TaskVarType* tmpVar;
-
-	if(NULL == ReadyVar)
-	{
-		ReadyVar = pTaskVar;
-	}
-	else
-	{
-		if(pTaskVar->priority > ReadyVar->priority)
-		{
-			ReadyVar = pTaskVar;
-		}
-	}
-
 	asAssert(ReadyQueue.size < ACTIVATION_SUM);
 
-	ReadyQueue.heap[ReadyQueue.size] = pTaskVar;
+	ReadyQueue.heap[ReadyQueue.size].taskID = TaskID;
+	ReadyQueue.heap[ReadyQueue.size].priority = TaskConstArray[TaskID].initPriority;
 	Sched_BubbleUp(&ReadyQueue, ReadyQueue.size);
 	ReadyQueue.size++;
-
+	ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
 }
 
 void Sched_Preempt(void)
 {
-	ReadyQueue.heap[0] = RunningVar;
+	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
+	ReadyQueue.heap[0].priority = RunningVar->priority;
 }
 
 void Sched_GetReady(void)
 {
 	if(ReadyQueue.size > 0)
 	{
-		ReadyVar = ReadyQueue.heap[0];
+		ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
 		ReadyQueue.size --;
 		ReadyQueue.heap[0] = ReadyQueue.heap[ReadyQueue.size];
 
