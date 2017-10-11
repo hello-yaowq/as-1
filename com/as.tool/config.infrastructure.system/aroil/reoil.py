@@ -27,7 +27,7 @@ re_comment_type2 = re.compile(r'//.*');
 re_include = re.compile(r'\s*#include\s+["<]([^\s]+)[">]');
 
 # 2: for os obj
-re_oil_os_obj = re.compile(r'^\s*OS|^\s*TASK|^\s*ALARM|^\s*COUNTER|^\s*RESOURCE||^\s*EVENT')
+re_oil_os_obj = re.compile(r'^\s*OS|^\s*TASK|^\s*ALARM|^\s*COUNTER|^\s*RESOURCE|^\s*EVENT')
 re_oil_os_obj_type_name = re.compile(r"""
     ^\s*(OS)\s*(\w+)
     |^\s*(TASK)\s*(\w+)
@@ -256,6 +256,8 @@ def oil_process_resource(item, oscfg):
             res=findObj(oscfg,'Resource', name)
         elif(type == 'INTERNAL'):
             res=findObj(oscfg,'InteralResource', name)
+    else:
+        res=findObj(oscfg,'Resource', name)
 
 def oil_process_event(item, oscfg):
     grp = re_oil_os_event.search(item).groups();
@@ -303,6 +305,8 @@ def to_xml(oilfile,cfg=None):
             if(re_oil_os_obj.search(el)):
                 process_one_item_start = True;
                 oneitem += el;
+                if(el[-1:]==';'):
+                    brace_flag = True;
                 if(el.count('{') > 0):  #so at comment should not include '{}'
                     brace_flag = True;
                     barcenum += el.count('{');

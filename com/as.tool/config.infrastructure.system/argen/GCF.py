@@ -20,7 +20,7 @@
  */
 """
 
-__all__=['Integer','GLInit','GAGet','GLGet','GHeader']
+__all__=['Integer','GLInit','GAGet','GASet','GLGet','GHeader']
 
 __root=None
 
@@ -37,7 +37,11 @@ def GLInit(root):
 def GAGet(what,which):
     """ Gen Get Attribute"""
     return what.attrib[which]
-    
+
+def GASet(what,which,val):
+    """ Gen Set Attribute"""
+    what.attrib[which]=val
+
 def GLGet(what,which=None):
     """ Gen Get List
         used to get a sub node list from what if which is None,

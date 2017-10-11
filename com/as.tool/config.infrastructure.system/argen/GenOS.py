@@ -36,7 +36,45 @@ def GenOS(root,dir):
     gen_askar(dir,os_list)
     print('    >>> Gen OS DONE <<<')
 
+def fixupRes(prefix,os_list):
+    task_list = ScanFrom(os_list,'Task')
+    for res in ScanFrom(os_list,'%sResource'%(prefix)):
+        prio = 0;
+        for tsk in task_list:
+            for res2 in GLGet(tsk, 'ResourceList'):
+                if(GAGet(res,'Name') == GAGet(res2,'Name')):
+                    GASet(res2,'Type',prefix)
+                    if(prio<Integer(GAGet(tsk,'Priority'))):
+                       prio=Integer(GAGet(tsk,'Priority'))
+        GASet(res,'Priority',str(prio))
+
+def fixupEvt(os_list):
+    evList=ScanFrom(os_list,'Event')
+    for tsk in ScanFrom(os_list,'Task'):
+        masks=[]
+        for ev in GLGet(tsk, 'EventList'):
+            for ev2 in evList:
+                if(GAGet(ev,'Name')==GAGet(ev,'Name')):
+                    GASet(ev,'Mask',GAGet(ev2,'Mask'))
+                    if(GAGet(ev,'Mask').upper()!='AUTO'):
+                        masks.append(Integer(GAGet(ev,'Mask')))
+        for ev in GLGet(tsk, 'EventList'):
+            if(GAGet(ev,'Mask').upper()=='AUTO'):
+                for id in range(0,32):
+                    mask = 1<<id
+                    try:
+                        masks.index(mask)
+                    except ValueError:
+                        masks.append(mask)
+                        GASet(ev,'Mask',hex(mask))
+                        break
+def fixup(os_list):
+    fixupRes('', os_list)
+    fixupRes('Internal', os_list)
+    fixupEvt(os_list)
+
 def GenH(gendir,os_list):
+    fixup(os_list)
     fp = open('%s/Os_Cfg.h'%(gendir),'w')
     fp.write(GHeader('Os',Vendor='askar'))
     fp.write('#ifndef OS_CFG_H_\n#define OS_CFG_H_\n\n')
@@ -99,10 +137,7 @@ def GenH(gendir,os_list):
 
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
-            if(GAGet(ev,'Mask').upper()=='AUTO'):
-                mask = '(1<<%s)'%(mask)
-            else:
-                mask = GAGet(ev,'Mask')
+            mask = GAGet(ev,'Mask')
             fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
             fp.write('#define %-51s %s\n'%(GAGet(ev,'Name'),mask))
     fp.write('\n')
