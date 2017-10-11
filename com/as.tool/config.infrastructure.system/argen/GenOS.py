@@ -185,20 +185,25 @@ def GenC(gendir,os_list):
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('static uint32_t %s_Stack[(%s*4+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
+        if(len(GLGet(task,'EventList')) > 0):
+            fp.write('static EventVarType %s_EventVar;\n'%(GAGet(task,'Name')))
     fp.write('const TaskConstType TaskConstArray[TASK_NUM] =\n{\n')
     for id,task in enumerate(task_list):
         runPrio = GAGet(task,'Priority')
         if(GAGet(task,'Schedule')=='NON'):
             runPrio = 'PRIORITY_NUM'
         maxAct = Integer(GAGet(task,'Activation'))
+        event  = 'NULL'
         if(len(GLGet(task,'EventList')) > 0):
             if(maxAct > 1):
                 raise Exception('Task<%s>: multiple requesting of task activation allowed for basic tasks'%(GAGet(task,'Name')))
             maxAct = 1
+            event = '&%s_EventVar'%(GAGet(task,'Name'))
         fp.write('\t{\n')
         fp.write('\t\t.pStack = %s_Stack,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.stackSize = sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
         fp.write('\t\t.entry = TaskMain%s,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t.pEventVar = %s,\n'%(event))
         fp.write('\t\t.initPriority = %s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t.runPriority = %s,\n'%(runPrio))
         fp.write('\t\t.name = "%s",\n'%(GAGet(task,'Name')))

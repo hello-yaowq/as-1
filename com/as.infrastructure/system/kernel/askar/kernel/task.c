@@ -21,6 +21,20 @@
 /* ============================ [ DATAS     ] ====================================================== */
 TaskVarType TaskVarArray[TASK_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
+static void InitContext(TaskVarType* pTaskVar)
+{
+	pTaskVar->state = READY;
+	pTaskVar->priority = pTaskVar->pConst->initPriority;
+	pTaskVar->currentResource = INVALID_RESOURCE;
+
+	if(NULL != pTaskVar->pConst->pEventVar)
+	{
+		pTaskVar->pConst->pEventVar->set = 0u;
+		pTaskVar->pConst->pEventVar->wait = 0u;
+	}
+
+	Os_PortInitContext(pTaskVar);
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------------| */
 /* | Syntax:          | StatusType ActivateTask ( TaskType <TaskID> )              | */
@@ -64,15 +78,11 @@ StatusType ActivateTask ( TaskType TaskID )
 		Irq_Save(imask);
 		if(SUSPENDED == pTaskVar->state)
 		{
-			pTaskVar->state = READY;
-			pTaskVar->currentResource = INVALID_RESOURCE;
-			Os_PortInitContext(pTaskVar);
+			InitContext(pTaskVar);
 
 			#ifdef MULTIPLY_TASK_ACTIVATION
 			pTaskVar-> activation = 1;
 			#endif
-
-			pTaskVar->priority = pTaskVar->pConst->initPriority;
 
 			Sched_AddReady(TaskID);
 		}
@@ -166,15 +176,12 @@ StatusType TerminateTask( void )
 	if(E_OK == ercd)
 	{
 		Irq_Save(mask);
-		/* release internal resource or NON schedule */
-		RunningVar->priority = RunningVar->pConst->initPriority;
 		#ifdef MULTIPLY_TASK_ACTIVATION
 		asAssert(RunningVar->activation > 0);
 		RunningVar->activation--;
 		if(RunningVar->activation > 0)
 		{
-			RunningVar->state = READY;
-			Os_PortInitContext(RunningVar);
+			InitContext(RunningVar);
 		}
 		else
 		#endif
@@ -268,8 +275,7 @@ StatusType ChainTask    ( TaskType TaskID )
 		if(pTaskVar == RunningVar)
 		{
 			Irq_Save(mask);
-			Os_PortInitContext(pTaskVar);
-			pTaskVar->priority = pTaskVar->pConst->initPriority;
+			InitContext(RunningVar);
 			Sched_AddReady(TaskID);
 			Irq_Restore(mask);
 		}
@@ -278,15 +284,11 @@ StatusType ChainTask    ( TaskType TaskID )
 			Irq_Save(mask);
 			if(SUSPENDED == pTaskVar->state)
 			{
-				RunningVar->state = READY;
-				pTaskVar->currentResource = INVALID_RESOURCE;
-				Os_PortInitContext(pTaskVar);
+				InitContext(pTaskVar);
 
 				#ifdef MULTIPLY_TASK_ACTIVATION
 				pTaskVar-> activation = 1;
 				#endif
-
-				pTaskVar->priority = pTaskVar->pConst->initPriority;
 
 				Sched_AddReady(TaskID);
 			}
@@ -309,15 +311,12 @@ StatusType ChainTask    ( TaskType TaskID )
 			if(ercd == E_OK)
 			{
 				Irq_Save(mask);
-				/* release internal resource or NON schedule */
-				RunningVar->priority = RunningVar->pConst->initPriority;
 				#ifdef MULTIPLY_TASK_ACTIVATION
 				asAssert(RunningVar->activation > 0);
 				RunningVar->activation--;
 				if(RunningVar->activation > 0)
 				{
-					RunningVar->state = READY;
-					Os_PortInitContext(RunningVar);
+					InitContext(pTaskVar);
 				}
 				else
 				#endif

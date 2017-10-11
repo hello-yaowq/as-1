@@ -718,7 +718,7 @@ void ASSERT
    if (cond)
    {
 		TestResults[(tc)>>2] |=	FAILED << ( ( tc & 3 ) * 2 );
-		printf("\t\t\tTestCase %03d FAIL\n", tc+1);
+		printf("\t\t\tTestCase %03d FAIL\n", tc);
 		while(1);
    }
 	else
@@ -727,7 +727,7 @@ void ASSERT
 		{
 			TestResults[(tc)>>2] |=	OK << ( ( tc & 3 ) * 2 );
 		}
-		printf("\t\t\tTestCase %03d PASS\n", tc+1);
+		printf("\t\t\tTestCase %03d PASS\n", tc);
 	}
 }
 
