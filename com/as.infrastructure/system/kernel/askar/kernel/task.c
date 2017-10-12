@@ -316,7 +316,7 @@ StatusType ChainTask    ( TaskType TaskID )
 				RunningVar->activation--;
 				if(RunningVar->activation > 0)
 				{
-					InitContext(pTaskVar);
+					InitContext(RunningVar);
 				}
 				else
 				#endif

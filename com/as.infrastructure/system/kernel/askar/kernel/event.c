@@ -243,15 +243,13 @@ StatusType WaitEvent ( EventMaskType Mask )
 	if( E_OK == ercd )
 	{
 		Irq_Save(imask);
-		if( 0u != (Mask&RunningVar->pConst->pEventVar->set))
+		if( 0u == (Mask&RunningVar->pConst->pEventVar->set))
 		{
 			RunningVar->priority = RunningVar->pConst->initPriority;
-			Sched_AddReady(RunningVar - TaskVarArray);
+			RunningVar->pConst->pEventVar->wait = Mask;
+			RunningVar->state=WAITING;
 			Sched_GetReady();
-			if(RunningVar != ReadyVar)
-			{
-				Os_PortDispatch();
-			}
+			Os_PortDispatch();
 			RunningVar->priority = RunningVar->pConst->runPriority;
 		}
 		Irq_Restore(imask);

@@ -154,8 +154,10 @@ all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
 
 test:
-#	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio -gdb tcp::1234 -S" > .qemu.sh
-	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial stdio" > .qemu.sh
+	@echo "sleep 0.05" > .check.sh
+	@echo "telnet 127.0.0.1 1103" >> .check.sh
+#	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server -gdb tcp::1234 -S & sh .check.sh" > .qemu.sh
+	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server & sh .check.sh" > .qemu.sh
 	@chmod +x .qemu.sh
 	@gnome-terminal -x $(CURDIR)/.qemu.sh
 	@echo "Test for $(TARGET) $(CASE)"
