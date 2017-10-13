@@ -85,11 +85,6 @@ def GenH(gendir,os_list):
     general = ScanFrom(os_list,'General')[0]
     if(GAGet(general,'ErrorHook') != 'NULL'):
         fp.write('#define OS_USE_ERROR_HOOK\n')
-    try:
-        cc = GAGet(general,'Conformance')
-    except KeyError:
-        cc = 'ECC2' # TODO: resolve conformance
-    fp.write('#define OS_CONFORMANCE_CLASS %s\n'%(cc))
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')
@@ -98,9 +93,16 @@ def GenH(gendir,os_list):
     multiAct  = False
     sumAct = 0
     prioList=[]
+    prioAct={}
+    maxPrioAct=0
     for id,task in enumerate(task_list):
         prio = Integer(GAGet(task,'Priority'))
-        sumAct += Integer(GAGet(task,'Activation'))
+        act  = Integer(GAGet(task,'Activation'))
+        sumAct += act
+        try:
+            prioAct[prio] += act
+        except KeyError:
+            prioAct[prio] = act
         if(Integer(GAGet(task,'Activation')) > 1):
             multiAct = True;
         try:
@@ -110,10 +112,24 @@ def GenH(gendir,os_list):
             prioList.append(prio)
         if(prio > maxPrio):
             maxPrio = prio
+    for prio,act in prioAct.items():
+        if(maxPrioAct<act):
+            maxPrioAct=act
+    maxPrioAct+=1 # in case resource ceiling
+    seqMask=0
+    seqShift=0
+    for i in range(1,maxPrioAct+1):
+        seqMask|=i
+    for i in range(0,32):
+        if((seqMask>>i)==0):
+            seqShift=i
+            break
     fp.write('#define PRIORITY_NUM %s\n'%(maxPrio))
     fp.write('#define ACTIVATION_SUM %s\n'%(sumAct+1))
     if(multiPrio):
         fp.write('#define MULTIPLY_TASK_PER_PRIORITY\n')
+        fp.write('#define SEQUENCE_MASK 0x%Xu\n'%(seqMask))
+        fp.write('#define SEQUENCE_SHIFT %d\n'%(seqShift))
     if(multiAct):
         fp.write('#define MULTIPLY_TASK_ACTIVATION\n')
     fp.write('\n\n')

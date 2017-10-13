@@ -62,7 +62,7 @@ def fixXml(xml,vv):
             try:
                 v2 = vv[v]
                 obj.attrib[k] = v2
-                print('fix %s %s[%s] from %s to %s'%(obj,name,k,v,v2))
+#                print('fix %s %s[%s] from %s to %s'%(obj,name,k,v,v2))
             except KeyError:
                 pass
 
@@ -92,6 +92,33 @@ def genCTEST_CFGH(xml, path):
     fp.write('#endif\n\n')
     fp.close()
 
+def telnet(uri, port):
+    import socket,time
+    time.sleep(0.5) # make sure qemu already on line
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((uri, port))
+    time.sleep(2)
+    string = sock.recv(4096*4096).decode('utf-8')
+    sock.close()
+    return string
+
+def check(target,case):
+    pid = os.fork()
+    if(pid == 0):
+        cmd='pgrep qemu-system-arm | xargs -i kill -9 {}'
+        os.system(cmd)
+        cmd='qemu-system-arm -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server > /dev/null'%(target,case,target)
+        os.system(cmd)
+        exit(0)
+    else:
+        result=telnet('127.0.0.1', 1103)
+        os.kill(pid,9)
+        if((result.find('FAIL')!=-1) or (result.find('>> END <<')==-1)):
+            print('>> Test for %s %s FAIL'%(target,case))
+            print(result)
+            exit(-2)
+        print('>> Test for %s %s PASS'%(target,case))
+
 def test(target,case,vv):
     cmd = 'mkdir -pv src/%s/%s'%(target, case)
     os.system(cmd)
@@ -99,12 +126,13 @@ def test(target,case,vv):
     fixXml(xml,vv)
     saveXml(xml, 'src/%s/%s/test.xml'%(target, case))
     genCTEST_CFGH(xml,'src/%s/%s'%(target, case))
-    cmd='make dep-os TARGET=%s CASE=%s'%(target, case)
+    cmd='make dep-os TARGET=%s CASE=%s > /dev/null'%(target, case)
     os.system(cmd)
-    cmd='make all TARGET=%s CASE=%s'%(target, case)
-    os.system(cmd)
-    cmd='make test TARGET=%s CASE=%s'%(target, case)
-    os.system(cmd)
+    cmd='make all TARGET=%s CASE=%s > /dev/null'%(target, case)
+    if(0!=os.system(cmd)):
+        # build error
+        exit(-1)
+    check(target,case)
 
 if(__name__ == '__main__'):
     if(len(sys.argv) == 2 and sys.argv[1] == 'all'):
@@ -113,9 +141,16 @@ if(__name__ == '__main__'):
             target = v['target']
             for case,vv in v['case'].items():
                 test(target,case,vv)
-                c = input('Continue <Enter> Exit <q>')
-                if(c == 'q'): exit(1)                
-    if(len(sys.argv) == 3):
+    elif(len(sys.argv) == 2):
+        cfg = parse()
+        searchflag=True
+        for v in cfg:
+            target = v['target']
+            if(searchflag and target != sys.argv[1]): continue
+            searchflag=False
+            for case,vv in v['case'].items():
+                test(target,case,vv)
+    elif(len(sys.argv) == 3):
         cfg = parse()
         for v in cfg:
             target = v['target']

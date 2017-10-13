@@ -30,6 +30,8 @@ extern ISR(ISR3);
 static volatile int isr2Flag;
 static volatile int isr3Flag;
 #ifdef __arch_versatilepb__
+static volatile int isr2OneShot;
+static volatile int isr3OneShot;
 static int vicInitFlag = 0;
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -44,6 +46,9 @@ void isr2_handler(void)
 	isr2Flag++;
 	printf(" >> ISRMainISR2\n");
 	ISRMainISR2();
+#ifdef __arch_versatilepb__
+	if(isr2OneShot) timer_stop();
+#endif
 }
 
 void isr3_handler(void)
@@ -51,6 +56,10 @@ void isr3_handler(void)
 	isr3Flag++;
 	printf(" >> ISRMainISR3\n");
 	ISRMainISR3();
+#ifdef __arch_versatilepb__
+	if(isr3OneShot) timer_stop();
+#endif
+
 }
 
 void __putchar(char ch)
@@ -70,9 +79,9 @@ void TriggerISR2(void)
 		irq_init();
 	}
 	isr2Flag = 0;
+	isr2OneShot=1;
 	timer_init(isr2_handler);
 	while(isr2Flag == 0);
-	timer_stop();
 #endif
 }
 
@@ -86,8 +95,8 @@ void TriggerISR3(void)
 		irq_init();
 	}
 	isr3Flag = 0;
+	isr3OneShot=1;
 	timer_init(isr3_handler);
 	while(isr3Flag == 0);
-	timer_stop();
 #endif
 }

@@ -750,12 +750,10 @@ void ConfTestEvaluation
 	if ( ( testok == TRUE ) && ( SequenceCounter == SequenceCounterOk ) )
 	{
 		ConfTestResult = 255;
-		printf(" >> PASS << \n");
 	}
 	else
 	{
 		ConfTestResult = 128;
-		printf(" >> FAIL << \n");
 	}
 
 }
@@ -779,6 +777,7 @@ void Sequence
    {
 		SequenceCounter |= SEQUENCE_INVALID;
 		printf("Sequence %03d FAIL\n", seq);
+		while(1);
    }
 }
 

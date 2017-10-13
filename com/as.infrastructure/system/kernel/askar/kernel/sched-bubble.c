@@ -19,8 +19,12 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
-	TaskType taskID;
+	TaskType taskID;	
+#ifdef MULTIPLY_TASK_PER_PRIORITY
+	uint16     priority;
+#else
 	PriorityType priority;
+#endif
 } ReadyEntryType;
 
 typedef struct
@@ -29,13 +33,45 @@ typedef struct
 	ReadyEntryType heap[ACTIVATION_SUM];
 } ReadyQueueType;
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef MULTIPLY_TASK_PER_PRIORITY
+#define NEW_PRIORITY(prio) (((uint16)(prio)<<SEQUENCE_SHIFT)|((--PrioSeqVal[prio])&SEQUENCE_MASK))
+#define REAL_PRIORITY(prio) Sched_RealPriority(prio)
+#else
+#define NEW_PRIORITY(prio) (prio)
+#define REAL_PRIORITY(prio) (prio)
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 static ReadyQueueType ReadyQueue;
+#ifdef MULTIPLY_TASK_PER_PRIORITY
+static uint8 PrioSeqVal[PRIORITY_NUM];
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef MULTIPLY_TASK_PER_PRIORITY
+static inline uint16 Sched_RealPriority(uint16 priority)
+{
+	uint16 real,tmp;
+
+	real = priority>>SEQUENCE_SHIFT;
+	tmp  = priority&SEQUENCE_MASK;
+	/* equals to
+	 * if(tmp > PrioSeqVal[real])
+	 *   tmp=tmp - PrioSeqVal[real];
+	 * else
+	 *   tmp=SEQUENCE_MASK+tmp+1-PrioSeqVal[real];
+	 * so it was the sequence decreased value after the activation of <real>,
+	 * bigger value means higher priority.
+	 */
+	tmp  = (tmp - PrioSeqVal[real])&SEQUENCE_MASK;
+
+	real = (real<<SEQUENCE_SHIFT)|tmp;
+
+	return real;
+}
+#endif
 static void Sched_BubbleUp(ReadyQueueType* pReadyQueue, uint32 index)
 {
 	uint32 father = index >> 1;
-	while(pReadyQueue->heap[father].priority < pReadyQueue->heap[index].priority)
+	while(REAL_PRIORITY(pReadyQueue->heap[father].priority) < REAL_PRIORITY(pReadyQueue->heap[index].priority))
 	{
 		/*
 		 * if the father priority is lower then the index priority, swap them
@@ -56,12 +92,12 @@ static void Sched_BubbleDown(ReadyQueueType* pReadyQueue, uint32 index)
 	{
 		uint32 right = child + 1;
 		if ((right < size) &&
-			(pReadyQueue->heap[child].priority < pReadyQueue->heap[right].priority))
+			(REAL_PRIORITY(pReadyQueue->heap[child].priority) < REAL_PRIORITY(pReadyQueue->heap[right].priority)))
 		{
 			/* the right child exists and is greater */
 			child = right;
 		}
-		if ((pReadyQueue->heap[index].priority < pReadyQueue->heap[child].priority))
+		if (REAL_PRIORITY(pReadyQueue->heap[index].priority) < REAL_PRIORITY(pReadyQueue->heap[child].priority))
 		{
 			/* the father has a priority <, swap */
 			ReadyEntryType tmpVar = pReadyQueue->heap[index];
@@ -89,7 +125,7 @@ void Sched_AddReady(TaskType TaskID)
 	asAssert(ReadyQueue.size < ACTIVATION_SUM);
 
 	ReadyQueue.heap[ReadyQueue.size].taskID = TaskID;
-	ReadyQueue.heap[ReadyQueue.size].priority = TaskConstArray[TaskID].initPriority;
+	ReadyQueue.heap[ReadyQueue.size].priority = NEW_PRIORITY(TaskConstArray[TaskID].initPriority);
 	Sched_BubbleUp(&ReadyQueue, ReadyQueue.size);
 	ReadyQueue.size++;
 	ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
@@ -98,7 +134,7 @@ void Sched_AddReady(TaskType TaskID)
 void Sched_Preempt(void)
 {
 	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
-	ReadyQueue.heap[0].priority = RunningVar->priority;
+	ReadyQueue.heap[0].priority = NEW_PRIORITY(RunningVar->priority);
 }
 
 void Sched_GetReady(void)
