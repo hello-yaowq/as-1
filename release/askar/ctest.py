@@ -105,14 +105,14 @@ def telnet(uri, port):
 def check(target,case):
     pid = os.fork()
     if(pid == 0):
-        cmd='pgrep qemu-system-arm | xargs -i kill -9 {}'
-        os.system(cmd)
+        os.system('pgrep qemu-system-arm | xargs -i kill -9 {}')
         cmd='qemu-system-arm -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server > /dev/null'%(target,case,target)
         os.system(cmd)
         exit(0)
     else:
         result=telnet('127.0.0.1', 1103)
         os.kill(pid,9)
+        os.system('pgrep qemu-system-arm | xargs -i kill -9 {}')
         if((result.find('FAIL')!=-1) or (result.find('>> END <<')==-1)):
             print('>> Test for %s %s FAIL'%(target,case))
             print(result)

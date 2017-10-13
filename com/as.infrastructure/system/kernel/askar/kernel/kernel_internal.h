@@ -156,7 +156,12 @@ typedef struct
 	void* pStack;
 	uint32_t stackSize;
 	TaskMainEntryType entry;
+	#ifdef EXTENDED_TASK
 	EventVarType* pEventVar;
+	#endif
+	#if (OS_STATUS == EXTENDED)
+	boolean (*CheckAccess)(ResourceType);
+	#endif
 	PriorityType initPriority;
 	PriorityType runPriority;
 	const char* name;

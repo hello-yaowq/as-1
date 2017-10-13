@@ -81,7 +81,8 @@ StatusType GetResource (ResourceType ResID)
 		ercd = E_OS_ACCESS;
 	}
 	else if((TCL_TASK == CallLevel) &&
-			(ResourceConstArray[ResID].ceilPrio < RunningVar->pConst->initPriority))
+			( (ResourceConstArray[ResID].ceilPrio < RunningVar->pConst->initPriority) ||
+			(FALSE == RunningVar->pConst->CheckAccess(ResID))) )
 	{
 		ercd = E_OS_ACCESS;
 	}
@@ -100,6 +101,7 @@ StatusType GetResource (ResourceType ResID)
 		}
 		else if(TCL_ISR2 == CallLevel)
 		{
+			ercd = E_OS_CALLEVEL;
 			asAssert(0); /* TODO */
 		}
 		else
@@ -155,7 +157,8 @@ StatusType ReleaseResource ( ResourceType ResID )
 		ercd = E_OS_NOFUNC;
 	}
 	else if((TCL_TASK == CallLevel) &&
-			(ResourceConstArray[ResID].ceilPrio < RunningVar->pConst->initPriority))
+			( (ResourceConstArray[ResID].ceilPrio < RunningVar->pConst->initPriority) ||
+			(FALSE == RunningVar->pConst->CheckAccess(ResID))) )
 	{
 		ercd = E_OS_ACCESS;
 	}
@@ -174,6 +177,7 @@ StatusType ReleaseResource ( ResourceType ResID )
 		}
 		else if(TCL_ISR2 == CallLevel)
 		{
+			ercd = E_OS_CALLEVEL;
 			asAssert(0); /* TODO */
 		}
 		else

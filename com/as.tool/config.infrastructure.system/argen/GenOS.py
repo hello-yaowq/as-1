@@ -151,12 +151,16 @@ def GenH(gendir,os_list):
     for id,mode in enumerate(appmode):
         fp.write('#define %s ((AppModeType)(1<<%s))\n'%(mode, id+1))
 
+    withEvt = False
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
+            withEvt = True
             mask = GAGet(ev,'Mask')
             fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
             fp.write('#define %-51s %s\n'%(GAGet(ev,'Name'),mask))
     fp.write('\n')
+    if(withEvt):
+        fp.write('\n#define EXTENDED_TASK\n\n')
 
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
@@ -203,6 +207,27 @@ def GenC(gendir,os_list):
         fp.write('static uint32_t %s_Stack[(%s*4+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
         if(len(GLGet(task,'EventList')) > 0):
             fp.write('static EventVarType %s_EventVar;\n'%(GAGet(task,'Name')))
+    fp.write('#if (OS_STATUS == EXTENDED)\n')
+    for id,task in enumerate(task_list):
+        cstr = ''
+        for res in GLGet(task,'ResourceList'):
+            cstr += '\t\tcase RES_ID_%s:\n'%(GAGet(res,'Name'))
+        fp.write('''static boolean %s_CheckAccess(ResourceType ResID)
+{
+    boolean bAccess = FALSE;
+
+    switch(ResID)
+    {
+        case RES_SCHEDULER:
+%s            bAccess = TRUE;
+        break;
+        default:
+            break;
+    }
+
+    return bAccess;
+}\n'''%(GAGet(task,'Name'),cstr))
+    fp.write('#endif\n')
     fp.write('const TaskConstType TaskConstArray[TASK_NUM] =\n{\n')
     for id,task in enumerate(task_list):
         runPrio = GAGet(task,'Priority')
@@ -219,7 +244,12 @@ def GenC(gendir,os_list):
         fp.write('\t\t.pStack = %s_Stack,\n'%(GAGet(task,'Name')))
         fp.write('\t\t.stackSize = sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
         fp.write('\t\t.entry = TaskMain%s,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t#ifdef EXTENDED_TASK\n')
         fp.write('\t\t.pEventVar = %s,\n'%(event))
+        fp.write('\t\t#endif\n')
+        fp.write('\t\t#if (OS_STATUS == EXTENDED)\n')
+        fp.write('\t\t.CheckAccess = %s_CheckAccess,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t#endif\n')
         fp.write('\t\t.initPriority = %s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t.runPriority = %s,\n'%(runPrio))
         fp.write('\t\t.name = "%s",\n'%(GAGet(task,'Name')))

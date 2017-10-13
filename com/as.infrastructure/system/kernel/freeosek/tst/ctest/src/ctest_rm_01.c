@@ -233,10 +233,10 @@ ISR(ISR2)
 	Sequence(17);
 	/* \treq RM_10 nmf B1B2E1E2 e Call ReleaseResource() from ISR category 2
 	 *
-	 * \result Service returns E_OS_CALLEVEL
+	 * \result Service returns E_OS_NOFUNC as not occupied <modified by parai>
 	 */
 	ret = ReleaseResource(Resource1);
-	ASSERT(RM_10, ret != E_OS_CALLEVEL);
+	ASSERT(RM_10, ret != E_OS_NOFUNC);
 }
 
 #if ( ISR_CATEGORY_3 == ENABLE )

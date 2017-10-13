@@ -27,11 +27,13 @@ static void InitContext(TaskVarType* pTaskVar)
 	pTaskVar->priority = pTaskVar->pConst->initPriority;
 	pTaskVar->currentResource = INVALID_RESOURCE;
 
+	#ifdef EXTENDED_TASK
 	if(NULL != pTaskVar->pConst->pEventVar)
 	{
 		pTaskVar->pConst->pEventVar->set = 0u;
 		pTaskVar->pConst->pEventVar->wait = 0u;
 	}
+	#endif
 
 	Os_PortInitContext(pTaskVar);
 }
