@@ -176,7 +176,7 @@ ISR(ISR2)
 	 * \result Service returns E_OS_CALLEVEL
 	 */
 	ret = ReleaseResource(Resource1);
-	ASSERT(RM_10, ret != E_OS_CALLEVEL);
+	ASSERT(RM_10, ret != E_OS_NOFUNC);
 }
 
 #if ( ISR_CATEGORY_3 == ENABLE )

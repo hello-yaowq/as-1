@@ -74,7 +74,7 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 	{
 		Irq_Save(imask);
 		TaskConstArray[TaskID].pEventVar->set |= Mask;
-		if( (0u != TaskConstArray[TaskID].pEventVar->set & TaskConstArray[TaskID].pEventVar->wait) )
+		if( 0u != (TaskConstArray[TaskID].pEventVar->set & TaskConstArray[TaskID].pEventVar->wait) )
 		{
 			TaskVarArray[TaskID].state = READY;
 			Sched_AddReady(TaskID);
