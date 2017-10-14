@@ -309,7 +309,7 @@ void PostTaskHook(void)
 	}
 }
 
-void ErrorHook(void)
+void ErrorHook( StatusType ercd )
 {
 	Sequence(12);
 	/* \treq EH_05 nmf B1B2E1E2 se Check ErrorHook:

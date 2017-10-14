@@ -182,6 +182,31 @@ typedef struct
 	StatusType state;
 	ResourceType currentResource;
 } TaskVarType;
+
+typedef struct
+{
+	TickType value;
+} CounterVarType;
+
+typedef struct
+{
+	CounterVarType     *pVar;
+	const AlarmBaseType base;
+} CounterConstType;
+
+typedef struct
+{
+	TickType value;
+	TickType period;
+} AlarmVarType;
+
+typedef struct
+{
+	AlarmVarType*     pVar;
+	const CounterConstType* pCounter;
+	void (*Start)(void);
+	void (*Action)(void);
+} AlarmConstType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern TaskVarType* RunningVar;
@@ -189,10 +214,16 @@ extern TaskVarType* ReadyVar;
 extern unsigned int CallLevel;
 extern const TaskConstType TaskConstArray[TASK_NUM];
 extern TaskVarType TaskVarArray[TASK_NUM];
+extern CounterVarType CounterVarArray[COUNTER_NUM];
+extern const CounterConstType CounterConstArray[COUNTER_NUM];
+extern AlarmVarType AlarmVarArray[ALARM_NUM];
+extern const AlarmConstType AlarmConstArray[ALARM_NUM];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void Os_TaskInit(void);
 extern void Os_ResourceInit(void);
+extern void Os_CounterInit(void);
+extern void Os_AlarmInit(void);
 
 extern void Os_PortInit(void);
 extern void Os_PortInitContext(TaskVarType* pTaskVar);

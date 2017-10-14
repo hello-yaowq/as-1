@@ -106,11 +106,11 @@
 #define OSError_GetAlarm_AlarmID()				(_errorhook_par1.almid)
 #define OSError_GetAlarm_Tick()					(_errorhook_par2.p_tick)
 #define OSError_SetRelAlarm_AlarmID()			(_errorhook_par1.almid)
-#define OSError_SetRelAlarm_increment()			(_errorhook_par2.incr)
-#define OSError_SetRelAlarm_cycle()				(_errorhook_par3.cycle)
+#define OSError_SetRelAlarm_Increment()			(_errorhook_par2.incr)
+#define OSError_SetRelAlarm_Cycle()				(_errorhook_par3.cycle)
 #define OSError_SetAbsAlarm_AlarmID()			(_errorhook_par1.almid)
-#define OSError_SetAbsAlarm_start()				(_errorhook_par2.start)
-#define OSError_SetAbsAlarm_cycle()				(_errorhook_par3.cycle)
+#define OSError_SetAbsAlarm_Start()				(_errorhook_par2.start)
+#define OSError_SetAbsAlarm_Cycle()				(_errorhook_par3.cycle)
 #define OSError_CancelAlarm_AlarmID()			(_errorhook_par1.almid)
 #define OSError_IncrementCounter_CounterID()	(_errorhook_par1.cntid)
 
@@ -133,9 +133,9 @@ typedef uint8					AlarmType;
 
 typedef struct
 {
-	TickType maxAllowedValue;
-	TickType ticksPerBase;
-	TickType minCycle;
+	TickType maxallowedvalue;
+	TickType ticksperbase;
+	TickType mincycle;
 }								AlarmBaseType;
 typedef AlarmBaseType*			AlarmBaseRefType;
 

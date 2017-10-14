@@ -63,6 +63,8 @@ void StartOS ( AppModeType Mode )
 	Os_PortInit();
 	Os_TaskInit();
 	Os_ResourceInit();
+	Os_CounterInit();
+	Os_AlarmInit();
 
 	Sched_GetReady();
 	Os_PortStartDispatch();

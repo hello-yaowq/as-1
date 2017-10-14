@@ -140,9 +140,10 @@ def GenH(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('#define %-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('\n\n')
+    alarm_list = ScanFrom(os_list,'Alarm')
     appmode = []
-    for id,task in enumerate(task_list):
-        for mode in GLGet(task,'ApplicationModeList'):
+    for id,obj in enumerate(task_list+alarm_list):
+        for mode in GLGet(obj,'ApplicationModeList'):
             if(GAGet(mode,'Name') != 'OSDEFAULTAPPMODE'):
                 try:
                     appmode.index(GAGet(mode,'Name'))
@@ -172,11 +173,12 @@ def GenH(gendir,os_list):
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
+        fp.write('#define %-43s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
 
-    alarm_list = ScanFrom(os_list,'Alarm')
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
+        fp.write('#define %-41s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
@@ -233,6 +235,12 @@ def GenC(gendir,os_list):
         runPrio = GAGet(task,'Priority')
         if(GAGet(task,'Schedule')=='NON'):
             runPrio = 'PRIORITY_NUM'
+        else:
+            # generall task should has at most one internal resource
+            assert(len(GLGet(task,'InternalResource'))<=1)
+            for res in GLGet(task,'InternalResource'):
+                if(Integer(GLGet(res,'Priority')) > Integer(runPrio)):
+                    runPrio = GLGet(res,'Priority')
         maxAct = Integer(GAGet(task,'Activation'))
         event  = 'NULL'
         if(len(GLGet(task,'EventList')) > 0):
@@ -241,35 +249,76 @@ def GenC(gendir,os_list):
             maxAct = 1
             event = '&%s_EventVar'%(GAGet(task,'Name'))
         fp.write('\t{\n')
-        fp.write('\t\t.pStack = %s_Stack,\n'%(GAGet(task,'Name')))
-        fp.write('\t\t.stackSize = sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
-        fp.write('\t\t.entry = TaskMain%s,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t/*.pStack =*/ %s_Stack,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t/*.stackSize =*/ sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
+        fp.write('\t\t/*.entry =*/ TaskMain%s,\n'%(GAGet(task,'Name')))
         fp.write('\t\t#ifdef EXTENDED_TASK\n')
-        fp.write('\t\t.pEventVar = %s,\n'%(event))
+        fp.write('\t\t/*.pEventVar =*/ %s,\n'%(event))
         fp.write('\t\t#endif\n')
         fp.write('\t\t#if (OS_STATUS == EXTENDED)\n')
-        fp.write('\t\t.CheckAccess = %s_CheckAccess,\n'%(GAGet(task,'Name')))
+        fp.write('\t\t/*.CheckAccess =*/ %s_CheckAccess,\n'%(GAGet(task,'Name')))
         fp.write('\t\t#endif\n')
-        fp.write('\t\t.initPriority = %s,\n'%(GAGet(task,'Priority')))
-        fp.write('\t\t.runPriority = %s,\n'%(runPrio))
-        fp.write('\t\t.name = "%s",\n'%(GAGet(task,'Name')))
+        fp.write('\t\t/*.initPriority =*/ %s,\n'%(GAGet(task,'Priority')))
+        fp.write('\t\t/*.runPriority =*/ %s,\n'%(runPrio))
+        fp.write('\t\t/*.name =*/ "%s",\n'%(GAGet(task,'Name')))
         fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
-        fp.write('\t\t.maxActivation = %s,\n'%(maxAct))
+        fp.write('\t\t/*.maxActivation =*/ %s,\n'%(maxAct))
         fp.write('\t\t#endif\n')
-        fp.write('\t\t.autoStart = %s,\n'%(GAGet(task,'Autostart').upper()))
+        fp.write('\t\t/*.autoStart =*/ %s,\n'%(GAGet(task,'Autostart').upper()))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')
     fp.write('\t{\n')
-    fp.write('\t\t.ceilPrio = PRIORITY_NUM, /* RES_SCHEDULER */\n')
+    fp.write('\t\t/*.ceilPrio =*/ PRIORITY_NUM, /* RES_SCHEDULER */\n')
     fp.write('\t},\n')
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('\t{\n')
-        fp.write('\t\t.ceilPrio = %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
+        fp.write('\t\t/*.ceilPrio =*/ %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
+    counter_list = ScanFrom(os_list,'Counter')
+    if(len(counter_list) > 0):
+        fp.write('CounterVarType CounterVarArray[COUNTER_NUM];\n')
+        fp.write('const CounterConstType CounterConstArray[COUNTER_NUM] =\n{\n')
+        for id,counter in enumerate(counter_list):
+            fp.write('\t{\n')
+            fp.write('\t\t/*.pVar=*/&CounterVarArray[COUNTER_ID_%s],\n'%(GAGet(counter,'Name')))
+            fp.write('\t\t/*.base=*/{\n\t\t\t/*.maxallowedvalue=*/%s,\n'%(GAGet(counter,'MaxAllowed')))
+            fp.write('\t\t\t/*.ticksperbase=*/%s,\n'%(GAGet(counter,'TicksPerBase')))
+            fp.write('\t\t\t/*.mincycle=*/%s\n\t\t}\n'%(GAGet(counter,'MinCycle')))
+            fp.write('\t},\n')
+        fp.write('};\n\n')
+    alarm_list = ScanFrom(os_list,'Alarm')
+    if(len(alarm_list) > 0):
+        for id,alarm in enumerate(alarm_list):
+            fp.write('static void %s_Action(void)\n{\n'%(GAGet(alarm,'Name')))
+            if(GAGet(alarm,'Action').upper() == 'ACTIVATETASK'):
+                fp.write('\t(void)ActivateTask(TASK_ID_%s);\n'%(GAGet(alarm,'Task')))
+            elif(GAGet(alarm,'Action').upper() == 'SETEVENT'):
+                fp.write('\t(void)SetEvent(TASK_ID_%s,EVENT_MASK_%s);\n'%(GAGet(alarm,'Task'),GAGet(alarm,'Event')))
+            elif(GAGet(alarm,'Action').upper() == 'CALLBACK'):
+                fp.write('\textern ALARM(%s);\n\tAlarmMain%s();\n'%(GAGet(alarm,'Callback'),GAGet(alarm,'Callback')))
+            else:
+                assert(0)
+            fp.write('}\n')
+            fp.write('static void %s_Autostart(void)\n{\n'%(GAGet(alarm,'Name')))
+            if(GAGet(alarm,'Autostart').upper() == 'TRUE'):
+                fp.write('\t(void)SetAbsAlarm(%s, %s);\n'%(GAGet(alarm,'StartTime'),GAGet(alarm,'Period')))
+            else:
+                fp.write('\t/* not autostart */\n')
+            fp.write('}\n')
+        fp.write('AlarmVarType AlarmVarArray[ALARM_NUM];\n')
+        fp.write('const AlarmConstType AlarmConstArray[ALARM_NUM] =\n{\n')
+        for id,alarm in enumerate(alarm_list):
+            fp.write('\t{\n')
+            fp.write('\t\t/*.pVar=*/&AlarmVarArray[ALARM_ID_%s],\n'%(GAGet(alarm,'Name')))
+            fp.write('\t\t/*.pCounter=*/&CounterConstArray[COUNTER_ID_%s],\n'%(GAGet(alarm,'Counter')))
+            fp.write('\t\t/*.Start=*/%s_Autostart,\n'%(GAGet(alarm,'Name')))
+            fp.write('\t\t/*.Action=*/%s_Action,\n'%(GAGet(alarm,'Name')))
+            fp.write('\t},\n')
+        fp.write('};\n\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

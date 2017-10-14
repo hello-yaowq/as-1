@@ -18,7 +18,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TickType				OsTickCounter = 1;
+TickType				OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 StatusType SignalCounter(CounterType CounterID)
@@ -32,4 +32,15 @@ StatusType SignalCounter(CounterType CounterID)
 TickType GetOsTick(void)
 {
 	return OsTickCounter;
+}
+
+void Os_CounterInit(void)
+{
+	CounterType id;
+	OsTickCounter = 1;
+
+	for(id=0; id < COUNTER_NUM; id++)
+	{
+		CounterVarArray[id].value = 0;
+	}
 }
