@@ -16,6 +16,7 @@ if('run' in COMMAND_LINE_TARGETS):
 
     target = '%s/release/ascore/lm3s6965evb'%(ASROOT)
     build = '%s/release/ascore/build/lm3s6965evb'%(ASROOT)
+    if(os.name == 'nt'): build = build + '.exe'
 
     params = '-cpu cortex-m3 -nographic -monitor null -semihosting -machine lm3s6965evb -serial stdio'
     if('gdb' in COMMAND_LINE_TARGETS):

@@ -1,0 +1,20 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+
+assert(asenv['BOARD'] == 'posix')
+
+objs = []
+
+objs +=  Glob('*.c')
+objs +=  Glob('rs232/*.c')
+
+asenv.Append(CCFLAGS='-I%s'%(cwd))
+asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
+if(os.name == 'nt'):
+    asenv.Append(CCFLAGS='-I%s/peak-can'%(cwd))
+
+Return('objs')

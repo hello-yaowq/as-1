@@ -4,7 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
-asenv.Append(CCFLAGS=' -I%s '%(cwd))
+asenv.Append(CCFLAGS='-I%s'%(cwd))
 
 objs = Glob('*.c')
 

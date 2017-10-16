@@ -28,4 +28,12 @@ else:
     objs += Glob('*.c')
     asenv.Append(CCFLAGS = '-I%s'%(cwd))
 
+if(asenv['BOARD']=='posix'):
+    if(os.name == 'nt'):
+        objs += Glob('lwext4/blockdev/windows/*.c')
+        asenv.Append(CCFLAGS = '-I%s/lwext4/blockdev/windows'%(cwd))
+    else:
+        objs += Glob('lwext4/blockdev/linux/*.c')
+        asenv.Append(CCFLAGS = '-I%s/lwext4/blockdev/linux'%(cwd))
+
 Return('objs')

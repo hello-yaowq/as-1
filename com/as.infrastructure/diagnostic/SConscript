@@ -11,11 +11,11 @@ objs += Glob('*.arxml')
 
 if('DCM' in MODULES):
     objs += Glob('Dcm/*.c')
-    asenv.Append(CCFLAGS=' -I%s/Dcm -DUSE_DCM '%(cwd))
+    asenv.Append(CCFLAGS='-I%s/Dcm -DUSE_DCM'%(cwd))
 
 
 if('DET' in MODULES):
     objs += Glob('Det/*.c')
-    asenv.Append(CCFLAGS=' -DUSE_DET ')
+    asenv.Append(CCFLAGS='-DUSE_DET')
 
 Return('objs')

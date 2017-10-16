@@ -1,0 +1,21 @@
+import os
+from building import *
+import xcc
+
+xcc.SetDefaultRTOS('smallos')
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+arch = asenv['arch']
+
+asenv.Append(CCFLAGS='-I%s'%(cwd))
+asenv.Append(CCFLAGS='-I%s/portable/%s'%(cwd,arch))
+
+objs = []
+
+objs += Glob('*.c')
+objs += Glob('portable/%s/*.c'%(arch))
+objs += Glob('portable/%s/*.S'%(arch))
+
+Return('objs')

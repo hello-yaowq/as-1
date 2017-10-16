@@ -1,0 +1,51 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+
+print('qemu run command:scons versatilepb run\nqemu debug command: scons versatilepb run gdb')
+if('run' in COMMAND_LINE_TARGETS):
+    target = '%s/release/ascore/posix'%(ASROOT)
+    build = '%s/release/ascore/build/posix'%(ASROOT)
+    RunCommand('cd %s && %s'%(build,target))
+    exit(0)
+
+objs = []
+
+objs += Glob('common/*.c')
+objs += Glob('simulator/*.c')
+objs += Glob('simulator/*.xml')
+SrcRemove(objs, 'Ipc_Cfg.c')
+
+asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
+
+MODULES = ['ECUM','SCHM','MCU',
+           'DET',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
+           'SOAD','DOIP','LWIP',
+           'FATFS','LWEXT4',
+           'PORT','DIO','EEP','FLS','STMO',
+           ]
+
+ARCH='posix'
+arch='posix'
+
+if(os.getenv('GUI') in ['GTK','OPENVG']):
+    MODULES.append(os.getenv('GUI'))
+else:
+    print('WARNING: use default GTK GUI for posix')
+    MODULES.append('GTK')
+
+asenv['MODULES'] = MODULES
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
+
+if(asenv['RTOS'] != 'small'):
+    print('WARNING: force RTOS to "small" instead of "%s"'%(asenv['RTOS']))
+    asenv['RTOS']='small'
+
+Return('objs')

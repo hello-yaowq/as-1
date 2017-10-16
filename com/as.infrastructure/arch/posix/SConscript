@@ -1,0 +1,48 @@
+import os
+from building import *
+
+Import('asenv')
+MODULES=asenv['MODULES']
+
+cwd = GetCurrentDir()
+
+objs = []
+
+objs += Glob('mcal/*.c')
+SrcRemove(objs,'Ipc.c')
+
+if('LWIP' in MODULES):
+    objs += Glob('lwip/sys_arch.c')
+    asenv.Append(CCFLAGS=' -I%s/lwip '%(cwd))
+    SrcRemove(objs,'ethernetif.c')
+    SrcRemove(objs,'sys_arch.c')
+
+#by default, use all supported
+asenv.Append(CCFLAGS='-DUSE_CAN -DUSE_DIO -DUSE_EEP -DUSE_FLS -DUSE_LCD -DUSE_MCU -DUSE_PORT -DUSE_STMO')
+asenv.Append(CCFLAGS='-D__AS_CAN_BUS__')
+asenv.Append(CCFLAGS='-I%s/com/as.infrastructure/communication/RPmsg'%(asenv['ASROOT']))
+
+objs += SConscript('%s/com/as.tool/lua/SConscript'%(asenv['ASROOT']))
+
+if('GTK' in MODULES):
+    asenv.ParseConfig('pkg-config --cflags gtk+-3.0')
+    asenv.ParseConfig('pkg-config --libs gtk+-3.0 glib-2.0 gthread-2.0')
+    asenv.Append(CCFLAGS='-DGUI_USE_GTK')
+elif('OPENVG' in MODULES):
+    asenv.Append(CCFLAGS='-I%s/openvg'%(cwd))
+
+asenv.Append(LIBS=['pthread','stdc++','m'])
+
+if(os.name == 'nt'):
+    asenv.Append(LIBS=['wsock32'])
+    asenv.Append(CCFLAGS='-D__WINDOWS__')
+else:
+    asenv.Append(CCFLAGS='-D__LINUX__')
+
+asenv.Append(CCFLAGS='-std=gnu99')
+asenv.Append(CCFLAGS='-O0')
+asenv.Append(CCFLAGS='-g')
+
+asenv.Append(CCFLAGS='-I%s/mcal'%(cwd))
+
+Return('objs')

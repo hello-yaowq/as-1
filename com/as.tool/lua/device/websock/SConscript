@@ -1,0 +1,15 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+
+assert(asenv['BOARD'] == 'posix')
+
+objs = []
+
+objs +=  Glob('*.c')
+asenv.Append(CCFLAGS='-I%s -DUSE_AWS'%(cwd))
+
+Return('objs')

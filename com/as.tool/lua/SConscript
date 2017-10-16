@@ -1,0 +1,13 @@
+import os
+from building import *
+
+Import('asenv')
+
+assert(asenv['BOARD'] == 'posix')
+
+objs = []
+
+objs +=  SConscript('can/SConscript')
+objs +=  SConscript('device/websock/SConscript')
+
+Return('objs')

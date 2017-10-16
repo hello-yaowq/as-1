@@ -15,6 +15,7 @@ if('run' in COMMAND_LINE_TARGETS):
         os.system('cd %s/release/ascore/ && make asqemu'%(ASROOT))
 
     build = '%s/release/ascore/build/versatilepb'%(ASROOT)
+    if(os.name == 'nt'): build = build + '.exe'
     if(not os.path.exists('%s/asblk0.img'%(build))):
         os.system('dd if=/dev/zero of=%s/asblk0.img bs=1M count=32'%(build))
         os.system('sudo mkfs.fat %s/asblk0.img'%(build))
@@ -31,8 +32,8 @@ if('run' in COMMAND_LINE_TARGETS):
     fp = open('%s/qemu.sh'%(build),'w')
     fp.write('%s -m 128 -M versatilepb -kernel %s %s & sh %s/telnet.sh'%(qemu,target,params,build))
     fp.close()
-    os.system('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
-    os.system('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
+    RunCommand('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
+    RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
     exit(0)
 
 objs = []

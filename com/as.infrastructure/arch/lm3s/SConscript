@@ -26,9 +26,14 @@ asenv.Append(LINKFLAGS='--gc-sections')
 
 asenv.Append(LIBS=['gcc'])
 
+print("WARNING: fix compiler path to the right path: %s/SConscript"%(cwd))
 if(os.name == 'nt'):
     cpl = 'C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32'
     asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/4.8.3'%(cpl)])
+    asenv.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
+    asenv['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
+    asenv['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
+    asenv['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
 else:
     asenv.Append(LIBPATH=['/usr/lib/gcc/arm-none-eabi/4.8.2'])
 
