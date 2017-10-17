@@ -137,10 +137,16 @@ def telnet(uri, port):
     return string
 
 def check(target,case):
+    if(0==os.system('qemu-system-arm -machine help')):
+        qemu = 'qemu-system-arm'
+    else:
+        qemu = './qemu-system-arm'
+        if(not os.path.exists(qemu)):
+            os.system('wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz && tar xf qemu-system-arm-rpi_UART1.tar.gz')
     pid = os.fork()
     if(pid == 0):
         os.system('pgrep qemu-system-arm | xargs -i kill -9 {}')
-        cmd='qemu-system-arm -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server > /dev/null'%(target,case,target)
+        cmd='%s -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server > /dev/null'%(qemu,target,case,target)
         os.system(cmd)
         exit(0)
     else:
