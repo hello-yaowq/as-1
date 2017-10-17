@@ -63,9 +63,12 @@ void StartOS ( AppModeType Mode )
 	Os_PortInit();
 	Os_TaskInit();
 	Os_ResourceInit();
+#if (COUNTER_NUM > 0)
 	Os_CounterInit();
+#endif
+#if (ALARM_NUM > 0)
 	Os_AlarmInit();
-
+#endif
 	Sched_GetReady();
 	Os_PortStartDispatch();
 	while(1);

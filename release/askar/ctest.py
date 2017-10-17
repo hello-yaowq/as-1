@@ -92,6 +92,40 @@ def genCTEST_CFGH(xml, path):
     fp.write('#endif\n\n')
     fp.close()
 
+def send_email(result):
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.header import Header
+    import traceback
+
+    mail_host="smtp.yeah.net"
+    mail_user="askardev@yeah.net"
+    mail_pass="askardev123"
+
+    sender = 'askardev@yeah.net'
+    receivers = ['parai@foxmail.com']
+
+    mail_msg = '''<p>Hi parai:</p>
+<p><a href="https://github.com/parai/as">conformance test report of askar</a></p>
+<p>%s</p>
+<p>ASKARDEV</p>
+<p>Best Regards!</p>\n'''%(result)
+    message = MIMEText(mail_msg, 'html', 'utf-8')
+    message['From'] = Header("askardev<askardev@yeah.net>", 'utf-8')
+    message['To'] =  Header("parai<parai@foxmail.com>", 'utf-8')
+    subject = 'OSEK Conformance Test Report of ASKAR'
+    message['Subject'] = Header(subject, 'utf-8')
+
+    try:
+        smtpObj = smtplib.SMTP() 
+        smtpObj.connect(mail_host, 25)
+        smtpObj.login(mail_user,mail_pass)  
+        smtpObj.sendmail(sender, receivers, message.as_string())
+        print("Email send okay")
+    except smtplib.SMTPException:
+        print(traceback.format_exc())
+        print("Error: send failed")
+
 def telnet(uri, port):
     import socket,time
     time.sleep(0.5) # make sure qemu already on line
@@ -116,7 +150,10 @@ def check(target,case):
         if((result.find('FAIL')!=-1) or (result.find('>> END <<')==-1)):
             print('>> Test for %s %s FAIL'%(target,case))
             print(result)
-            exit(-2)
+            erp = '>> Test for %s %s FAIL\n'%(target,case)
+            erp += result
+            send_email(erp) # send if failed
+            exit(0)
         print('>> Test for %s %s PASS'%(target,case))
 
 def test(target,case,vv):
@@ -171,5 +208,5 @@ if(__name__ == '__main__'):
                 if(count > 8):
                     count = 0;
                     c = input('More <Enter> Exit <q>')
-                    if(c == 'q'): exit(1)
+                    if(c == 'q'): exit(0)
 

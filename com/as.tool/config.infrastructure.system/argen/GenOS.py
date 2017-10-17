@@ -169,13 +169,13 @@ def GenH(gendir,os_list):
         fp.write('#define RES_ID_%-32s %s\n'%(GAGet(res,'Name'),id+1))
         fp.write('#define %-39s %s\n'%(GAGet(res,'Name'),id+1))
     fp.write('#define RESOURCE_NUM %s\n\n'%(len(res_list)+1))
-    
+    id = -1
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
         fp.write('#define %-43s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
-
+    id = -1
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
         fp.write('#define %-41s %s\n'%(GAGet(alarm,'Name'),id))

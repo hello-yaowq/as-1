@@ -29,9 +29,13 @@ enum TimerRegisters {
 
 static void (*callback)(void);
 
+uint8 __weak SignalCounter(uint8 counter)
+{
+	(void) counter;
+	return 0;
+}
 void __weak tpl_call_counter_tick()
 {
-	extern uint8 SignalCounter(uint8);
 	SignalCounter(0);
 }
 int timer_irq_handler(void *ctx)
