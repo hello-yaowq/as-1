@@ -67,10 +67,11 @@ re_counter_MINCYCLE = re.compile(r'MINCYCLE\s*=\s*(\w+)\s*;')
 # 5: for alarm
 re_oil_os_alarm = re.compile(r'^\s*(ALARM)\s*(\w+)')
 re_alarm_COUNTER = re.compile(r'COUNTER\s*=\s*(\w+)\s*;')
-re_alarm_ACTION = re.compile(r'ACTION\s*=\s*(ACTIVATETASK|SETEVENT|ALARMCALLBACK)\s*{([^{}]+)}\s*;')
+re_alarm_ACTION = re.compile(r'ACTION\s*=\s*(ACTIVATETASK|SETEVENT|ALARMCALLBACK|INCREMENT)\s*{([^{}]+)}\s*;')
 re_action_TASK = re.compile(r'TASK\s*=\s*(\w+)\s*;')
 re_action_EVENT = re.compile(r'EVENT\s*=\s*(\w+)\s*;')
 re_action_ALARMCALLBACKNAME = re.compile(r'ALARMCALLBACKNAME\s*=\s*"(\w+)"\s*;')
+re_action_COUNTER = re.compile(r'COUNTER\s*=\s*(\w+)\s*;')
 re_alarm_AUTOSTART = re.compile(r'AUTOSTART\s*=\s*(\w+)\s*[;{]')
 re_alarm_appmode_list = re.compile(r'AUTOSTART\s*=\s*TRUE\s*{([^{}]*)}\s*;')
 re_alarm_APPMODE = re.compile(r'APPMODE\s*=\s*(\w+)')
@@ -223,6 +224,11 @@ def oil_process_alarm(item, oscfg):
             alm.attrib['Action'] = 'Callback';
             if(re_action_ALARMCALLBACKNAME.search(action[1])):
                 alm.attrib['Callback'] = re_action_ALARMCALLBACKNAME.search(action[1]).groups()[0]
+        elif(action[0] == 'INCREMENT'):
+            alm.attrib['Action'] = 'SignalCounter';
+            if(re_action_COUNTER.search(action[1])):
+                alm.attrib['Counter'] = re_action_COUNTER.search(action[1]).groups()[0]
+
     if(re_alarm_AUTOSTART.search(item)):
         alm.attrib['Autostart'] = re_alarm_AUTOSTART.search(item).groups()[0];
         if(alm.attrib['Autostart'].upper() == 'TRUE'):

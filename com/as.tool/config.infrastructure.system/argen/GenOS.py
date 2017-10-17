@@ -300,6 +300,8 @@ def GenC(gendir,os_list):
                 fp.write('\t(void)SetEvent(TASK_ID_%s,EVENT_MASK_%s);\n'%(GAGet(alarm,'Task'),GAGet(alarm,'Event')))
             elif(GAGet(alarm,'Action').upper() == 'CALLBACK'):
                 fp.write('\textern ALARM(%s);\n\tAlarmMain%s();\n'%(GAGet(alarm,'Callback'),GAGet(alarm,'Callback')))
+            elif(GAGet(alarm,'Action').upper() == 'SIGNALCOUNTER'):
+                fp.write('\t(void)SignalCounter(COUNTER_ID_%s);\n'%(GAGet(alarm,'Counter')))
             else:
                 assert(0)
             fp.write('}\n')
