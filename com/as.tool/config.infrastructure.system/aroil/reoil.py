@@ -19,7 +19,6 @@ import xml.etree.ElementTree as ET
 
 __all__ = ['to_xml']
 
-#定义所有正则表达式
 # 1: for comment 
 re_comment_type1 = re.compile(r'/\*[^/]*\*/');
 re_comment_type2 = re.compile(r'//.*');
@@ -100,10 +99,10 @@ def findObj(oscfg, tag, name):
 
 def filter_out_comment(text):
     """text should be just a line"""
-    #过滤形如 “/* .. */” 的注释
+    #filter out comments like "/* .. */"
     grp = re_comment_type1.split(text)
     result = ''.join(grp);
-    #过滤形如 “//....” 的注释
+    #filter out comments like "//...."
     grp = re_comment_type2.split(result);
     result = ''.join(grp);
     result = ''.join(result.split('\n')) #remove the line break
@@ -289,7 +288,7 @@ def to_xml(oilfile,cfg=None):
         oscfg = ET.Element('Os')
     fp = open(oilfile, 'r');
     oneitem = ''; #one item is minimum object such as TASK,ALARM ...
-    barcenum = 0; #remember the brace number，when encounter " { ", +1; when " } " -1.
+    barcenum = 0; #remember the brace number, when encounter " { ", +1; when " } " -1.
     brace_flag = False; #has " { " encountered or not
     process_one_item_start = False #has match an obj start or not
     reFreeOSEK = re.compile(r'^\s*OSEK\s+OSEK\s*{\s*')
