@@ -31,7 +31,7 @@ TASK Task2 {
 	};
 	STACK = 256;
 	TYPE = EXTENDED;
-	EVENT Event2;
+	EVENT = Event2;
 };
 
 COUNTER Counter1 {

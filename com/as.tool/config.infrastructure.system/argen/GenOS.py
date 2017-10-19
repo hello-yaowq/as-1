@@ -297,7 +297,7 @@ def GenC(gendir,os_list):
             if(GAGet(alarm,'Action').upper() == 'ACTIVATETASK'):
                 fp.write('\t(void)ActivateTask(TASK_ID_%s);\n'%(GAGet(alarm,'Task')))
             elif(GAGet(alarm,'Action').upper() == 'SETEVENT'):
-                fp.write('\t(void)SetEvent(TASK_ID_%s,EVENT_MASK_%s);\n'%(GAGet(alarm,'Task'),GAGet(alarm,'Event')))
+                fp.write('\t(void)SetEvent(TASK_ID_%s,EVENT_MASK_%s_%s);\n'%(GAGet(alarm,'Task'),GAGet(alarm,'Task'),GAGet(alarm,'Event')))
             elif(GAGet(alarm,'Action').upper() == 'CALLBACK'):
                 fp.write('\textern ALARM(%s);\n\tAlarmMain%s();\n'%(GAGet(alarm,'Callback'),GAGet(alarm,'Callback')))
             elif(GAGet(alarm,'Action').upper() == 'SIGNALCOUNTER'):
