@@ -25,7 +25,43 @@ TickType				OsTickCounter;
 StatusType SignalCounter(CounterType CounterID)
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
+	AlarmVarType *pVar;
+	AlarmType AlarmID;
 
+	if(CounterID < COUNTER_NUM)
+	{
+		Irq_Save(imask);
+		/* yes, only software couter supported */
+		CounterVarArray[CounterID].value++;
+		while(NULL != (pVar = TAILQ_FIRST(&CounterVarArray[CounterID].head))) /* intended '=' */
+		{
+			if (pVar->value == CounterVarArray[CounterID].value)
+			{
+				AlarmID = pVar - AlarmVarArray;
+				TAILQ_REMOVE(&CounterVarArray[CounterID].head, &AlarmVarArray[AlarmID], entry);
+				OS_STOP_ALARM(&AlarmVarArray[AlarmID]);
+				AlarmConstArray[AlarmID].Action();
+
+				if(AlarmVarArray[AlarmID].period != 0)
+				{
+					Os_StartAlarm(AlarmID,
+						(TickType)(CounterVarArray[CounterID].value+AlarmVarArray[AlarmID].period),
+						AlarmVarArray[AlarmID].period);
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+		Irq_Restore(imask);
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	
 	return ercd;
 }
 
@@ -43,6 +79,7 @@ void Os_CounterInit(void)
 	for(id=0; id < COUNTER_NUM; id++)
 	{
 		CounterVarArray[id].value = 0;
+		TAILQ_INIT(&CounterVarArray[id].head);
 	}
 }
 #endif /* #if (COUNTER_NUM > 0) */

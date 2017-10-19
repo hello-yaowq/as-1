@@ -137,7 +137,7 @@ def telnet(uri, port):
     return string
 
 def check(target,case):
-    if(0==os.system('qemu-system-arm -machine help')):
+    if(0==os.system('qemu-system-arm -machine help > /dev/null')):
         qemu = 'qemu-system-arm'
     else:
         qemu = './qemu-system-arm'

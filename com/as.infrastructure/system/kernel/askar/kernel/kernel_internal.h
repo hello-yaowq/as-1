@@ -16,6 +16,7 @@
 #define KERNEL_INTERNAL_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
+#include <sys/queue.h>
 #include "portable.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /*
@@ -128,6 +129,9 @@ enum {
 #define OSErrorTwo(api, param0, param1)
 #define OSErrorThree(api, param0, param1, param2)
 #endif
+
+#define OS_IS_ALARM_STARTED(pVar) (NULL != ((pVar)->entry.tqe_prev))
+#define OS_STOP_ALARM(pVar) do { ((pVar)->entry.tqe_prev) = NULL; } while(0)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -183,9 +187,12 @@ typedef struct
 	ResourceType currentResource;
 } TaskVarType;
 
+struct AlarmVar;
+
 typedef struct
 {
 	TickType value;
+	TAILQ_HEAD(AlarmVarHead,AlarmVar) head;
 } CounterVarType;
 
 typedef struct
@@ -194,10 +201,11 @@ typedef struct
 	const AlarmBaseType base;
 } CounterConstType;
 
-typedef struct
+typedef struct AlarmVar
 {
 	TickType value;
 	TickType period;
+	TAILQ_ENTRY(AlarmVar) entry;
 } AlarmVarType;
 
 typedef struct
@@ -224,6 +232,7 @@ extern void Os_TaskInit(void);
 extern void Os_ResourceInit(void);
 extern void Os_CounterInit(void);
 extern void Os_AlarmInit(void);
+extern void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle);
 
 extern void Os_PortInit(void);
 extern void Os_PortInitContext(TaskVarType* pTaskVar);

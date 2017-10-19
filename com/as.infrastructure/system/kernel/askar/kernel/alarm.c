@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
+#include "asdebug.h"
 #if (ALARM_NUM > 0)
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -88,12 +89,23 @@ StatusType GetAlarmBase( AlarmType AlarmID, AlarmBaseRefType Info )
 StatusType GetAlarm    ( AlarmType AlarmID ,TickRefType Tick )
 {
 	StatusType ercd = E_OK;
+	imask_t imask;
 
 	#if(OS_STATUS == EXTENDED)
 	if( AlarmID < ALARM_NUM )
 	{
 	#endif
-
+		Irq_Save(imask);
+		if( OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]) )
+		{
+			/* rely on the trick of integer overflow */
+			*Tick = (TickType)(AlarmVarArray[AlarmID].value-AlarmConstArray[AlarmID].pCounter->pVar->value);
+		}
+		else
+		{
+			ercd = E_OS_NOFUNC;
+		}
+		Irq_Restore(imask);
 	#if(OS_STATUS == EXTENDED)
 	}
 	else
@@ -154,7 +166,44 @@ StatusType GetAlarm    ( AlarmType AlarmID ,TickRefType Tick )
 /* |------------------+-----------------------------------------------------------------| */
 StatusType SetRelAlarm ( AlarmType AlarmID , TickType Increment ,TickType Cycle )
 {
+	StatusType ercd = E_OK;
+	imask_t imask;
 
+	#if(OS_STATUS == EXTENDED)
+	if( AlarmID >= ALARM_NUM )
+	{
+		ercd = E_OS_ID;
+	}
+	else if( Increment > AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue )
+	{
+		ercd = E_OS_VALUE;
+	}
+	else if( (Cycle > AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue) ||
+			 ((Cycle > 0) && (Cycle < AlarmConstArray[AlarmID].pCounter->base.mincycle)) )
+	{
+		ercd = E_OS_VALUE;
+	}
+	#endif
+
+	if(E_OK == ercd)
+	{
+		Irq_Save(imask);
+		if( FALSE == OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]) )
+		{
+			TickType Start = (TickType)(AlarmConstArray[AlarmID].pCounter->pVar->value+Increment);
+			Os_StartAlarm(AlarmID,Start,Cycle);
+		}
+		else
+		{
+			ercd = E_OS_STATE;
+		}
+		Irq_Restore(imask);
+	}
+
+
+	OSErrorThree(SetRelAlarm,AlarmID,Increment,Cycle);
+
+	return ercd;
 }
 
 /* |------------------+-----------------------------------------------------------------| */
@@ -206,7 +255,42 @@ StatusType SetRelAlarm ( AlarmType AlarmID , TickType Increment ,TickType Cycle 
 /* |------------------+-----------------------------------------------------------------| */
 StatusType SetAbsAlarm ( AlarmType AlarmID , TickType Start ,TickType Cycle )
 {
+	StatusType ercd = E_OK;
+	imask_t imask;
 
+	#if(OS_STATUS == EXTENDED)
+	if( AlarmID >= ALARM_NUM )
+	{
+		ercd = E_OS_ID;
+	}
+	else if( Start > AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue )
+	{
+		ercd = E_OS_VALUE;
+	}
+	else if( (Cycle > AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue) ||
+			 ((Cycle > 0) && (Cycle < AlarmConstArray[AlarmID].pCounter->base.mincycle)) )
+	{
+		ercd = E_OS_VALUE;
+	}
+	#endif
+
+	if(E_OK == ercd)
+	{
+		Irq_Save(imask);
+		if( FALSE == OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]) )
+		{
+			Os_StartAlarm(AlarmID,Start,Cycle);
+		}
+		else
+		{
+			ercd = E_OS_STATE;
+		}
+		Irq_Restore(imask);
+	}
+
+	OSErrorThree(SetAbsAlarm,AlarmID,Start,Cycle);
+
+	return ercd;
 }
 
 /* |------------------+-------------------------------------------------------------| */
@@ -229,6 +313,36 @@ StatusType SetAbsAlarm ( AlarmType AlarmID , TickType Start ,TickType Cycle )
 /* |------------------+-------------------------------------------------------------| */
 StatusType CancelAlarm ( AlarmType AlarmID )
 {
+	StatusType ercd = E_OK;
+	imask_t imask;
+
+	#if(OS_STATUS == EXTENDED)
+	if( AlarmID < ALARM_NUM )
+	{
+	#endif
+		Irq_Save(imask);
+		if( OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]) )
+		{
+			TAILQ_REMOVE(&(AlarmConstArray[AlarmID].pCounter->pVar->head), &AlarmVarArray[AlarmID], entry);
+			OS_STOP_ALARM(&AlarmVarArray[AlarmID]);
+		}
+		else
+		{
+			ercd = E_OS_NOFUNC;
+		}
+		Irq_Restore(imask);
+	#if(OS_STATUS == EXTENDED)
+	}
+	else
+	{
+		ercd = E_OS_ID;
+	}
+	#endif
+
+
+	OSErrorOne(CancelAlarm,AlarmID);
+
+	return ercd;
 
 }
 
@@ -237,10 +351,45 @@ void Os_AlarmInit(void)
 {
 	AlarmType id;
 
+	asAssert( 8 == ((TickType)(5 - (TICK_MAX-2))));
+	asAssert( (567+9999+1) == ((TickType)(567 - (TICK_MAX-9999))));
 	for(id=0; id < ALARM_NUM; id++)
 	{
 		AlarmVarArray[id].value = 0;
 		AlarmVarArray[id].period = 0;
+
+		OS_STOP_ALARM(&AlarmVarArray[id]);
+
+		AlarmConstArray[id].Start();
 	}
 }
+
+void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle)
+{
+	AlarmVarType *pVar;
+	TickType curValue = AlarmConstArray[AlarmID].pCounter->pVar->value;
+
+	TickType left = (TickType)(Start-curValue);
+
+	AlarmVarArray[AlarmID].value  = Start;
+	AlarmVarArray[AlarmID].period = Cycle;
+
+	TAILQ_FOREACH(pVar, &(AlarmConstArray[AlarmID].pCounter->pVar->head), entry)
+	{
+		if ((TickType)(pVar->value-curValue) > left)
+		{
+			break;
+		}
+	}
+
+	if(NULL != pVar)
+	{
+		TAILQ_INSERT_BEFORE(pVar,&AlarmVarArray[AlarmID],entry);
+	}
+	else
+	{
+		TAILQ_INSERT_HEAD(&(AlarmConstArray[AlarmID].pCounter->pVar->head),&AlarmVarArray[AlarmID],entry);
+	}
+}
+
 #endif /* #if (ALARM_NUM > 0) */

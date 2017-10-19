@@ -307,7 +307,7 @@ def GenC(gendir,os_list):
             fp.write('}\n')
             fp.write('static void %s_Autostart(void)\n{\n'%(GAGet(alarm,'Name')))
             if(GAGet(alarm,'Autostart').upper() == 'TRUE'):
-                fp.write('\t(void)SetAbsAlarm(%s, %s);\n'%(GAGet(alarm,'StartTime'),GAGet(alarm,'Period')))
+                fp.write('\t(void)SetAbsAlarm(ALARM_ID_%s, %s, %s);\n'%(GAGet(alarm,'Name'),GAGet(alarm,'StartTime'),GAGet(alarm,'Period')))
             else:
                 fp.write('\t/* not autostart */\n')
             fp.write('}\n')

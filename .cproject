@@ -96,6 +96,8 @@
 									<listOptionValue builtIn="false" value="USE_LWIP"/>
 									<listOptionValue builtIn="false" value="MULTIPLY_TASK_ACTIVATION"/>
 									<listOptionValue builtIn="false" value="MULTIPLY_TASK_PER_PRIORITY"/>
+									<listOptionValue builtIn="false" value="COUNTER_NUM=8"/>
+									<listOptionValue builtIn="false" value="ALARM_NUM=8"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -169,6 +171,8 @@
 									<listOptionValue builtIn="false" value="USE_LWIP"/>
 									<listOptionValue builtIn="false" value="MULTIPLY_TASK_ACTIVATION"/>
 									<listOptionValue builtIn="false" value="MULTIPLY_TASK_PER_PRIORITY"/>
+									<listOptionValue builtIn="false" value="COUNTER_NUM=8"/>
+									<listOptionValue builtIn="false" value="ALARM_NUM=8"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
