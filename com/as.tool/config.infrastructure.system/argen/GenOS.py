@@ -83,15 +83,15 @@ def GenH(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __ASKAR_OS__\n\n')
     general = ScanFrom(os_list,'General')[0]
-    if(GAGet(general,'ErrorHook') != 'NULL'):
+    if(GAGet(general,'ErrorHook') != 'NULL' and GAGet(general,'ErrorHook') != 'FALSE'):
         fp.write('#define OS_USE_ERROR_HOOK\n')
-    if(GAGet(general,'StartupHook') != 'NULL'):
+    if(GAGet(general,'StartupHook') != 'NULL' and GAGet(general,'StartupHook') != 'FALSE'):
         fp.write('#define OS_USE_STARTUP_HOOK\n')
-    if(GAGet(general,'ShutdownHook') != 'NULL'):
+    if(GAGet(general,'ShutdownHook') != 'NULL' and GAGet(general,'ShutdownHook') != 'FALSE'):
         fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
-    if(GAGet(general,'PreTaskHook') != 'NULL'):
+    if(GAGet(general,'PreTaskHook') != 'NULL' and GAGet(general,'PreTaskHook') != 'FALSE'):
         fp.write('#define OS_USE_PRETASK_HOOK\n')
-    if(GAGet(general,'PostTaskHook') != 'NULL'):
+    if(GAGet(general,'PostTaskHook') != 'NULL' and GAGet(general,'PostTaskHook') != 'FALSE'):
         fp.write('#define OS_USE_POSTTASK_HOOK\n')
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
