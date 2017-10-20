@@ -48,6 +48,7 @@ Os_PortStartDispatch:
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     Os_PortIdle
+Os_PortDispatchFormISR:
 	ldr     r1, =RunningVar
 	str     r0, [r1]
 	ldr     sp, [r0, #0x0 ]
@@ -162,14 +163,21 @@ ExitISR:
 
 	ldr     r1, = ReadyVar
 	ldr     r1, [r1]
-	cmp     r0, r1
 
+	cmp     r0, r1
 	beq     l_nopreempt
+
+	ldrb    r2, [r1, #8]  /* priority of ReadyVar */
+	ldrb    r3, [r0, #8]  /* priority of RunningVar */
+	cmp     r3, r2
+	bgt     l_nopreempt
 
 	bl      Sched_Preempt
 
+	b       Os_PortStartDispatch
+
 l_nopreempt:
-	b       Os_PortStartDispatch                 /* To dispatch processing */
+	b       Os_PortDispatchFormISR
 
 l_nodispatch:
 	subs pc, lr, #4

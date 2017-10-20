@@ -251,6 +251,7 @@ StatusType WaitEvent ( EventMaskType Mask )
 			RunningVar->state=WAITING;
 			Sched_GetReady();
 			Os_PortDispatch();
+			RunningVar->pConst->pEventVar->wait = 0;
 			RunningVar->priority = RunningVar->pConst->runPriority;
 		}
 		Irq_Restore(imask);

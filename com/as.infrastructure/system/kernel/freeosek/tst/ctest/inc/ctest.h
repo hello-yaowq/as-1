@@ -259,11 +259,7 @@ void TriggerISR2(void);
  **
  ** This macro shall implement a mechanismus to increment the alarm counter
  **/
-#ifdef __ASKAR_OS__
-#define IncAlarmCounter() (void)SignalCounter(Counter1);
-#else
 #define IncAlarmCounter() (void)IncrementCounter(Counter1, 1);
-#endif
 
 #if (ISR_CATEGORY_3 == ENABLE)
 /** \brief ISR3 Trigger Macro
@@ -392,15 +388,12 @@ extern void ConfTestFinish
 (
 	void
 );
-#ifdef __ASKAR_OS__
-StatusType SignalCounter(CounterType CounterID);
-#else
+
 extern uint32 IncrementCounter
 (
 	uint32 CounterID,
 	uint32 Increment
 );
-#endif
 
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */

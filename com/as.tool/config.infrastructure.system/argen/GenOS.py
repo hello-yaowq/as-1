@@ -85,6 +85,14 @@ def GenH(gendir,os_list):
     general = ScanFrom(os_list,'General')[0]
     if(GAGet(general,'ErrorHook') != 'NULL'):
         fp.write('#define OS_USE_ERROR_HOOK\n')
+    if(GAGet(general,'StartupHook') != 'NULL'):
+        fp.write('#define OS_USE_STARTUP_HOOK\n')
+    if(GAGet(general,'ShutdownHook') != 'NULL'):
+        fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
+    if(GAGet(general,'PreTaskHook') != 'NULL'):
+        fp.write('#define OS_USE_PRETASK_HOOK\n')
+    if(GAGet(general,'PostTaskHook') != 'NULL'):
+        fp.write('#define OS_USE_POSTTASK_HOOK\n')
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')

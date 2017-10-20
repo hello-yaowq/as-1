@@ -29,6 +29,8 @@ extern ISR(ISR3);
 /* ============================ [ DATAS     ] ====================================================== */
 static volatile int isr2Flag;
 static volatile int isr3Flag;
+static volatile int counterFlag;
+static uint32 counterId;
 #ifdef __arch_versatilepb__
 static volatile int isr2OneShot;
 static volatile int isr3OneShot;
@@ -100,3 +102,39 @@ void TriggerISR3(void)
 	while(isr3Flag == 0);
 #endif
 }
+void counter_handler(void)
+{
+	counterFlag++;
+
+	SignalCounter(counterId);
+#ifdef __arch_versatilepb__
+	timer_stop();
+#endif
+}
+
+#ifdef __ASKAR_OS__
+uint32 IncrementCounter
+(
+	uint32 CounterID,
+	uint32 Increment
+)
+{
+	counterId = CounterID;
+#ifdef __arch_versatilepb__
+	if(0 == vicInitFlag)
+	{
+		vicInitFlag = 1;
+		vic_setup();
+		irq_init();
+	}
+
+	while(Increment>0)
+	{
+		counterFlag = 0;
+		timer_init(counter_handler);
+		while(counterFlag == 0);
+		Increment --;
+	}
+#endif
+}
+#endif

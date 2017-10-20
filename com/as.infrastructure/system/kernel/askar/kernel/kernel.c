@@ -69,6 +69,9 @@ void StartOS ( AppModeType Mode )
 #if (ALARM_NUM > 0)
 	Os_AlarmInit();
 #endif
+
+	OSStartupHook();
+
 	Sched_GetReady();
 	Os_PortStartDispatch();
 	while(1);
@@ -76,5 +79,7 @@ void StartOS ( AppModeType Mode )
 
 void ShutdownOS( StatusType Error )
 {
-
+	OSShutdownHook(Error);
+	Irq_Disable();
+	while(1);
 }

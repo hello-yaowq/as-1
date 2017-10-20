@@ -130,6 +130,66 @@ enum {
 #define OSErrorThree(api, param0, param1, param2)
 #endif
 
+#ifdef OS_USE_STARTUP_HOOK
+#define OSStartupHook() do { \
+	unsigned int savedLevel; \
+	imask_t mask; \
+	Irq_Save(mask); \
+	savedLevel = CallLevel; \
+	CallLevel = TCL_STARTUP; \
+	StartupHook(); \
+	CallLevel = savedLevel; \
+	Irq_Restore(mask); \
+} while(0)
+#else
+#define OSStartupHook()
+#endif
+
+#ifdef OS_USE_SHUTDOWN_HOOK
+#define OSShutdownHook(ercd) do { \
+	unsigned int savedLevel; \
+	imask_t mask; \
+	Irq_Save(mask); \
+	savedLevel = CallLevel; \
+	CallLevel = TCL_SHUTDOWN; \
+	ShutdownHook(ercd); \
+	CallLevel = savedLevel; \
+	Irq_Restore(mask); \
+} while(0)
+#else
+#define OSShutdownHook(ercd)
+#endif
+
+#ifdef OS_USE_PRETASK_HOOK
+#define OSPreTaskHook() do { \
+	unsigned int savedLevel; \
+	imask_t mask; \
+	Irq_Save(mask); \
+	savedLevel = CallLevel; \
+	CallLevel = TCL_PREPOST; \
+	PreTaskHook(); \
+	CallLevel = savedLevel; \
+	Irq_Restore(mask); \
+} while(0)
+#else
+#define OSPreTaskHook()
+#endif
+
+#ifdef OS_USE_POSTTASK_HOOK
+#define OSPostTaskHook() do { \
+	unsigned int savedLevel; \
+	imask_t mask; \
+	Irq_Save(mask); \
+	savedLevel = CallLevel; \
+	CallLevel = TCL_PREPOST; \
+	PostTaskHook(); \
+	CallLevel = savedLevel; \
+	Irq_Restore(mask); \
+} while(0)
+#else
+#define OSPostTaskHook()
+#endif
+
 #define OS_IS_ALARM_STARTED(pVar) (NULL != ((pVar)->entry.tqe_prev))
 #define OS_STOP_ALARM(pVar) do { ((pVar)->entry.tqe_prev) = NULL; } while(0)
 /* ============================ [ TYPES     ] ====================================================== */

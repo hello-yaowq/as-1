@@ -177,6 +177,8 @@ StatusType TerminateTask( void )
 
 	if(E_OK == ercd)
 	{
+		OSPostTaskHook();
+
 		Irq_Save(mask);
 		#ifdef MULTIPLY_TASK_ACTIVATION
 		asAssert(RunningVar->activation > 0);
@@ -331,6 +333,7 @@ StatusType ChainTask    ( TaskType TaskID )
 
 		if(ercd == E_OK)
 		{
+			OSPostTaskHook();
 			Irq_Save(mask);
 			Sched_GetReady();
 			Os_PortStartDispatch();
