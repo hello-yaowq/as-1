@@ -79,7 +79,9 @@ def GenH(gendir,os_list):
     fp.write(GHeader('Os',Vendor='askar'))
     fp.write('#ifndef OS_CFG_H_\n#define OS_CFG_H_\n\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
+    fp.write('#ifndef MACROS_ONLY\n')
     fp.write('#include "kernel.h"\n')
+    fp.write('#endif\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __ASKAR_OS__\n\n')
     general = ScanFrom(os_list,'General')[0]
@@ -194,12 +196,14 @@ def GenH(gendir,os_list):
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    fp.write('#ifndef MACROS_ONLY\n')
     for id,task in enumerate(task_list):
         fp.write('extern TASK(%s);\n'%(GAGet(task,'Name')))
     fp.write('\n\n')
     for id,alarm in enumerate(alarm_list):
         fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
+    fp.write('#endif\n')
     fp.write('#endif /*OS_CFG_H_*/\n\n')
     fp.close()
     

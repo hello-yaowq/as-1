@@ -402,6 +402,7 @@ StatusType Schedule     ( void )
 		Sched_GetReady();
 		if(RunningVar != ReadyVar)
 		{
+			OSPostTaskHook();
 			Os_PortDispatch();
 		}
 		RunningVar->priority = RunningVar->pConst->runPriority;

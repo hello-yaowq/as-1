@@ -249,6 +249,7 @@ StatusType WaitEvent ( EventMaskType Mask )
 			RunningVar->priority = RunningVar->pConst->initPriority;
 			RunningVar->pConst->pEventVar->wait = Mask;
 			RunningVar->state=WAITING;
+			OSPostTaskHook();
 			Sched_GetReady();
 			Os_PortDispatch();
 			RunningVar->pConst->pEventVar->wait = 0;

@@ -13,6 +13,8 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#define MACROS_ONLY
+#include "Os_Cfg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -58,6 +60,16 @@ Os_PortDispatchFormISR:
 	.global Os_PortResume
 	.type   Os_PortResume, %function
 Os_PortResume:
+	#ifdef OS_USE_PRETASK_HOOK
+	ldr     r1, = CallLevel
+	ldr     r3, [r1]
+	mov     r2, #8   /* CallLevel = TCL_PREPOST */
+	str     r2,[r1]
+	stmfd   sp!, {r0-r3}
+	bl      PreTaskHook
+	ldmfd   sp!, {r0-r3}
+	str     r3,[r1]  /* restore CallLevel */
+	#endif
 	ldmfd   sp!, {r0}
 	msr     spsr, r0
 	ldmfd   sp!, {r0-r12, lr, pc}^

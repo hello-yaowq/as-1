@@ -133,6 +133,7 @@ void Sched_AddReady(TaskType TaskID)
 
 void Sched_Preempt(void)
 {
+	OSPostTaskHook();
 	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
 	ReadyQueue.heap[0].priority = NEW_PRIORITY(RunningVar->priority);
 }

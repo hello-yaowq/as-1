@@ -96,7 +96,7 @@ int main
 	return 0;
 }
 
-void ShutdownHook(void)
+void ShutdownHook(StatusType Error)
 {
 	Sequence(2);
 	/* \treq EH_07 nmf B1B2E1E2 se CheckShutdownHook: ShutdownOS

@@ -108,6 +108,7 @@ VPATH += ${src-dir} \
 		 $(CTEST)/src $(CURDIR)/util \
 	     ${COM}/as.infrastructure/clib \
 
+ASFLAGS += -I${src-dir}
 
 CFLAGS += -D$(TARGET)
 CFLAGS += -D__CTEST_WITH_PRINTF__

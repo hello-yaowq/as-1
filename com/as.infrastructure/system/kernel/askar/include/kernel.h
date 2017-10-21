@@ -190,6 +190,7 @@ StatusType ReleaseResource ( ResourceType ResID );
 
 void StartOS ( AppModeType Mode );
 void ShutdownOS( StatusType Error );
+AppModeType GetActiveApplicationMode ( void );
 
 void ShutdownHook ( StatusType Error);
 void StartupHook(void);

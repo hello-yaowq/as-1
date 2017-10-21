@@ -24,6 +24,7 @@ _ErrorHook_Par  _errorhook_par1, _errorhook_par2, _errorhook_par3;
 TaskVarType* RunningVar;
 TaskVarType* ReadyVar;
 unsigned int CallLevel;
+static AppModeType appMode;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void Os_MiscInit(void)
 {
@@ -55,7 +56,7 @@ static void Os_MiscInit(void)
 /* |------------------+------------------------------------------------------| */
 void StartOS ( AppModeType Mode )
 {
-	(void) Mode; /* mode is not implemented */
+	appMode = Mode;
 
 	Irq_Disable();
 
@@ -82,4 +83,9 @@ void ShutdownOS( StatusType Error )
 	OSShutdownHook(Error);
 	Irq_Disable();
 	while(1);
+}
+
+AppModeType GetActiveApplicationMode ( void )
+{
+	return appMode;
 }
