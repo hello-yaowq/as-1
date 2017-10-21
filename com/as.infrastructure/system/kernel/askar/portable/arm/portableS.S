@@ -182,7 +182,7 @@ ExitISR:
 	ldrb    r2, [r1, #8]  /* priority of ReadyVar */
 	ldrb    r3, [r0, #8]  /* priority of RunningVar */
 	cmp     r3, r2
-	bgt     l_nopreempt
+	bge     l_nopreempt
 
 	bl      Sched_Preempt
 
