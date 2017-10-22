@@ -172,7 +172,10 @@ StatusType ReleaseResource ( ResourceType ResID )
 			RunningVar->currentResource = ResourceVarArray[ResID].prevRes;
 			RunningVar->priority = ResourceVarArray[ResID].prevPrio;
 			ResourceVarArray[ResID].prevPrio = INVALID_PRIORITY;
-			(void)Schedule();
+			if(PRIORITY_NUM != RunningVar->priority)
+			{	/* if PRIORITY_NUM, then not preempt-able */
+				(void)Schedule();
+			}
 			Irq_Restore(imask);
 		}
 		else if(TCL_ISR2 == CallLevel)

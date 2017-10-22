@@ -85,16 +85,31 @@ def GenH(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __ASKAR_OS__\n\n')
     general = ScanFrom(os_list,'General')[0]
-    if(GAGet(general,'ErrorHook') != 'NULL' and GAGet(general,'ErrorHook') != 'FALSE'):
-        fp.write('#define OS_USE_ERROR_HOOK\n')
-    if(GAGet(general,'StartupHook') != 'NULL' and GAGet(general,'StartupHook') != 'FALSE'):
-        fp.write('#define OS_USE_STARTUP_HOOK\n')
-    if(GAGet(general,'ShutdownHook') != 'NULL' and GAGet(general,'ShutdownHook') != 'FALSE'):
-        fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
-    if(GAGet(general,'PreTaskHook') != 'NULL' and GAGet(general,'PreTaskHook') != 'FALSE'):
-        fp.write('#define OS_USE_PRETASK_HOOK\n')
-    if(GAGet(general,'PostTaskHook') != 'NULL' and GAGet(general,'PostTaskHook') != 'FALSE'):
-        fp.write('#define OS_USE_POSTTASK_HOOK\n')
+    try:
+        if(GAGet(general,'ErrorHook') != 'NULL' and GAGet(general,'ErrorHook') != 'FALSE'):
+            fp.write('#define OS_USE_ERROR_HOOK\n')
+    except KeyError:
+        pass
+    try:
+        if(GAGet(general,'StartupHook') != 'NULL' and GAGet(general,'StartupHook') != 'FALSE'):
+            fp.write('#define OS_USE_STARTUP_HOOK\n')
+    except KeyError:
+        pass
+    try:
+        if(GAGet(general,'ShutdownHook') != 'NULL' and GAGet(general,'ShutdownHook') != 'FALSE'):
+            fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
+    except KeyError:
+        pass
+    try:
+        if(GAGet(general,'PreTaskHook') != 'NULL' and GAGet(general,'PreTaskHook') != 'FALSE'):
+            fp.write('#define OS_USE_PRETASK_HOOK\n')
+    except KeyError:
+        pass
+    try:
+        if(GAGet(general,'PostTaskHook') != 'NULL' and GAGet(general,'PostTaskHook') != 'FALSE'):
+            fp.write('#define OS_USE_POSTTASK_HOOK\n')
+    except KeyError:
+        pass
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')
@@ -146,10 +161,6 @@ def GenH(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
-    fp.write('/* alternative Task ID name */\n')
-    for id,task in enumerate(task_list):
-        fp.write('#define %-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
-    fp.write('\n\n')
     alarm_list = ScanFrom(os_list,'Alarm')
     appmode = []
     for id,obj in enumerate(task_list+alarm_list):
@@ -168,7 +179,6 @@ def GenH(gendir,os_list):
             withEvt = True
             mask = GAGet(ev,'Mask')
             fp.write('#define EVENT_MASK_%-40s %s\n'%('%s_%s'%(GAGet(task,'Name'),GAGet(ev,'Name')),mask))
-            fp.write('#define %-51s %s\n'%(GAGet(ev,'Name'),mask))
     fp.write('\n')
     if(withEvt):
         fp.write('\n#define EXTENDED_TASK\n\n')
@@ -177,7 +187,6 @@ def GenH(gendir,os_list):
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('#define RES_ID_%-32s %s\n'%(GAGet(res,'Name'),id+1))
-        fp.write('#define %-39s %s\n'%(GAGet(res,'Name'),id+1))
     fp.write('#define RESOURCE_NUM %s\n\n'%(len(res_list)+1))
     id = -1
     counter_list = ScanFrom(os_list,'Counter')
@@ -194,6 +203,24 @@ def GenH(gendir,os_list):
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    fp.write('#ifndef MACROS_ONLY\n')
+    for id,task in enumerate(task_list):
+        fp.write('DeclareTask(%s);\n'%(GAGet(task,'Name')))
+    fp.write('\n')
+    for id,task in enumerate(task_list):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            fp.write('DeclareEvent(%s);\n'%(GAGet(ev,'Name')))
+    fp.write('\n')
+    for id,res in enumerate(res_list):
+        if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
+        fp.write('DeclareResource(%s);\n'%(GAGet(res,'Name')))
+    fp.write('\n')
+    for id,counter in enumerate(counter_list):
+        fp.write('DeclareCounter(%s);\n'%(GAGet(counter,'Name')))
+    fp.write('\n')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('DeclareAlarm(%s);\n'%(GAGet(alarm,'Name')))
+    fp.write('#endif\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('#ifndef MACROS_ONLY\n')
@@ -333,6 +360,23 @@ def GenC(gendir,os_list):
             fp.write('\t\t/*.Action=*/%s_Action,\n'%(GAGet(alarm,'Name')))
             fp.write('\t},\n')
         fp.write('};\n\n')
+
+    for id,task in enumerate(task_list):
+        fp.write('const TaskType %s = TASK_ID_%s;\n'%(GAGet(task,'Name'),GAGet(task,'Name')))
+    fp.write('\n')
+    for id,task in enumerate(task_list):
+        for mask,ev in enumerate(GLGet(task,'EventList')):
+            fp.write('const EventMaskType %s = EVENT_MASK_%s_%s;\n'%(GAGet(ev,'Name'),GAGet(task,'Name'),GAGet(ev,'Name')))
+    fp.write('\n')
+    for id,res in enumerate(res_list):
+        if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
+        fp.write('const ResourceType %s = RES_ID_%s;\n'%(GAGet(res,'Name'),GAGet(res,'Name')))
+    fp.write('\n')
+    for id,counter in enumerate(counter_list):
+        fp.write('const CounterType %s = COUNTER_ID_%s;\n'%(GAGet(counter,'Name'),GAGet(counter,'Name')))
+    fp.write('\n')
+    for id,alarm in enumerate(alarm_list):
+        fp.write('const AlarmType %s = ALARM_ID_%s;\n'%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

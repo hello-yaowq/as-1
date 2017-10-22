@@ -138,3 +138,11 @@ uint32 IncrementCounter
 #endif
 }
 #endif
+
+#ifdef MTEST
+int main()
+{
+	StartOS(OSDEFAULTAPPMODE);
+	while(1);
+}
+#endif

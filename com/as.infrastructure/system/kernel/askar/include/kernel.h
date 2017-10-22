@@ -48,7 +48,7 @@
 
 #define DeclareTask( name )       extern const TaskType name
 #define DeclareAlarm( name )      extern const AlarmType name
-#define DeclareEvent( name )      extern const EventType name
+#define DeclareEvent( name )      extern const EventMaskType name
 #define DeclareResource( name )   extern const ResourceType name
 
 

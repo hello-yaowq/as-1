@@ -29,6 +29,7 @@ reHeader=re.compile(r'^(\w+):(.+)$')
 reCase=re.compile(r'^\s+([^:]+)$')
 reVar=re.compile(r'^\s+(\w+):(\w+)$')
 def parse():
+    import glob
     fp = open('%s/cfg/ctestcases.cfg'%(CTEST),'r')
     cfg = []
     target=''
@@ -49,6 +50,18 @@ def parse():
             if(el.strip() != ''):
                 print('warning:', el)
     fp.close()
+    for cc in glob.glob('./Testsuite/std/*') + glob.glob('./Testsuite/ext/*'):
+        for sched in glob.glob('%s/*'%(cc)):
+            for obj in glob.glob('%s/*'%(sched)):
+                for test in glob.glob('%s/*'%(obj)):
+                    # TODO only need to be executed once
+                    #os.system('ln -fsv %s %s/inc'%(os.path.abspath('./Testsuite/cpuxx_comyy/inc'),obj))
+                    for ff in glob.glob('%s/*'%(test)):
+                        fname = os.path.basename(ff)
+                        # TODO only need to be executed once
+                        #os.system('mv -v %s %s/%s'%(ff,test,fname.lower()))
+                        cfg.append({'desc':desc, 'target':'test', 'case':{test:{}} })
+                        id += 1
     return cfg
 
 def fixXml(xml,vv):
@@ -159,16 +172,19 @@ def check(target,case):
             erp = '>> Test for %s %s FAIL\n'%(target,case)
             erp += result
             send_email(erp) # send if failed
-            exit(0)
+            exit(-1)
         print('>> Test for %s %s PASS'%(target,case))
 
 def test(target,case,vv):
     cmd = 'mkdir -pv src/%s/%s'%(target, case)
     os.system(cmd)
-    xml = reoil.to_xml('%s/etc/%s.oil'%(CTEST,target))
-    fixXml(xml,vv)
+    if(target == 'test'):
+        xml = reoil.to_xml('%s/%s.oil'%(case,target))
+    else:
+        xml = reoil.to_xml('%s/etc/%s.oil'%(CTEST,target))
+        fixXml(xml,vv)
+        genCTEST_CFGH(xml,'src/%s/%s'%(target, case))
     saveXml(xml, 'src/%s/%s/test.xml'%(target, case))
-    genCTEST_CFGH(xml,'src/%s/%s'%(target, case))
     cmd='make dep-os TARGET=%s CASE=%s > /dev/null'%(target, case)
     os.system(cmd)
     cmd='make all TARGET=%s CASE=%s > /dev/null'%(target, case)

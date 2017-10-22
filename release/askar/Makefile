@@ -16,8 +16,8 @@
 # CPU architecture setting: versatilepb
 export ARCH ?= versatilepb
 
-TARGET ?= ctest_tm_01
-CASE ?=
+TARGET ?= test
+CASE ?= Testsuite/std/ecc1/non/task/test1
 
 obj-dir = $(CURDIR)/objs/$(TARGET)/$(CASE)
 out-dir = $(CURDIR)/out/$(TARGET)/$(CASE)
@@ -26,6 +26,7 @@ src-dir = $(CURDIR)/src/$(TARGET)/$(CASE)
 COM = $(CURDIR)/../../com
 KERNEL = ${COM}/as.infrastructure/system/kernel/askar
 CTEST  = ${COM}/as.infrastructure/system/kernel/freeosek/tst/ctest
+MTEST  = $(CURDIR)/Testsuite
 
 ifeq ($(shell uname), Linux)
 PY27 = python2
@@ -105,19 +106,31 @@ obj-y += ${obj-dir}/alarm.o \
 
 
 VPATH += ${src-dir} \
-		 $(CTEST)/src $(CURDIR)/util \
+		 $(CURDIR)/util \
 	     ${COM}/as.infrastructure/clib \
 
 ASFLAGS += -I${src-dir}
 
 CFLAGS += -D$(TARGET)
 CFLAGS += -D__CTEST_WITH_PRINTF__
-CFLAGS += -I${src-dir} -I$(CTEST)/inc
+CFLAGS += -I${src-dir}
 obj-y += ${obj-dir}/Os_Cfg.o \
 		 ${obj-dir}/$(TARGET).o \
-		 ${obj-dir}/ctest_rst.o \
 		 ${obj-dir}/util.o \
 		 ${obj-dir}/stdio_printf.o \
+
+
+ifeq ($(TARGET), test)
+VPATH  += $(CASE) $(MTEST)/cpuxx_comyy/src
+CFLAGS += -DTestSubNr=0
+CFLAGS += -DMTEST
+CFLAGS += -I$(CASE) -I$(MTEST)/include -I$(MTEST)/cpuxx_comyy/inc
+obj-y += ${obj-dir}/test_api.o
+else
+VPATH  += $(CTEST)/src
+CFLAGS += -I$(CTEST)/inc
+obj-y += ${obj-dir}/ctest_rst.o
+endif
 
 
 default:all
@@ -147,8 +160,13 @@ dep-versatilepb:
 
 dep-os: $(src-dir)
 	@$(XCC) $(src-dir) false
+ifeq ($(TARGET), test)
+	@echo "#include \"Os.h\"" > $(src-dir)/osek.h
+else
 	@echo "#include \"Os.h\"" > $(src-dir)/os.h
 	@echo "#include \"Std_Types.h\"" > $(src-dir)/Types.h
+endif
+	@echo " >> pre-process for $(TARGET) $(CASE) done"
 
 all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	@echo "  >> LD $(TARGET)"

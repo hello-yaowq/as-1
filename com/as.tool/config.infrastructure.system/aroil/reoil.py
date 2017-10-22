@@ -325,7 +325,7 @@ def to_xml(oilfile,cfg=None):
             elif(re_include.search(el)): #include file
                 basep = os.path.dirname(oilfile)
                 file = re_include.search(el).groups()[0];
-                file = basep+'/'+file;
+                file = basep+'/'+file.replace('\\','/');
                 to_xml(file, oscfg);
         #}
         else:
