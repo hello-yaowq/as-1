@@ -47,6 +47,7 @@
 #define RES_SCHEDULER            ((ResourceType)0) /* default resources for OS */
 
 #define DeclareTask( name )       extern const TaskType name
+#define DeclareCounter( name )    extern const CounterType name
 #define DeclareAlarm( name )      extern const AlarmType name
 #define DeclareEvent( name )      extern const EventMaskType name
 #define DeclareResource( name )   extern const ResourceType name

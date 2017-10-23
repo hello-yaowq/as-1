@@ -129,6 +129,12 @@ def oil_process_os(item, oscfg):
         general.attrib['ShutdownHook'] = re_general_SHUTDOWNHOOK.search(item).groups()[0];
     if(re_general_STARTUPHOOK.search(item)):
         general.attrib['StartupHook'] = re_general_STARTUPHOOK.search(item).groups()[0];
+    if(re_general_SystemTimer.search(item)):
+        cnt = findObj(oscfg, 'Counter', 'SystemTimer')
+        cnt.attrib['MaxAllowed'] = '32767'
+        cnt.attrib['TicksPerBase'] = '1'
+        cnt.attrib['MinCycle'] = '1'
+
 def oil_process_task(item, oscfg):
     grp = re_oil_os_task.search(item).groups();
     if(grp[0] != 'TASK'):

@@ -118,6 +118,12 @@ TASK(Task1)
 	ASSERT(OTHER, ret != E_OK);
 
 #if (CT_SCHEDULING_Task1 == CT_NON_PREEMPTIVE)
+	/* evaluate conformance tests */
+	ConfTestEvaluation();
+
+	/* finish the conformance test */
+	ConfTestFinish();
+	/* parai: call Schedule with resource is not allowed, wrong case here */
 	/* force scheduling */
 	Schedule();
 #endif /* #if (CT_SCHEDULING_TASK1 == CT_NON_PREEMPTIVE) */

@@ -96,7 +96,10 @@ StatusType GetResource (ResourceType ResID)
 			ResourceVarArray[ResID].prevRes = RunningVar->currentResource;
 			ResourceVarArray[ResID].prevPrio = RunningVar->priority;
 			RunningVar->currentResource = ResID;
-			RunningVar->priority = ResourceConstArray[ResID].ceilPrio;
+			if(RunningVar->priority < ResourceConstArray[ResID].ceilPrio)
+			{
+				RunningVar->priority = ResourceConstArray[ResID].ceilPrio;
+			}
 			Irq_Restore(imask);
 		}
 		else if(TCL_ISR2 == CallLevel)

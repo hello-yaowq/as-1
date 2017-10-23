@@ -89,27 +89,27 @@ def GenH(gendir,os_list):
         if(GAGet(general,'ErrorHook') != 'NULL' and GAGet(general,'ErrorHook') != 'FALSE'):
             fp.write('#define OS_USE_ERROR_HOOK\n')
     except KeyError:
-        pass
+        fp.write('#define OS_USE_ERROR_HOOK\n')
     try:
         if(GAGet(general,'StartupHook') != 'NULL' and GAGet(general,'StartupHook') != 'FALSE'):
             fp.write('#define OS_USE_STARTUP_HOOK\n')
     except KeyError:
-        pass
+        fp.write('#define OS_USE_STARTUP_HOOK\n')
     try:
         if(GAGet(general,'ShutdownHook') != 'NULL' and GAGet(general,'ShutdownHook') != 'FALSE'):
             fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
     except KeyError:
-        pass
+        fp.write('#define OS_USE_SHUTDOWN_HOOK\n')
     try:
         if(GAGet(general,'PreTaskHook') != 'NULL' and GAGet(general,'PreTaskHook') != 'FALSE'):
             fp.write('#define OS_USE_PRETASK_HOOK\n')
     except KeyError:
-        pass
+        fp.write('#define OS_USE_PRETASK_HOOK\n')
     try:
         if(GAGet(general,'PostTaskHook') != 'NULL' and GAGet(general,'PostTaskHook') != 'FALSE'):
             fp.write('#define OS_USE_POSTTASK_HOOK\n')
     except KeyError:
-        pass
+        fp.write('#define OS_USE_POSTTASK_HOOK\n')
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')
@@ -192,12 +192,10 @@ def GenH(gendir,os_list):
     counter_list = ScanFrom(os_list,'Counter')
     for id,counter in enumerate(counter_list):
         fp.write('#define COUNTER_ID_%-32s %s\n'%(GAGet(counter,'Name'),id))
-        fp.write('#define %-43s %s\n'%(GAGet(counter,'Name'),id))
     fp.write('#define COUNTER_NUM%-32s %s\n\n'%(' ',id+1))
     id = -1
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
-        fp.write('#define %-41s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
@@ -364,9 +362,15 @@ def GenC(gendir,os_list):
     for id,task in enumerate(task_list):
         fp.write('const TaskType %s = TASK_ID_%s;\n'%(GAGet(task,'Name'),GAGet(task,'Name')))
     fp.write('\n')
+    evList=[]
     for id,task in enumerate(task_list):
         for mask,ev in enumerate(GLGet(task,'EventList')):
-            fp.write('const EventMaskType %s = EVENT_MASK_%s_%s;\n'%(GAGet(ev,'Name'),GAGet(task,'Name'),GAGet(ev,'Name')))
+            try:
+                evList.index(GAGet(ev,'Name'))
+                print('WARNING: %s for %s is with the same name with others'%(GAGet(ev,'Name'),GAGet(task,'Name')))
+            except ValueError:
+                evList.append(GAGet(ev,'Name'))
+                fp.write('const EventMaskType %s = EVENT_MASK_%s_%s;\n'%(GAGet(ev,'Name'),GAGet(task,'Name'),GAGet(ev,'Name')))
     fp.write('\n')
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue

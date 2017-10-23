@@ -610,5 +610,11 @@ int puts(const char* pstr)
 
 	return len;
 }
-
-
+#ifdef putchar
+#undef putchar
+#endif
+int putchar(int c)
+{
+	__putchar(c);
+	return 1;
+}

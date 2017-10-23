@@ -54,6 +54,7 @@ def parse():
         for sched in glob.glob('%s/*'%(cc)):
             for obj in glob.glob('%s/*'%(sched)):
                 for test in glob.glob('%s/*'%(obj)):
+                    if(test[-3:]=='inc'):continue
                     # TODO only need to be executed once
                     #os.system('ln -fsv %s %s/inc'%(os.path.abspath('./Testsuite/cpuxx_comyy/inc'),obj))
                     for ff in glob.glob('%s/*'%(test)):
@@ -144,8 +145,18 @@ def telnet(uri, port):
     time.sleep(0.5) # make sure qemu already on line
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((uri, port))
-    time.sleep(2)
-    string = sock.recv(4096*4096).decode('utf-8')
+    sock.setblocking(0)
+    timeLeft = 100 # *100ms
+    string = ''
+    while(timeLeft>0):
+        time.sleep(0.1)
+        timeLeft -= 1
+        try:
+            string += sock.recv(4096*4096).decode('utf-8')
+        except BlockingIOError:
+            pass
+        if((string.find('FAIL')!=-1) or (string.find('>> END <<')!=-1)):
+            break
     sock.close()
     return string
 
