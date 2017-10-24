@@ -16,8 +16,8 @@
 # CPU architecture setting: versatilepb
 export ARCH ?= versatilepb
 
-TARGET ?= test
-CASE ?= Testsuite/std/ecc1/non/task/test1
+TARGET ?= ctest_rm_04
+CASE ?= Mixed-preemptive-2
 
 obj-dir = $(CURDIR)/objs/$(TARGET)/$(CASE)
 out-dir = $(CURDIR)/out/$(TARGET)/$(CASE)
@@ -170,13 +170,13 @@ endif
 
 all: ${obj-dir} ${out-dir} dep-${ARCH} ${obj-y}
 	@echo "  >> LD $(TARGET)"
-	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)	
+	${Q} $(LD) $(obj-y) $(LDFLAGS) -o $(out-dir)/$(TARGET)
 
+qemuparams ?= -gdb tcp::1234 -S
 test:
 	@echo "sleep 0.05" > .check.sh
 	@echo "telnet 127.0.0.1 1103" >> .check.sh
-	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server -gdb tcp::1234 -S & sh .check.sh" > .qemu.sh
-#	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server & sh .check.sh" > .qemu.sh
+	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server $(qemuparams) & sh .check.sh" > .qemu.sh
 	@chmod +x .qemu.sh
 	@gnome-terminal -x $(CURDIR)/.qemu.sh
 	@echo "Test for $(TARGET) $(CASE)"

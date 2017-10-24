@@ -398,9 +398,7 @@ StatusType Schedule     ( void )
 		Irq_Save(mask);
 
 		RunningVar->priority = RunningVar->pConst->initPriority;
-		Sched_AddReady((RunningVar-TaskVarArray));
-		Sched_GetReady();
-		if(RunningVar != ReadyVar)
+		if(Sched_Schedule())
 		{
 			OSPostTaskHook();
 			Os_PortDispatch();

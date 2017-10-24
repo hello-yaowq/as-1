@@ -367,6 +367,7 @@ void Os_AlarmInit(void)
 void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle)
 {
 	AlarmVarType *pVar;
+	AlarmVarType *pPosVar = NULL;
 	TickType curValue = AlarmConstArray[AlarmID].pCounter->pVar->value;
 
 	TickType left = (TickType)(Start-curValue);
@@ -378,17 +379,18 @@ void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle)
 	{
 		if ((TickType)(pVar->value-curValue) > left)
 		{
+			pPosVar = pVar;
 			break;
 		}
 	}
 
-	if(NULL != pVar)
+	if(NULL != pPosVar)
 	{
-		TAILQ_INSERT_BEFORE(pVar,&AlarmVarArray[AlarmID],entry);
+		TAILQ_INSERT_BEFORE(pPosVar,&AlarmVarArray[AlarmID],entry);
 	}
 	else
 	{
-		TAILQ_INSERT_HEAD(&(AlarmConstArray[AlarmID].pCounter->pVar->head),&AlarmVarArray[AlarmID],entry);
+		TAILQ_INSERT_TAIL(&(AlarmConstArray[AlarmID].pCounter->pVar->head),&AlarmVarArray[AlarmID],entry);
 	}
 }
 

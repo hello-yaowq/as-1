@@ -153,3 +153,24 @@ void Sched_GetReady(void)
 		ReadyVar = NULL;
 	}
 }
+
+bool Sched_Schedule(void)
+{
+	bool needSchedule = FALSE;
+
+	if(ReadyQueue.size > 0)
+	{
+		ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
+
+		if(ReadyVar->priority > RunningVar->priority)
+		{
+			ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
+			ReadyQueue.heap[0].priority = NEW_PRIORITY(RunningVar->priority);
+			Sched_BubbleDown(&ReadyQueue, 0);
+
+			needSchedule = TRUE;
+		}
+	}
+
+	return needSchedule;
+}

@@ -55,14 +55,8 @@ def parse():
             for obj in glob.glob('%s/*'%(sched)):
                 for test in glob.glob('%s/*'%(obj)):
                     if(test[-3:]=='inc'):continue
-                    # TODO only need to be executed once
-                    #os.system('ln -fsv %s %s/inc'%(os.path.abspath('./Testsuite/cpuxx_comyy/inc'),obj))
-                    for ff in glob.glob('%s/*'%(test)):
-                        fname = os.path.basename(ff)
-                        # TODO only need to be executed once
-                        #os.system('mv -v %s %s/%s'%(ff,test,fname.lower()))
-                        cfg.append({'desc':desc, 'target':'test', 'case':{test:{}} })
-                        id += 1
+                    cfg.append({'desc':desc, 'target':'test', 'case':{test:{}} })
+                    id += 1
     return cfg
 
 def fixXml(xml,vv):
@@ -161,6 +155,13 @@ def telnet(uri, port):
     return string
 
 def check(target,case):
+    print('>> Starting test for %s %s ...'%(target,case))
+    if(target=='test'):
+        cmd='make test TARGET=%s CASE=%s qemuparams= > /dev/null'%(target, case)
+        os.system(cmd)
+        c = input('More <Enter> Exit <q>')
+        if(c == 'q'): exit(0)
+        return
     if(0==os.system('qemu-system-arm -machine help > /dev/null')):
         qemu = 'qemu-system-arm'
     else:

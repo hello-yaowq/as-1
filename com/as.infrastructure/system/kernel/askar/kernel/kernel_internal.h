@@ -303,5 +303,6 @@ extern void Sched_Init(void);
 extern void Sched_AddReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
+extern bool Sched_Schedule(void);
 
 #endif /* KERNEL_INTERNAL_H_ */

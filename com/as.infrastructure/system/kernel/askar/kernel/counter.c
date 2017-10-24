@@ -34,6 +34,7 @@ StatusType SignalCounter(CounterType CounterID)
 		Irq_Save(imask);
 		/* yes, only software couter supported */
 		CounterVarArray[CounterID].value++;
+		#if (ALARM_NUM > 0)
 		while(NULL != (pVar = TAILQ_FIRST(&CounterVarArray[CounterID].head))) /* intended '=' */
 		{
 			if (pVar->value == CounterVarArray[CounterID].value)
@@ -55,6 +56,7 @@ StatusType SignalCounter(CounterType CounterID)
 				break;
 			}
 		}
+		#endif
 		Irq_Restore(imask);
 	}
 	else

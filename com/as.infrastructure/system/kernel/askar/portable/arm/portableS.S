@@ -32,6 +32,9 @@
 	.section .text
 
 Os_PortIdle:
+	/* set RunningVar to NULL */
+	ldr     r1, =RunningVar
+	str     r0, [r1]
 	bl      Irq_Enable
 l_idle:
 	ldr     r0, =ReadyVar
@@ -40,7 +43,7 @@ l_idle:
 	ble     l_idle
 	bl      Irq_Disable
 	bl      Sched_GetReady
-	mov     pc, lr
+	b       Os_PortStartDispatch
 
 	.global Os_PortStartDispatch
 	.type   Os_PortStartDispatch, %function
@@ -49,7 +52,7 @@ Os_PortStartDispatch:
 	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
-	ble     Os_PortIdle
+	beq     Os_PortIdle
 Os_PortDispatchFormISR:
 	ldr     r1, =RunningVar
 	str     r0, [r1]

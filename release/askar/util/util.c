@@ -140,8 +140,26 @@ uint32 IncrementCounter
 #endif
 
 #ifdef MTEST
+__weak ISR(Ir_RealTimInt) {}
+ISR(SystemTimer)
+{
+	ISRMainIr_RealTimInt();
+#ifdef COUNTER_ID_SystemTimer
+	SignalCounter(COUNTER_ID_SystemTimer);
+#endif
+}
 int main()
 {
+#ifdef __arch_versatilepb__
+	if(0 == vicInitFlag)
+	{
+		vicInitFlag = 1;
+		vic_setup();
+		irq_init();
+	}
+
+	timer_init(ISRMainSystemTimer);
+#endif
 	StartOS(OSDEFAULTAPPMODE);
 	while(1);
 }
