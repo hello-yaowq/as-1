@@ -62,7 +62,7 @@ Os_PortDispatchFormISR:
 
 	.global Os_PortResume
 	.type   Os_PortResume, %function
-Os_PortResume:
+Os_PortResumePreHook:
 	#ifdef OS_USE_PRETASK_HOOK
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
@@ -73,6 +73,7 @@ Os_PortResume:
 	ldmfd   sp!, {r0-r3}
 	str     r3,[r1]  /* restore CallLevel */
 	#endif
+Os_PortResume:
 	ldmfd   sp!, {r0}
 	msr     spsr, r0
 	ldmfd   sp!, {r0-r12, lr, pc}^
@@ -186,6 +187,11 @@ ExitISR:
 	ldrb    r3, [r0, #8]  /* priority of RunningVar */
 	cmp     r3, r2
 	bge     l_nopreempt
+
+	#ifdef OS_USE_PRETASK_HOOK
+	ldr     r12, =Os_PortResumePreHook
+	str     r12, [r0, #0x04]
+	#endif
 
 	bl      Sched_Preempt
 

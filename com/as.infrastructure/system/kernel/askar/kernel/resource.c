@@ -165,6 +165,11 @@ StatusType ReleaseResource ( ResourceType ResID )
 	{
 		ercd = E_OS_ACCESS;
 	}
+	else if((TCL_TASK == CallLevel) &&
+			(RunningVar->currentResource != ResID))
+	{
+		ercd = E_OS_NOFUNC;
+	}
 	#endif
 
 	if(E_OK == ercd)
@@ -177,7 +182,12 @@ StatusType ReleaseResource ( ResourceType ResID )
 			ResourceVarArray[ResID].prevPrio = INVALID_PRIORITY;
 			if(PRIORITY_NUM != RunningVar->priority)
 			{	/* if PRIORITY_NUM, then not preempt-able */
-				(void)Schedule();
+				if(Sched_Schedule())
+				{
+					OSPostTaskHook();
+					Os_PortDispatch();
+					OSPreTaskHook();
+				}
 			}
 			Irq_Restore(imask);
 		}

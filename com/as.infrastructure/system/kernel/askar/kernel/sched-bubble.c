@@ -35,9 +35,11 @@ typedef struct
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef MULTIPLY_TASK_PER_PRIORITY
 #define NEW_PRIORITY(prio) (((uint16)(prio)<<SEQUENCE_SHIFT)|((--PrioSeqVal[prio])&SEQUENCE_MASK))
+#define NEW_PRIOHIGHEST(prio) (((uint16)(prio)<<SEQUENCE_SHIFT)|(SEQUENCE_MASK))
 #define REAL_PRIORITY(prio) Sched_RealPriority(prio)
 #else
 #define NEW_PRIORITY(prio) (prio)
+#define NEW_PRIOHIGHEST(prio) (prio)
 #define REAL_PRIORITY(prio) (prio)
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
@@ -135,7 +137,7 @@ void Sched_Preempt(void)
 {
 	OSPostTaskHook();
 	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
-	ReadyQueue.heap[0].priority = NEW_PRIORITY(RunningVar->priority);
+	ReadyQueue.heap[0].priority = NEW_PRIOHIGHEST(RunningVar->priority);
 }
 
 void Sched_GetReady(void)
@@ -165,7 +167,7 @@ bool Sched_Schedule(void)
 		if(ReadyVar->priority > RunningVar->priority)
 		{
 			ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
-			ReadyQueue.heap[0].priority = NEW_PRIORITY(RunningVar->priority);
+			ReadyQueue.heap[0].priority = NEW_PRIOHIGHEST(RunningVar->priority);
 			Sched_BubbleDown(&ReadyQueue, 0);
 
 			needSchedule = TRUE;

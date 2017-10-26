@@ -76,6 +76,7 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 		TaskConstArray[TaskID].pEventVar->set |= Mask;
 		if( 0u != (TaskConstArray[TaskID].pEventVar->set & TaskConstArray[TaskID].pEventVar->wait) )
 		{
+			TaskConstArray[TaskID].pEventVar->wait = 0;
 			TaskVarArray[TaskID].state = READY;
 			Sched_AddReady(TaskID);
 			if( (TCL_TASK == CallLevel) &&
@@ -83,6 +84,7 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 			{
 				Sched_Preempt();
 				Os_PortDispatch();
+				OSPreTaskHook();
 			}
 		}
 		Irq_Restore(imask);
@@ -252,7 +254,8 @@ StatusType WaitEvent ( EventMaskType Mask )
 			OSPostTaskHook();
 			Sched_GetReady();
 			Os_PortDispatch();
-			RunningVar->pConst->pEventVar->wait = 0;
+			OSPreTaskHook();
+
 			RunningVar->priority = RunningVar->pConst->runPriority;
 		}
 		Irq_Restore(imask);

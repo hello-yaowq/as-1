@@ -109,6 +109,7 @@ StatusType ActivateTask ( TaskType TaskID )
 		{
 			Sched_Preempt();
 			Os_PortDispatch();
+			OSPreTaskHook();
 		}
 
 		Irq_Restore(imask);
@@ -402,6 +403,7 @@ StatusType Schedule     ( void )
 		{
 			OSPostTaskHook();
 			Os_PortDispatch();
+			OSPreTaskHook();
 		}
 		RunningVar->priority = RunningVar->pConst->runPriority;
 		Irq_Restore(mask);

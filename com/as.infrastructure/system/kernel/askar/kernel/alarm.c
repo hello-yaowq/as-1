@@ -279,7 +279,30 @@ StatusType SetAbsAlarm ( AlarmType AlarmID , TickType Start ,TickType Cycle )
 		Irq_Save(imask);
 		if( FALSE == OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]) )
 		{
-			Os_StartAlarm(AlarmID,Start,Cycle);
+			TickType Increment = AlarmConstArray[AlarmID].pCounter->pVar->value%AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue;
+
+			if(Increment == Start)
+			{
+				if(Cycle > 0)
+				{
+					Start = AlarmConstArray[AlarmID].pCounter->pVar->value + Cycle;
+					Os_StartAlarm(AlarmID,Start,Cycle);
+				}
+				AlarmConstArray[AlarmID].Action();
+			}
+			else
+			{
+				if(Increment < Start)
+				{
+					Start = (AlarmConstArray[AlarmID].pCounter->pVar->value/AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue)*AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue + Start;
+				}
+				else
+				{
+					Start = (1+(AlarmConstArray[AlarmID].pCounter->pVar->value/AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue))*AlarmConstArray[AlarmID].pCounter->base.maxallowedvalue + Start;
+				}
+
+				Os_StartAlarm(AlarmID,Start,Cycle);
+			}
 		}
 		else
 		{
@@ -339,7 +362,6 @@ StatusType CancelAlarm ( AlarmType AlarmID )
 	}
 	#endif
 
-
 	OSErrorOne(CancelAlarm,AlarmID);
 
 	return ercd;
@@ -379,6 +401,11 @@ void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle)
 	{
 		if ((TickType)(pVar->value-curValue) > left)
 		{
+			pPosVar = pVar;
+			break;
+		}
+		else if ( ((TickType)(pVar->value-curValue) == left) && ((pVar-AlarmVarArray) > AlarmID) )
+		{ /*this is not necessary but for fix behavior, lower AlarmID serve first */
 			pPosVar = pVar;
 			break;
 		}
