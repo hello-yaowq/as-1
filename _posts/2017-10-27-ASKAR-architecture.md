@@ -23,7 +23,7 @@ And the OSEK/VDX OS223 standard defined a another kind of priority based schedul
 
 * Figure 2.2 OSEK OS Scheduler
 
-Seeing the Figure 2.2, most out of common way to implement it is just as what you see that use a priority base FIFO queues which is just I originally implemented in [GaInOS](https://github.com/parai/GaInOS). But really, there is another way that I will tell in chapter 2.1, this is not my idea, I borrow it from trampoline](https://github.com/TrampolineRTOS/trampoline) and re-implement it in ASKAR.
+Seeing the Figure 2.2, most out of common way to implement it is just as what you see that use priority base FIFO queues which is just I originally implemented in [GaInOS](https://github.com/parai/GaInOS). But really, there is another way that I will tell in chapter 2.1, this is not my idea, I borrow it from [trampoline](https://github.com/TrampolineRTOS/trampoline) and re-implement it in ASKAR.
 
 ## 2.1 Bubble up/down method based ready queue 
 
