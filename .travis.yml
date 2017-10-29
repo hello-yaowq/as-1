@@ -17,11 +17,11 @@ before_script:
   - "sudo apt-get insatll -qq qemu || true"
 
 script:
-  - cd release/asboot && make 91 && make 92 && make 11 && make 12 && make 21 && make 22
-  - cd ../../release/ascore && make 91 sgapp=none && make 92 sgapp=none && make 11 && make 12
-  - cd ../../release/aslua && make cleanaws && make 91 && make 93
-#  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -fr && make aslwip && make all
-# - cd ../../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel
+  - cd release/asboot && make 91 > /dev/null && make 92 > /dev/null && make 11 > /dev/null && make 12 > /dev/null && make 21 > /dev/null && make 22 > /dev/null
+  - cd ../../release/ascore && make 91 sgapp=none > /dev/null && make 92 sgapp=none > /dev/null && make 11 > /dev/null && make 12 > /dev/null
+  - cd ../../release/aslua && make cleanaws && make 91 > /dev/null && make 93 > /dev/null
+#  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -fr && make aslwip > /dev/null && make all > /dev/null
+# - cd ../../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel > /dev/null
   - cd ../../release/askar && python ./ctest.py all
   - cd ../../release/askar && export schedfifo=yes && make clean && python ./ctest.py all
 

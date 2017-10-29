@@ -24,7 +24,7 @@ because I am not powerful so I decided to develop small but smart part of automo
 * [contiki](http://contiki-os.org/)
 * [trampoline](https://github.com/TrampolineRTOS/trampoline)
 * [rtthread](https://github.com/RT-Thread/rt-thread)
-* [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) : Automotive oSeK AutosaR designed by me, [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) confirmed.
+* [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) : [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html) designed by me, [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) confirmed.
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
