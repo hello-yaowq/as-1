@@ -275,6 +275,12 @@ typedef struct
 	void (*Start)(void);
 	void (*Action)(void);
 } AlarmConstType;
+
+typedef struct
+{
+	const uint8 max;
+	const TaskType* pFIFO;
+} ReadyFIFOType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern TaskVarType* RunningVar;

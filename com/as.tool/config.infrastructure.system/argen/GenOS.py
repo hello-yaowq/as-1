@@ -381,6 +381,30 @@ def GenC(gendir,os_list):
     fp.write('\n')
     for id,alarm in enumerate(alarm_list):
         fp.write('const AlarmType %s = ALARM_ID_%s;\n'%(GAGet(alarm,'Name'),GAGet(alarm,'Name')))
+
+    maxPrio = 0
+    for id,task in enumerate(task_list):
+        prio = Integer(GAGet(task,'Priority'))
+        if(prio > maxPrio):
+            maxPrio = prio
+    fp.write('#ifdef ENABLE_FIFO_SCHED\n')
+    cstr += '\nconst ReadyFIFOType ReadyFIFO[PRIORITY_NUM+1]=\n{\n'
+    for prio in range(maxPrio+1):
+        sumact = 3+2 # 2 for the ceiling of resource and one more additional slow
+        comments = ''
+        for id,task in enumerate(task_list):
+            prio2 = Integer(GAGet(task,'Priority'))
+            if(prio2 == prio):
+                sumact+= Integer(GAGet(task,'Activation'))
+                comments += '%s(Activation=%s),'%(GAGet(task,'Name'),GAGet(task,'Activation'))
+        if(sumact > 5):
+            fp.write('static TaskType ReadyFIFO_prio%s[%s];\n'%(prio,sumact))
+            cstr += '\t{\n\t\t/*.max=*/%s,/* %s */\n\t\t/*.pFIFO=*/ReadyFIFO_prio%s\n\t},\n'%(sumact,comments, prio)
+        else:
+            cstr += '\t{\n\t\t/*.max=*/0,\n\t\t/*.pFIFO=*/NULL\n\t},\n'
+    cstr += '};\n\n'
+    fp.write(cstr)
+    fp.write('#endif\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

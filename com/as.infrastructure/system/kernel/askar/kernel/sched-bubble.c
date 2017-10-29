@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifndef ENABLE_FIFO_SCHED
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
 #include "asdebug.h"
@@ -176,3 +177,5 @@ bool Sched_Schedule(void)
 
 	return needSchedule;
 }
+
+#endif /* ENABLE_FIFO_SCHED */
