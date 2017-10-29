@@ -23,7 +23,7 @@ script:
 #  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -fr && make aslwip > /dev/null && make all > /dev/null
 # - cd ../../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel > /dev/null
   - cd ../../release/askar && python ./ctest.py all
-  - cd ../../release/askar && export schedfifo=yes && make clean && python ./ctest.py all
+  - cd ../../release/askar && export schedfifo=yes && make clean > /dev/null && python ./ctest.py all
 
 env:
   - EMAIL='parai@foxmail.com'
