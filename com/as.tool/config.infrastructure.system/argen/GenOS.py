@@ -388,7 +388,7 @@ def GenC(gendir,os_list):
         if(prio > maxPrio):
             maxPrio = prio
     fp.write('#ifdef ENABLE_FIFO_SCHED\n')
-    cstr += '\nconst ReadyFIFOType ReadyFIFO[PRIORITY_NUM+1]=\n{\n'
+    cstr = '\nconst ReadyFIFOType ReadyFIFO[PRIORITY_NUM+1]=\n{\n'
     for prio in range(maxPrio+1):
         sumact = 3+2 # 2 for the ceiling of resource and one more additional slow
         comments = ''

@@ -19,6 +19,8 @@ export ARCH ?= versatilepb
 TARGET ?= ctest_rm_04
 CASE ?= Mixed-preemptive-2
 
+schedfifo ?= no
+
 obj-dir = $(CURDIR)/objs/$(TARGET)/$(CASE)
 out-dir = $(CURDIR)/out/$(TARGET)/$(CASE)
 src-dir = $(CURDIR)/src/$(TARGET)/$(CASE)
@@ -95,6 +97,10 @@ CFLAGS += -I${KERNEL}/include \
 		  -I${COM}/as.infrastructure/system/kernel \
 
 
+ifeq ($(schedfifo),yes)
+CFLAGS += -DENABLE_FIFO_SCHED
+endif
+
 VPATH += ${KERNEL}/kernel
 obj-y += ${obj-dir}/alarm.o \
 		 ${obj-dir}/counter.o \
@@ -102,6 +108,7 @@ obj-y += ${obj-dir}/alarm.o \
 		 ${obj-dir}/kernel.o \
 		 ${obj-dir}/resource.o \
 		 ${obj-dir}/sched-bubble.o \
+		 ${obj-dir}/sched-fifo.o \
 		 ${obj-dir}/task.o \
 
 

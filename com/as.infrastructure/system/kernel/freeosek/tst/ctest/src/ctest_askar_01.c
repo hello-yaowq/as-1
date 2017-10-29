@@ -48,7 +48,7 @@ TASK(TaskStart)
 		while(1);
 	}
 	/* [T1->T3->T5->T2->T6->T4->T3] */
-	printf(" >> test start\n");
+	printf(" >> the %d times test start\n",counter);
 	Sequence(0);
 	T3Counter = 0;
 	ActivateTask(Task1);

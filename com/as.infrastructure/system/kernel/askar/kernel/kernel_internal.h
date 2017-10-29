@@ -279,7 +279,7 @@ typedef struct
 typedef struct
 {
 	const uint8 max;
-	const TaskType* pFIFO;
+	TaskType* pFIFO;
 } ReadyFIFOType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

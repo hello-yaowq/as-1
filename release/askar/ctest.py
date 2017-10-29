@@ -155,7 +155,8 @@ def telnet(uri, port):
     return string
 
 def check(target,case):
-    print('>> Starting test for %s %s ...'%(target,case))
+    schedfifo = os.getenv('schedfifo')
+    print('>> Starting test for %s %s schedfifo="%s" ...'%(target,case,schedfifo))
     if(target=='test'):
         cmd='make test TARGET=%s CASE=%s qemuparams= > /dev/null'%(target, case)
         os.system(cmd)
