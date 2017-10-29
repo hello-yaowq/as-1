@@ -26,6 +26,10 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern const ReadyFIFOType ReadyFIFO[PRIORITY_NUM+1];
+
+static uint8 ReadyGroup;
+static uint8 ReadyGroupTable[(PRIORITY_NUM+64)/64];
+static uint8 ReadyMapTable[(PRIORITY_NUM+8)/8];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sched_Init(void)
@@ -40,6 +44,18 @@ void Sched_Init(void)
 			SCHED_FIFO_HEAD(ReadyFIFO[prio].pFIFO) = SCHED_FIFO_SLOT_OFFSET;
 			SCHED_FIFO_TAIL(ReadyFIFO[prio].pFIFO) = SCHED_FIFO_SLOT_OFFSET;
 		}
+	}
+
+	ReadyGroup = 0;
+
+	for(prio=0; prio < sizeof(ReadyGroupTable); prio++)
+	{
+		ReadyGroupTable[prio] = 0;
+	}
+
+	for(prio=0; prio < sizeof(ReadyMapTable); prio++)
+	{
+		ReadyMapTable[prio] = 0;
 	}
 }
 
