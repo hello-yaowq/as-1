@@ -75,6 +75,14 @@ def fixXml(xml,vv):
                 pass
 
 def saveXml(xml,File):
+    if(File[:9]=='src/test/'):
+        alarm = ET.Element('Alarm')
+        alarm.attrib['Name']='AlarmError'
+        alarm.attrib['Autostart']='False'
+        alarm.attrib['Counter']='SystemTimer'
+        alarm.attrib['Action']='ActivateTask'
+        alarm.attrib['Task']='TaskError'
+        xml.append(alarm)
     root = ET.Element('AS')
     root.append(xml)
     tree = ET.ElementTree(root)

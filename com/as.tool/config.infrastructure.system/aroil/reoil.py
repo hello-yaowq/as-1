@@ -266,7 +266,7 @@ def oil_process_resource(item, oscfg):
         if(type == 'STANDARD'):
             res=findObj(oscfg,'Resource', name)
         elif(type == 'INTERNAL'):
-            res=findObj(oscfg,'InteralResource', name)
+            res=findObj(oscfg,'InternalResource', name)
     else:
         res=findObj(oscfg,'Resource', name)
 

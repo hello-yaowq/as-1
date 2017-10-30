@@ -247,10 +247,15 @@ def GenC(gendir,os_list):
         if(len(GLGet(task,'EventList')) > 0):
             fp.write('static EventVarType %s_EventVar;\n'%(GAGet(task,'Name')))
     fp.write('#if (OS_STATUS == EXTENDED)\n')
+    inres_list = ScanFrom(os_list,'InternalResource')
     for id,task in enumerate(task_list):
         cstr = ''
         for res in GLGet(task,'ResourceList'):
-            cstr += '\t\tcase RES_ID_%s:\n'%(GAGet(res,'Name'))
+            skip = False
+            for ires in inres_list:
+                if(GAGet(res,'Name')==GAGet(ires,'Name')):
+                    skip = True
+            if(not skip): cstr += '\t\tcase RES_ID_%s:\n'%(GAGet(res,'Name'))
         fp.write('''static boolean %s_CheckAccess(ResourceType ResID)
 {
     boolean bAccess = FALSE;
