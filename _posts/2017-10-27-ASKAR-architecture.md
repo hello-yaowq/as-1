@@ -85,19 +85,19 @@ How could it possible, below macro NEW\_PRIORITY will be used to calculate the k
 #define NEW_PRIORITY(prio) (((uint16)(prio)<<SEQUENCE_SHIFT)|((--PrioSeqVal[prio])&SEQUENCE_MASK))
 ```
 
-Activate Task T1, so its activate time will be 0, and according to API Sched_AddReady, it will be add to tail of queue, as now it was empty, so it will looks like this [T1(1,0)].
+Activate Task T1, so its activate time will be 0, and according to API Sched\_AddReady, it will be add to tail of queue, as now it was empty, so it will looks like this [T1(1,0)].
 
-Activate Task T3, first it will be add to the tail, [T1(1,0)->T3(4,0)]], and then do Sched_BubbleUp, finally the queue looks like this [T4(4,0)->T1(1,0)].
+Activate Task T3, first it will be add to the tail, [T1(1,0)->T3(4,0)]], and then do Sched\_BubbleUp, finally the queue looks like this [T4(4,0)->T1(1,0)].
 
-Activate Task T5, first it will be add to the tail, [T4(4,0)->T1(1,0)->T5(5,0)], and then do Sched_BubbleUp, by 2 time swap, the queue will be [T5(5,0)->T4(4,0)->T1(1,0)].
+Activate Task T5, first it will be add to the tail, [T4(4,0)->T1(1,0)->T5(5,0)], and then do Sched\_BubbleUp, by 2 time swap, the queue will be [T5(5,0)->T4(4,0)->T1(1,0)].
 
-Activate Task T2, first it will be add to the tail, [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)], and then do Sched_BubbleUp, but really according to the logic, it will do no any swap, still the same as [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)].
+Activate Task T2, first it will be add to the tail, [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)], and then do Sched\_BubbleUp, but really according to the logic, it will do no any swap, still the same as [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)].
 
-Activate Task T6, first it will be add to the tail, [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)->T6(2,7)], and then do Sched_BubbleUp, by 1 time swap, the queue will be [T5(5,0)->T4(4,0)->T6(2,7)->T2(2,0)->T1(1,0)].
+Activate Task T6, first it will be add to the tail, [T5(5,0)->T4(4,0)->T1(1,0)->T2(2,0)->T6(2,7)], and then do Sched\_BubbleUp, by 1 time swap, the queue will be [T5(5,0)->T4(4,0)->T6(2,7)->T2(2,0)->T1(1,0)].
 
-Here, you could see, oh no, from the above 2 steps queue is really out of order, but you should note that not matter how many task activated, the one with highest priority will be always be placed at the head, and it will be served firstly, and as there is Sched_BubbleDown, it will make sure that when the first high priority task get to be served by API Sched_GetReady, it will get another high priority task to the head.
+Here, you could see, oh no, from the above 2 steps queue is really out of order, but you should note that not matter how many task activated, the one with highest priority will be always be placed at the head, and it will be served firstly, and as there is Sched\_BubbleDown, it will make sure that when the first high priority task get to be served by API Sched\_GetReady, it will get another high priority task to the head.
 
-Here what the most important thing is that how to determine which is the highest one, for example for T6(2,7) and T2(2,0), and then you need to check the API Sched_RealPriority, for task with same priority, the task first activated will get a bigger value(activation time - PrioSeqVal), so for T6(2,7), it will get 0, for T2(2,0), it will get 1(it's really rely on the math of overflow), so T2 is with higher priority then T6. Here you may would say, oh what if 'overflow' of PrioSeqVal, here 'overflow' means that PrioSeqVal equals to one of its priority task's activation time which is already in the ready queue(and you should note that overflow from 0 to it's maximum value does have any effect as you can see from the example T2 and T6). okay, it's over consideration as that we have make sure that "it will have N bits(determined by SEQUENCE_MASK) to store the decreased activation sequence value(activation time) of that priority", so this "overflow" is never possible, this is really a trick.
+Here what the most important thing is that how to determine which is the highest one, for example for T6(2,7) and T2(2,0), and then you need to check the API Sched\_RealPriority, for task with same priority, the task first activated will get a bigger value(activation time - PrioSeqVal), so for T6(2,7), it will get 0, for T2(2,0), it will get 1(it's really rely on the math of overflow), so T2 is with higher priority then T6. Here you may would say, oh what if 'overflow' of PrioSeqVal, here 'overflow' means that PrioSeqVal equals to one of its priority task's activation time which is already in the ready queue(and you should note that overflow from 0 to it's maximum value does have any effect as you can see from the example T2 and T6). okay, it's over consideration as that we have make sure that "it will have N bits(determined by SEQUENCE_MASK) to store the decreased activation sequence value(activation time) of that priority", so this "overflow" is never possible, this is really a trick.
 
 ```c
 static inline uint16 Sched_RealPriority(uint16 priority)
@@ -121,6 +121,30 @@ static inline uint16 Sched_RealPriority(uint16 priority)
 		 return real;
 }
 ```
+
+For more better understanding, you can check the test case [ctest\_askar\_01.c](https://github.com/parai/as/blob/master/com/as.infrastructure/system/kernel/freeosek/tst/ctest/src/ctest_askar_01.c)/[ctest\_askar\_01.oil](https://github.com/parai/as/blob/master/com/as.infrastructure/system/kernel/freeosek/tst/ctest/etc/ctest_askar_01.oil), this case test the above activation sequence 10000 times and it pass, the steps below to build and run:
+
+```sh
+./ctest.py ctest_askar_01
+export TARGET=ctest_askar_01
+# CASE is one of [Standard-with-full-preemptive, Standard-with-mixed-preemptive, Extended-with-full-preemptive, Extended-with-mixed-preemptive]
+export CASE=Standard-with-full-preemptive
+export qemuparams=
+make all
+make test
+```
+
+## 2.2 per priority based FIFO ready queues
+
+okay, this is original implemented in my privious [GaInOS](https://github.com/parai/GaInOS), the idea is somehow the same with freertos, and for the purpose to find the highest ready priority, the idea of ucOS_II has also been borrowed. so firstly, it will have a 4 bits ReadyGroup and 4*8 bits ReadyGroupTable and 32x8 bits ReadyMapTable as below Figure 2.2.1 shows, and this is for the purpose to support 255 kind priorities, the priority value 255 is treated as INVALID\_PRIORITY by ASKAR so not 256 kind.
+
+And then, for each priority it will has an array queue to hold the ready task in a FIFO way, check the Figure 2.2.1, and follow the example about what will the queue of priority 3 looks like form time t0 to t7.
+
+![askar-fifo-queue-ready-map.png](/as/images/rewoa/askar-fifo-queue-ready-map.png)
+
+* Figure 2.2.1 Ready Map and Ready Queue
+
+
 
 # 3.Alarm & Counter of ASKAR
 
