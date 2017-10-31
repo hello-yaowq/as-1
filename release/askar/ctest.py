@@ -59,8 +59,12 @@ def parse():
                     id += 1
     return cfg
 
-def fixXml(xml,vv):
+def fixXml(xml,vv,isTest=False):
     for obj in xml:
+        if(isTest and (obj.tag=='Task')):
+            obj.attrib['StackSize']=str(int(obj.attrib['StackSize'])*2)
+        if(isTest and (obj.tag=='Alarm') and (obj.attrib['Autostart'].upper()=='TRUE')):
+            obj.attrib['StartTime']=str(int(int(obj.attrib['StartTime'])/100))
         fixXml(obj,vv)
         for k,v in obj.items():
             try:
@@ -201,6 +205,7 @@ def test(target,case,vv):
     os.system(cmd)
     if(target == 'test'):
         xml = reoil.to_xml('%s/%s.oil'%(case,target))
+        fixXml(xml,vv,True)
     else:
         xml = reoil.to_xml('%s/etc/%s.oil'%(CTEST,target))
         fixXml(xml,vv)

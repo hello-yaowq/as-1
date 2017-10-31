@@ -279,10 +279,11 @@ def GenC(gendir,os_list):
             runPrio = 'PRIORITY_NUM'
         else:
             # generall task should has at most one internal resource
-            assert(len(GLGet(task,'InternalResource'))<=1)
-            for res in GLGet(task,'InternalResource'):
-                if(Integer(GLGet(res,'Priority')) > Integer(runPrio)):
-                    runPrio = GLGet(res,'Priority')
+            for res in GLGet(task,'ResourceList'):
+                for ires in inres_list:
+                    if(GAGet(res,'Name')==GAGet(ires,'Name')):
+                        if(Integer(GAGet(ires,'Priority')) > Integer(runPrio)):
+                            runPrio = GAGet(res,'Priority')
         maxAct = Integer(GAGet(task,'Activation'))
         event  = 'NULL'
         if(len(GLGet(task,'EventList')) > 0):
