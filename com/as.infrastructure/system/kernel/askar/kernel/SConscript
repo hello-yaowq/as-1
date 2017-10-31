@@ -1,0 +1,5 @@
+import os
+
+objs = Glob('*.c')
+
+Return('objs')

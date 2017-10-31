@@ -1,0 +1,37 @@
+# scons for ascore
+import os
+
+ASROOT=os.path.abspath('%s/../..'%(os.curdir))
+BOARD=None
+
+asenv=Environment()
+
+board_list = []
+for dir in os.listdir('%s/com/as.application'%(ASROOT)):
+    if(dir[:6]=='board.'):
+        board_list.append(dir[6:])
+
+def help():
+    print('Usage:scons board\n\tboard:%s'%(board_list))
+
+if('help' in COMMAND_LINE_TARGETS):
+    help()
+    exit(0)
+else:
+    for b in COMMAND_LINE_TARGETS:
+        if(b in board_list):
+            BOARD = b
+
+if(BOARD is None):
+    print('Error: no BOARD specified!')
+    help()
+    exit(-1)
+
+Export('ASROOT')
+Export('asenv')
+Export('BOARD')
+
+objs = Glob('app/*.c')
+objs += SConscript('%s/com/SConscript'%(ASROOT))
+
+asenv.Program(BOARD,objs)

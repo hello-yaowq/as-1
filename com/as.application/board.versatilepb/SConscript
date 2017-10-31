@@ -1,0 +1,13 @@
+import os
+
+Import('BOARD')
+Import('asenv')
+cwd = os.path.abspath(os.curdir)
+objs = []
+
+asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
+
+asenv['CC']='arm-none-eabi-gcc'
+asenv['AS']='arm-none-eabi-as'
+
+Return('objs')
