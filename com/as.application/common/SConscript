@@ -1,0 +1,18 @@
+import os
+
+Import('BOARD')
+Import('asenv')
+
+lwip_board = ['versatilepb', 'posix']
+
+cwd = os.path.abspath(os.curdir)
+
+objs = Glob('*.xml')
+objs += Glob('*.arxml')
+
+if(BOARD in lwip_board):
+    objs += Glob('config/lwip.xml')
+
+asenv.Append(CCFLAGS=' -I%s/config '%(cwd))
+
+Return('objs')

@@ -1,5 +1,10 @@
 # scons for ascore
 import os
+import sys
+studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
+sys.path.append(studio)
+import xcc
+import argen
 
 ASROOT=os.path.abspath('%s/../..'%(os.curdir))
 BOARD=None
@@ -12,7 +17,8 @@ for dir in os.listdir('%s/com/as.application'%(ASROOT)):
         board_list.append(dir[6:])
 
 def help():
-    print('Usage:scons board\n\tboard:%s'%(board_list))
+    print('Usage:scons board [studio]\n\tboard:%s'%(board_list))
+    print('  studio: optional for launch studio GUI tool')
 
 if('help' in COMMAND_LINE_TARGETS):
     help()
@@ -33,5 +39,45 @@ Export('BOARD')
 
 objs = Glob('app/*.c')
 objs += SConscript('%s/com/SConscript'%(ASROOT))
+
+xmls = Glob('app/*.xml')
+arxml= None
+
+for obj in objs:
+    if(str(obj)[-6:]=='.arxml'):
+        if(arxml is None):
+            arxml = obj
+            objs.remove(obj)
+        else:
+            raise Exception('too much arxml specified! [%s %s]'%(arxml,obj))
+    elif(str(obj)[-4:]=='.xml'):
+        xmls.append(obj)
+        objs.remove(obj)
+
+if('studio' in COMMAND_LINE_TARGETS):
+    assert(arxml)
+    pd = os.path.dirname(str(arxml))
+    ret = os.system('cd %s && python3 studio.py %s'%(studio,pd))
+    if(0 != ret):
+        raise Exception('please install anaconda3, and add python3 to env PATH')
+    exit(0)
+
+if(not os.path.exists('config')):
+    os.mkdir('config')
+cfgdir = 'config/%s'%(BOARD)
+cfgdone = 'config/%s/config.done'%(BOARD)
+if(not os.path.exists(cfgdone)):
+    if(not os.path.exists(cfgdir)):
+        os.mkdir(cfgdir)
+    for xml in xmls:
+        if(not os.path.exists('%s/%s'%(cfgdir,os.path.basename(str(xml))))):
+            os.symlink(os.path.abspath(str(xml)),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
+    if(not os.path.exists('%s/%s'%(cfgdir,os.path.basename(str(arxml))))):
+        os.symlink(os.path.abspath(str(arxml)),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
+    xcc.XCC(cfgdir)
+    argen.ArGen.ArGenMain(str(arxml),cfgdir)
+
+objs += Glob('%s/*.c'%(cfgdir))
+asenv.Append(CCFLAGS=' -I%s '%(cfgdir))
 
 asenv.Program(BOARD,objs)

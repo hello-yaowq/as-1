@@ -2,7 +2,7 @@
 <AS>
 	<Os>
 	    <!-- OsRef: toppers_osek freertos -->
-	    <OsRef name='toppers_osek'/>
+	    <OsRef name='askar'/>
 	    
 	    <!-- format, check easySAR.arxml -->
 	    <General ErrorHook="ErrorHook" 
