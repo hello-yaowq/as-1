@@ -1,13 +1,33 @@
 import os
-
-Import('BOARD')
 Import('asenv')
+
 cwd = os.path.abspath(os.curdir)
+
 objs = []
 
-asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
+objs += Glob('%s/../board.bcm2835/common/*.c'%(cwd))
 
-asenv['CC']='arm-none-eabi-gcc'
-asenv['AS']='arm-none-eabi-as'
+asenv.Append(CCFLAGS=' -I%s/../board.bcm2835/common '%(cwd))
+
+asenv.Append(CCFLAGS=' -DMEMORY_SIZE=0x8000000 ')
+asenv.Append(CCFLAGS=' -DSYSTEM_REGION_START=0x10000000 ')
+asenv.Append(CCFLAGS=' -DSYSTEM_REGION_END=0x101f4000 ')
+asenv.Append(CCFLAGS=' -DPAGE_SIZE=0x1000 ')
+
+lds = '%s/../board.bcm2835/script/link-boot.lds'%(cwd)
+asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
+asenv.Append(LINKFLAGS='-Map versatilepb.map')
+MODULES = ['ECUM','SCHM','MCU',
+           'DET',
+           'CAN','CANIF','PRUR','COM','COMM','CANTP','CANNM',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
+           'SOAD','DOIP','LWIP','PCI',
+           'FATFS','LWEXT4']
+ARCH='versatilepb'
+arch='arm'
+
+Export('MODULES')
+Export('ARCH')
+Export('arch')
 
 Return('objs')

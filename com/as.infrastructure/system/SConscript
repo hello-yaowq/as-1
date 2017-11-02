@@ -1,12 +1,19 @@
 import os
 
+Import('asenv')
+Import('MODULES')
+
 cwd = os.path.abspath(os.curdir)
 objs = []
-list = os.listdir(cwd)
 
-for d in list:
-    path = os.path.join(cwd, d)
-    if os.path.isfile(os.path.join(path, 'SConscript')):
-        objs = objs + SConscript(os.path.join(d, 'SConscript'))
+objs += SConscript('kernel/SConscript')
+
+if('ECUM' in MODULES):
+    objs += Glob('EcuM/*.c')
+    asenv.Append(CCFLAGS=' -I%s/EcuM -DUSE_ECUM '%(cwd))
+
+if('SCHM' in MODULES):
+    objs += Glob('SchM/*.c')
+    asenv.Append(CCFLAGS=' -I%s/SchM -DUSE_SCHM '%(cwd))
 
 Return('objs')

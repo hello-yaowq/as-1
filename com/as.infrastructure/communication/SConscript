@@ -1,0 +1,61 @@
+import os
+
+cwd = os.path.abspath(os.curdir)
+
+Import('BOARD')
+Import('asenv')
+Import('MODULES')
+
+objs = Glob('*.xml')
+objs += Glob('*.arxml')
+
+if('CANIF' in MODULES):
+    objs += Glob('CanIf/*.c')
+    objs += Glob('CanIf/*.xml')
+    asenv.Append(CCFLAGS=' -DUSE_CANIF ')
+
+if('CANNM' in MODULES):
+    objs += Glob('CanNm/*.c')
+    asenv.Append(CCFLAGS=' -DUSE_CANNM ')
+
+if('CANSM' in MODULES):
+    objs += Glob('CanSM/*.c')
+    asenv.Append(CCFLAGS=' -I%s/CanSM -DUSE_CANSM '%(cwd))
+
+if('COMM' in MODULES):
+    objs += Glob('ComM/*.c')
+    asenv.Append(CCFLAGS=' -I%s/ComM -DUSE_COMM '%(cwd))
+
+if('DOIP' in MODULES):
+    objs += Glob('DoIP/*.c')
+    asenv.Append(CCFLAGS=' -I%s/DoIP -DUSE_DOIP '%(cwd))
+
+if('NM' in MODULES):
+    objs += Glob('Nm/*.c')
+    asenv.Append(CCFLAGS=' -I%s/Nm -DUSE_NM '%(cwd))
+
+if('OSEKNM' in MODULES):
+    objs += Glob('OsekNm/*.c')
+    asenv.Append(CCFLAGS=' -I%s/OsekNm -DUSE_OSEKNM '%(cwd))
+
+if('PCI' in MODULES):
+    objs += Glob('Pci/pci*.c')
+    asenv.Append(CCFLAGS=' -I%s/Pci -DUSE_PCI '%(cwd))
+
+if('PDUR' in MODULES):
+    objs += Glob('PduR/*.c')
+    asenv.Append(CCFLAGS=' -I%s/PduR -DUSE_PDUR '%(cwd))
+
+if('RPMSG' in MODULES):
+    objs += Glob('RPmsg/*.c')
+    asenv.Append(CCFLAGS=' -I%s/RPmsg -DUSE_RPMSG '%(cwd))
+
+if('SOAD' in MODULES):
+    objs += Glob('SoAd/*.c')
+    asenv.Append(CCFLAGS=' -I%s/SoAd -DUSE_SOAD '%(cwd))
+
+if('XCP' in MODULES):
+    objs += Glob('Xcp/*.c')
+    asenv.Append(CCFLAGS=' -I%s/Xcp -DUSE_XCP '%(cwd))
+
+Return('objs')

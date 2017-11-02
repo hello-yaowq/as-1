@@ -38,21 +38,21 @@ Export('asenv')
 Export('BOARD')
 
 objs = Glob('app/*.c')
-objs += SConscript('%s/com/SConscript'%(ASROOT))
+sobjs = SConscript('%s/com/SConscript'%(ASROOT))
 
 xmls = Glob('app/*.xml')
 arxml= None
 
-for obj in objs:
+for obj in sobjs:
     if(str(obj)[-6:]=='.arxml'):
         if(arxml is None):
             arxml = obj
-            objs.remove(obj)
         else:
             raise Exception('too much arxml specified! [%s %s]'%(arxml,obj))
     elif(str(obj)[-4:]=='.xml'):
         xmls.append(obj)
-        objs.remove(obj)
+    else:
+        objs.append(obj)
 
 if('studio' in COMMAND_LINE_TARGETS):
     assert(arxml)
@@ -79,5 +79,6 @@ if(not os.path.exists(cfgdone)):
 
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CCFLAGS=' -I%s '%(cfgdir))
+asenv.Append(ASFLAGS=' -I%s '%(cfgdir))
 
 asenv.Program(BOARD,objs)

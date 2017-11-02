@@ -1,0 +1,7 @@
+Import('ARCH')
+
+objs = []
+
+objs += SConscript('%s/SConscript'%(ARCH))
+
+Return('objs')

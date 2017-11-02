@@ -18,10 +18,13 @@
 #define _PCI_CORE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
-#include "pci_ids.h"
-#include "pci.h"
 
 /* ============================ [ MACROS    ] ====================================================== */
+#define PCI_VENDOR_ID_NCR		0x1000
+#define PCI_DEVICE_ID_LSI_53C895A	0x0012
+#define PCI_VENDOR_ID_APPLE		0x106b
+#define PCI_VENDOR_ID_XILINX		0x10ee
+#define PCI_VENDOR_ID_REDHAT_QUMRANET    0x1af4
 #define     PCI_DEVICE(vid, did, name)                              \
 	{PCI_VENDOR_ID_##vid, PCI_DEVICE_ID_##did, (name), 0xff, mmiocfg_##vid##_##did}
 

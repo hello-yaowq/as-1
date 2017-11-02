@@ -1,0 +1,23 @@
+import os
+Import('BOARD')
+Import('asenv')
+
+cwd = os.path.abspath(os.curdir)
+
+objs = []
+
+objs += Glob('bsp/*.c')
+objs += Glob('mcal/*.c')
+
+#by default, use CAN and MCU
+asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
+
+asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
+asenv.Append(ASFLAGS=' -O0 -g ')
+
+asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
+asenv.Append(CCFLAGS=' -I%s/bsp -I%s/mcal '%(cwd,cwd))
+asenv['CC']='arm-none-eabi-gcc'
+asenv['AS']='arm-none-eabi-as'
+
+Return('objs')
