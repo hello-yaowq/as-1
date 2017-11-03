@@ -1,8 +1,10 @@
 import os
+from building import *
+
 Import('BOARD')
 Import('asenv')
 
-cwd = os.path.abspath(os.curdir)
+cwd = GetCurrentDir()
 
 objs = []
 

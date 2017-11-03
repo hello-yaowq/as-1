@@ -5,6 +5,7 @@ studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
 sys.path.append(studio)
 import xcc
 import argen
+from building import *
 
 ASROOT=os.path.abspath('%s/../..'%(os.curdir))
 BOARD=None
@@ -37,8 +38,9 @@ Export('ASROOT')
 Export('asenv')
 Export('BOARD')
 
+bdir = 'build/%s'%(BOARD)
 objs = Glob('app/*.c')
-sobjs = SConscript('%s/com/SConscript'%(ASROOT))
+sobjs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0))
 
 xmls = Glob('app/*.xml')
 arxml= None
@@ -62,20 +64,16 @@ if('studio' in COMMAND_LINE_TARGETS):
         raise Exception('please install anaconda3, and add python3 to env PATH')
     exit(0)
 
-if(not os.path.exists('config')):
-    os.mkdir('config')
-cfgdir = 'config/%s'%(BOARD)
-cfgdone = 'config/%s/config.done'%(BOARD)
+cfgdir = '%s/config/%s'%(bdir,BOARD)
+cfgdone = '%s/config.done'%(cfgdir)
 if(not os.path.exists(cfgdone)):
-    if(not os.path.exists(cfgdir)):
-        os.mkdir(cfgdir)
+    MKDir(cfgdir)
     for xml in xmls:
-        if(not os.path.exists('%s/%s'%(cfgdir,os.path.basename(str(xml))))):
-            os.symlink(os.path.abspath(str(xml)),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
-    if(not os.path.exists('%s/%s'%(cfgdir,os.path.basename(str(arxml))))):
-        os.symlink(os.path.abspath(str(arxml)),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
+        MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
+    MKSymlink(str(arxml),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
     xcc.XCC(cfgdir)
     argen.ArGen.ArGenMain(str(arxml),cfgdir)
+    MKFile(cfgdone)
 
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CCFLAGS=' -I%s '%(cfgdir))

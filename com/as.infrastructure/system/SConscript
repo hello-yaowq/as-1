@@ -1,9 +1,11 @@
 import os
+from building import *
+
+cwd = GetCurrentDir()
 
 Import('asenv')
 Import('MODULES')
 
-cwd = os.path.abspath(os.curdir)
 objs = []
 
 objs += SConscript('kernel/SConscript')

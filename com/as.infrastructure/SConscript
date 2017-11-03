@@ -1,6 +1,7 @@
 import os
+from building import *
 
-cwd = os.path.abspath(os.curdir)
+cwd = GetCurrentDir()
 
 Import('asenv')
 asenv.Append(CCFLAGS=' -I%s/include '%(cwd))
