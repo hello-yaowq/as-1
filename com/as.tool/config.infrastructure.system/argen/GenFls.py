@@ -98,6 +98,7 @@ def GenH():
 def GenC():
     global __dir
     fp = open('%s/Fls_Cfg.c'%(__dir),'w')
+    fp.write('#ifdef USE_FLS\n')
     fp.write(GHeader('Fls'))
     fp.write('#include "Fls.h"\n\n')
     SectorList = GLGet('SectorList')
@@ -137,5 +138,6 @@ def GenC():
            GAGet(General,'MaxNormalReadSize'),
            GAGet(General,'MaxFastWriteSize'),
            GAGet(General,'MaxNormalWriteSize'),))
+    fp.write('#endif /* USE_EA */\n')
     fp.close()
     

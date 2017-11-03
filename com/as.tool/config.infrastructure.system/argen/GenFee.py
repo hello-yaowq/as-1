@@ -73,6 +73,7 @@ def GenH():
 def GenC():
     global __dir
     fp = open('%s/Fee_Cfg.c'%(__dir),'w')
+    fp.write('#ifdef USE_FEE\n')
     fp.write(GHeader('Fee'))
     General=GLGet('General')
     BlockList = GLGet('BlockList')
@@ -102,5 +103,6 @@ def GenC():
     },
     .BlockConfig = BlockConfigList,
 };\n\n'''%(GAGet(General,'NvmJobEndNotification'),GAGet(General,'NvmJobErrorNotification')))
+    fp.write('#endif /* USE_FEE */\n')
     fp.close()
     

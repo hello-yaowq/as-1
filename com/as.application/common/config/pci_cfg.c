@@ -16,6 +16,12 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pci_core.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define PCI_VENDOR_ID_NCR		0x1000
+#define PCI_DEVICE_ID_LSI_53C895A	0x0012
+#define PCI_VENDOR_ID_APPLE		0x106b
+#define PCI_VENDOR_ID_XILINX		0x10ee
+#define PCI_VENDOR_ID_REDHAT_QUMRANET    0x1af4
+
 #define PCI_DEVICE_ID_QEMU PCI_SUBDEVICE_ID_QEMU
 #define PCI_DEVICE_ID_0300 0x0300
 #define PCI_DEVICE_ID_1000 0x1000

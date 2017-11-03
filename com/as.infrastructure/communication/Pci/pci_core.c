@@ -39,7 +39,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 static void do_pci_search_all_device(void);
-static pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id);
+static const pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id);
 static int insert_new_pcidev(pci_dev *pci);
 static void print_device_type(pci_dev *device);
 static int check_multiple(pci_dev *device);
@@ -78,7 +78,7 @@ static int _sys_irq_set_edge_trigger(uint32 irq) {
 /*
  バイナリーサーチで、デバイスを探す
  */
-static pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id) {
+static const pci_vendor_info *search_vendor_info(uint16 vendor_id, uint16 device_id) {
 	int min, max;
 	int median;
 	int tmp;

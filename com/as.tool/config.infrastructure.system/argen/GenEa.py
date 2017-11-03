@@ -142,6 +142,7 @@ extern const Ea_BlockConfigType Ea_BlockConfigData[];
 def GenC():
     global __dir
     fp = open('%s/Ea_Cfg.c'%(__dir),'w')
+    fp.write('#ifdef USE_EA\n')
     fp.write(GHeader('Ea'))
     General=GLGet('General')
     BlockList = GLGet('BlockList')
@@ -172,5 +173,6 @@ def GenC():
         else:
             fp.write('\t\t.EaBlockEOL = FALSE\n')
         fp.write('\t},\n') 
-    fp.write('};\n\n')  
+    fp.write('};\n\n')
+    fp.write('#endif /* USE_EA */\n')
     fp.close()    

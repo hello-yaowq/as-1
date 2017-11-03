@@ -52,7 +52,7 @@
 			Counter="OsClock"
 			Action="SetEvent"	
 			Task="TaskLwip"				
-			Event="Event30"  
+			Event="Event22"  
 			Callback="TBD" 
 			Application="OsDefaultApp"
 			Comment="*" />

@@ -23,6 +23,14 @@ if('CANSM' in MODULES):
     objs += Glob('CanSM/*.c')
     asenv.Append(CCFLAGS=' -I%s/CanSM -DUSE_CANSM '%(cwd))
 
+if('CANTP' in MODULES):
+    objs += Glob('CanTp/*.c')
+    asenv.Append(CCFLAGS=' -I%s/CanTp -DUSE_CANTP '%(cwd))
+
+if('COM' in MODULES):
+    objs += Glob('Com/*.c')
+    asenv.Append(CCFLAGS=' -I%s/Com -DUSE_COM '%(cwd))
+
 if('COMM' in MODULES):
     objs += Glob('ComM/*.c')
     asenv.Append(CCFLAGS=' -I%s/ComM -DUSE_COMM '%(cwd))

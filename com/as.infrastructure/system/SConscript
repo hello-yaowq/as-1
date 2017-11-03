@@ -1,4 +1,3 @@
-import os
 from building import *
 
 cwd = GetCurrentDir()
@@ -17,5 +16,7 @@ if('ECUM' in MODULES):
 if('SCHM' in MODULES):
     objs += Glob('SchM/*.c')
     asenv.Append(CCFLAGS=' -I%s/SchM -DUSE_SCHM '%(cwd))
+
+objs += SConscript('net/SConscript')
 
 Return('objs')

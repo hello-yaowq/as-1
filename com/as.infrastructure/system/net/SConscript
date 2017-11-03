@@ -1,0 +1,8 @@
+Import('MODULES')
+
+objs = []
+
+if('LWIP' in MODULES):
+    objs += SConscript('lwip/SConscript')
+
+Return('objs')

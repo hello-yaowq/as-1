@@ -168,6 +168,7 @@ def GenH():
 def GenC():
     global __dir
     fp = open('%s/NvM_Cfg.c'%(__dir),'w')
+    fp.write('#ifdef USE_NVM\n')
     fp.write(GHeader('NvM')) 
     fp.write('''#include "NvM.h"
 #ifdef USE_FEE
@@ -229,5 +230,6 @@ const NvM_ConfigType NvM_Config = {
     },
     .BlockDescriptor = BlockDescriptorList,        
 };\n\n"""
-    fp.write(cstr) 
+    fp.write(cstr)
+    fp.write('#endif /* USE_NVM */\n')
     fp.close()

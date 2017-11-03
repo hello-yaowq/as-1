@@ -3,6 +3,7 @@ from building import *
 
 Import('BOARD')
 Import('asenv')
+Import('MODULES')
 
 cwd = GetCurrentDir()
 
@@ -10,6 +11,11 @@ objs = []
 
 objs += Glob('bsp/*.c')
 objs += Glob('mcal/*.c')
+
+if('LWIP' in MODULES):
+    objs += Glob('../stm32f1/lwip/netbios.c')
+    objs += Glob('../posix/lwip/sys_arch.c')
+    asenv.Append(CCFLAGS=' -I%s/../stm32f1/lwip '%(cwd))
 
 #by default, use CAN and MCU
 asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
@@ -21,5 +27,6 @@ asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
 asenv.Append(CCFLAGS=' -I%s/bsp -I%s/mcal '%(cwd,cwd))
 asenv['CC']='arm-none-eabi-gcc'
 asenv['AS']='arm-none-eabi-as'
+asenv['LINK']='arm-none-eabi-ld'
 
 Return('objs')

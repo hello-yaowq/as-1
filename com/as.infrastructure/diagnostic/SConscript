@@ -3,7 +3,6 @@ from building import *
 
 cwd = GetCurrentDir()
 
-Import('BOARD')
 Import('asenv')
 Import('MODULES')
 

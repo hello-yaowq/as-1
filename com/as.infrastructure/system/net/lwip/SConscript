@@ -1,0 +1,28 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+Import('ASROOT')
+
+download = '%s/release/download'%(ASROOT)
+lwip='%s/lwip'%(download)
+
+if(not os.path.exists(lwip)):
+    MKDir(download)
+    RunCommand('cd %s && git clone git://git.savannah.nongnu.org/lwip.git;cd lwip && git checkout STABLE-1_4_1')
+
+objs = []
+
+objs += Glob('%s/src/api/*.c'%(lwip))
+objs += Glob('%s/src/core/*.c'%(lwip))
+objs += Glob('%s/src/core/ipv4/*.c'%(lwip))
+objs += Glob('%s/src/core/snmp/*.c'%(lwip))
+objs += Glob('%s/src/netif/*.c'%(lwip))
+objs += Glob('%s/src/netif/ppp/*.c'%(lwip))
+
+asenv.Append(CCFLAGS = '-I%s/src/include'%(lwip))
+asenv.Append(CCFLAGS = '-I%s/src/include/ipv4'%(lwip))
+
+Return('objs')

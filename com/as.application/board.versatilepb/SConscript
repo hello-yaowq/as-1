@@ -4,6 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
+Import('ASROOT')
 
 objs = []
 
@@ -16,12 +17,14 @@ asenv.Append(CCFLAGS=' -DSYSTEM_REGION_START=0x10000000 ')
 asenv.Append(CCFLAGS=' -DSYSTEM_REGION_END=0x101f4000 ')
 asenv.Append(CCFLAGS=' -DPAGE_SIZE=0x1000 ')
 
-lds = '%s/../board.bcm2835/script/link-boot.lds'%(cwd)
+#lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
+lds = '%s/com/as.infrastructure/arch/bcm2835/bsp/linker.lds'%(ASROOT)
 asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
-asenv.Append(LINKFLAGS='-Map versatilepb.map')
+asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
+
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
-           'CAN','CANIF','PRUR','COM','COMM','CANTP','CANNM',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'SOAD','DOIP','LWIP','PCI',
            'FATFS','LWEXT4']
