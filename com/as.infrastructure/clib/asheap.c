@@ -521,7 +521,7 @@ uint8_t *puc;
 
 void *malloc( size_t xWantedSize )
 {
-	return xWantedSize;
+	return asmalloc(xWantedSize);
 }
 
 void free( void *pv )

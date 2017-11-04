@@ -28,6 +28,8 @@
 #endif
 #ifdef USE_FATFS
 #include "ff.h"
+#endif
+#ifdef USE_LWEXT4
 #include "ext4.h"
 #endif
 // #define AS_PERF_ENABLED
@@ -226,6 +228,13 @@ TASK(TaskApp)
 	else if(tstnbr == 1)
 	{
 		char* str="Test Write Of FatFs!\n";
+
+		f_open(&fil,"FatFs.txt",FA_READ);
+		f_read(&fil,buffer,sizeof(buffer)-1,&len);
+		buffer[len] = 0;
+		ASLOG(ON,">> FatFS test read FatFs.txt: '%s'\n",buffer);
+		f_close(&fil);
+
 		f_open(&fil,"FatFs.txt",FA_READ|FA_WRITE|FA_CREATE_ALWAYS);
 		f_write(&fil,str,strlen(str),&len);
 		f_close(&fil);
@@ -239,18 +248,44 @@ TASK(TaskApp)
 #endif
 #ifdef USE_LWEXT4
 {
-    ext4_file fil;
-    size_t len;
-    char* str="Test Write Of ExtFs, Hello World!\n";
+	char buffer[32];
+	static ext4_file fil;
+	size_t len;
+	char* str="Test Write Of ExtFs, Hello World!\n";
 	static int tstnbr = 0;
 	if(tstnbr == 0)
-    {
-        ext4_fopen(&fil,"/hello.txt","a+");
-        //ext4_fopen2(&fil,"/hello.txt",O_RDWR|O_CREAT);
-        ext4_fwrite(&fil,str,strlen(str),&len);
-        ext4_fclose(&fil);
-    }
-    tstnbr ++;
+	{
+		int rv = ext4_fopen(&fil,"/hello.txt","r");
+		if(!rv)
+		{
+			ext4_fread(&fil,buffer,sizeof(buffer),&len);
+			buffer[len] = 0;
+			ASLOG(ON,">> EXT4FS test read: '%s'\n",buffer);
+			ext4_fclose(&fil);
+		}
+	}
+	else if(tstnbr == 1)
+	{
+		int rv = ext4_fopen(&fil,"/EXT4FS.txt","a+");
+		if(!rv)
+		{
+			ext4_fwrite(&fil,str,strlen(str),&len);
+			ext4_fclose(&fil);
+			int rv = ext4_fopen(&fil,"/EXT4FS.txt","r");
+			if(!rv)
+			{
+				ext4_fread(&fil,buffer,sizeof(buffer),&len);
+				buffer[len] = 0;
+				ASLOG(ON,">> EXT4FS test read after write: '%s'\n",buffer);
+				ext4_fclose(&fil);
+			}
+		}
+		else
+		{
+			ASLOG(ON,">> EXT4FS test write FAILED!\n");
+		}
+	}
+	tstnbr ++;
 }
 #endif
 

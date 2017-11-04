@@ -113,12 +113,12 @@ const pci_vendor_info  pci_vendor_list[PCI_VENDOR_NUM] =
 	PCI_DEVICE( NCR,          LSI_53C895A,    "NCR LSI_53C895A"),
 	PCI_DEVICE( APPLE,               003F,    "apple ?"),
 	PCI_DEVICE( XILINX,              0300,    "xilinx ?"),
-	PCI_DEVICE( ASDEV,               ASCAN,   "as can virtul bus"),
-	PCI_DEVICE( ASDEV,               ASNET,   "as net virtul bus"),
-	PCI_DEVICE( ASDEV,               ASBLK,   "as blk virtul bus"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1000,    "REDHAT_QUMRANET network device (legacy)"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1001,    "REDHAT_QUMRANET block device (legacy)"),
 	PCI_DEVICE( REDHAT_QUMRANET,     1005,    "REDHAT_QUMRANET entropy generator device (legacy)"),
+	PCI_DEVICE( ASDEV,               ASCAN,   "as can virtul bus"),
+	PCI_DEVICE( ASDEV,               ASNET,   "as net virtul bus"),
+	PCI_DEVICE( ASDEV,               ASBLK,   "as blk virtul bus"),
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

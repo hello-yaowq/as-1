@@ -32,7 +32,7 @@
 				Autostart="True" 
 				Priority="7" 
 				Schedule="FULL" 
-				StackSize="512"
+				StackSize="2048"
 				Application="OsDefaultApp"
 	     		Comment="*" >
 			<ApplicationModeList Max="32">
@@ -48,7 +48,7 @@
 				Autostart="False" 
 				Priority="8" 
 				Schedule="FULL" 
-				StackSize="512"
+				StackSize="2048"
 				Application="OsDefaultApp"
 	     		Comment="*" />
 				
@@ -57,7 +57,7 @@
 				Autostart="True" 
 				Priority="0" 
 				Schedule="FULL" 
-				StackSize="512"
+				StackSize="2048"
 				Application="OsDefaultApp"
 	     		Comment="*" >
 			<ApplicationModeList Max="32">

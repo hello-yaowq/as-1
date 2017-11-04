@@ -99,6 +99,7 @@
 									<listOptionValue builtIn="false" value="COUNTER_NUM=8"/>
 									<listOptionValue builtIn="false" value="ALARM_NUM=8"/>
 									<listOptionValue builtIn="false" value="ENABLE_FIFO_SCHED"/>
+									<listOptionValue builtIn="false" value="USE_LWEXT4"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.467686337" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -175,6 +176,7 @@
 									<listOptionValue builtIn="false" value="COUNTER_NUM=8"/>
 									<listOptionValue builtIn="false" value="ALARM_NUM=8"/>
 									<listOptionValue builtIn="false" value="ENABLE_FIFO_SCHED"/>
+									<listOptionValue builtIn="false" value="USE_LWEXT4"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.721049412" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

@@ -139,6 +139,7 @@ void Sched_Preempt(void)
 	OSPostTaskHook();
 	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
 	ReadyQueue.heap[0].priority = NEW_PRIOHIGHEST(RunningVar->priority);
+	Sched_BubbleDown(&ReadyQueue, 0);
 }
 
 void Sched_GetReady(void)

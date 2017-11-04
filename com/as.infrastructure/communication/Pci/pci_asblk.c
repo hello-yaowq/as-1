@@ -21,8 +21,15 @@
 #include "diskio.h"
 #endif
 
+#ifdef USE_LWEXT4
+#include "ext4.h"
+#include <ext4_config.h>
+#include <ext4_blockdev.h>
+#include <ext4_errno.h>
+#endif
+
 #define AS_LOG_FATFS 0
-#define AS_LOG_EXTFS 0
+#define AS_LOG_EXTFS 1
 /* Definitions of physical drive number for each drive */
 #define DEV_MMC		0	/* Example: Map MMC/SD card to physical drive 0 : default */
 #define DEV_RAM		1	/* Example: Map Ramdisk to physical drive 1 */
@@ -41,12 +48,97 @@ enum{
 	REG_BLKSTATUS = 0x14,
 	REG_CMD       = 0x18,
 };
+
+#define EXTFS_IMG	"ExtFs.img"
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_LWEXT4
+static int blockdev_open(struct ext4_blockdev *bdev);
+static int blockdev_bread(struct ext4_blockdev *bdev, void *buf, uint64_t blk_id,
+			 uint32_t blk_cnt);
+static int blockdev_bwrite(struct ext4_blockdev *bdev, const void *buf,
+			  uint64_t blk_id, uint32_t blk_cnt);
+static int blockdev_close(struct ext4_blockdev *bdev);
+static int blockdev_lock(struct ext4_blockdev *bdev);
+static int blockdev_unlock(struct ext4_blockdev *bdev);
+#endif
+
+int PciBlk_Init(uint32_t blkid);
+int PciBlk_Read(uint32_t blkid, uint32_t blksz, uint32_t blknbr, uint8_t* data);
+int PciBlk_Write(uint32_t blkid, uint32_t blksz, uint32_t blknbr, const uint8_t* data);
+int PciBlk_Size(uint32_t blkid, uint32_t *size);
 /* ============================ [ DATAS     ] ====================================================== */
 static pci_dev *pdev = NULL;
 static void* __iobase= NULL;
+#ifdef USE_LWEXT4
+EXT4_BLOCKDEV_STATIC_INSTANCE(ext4_blkdev, 4096, 0, blockdev_open,
+			      blockdev_bread, blockdev_bwrite, blockdev_close,
+			      blockdev_lock, blockdev_unlock);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_LWEXT4
+static int blockdev_open(struct ext4_blockdev *bdev)
+{
+	uint32_t size;
+
+	PciBlk_Init(IMG_EXT4);
+
+	PciBlk_Size(IMG_EXT4, &size);
+
+	bdev->part_offset = 0;
+	bdev->part_size = size;
+	bdev->bdif->ph_bcnt = bdev->part_size / bdev->bdif->ph_bsize;
+
+	return 0;
+
+}
+
+static int blockdev_bread(struct ext4_blockdev *bdev, void *buf, uint64_t blk_id,
+			 uint32_t blk_cnt)
+{
+	while(blk_cnt > 0)
+	{
+		PciBlk_Read(IMG_EXT4,bdev->bdif->ph_bsize,blk_id,buf);
+		blk_cnt--;
+		buf += bdev->bdif->ph_bsize;
+	}
+	return 0;
+}
+
+
+static int blockdev_bwrite(struct ext4_blockdev *bdev, const void *buf,
+			  uint64_t blk_id, uint32_t blk_cnt)
+{
+	while(blk_cnt > 0)
+	{
+		PciBlk_Write(IMG_EXT4,bdev->bdif->ph_bsize,blk_id,buf);
+		blk_cnt--;
+		buf += bdev->bdif->ph_bsize;
+	}
+	return 0;
+}
+
+static int blockdev_close(struct ext4_blockdev *bdev)
+{
+	return 0;
+}
+
+static int blockdev_lock(struct ext4_blockdev *bdev)
+{
+	return 0;
+}
+
+static int blockdev_unlock(struct ext4_blockdev *bdev)
+{
+	return 0;
+}
+
+/******************************************************************************/
+struct ext4_blockdev *ext4_blockdev_get(void)
+{
+	return &ext4_blkdev;
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int PciBlk_Init(uint32_t blkid)
 {
@@ -92,7 +184,7 @@ int PciBlk_Read(uint32_t blkid, uint32_t blksz, uint32_t blknbr, uint8_t* data)
 	return 0;
 }
 
-int PciBlk_Write(uint32_t blkid, uint32_t blksz, uint32_t blknbr, uint8_t* data)
+int PciBlk_Write(uint32_t blkid, uint32_t blksz, uint32_t blknbr, const uint8_t* data)
 {
 	uint32_t i;
 	imask_t mask;
@@ -310,7 +402,21 @@ DWORD get_fattime (void)
 #ifdef USE_LWEXT4
 void ext_mount(void)
 {
+    int rc;
 
+    rc = ext4_device_register(&ext4_blkdev, EXTFS_IMG);
+    if(rc != EOK)
+    {
+        ASLOG(EXTFS, "register ext4 device failed\n");
+    }
+
+	rc = ext4_mount(EXTFS_IMG, "/", false);
+	if (rc != EOK)
+    {
+        ASLOG(EXTFS, "mount ext4 device failed\n");
+    }
+
+    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/‘ OK\n");
 }
 #endif
 

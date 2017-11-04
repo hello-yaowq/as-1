@@ -117,7 +117,7 @@ char* strcpy (char* __to, const char* __from)
 {
 	char* dst = (char*) __to;
 	const char* src = (const char*) __from;
-	while('\0' != *dst)
+	while('\0' != *src)
 	{
 		*dst = * src;
 		dst ++;
@@ -143,6 +143,11 @@ int strncmp(const char *s1, const char *s2, size_t n)
 {
 	for ( ; (*s1 == *s2) && (n > 0); s1++, s2++, n--)
 	if (*s1 == '\0')
+	{
+		return 0;
+	}
+
+	if(n ==0)
 	{
 		return 0;
 	}
