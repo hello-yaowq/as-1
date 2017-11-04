@@ -1,0 +1,26 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+Import('ASROOT')
+
+download = '%s/release/download'%(ASROOT)
+fatfs='%s/ff13'%(download)
+
+if(not os.path.exists(fatfs)):
+    MKDir(download)
+    RunCommand('''cd %s && wget http://elm-chan.org/fsw/ff/arc/ff13.zip && 
+        mkdir ff13 && cd ff13 && unzip ../ff13.zip && rm source/diskio.c'''%(download))
+
+MKSymlink(fatfs,'%s/fatfs'%(cwd))
+
+objs = []
+
+objs += Glob('fatfs/source/*.c')
+
+asenv.Append(CCFLAGS = '-I%s/fatfs/source'%(cwd))
+asenv.Append(CCFLAGS = '-DUSE_FATFS')
+
+Return('objs')

@@ -307,4 +307,11 @@ DWORD get_fattime (void)
 
 #endif /* USE_FATFS */
 
+#ifdef USE_LWEXT4
+void ext_mount(void)
+{
+
+}
+#endif
+
 #endif /* USE_PCI */

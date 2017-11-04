@@ -1,0 +1,11 @@
+Import('MODULES')
+
+objs = []
+
+if('FATFS' in MODULES):
+    objs += SConscript('fatfs/SConscript')
+
+if('LWEXT4' in MODULES):
+    objs += SConscript('lwext4/SConscript')
+
+Return('objs')

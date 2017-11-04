@@ -24,9 +24,21 @@ asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -O0 -g ')
 
 asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
+asenv.Append(ASFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
 asenv.Append(CCFLAGS=' -I%s/bsp -I%s/mcal '%(cwd,cwd))
 asenv['CC']='arm-none-eabi-gcc'
 asenv['AS']='arm-none-eabi-as'
 asenv['LINK']='arm-none-eabi-ld'
+
+asenv.Append(CCFLAGS='-ffunction-sections -fdata-sections')
+asenv.Append(LINKFLAGS='--gc-sections')
+
+asenv.Append(LIBS=['gcc'])
+
+if(os.name == 'nt'):
+    cpl = 'C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32'
+    asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/4.8.3'%(cpl)])
+else:
+    asenv.Append(LIBPATH=['/usr/lib/gcc/arm-none-eabi/4.8.2'])
 
 Return('objs')

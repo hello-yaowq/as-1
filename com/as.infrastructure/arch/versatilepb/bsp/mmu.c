@@ -1,6 +1,7 @@
 /* MMU stuff
  * Marcos Medeiros
  */
+#ifdef USE_MMU_C
 #include "Std_Types.h"
 #include "mmu.h"
 
@@ -48,3 +49,4 @@ void mmu_disable()
 	cr &= ~MMU_CR_ENABLE;
 	__mmu_setcr(cr);
 }
+#endif

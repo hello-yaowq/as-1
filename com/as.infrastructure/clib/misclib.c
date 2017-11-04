@@ -108,6 +108,10 @@ void *memcpy (void* __to, const void* __from, size_t __size)
 
 	return __to;
 }
+void *memmove (void *__dest, const void *__src, size_t __n)
+{
+	return memcpy(__dest,__src,__n);
+}
 
 char* strcpy (char* __to, const char* __from)
 {

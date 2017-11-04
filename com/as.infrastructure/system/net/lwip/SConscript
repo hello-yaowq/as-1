@@ -11,18 +11,22 @@ lwip='%s/lwip'%(download)
 
 if(not os.path.exists(lwip)):
     MKDir(download)
-    RunCommand('cd %s && git clone git://git.savannah.nongnu.org/lwip.git;cd lwip && git checkout STABLE-1_4_1')
+    RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip.git && 
+        cd lwip && git checkout STABLE-1_4_1''')
+
+MKSymlink(lwip,'%s/lwip'%(cwd))
 
 objs = []
 
-objs += Glob('%s/src/api/*.c'%(lwip))
-objs += Glob('%s/src/core/*.c'%(lwip))
-objs += Glob('%s/src/core/ipv4/*.c'%(lwip))
-objs += Glob('%s/src/core/snmp/*.c'%(lwip))
-objs += Glob('%s/src/netif/*.c'%(lwip))
-objs += Glob('%s/src/netif/ppp/*.c'%(lwip))
+objs += Glob('lwip/src/api/*.c')
+objs += Glob('lwip/src/core/*.c')
+objs += Glob('lwip/src/core/ipv4/*.c')
+objs += Glob('lwip/src/core/snmp/*.c')
+objs += Glob('lwip/src/netif/*.c')
+objs += Glob('lwip/src/netif/ppp/*.c')
 
-asenv.Append(CCFLAGS = '-I%s/src/include'%(lwip))
-asenv.Append(CCFLAGS = '-I%s/src/include/ipv4'%(lwip))
+asenv.Append(CCFLAGS = '-I%s/lwip/src/include'%(cwd))
+asenv.Append(CCFLAGS = '-I%s/lwip/src/include/ipv4'%(cwd))
+asenv.Append(CCFLAGS = '-DUSE_LWIP')
 
 Return('objs')

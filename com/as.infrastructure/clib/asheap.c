@@ -519,6 +519,21 @@ uint8_t *puc;
 	}
 }
 
+void *malloc( size_t xWantedSize )
+{
+	return xWantedSize;
+}
+
+void free( void *pv )
+{
+	asfree(pv);
+}
+
+void *calloc(size_t nelem, size_t elsize)
+{
+	return malloc(nelem*elsize);
+}
+
 void* kzmalloc(size_t size)
 {
 

@@ -18,5 +18,6 @@ if('SCHM' in MODULES):
     asenv.Append(CCFLAGS=' -I%s/SchM -DUSE_SCHM '%(cwd))
 
 objs += SConscript('net/SConscript')
+objs += SConscript('fs/SConscript')
 
 Return('objs')

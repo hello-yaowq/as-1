@@ -1,6 +1,7 @@
 /* Paging code
  * Marcos Medeiros
  */
+#ifdef USE_PAGING_C
 #include "Std_Types.h"
 #include "mmu.h"
 #include "mm.h"
@@ -54,4 +55,4 @@ void paging_init()
 	setup_kernel_pgdir();
 	mmu_enable();
 }
-
+#endif

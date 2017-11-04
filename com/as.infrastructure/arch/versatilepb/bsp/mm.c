@@ -3,7 +3,7 @@
  * Bitmap based
  * Marcos Medeiros
  */
-
+#ifdef USE_MM_C
 /*
  * pf - page frame
  * pfbb - page frame bitmap block
@@ -210,4 +210,4 @@ void mm_init()
 
 }
 
-
+#endif
