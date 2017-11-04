@@ -1,6 +1,7 @@
 import os
 
-Import('MODULES')
+Import('asenv')
+MODULES=asenv['MODULES']
 
 objs = []
 

@@ -1,6 +1,7 @@
 import os
 
-Import('BOARD')
+Import('asenv')
+BOARD = asenv['BOARD']
 
 objs = []
 

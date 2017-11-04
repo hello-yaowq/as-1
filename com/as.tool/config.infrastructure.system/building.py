@@ -1,4 +1,5 @@
 import os
+import shutil
 from SCons.Script import *
 
 def PrepareBuilding(env):
@@ -9,7 +10,7 @@ def PrepareBuilding(env):
             default=False,
             help='print verbose information during build')
 
-    if not GetOption('verbose'):
+    if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(
           ARCOMSTR = 'AR $SOURCE',
@@ -33,6 +34,9 @@ def MKDir(p):
         MKDir(pap)
     if(not os.path.exists(ap)):
         os.mkdir(ap)
+
+def RMDir(p):
+    shutil.rmtree(p)
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)

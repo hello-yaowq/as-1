@@ -4,7 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
-Import('ASROOT')
+ASROOT = asenv['ASROOT']
 
 print('qemu run command:scons versatilepb run\nqemu debug command: scons versatilepb run gdb')
 if('run' in COMMAND_LINE_TARGETS):
@@ -64,8 +64,8 @@ MODULES = ['ECUM','SCHM','MCU',
 ARCH='versatilepb'
 arch='arm'
 
-Export('MODULES')
-Export('ARCH')
-Export('arch')
+asenv['MODULES'] = MODULES
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
 
 Return('objs')

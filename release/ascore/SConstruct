@@ -35,9 +35,9 @@ if(BOARD is None):
     help()
     exit(-1)
 
-Export('ASROOT')
+asenv['ASROOT'] = ASROOT
+asenv['BOARD'] = BOARD
 Export('asenv')
-Export('BOARD')
 
 bdir = 'build/%s'%(BOARD)
 objs = Glob('app/*.c')
@@ -79,5 +79,8 @@ if(not os.path.exists(cfgdone)):
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CCFLAGS=' -I%s '%(cfgdir))
 asenv.Append(ASFLAGS=' -I%s '%(cfgdir))
+
+if(asenv.GetOption('clean')):
+    RMDir(cfgdir)
 
 asenv.Program(BOARD,objs)

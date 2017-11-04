@@ -3,9 +3,8 @@ from building import *
 
 cwd = GetCurrentDir()
 
-Import('BOARD')
 Import('asenv')
-Import('MODULES')
+MODULES = asenv['MODULES']
 
 objs = Glob('*.xml')
 objs += Glob('*.arxml')

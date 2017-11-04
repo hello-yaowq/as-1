@@ -1,9 +1,8 @@
 import os
 from building import *
 
-Import('BOARD')
 Import('asenv')
-Import('MODULES')
+MODULES=asenv['MODULES']
 
 cwd = GetCurrentDir()
 

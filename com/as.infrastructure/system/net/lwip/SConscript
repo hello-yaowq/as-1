@@ -4,7 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
-Import('ASROOT')
+ASROOT = asenv['ASROOT']
 
 download = '%s/release/download'%(ASROOT)
 lwip='%s/lwip'%(download)
@@ -12,7 +12,7 @@ lwip='%s/lwip'%(download)
 if(not os.path.exists(lwip)):
     MKDir(download)
     RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip.git && 
-        cd lwip && git checkout STABLE-1_4_1''')
+        cd lwip && git checkout STABLE-1_4_1'''%(download))
 
 MKSymlink(lwip,'%s/lwip'%(cwd))
 
