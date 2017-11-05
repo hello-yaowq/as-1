@@ -11,9 +11,17 @@ fatfs='%s/ff13'%(download)
 
 if(not os.path.exists(fatfs)):
     MKDir(download)
-    RunCommand('''cd %s && wget http://elm-chan.org/fsw/ff/arc/ff13.zip && 
+    try:
+        RunCommand('''cd %s && wget http://elm-chan.org/fsw/ff/arc/ff13.zip && 
         mkdir ff13 && cd ff13 && unzip ../ff13.zip && rm source/diskio.c'''%(download))
-
+    except:
+        uri='https://raw.githubusercontent.com/RT-Thread/rt-thread/master/components/dfs/filesystems/elmfat'
+        cmd='wget %s/diskio.h && '%(uri)
+        cmd+='wget %s/ff.c && '%(uri)
+        cmd+='wget %s/ff.h && '%(uri)
+        cmd+='wget %s/ffconf.h && '%(uri)
+        cmd+='wget %s/integer.h'%(uri)
+        RunCommand('''cd %s && mkdir -p ff13/source && cd ff13/source && %s'''%(download,cmd))
 MKSymlink(fatfs,'%s/fatfs'%(cwd))
 
 objs = []
