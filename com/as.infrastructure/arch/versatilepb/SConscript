@@ -20,7 +20,7 @@ if('LWIP' in MODULES):
 asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
 
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
-asenv.Append(ASFLAGS=' -O0 -g ')
+asenv.Append(ASFLAGS=' -g ')
 
 asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
 asenv.Append(ASFLAGS=' -mcpu=arm926ej-s -marm -fpic ')

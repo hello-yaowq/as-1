@@ -15,7 +15,8 @@ PrepareBuilding(asenv)
 
 board_list = []
 for dir in os.listdir('%s/com/as.application'%(ASROOT)):
-    if(dir[:6]=='board.'):
+    if(dir[:6]=='board.' and 
+       os.path.exists('%s/com/as.application/%s/SConscript'%(ASROOT,dir))):
         board_list.append(dir[6:])
 
 def help():

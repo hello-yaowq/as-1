@@ -21,6 +21,7 @@ SECTIONS
 	.text :
 	{
 		KEEP(*(.isr_vector))
+		*(.startup*)
 		*(.text*)
 		*(.rodata*)
 	} > FLASH
