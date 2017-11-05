@@ -1,0 +1,51 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+
+print('qemu run command:scons lm3s6965evb run\nqemu debug command: scons lm3s6965evb run gdb')
+if('run' in COMMAND_LINE_TARGETS):
+    qemu = '%s/release/download/qemu/arm-softmmu/qemu-system-arm'%(ASROOT)
+
+    # the old version has bug for cm3, use a newer one
+    if(not os.path.exists(qemu)):
+        os.system('cd %s/release/ascore/ && make asqemu'%(ASROOT))
+
+    target = '%s/release/ascore/lm3s6965evb'%(ASROOT)
+    build = '%s/release/ascore/build/lm3s6965evb'%(ASROOT)
+
+    params = '-cpu cortex-m3 -nographic -monitor null -semihosting -machine lm3s6965evb -serial stdio'
+    if('gdb' in COMMAND_LINE_TARGETS):
+        params += ' -gdb tcp::1234 -S'
+    os.system('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
+    os.system('%s -kernel %s %s'%(qemu,target,params))
+    exit(0)
+
+objs = []
+
+asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
+
+lds = '%s/script/linker.lds'%(cwd)
+asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
+asenv.Append(LINKFLAGS='-Map build/lm3s6965evb/lm3s6965evb.map')
+
+MODULES = ['ECUM','SCHM','MCU',
+           'DET',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
+           'CLIB_MISCLIB','CLIB_STDIO_PRINTF',
+           ]
+
+ARCH='lm3s'
+arch='cortex-m'
+
+asenv['MODULES'] = MODULES
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
+
+objs += Glob('common/*.c')
+
+Return('objs')

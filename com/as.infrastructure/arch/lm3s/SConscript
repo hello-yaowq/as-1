@@ -1,0 +1,41 @@
+from building import *
+Import('asenv')
+
+cwd = GetCurrentDir()
+
+#by default, use CAN and MCU
+asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
+
+asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
+asenv.Append(ASFLAGS=' -g ')
+
+asenv.Append(CCFLAGS=' -mcpu=cortex-m3  -mthumb ')
+asenv.Append(ASFLAGS=' -mcpu=cortex-m3  -mthumb ')
+asenv.Append(CCFLAGS=' -I%s/DriverLib '%(cwd))
+asenv.Append(CCFLAGS=' -I%s/DriverLib/src '%(cwd))
+
+asenv.Append(CCFLAGS='-I%s/../stm32f1/Libraries/CMSIS/Include'%(cwd))
+asenv.Append(CCFLAGS='-DCHIP_LM3S6965')
+
+asenv['CC']='arm-none-eabi-gcc'
+asenv['AS']='arm-none-eabi-as'
+asenv['LINK']='arm-none-eabi-ld'
+
+asenv.Append(CCFLAGS='-ffunction-sections -fdata-sections')
+asenv.Append(LINKFLAGS='--gc-sections')
+
+asenv.Append(LIBS=['gcc'])
+
+if(os.name == 'nt'):
+    cpl = 'C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32'
+    asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/4.8.3'%(cpl)])
+else:
+    asenv.Append(LIBPATH=['/usr/lib/gcc/arm-none-eabi/4.8.2'])
+
+objs = []
+
+objs += Glob('mcal/*.c')
+objs += Glob('DriverLib/src/*.c')
+objs += Glob('../common/mcal/SCan.c')
+
+Return('objs')
