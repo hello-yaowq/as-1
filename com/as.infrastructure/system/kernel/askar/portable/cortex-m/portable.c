@@ -30,7 +30,7 @@
 #define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void knl_activate_r(void);
+extern void knl_activate(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -62,7 +62,7 @@ void Os_PortInit(void)
 void Os_PortInitContext(TaskVarType* pTaskVar)
 {
 	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4;
-	pTaskVar->context.pc = knl_activate_r;
+	pTaskVar->context.pc = knl_activate;
 }
 
 void EnterISR(void)
@@ -85,7 +85,13 @@ void Os_PortDispatch(void)
 
 void Os_PortStartDispatch(void)
 {
+	RunningVar = NULL;
 	__asm("cpsie   i");
 	__asm("svc 0");
 	while(1); /* should not reach here */
+}
+
+void knl_isr_handler(int intno)
+{
+
 }

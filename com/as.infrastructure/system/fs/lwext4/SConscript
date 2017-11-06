@@ -12,7 +12,7 @@ lwext4='%s/lwext4'%(download)
 if(not os.path.exists(lwext4)):
     MKDir(download)
     RunCommand('''cd %s && git clone https://github.com/gkostka/lwext4.git &&
-        sed -i "156c /*fflush(stdout);*/ \\" lwext4/include/ext4_debug.h'''%(download))
+        sed -i "156c /*fflush(stdout);*/ \\\\\\\\" lwext4/include/ext4_debug.h'''%(download))
 
 MKSymlink(lwext4,'%s/lwext4'%(cwd))
 

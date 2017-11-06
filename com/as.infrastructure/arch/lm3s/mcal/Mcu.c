@@ -122,4 +122,14 @@ Mcu_ResetType Mcu_GetResetReason( void )
 void Mcu_DistributePllClock( void )
 {
 	Usart_Init();
+
+	SysTickPeriodSet(McuE_GetSystemClock() / 1000);
+	SysTickIntEnable();
+	SysTickEnable();
 }
+#ifdef __ASKAR_OS__
+void knl_system_tick_handler(void)
+{
+	SignalCounter(0);
+}
+#endif
