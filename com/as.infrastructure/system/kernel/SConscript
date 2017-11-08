@@ -8,6 +8,6 @@ asenv.Append(CCFLAGS=' -I%s '%(cwd))
 
 objs = Glob('*.c')
 
-objs += SConscript('askar/SConscript')
+objs += SConscript('%s/SConscript'%(asenv['RTOS']))
 
 Return('objs')

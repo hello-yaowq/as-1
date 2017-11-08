@@ -1,0 +1,91 @@
+import os
+import sys
+from building import *
+import xcc
+
+xcc.SetDefaultRTOS('rtthread')
+
+cwd = GetCurrentDir()
+
+class RTCONFIG():
+    def __init__(self,env):
+        if(env['BOARD']=='versatilepb'):
+            self.ARCH='arm'
+            self.CPU='arm926'
+        else:
+            assert(0)
+        self.CROSS_TOOL='gcc'
+        self.PLATFORM='gcc'
+        # SCons PreProcessor patch
+        def start_handling_includes(self, t=None):
+            """
+            Causes the PreProcessor object to start processing #import,
+            #include and #include_next lines.
+        
+            This method will be called when a #if, #ifdef, #ifndef or #elif
+            evaluates True, or when we reach the #else in a #if, #ifdef,
+            #ifndef or #elif block where a condition already evaluated
+            False.
+        
+            """
+            d = self.dispatch_table
+            p = self.stack[-1] if self.stack else self.default_table
+        
+            for k in ('import', 'include', 'include_next', 'define'):
+                d[k] = p[k]
+        
+        def stop_handling_includes(self, t=None):
+            """
+            Causes the PreProcessor object to stop processing #import,
+            #include and #include_next lines.
+        
+            This method will be called when a #if, #ifdef, #ifndef or #elif
+            evaluates False, or when we reach the #else in a #if, #ifdef,
+            #ifndef or #elif block where a condition already evaluated True.
+            """
+            d = self.dispatch_table
+            d['import'] = self.do_nothing
+            d['include'] =  self.do_nothing
+            d['include_next'] =  self.do_nothing
+            d['define'] =  self.do_nothing
+        PatchedPreProcessor = SCons.cpp.PreProcessor
+        PatchedPreProcessor.start_handling_includes = start_handling_includes
+        PatchedPreProcessor.stop_handling_includes = stop_handling_includes
+        # parse rtconfig.h to get used component
+        PreProcessor = PatchedPreProcessor()
+        f = file('%s/rtconfig.h'%(cwd), 'r')
+        contents = f.read()
+        f.close()
+        PreProcessor.process_contents(contents)
+        BuildOptions = PreProcessor.cpp_namespace
+
+
+Import('asenv')
+
+rtroot = '%s/release/download/rt-thread'%(asenv['ASROOT'])
+
+remove_components=['external','gdb','vmm','vbus','utilities','libc']
+RTT_ROOT=rtroot
+rtconfig=RTCONFIG(asenv)
+Export('remove_components')
+Export('RTT_ROOT')
+Export('rtconfig')
+
+if(not os.path.exists(rtroot)):
+    RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
+    RunCommand('cd %s/release/download && sed -i "1052c //"'%(asenv['ASROOT']))
+
+asenv.Append(CCFLAGS=' -I%s '%(cwd))
+asenv.Append(CCFLAGS=' -I%s/../small '%(cwd))
+asenv.Append(CCFLAGS='-DUSE_OSAL')
+
+objs = Glob('*.c')
+
+list = os.listdir(rtroot)
+
+for d in list:
+    path = os.path.join(rtroot, d)
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        objs = objs + SConscript(os.path.join(path, 'SConscript'))
+
+Return('objs')

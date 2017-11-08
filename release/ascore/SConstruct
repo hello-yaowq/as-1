@@ -11,6 +11,8 @@ ASROOT=os.path.abspath('%s/../..'%(os.curdir))
 BOARD=None
 
 asenv=Environment()
+asenv['ASROOT'] = ASROOT
+
 PrepareBuilding(asenv)
 
 board_list = []
@@ -36,7 +38,6 @@ if(BOARD is None):
     help()
     exit(-1)
 
-asenv['ASROOT'] = ASROOT
 asenv['BOARD'] = BOARD
 Export('asenv')
 

@@ -27,7 +27,13 @@ from .gen_trampoline import *
 from .GenOS import *
 import glob
 
-__all__ = ['OsGen']
+__all__ = ['OsGen','SetOS']
+
+defaultOS=None
+
+def SetOS(name):
+    global defaultOS
+    defaultOS=name
 
 def gen_osal(gendir,os_list):
     gen_ucosii(gendir,os_list)
@@ -59,6 +65,8 @@ __osgen__ = {'freeosek':gen_freeosek,
             }
 
 def getOsRef(os_list):
+    if(defaultOS is not None):
+        return defaultOS
     for each in os_list:
         if(each.tag == 'OsRef'):
             return each.attrib['name']

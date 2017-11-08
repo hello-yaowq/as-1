@@ -3,7 +3,9 @@ MODULES = asenv['MODULES']
 
 objs = []
 
-if('LWIP' in MODULES):
+if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += SConscript('lwip/SConscript')
+elif(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
+    asenv.Append(CCFLAGS = '-DUSE_LWIP')
 
 Return('objs')

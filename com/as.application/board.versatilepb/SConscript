@@ -57,10 +57,16 @@ MODULES = ['ECUM','SCHM','MCU',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'SOAD','DOIP','LWIP','PCI',
-           'FATFS','LWEXT4',
+           ]
+
+if(asenv['RTOS'] != 'rtthread'):
+    MODULES += ['FATFS','LWEXT4',
            'CLIB_ASHEAP','CLIB_MISCLIB','CLIB_STDIO_PRINTF',
            'CLIB_MBOX','CLIB_QSORT',
            ]
+else:
+    asenv.Append(CCFLAGS='-DRT_HEAP_SIZE=0x800000')
+
 ARCH='versatilepb'
 arch='arm'
 

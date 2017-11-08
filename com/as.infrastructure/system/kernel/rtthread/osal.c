@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "rtthread.h"
+#include "rthw.h"
 #include "Os.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -348,6 +349,8 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	rt_err_t  ercd;
 	const task_declare_t* td;
 
+	(void)rt_hw_interrupt_disable();
+
 	rt_system_tick_init();
 	rt_system_object_init();
 	rt_system_scheduler_init();
@@ -379,7 +382,6 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	rt_system_timer_thread_init();
 	rt_thread_idle_init();
 
-	EnableInterrupts();
 	rt_system_scheduler_start();
 
 }

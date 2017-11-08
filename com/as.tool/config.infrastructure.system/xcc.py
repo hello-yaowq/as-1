@@ -19,6 +19,10 @@ from argen.OsGen import *
 from argen.ArGen import *
 
 __gen__ = [KsmGen,OsGen]
+
+def SetDefaultRTOS(name):
+    SetOS(name)
+
 def XCC(gendir):
     if(not os.path.exists(gendir)):os.mkdir(gendir)
     for g in __gen__:

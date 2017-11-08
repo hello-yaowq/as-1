@@ -2,7 +2,23 @@ import os
 import shutil
 from SCons.Script import *
 
+Env = None
+
+BuildOptions = {}
+
+def PrepareRTTHREAD(opt):
+    global BuildOptions
+    BuildOptions = opt
+
+
+
 def PrepareBuilding(env):
+    global Env
+    Env = env
+    env['RTOS']='askar'
+    if(os.getenv('RTOS')=='rtthread'):
+        env['RTOS'] = 'rtthread'
+    print('RTOS is %s'%(env['RTOS']))
     # add comstr option
     AddOption('--verbose',
             dest='verbose',
@@ -49,8 +65,54 @@ def MKSymlink(src,dst):
     if(not os.path.exists(dst)):
         os.symlink(asrc,adst)
 
+def SrcRemove(src, remove):
+    if not src:
+        return
+
+    for item in src:
+        if type(item) == type('str'):
+            if os.path.basename(item) in remove:
+                src.remove(item)
+        else:
+            if os.path.basename(item.rstr()) in remove:
+                src.remove(item)
+
 def RunCommand(cmd):
     print(' >> RunCommand "%s"'%(cmd))
     if(0 != os.system(cmd)):
         raise Exception('FAIL of RunCommand "%s"'%(cmd))
-        
+
+def DefineGroup(name, src, depend, **parameters):
+    global Env
+    if not GetDepend(depend):
+        return []
+    if parameters.has_key('CCFLAGS'):
+        Env.AppendUnique(CCFLAGS = parameters['CCFLAGS'])
+    if parameters.has_key('CPPPATH'):
+        Env.AppendUnique(CPPPATH = parameters['CPPPATH'])
+    if parameters.has_key('CPPDEFINES'):
+        Env.AppendUnique(CPPDEFINES = parameters['CPPDEFINES'])
+    if parameters.has_key('LINKFLAGS'):
+        Env.AppendUnique(LINKFLAGS = parameters['LINKFLAGS'])
+    return src
+
+def AddDepend(option):
+    BuildOptions[option] = 1
+
+def GetDepend(depend):
+    building = True
+    if type(depend) == type('str'):
+        if not BuildOptions.has_key(depend) or BuildOptions[depend] == 0:
+            building = False
+        elif BuildOptions[depend] != '':
+            return BuildOptions[depend]
+
+        return building
+
+    # for list type depend
+    for item in depend:
+        if item != '':
+            if not BuildOptions.has_key(item) or BuildOptions[item] == 0:
+                building = False
+
+    return building
