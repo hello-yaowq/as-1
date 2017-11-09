@@ -15,6 +15,7 @@
 
 #ifndef IO_H_
 #define IO_H_
+#include "Std_Types.h"
 #ifndef IO_VALUE_FIRST
 #define writel WRITE32
 #define writew WRITE32

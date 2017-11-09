@@ -27,10 +27,13 @@ enum TimerRegisters {
 	T2_BGLOAD	 = 0x38,
 };
 
+extern void OsTick(void);
+
 static void timer_irq_handler(int vector, void* param)
 {
 	writel(__iobase + T1_INTCTRL, 0);
 	rt_tick_increase();
+	OsTick();
 }
 
 void rt_hw_timer_init(void)

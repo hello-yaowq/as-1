@@ -103,6 +103,14 @@
 #define STD_OFF			0x00
 
 #define SIZE_OF_ARRAY(a) 	(sizeof(a)/sizeof(a[0]))
+
+
+#ifdef USE_STDRT
+#include <rtthread.h>
+#define malloc rt_malloc
+#define strcmp rt_strcmp
+#define printf rt_kprintf
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef CONFIG_ARCH_VEXPRESS
 /* Exact integral types.  */

@@ -56,13 +56,43 @@ enum{
 	REG_NETMASK   = 0x1C,
 	REG_CMD       = 0x20,
 };
+
+#define MAX_ADDR_LEN 6
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef USE_STDRT
+struct tap_netif
+{
+	/* inherit from ethernet device */
+	struct eth_device parent;
+
+	/* interface address info. */
+	rt_uint8_t  dev_addr[MAX_ADDR_LEN];		/* hw address	*/
+};
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_STDRT
+extern void rt_thread_exit(void);
+#endif
+#ifdef USE_LWIP
+struct pbuf * low_level_input(void);
+err_t low_level_output(struct netif *netif, struct pbuf *p);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 static pci_dev *pdev = NULL;
 static void* __iobase= NULL;
-static char buf[1514];
+static char pkbuf[1514];
+#ifdef USE_STDRT
+static struct tap_netif tap_netif_device;
+static struct rt_semaphore sem_lock;
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_STDRT
+static struct netif* sys_get_netif(void)
+{
+	return tap_netif_device.parent.netif;
+}
+#endif
+#ifdef USE_LWIP
 void Eth_Isr(void)
 {
 	if(__iobase != NULL)
@@ -105,6 +135,198 @@ void Eth_Isr(void)
 		}
 	}
 }
+#endif
+#ifdef USE_STDRT
+static void tap_asnet_thread_entry(void* param)
+{
+	struct eth_device* eth;
+	uint32 flag;
+	eth = (struct eth_device*) &tap_netif_device;
+
+	rt_kprintf("tap eth server on-line\n");
+
+	for(;;)
+	{
+		if (RT_NULL == __iobase) {
+			rt_kprintf("tap eth server exit\n");
+			rt_thread_exit();
+		}
+
+#if 0
+		flag = readl(__iobase+REG_NETSTATUS);
+		if(flag&FLG_RX)
+		{
+			/* notify eth rx thread to receive packet */
+			eth_device_ready(eth);
+		}
+#else
+		Eth_Isr();
+#endif
+
+		rt_thread_delay(1);
+	}
+}
+static rt_err_t tap_netif_init(rt_device_t dev)
+{
+	rt_thread_t tid;
+	uint32 val;
+	uint32 mtu;
+	pdev = find_pci_dev_from_id(0xcaac,0x0002);
+	if(RT_NULL == pdev)
+	{
+		rt_kprintf("tap: Could not open 'asnet'\n");
+		return -RT_ERROR;
+	}
+	
+	__iobase = (void*)(pdev->mem_addr[1]);
+	enable_pci_resource(pdev);
+#ifdef __X86__
+	pci_register_irq(pdev->irq_num,Eth_Isr);
+#else
+	pci_bus_write_config_byte(pdev,0x3c,0x44);
+	pci_register_irq(32+31,Eth_Isr);
+#endif
+	enable_pci_interrupt(pdev);
+
+	writel(__iobase+REG_GW, inet_addr(RT_LWIP_IPADDR));
+	writel(__iobase+REG_NETMASK, inet_addr(RT_LWIP_MSKADDR));
+	writel(__iobase+REG_CMD, 0);
+
+	mtu = readl(__iobase+REG_MTU);
+	val = readl(__iobase+REG_MACL);
+	tap_netif_device.dev_addr[0] = (val>>0)&0xFF;
+	tap_netif_device.dev_addr[1] = (val>>8)&0xFF;
+	tap_netif_device.dev_addr[2] = (val>>16)&0xFF;
+	tap_netif_device.dev_addr[3] = (val>>24)&0xFF;
+	val = readl(__iobase+REG_MACH);
+	tap_netif_device.dev_addr[4] = (val>>0)&0xFF;
+	tap_netif_device.dev_addr[5] = (val>>8)&0xFF;
+
+	RT_ASSERT(tap_netif_device.parent.netif != RT_NULL);
+	memcpy(tap_netif_device.parent.netif->hwaddr,
+		   tap_netif_device.dev_addr, 6);
+
+	/* create recv thread */
+	tid = rt_thread_create("tap", tap_asnet_thread_entry, RT_NULL, 
+		2048, RT_THREAD_PRIORITY_MAX - 1, 10);
+	if (tid != RT_NULL)
+	{
+		rt_thread_startup(tid);
+	}
+
+	rt_kprintf("hwaddr is %02X:%02X:%02X:%02X:%02X:%02X, mtu=%d\n",
+		tap_netif_device.dev_addr[0],tap_netif_device.dev_addr[1],
+		tap_netif_device.dev_addr[2],tap_netif_device.dev_addr[3],
+		tap_netif_device.dev_addr[4],tap_netif_device.dev_addr[4],
+		mtu);
+	return RT_EOK;
+}
+
+static rt_err_t tap_netif_open(rt_device_t dev, rt_uint16_t oflag)
+{
+	return RT_EOK;
+}
+
+static rt_err_t tap_netif_close(rt_device_t dev)
+{
+	return RT_EOK;
+}
+
+static rt_size_t tap_netif_read(rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
+{
+	rt_set_errno(-RT_ENOSYS);
+	return 0;
+}
+
+static rt_size_t tap_netif_write (rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+{
+	rt_set_errno(-RT_ENOSYS);
+	return 0;
+}
+
+static rt_err_t tap_netif_control(rt_device_t dev, int cmd, void *args)
+{
+	switch (cmd)
+	{
+	case NIOCTL_GADDR:
+		/* get mac address */
+		if (args) rt_memcpy(args, tap_netif_device.dev_addr, 6);
+		else return -RT_ERROR;
+		break;
+
+	default :
+		break;
+	}
+
+	return RT_EOK;
+}
+static rt_err_t tap_netif_tx( rt_device_t dev, struct pbuf* p)
+{
+	struct pbuf *q;
+	static char buffer[2048];
+	int length;
+	int pos = 0;
+	unsigned char* ptr;
+
+	/* lock EMAC device */
+	rt_sem_take(&sem_lock, RT_WAITING_FOREVER);
+
+	/* copy data to tx buffer */
+	q = p;
+	ptr = (rt_uint8_t*)buffer;
+	while (q)
+	{
+		memcpy(ptr, q->payload, q->len);
+		ptr += q->len;
+		q = q->next;
+	}
+	length = p->tot_len;
+
+	/* signal that packet should be sent(); */
+	writel(__iobase+REG_LENGTH,p->tot_len);
+	while(length > 0)
+	{
+		writel(__iobase+REG_DATA,*((uint8*)&buffer[pos]));
+		pos += 1;
+		length -= 1;
+	}
+	writel(__iobase+REG_CMD, 1);
+
+	/* unlock EMAC device */
+	rt_sem_release(&sem_lock);
+
+	return RT_EOK;
+}
+
+struct pbuf *tap_netif_rx(rt_device_t dev)
+{
+	struct pbuf* p = RT_NULL;
+	int size;
+	u16_t len,pos;
+
+	if(RT_NULL == __iobase) return RT_NULL;
+
+	size = len = readl(__iobase+REG_LENGTH);
+	if(size > 0)
+	{
+		pos = 0;
+		while(len > 0)
+		{
+			pkbuf[pos] = readl(__iobase+REG_DATA);
+			pos ++;
+			len --;
+		}
+	}
+
+	if (size > 0) {
+		p = pbuf_alloc(PBUF_LINK, size, PBUF_RAM);
+		pbuf_take(p, pkbuf, size);
+	}
+
+	return p;
+}
+
+#endif  /* USE_STDRT */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 {
@@ -160,7 +382,7 @@ struct pbuf * low_level_input(void)
 	pos = 0;
 	while(len2 > 0)
 	{
-		buf[pos] = readl(__iobase+REG_DATA);
+		pkbuf[pos] = readl(__iobase+REG_DATA);
 		pos ++;
 		len2 --;
 	}
@@ -174,7 +396,7 @@ struct pbuf * low_level_input(void)
 	if(p != NULL) {
 		/* We iterate over the pbuf chain until we have read the entire
 			packet into the pbuf. */
-		bufptr = &buf[0];
+		bufptr = &pkbuf[0];
 		for(q = p; q != NULL; q = q->next) {
 			/* Read enough bytes to fill this pbuf in the chain. The
 			   available data in the pbuf is given by the q->len
@@ -204,7 +426,7 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 
 	/* initiate transfer(); */
 
-	bufptr = &buf[0];
+	bufptr = &pkbuf[0];
 
 	for(q = p; q != NULL; q = q->next) {
 		/* Send the data from the pbuf to the interface, one pbuf at a
@@ -220,7 +442,7 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 	writel(__iobase+REG_LENGTH,p->tot_len);
 	while(p->tot_len > 0)
 	{
-		writel(__iobase+REG_DATA,*((uint8*)&buf[pos]));
+		writel(__iobase+REG_DATA,*((uint8*)&pkbuf[pos]));
 		pos += 1;
 		p->tot_len -= 1;
 	}
@@ -249,4 +471,24 @@ err_t tapif_init(struct netif *netif)
 	return ERR_OK;
 }
 #endif
+
+#ifdef USE_STDRT
+void tap_netif_hw_init(void)
+{
+	rt_sem_init(&sem_lock, "eth_lock", 1, RT_IPC_FLAG_FIFO);
+
+	tap_netif_device.parent.parent.init		= tap_netif_init;
+	tap_netif_device.parent.parent.open		= tap_netif_open;
+	tap_netif_device.parent.parent.close	= tap_netif_close;
+	tap_netif_device.parent.parent.read		= tap_netif_read;
+	tap_netif_device.parent.parent.write	= tap_netif_write;
+	tap_netif_device.parent.parent.control	= tap_netif_control;
+	tap_netif_device.parent.parent.user_data= RT_NULL;
+
+	tap_netif_device.parent.eth_rx			= tap_netif_rx;
+	tap_netif_device.parent.eth_tx			= tap_netif_tx;
+
+	eth_device_init(&(tap_netif_device.parent), "e0");
+}
+#endif /* USE_STDRT */
 #endif /* USE_PCI */

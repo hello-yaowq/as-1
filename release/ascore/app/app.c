@@ -296,8 +296,10 @@ TASK(TaskApp)
 		if(0 ==(counter%100))Xcp_MainFunction_Channel(XCP_EVCHL_1000ms);
 	}
 #endif
+#ifndef USE_STDRT
 #ifdef USE_LWIP
 	OsActivateTask(TaskLwip);
+#endif
 #endif
 	OsTerminateTask(TaskApp);
 
@@ -390,3 +392,13 @@ void __error__(char *pcFilename, unsigned long ulLine)
 {
 	printf(" error @ %d of %s\n",ulLine,pcFilename);
 }
+
+#if 0
+void _sbrk(void) {}
+void _write(void) {}
+void _close(void) {}
+void _fstat(void) {}
+void _isatty(void) {}
+void _lseek(void) {}
+void _read(void) {}
+#endif

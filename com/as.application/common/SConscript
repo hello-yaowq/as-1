@@ -10,7 +10,7 @@ MODULES = asenv['MODULES']
 objs = Glob('*.xml')
 objs += Glob('*.arxml')
 
-if('LWIP' in MODULES):
+if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += Glob('config/lwip.xml')
 
 if('CANNM' in MODULES):

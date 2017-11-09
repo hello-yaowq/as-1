@@ -21,6 +21,9 @@ if(not os.path.exists(fatfs)):
         cmd+='wget %s/ff.h && '%(uri)
         cmd+='wget %s/ffconf.h && '%(uri)
         cmd+='wget %s/integer.h'%(uri)
+        cmd+=' && sed -i "28c //" ff.h'
+        cmd+=' && sed -i "6061c //" ff.c'
+        cmd+=' && sed -i "6062c #if 0" ff.c'
         RunCommand('''cd %s && mkdir -p ff13/source && cd ff13/source && %s'''%(download,cmd))
 MKSymlink(fatfs,'%s/fatfs'%(cwd))
 

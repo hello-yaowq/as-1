@@ -69,7 +69,7 @@ if('studio' in COMMAND_LINE_TARGETS):
 
 cfgdir = '%s/config'%(bdir)
 cfgdone = '%s/config.done'%(cfgdir)
-if(not os.path.exists(cfgdone)):
+if((not os.path.exists(cfgdone)) and (not asenv.GetOption('clean'))):
     MKDir(cfgdir)
     for xml in xmls:
         MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))

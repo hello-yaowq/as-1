@@ -58,13 +58,14 @@ class RTCONFIG():
         f.close()
         PreProcessor.process_contents(contents)
         BuildOptions = PreProcessor.cpp_namespace
+        PrepareRTTHREAD(BuildOptions)
 
 
 Import('asenv')
 
-rtroot = '%s/release/download/rt-thread'%(asenv['ASROOT'])
+rtroot = '%s/rt-thread'%(cwd)
 
-remove_components=['external','gdb','vmm','vbus','utilities','libc']
+remove_components=['external','gdb','vmm','vbus','utilities']
 RTT_ROOT=rtroot
 rtconfig=RTCONFIG(asenv)
 Export('remove_components')
@@ -73,12 +74,12 @@ Export('rtconfig')
 
 if(not os.path.exists(rtroot)):
     RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
-    RunCommand('cd %s/release/download && sed -i "1052c //"'%(asenv['ASROOT']))
 
+MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
 asenv.Append(CCFLAGS=' -I%s '%(cwd))
 asenv.Append(CCFLAGS=' -I%s/../small '%(cwd))
 asenv.Append(CCFLAGS='-DUSE_OSAL')
-
+asenv.Append(CCFLAGS='-DUSE_STDRT')
 objs = Glob('*.c')
 
 list = os.listdir(rtroot)
@@ -86,6 +87,6 @@ list = os.listdir(rtroot)
 for d in list:
     path = os.path.join(rtroot, d)
     if os.path.isfile(os.path.join(path, 'SConscript')):
-        objs = objs + SConscript(os.path.join(path, 'SConscript'))
+        objs = objs + SConscript(os.path.join('rt-thread', d, 'SConscript'))
 
 Return('objs')

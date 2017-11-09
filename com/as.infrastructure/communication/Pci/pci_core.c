@@ -29,7 +29,7 @@
 #define AS_LOG_PCI 1
 /* sys API wrapper */
 #define _sys_printf    printf
-#define _sys_kmalloc   asmalloc
+#define _sys_kmalloc   malloc
 #define _sys_memset32  memset
 #define _sys_memcpy    memcpy
 #define _sys_putchar   __putchar
@@ -48,7 +48,6 @@ static void pciDecodeBar(pci_dev *device, uint8 offset, uint32 *base_addr,
 		uint32 *addr_size, int *prefetch);
 
 extern void __putchar(char ch);
-extern void *asmalloc(size_t xWantedSize);
 
 extern int pci_disable_IRQ_line(uint32 irq);
 extern int pci_enable_IRQ_line(uint32 irq);

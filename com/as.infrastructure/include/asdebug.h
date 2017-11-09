@@ -20,12 +20,14 @@
 #include <sys/time.h>
 #endif
 #include "__debug.h"
+
 /* ============================ [ MACROS    ] ====================================================== */
 #ifdef CONFIG_ARCH_VEXPRESS
 #define USE_DET
 #define printf printk
 #define asAssertErrorHook()
 #endif
+
 /* levels for log output */
 #define AS_LOG_DEFAULT  1
 #define AS_LOG_STDOUT  	AS_LOG_DEFAULT

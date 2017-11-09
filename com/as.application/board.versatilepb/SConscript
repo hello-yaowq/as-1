@@ -49,6 +49,8 @@ asenv.Append(CCFLAGS=' -DPAGE_SIZE=0x1000 ')
 
 #lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
 lds = '%s/com/as.infrastructure/arch/bcm2835/bsp/linker.lds'%(ASROOT)
+if(asenv['RTOS'] == 'rtthread'):
+    lds = '%s/versatilepb.lds'%(cwd)
 asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
 
@@ -61,8 +63,9 @@ MODULES = ['ECUM','SCHM','MCU',
 
 if(asenv['RTOS'] != 'rtthread'):
     MODULES += ['FATFS','LWEXT4',
-           'CLIB_ASHEAP','CLIB_MISCLIB','CLIB_STDIO_PRINTF',
+           'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_MBOX','CLIB_QSORT',
+           'CLIB_STDIO_PRINTF',
            ]
 else:
     asenv.Append(CCFLAGS='-DRT_HEAP_SIZE=0x800000')

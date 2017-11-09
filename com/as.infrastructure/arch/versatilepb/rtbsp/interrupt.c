@@ -173,3 +173,15 @@ rt_isr_handler_t rt_hw_interrupt_install(int vector, rt_isr_handler_t handler,
 
     return old_handler;
 }
+
+#ifdef USE_STDRT
+imask_t __Irq_Save(void)
+{
+	return rt_hw_interrupt_disable();
+}
+
+void Irq_Restore(imask_t mask)
+{
+	rt_hw_interrupt_enable(mask);
+}
+#endif

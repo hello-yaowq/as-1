@@ -15,12 +15,32 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "EcuM.h"
 #include "asdebug.h"
+#ifdef USE_STDRT
+#include "rthw.h"
+#ifdef RT_USING_LWIP
+#include <lwip/sys.h>
+#include <netif/ethernetif.h>
+#endif
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 
-/* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_STDRT
+extern void rt_hw_timer_init(void);
+extern void rt_hw_console_init(void);
+extern void finsh_system_init(void);
+extern void finsh_set_device(const char* name);
+extern void tap_netif_hw_init(void);
+extern void lwip_system_init(void);
+#endif
+/* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_STDRT
+#ifdef RT_USING_HEAP
+static rt_uint8_t ucHeap[RT_HEAP_SIZE];
+#endif
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int main(int argc,char* argv[])
@@ -30,6 +50,93 @@ int main(int argc,char* argv[])
 	while(1);
 	return 0;
 }
+#ifdef USE_STDRT
+void rt_hw_board_init(void)
+{
+
+}
+void rt_application_init(void)
+{
+    rt_thread_t tid;
+
+#ifdef RT_USING_HEAP
+	/* init memory system */
+	rt_system_heap_init((void *)ucHeap, (void *)&ucHeap[RT_HEAP_SIZE]);
+#endif
+
+    /* init the console */
+    rt_hw_console_init();
+    rt_console_set_device("console");
+
+#ifdef RT_USING_FINSH
+    /* init finsh */
+    finsh_system_init();
+    finsh_set_device("console");
+#endif
+
+    tid = rt_thread_create("init",
+		                  (void(*)(void*))EcuM_Init, RT_NULL,
+                           2048, 0, 20);
+
+    if (tid != RT_NULL)
+        rt_thread_startup(tid);
+
+    rt_hw_timer_init();
+}
+void rtthread_startup(void)
+{
+    rt_hw_interrupt_disable();
+
+    /* board level initalization
+     * NOTE: please initialize heap inside board initialization.
+     */
+    rt_hw_board_init();
+
+    /* show RT-Thread version */
+    rt_show_version();
+
+    /* timer system initialization */
+    rt_system_timer_init();
+
+    /* scheduler system initialization */
+    rt_system_scheduler_init();
+
+#ifdef RT_USING_SIGNALS
+    /* signal system initialization */
+    rt_system_signal_init();
+#endif
+
+    /* create init_thread */
+    rt_application_init();
+
+    /* timer thread initialization */
+    rt_system_timer_thread_init();
+
+    /* idle thread initialization */
+    rt_thread_idle_init();
+
+    /* start scheduler */
+    rt_system_scheduler_start();
+
+}
+#ifdef USE_LWIP
+void LwIP_Init(void)
+{
+	tap_netif_hw_init();
+	
+	/* initialize lwip stack */
+	/* register ethernetif device */
+	tap_netif_hw_init();
+    
+	/* register ethernetif device */
+	eth_system_device_init();
+	/* initialize lwip system */
+	lwip_system_init();
+	rt_kprintf("TCP/IP initialized!\n");
+
+}
+#endif
+#endif
 
 #ifdef __WINDOWS__
 #include <time.h>

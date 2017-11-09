@@ -22,7 +22,13 @@
 #include "Std_Types.h"
 #include "asdebug.h"
 #include "pci_core.h"
+#ifndef USE_STDRT
 #include "irq.h"
+#else
+#include <rtthread.h>
+#include <rthw.h>
+#include "interrupt.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_PCI 1
 
@@ -214,10 +220,15 @@ void pci_write_config_reg8(pci_reg *reg, uint8 offset, const uint8 value)
 	pci_generic_config_write(reg->bus, reg->fn, offset|(reg->dev<<11), 1, value);
 }
 
-
+#ifndef USE_STDRT
 int pci_disable_IRQ_line(uint32 irq) { irq_disable_line(irq); return 0; }
 int pci_enable_IRQ_line(uint32 irq)  { irq_enable_line(irq); return 0; }
 int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return irq_install_isr(irq,handle); }
+#else
+int pci_disable_IRQ_line(uint32 irq) { rt_hw_interrupt_mask(irq); return 0; }
+int pci_enable_IRQ_line(uint32 irq)  { rt_hw_interrupt_unmask(irq); return 0; }
+int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return 	rt_hw_interrupt_install(irq, handle, RT_NULL, "pci"); }
+#endif
 int pci_sys_irq_set_level_trigger(uint32 irq) { return 1; }
 int pci_sys_irq_set_edge_trigger(uint32 irq)  { return 1; }
 

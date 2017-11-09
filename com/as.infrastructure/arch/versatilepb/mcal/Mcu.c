@@ -25,8 +25,12 @@
 #include "Dem.h"
 #endif
 #include "Os.h"
+#ifndef USE_STDRT
 #include "serial.h"
 #include "irq.h"
+#else
+#include "rthw.h"
+#endif
 #include "asdebug.h"
 #ifdef USE_PCI
 #include "pci_core.h"
@@ -37,12 +41,19 @@
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void timer_init(void (*cbk)(void));
+void rt_console_putc(int c);
+extern void pci_init(void);
+extern unsigned int _start;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
 {
+#ifndef USE_STDRT
 	serial_send_char(ch);
+#else
+	rt_console_putc(ch);
+#endif
 }
 
 #ifndef __GNUC__
@@ -52,6 +63,7 @@ int putchar( int ch )	/* for printf */
   return ch;
 }
 #endif
+
 void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
 	(void)configPtr;
@@ -76,7 +88,8 @@ Std_ReturnType Mcu_InitClock( const Mcu_ClockType ClockSetting ) {
 }
 
 void Mcu_PerformReset( void ) {
-    DisableInterrupts();
+	imask_t mask;
+	Irq_Save(mask);
     RESET();
 }
 
@@ -99,41 +112,40 @@ void StartOsTick(void)
 
 void tpl_shutdown(void)
 {
-	DisableInterrupts();
+	imask_t mask;
+	Irq_Save(mask);
 	while(1);
 }
 #ifdef __RTTHREAD_OS__
+
 void rt_low_level_init(void)
 {
+	/* copy ISR */
+	memcpy((void*)0x0000,(void*)0x8000,64);
 }
-void tpl_primary_syscall_handler(void)
+void machine_shutdown(void)
 {
+	rt_hw_interrupt_disable();
 	while(1);
 }
 #endif
 
-#ifdef TEST_HELLO_TIC
-static pci_dev *pdev = NULL;
-void hello_tic_isr(void)
-{
-	uint32* p;
-	asAssert(pdev != NULL);
-	p = pdev->mem_addr[1];
-	printf("Hello Tic ISR\n");
-	p[2] = 0;	/* ack irq */
-}
-#endif
-extern unsigned int _start;
 void Mcu_DistributePllClock( void )
 {
+	imask_t mask;
+#ifndef USE_STDRT
 	serial_init();
 	vic_setup();
 	irq_init();
+#endif
+
 	#ifdef USE_PCI
 	pci_init();
 	pci_search_all_device();
 	#endif
-	DisableInterrupts();
+
+	Irq_Save(mask);
+#ifndef USE_STDRT
 #ifndef __AS_BOOTLOADER__
 	/* for application bcm2835, need to reset the handler array*/
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);
@@ -141,7 +153,6 @@ void Mcu_DistributePllClock( void )
 #else
 	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*32),32);
 #endif
-
 	printf(" >> versatilepb startup done,start @%p\n",&_start);
-
+#endif
 }

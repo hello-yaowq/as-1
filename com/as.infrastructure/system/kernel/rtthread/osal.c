@@ -23,8 +23,10 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 TickType				OsTickCounter;
+#ifndef USE_STDRT
 #ifdef RT_USING_HEAP
 static rt_uint8_t heap[RT_HEAP_SIZE];
+#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #if RT_THREAD_PRIORITY_MAX  < TASK_NUM
@@ -260,7 +262,7 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 		if(E_OK == ercd)
 		{
 			rt_err_t err;
-			rt_timer_init(&osTmr[AlarmId],AlarmList[AlarmId].name, _AlarmProcess, (void*)AlarmId,
+			rt_timer_init(&osTmr[AlarmId],AlarmList[AlarmId].name, _AlarmProcess, (void*)(long)AlarmId,
 						  Cycle?Cycle:Increment,
 						  Cycle?RT_TIMER_FLAG_PERIODIC:RT_TIMER_FLAG_ONE_SHOT);
 
@@ -338,7 +340,7 @@ FUNC(StatusType,MEM_Schedule)       Schedule ( void )
 {
 	StatusType ercd = E_OK;
 
-	rt_thread_sleep(1);
+	rt_thread_delay(1);
 	
 	return ercd;
 }
@@ -348,7 +350,7 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	uint32 i;
 	rt_err_t  ercd;
 	const task_declare_t* td;
-
+#ifndef USE_STDRT
 	(void)rt_hw_interrupt_disable();
 
 	rt_system_tick_init();
@@ -360,7 +362,7 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	/* init memory system */
 	rt_system_heap_init((void *)heap, (void *)(((uint32)heap)+ RT_HEAP_SIZE));
 #endif
-
+#endif
 	memset(osTmrStatus,0,sizeof(osTmrStatus));
 	for(i=0;i<TASK_NUM;i++)
 	{
@@ -378,12 +380,15 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	}
 
 	StartupHook();
-
+#ifndef USE_STDRT
 	rt_system_timer_thread_init();
 	rt_thread_idle_init();
 
 	rt_system_scheduler_start();
-
+#else
+	extern void rt_thread_exit(void);
+	rt_thread_exit();
+#endif
 }
 
 FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )

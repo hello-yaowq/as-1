@@ -77,7 +77,9 @@
 // </section>
 
 // <section name="RT_USING_FINSH" description="Using finsh as shell, which is a C-Express shell" default="true" >
-//#define RT_USING_FINSH
+#define RT_USING_FINSH
+#define FINSH_USING_MSH
+#define FINSH_USING_MSH_ONLY
 // <bool name="FINSH_USING_SYMTAB" description="Using symbol table in finsh shell" default="true" />
 #define FINSH_USING_SYMTAB
 // <bool name="FINSH_USING_DESCRIPTION" description="Keeping description in symbol table" default="true" />
@@ -88,7 +90,7 @@
 
 // <section name="LIBC" description="C Runtime library setting" default="always" >
 // <bool name="RT_USING_LIBC" description="Using C library" default="true" />
-//#define RT_USING_LIBC
+#define RT_USING_LIBC
 // <bool name="RT_USING_PTHREADS" description="Using POSIX threads library" default="true" />
 //#define RT_USING_PTHREADS
 // </section>
@@ -127,7 +129,8 @@
 // </section>
 
 // <section name="RT_USING_LWIP" description="lwip, a lightweight TCP/IP protocol stack" default="true" >
-//#define RT_USING_LWIP
+#define RT_USING_LWIP
+#define RT_USING_LWIP141
 // <bool name="RT_LWIP_USING_RT_MEM" description="Using RT-Thread memory management for LwIP" default="true" />
 #define RT_LWIP_USING_RT_MEM
 // <bool name="RT_LWIP_ICMP" description="Enable ICMP protocol" default="true" />
@@ -165,20 +168,23 @@
 // <integer name="RT_LWIP_ETHTHREAD_STACKSIZE" description="the stack size of ethnetif thread" default="512" />
 #define RT_LWIP_ETHTHREAD_STACKSIZE	512
 // <ipaddr name="RT_LWIP_IPADDR" description="IP address of device" default="192.168.1.30" />
-#define RT_LWIP_IPADDR0 192
-#define RT_LWIP_IPADDR1 168
-#define RT_LWIP_IPADDR2 1
-#define RT_LWIP_IPADDR3 30
+#define RT_LWIP_IPADDR0 172
+#define RT_LWIP_IPADDR1 18
+#define RT_LWIP_IPADDR2 0
+#define RT_LWIP_IPADDR3 200
+#define RT_LWIP_IPADDR "172.18.0.200"
 // <ipaddr name="RT_LWIP_GWADDR" description="Gateway address of device" default="192.168.1.1" />
-#define RT_LWIP_GWADDR0 192
-#define RT_LWIP_GWADDR1 168
-#define RT_LWIP_GWADDR2 1
+#define RT_LWIP_GWADDR0 172
+#define RT_LWIP_GWADDR1 18
+#define RT_LWIP_GWADDR2 0
 #define RT_LWIP_GWADDR3 1
+#define RT_LWIP_GWADDR "172.18.0.1"
 // <ipaddr name="RT_LWIP_MSKADDR" description="Mask address of device" default="255.255.255.0" />
 #define RT_LWIP_MSKADDR0 255
 #define RT_LWIP_MSKADDR1 255
 #define RT_LWIP_MSKADDR2 255
 #define RT_LWIP_MSKADDR3 0
+#define RT_LWIP_MSKADDR "255.255.255.0"
 // </section>
 
 // <section name="RT_USING_MODULE" description="Application module" default="true" >

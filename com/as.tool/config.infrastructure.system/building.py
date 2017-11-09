@@ -10,8 +10,6 @@ def PrepareRTTHREAD(opt):
     global BuildOptions
     BuildOptions = opt
 
-
-
 def PrepareBuilding(env):
     global Env
     Env = env
@@ -94,7 +92,10 @@ def DefineGroup(name, src, depend, **parameters):
         Env.AppendUnique(CPPDEFINES = parameters['CPPDEFINES'])
     if parameters.has_key('LINKFLAGS'):
         Env.AppendUnique(LINKFLAGS = parameters['LINKFLAGS'])
-    return src
+    objs = []    
+    for obj in src:
+        objs.append(Glob(str(obj)))
+    return objs
 
 def AddDepend(option):
     BuildOptions[option] = 1
