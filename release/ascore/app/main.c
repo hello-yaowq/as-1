@@ -34,6 +34,8 @@ extern void finsh_system_init(void);
 extern void finsh_set_device(const char* name);
 extern void tap_netif_hw_init(void);
 extern void lwip_system_init(void);
+extern void netbios_init(void);
+extern void rt_hw_asblk_init_all(void);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_STDRT
@@ -72,6 +74,10 @@ void rt_application_init(void)
     /* init finsh */
     finsh_system_init();
     finsh_set_device("console");
+#endif
+
+#ifdef RT_USING_DFS
+	rt_hw_asblk_init_all();
 #endif
 
     tid = rt_thread_create("init",
@@ -127,11 +133,13 @@ void LwIP_Init(void)
 	/* initialize lwip stack */
 	/* register ethernetif device */
 	tap_netif_hw_init();
-    
+
 	/* register ethernetif device */
 	eth_system_device_init();
 	/* initialize lwip system */
 	lwip_system_init();
+
+	netbios_init();
 	rt_kprintf("TCP/IP initialized!\n");
 
 }

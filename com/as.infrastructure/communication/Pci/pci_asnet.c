@@ -152,18 +152,21 @@ static void tap_asnet_thread_entry(void* param)
 			rt_thread_exit();
 		}
 
-#if 0
+#if 1
 		flag = readl(__iobase+REG_NETSTATUS);
 		if(flag&FLG_RX)
 		{
 			/* notify eth rx thread to receive packet */
 			eth_device_ready(eth);
 		}
+		else
+		{
+			rt_thread_delay(1);
+		}
 #else
 		Eth_Isr();
-#endif
-
 		rt_thread_delay(1);
+#endif
 	}
 }
 static rt_err_t tap_netif_init(rt_device_t dev)
@@ -319,6 +322,7 @@ struct pbuf *tap_netif_rx(rt_device_t dev)
 	}
 
 	if (size > 0) {
+		asmem("NETRX",pkbuf,size);
 		p = pbuf_alloc(PBUF_LINK, size, PBUF_RAM);
 		pbuf_take(p, pkbuf, size);
 	}

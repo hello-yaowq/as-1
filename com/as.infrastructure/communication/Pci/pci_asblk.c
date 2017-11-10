@@ -17,6 +17,10 @@
 #include "Std_Types.h"
 #include "pci_core.h"
 #include "asdebug.h"
+#ifdef USE_STDRT
+#include "rtthread.h"
+#include "rthw.h"
+#else
 #ifdef USE_FATFS
 #include "diskio.h"
 #endif
@@ -26,6 +30,7 @@
 #include <ext4_config.h>
 #include <ext4_blockdev.h>
 #include <ext4_errno.h>
+#endif
 #endif
 
 #define AS_LOG_FATFS 0
@@ -38,6 +43,9 @@
 enum {
 	IMG_FATFS = 0,
 	IMG_EXT4,
+	IMG_BLK2,
+	IMG_BLK3,
+	IMG_MAX
 };
 enum{
 	REG_BLKID     = 0x00,
@@ -75,6 +83,12 @@ EXT4_BLOCKDEV_STATIC_INSTANCE(ext4_blkdev, 4096, 0, blockdev_open,
 			      blockdev_bread, blockdev_bwrite, blockdev_close,
 			      blockdev_lock, blockdev_unlock);
 #endif
+
+#ifdef RT_USING_DFS
+static struct rt_device devF[IMG_MAX];
+static struct rt_mutex lock[IMG_MAX];
+static struct rt_semaphore sem[IMG_MAX];
+#endif /* RT_USING_DFS */
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_LWEXT4
 static int blockdev_open(struct ext4_blockdev *bdev)
@@ -100,6 +114,7 @@ static int blockdev_bread(struct ext4_blockdev *bdev, void *buf, uint64_t blk_id
 	{
 		PciBlk_Read(IMG_EXT4,bdev->bdif->ph_bsize,blk_id,buf);
 		blk_cnt--;
+		blk_id ++;
 		buf += bdev->bdif->ph_bsize;
 	}
 	return 0;
@@ -113,6 +128,7 @@ static int blockdev_bwrite(struct ext4_blockdev *bdev, const void *buf,
 	{
 		PciBlk_Write(IMG_EXT4,bdev->bdif->ph_bsize,blk_id,buf);
 		blk_cnt--;
+        blk_id++;
 		buf += bdev->bdif->ph_bsize;
 	}
 	return 0;
@@ -139,6 +155,99 @@ struct ext4_blockdev *ext4_blockdev_get(void)
 	return &ext4_blkdev;
 }
 #endif
+
+#ifdef RT_USING_DFS
+static rt_err_t rt_asblk_init_internal(rt_device_t dev)
+{
+    return RT_EOK;
+}
+
+static rt_err_t rt_asblk_open(rt_device_t dev, rt_uint16_t oflag)
+{
+    int blkid = (int)dev->user_data;
+	PciBlk_Init(blkid);
+    return RT_EOK;
+}
+
+static rt_err_t rt_asblk_close(rt_device_t dev)
+{
+    return RT_EOK;
+}
+
+/* position: block page address, not bytes address
+ * buffer:
+ * size  : how many blocks
+ */
+static rt_size_t rt_asblk_read(rt_device_t dev, rt_off_t position, void *buffer, rt_size_t size)
+{
+	rt_size_t doSize = size;
+
+    int blkid = (int)dev->user_data;
+
+    rt_mutex_take(&lock[blkid], RT_WAITING_FOREVER);
+
+	while(size > 0)
+	{
+		PciBlk_Read(blkid,512,position,buffer);
+		size--;
+        position ++;
+		buffer += 512;
+	}
+
+	rt_mutex_release(&lock[blkid]);
+
+    return doSize;
+}
+
+/* position: block page address, not bytes address
+ * buffer:
+ * size  : how many blocks
+ */
+static rt_size_t rt_asblk_write(rt_device_t dev, rt_off_t position, const void *buffer, rt_size_t size)
+{
+
+	rt_size_t doSize = size;
+
+    int blkid = (int)dev->user_data;
+
+    rt_mutex_take(&lock[blkid], RT_WAITING_FOREVER);
+
+	while(size > 0)
+	{
+		PciBlk_Write(blkid,512,position,buffer);
+		size--;
+        position++;
+		buffer += 512;
+	}
+
+	rt_mutex_release(&lock[blkid]);
+
+    return doSize;
+}
+
+static rt_err_t rt_asblk_control(rt_device_t dev, int cmd, void *args)
+{
+    RT_ASSERT(dev != RT_NULL);
+
+    if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
+    {
+        uint32_t size;
+        int blkid = (int)dev->user_data;
+        struct rt_device_blk_geometry *geometry;
+
+        PciBlk_Size(blkid, &size);
+        geometry = (struct rt_device_blk_geometry *)args;
+        if (geometry == RT_NULL) return -RT_ERROR;
+
+        geometry->bytes_per_sector = 512;
+        geometry->block_size = 512;
+
+        geometry->sector_count = size / 512;
+    }
+
+    return RT_EOK;
+}
+#endif /* RT_USING_DFS */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int PciBlk_Init(uint32_t blkid)
 {
@@ -419,5 +528,43 @@ void ext_mount(void)
     ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/‘ OK\n");
 }
 #endif
+
+#ifdef RT_USING_DFS
+void rt_hw_asblk_init(int blkid)
+{
+    struct rt_device *device;
+    char buffer[16] = "asblk0";
+
+    if( blkid >= IMG_MAX) return;
+
+    rt_mutex_init(&lock[blkid],"fdlock", RT_IPC_FLAG_FIFO);
+	rt_sem_init(&sem[blkid], "fdsem", 0, RT_IPC_FLAG_FIFO);
+
+    device = &(devF[blkid]);
+
+    device->type  = RT_Device_Class_Block;
+    device->init = rt_asblk_init_internal;
+    device->open = rt_asblk_open;
+    device->close = rt_asblk_close;
+    device->read = rt_asblk_read;
+    device->write = rt_asblk_write;
+    device->control = rt_asblk_control;
+    device->user_data = (void*) blkid;
+
+    buffer[4] = '0' + blkid;
+    rt_device_register(device, buffer,
+                       RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_REMOVABLE | RT_DEVICE_FLAG_STANDALONE);
+
+}
+
+void rt_hw_asblk_init_all(void)
+{
+    int i;
+    for(i=0; i < IMG_MAX; i++)
+    {
+        rt_hw_asblk_init(i);
+    }
+}
+#endif /* RT_USING_DFS */
 
 #endif /* USE_PCI */

@@ -69,6 +69,7 @@ if(asenv['RTOS'] != 'rtthread'):
            ]
 else:
     asenv.Append(CCFLAGS='-DRT_HEAP_SIZE=0x800000')
+    MODULES += ['LWEXT4']
 
 ARCH='versatilepb'
 arch='arm'

@@ -96,7 +96,7 @@
 // </section>
 
 // <section name="RT_USING_DFS" description="Device file system" default="true" >
-//#define RT_USING_DFS
+#define RT_USING_DFS
 // <bool name="DFS_USING_WORKDIR" description="Using working directory" default="true" />
 #define DFS_USING_WORKDIR
 // <integer name="DFS_FILESYSTEMS_MAX" description="The maximal number of mounted file system" default="4" />
@@ -105,6 +105,7 @@
 #define DFS_FD_MAX	4
 // <bool name="RT_USING_DFS_ELMFAT" description="Using ELM FatFs" default="true" />
 #define RT_USING_DFS_ELMFAT
+#define RT_USING_DFS_LWEXT4
 // <integer name="RT_DFS_ELM_USE_LFN" description="Support long file name" default="0">
 // <item description="LFN1">1</item>
 // <item description="LFN1">2</item>

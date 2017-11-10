@@ -17,8 +17,11 @@ else:
     asenv.Append(ASFLAGS='-I%s/rtbsp'%(cwd))
 objs += Glob('mcal/*.c')
 
-if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if('LWIP' in MODULES):
     objs += Glob('../stm32f1/lwip/netbios.c')
+
+if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+   
     objs += Glob('../posix/lwip/sys_arch.c')
     asenv.Append(CCFLAGS=' -I%s/../stm32f1/lwip '%(cwd))
 

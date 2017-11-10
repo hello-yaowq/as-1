@@ -117,3 +117,11 @@ def GetDepend(depend):
                 building = False
 
     return building
+
+def GetConfigValue(name):
+    assert type(name) == str, 'GetConfigValue: only string parameter is valid'
+    try:
+        return BuildOptions[name]
+    except:
+        return ''
+

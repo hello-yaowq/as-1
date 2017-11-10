@@ -6,7 +6,7 @@ objs = []
 if(('FATFS' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += SConscript('fatfs/SConscript')
 
-if(('LWEXT4' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if('LWEXT4' in MODULES):
     objs += SConscript('lwext4/SConscript')
 
 Return('objs')

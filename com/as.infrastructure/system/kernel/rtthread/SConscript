@@ -76,8 +76,10 @@ if(not os.path.exists(rtroot)):
     RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
 
 MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
+
 asenv.Append(CCFLAGS=' -I%s '%(cwd))
 asenv.Append(CCFLAGS=' -I%s/../small '%(cwd))
+asenv.Append(CCFLAGS=' -I%s/components/drivers/include '%(rtroot))
 asenv.Append(CCFLAGS='-DUSE_OSAL')
 asenv.Append(CCFLAGS='-DUSE_STDRT')
 objs = Glob('*.c')
