@@ -551,7 +551,7 @@ void rt_hw_asblk_init(int blkid)
     device->control = rt_asblk_control;
     device->user_data = (void*) blkid;
 
-    buffer[4] = '0' + blkid;
+    buffer[5] = '0' + blkid;
     rt_device_register(device, buffer,
                        RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_REMOVABLE | RT_DEVICE_FLAG_STANDALONE);
 

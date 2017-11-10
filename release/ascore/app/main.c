@@ -21,6 +21,12 @@
 #include <lwip/sys.h>
 #include <netif/ethernetif.h>
 #endif
+#ifdef RT_USING_DFS
+/* dfs filesystem:ELM filesystem init */
+#include <dfs_elm.h>
+/* dfs Filesystem APIs */
+#include <dfs_fs.h>
+#endif
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -78,7 +84,29 @@ void rt_application_init(void)
 
 #ifdef RT_USING_DFS
 	rt_hw_asblk_init_all();
+
+    /* initialize the device file system */
+    dfs_init();
+
+#ifdef RT_USING_DFS_ELMFAT
+    /* initialize the elm chan FatFS file system*/
+    elm_init();
 #endif
+
+#ifdef RT_USING_MODULE
+    rt_system_module_init();
+#endif
+
+    /* mount sd card fat partition 1 as root directory */
+    if (dfs_mount("asblk0", "/", "elm", 0, 0) == 0)
+    {
+        rt_kprintf("File System FATFS initialized!\n");
+    }
+    else
+	{
+        rt_kprintf("File System FATFS initialzation failed!\n");
+	}
+#endif  /* RT_USING_DFS */
 
     tid = rt_thread_create("init",
 		                  (void(*)(void*))EcuM_Init, RT_NULL,
@@ -128,8 +156,6 @@ void rtthread_startup(void)
 #ifdef USE_LWIP
 void LwIP_Init(void)
 {
-	tap_netif_hw_init();
-	
 	/* initialize lwip stack */
 	/* register ethernetif device */
 	tap_netif_hw_init();

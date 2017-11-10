@@ -322,7 +322,6 @@ struct pbuf *tap_netif_rx(rt_device_t dev)
 	}
 
 	if (size > 0) {
-		asmem("NETRX",pkbuf,size);
 		p = pbuf_alloc(PBUF_LINK, size, PBUF_RAM);
 		pbuf_take(p, pkbuf, size);
 	}

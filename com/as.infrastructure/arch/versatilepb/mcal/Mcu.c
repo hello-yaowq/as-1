@@ -139,11 +139,6 @@ void Mcu_DistributePllClock( void )
 	irq_init();
 #endif
 
-	#ifdef USE_PCI
-	pci_init();
-	pci_search_all_device();
-	#endif
-
 	Irq_Save(mask);
 #ifndef USE_STDRT
 #ifndef __AS_BOOTLOADER__

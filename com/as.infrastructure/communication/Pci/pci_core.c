@@ -54,9 +54,10 @@ extern int pci_enable_IRQ_line(uint32 irq);
 extern int pci_sys_set_irq_handle(uint32 irq, void (*handle)(void));
 extern int pci_sys_irq_set_level_trigger(uint32 irq);
 extern int pci_sys_irq_set_edge_trigger(uint32 irq);
-
+extern void pci_init(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static pci_dev *pci_root = NULL;
+static int initFlag = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static int disable_IRQ_line(uint32 irq) {
 	return pci_disable_IRQ_line(irq);
@@ -459,6 +460,12 @@ void disable_pci_interrupt(pci_dev *device) {
 pci_dev *find_pci_dev_from_id(uint32 vendor_id, uint32 device_id) {
 	pci_dev *ptr;
 
+	if(0 == initFlag)
+	{
+		pci_init();
+		pci_search_all_device();
+		initFlag =1;
+	}
 	for (ptr = pci_root; !(ptr == NULL); ptr = ptr->next) {
 		if (ptr->vendor_id == vendor_id && ptr->device_id == device_id) {
 			return ptr;
