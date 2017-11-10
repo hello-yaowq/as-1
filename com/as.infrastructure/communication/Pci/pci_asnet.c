@@ -191,7 +191,7 @@ static rt_err_t tap_netif_init(rt_device_t dev)
 #endif
 	enable_pci_interrupt(pdev);
 
-	writel(__iobase+REG_GW, inet_addr(RT_LWIP_IPADDR));
+	writel(__iobase+REG_GW, inet_addr(RT_LWIP_GWADDR));
 	writel(__iobase+REG_NETMASK, inet_addr(RT_LWIP_MSKADDR));
 	writel(__iobase+REG_CMD, 0);
 
