@@ -24,5 +24,8 @@ asenv.Append(CCFLAGS = '-I%s/lwext4/include'%(cwd))
 asenv.Append(CCFLAGS = '-DCONFIG_USE_DEFAULT_CFG')
 if(asenv['RTOS'] != 'rtthread'):
     asenv.Append(CCFLAGS = '-DUSE_LWEXT4')
+else:
+    objs += Glob('*.c')
+    asenv.Append(CCFLAGS = '-I%s'%(cwd))
 
 Return('objs')
