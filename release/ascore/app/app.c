@@ -13,6 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef USE_FATFS
+#include "ff.h"
+#endif
 #include "Os.h"
 #ifdef USE_GUI
 #include "Sg.h"
@@ -25,9 +28,6 @@
 #endif
 #ifdef USE_XCP
 #include "Xcp.h"
-#endif
-#ifdef USE_FATFS
-#include "ff.h"
 #endif
 #ifdef USE_LWEXT4
 #include "ext4.h"

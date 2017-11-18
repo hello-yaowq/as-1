@@ -3,6 +3,7 @@ from building import *
 
 Import('asenv')
 MODULES=asenv['MODULES']
+ASROOT=asenv['ASROOT']
 
 cwd = GetCurrentDir()
 
@@ -12,13 +13,49 @@ objs += Glob('mcal/*.c')
 SrcRemove(objs,'Ipc.c')
 
 if('LWIP' in MODULES):
+    download = '%s/release/download'%(ASROOT)
+    lwip='%s/lwip-contrib'%(download)
+
+    if(not os.path.exists(lwip)):
+        MKDir(download)
+        RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && 
+            cd lwip-contrib && git checkout STABLE-1_4_1'''%(download))
+        RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
+
+    MKSymlink(lwip,'%s/lwip-contrib'%(cwd))
+    asenv.Append(CCFLAGS='-I%s/lwip'%(cwd))
+    if(os.name == 'nt'):
+        objs += Glob('lwip-contrib/ports/win32/pcapif.c')
+        objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
+        objs += Glob('lwip-contrib/ports/win32/sys_arch.c')
+        MKSymlink('%s/lwip-contrib/ports/win32/include/arch/sys_arch.h'%(cwd),
+                  '%s/lwip/lwip_sys_arch.h'%(cwd))
+        MKSymlink('%s/lwip-contrib/ports/win32/lwipcfg_msvc.h.example'%(cwd),
+                  '%s/lwip-contrib/ports/win32/lwipcfg_msvc.h'%(cwd))
+    else:
+        objs += Glob('lwip-contrib/ports/unix/sys_arch.c')
+        MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
+                  '%s/lwip/lwip_sys_arch.h'%(cwd))
+        objs += Glob('lwip/tapif.c')
     objs += Glob('lwip/sys_arch.c')
-    asenv.Append(CCFLAGS=' -I%s/lwip '%(cwd))
-    SrcRemove(objs,'ethernetif.c')
-    SrcRemove(objs,'sys_arch.c')
+    objs += Glob('lwip-contrib/apps/httpserver/*.c')
+    objs += Glob('../stm32f1/lwip/netbios.c')
+
+    if(os.name == 'nt'):
+        pcap='%s/WpdPack'%(download)
+        if(not os.path.exists(pcap)):
+            RunCommand('''cd %s && wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
+                unzip WpdPack_4_1_2.zip'''%(download))
+        MKSymlink(pcap,'%s/WpdPack'%(cwd))
+        asenv.Append(CCFLAGS='-I%s/WpdPack/Include'%(cwd))
+        asenv.Append(LIBS=['packet','wpcap'])
+        asenv.Append(LIBPATH='%s/WpdPack/Lib'%(cwd))
+        if('-D_MSC_VER' not in asenv['CCFLAGS']):
+            asenv.Append(CCFLAGS='-D_MSC_VER')
 
 #by default, use all supported
-asenv.Append(CCFLAGS='-DUSE_CAN -DUSE_DIO -DUSE_EEP -DUSE_FLS -DUSE_LCD -DUSE_MCU -DUSE_PORT -DUSE_STMO')
+asenv.Append(CCFLAGS=['-DUSE_CAN','-DUSE_DIO','-DUSE_EEP','-DUSE_FLS',
+                      '-DUSE_LCD','-DUSE_MCU','-DUSE_PORT','-DUSE_STMO'])
 asenv.Append(CCFLAGS='-D__AS_CAN_BUS__')
 asenv.Append(CCFLAGS='-I%s/com/as.infrastructure/communication/RPmsg'%(asenv['ASROOT']))
 

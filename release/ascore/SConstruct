@@ -33,6 +33,14 @@ else:
         if(b in board_list):
             BOARD = b
 
+if(os.name == 'nt'):
+    BOARD = os.getenv('BOARD')
+
+asenv['RTOS']='askar'
+if(os.getenv('RTOS') in ['rtthread','small']):
+    asenv['RTOS'] = os.getenv('RTOS')
+print('RTOS is %s'%(asenv['RTOS']))
+
 if(BOARD is None):
     print('Error: no BOARD specified!')
     help()
@@ -42,10 +50,12 @@ asenv['BOARD'] = BOARD
 Export('asenv')
 
 bdir = 'build/%s'%(BOARD)
-objs = Glob('app/*.c')
-sobjs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
+objs = []
+xmls = []
 
-xmls = Glob('app/*.xml')
+sobjs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
+sobjs += SConscript('app/SConscript',variant_dir=bdir+'/app', duplicate=0)
+
 arxml= None
 
 for obj in sobjs:
@@ -62,9 +72,11 @@ for obj in sobjs:
 if('studio' in COMMAND_LINE_TARGETS):
     assert(arxml)
     pd = os.path.dirname(str(arxml))
-    ret = os.system('cd %s && python3 studio.py %s'%(studio,pd))
-    if(0 != ret):
-        raise Exception('please install anaconda3, and add python3 to env PATH')
+    py = python3
+    if(os.name == 'nt'):
+        print('WARNING: fix to the right python3 path: SConstruct')
+        py = 'C:/Python32/python.exe'
+    RunCommand('cd %s && %s studio.py %s'%(studio,py,pd))
     exit(0)
 
 cfgdir = '%s/config'%(bdir)
@@ -79,8 +91,8 @@ if((not os.path.exists(cfgdone)) and (not asenv.GetOption('clean'))):
     MKFile(cfgdone)
 
 objs += Glob('%s/*.c'%(cfgdir))
-asenv.Append(CCFLAGS=' -I%s '%(cfgdir))
-asenv.Append(ASFLAGS=' -I%s '%(cfgdir))
+asenv.Append(CCFLAGS='-I%s'%(cfgdir))
+asenv.Append(ASFLAGS='-I%s'%(cfgdir))
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)

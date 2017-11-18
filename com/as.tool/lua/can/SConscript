@@ -9,12 +9,18 @@ assert(asenv['BOARD'] == 'posix')
 
 objs = []
 
-objs +=  Glob('*.c')
-objs +=  Glob('rs232/*.c')
-
 asenv.Append(CCFLAGS='-I%s'%(cwd))
 asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
 if(os.name == 'nt'):
     asenv.Append(CCFLAGS='-I%s/peak-can'%(cwd))
+    MKSymlink('%s/../../cancasexl.access/vxlapi.h'%(cwd),'%s/vxlapi.h'%(cwd))
+    MKSymlink('%s/../../cancasexl.access/xlLoadlib.cpp'%(cwd),'%s/xlLoadlib.c'%(cwd))
+    asenv.Append(CCFLAGS=['-DDYNAMIC_XLDRIVER_DLL', '-DPOINTER_32='])
+
+objs +=  Glob('*.c')
+objs +=  Glob('rs232/*.c')
+
+if(os.name == 'nt'):
+    objs += Glob('peak-can/lib/win32/PCANBasic.lib')
 
 Return('objs')

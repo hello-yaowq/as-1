@@ -26,19 +26,28 @@ MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
-           'SOAD','DOIP','LWIP',
            'FATFS','LWEXT4',
            'PORT','DIO','EEP','FLS','STMO',
+           'EA','FEE','MEMIF','NVM',
            ]
 
 ARCH='posix'
 arch='posix'
+
+if(os.name != 'nt'):
+    MODULES += ['SOAD','DOIP','LWIP']
+else:
+    MODULES += ['CLIB_STRTOK_R']
+
+MODULES += ['CLIB_MBOX']
 
 if(os.getenv('GUI') in ['GTK','OPENVG']):
     MODULES.append(os.getenv('GUI'))
 else:
     print('WARNING: use default GTK GUI for posix')
     MODULES.append('GTK')
+
+MODULES.append('SG')
 
 asenv['MODULES'] = MODULES
 asenv['ARCH'] = ARCH

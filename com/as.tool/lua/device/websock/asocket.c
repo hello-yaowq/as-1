@@ -14,6 +14,11 @@
  */
 
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef __WINDOWS__
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,9 +26,6 @@
 #include <assert.h>
 #include <errno.h>
 #ifdef __WINDOWS__
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <windows.h>
 #ifndef MSG_DONTWAIT
 #define MSG_DONTWAIT 0
 #endif

@@ -48,7 +48,7 @@ $(download)/json-c:
 ifeq ($(host),Linux)
 	@(cd $(download)/json-c;sh ./autogen.sh; ./configure; make)
 else
-	@(cd $(download)/json-c;cp config.h.win32 cp config.h;cp json_config.h.win32 cp json_config.h)
+	@(cd $(download)/json-c;cp config.h.win32 config.h;cp json_config.h.win32 json_config.h)
 endif
 
 asjson-c:$(download)/json-c

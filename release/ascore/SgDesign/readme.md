@@ -2,7 +2,7 @@
 
 GIMP tool used
 
-python34 and pyQt4 used
+python34 and pyQt5 used
 
 run SG.CMD to generate the SgRes
 

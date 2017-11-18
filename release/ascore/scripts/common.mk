@@ -48,10 +48,22 @@ aslwip: $(download)/lwip $(download)/lwip-contrib
 $(download)/rt-thread:
 	@(cd $(download); git clone https://github.com/RT-Thread/rt-thread.git)
 
+$(download)/WpdPack_4_1_2.zip:
+	@(cd $(download);wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip)
+
+$(download)/WpdPack:
+	@(cd $(download); unzip $(download)/WpdPack_4_1_2.zip)
+
+ifeq ($(host), Linux)
+dep-wincap=
+else
+dep-wincap=$(download)/WpdPack
+endif
+
 $(download)/qemu/hw/char/libpyas.a:
 	(cd $(prj-dir)/release/aslua; make 81; make 82 forceclib=yes)
 
-$(download)/qemu: $(download)/qemu/hw/char/libpyas.a
+$(download)/qemu: $(download)/qemu/hw/char/libpyas.a $(dep-wincap)
 	@(cd $(download); git clone https://github.com/qemu/qemu.git; \
 		cd qemu; git submodule update --init dtc ; \
 		cd hw/char; $(LNFS) $(prj-dir)/com/as.tool/qemu/hw/char TRUE; \

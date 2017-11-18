@@ -135,7 +135,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 				/* Connect to server. */
 				if(connect(s, (struct sockaddr*) & addr, sizeof (addr)) < 0)
 				{
-					#ifdef __WINDOES__
+					#ifdef __WINDOWS__
 					ASWARNING("CAN Serial TCP connect failed: %d\n", WSAGetLastError());
 					closesocket(s);
 					#else
@@ -253,7 +253,7 @@ static void serial_close(uint32_t port)
 
 		if(CAN_TCP_SERIAL_PORT == port)
 		{
-			#ifdef __WINDOES__
+			#ifdef __WINDOWS__
 			closesocket(handle->s);
 			#else
 			close(handle->s);

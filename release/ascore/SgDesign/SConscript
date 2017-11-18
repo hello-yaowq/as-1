@@ -1,0 +1,32 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+
+sgapp = os.getenv('SGAPP')
+
+if(sgapp is None):
+    print('WARNING: using default SGAPP virtual_cluster!')
+    sgapp = 'virtual_cluster'
+
+doneFlag = '%s/SgRes/%s.done'%(cwd,sgapp)
+if(not os.path.exists(doneFlag)):
+    RMDir('%s/SgRes'%(cwd))
+    MKDir('%s/SgRes'%(cwd))
+    py = 'python3'
+    if(os.name == 'nt'):
+        print('WARNING: fix to the right python3 path: %s/SConscript'%(cwd))
+        py = 'C:/Python34/python.exe'
+    RunCommand('cd %s && %s %s/com/as.tool/config.infrastructure.gui/Sg.py %s/%s/Sg.xml'%(cwd,py,asenv['ASROOT'],cwd,sgapp))
+    MKFile(doneFlag)
+
+objs = []
+
+objs +=  Glob('SgRes/*.c')
+objs +=  Glob('%s/src/*.c'%(sgapp))
+
+asenv.Append(CCFLAGS='-I%s/SgRes'%(cwd))
+
+Return('objs')

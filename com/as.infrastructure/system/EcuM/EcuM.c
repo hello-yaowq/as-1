@@ -62,7 +62,9 @@
 
 //lint -emacro(904,VALIDATE,VALIDATE_RV,VALIDATE_NO_RV) //904 PC-Lint exception to MISRA 14.7 (validate macros).
 /* ----------------------------[includes]------------------------------------*/
-
+#ifdef USE_FATFS
+#include "ff.h"
+#endif
 #include "Std_Types.h"
 #include "EcuM.h"
 #include "Modules.h"
@@ -87,9 +89,6 @@
 #endif
 #if defined(USE_SCHM)
 #include "SchM.h"
-#endif
-#ifdef USE_FATFS
-#include "ff.h"
 #endif
 #ifdef USE_LWEXT4
 extern void ext_mount(void);

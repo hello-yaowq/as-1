@@ -1,10 +1,49 @@
 import os
 import shutil
+import string
 from SCons.Script import *
 
 Env = None
 
 BuildOptions = {}
+
+class Win32Spawn:
+    def spawn(self, sh, escape, cmd, args, env):
+        # deal with the cmd build-in commands which cannot be used in
+        # subprocess.Popen
+        if cmd == 'del':
+            for f in args[1:]:
+                try:
+                    os.remove(f)
+                except Exception as e:
+                    print('Error removing file: %s'%(e))
+                    return -1
+            return 0
+
+        import subprocess
+
+        newargs = string.join(args[1:], ' ')
+        cmdline = cmd + " " + newargs
+
+        # Make sure the env is constructed by strings
+        _e = dict([(k, str(v)) for k, v in env.items()])
+
+        # Windows(tm) CreateProcess does not use the env passed to it to find
+        # the executables. So we have to modify our own PATH to make Popen
+        # work.
+        old_path = os.environ['PATH']
+        os.environ['PATH'] = _e['PATH']
+
+        try:
+            proc = subprocess.Popen(cmdline, env=_e, shell=False)
+        except Exception as e:
+            print('Error in calling:\n%s'%(cmdline))
+            print('Exception: %s: %s'%(e, os.strerror(e.errno)))
+            return e.errno
+        finally:
+            os.environ['PATH'] = old_path
+
+        return proc.wait()
 
 def PrepareRTTHREAD(opt):
     global BuildOptions
@@ -13,10 +52,10 @@ def PrepareRTTHREAD(opt):
 def PrepareBuilding(env):
     global Env
     Env = env
-    env['RTOS']='askar'
-    if(os.getenv('RTOS')=='rtthread'):
-        env['RTOS'] = 'rtthread'
-    print('RTOS is %s'%(env['RTOS']))
+    if(os.name == 'nt'):
+        win32_spawn = Win32Spawn()
+        win32_spawn.env = env
+        env['SPAWN'] = win32_spawn.spawn
     # add comstr option
     AddOption('--verbose',
             dest='verbose',
@@ -50,7 +89,8 @@ def MKDir(p):
         os.mkdir(ap)
 
 def RMDir(p):
-    shutil.rmtree(p)
+    if(os.path.exists(p)):
+        shutil.rmtree(p)
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)
@@ -61,7 +101,13 @@ def MKSymlink(src,dst):
     asrc = os.path.abspath(src)
     adst = os.path.abspath(dst)
     if(not os.path.exists(dst)):
-        os.symlink(asrc,adst)
+        if(os.name=='nt'):
+            if(os.path.isdir(asrc)):
+                RunCommand('mklink /D %s %s'%(adst,asrc))
+            else:
+                RunCommand('mklink %s %s'%(adst,asrc))
+        else:
+            os.symlink(asrc,adst)
 
 def SrcRemove(src, remove):
     if not src:
@@ -77,6 +123,14 @@ def SrcRemove(src, remove):
 
 def RunCommand(cmd):
     print(' >> RunCommand "%s"'%(cmd))
+    if(os.name=='nt'):
+        cmds = cmd.split('&&')
+        fp = open('.scons.bat','w')
+        fp.write('@echo off\n')
+        for c in cmds:
+            fp.write('%s\n'%(c))
+        fp.close()
+        cmd = '.scons.bat'
     if(0 != os.system(cmd)):
         raise Exception('FAIL of RunCommand "%s"'%(cmd))
 

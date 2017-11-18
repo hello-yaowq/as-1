@@ -46,8 +46,6 @@
 #endif
 //#define MEMCPY(_x,_y,_z)	memcpy(_x,_y,_z)
 
-extern void *asmalloc( size_t xWantedSize );
-extern void asfree( void *pv );
 /* TODO: Not threadsafe, add DisableAllInterrts()/EnableAllInterrupts() */
 
 void CirqBuff_Init(CirqBufferType *cirqbuffer, void *buffer, int maxCnt, size_t dataSize) {
@@ -82,13 +80,13 @@ CirqBufferType CirqBuffStatCreate(void *buffer, int maxCnt, size_t dataSize) {
 
 CirqBufferType *CirqBuffDynCreate( size_t size, size_t dataSize ) {
 	CirqBufferType *cPtr;
-	cPtr = asmalloc(sizeof(CirqBufferType));
+	cPtr = malloc(sizeof(CirqBufferType));
 	if( cPtr == NULL ) {
 		return NULL;
 	}
 	cPtr->maxCnt = size;
 	cPtr->dataSize = dataSize;
-	cPtr->bufStart = asmalloc(dataSize*size);
+	cPtr->bufStart = malloc(dataSize*size);
 	cPtr->bufEnd = (char *)cPtr->bufStart + dataSize*size;
 	cPtr->head = cPtr->bufStart;
 	cPtr->tail = cPtr->bufStart;
@@ -99,8 +97,8 @@ CirqBufferType *CirqBuffDynCreate( size_t size, size_t dataSize ) {
 
 
 int CirqBuffDynDestroy(CirqBufferType *cPtr ) {
-	asfree(cPtr->bufStart);
-	asfree(cPtr);
+	free(cPtr->bufStart);
+	free(cPtr);
 	return 0;
 }
 

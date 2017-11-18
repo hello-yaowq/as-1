@@ -515,7 +515,11 @@ TASK(TaskLwip)
 ALARM(Alarm_Lwip)
 {
 #ifdef USE_LWIP
+#ifdef __WINDOWS__
+	SetEvent2(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
+#else
 	SetEvent(TASK_ID_TaskLwip,EVENT_MASK_SLEEP_TCPIP);
+#endif
 #endif
 }
 #endif

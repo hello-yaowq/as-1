@@ -1,0 +1,28 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+MODULES = asenv['MODULES']
+
+objs = []
+
+if('EA' in MODULES):
+    objs += Glob('Ea/*.c')
+    asenv.Append(CCFLAGS='-I%s/Ea'%(cwd))
+    asenv.Append(CCFLAGS='-DUSE_EA')
+
+if('FEE' in MODULES):
+    objs += Glob('Fee/*.c')
+    asenv.Append(CCFLAGS='-DUSE_FEE')
+
+if('MEMIF' in MODULES):
+    objs += Glob('MemIf/*.c')
+    asenv.Append(CCFLAGS='-DUSE_MEMIF')
+
+if('NVM' in MODULES):
+    objs += Glob('NvM/*.c')
+    asenv.Append(CCFLAGS='-DUSE_NVM')
+
+Return('objs')

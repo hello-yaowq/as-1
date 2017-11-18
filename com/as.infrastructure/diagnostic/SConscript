@@ -6,13 +6,12 @@ cwd = GetCurrentDir()
 Import('asenv')
 MODULES = asenv['MODULES']
 
-objs = Glob('*.xml')
-objs += Glob('*.arxml')
+objs = []
 
 if('DCM' in MODULES):
     objs += Glob('Dcm/*.c')
-    asenv.Append(CCFLAGS='-I%s/Dcm -DUSE_DCM'%(cwd))
-
+    asenv.Append(CCFLAGS='-I%s/Dcm'%(cwd))
+    asenv.Append(CCFLAGS='-DUSE_DCM')
 
 if('DET' in MODULES):
     objs += Glob('Det/*.c')

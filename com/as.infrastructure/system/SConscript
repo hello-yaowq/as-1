@@ -16,7 +16,17 @@ if('ECUM' in MODULES):
 
 if('SCHM' in MODULES):
     objs += Glob('SchM/*.c')
-    asenv.Append(CCFLAGS='-I%s/SchM -DUSE_SCHM'%(cwd))
+    asenv.Append(CCFLAGS='-I%s/SchM'%(cwd)) 
+    asenv.Append(CCFLAGS='-DUSE_SCHM')
+
+if('SG' in MODULES):
+    objs += Glob('gui/*.c')
+    asenv.Append(CCFLAGS='-I%s/gui'%(cwd))
+    if('OPENVG' in MODULES):
+        asenv.Append(CCFLAGS='-I%s/gui/openvg/include'%(cwd))
+    asenv.Append(CCFLAGS=['-DUSE_SG','-DUSE_GUI'])
+
+objs += Glob('Crc/*.c')
 
 objs += SConscript('net/SConscript')
 objs += SConscript('fs/SConscript')
