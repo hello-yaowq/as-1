@@ -75,66 +75,14 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 
 ## Setup Environment
 
-``` bash
-sudo apt-get install git
-sudo apt-get install libxext6 libxext-dev libqt4-dev libqt4-gui libqt4-sql qt4-dev-tools qt4-doc qt4-designer qt4-qtconfig "python-qt4-*" python-qt4
-sudo apt-get install pyqt5-dev pyqt5-dev-tools
-sudo apt-get install libreadline6 libreadline6-dev
-sudo apt-get install openjdk-7-jre
-sudo apt-get install build-essential
-sudo apt-get install gcc-arm-none-eabi
-sudo apt-get install gcc-arm-linux-gnueabi
-sudo apt-get insatll g++-arm-linux-gnueabi
-sudo apt-get install libncurses5-dev
-sudo apt-get install gawk autoconf
-sudo apt-get install zlib1g-dev libglib2.0-0 libglib2.0-dev
-sudo apt-get install libsdl-dev
-sudo apt-get install libgtk2.0-dev libgtk-3-dev
-sudo apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 lib32stdc++6
-sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf  tslib
-sudo apt-get install automake autogen autoconf libtool
-sudo apt-get install u-boot-tools
-sudo apt-get install nfs-kernel-server
-sudo apt-get install mtd-utils
-sudo apt-get install Kolourpaint
-sudo apt-get install cmake uuid-dev libboost-dev libwebsockets-dev libjson-c-dev libjson-glib-1.0-0 libjson0 libjson0-dev
-sudo apt-get install gcc-aarch64-linux-gnu
-sudo apt-get install libstdc++6:i386 # for 64bit machine run 32bit app
-sudo add-apt-repository ppa:webupd8team/java && sudo apt-get update && sudo apt-get install oracle-java7-installer
-sudo apt-get install gtk-doc-tools
+* check the [asenv repository](https://github.com/parai/asenv)
+
+
+## Build
+
+```sh
+cd as/release/ascore
+scons # build, it will hint you the boards supported
+scons run
+scons -c # clean
 ```
-
-## Clone
-> git clone https://github.com/sics-sse/moped.git
-
-> git clone https://github.com/openxc/bitfield-c.git
-
-> git clone git://git.omapzoom.org/repo/sysbios-rpmsg.git
-
-> git clone https://github.com/parai/freertos-multicore.git
-
-> git clone https://github.com/parai/isotp-c.git
-
-> git clone https://github.com/parai/GainOS.git
-
-> git clone https://github.com/parai/GainOS_Studio.git
-
-> git clone https://github.com/parai/OpenOSEK.git
-
-> git clone https://github.com/parai/OpenSAR.git
-
-> git clone https://github.com/parai/WhatsApp.git
-
-> git clone https://github.com/parai/as.git
-
-> git clone https://github.com/parai/GaInOS_Based_On_uTenux-tkernel.git
-
-> git clone https://github.com/parai/gainos-tk.git
-
-> git clone https://github.com/lua/lua.git
-
-> git clone https://github.com/z2akhtar/PWC-Demonstrator.git
-
-> git clone https://github.com/elupus/autosar-xcp.git
-
-
