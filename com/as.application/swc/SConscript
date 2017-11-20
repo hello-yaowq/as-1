@@ -1,0 +1,19 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+MODULES = asenv['MODULES']
+
+objs = []
+
+if('RTE_SWC_TELLTALE' in MODULES):
+    objs += Glob('telltale/*.c')
+    if(asenv.GetOption('clean')):
+        RunCommand('rm -v %s/telltale/*.h'%(cwd))
+    elif(not os.path.exists('%s/telltale/Rte_Telltale.h'%(cwd))):
+        RunCommand('cd %s/.. && %s %s/telltale/swc.py'%(cwd, asenv['python3'],cwd))
+    
+
+Return('objs')

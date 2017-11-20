@@ -7,5 +7,5 @@ objs = []
 
 objs += SConscript('board.%s/SConscript'%(BOARD))
 objs += SConscript('common/SConscript')
-
+objs += SConscript('swc/SConscript')
 Return('objs')

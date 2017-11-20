@@ -52,11 +52,23 @@ def PrepareRTTHREAD(opt):
 def PrepareBuilding(env):
     global Env
     Env = env
+    env['python3'] = 'python3'
+    env['python2'] = 'python2'
+    env['python'] = 'python'
     if(os.name == 'nt'):
         win32_spawn = Win32Spawn()
         win32_spawn.env = env
         env['SPAWN'] = win32_spawn.spawn
-    # add comstr option
+        env['python3'] = 'c:/Python34/python'
+        env['python2'] = 'c:/Python27/python'
+        env['python'] =  'c:/Python27/python'
+    if(0 != os.system('%s --version'%(env['python3']))):
+        raise Exception('no python3 installed, fix the path maybe!')
+    if(0 != os.system('%s --version'%(env['python2']))):
+        raise Exception('no python2 installed, fix the path maybe!')
+    if(0 != os.system('%s --version'%(env['python']))):
+        raise Exception('no python installed, fix the path maybe!')
+        # add comstr option
     AddOption('--verbose',
             dest='verbose',
             action='store_true',
@@ -91,6 +103,10 @@ def MKDir(p):
 def RMDir(p):
     if(os.path.exists(p)):
         shutil.rmtree(p)
+
+def RMFile(p):
+    if(os.path.exists(p)):
+        os.remove(p)
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)

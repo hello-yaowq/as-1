@@ -72,11 +72,7 @@ for obj in sobjs:
 if('studio' in COMMAND_LINE_TARGETS):
     assert(arxml)
     pd = os.path.dirname(str(arxml))
-    py = python3
-    if(os.name == 'nt'):
-        print('WARNING: fix to the right python3 path: SConstruct')
-        py = 'C:/Python32/python.exe'
-    RunCommand('cd %s && %s studio.py %s'%(studio,py,pd))
+    RunCommand('cd %s && %s studio.py %s'%(studio,asenv['python3'],pd))
     exit(0)
 
 cfgdir = '%s/config'%(bdir)

@@ -8,6 +8,9 @@ ASROOT = asenv['ASROOT']
 
 print('qemu run command:scons versatilepb run\nqemu debug command: scons versatilepb run gdb')
 if('run' in COMMAND_LINE_TARGETS):
+    if(os.name == 'nt'):
+        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
+        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
     target = '%s/release/ascore/posix'%(ASROOT)
     build = '%s/release/ascore/build/posix'%(ASROOT)
     RunCommand('cd %s && %s'%(build,target))
@@ -26,7 +29,6 @@ MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
-           'FATFS','LWEXT4',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
            ]
@@ -36,10 +38,13 @@ arch='posix'
 
 if(os.name != 'nt'):
     MODULES += ['SOAD','DOIP','LWIP']
+    MODULES += ['FATFS','LWEXT4',]
 else:
     MODULES += ['CLIB_STRTOK_R']
 
 MODULES += ['CLIB_MBOX']
+
+MODULES += ['RTE','RTE_SWC_TELLTALE']
 
 if(os.getenv('GUI') in ['GTK','OPENVG']):
     MODULES.append(os.getenv('GUI'))

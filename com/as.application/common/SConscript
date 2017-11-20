@@ -43,6 +43,10 @@ if('RPMSG' in MODULES):
 if('SOAD' in MODULES):
     objs += Glob('config/SoAd*.c')
 
+if('RTE' in MODULES):
+    objs += Glob('rte/*.c')
+    objs += Glob('rte/*.xml')
+
 asenv.Append(CCFLAGS='-I%s/config'%(cwd))
 
 Return('objs')

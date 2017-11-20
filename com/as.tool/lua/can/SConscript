@@ -22,5 +22,10 @@ objs +=  Glob('rs232/*.c')
 
 if(os.name == 'nt'):
     objs += Glob('peak-can/lib/win32/PCANBasic.lib')
+    if(asenv.GetOption('clean')):
+        RMFile('%s/socketwin_can_driver.exe'%(cwd))
+    elif(not os.path.exists('%s/socketwin_can_driver.exe'%(cwd))):
+        cmd = 'gcc %s/socketwin_can_driver.c -D__SOCKET_WIN_CAN_DRIVER__ -o %s/socketwin_can_driver.exe -lwsock32'%(cwd,cwd)
+        RunCommand(cmd)
 
 Return('objs')
