@@ -32,9 +32,10 @@ ifeq ($(host),Linux)
 else
 def-y += -D_MSC_VER
 endif
-
+ifeq ($(host),Linux)
 # for mingw need to install gnutls from ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.0.22-w32.zip
 dir-y += $(download)/libmicrohttpd-0.9.55/src/microhttpd
+endif
 inc-y += -I$(download)/libmicrohttpd-0.9.55/src/include
 ifeq ($(host),Linux)
 inc-y += -I$(download)/libmicrohttpd-0.9.55/
@@ -72,7 +73,7 @@ default:all
 
 include $(prj-dir)/release/make/posix.mk
 
-all: asjson-c aslibmicrohttpd
+all: asjson-c #aslibmicrohttpd
 	make lib
 
 clean:clean-obj

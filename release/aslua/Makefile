@@ -267,9 +267,8 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@$(CC) $(cflags-y) $(inc-y) -D__SOCKET_WIN_CAN_DRIVER__ -o $(obj-dir)/socketwin_can_driver2.o $(src-dir)/socketwin_can_driver.c
-	@$(LD) $(obj-dir)/socketwin_can_driver2.o $(ldflags-y) -o $(exe-dir)/ascan_socket_server.exe 
-	@cp -v $(exe-dir)/ascan_socket_server.exe $(prj-dir)/com/as.tool/lua/script/
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
+	@cp -v $(exe-dir)/socketwin_can_driver.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 endif
 
@@ -354,4 +353,7 @@ extract-pyserial:
 	@rm pyserial-3.1.1.tar
 
 pyserial:pyserial-3.1.1.tar.gz extract-pyserial
+
+
+aslua: libaws 81 82 91 92
 

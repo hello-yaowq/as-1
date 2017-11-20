@@ -34,7 +34,8 @@ else:
             BOARD = b
 
 if(os.name == 'nt'):
-    BOARD = os.getenv('BOARD')
+    if(os.getenv('BOARD') in board_list):
+        BOARD = os.getenv('BOARD')
 
 asenv['RTOS']='askar'
 if(os.getenv('RTOS') in ['rtthread','small']):
@@ -43,6 +44,8 @@ print('RTOS is %s'%(asenv['RTOS']))
 
 if(BOARD is None):
     print('Error: no BOARD specified!')
+    if(os.name=='nt'):
+        print('use DOS "set" command to set BOARD\n\tfor example: set BOARD=posix')
     help()
     exit(-1)
 

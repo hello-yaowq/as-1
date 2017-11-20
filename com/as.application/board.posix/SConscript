@@ -6,7 +6,7 @@ cwd = GetCurrentDir()
 Import('asenv')
 ASROOT = asenv['ASROOT']
 
-print('qemu run command:scons versatilepb run\nqemu debug command: scons versatilepb run gdb')
+print('native run command:scons run')
 if('run' in COMMAND_LINE_TARGETS):
     if(os.name == 'nt'):
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
