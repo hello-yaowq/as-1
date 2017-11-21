@@ -9,8 +9,48 @@ cwd = GetCurrentDir()
 
 objs = []
 
-objs += Glob('mcal/*.c')
-SrcRemove(objs,'Ipc.c')
+if('CAN' in MODULES):
+    objs += Glob('mcal/Can.c')
+    asenv.Append(CCFLAGS='-DUSE_CAN')
+
+if('DIO' in MODULES):
+    objs += Glob('mcal/Dio.c')
+    asenv.Append(CCFLAGS='-DUSE_DIO')
+
+if('FATFS' in MODULES):
+    objs += Glob('mcal/diskio.c')
+
+if('EEP' in MODULES):
+    objs += Glob('mcal/Eep.c')
+    asenv.Append(CCFLAGS='-DUSE_EEP')
+
+if('FLASH' in MODULES):
+    objs += Glob('mcal/Flash.c')
+    asenv.Append(CCFLAGS='-DUSE_FLASH')
+
+if('FLS' in MODULES):
+    objs += Glob('mcal/Fls.c')
+    asenv.Append(CCFLAGS='-DUSE_FLS')
+
+if('IPC' in MODULES):
+    objs += Glob('mcal/Ipc.c')
+    asenv.Append(CCFLAGS='-DUSE_IPC')
+
+if('LCD' in MODULES):
+    objs += Glob('mcal/Lcd.c')
+    asenv.Append(CCFLAGS='-DUSE_LCD')
+
+if('MCU' in MODULES):
+    objs += Glob('mcal/Mcu.c')
+    asenv.Append(CCFLAGS='-DUSE_MCU')
+
+if('PORT' in MODULES):
+    objs += Glob('mcal/Port.c')
+    asenv.Append(CCFLAGS='-DUSE_PORT')
+
+if('STMO' in MODULES):
+    objs += Glob('mcal/Stmo.c')
+    asenv.Append(CCFLAGS='-DUSE_STMO')
 
 if('LWIP' in MODULES):
     download = '%s/release/download'%(ASROOT)
@@ -53,9 +93,6 @@ if('LWIP' in MODULES):
         if('-D_MSC_VER' not in asenv['CCFLAGS']):
             asenv.Append(CCFLAGS='-D_MSC_VER')
 
-#by default, use all supported
-asenv.Append(CCFLAGS=['-DUSE_CAN','-DUSE_DIO','-DUSE_EEP','-DUSE_FLS',
-                      '-DUSE_LCD','-DUSE_MCU','-DUSE_PORT','-DUSE_STMO'])
 asenv.Append(CCFLAGS='-D__AS_CAN_BUS__')
 asenv.Append(CCFLAGS='-I%s/com/as.infrastructure/communication/RPmsg'%(asenv['ASROOT']))
 

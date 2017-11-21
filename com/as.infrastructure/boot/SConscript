@@ -1,0 +1,17 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+
+objs = []
+
+if(asenv['RELEASE']=='asboot'):
+    objs += Glob('common/*.c')
+    objs += Glob('common/*.xml')
+    objs += Glob('common/*.arxml')
+    asenv.Append(CCFLAGS='-I%s/common'%(cwd))
+    asenv.Append(CCFLAGS='-D__AS_BOOTLOADER__')
+
+Return('objs')

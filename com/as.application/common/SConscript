@@ -7,8 +7,11 @@ Import('asenv')
 BOARD = asenv['BOARD']
 MODULES = asenv['MODULES']
 
-objs = Glob('*.xml')
-objs += Glob('*.arxml')
+objs = []
+
+if(asenv['RELEASE'] == 'ascore'):
+    objs += Glob('*.xml')
+    objs += Glob('*.arxml')
 
 if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += Glob('config/lwip.xml')

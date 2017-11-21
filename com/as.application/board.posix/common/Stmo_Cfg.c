@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifdef USE_STMO
 #include "Stmo.h"
 
 static const Stmo_ChannelType StmoChannels[] =
@@ -39,3 +40,4 @@ const Stmo_ConfigType Stmo_ConfigData =
 {
 	.Channels = StmoChannels
 };
+#endif

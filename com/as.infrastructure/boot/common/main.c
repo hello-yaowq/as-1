@@ -27,6 +27,12 @@ void StartupHook(void)
 {
 	printf(" start bootloaster BUILD @ %s %s\n",__DATE__,__TIME__);
 }
+
+void SchM_StartupHook(void)
+{
+
+}
+
 int main(int argc,char* argv[])
 {
 	EcuM_Init();

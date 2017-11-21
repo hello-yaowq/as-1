@@ -67,8 +67,9 @@ class UICan(QWidget):
             grid.addWidget(QLabel('Can:'),i,0)
             grid.addWidget(self.cmbxCanBus[i],i,1)
             grid.addWidget(self.cmbxCanDevice[i],i,2)
-            grid.addWidget(self.cmbxCanBaud[i],i,3)
-            grid.addWidget(self.btnOpen[i],i,4) 
+            grid.addWidget(self.cmbxCanPort[i],i,3)
+            grid.addWidget(self.cmbxCanBaud[i],i,4)
+            grid.addWidget(self.btnOpen[i],i,5)
             
             self.btnOpen[i].clicked.connect(opens[i])
             self.online.append(False)
@@ -101,19 +102,20 @@ class UICan(QWidget):
     
     def on_btnOpen(self,id):
         if(str(self.btnOpen[id].text())=='Open'):
-            bus = int(str(self.cmbxCanBus[id].currentText().replace('bus','')))
+            bus = int(str(self.cmbxCanBus[id].currentText()).replace('bus',''))
             device = str(self.cmbxCanDevice[id].currentText())
             if(device == 'tcp'):
                 device = "serial" # special treatment for QEMU serial tcp:127.0.0.1:1103 
                 port = 0x746370
             else:
-                port = int(str(self.cmbxCanPort[id].currentText().replace('port','')))
+                port = int(str(self.cmbxCanPort[id].currentText()).replace('port',''))
             baud = int(str(self.cmbxCanBaud[id].currentText()))
+            print(bus, device, port)
             can_open(bus,device,port,baud)
             self.btnOpen[id].setText('Close')
             self.online[id] = True
         else:
-            bus = int(str(self.cmbxCanBus[id].currentText().replace('bus','')))
+            bus = int(str(self.cmbxCanBus[id].currentText()).replace('bus',''))
             can_close(bus)
             self.btnOpen[id].setText('Open')
             self.online[id] = False
@@ -128,4 +130,4 @@ class UICan(QWidget):
         self.on_btnOpen(2)
         
     def on_btnOpenClicked_3(self):
-        self.on_btnOpen(3)                
+        self.on_btnOpen(3)

@@ -1,4 +1,4 @@
-# scons for ascore
+# scons for asboot
 import os
 import sys
 studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
@@ -12,7 +12,7 @@ BOARD=None
 
 asenv=Environment()
 asenv['ASROOT'] = ASROOT
-asenv['RELEASE'] = 'ascore'
+asenv['RELEASE'] = 'asboot'
 
 PrepareBuilding(asenv)
 
@@ -38,9 +38,7 @@ if(os.name == 'nt'):
     if(os.getenv('BOARD') in board_list):
         BOARD = os.getenv('BOARD')
 
-asenv['RTOS']='askar'
-if(os.getenv('RTOS') in ['rtthread','small']):
-    asenv['RTOS'] = os.getenv('RTOS')
+asenv['RTOS']='small'
 print('RTOS is %s'%(asenv['RTOS']))
 
 if(BOARD is None):
@@ -58,8 +56,6 @@ objs = []
 xmls = []
 
 sobjs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
-sobjs += SConscript('app/SConscript',variant_dir=bdir+'/app', duplicate=0)
-
 arxml= None
 
 for obj in sobjs:

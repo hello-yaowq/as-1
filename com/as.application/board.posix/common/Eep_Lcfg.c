@@ -1,3 +1,4 @@
+#ifdef USE_EEP
 #include "Eep.h"
 #include "Ea_Cbk.h"
 
@@ -15,3 +16,4 @@ const Eep_ConfigType EepConfigData[1] ={
 		.EepPageSize = 32
 	}
 };
+#endif

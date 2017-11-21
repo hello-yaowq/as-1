@@ -11,8 +11,8 @@ if('run' in COMMAND_LINE_TARGETS):
     if(os.name == 'nt'):
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
-    target = '%s/release/ascore/posix'%(ASROOT)
-    build = '%s/release/ascore/build/posix'%(ASROOT)
+    target = '%s/release/%s/posix'%(ASROOT,asenv['RELEASE'])
+    build = '%s/release/%s/build/posix'%(ASROOT,asenv['RELEASE'])
     RunCommand('cd %s && %s'%(build,target))
     exit(0)
 
@@ -27,10 +27,11 @@ asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
 
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
-           'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
+           'AWS',
            ]
 
 ARCH='posix'
@@ -53,6 +54,14 @@ else:
     MODULES.append('GTK')
 
 MODULES.append('SG')
+
+# post special process for asboot release
+if(asenv['RELEASE']=='asboot'):
+    MODULES = ['ECUM','SCHM','MCU','DET',
+               'CAN','CANIF','PDUR','CANTP',
+               'DCM',
+               'FLASH',
+               ]
 
 asenv['MODULES'] = MODULES
 asenv['ARCH'] = ARCH
