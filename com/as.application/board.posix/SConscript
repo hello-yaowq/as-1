@@ -37,8 +37,9 @@ MODULES = ['ECUM','SCHM','MCU',
 ARCH='posix'
 arch='posix'
 
+MODULES += ['SOAD','DOIP','LWIP']
+
 if(os.name != 'nt'):
-    MODULES += ['SOAD','DOIP','LWIP']
     MODULES += ['FATFS','LWEXT4',]
 else:
     MODULES += ['CLIB_STRTOK_R']

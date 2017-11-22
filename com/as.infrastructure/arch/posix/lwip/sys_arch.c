@@ -594,7 +594,8 @@ struct netif * LwIP_Init(void)
 
 	/* Add network interface to the netif_list */
 #ifdef __WINDOWS__
-	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
+	extern err_t pcapif_init(struct netif *netif);
+	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &pcapif_init, &tcpip_input);
 #else
 	extern err_t tapif_init(struct netif *netif);
 	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &tapif_init, &tcpip_input);

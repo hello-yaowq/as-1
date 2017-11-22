@@ -66,7 +66,8 @@ if('LWIP' in MODULES):
     asenv.Append(CCFLAGS='-I%s/lwip'%(cwd))
     if(os.name == 'nt'):
         objs += Glob('lwip-contrib/ports/win32/pcapif.c')
-        objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
+        #objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
+        asenv.Append(CCFLAGS='-DPCAPIF_HANDLE_LINKSTATE=0')
         objs += Glob('lwip-contrib/ports/win32/sys_arch.c')
         MKSymlink('%s/lwip-contrib/ports/win32/include/arch/sys_arch.h'%(cwd),
                   '%s/lwip/lwip_sys_arch.h'%(cwd))
