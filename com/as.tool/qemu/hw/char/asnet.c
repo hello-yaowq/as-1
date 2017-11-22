@@ -12,6 +12,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifndef _WIN32
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifndef __TAPTEST__
 #include "qemu/osdep.h"
@@ -147,6 +148,10 @@ static const MemoryRegionOps asnet_io_ops = {
 	.valid = {
 		.min_access_size = 4,
 		.max_access_size = 4,
+	},
+	.interfaces = (InterfaceInfo[]) {
+		{ INTERFACE_CONVENTIONAL_PCI_DEVICE },
+		{},
 	},
 };
 
@@ -572,3 +577,5 @@ int main(int argc, char* argv[])
 	return 0;
 }
 #endif /* __TAPTEST__ */
+
+#endif /* _WIN32 */
