@@ -431,7 +431,7 @@ void Lcd_Init(void)
 		pLcdBuffer = malloc(LCD_WIDTH*LCD_HEIGHT*sizeof(uint32));
 
 		asAssert(pLcdBuffer);
-
+		puts(__func__);
 #ifdef __WINDOWS__
 		lcdThread = CreateThread( NULL, 0, ( LPTHREAD_START_ROUTINE ) Lcd_Thread, NULL, CREATE_SUSPENDED, NULL );
 		assert(lcdThread!=NULL);

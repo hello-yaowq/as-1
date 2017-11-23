@@ -41,9 +41,15 @@ ifeq ($(host), Linux)
 PY27 ?= python2
 PY34 ?= python3
 else
+ifeq ($(msys),yes)
+PY27 = /c/Python27/python
+PY34 = /c/Python34/python
+HOME = /c/Users/parai.wang
+else
 PY27 = C:Python27/python
 PY34 = C:Python34/python
 HOME = C:/Users/parai.wang
+endif
 ifeq ($(HOME), $(wildcard $(HOME)))
 #else
 #$(error fix your home path)

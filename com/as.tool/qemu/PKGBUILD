@@ -1,0 +1,93 @@
+# Maintainer: Martell Malone <martellmalone@gmail.com>
+
+_realname=qemu
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=2.10.0
+pkgrel=1
+pkgdesc="A generic and open source processor emulator (mingw-w64)"
+arch=('any')
+license=('GPL2' 'LGPL2')
+url="https://qemu.org/"
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+             "${MINGW_PACKAGE_PREFIX}-python2"
+             'perl' 'bison')
+depends=("${MINGW_PACKAGE_PREFIX}-curl"
+         "${MINGW_PACKAGE_PREFIX}-glib2"
+         "${MINGW_PACKAGE_PREFIX}-gnutls"
+         "${MINGW_PACKAGE_PREFIX}-gtk3"
+         "${MINGW_PACKAGE_PREFIX}-libjpeg"
+         "${MINGW_PACKAGE_PREFIX}-libpng"
+         "${MINGW_PACKAGE_PREFIX}-libssh2"
+         "${MINGW_PACKAGE_PREFIX}-libusb"
+         "${MINGW_PACKAGE_PREFIX}-lzo2"
+         "${MINGW_PACKAGE_PREFIX}-pixman"
+         "${MINGW_PACKAGE_PREFIX}-snappy"
+         "${MINGW_PACKAGE_PREFIX}-SDL"
+         "${MINGW_PACKAGE_PREFIX}-usbredir")
+source=(https://download.qemu.org/${_realname}-${pkgver}.tar.xz)
+sha256sums=('55d81ac987a4821d2744359c026d766459319ba9c013746570369068d93ff335')
+options=('!strip' 'debug')
+_pkgfqn="${_realname}-${pkgver}"
+noextract=(${_pkgfqn}.tar.xz)
+
+prepare() {
+  if ! [[ -d ${srcdir}/${_pkgfqn} ]] ; then
+
+    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} 2>/dev/null || true
+    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} --skip-old-files
+    cd ${srcdir}/../../../../release/aslua
+    make clean
+    make 81 -i
+    make 82 forceclib=yes msys=yes -i
+    cp ${srcdir}/../../../../release/aslua/out/libpyas.a ${srcdir}/${_pkgfqn}/hw/char -v
+    
+    cat ${srcdir}/../hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+  fi
+
+  cp ${srcdir}/../hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v
+
+  cd ${srcdir}/${_pkgfqn}
+}
+
+build() {
+  export CC=${MINGW_PREFIX}/bin/gcc
+  export CXX=${MINGW_PREFIX}/bin/g++
+
+  mkdir -p "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MINGW_CHOST}"
+
+  declare -a extra_config
+  if check_option "strip" "n"; then
+    extra_config+=("--disable-strip")
+  fi
+
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host-cc=${CC} \
+    --python=${MINGW_PREFIX}/bin/python2 \
+    --datadir=${MINGW_PREFIX}/etc/qemu \
+    --mandir=${MINGW_PREFIX}/share/qemu \
+    --bindir=${MINGW_PREFIX}/bin \
+    --libdir=${MINGW_PREFIX}/lib \
+    --sysconfdir=${MINGW_PREFIX}/etc/qemu \
+    --enable-libssh2 \
+    --enable-lzo \
+    --enable-snappy \
+    --disable-docs \
+    --enable-gtk \
+    --with-gtkabi=3.0 \
+    --disable-xen \
+    --disable-vnc-sasl \
+    --disable-kvm \
+    --disable-bluez \
+    --disable-spice \
+    "${extra_config[@]}"
+
+  make
+}
+
+package() {
+  cd "${srcdir}/build-${MINGW_CHOST}"
+  make -j1 DESTDIR="${pkgdir}" install
+}

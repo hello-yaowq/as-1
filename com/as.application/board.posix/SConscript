@@ -31,7 +31,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
-           'AWS',
+           'AWS','LCD',
            ]
 
 ARCH='posix'
