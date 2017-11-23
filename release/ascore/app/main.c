@@ -176,7 +176,7 @@ void LwIP_Init(void)
 #include <time.h>
 int gmtime_s(struct tm* now,time_t * t)
 {
-	struct tm* lt = localtime(&t);
+	struct tm* lt = localtime(t);
 	memcpy(now,lt,sizeof(struct tm));
 
 	return 0;

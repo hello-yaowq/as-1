@@ -43,7 +43,7 @@ void PduR_SoAdTpTxConfirmation(PduIdType dcmTxPduId, NotifResultType Result)
 
 /* PduR_SoAd interface API implementation */
 void PduR_SoAdIfRxIndication(PduIdType RxPduId, PduInfoType* PduInfo) {
-	PduR_ARC_RxIndication(RxPduId, &PduInfo, 0x01);
+	PduR_ARC_RxIndication(RxPduId, PduInfo, 0x01);
 }
 
 void PduR_SoAdIfTxConfirmation(PduIdType ComTxPduId) {

@@ -614,9 +614,10 @@ struct netif * LwIP_Init(void)
 	netif_set_up(&netif);
 
 	EnableEthDMAIrq();
-
+	extern void netbios_init(void);
 	netbios_init();
 #ifdef LWIP_POSIX_ARCH
+	extern void http_server_netconn_init(void);
 	http_server_netconn_init();
 #endif
 	return &netif;

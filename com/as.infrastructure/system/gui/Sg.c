@@ -309,7 +309,7 @@ void Sg_WsjRefresh(void)
 				break;
 		}
 	}
-	AsWsjCall("Sg","refresh",json_object_to_json_string_length(obj,NULL,NULL));
+	AsWsjCall("Sg","refresh",json_object_to_json_string_length(obj,0,NULL));
 	json_object_put(obj);
 }
 #ifdef USE_LCD

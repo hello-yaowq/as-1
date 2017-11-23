@@ -38,6 +38,7 @@
 #ifdef __WINDOWS__
 #define __atomic_add_fetch(p,v,x) do { *(p) += v; } while(0)
 #define __atomic_sub_fetch(p,v,x) ( *(p) -= v, *(p) )
+char* stpcpy(char* __to, const char* __from);
 #endif
 
 static void wsj1_on_hangup(struct afb_wsj1 *wsj1);
@@ -122,7 +123,7 @@ error3:
 error2:
 	free(result);
 error:
-	close(fd);
+	ask_close(fd);
 	return NULL;
 }
 

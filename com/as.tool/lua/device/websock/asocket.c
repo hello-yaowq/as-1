@@ -216,3 +216,12 @@ ssize_t ask_writev(int s,const struct iovec * iov, int iocnt)
 
 	return len;
 }
+
+void ask_close(int s)
+{
+#ifdef __WINDOWS__
+	closesocket(s);
+#else
+	close(s);
+#endif
+}

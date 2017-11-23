@@ -385,6 +385,8 @@ void SchM_RunMemory(void)
  */
 #ifndef __WINDOWS__
 void __weak SchM_StartupHook(void){}
+#else
+extern void SchM_StartupHook(void);
 #endif
 TASK(SchM_Startup){
 

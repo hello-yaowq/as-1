@@ -17,6 +17,7 @@
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <windows.h>
+#undef SLIST_ENTRY
 #endif
 #include "rs232.h"
 #include "Std_Types.h"

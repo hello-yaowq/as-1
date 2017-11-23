@@ -311,7 +311,7 @@ typedef struct {
 
 	/* Implementation defined */
 
-	const Xcp_SegmentType *XcpSegment;
+	Xcp_SegmentType *XcpSegment;
 	const uint16 XcpMaxSegment;
 
 	const Xcp_InfoType XcpInfo;

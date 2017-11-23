@@ -782,7 +782,10 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 	struct Can_Bus_s* b = getBus(busid);
 
 	*dlc = 0;
+#if defined(__AS_CAN_BUS__)
+#else
 	*data = NULL;
+#endif
 
 	if(NULL == b)
 	{

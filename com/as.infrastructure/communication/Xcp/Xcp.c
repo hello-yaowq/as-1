@@ -260,7 +260,7 @@ static void Xcp_ProcessDaq_STIM(Xcp_DaqListType* daq) {
 				break;
 			}
 			Xcp_MtaType mta;
-			Xcp_MtaInit(&mta, ent->XcpOdtEntryAddress,
+			Xcp_MtaInit(&mta, (uint32)ent->XcpOdtEntryAddress,
 					ent->XcpOdtEntryExtension);
 			Xcp_MtaWrite(&mta, data, ent->XcpOdtEntryLength);
 			Xcp_MtaFlush(&mta);
@@ -312,7 +312,7 @@ static void Xcp_ProcessDaq_DAQ(Xcp_DaqListType* daq) {
 			for (int i = 0; i < odt->XcpOdtEntriesCount; i++) {
 				uint8 len = ent->XcpOdtEntryLength;
 				Xcp_MtaType mta;
-				Xcp_MtaInit(&mta, ent->XcpOdtEntryAddress,
+				Xcp_MtaInit(&mta, (uint32)ent->XcpOdtEntryAddress,
 						ent->XcpOdtEntryExtension);
 				if (len + e->len > XCP_MAX_DTO)
 					break;
@@ -897,7 +897,7 @@ static Std_ReturnType Xcp_CmdGetSegmentInfo(uint8 pid, void* data, int len)
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Invalid segment requested");
 	}
 
-	Xcp_SegmentType* seg = Xcp_Config.XcpSegment + segm;
+	const Xcp_SegmentType* seg = Xcp_Config.XcpSegment + segm;
 
 	if(mode == 0) {
 		uint32 data;
@@ -1085,7 +1085,7 @@ static Std_ReturnType Xcp_CmdWriteDaq(uint8 pid, void* data, int len) {
 	}
 
 	Xcp_DaqState.ptr->XcpOdtEntryExtension = GET_UINT8(data, 2);
-	Xcp_DaqState.ptr->XcpOdtEntryAddress = GET_UINT32(data, 3);
+	Xcp_DaqState.ptr->XcpOdtEntryAddress = (void*)GET_UINT32(data, 3);
 
 	// Increment and decrement the count of valid odt entries
 	if (daqElemSize && !Xcp_DaqState.ptr->XcpOdtEntryLength)
@@ -1293,7 +1293,7 @@ static Std_ReturnType Xcp_CmdReadDaq(uint8 pid, void* data, int len) {
 		FIFO_ADD_U8(e, Xcp_DaqState.ptr->BitOffSet);
 		FIFO_ADD_U8(e, Xcp_DaqState.ptr->XcpOdtEntryLength);
 		FIFO_ADD_U8(e, Xcp_DaqState.ptr->XcpOdtEntryExtension);
-		FIFO_ADD_U32(e, Xcp_DaqState.ptr->XcpOdtEntryAddress);
+		FIFO_ADD_U32(e, (uint32)Xcp_DaqState.ptr->XcpOdtEntryAddress);
 	}
 
 	Xcp_DaqState.ptr = Xcp_DaqState.ptr->XcpNextOdtEntry;

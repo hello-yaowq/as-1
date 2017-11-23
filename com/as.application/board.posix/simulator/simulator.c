@@ -47,7 +47,7 @@ static void on_reply(void *closure, struct afb_wsj1_msg *msg);
 static clock_t previous = 0;
 #endif
 #ifdef USE_AWS
-static const struct afb_wsj1_itf wsj1_itf =
+static struct afb_wsj1_itf wsj1_itf =
 {
 	.on_hangup = on_hangup,
 	.on_call = on_call,
