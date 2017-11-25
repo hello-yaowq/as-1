@@ -81,6 +81,8 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ## Build
 
 ```sh
+cd as/release/aslua
+make aslua
 cd as/release/ascore
 scons # build, it will hint you the boards supported
 scons run

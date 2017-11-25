@@ -10,6 +10,12 @@ print('qemu run command:scons versatilepb run\nqemu debug command: scons versati
 if('run' in COMMAND_LINE_TARGETS):
     if(os.name == 'nt'):
         qemu = 'C:/msys64/mingw64/bin/qemu-system-arm.exe'
+        if(not os.path.exists(qemu)):
+            qemu = '%s/release/download/asqemu/qemu-system-arm.exe'%(ASROOT)
+            if(not os.path.exists(qemu)):
+                RunCommand('cd %s/release/download && '
+                           'wget https://github.com/parai/asenv/raw/master/x64/asqemu.zip && '
+                           'unzip asqemu.zip'%(ASROOT))
     else:
         qemu = '%s/release/download/qemu/arm-softmmu/qemu-system-arm'%(ASROOT)
     target = '%s/release/ascore/versatilepb'%(ASROOT)
@@ -39,7 +45,7 @@ if('run' in COMMAND_LINE_TARGETS):
     if(os.name == 'nt'):
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
-        RunCommand('start %s -m 128 -M versatilepb -kernel %s %s'%(qemu,target,params))
+        RunCommand('cd %s && start %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))
         RunCommand('sleep 1 && telnet 127.0.0.1 1103')
     else:
         fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
