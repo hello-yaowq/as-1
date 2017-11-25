@@ -30,6 +30,7 @@
 #include "ethernetif.h"
 
 #include "Os.h"
+#include "mbox.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_LWIP 1

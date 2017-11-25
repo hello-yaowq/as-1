@@ -83,6 +83,9 @@ if(asenv['RTOS'] != 'rtthread'):
            'CLIB_MBOX','CLIB_QSORT',
            'CLIB_STDIO_PRINTF',
            ]
+    if(os.name == 'nt'):
+        MODULES.remove('FATFS')
+        MODULES.remove('LWEXT4')
 else:
     asenv.Append(CCFLAGS='-DRT_HEAP_SIZE=0x800000')
     MODULES += ['LWEXT4']

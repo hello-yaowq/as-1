@@ -168,6 +168,23 @@
 #define RT_LWIP_ETHTHREAD_MBOX_SIZE	32
 // <integer name="RT_LWIP_ETHTHREAD_STACKSIZE" description="the stack size of ethnetif thread" default="512" />
 #define RT_LWIP_ETHTHREAD_STACKSIZE	512
+#ifdef USE_PCAPIF
+#define RT_LWIP_IPADDR0 192
+#define RT_LWIP_IPADDR1 168
+#define RT_LWIP_IPADDR2 56
+#define RT_LWIP_IPADDR3 200
+#define RT_LWIP_IPADDR "192.168.56.200"
+#define RT_LWIP_GWADDR0 192
+#define RT_LWIP_GWADDR1 168
+#define RT_LWIP_GWADDR2 56
+#define RT_LWIP_GWADDR3 1
+#define RT_LWIP_GWADDR "172.18.0.1"
+#define RT_LWIP_MSKADDR0 255
+#define RT_LWIP_MSKADDR1 255
+#define RT_LWIP_MSKADDR2 255
+#define RT_LWIP_MSKADDR3 0
+#define RT_LWIP_MSKADDR "255.255.255.0"
+#else
 // <ipaddr name="RT_LWIP_IPADDR" description="IP address of device" default="192.168.1.30" />
 #define RT_LWIP_IPADDR0 172
 #define RT_LWIP_IPADDR1 18
@@ -186,6 +203,7 @@
 #define RT_LWIP_MSKADDR2 255
 #define RT_LWIP_MSKADDR3 0
 #define RT_LWIP_MSKADDR "255.255.255.0"
+#endif
 // </section>
 
 // <section name="RT_USING_MODULE" description="Application module" default="true" >

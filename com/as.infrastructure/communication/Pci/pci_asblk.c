@@ -26,7 +26,8 @@
 #endif
 
 #ifdef USE_LWEXT4
-#include "ext4.h"
+#include <ext4.h>
+#include <ext4_mkfs.h>
 #include <ext4_config.h>
 #include <ext4_blockdev.h>
 #include <ext4_errno.h>
@@ -511,21 +512,38 @@ DWORD get_fattime (void)
 #ifdef USE_LWEXT4
 void ext_mount(void)
 {
-    int rc;
+	int rc;
 
-    rc = ext4_device_register(&ext4_blkdev, EXTFS_IMG);
-    if(rc != EOK)
-    {
-        ASLOG(EXTFS, "register ext4 device failed\n");
-    }
+	rc = ext4_device_register(&ext4_blkdev, EXTFS_IMG);
+	if(rc != EOK)
+	{
+		ASLOG(EXTFS, "register ext4 device failed\n");
+	}
 
 	rc = ext4_mount(EXTFS_IMG, "/", false);
 	if (rc != EOK)
-    {
-        ASLOG(EXTFS, "mount ext4 device failed\n");
-    }
+	{
+		static struct ext4_fs fs;
+		static struct ext4_mkfs_info info = {
+			.block_size = 4096,
+			.journal = true,
+		};
+		rc = ext4_mkfs(&fs, &ext4_blkdev, &info, F_SET_EXT4);
+		if (rc != EOK)
+		{
+			printf("ext4_mkfs error: %d\n", rc);
+		}
+		else
+		{
+			rc = ext4_mount(EXTFS_IMG, "/", false);
+			if (rc != EOK)
+			{
+				ASLOG(EXTFS, "mount ext4 device failed\n");
+			}
+		}
+	}
 
-    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/‘ OK\n");
+	ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on / OK\n");
 }
 #endif
 

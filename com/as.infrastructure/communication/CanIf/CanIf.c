@@ -1153,7 +1153,6 @@ KSM(CANIdle,Running)
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
 TASK(TaskCanIf)
 {
-
 	scheduleTxFifo();
 	scheduldRxFifo();
 	OsTerminateTask(TaskCanIf);
