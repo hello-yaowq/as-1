@@ -124,10 +124,12 @@ static const TypeInfo pci_asblk_info = {
 	.parent = TYPE_PCI_DEVICE,
 	.instance_size = sizeof(PCIASBLKDevState),
 	.class_init = pci_asblkdev_class_init,
+#ifdef INTERFACE_CONVENTIONAL_PCI_DEVICE
 	.interfaces = (InterfaceInfo[]) {
 		{ INTERFACE_CONVENTIONAL_PCI_DEVICE },
 		{},
 	},
+#endif
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 static void asblk_iowrite(void *opaque, hwaddr addr, uint64_t value,

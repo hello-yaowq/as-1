@@ -40,9 +40,26 @@ prepare() {
     make clean
     make 81 -i
     make 82 forceclib=yes msys=yes -i
-    cp ${srcdir}/../../../../release/aslua/out/libpyas.a ${srcdir}/${_pkgfqn}/hw/char -v
+    cp ${srcdir}/../../../../release/aslua/out/libpyas.a /mingw64/lib -v
     
-    cat ${srcdir}/../hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+    head -n 11 ${srcdir}/../hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+    echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+  fi
+
+  if ! [[ -d ${srcdir}/../../../../release/download/WpdPack ]] ; then
+    cd ${srcdir}/../../../../release/download/
+    wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+    unzip WpdPack_4_1_2.zip
+    cd -
+  fi
+  
+  if ! [[ -d /mingw64/include/pcap ]] ; then
+    cp ${srcdir}/../../../../release/download/WpdPack/Include/* /mingw64/include -rv
+    cp ${srcdir}/../../../../release/download/WpdPack/Lib/x64/* /mingw64/lib -v
+  fi
+  
+  if ! [[ -f /mingw64/lib/PCANBasic.lib ]] ; then
+    cp ${srcdir}/../../../../com/as.tool/lua/can/peak-can/lib/x64/PCANBasic.lib /mingw64/lib -v
   fi
 
   cp ${srcdir}/../hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v

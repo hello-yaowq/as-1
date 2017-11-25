@@ -12,4 +12,8 @@ obj-$(CONFIG_PCI) += asblk.o
 LIBS += -lpyas -L../hw/char -L./hw/char
 
 test-asnet:
+ifeq ($(shell uname), Linux)
 	gcc -D__TAPTEST__ asnet.c -o asnet
+else
+	gcc -D__TAPTEST__ asnet.c -o asnet -I/mingw64/include /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib
+endif

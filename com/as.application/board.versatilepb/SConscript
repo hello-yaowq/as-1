@@ -8,32 +8,47 @@ ASROOT = asenv['ASROOT']
 
 print('qemu run command:scons versatilepb run\nqemu debug command: scons versatilepb run gdb')
 if('run' in COMMAND_LINE_TARGETS):
-    qemu = '%s/release/download/qemu/arm-softmmu/qemu-system-arm'%(ASROOT)
+    if(os.name == 'nt'):
+        qemu = 'C:/msys64/mingw64/bin/qemu-system-arm.exe'
+    else:
+        qemu = '%s/release/download/qemu/arm-softmmu/qemu-system-arm'%(ASROOT)
     target = '%s/release/ascore/versatilepb'%(ASROOT)
-
-    if(not os.path.exists(qemu)):
-        os.system('cd %s/release/ascore/ && make asqemu'%(ASROOT))
+    if(os.name == 'nt'): target = target + '.exe'
+    if((not os.path.exists(qemu)) and (os.name != 'nt')):
+        RunCommand('cd %s/release/ascore/ && make asqemu'%(ASROOT))
 
     build = '%s/release/ascore/build/versatilepb'%(ASROOT)
-    if(os.name == 'nt'): build = build + '.exe'
+
     if(not os.path.exists('%s/asblk0.img'%(build))):
-        os.system('dd if=/dev/zero of=%s/asblk0.img bs=1M count=32'%(build))
-        os.system('sudo mkfs.fat %s/asblk0.img'%(build))
+        if(os.name == 'nt'):
+            RunCommand('echo "0" > %s/asblk0.img && truncate -s 33554432 %s/asblk0.img'%(build,build))
+        else:
+            RunCommand('dd if=/dev/zero of=%s/asblk0.img bs=1M count=32'%(build))
+            RunCommand('sudo mkfs.fat %s/asblk0.img'%(build))
     if(not os.path.exists('%s/asblk1.img'%(build))):
-        os.system('dd if=/dev/zero of=%s/asblk1.img bs=1M count=32'%(build))
-        os.system('sudo mkfs.ext4 -b 4096 %s/asblk1.img'%(build))
-    params = '-m 128 -M versatilepb -nographic -serial tcp:127.0.0.1:1103,server'
+        if(os.name == 'nt'):
+            RunCommand('echo "0" > %s/asblk1.img && truncate -s 33554432 %s/asblk1.img'%(build,build))
+        else:
+            RunCommand('dd if=/dev/zero of=%s/asblk1.img bs=1M count=32'%(build))
+            RunCommand('sudo mkfs.ext4 -b 4096 %s/asblk1.img'%(build))
+
+    params = '-nographic -serial tcp:127.0.0.1:1103,server'
     params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
     if('gdb' in COMMAND_LINE_TARGETS):
         params += ' -gdb tcp::1234 -S'
-    fp = open('%s/telnet.sh'%(build),'w')
-    fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
-    fp.close()
-    fp = open('%s/qemu.sh'%(build),'w')
-    fp.write('%s -m 128 -M versatilepb -kernel %s %s & sh %s/telnet.sh'%(qemu,target,params,build))
-    fp.close()
-    RunCommand('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
-    RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
+    if(os.name == 'nt'):
+        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
+        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
+        RunCommand('start %s -m 128 -M versatilepb -kernel %s %s'%(qemu,target,params))
+        RunCommand('sleep 1 && telnet 127.0.0.1 1103')
+    else:
+        fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
+        fp.close()
+        fp = open('%s/qemu.sh'%(build),'w')
+        fp.write('%s -m 128 -M versatilepb -kernel %s %s & sh %s/telnet.sh'%(qemu,target,params,build))
+        fp.close()
+        RunCommand('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
+        RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
     exit(0)
 
 objs = []

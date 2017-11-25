@@ -148,10 +148,12 @@ static const TypeInfo pci_ascan_info = {
 	.parent = TYPE_PCI_DEVICE,
 	.instance_size = sizeof(PCIASCANDevState),
 	.class_init = pci_ascandev_class_init,
+#ifdef INTERFACE_CONVENTIONAL_PCI_DEVICE
 	.interfaces = (InterfaceInfo[]) {
 		{ INTERFACE_CONVENTIONAL_PCI_DEVICE },
 		{},
 	},
+#endif
 };
 
 /* ============================ [ LOCALS    ] ====================================================== */

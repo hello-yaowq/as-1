@@ -21,7 +21,7 @@
 #define LWIP_DHCP 0
 
 #define ETH_MAC_ADDR {0xde,0xed,0xbe,0xef,0xaa,0xbb}
-#ifdef __WINDOWS__
+#ifdef USE_PCAPIF
 #define	GET_BOOT_IPADDR ipaddr.addr = inet_addr("192.168.56.200")
 #define	GET_BOOT_NETMASK netmask.addr = inet_addr("255.255.255.0")
 #define	GET_BOOT_GW gw.addr = inet_addr("192.168.56.1")
@@ -36,7 +36,7 @@
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
 
 
-#define LWIP_DEBUG 0
+#define LWIP_DEBUG 1
 #if LWIP_DEBUG == 1
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON

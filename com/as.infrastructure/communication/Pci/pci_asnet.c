@@ -40,6 +40,8 @@
 #define IFNAME0 't'
 #define IFNAME1 'p'
 
+#define PACKET_LIB_ADAPTER_NR 1
+
 enum {
 	FLG_RX = 0x01,
 	FLG_TX = 0x02,
@@ -55,6 +57,7 @@ enum{
 	REG_GW        = 0x18,
 	REG_NETMASK   = 0x1C,
 	REG_CMD       = 0x20,
+	REG_ADAPTERID = 0x24,
 };
 
 #define MAX_ADDR_LEN 6
@@ -119,8 +122,12 @@ void Eth_Isr(void)
 					case ETHTYPE_PPPOEDISC:
 					case ETHTYPE_PPPOE:
 					#endif /* PPPOE_SUPPORT */
+						#ifdef USE_PCAPIF
+						if (netif->input(p, netif) != ERR_OK) {
+						#else
 						/* full packet send to tcpip_thread to process */
 						if (ethernet_input(p, netif) != ERR_OK) {
+						#endif
 							LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
 							pbuf_free(p);
 							p = NULL;
@@ -191,6 +198,11 @@ static rt_err_t tap_netif_init(rt_device_t dev)
 #endif
 	enable_pci_interrupt(pdev);
 
+#ifdef USE_PCAPIF
+	writel(__iobase+REG_ADAPTERID, PACKET_LIB_ADAPTER_NR);
+	writel(__iobase+REG_MACH,0xdeadbeef);
+	writel(__iobase+REG_MACL,0xdeadbeef);
+#endif
 	writel(__iobase+REG_GW, inet_addr(RT_LWIP_GWADDR));
 	writel(__iobase+REG_NETMASK, inet_addr(RT_LWIP_MSKADDR));
 	writel(__iobase+REG_CMD, 0);
@@ -348,6 +360,11 @@ void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 		#endif
 		enable_pci_interrupt(pdev);
 
+#ifdef USE_PCAPIF
+		writel(__iobase+REG_ADAPTERID, PACKET_LIB_ADAPTER_NR);
+		writel(__iobase+REG_MACH,0xdeadbeef);
+		writel(__iobase+REG_MACL,0xdeadbeef);
+#endif
 		writel(__iobase+REG_GW, gw);
 		writel(__iobase+REG_NETMASK, netmask);
 		writel(__iobase+REG_CMD, 0);

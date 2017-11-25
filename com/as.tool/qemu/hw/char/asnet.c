@@ -12,7 +12,6 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef _WIN32
 /* ============================ [ INCLUDES  ] ====================================================== */
 #ifndef __TAPTEST__
 #include "qemu/osdep.h"
@@ -27,6 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
+#ifdef _WIN32
+#include "pcap.h"
+#else
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/socket.h>
@@ -34,6 +37,7 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <sys/poll.h>
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define TYPE_PCI_ASNET_DEV "pci-asnet"
 #define PCI_ASNET_DEV(obj)     OBJECT_CHECK(PCIASNETDevState, (obj), TYPE_PCI_ASNET_DEV)
@@ -45,6 +49,16 @@
 
 #define DEVTAP "/dev/net/tun"
 #define IFCONFIG_ARGS "%s inet %d.%d.%d.%d netmask %d.%d.%d.%d"
+
+#define ETHARP_HWADDR_LEN 6
+#define ADAPTER_NAME_LEN       128
+#define ADAPTER_DESC_LEN       128
+
+/* For compatibility with old pcap */
+#define PCAP_OPENFLAG_PROMISCUOUS     1
+
+#define LWIP_MAX(x , y)  (((x) > (y)) ? (x) : (y))
+#define LWIP_MIN(x , y)  (((x) < (y)) ? (x) : (y))
 
 /* Get one byte from the 4-byte address */
 #define ip4_addr1(ipaddr) (((uint8_t*)(ipaddr))[0])
@@ -67,8 +81,24 @@ enum{
 	REG_GW        = 0x18,
 	REG_NETMASK   = 0x1C,
 	REG_CMD       = 0x20,
+#ifdef _WIN32
+	REG_ADAPTERID = 0x24,
+#endif
 };
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef _WIN32
+struct eth_addr {
+	uint8_t addr[ETHARP_HWADDR_LEN];
+} __attribute__((packed));
+/* Packet Adapter informations */
+struct pcapif_private {
+	void            *input_fn_arg;
+	pcap_t          *adapter;
+	char             name[ADAPTER_NAME_LEN];
+	char             description[ADAPTER_DESC_LEN];
+	int              shutdown_called;
+};
+#endif
 typedef struct PCIASNETDevState {
 #ifndef __TAPTEST__
 	PCIDevice parent_obj;
@@ -90,7 +120,7 @@ typedef struct PCIASNETDevState {
 	/** maximum transfer unit (in bytes) */
 	uint32_t mtu;
 	uint8_t hwaddr_len;
-	uint8_t hwaddr[6];
+	uint8_t hwaddr[ETHARP_HWADDR_LEN];
 	uint32_t gw;
 	uint32_t netmask;
 
@@ -103,6 +133,11 @@ typedef struct PCIASNETDevState {
 	uint8_t txdata[2048];
 
 	uint32_t flag;
+
+#ifdef _WIN32
+	struct pcapif_private *pcap;
+	int adapter_num;
+#endif
 } PCIASNETDevState;
 #ifndef __TAPTEST__
 static Property asnet_properties[] = {
@@ -149,10 +184,6 @@ static const MemoryRegionOps asnet_io_ops = {
 		.min_access_size = 4,
 		.max_access_size = 4,
 	},
-	.interfaces = (InterfaceInfo[]) {
-		{ INTERFACE_CONVENTIONAL_PCI_DEVICE },
-		{},
-	},
 };
 
 /* Contains all the informations of the device
@@ -165,6 +196,12 @@ static const TypeInfo pci_asnet_info = {
 	.parent = TYPE_PCI_DEVICE,
 	.instance_size = sizeof(PCIASNETDevState),
 	.class_init = pci_asnetdev_class_init,
+#ifdef INTERFACE_CONVENTIONAL_PCI_DEVICE
+	.interfaces = (InterfaceInfo[]) {
+		{ INTERFACE_CONVENTIONAL_PCI_DEVICE },
+		{},
+	},
+#endif
 };
 #endif /* __TAPTEST__ */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -228,6 +265,256 @@ void asmem(const char* prefix, const void* address,size_t size)
 }
 
 #endif
+#ifdef _WIN32
+/**
+ * Open a network adapter and set it up for packet input
+ *
+ * @param adapter_num the index of the adapter to use
+ * @param arg argument to pass to input
+ * @return an adapter handle on success, NULL on failure
+ */
+static struct pcapif_private*
+pcapif_init_adapter(int adapter_num, void *arg)
+{
+  int i;
+  int number_of_adapters;
+  struct pcapif_private *pa;
+  char errbuf[PCAP_ERRBUF_SIZE+1];
+
+  pcap_if_t *alldevs;
+  pcap_if_t *d;
+  pcap_if_t *used_adapter = NULL;
+
+  pa = (struct pcapif_private *)malloc(sizeof(struct pcapif_private));
+  if (!pa) {
+    printf("Unable to alloc the adapter!\n");
+    return NULL;
+  }
+
+  memset(pa, 0, sizeof(struct pcapif_private));
+  pa->input_fn_arg = arg;
+
+  /* Retrieve the interfaces list */
+  if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+    free(pa);
+    return NULL; /* no adapters found */
+  }
+  /* get number of adatpers and adapter pointer */
+  for (d = alldevs, number_of_adapters = 0; d != NULL; d = d->next, number_of_adapters++) {
+    if (number_of_adapters == adapter_num) {
+      char *desc = d->description;
+      size_t len;
+
+      len = strlen(d->name);
+      assert(len < ADAPTER_NAME_LEN);
+      strcpy(pa->name, d->name);
+
+      used_adapter = d;
+      /* format vendor description */
+      if (desc != NULL) {
+        len = strlen(desc);
+        if (strstr(desc, " ' on local host") != NULL) {
+          len -= 16;
+        }
+        else if (strstr(desc, "' on local host") != NULL) {
+          len -= 15;
+        }
+        if (strstr(desc, "Network adapter '") == desc) {
+          len -= 17;
+          desc += 17;
+        }
+        len = LWIP_MIN(len, ADAPTER_DESC_LEN-1);
+        while ((desc[len-1] == ' ') || (desc[len-1] == '\t')) {
+          /* don't copy trailing whitespace */
+          len--;
+        }
+        strncpy(pa->description, desc, len);
+        pa->description[len] = 0;
+      } else {
+        strcpy(pa->description, "<no_desc>");
+      }
+    }
+  }
+
+#ifndef PCAPIF_LIB_QUIET
+  /* Scan the list printing every entry */
+  for (d = alldevs, i = 0; d != NULL; d = d->next, i++) {
+    char *desc = d->description;
+    char descBuf[128];
+    size_t len;
+    const char* devname = d->name;
+    if (d->name == NULL) {
+      devname = "<unnamed>";
+    } else {
+      if (strstr(devname, "\\Device\\") == devname) {
+        /* windows: strip the first part */
+        devname += 8;
+      }
+    }
+    printf("%2i: %s\n", i, devname);
+    if (desc != NULL) {
+      /* format vendor description */
+      len = strlen(desc);
+      if (strstr(desc, " ' on local host") != NULL) {
+        len -= 16;
+      }
+      else if (strstr(desc, "' on local host") != NULL) {
+        len -= 15;
+      }
+      if (strstr(desc, "Network adapter '") == desc) {
+        len -= 17;
+        desc += 17;
+      }
+      len = LWIP_MIN(len, 127);
+      while ((desc[len-1] == ' ') || (desc[len-1] == '\t')) {
+        /* don't copy trailing whitespace */
+        len--;
+      }
+      strncpy(descBuf, desc, len);
+      descBuf[len] = 0;
+      printf("     Desc: \"%s\"\n", descBuf);
+    }
+  }
+#endif /* PCAPIF_LIB_QUIET */
+
+  /* invalid adapter index -> check this after printing the adapters */
+  if (adapter_num < 0) {
+    printf("Invalid adapter_num: %d\n", adapter_num);
+    free(pa);
+    pcap_freealldevs(alldevs);
+    return NULL;
+  }
+  /* adapter index out of range */
+  if (adapter_num >= number_of_adapters) {
+    printf("Invalid adapter_num: %d\n", adapter_num);
+    free(pa);
+    pcap_freealldevs(alldevs);
+    return NULL;
+  }
+#ifndef PCAPIF_LIB_QUIET
+  printf("Using adapter_num: %d\n", adapter_num);
+#endif /* PCAPIF_LIB_QUIET */
+  /* set up the selected adapter */
+
+  assert( used_adapter != NULL);
+
+  /* Open the device */
+  pa->adapter = pcap_open_live(used_adapter->name,/* name of the device */
+                               65536,             /* portion of the packet to capture */
+                                                  /* 65536 guarantees that the whole packet will be captured on all the link layers */
+                               PCAP_OPENFLAG_PROMISCUOUS,/* promiscuous mode */
+                               -1,                 /* wait 0 ms in ethernetif_poll */
+                               errbuf);           /* error buffer */
+  if (pa->adapter == NULL) {
+    printf("\nUnable to open the adapter. %s is not supported by WinPcap\n", d->name);
+    /* Free the device list */
+    pcap_freealldevs(alldevs);
+    free(pa);
+    return NULL;
+  }
+  printf("Using adapter: \"%s\"\n", pa->description);
+  pcap_freealldevs(alldevs);
+
+  return pa;
+}
+static int low_level_probe(PCIASNETDevState *d,const char *name)
+{
+	int adapter_num = d->adapter_num;
+	struct pcapif_private *pa;
+
+	/* Do whatever else is needed to initialize interface. */
+	pa = pcapif_init_adapter(adapter_num, NULL);
+	if (pa == NULL) {
+		printf("ERROR initializing network adapter %d!\n", adapter_num);
+		return -1;
+	}
+
+	d->mtu = 1500;
+	d->pcap = pa;
+
+	return 0;
+}
+static int low_level_output(PCIASNETDevState *d)
+{
+	struct pcapif_private *pa = d->pcap;
+	assert(pa);
+	/* signal that packet should be sent */
+	if (pcap_sendpacket(pa->adapter, d->txdata, d->txlength) < 0) {
+		return -1;
+	}
+	return 0;
+}
+
+/** low_level_input(): Allocate a pbuf and transfer the bytes of the incoming
+ * packet from the interface into the pbuf.
+ */
+static void pcapif_low_level_input(PCIASNETDevState *d, const void *packet, int packet_len)
+{
+  struct eth_addr *dest = (struct eth_addr*)packet;
+  struct eth_addr *src = dest + 1;
+  const uint8_t bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+  const uint8_t ipv4mcast[] = {0x01, 0x00, 0x5e};
+  const uint8_t ipv6mcast[] = {0x33, 0x33};
+
+  d->rxlength = 0;
+  /* Don't let feedback packets through (limitation in winpcap?) */
+  if(!memcmp(src, d->hwaddr, ETHARP_HWADDR_LEN)) {
+    /* don't update counters here! */
+    return;
+  }
+
+  if (memcmp(dest, &d->hwaddr, ETHARP_HWADDR_LEN) &&
+    (memcmp(dest, ipv4mcast, 3) || ((dest->addr[3] & 0x80) != 0)) &&
+    memcmp(dest, ipv6mcast, 2) &&
+    memcmp(dest, bcast, 6)) {
+    /* don't update counters here! */
+    return;
+  }
+
+  d->rxlength = packet_len;
+  memcpy(d->rxdata, packet, packet_len);
+}
+
+/** pcapif_input: This function is called when a packet is ready to be read
+ * from the interface. It uses the function low_level_input() that should
+ * handle the actual reception of bytes from the network interface.
+ */
+static void
+pcapif_input(u_char *user, const struct pcap_pkthdr *pkt_header, const u_char *packet)
+{
+	int packet_len = pkt_header->caplen;
+
+	/* move received packet into a new pbuf */
+	pcapif_low_level_input(user, packet, packet_len);
+}
+
+static int low_level_input(PCIASNETDevState *d)
+{
+	int rv;
+	struct pcapif_private *pa = d->pcap;
+	assert(pa);
+
+	rv = pcap_dispatch(pa->adapter, 1, pcapif_input, (u_char*)d);
+
+	if(0 == rv)
+	{
+		return -1;
+	}
+	else if(rv < 0)
+	{
+		printf("asnet rx error: %s\n", pcap_geterr(pa->adapter));
+	}
+	else
+	{
+		if(d->rxlength > 0)
+		{
+			return 0;
+		}
+	}
+
+	return -1;
+}
+#else  /* _WIN32 */
 static int low_level_probe(PCIASNETDevState *d,const char *name)
 {
 	int len;
@@ -298,7 +585,7 @@ static int low_level_input(PCIASNETDevState *d)
 	}
 	return -1;
 }
-
+#endif /* _WIN32 */
 static void checkBus(PCIASNETDevState *d)
 {
 	if(0 == low_level_input(d))
@@ -306,7 +593,16 @@ static void checkBus(PCIASNETDevState *d)
 		d->flag |= FLG_RX;
 	}
 }
-
+#ifdef _WIN32
+static void tapif_init(PCIASNETDevState *d,const char* name)
+{
+	if(low_level_probe(d, name))
+	{
+		perror("asnet tapif_init failed");
+		return;
+	}
+}
+#else  /* _WIN32 */
 static void tapif_init(PCIASNETDevState *d,const char* name)
 {
 	char buf[sizeof(IFCONFIG_ARGS) + sizeof(IFCONFIG_BIN) + 50];
@@ -355,6 +651,7 @@ static void tapif_init(PCIASNETDevState *d,const char* name)
 		}
 	}
 }
+#endif /* _WIN32 */
 #ifndef __TAPTEST__
 static void asnet_iowrite(void *opaque, hwaddr addr, uint64_t value,
 		unsigned size) {
@@ -417,6 +714,18 @@ static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 	PCIASNETDevState *d = (PCIASNETDevState *) opaque;
 
 	switch (addr) {
+#ifdef _WIN32
+	case REG_MACL:
+		d->hwaddr[0] = (value >> 0)&0xFF;
+		d->hwaddr[1] = (value >> 8)&0xFF;
+		d->hwaddr[2] = (value >> 16)&0xFF;
+		d->hwaddr[3] = (value >> 24)&0xFF;
+		break;
+	case REG_MACH:
+		d->hwaddr[4] = (value >> 0)&0xFF;
+		d->hwaddr[5] = (value >> 8)&0xFF;
+		break;
+#endif
 	case REG_DATA:
 		assert(d->txpos < (sizeof(d->txdata)/sizeof(d->txdata[0])));
 		d->txdata[d->txpos] = value;
@@ -457,6 +766,11 @@ static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		}
 
 		break;
+#ifdef _WIN32
+	case REG_ADAPTERID:
+		d->adapter_num = value;
+		break;
+#endif
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
 
@@ -479,6 +793,9 @@ static int pci_asnetdev_init(PCIDevice *pci_dev) {
 	d->dma_buf = malloc(d->dma_size);
 	d->fd = -1;
 	d->rxlength = 0;
+#ifdef _WIN32
+	d->pcap = NULL;
+#endif
 	uint8_t *pci_conf;
 
 	/* create the memory region representing the MMIO and PIO
@@ -560,6 +877,15 @@ int main(int argc, char* argv[])
 
 	memset(&d, 0, sizeof(d));
 
+#ifdef _WIN32
+	d.adapter_num = 1;
+	d.hwaddr[0] = 0xde;
+	d.hwaddr[1] = 0xad;
+	d.hwaddr[2] = 0xbe;
+	d.hwaddr[3] = 0xef;
+	d.hwaddr[4] = 0xde;
+	d.hwaddr[5] = 0xad;
+#endif
 	d.gw=(172<<0)+(18<<8)+(0<<16)+(1<<24);
 	d.netmask=(255<<0)+(255<<8)+(255<<16)+(0<<24);
 
@@ -577,5 +903,3 @@ int main(int argc, char* argv[])
 	return 0;
 }
 #endif /* __TAPTEST__ */
-
-#endif /* _WIN32 */
