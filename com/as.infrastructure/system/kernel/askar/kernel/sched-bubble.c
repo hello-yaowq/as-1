@@ -46,7 +46,7 @@ typedef struct
 /* ============================ [ DATAS     ] ====================================================== */
 static ReadyQueueType ReadyQueue;
 #ifdef MULTIPLY_TASK_PER_PRIORITY
-static uint8 PrioSeqVal[PRIORITY_NUM];
+static uint8 PrioSeqVal[PRIORITY_NUM+1];
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef MULTIPLY_TASK_PER_PRIORITY

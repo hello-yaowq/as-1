@@ -35,7 +35,9 @@
 #include "Std_Types.h"
 #include <stdio.h>
 
+#ifndef BYTE_ORDER
 #define BYTE_ORDER LITTLE_ENDIAN
+#endif
 
 typedef uint8    u8_t;
 typedef sint8    s8_t;

@@ -124,8 +124,19 @@ class s19:
 
         fp.close()
         # generate the link script
-        fp = open('../../.%s.lds'%(file),'w')
+        try:
+            fp = open('../../.%s.lds'%(file),'w')
+        except IOError:
+            path = os.path.dirname(file)
+            bf = os.path.basename(file)
+            fp = open('%s/../../../.%s.lds'%(path,bf),'w')
         for ss in self.data:
+            bAllZero = True
+            for b in ss['data']:
+                if(b != 0):
+                    bAllZero = False
+                    break
+            if(bAllZero): continue
             address = ss['address']
             fp.write('\t.app._%X 0x%X : {\n'%(address,address))
             fp.write('\t\tKEEP(*(.app._%X))\n'%(address))

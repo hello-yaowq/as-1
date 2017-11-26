@@ -142,7 +142,9 @@ void Eth_Isr(void)
 		}
 	}
 }
-#endif
+#else
+void __weak Eth_Isr(void) {}
+#endif /* USE_LWIP */
 #ifdef USE_STDRT
 static void tap_asnet_thread_entry(void* param)
 {

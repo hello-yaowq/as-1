@@ -18,12 +18,12 @@ if('run' in COMMAND_LINE_TARGETS):
                            'unzip asqemu.zip'%(ASROOT))
     else:
         qemu = '%s/release/download/qemu/arm-softmmu/qemu-system-arm'%(ASROOT)
-    target = '%s/release/ascore/versatilepb'%(ASROOT)
+    target = '%s/release/%s/versatilepb'%(ASROOT,asenv['RELEASE'])
     if(os.name == 'nt'): target = target + '.exe'
     if((not os.path.exists(qemu)) and (os.name != 'nt')):
         RunCommand('cd %s/release/ascore/ && make asqemu'%(ASROOT))
 
-    build = '%s/release/ascore/build/versatilepb'%(ASROOT)
+    build = '%s/release/%s/build/versatilepb'%(ASROOT,asenv['RELEASE'])
 
     if(not os.path.exists('%s/asblk0.img'%(build))):
         if(os.name == 'nt'):
@@ -62,15 +62,19 @@ objs = []
 objs += Glob('%s/../board.bcm2835/common/*.c'%(cwd))
 
 asenv.Append(CCFLAGS=' -I%s/../board.bcm2835/common '%(cwd))
-
-asenv.Append(CCFLAGS=' -DconfigTOTAL_HEAP_SIZE=0x800000 ')
+if(asenv['RELEASE']=='asboot'):
+    asenv.Append(CCFLAGS=' -DconfigTOTAL_HEAP_SIZE=0x8000 ')
+else:
+    asenv.Append(CCFLAGS=' -DconfigTOTAL_HEAP_SIZE=0x800000 ')
 asenv.Append(CCFLAGS=' -DMEMORY_SIZE=0x8000000 ')
 asenv.Append(CCFLAGS=' -DSYSTEM_REGION_START=0x10000000 ')
 asenv.Append(CCFLAGS=' -DSYSTEM_REGION_END=0x101f4000 ')
 asenv.Append(CCFLAGS=' -DPAGE_SIZE=0x1000 ')
 
-#lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
-lds = '%s/com/as.infrastructure/arch/bcm2835/bsp/linker.lds'%(ASROOT)
+if(asenv['RELEASE']=='asboot'):
+    lds = '%s/../board.bcm2835/script/linker-boot.lds'%(cwd)
+else:
+    lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
 if(asenv['RTOS'] == 'rtthread'):
     lds = '%s/versatilepb.lds'%(cwd)
 asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
@@ -98,6 +102,17 @@ else:
 
 ARCH='versatilepb'
 arch='arm'
+
+# post special process for asboot release
+if(asenv['RELEASE']=='asboot'):
+    MODULES = ['ECUM','SCHM','MCU','DET',
+               'CAN','CANIF','PDUR','CANTP',
+               'DCM',
+               'FLASH',
+               'PCI',
+               'CLIB_ASHEAP','CLIB_MISCLIB',
+               'CLIB_STDIO_PRINTF',
+               ]
 
 asenv['MODULES'] = MODULES
 asenv['ARCH'] = ARCH

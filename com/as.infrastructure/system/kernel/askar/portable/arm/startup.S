@@ -45,10 +45,11 @@ _vector_resv:   .word vector_resv
 _vector_irq:    .word vector_irq
 _vector_fiq:    .word vector_fiq
 
+.global reset
 reset:
 	;@	In the reset handler, we need to copy our interrupt vector table to 0x0000, its currently at 0x8000
 
-	mov r0,#0x8000								;@ Store the source pointer
+	ldr r0,=_start								;@ Store the source pointer
     mov r1,#0x0000								;@ Store the destination pointer.
 
 	;@	Here we copy the branching instructions
@@ -103,9 +104,23 @@ DEFAULT_ISR_HANDLER vector_swi
 DEFAULT_ISR_HANDLER vector_pabt
 DEFAULT_ISR_HANDLER vector_dabt
 DEFAULT_ISR_HANDLER vector_resv
-DEFAULT_ISR_HANDLER vector_irq
 DEFAULT_ISR_HANDLER vector_fiq
 
+.extern Os_PortIsrHandler
+.global vector_irq
+.weak vector_irq
+vector_irq:
+
+    /* store caller-saved registers */
+    stmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+    bl Os_PortIsrHandler
+
+ 	/* restore caller-saved registers */
+    ldmfd sp!, {r0-r3,r9,r11,ip,lr}
+
+    /* return to interrupted task */
+    subs pc,lr,#4
 
 	.section .text
     .global Irq_Restore

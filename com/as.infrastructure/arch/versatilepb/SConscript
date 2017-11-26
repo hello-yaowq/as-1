@@ -3,6 +3,7 @@ from building import *
 
 Import('asenv')
 MODULES=asenv['MODULES']
+ASROOT=asenv['ASROOT']
 
 cwd = GetCurrentDir()
 
@@ -23,6 +24,8 @@ if('LWIP' in MODULES):
 if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += Glob('../posix/lwip/sys_arch.c')
     asenv.Append(CCFLAGS=' -I%s/../stm32f1/lwip '%(cwd))
+    if(os.name == 'nt'):
+        asenv.Append(CCFLAGS='-DLWIP_TIMEVAL_PRIVATE=0')
 
 #by default, use CAN and MCU
 asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
@@ -37,20 +40,29 @@ asenv['CC']='arm-none-eabi-gcc'
 asenv['AS']='arm-none-eabi-as'
 asenv['LINK']='arm-none-eabi-ld'
 
+asenv['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
+
 asenv.Append(CCFLAGS='-ffunction-sections -fdata-sections')
 asenv.Append(LINKFLAGS='--gc-sections')
 
 asenv.Append(LIBS=['c','gcc'])
 
-print("WARNING: fix compiler path to the right path: %s/SConscript"%(cwd))
 if(os.name == 'nt'):
-    cpl = 'C:/gcc-arm-none-eabi-4_8-2014q1-20140314-win32'
-    asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/4.8.3'%(cpl)])
+    gccarm = 'gcc-arm-none-eabi-5_4-2016q3-20160926-win32'
+    gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
+    cpl = '%s/release/download/%s'%(ASROOT,gccarm)
+    if(not os.path.exists(cpl)):
+        RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
+    asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
     asenv.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
     asenv['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
     asenv['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
     asenv['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
+    asenv['S19'] = '%s/bin/%s'%(cpl,asenv['S19'])
 else:
-    asenv.Append(LIBPATH=['/usr/lib/gcc/arm-none-eabi/4.8.2','/usr/lib/arm-none-eabi/newlib'])
+    # FIXME to the right path
+    libgcc = '/usr/lib/gcc/arm-none-eabi/4.8.2'
+    assert(os.path.exists(libgcc))
+    asenv.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
 Return('objs')

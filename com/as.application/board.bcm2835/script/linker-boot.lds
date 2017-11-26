@@ -10,12 +10,16 @@ MEMORY
 	INIT_RAM	(rwx)	: ORIGIN = 0x00008000, LENGTH = 32K
 	RAM			(rwx)	: ORIGIN = 0x00010000, LENGTH = 128K
 	APPRAM	    (rwx)	: ORIGIN = 0x00040000, LENGTH = 128M
+	/* This PCIIO PCINP PCIP is for versatilepb */
+	PCIIO		(rw)	: ORIGIN = 0x43000000, LENGTH = 16M
+	PCINP		(rw)	: ORIGIN = 0x50000000, LENGTH = 256M
+	PCIP		(rw)	: ORIGIN = 0x60000000, LENGTH = 256M
 }
 
 ENTRY(_start)
 
 /* application address */
-application_main = 0x00040000;
+application_main = 0x00040040;
 
 FlashHeader = 0x00030000;
 
@@ -68,6 +72,24 @@ SECTIONS {
 	} > RAM
 	__bss_end = .;
     _end = .;
+
+	.pciio :
+	{
+		*(.pciio)
+		*(.pciio.*)
+	} > PCIIO
+
+	.pcinp :
+	{
+		*(.pcinp)
+		*(.pcinp.*)
+	} > PCINP
+
+	.pcip :
+	{
+		*(.pcip)
+		*(.pcip.*)
+	} > PCIP
 
 	INCLUDE .app_s19.c.lds
 }
