@@ -94,3 +94,11 @@ if(asenv.GetOption('clean')):
     RMDir(cfgdir)
 
 asenv.Program(BOARD,objs)
+
+try:
+    target = BOARD
+    if(os.name == 'nt'):target += '.exe'
+    action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)
+    asenv.AddPostAction(target,action)
+except KeyError:
+    pass

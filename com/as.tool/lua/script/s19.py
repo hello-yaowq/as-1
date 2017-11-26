@@ -19,7 +19,8 @@ import sys,os
 __all__ = ['s19']
 
 class s19:
-    def __init__(self,file=None):
+    def __init__(self,file=None,gap=0):
+        self.gap = gap
         self.file = file
         self.data = []
         if(file != None):self.parse(file)
@@ -37,9 +38,16 @@ class s19:
             # append to this ss array, same section
             pass
         else:
-            # new a section
-            ss  = {'address':address,'size':0,'data':[]}
-            self.data.append(ss)
+            gap = address - (ss['address']+ss['size'])
+            if(gap < self.gap):
+                # fill the gap
+                for i in range(0,gap):
+                    ss['data'].append(0xFF)
+                ss['size'] += gap
+            else:
+                # new a section
+                ss  = {'address':address,'size':0,'data':[]}
+                self.data.append(ss)
         for b in bytes:
             ss['data'].append(b)
         ss['size'] += sz
@@ -107,6 +115,12 @@ class s19:
     def dumpc(self,file):
         fp = open(file,'w')
         for ss in self.data:
+            bAllZero = True
+            for b in ss['data']:
+                if(b != 0):
+                    bAllZero = False
+                    break
+            if(bAllZero): continue
             address = ss['address']
             size = ss['size']
             cstr = ''
@@ -158,7 +172,7 @@ def merge(s1,s2,so):
     fo.close()
 
 def dumpc(s,c):
-    s19(s).dumpc(c)
+    s19(s,32).dumpc(c)
 
 if(__name__=='__main__'):
     if(len(sys.argv)==6 and sys.argv[1]=='-m' and sys.argv[4]=='-o'):
