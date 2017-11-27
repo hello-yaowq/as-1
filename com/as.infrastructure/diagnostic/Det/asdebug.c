@@ -80,11 +80,13 @@ void asmem(const char* prefix, const void* address,size_t size)
 	uint32 i,j;
 	uint8 *src;
 	src = (uint8*)address;
+#if defined(__WINDOWS__) || defined(__LINUX__)
 	if(8 == sizeof(unsigned long))
 	{
 		printf("%16s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
 	}
 	else
+#endif
 	{
 		printf("%8s :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n",prefix);
 	}
@@ -92,11 +94,13 @@ void asmem(const char* prefix, const void* address,size_t size)
 	for(i=0; i<(size+15)/16; i++)
 	{
 		unsigned long a = (unsigned long)src+i*16;
+#if defined(__WINDOWS__) || defined(__LINUX__)
 		if( 8 == sizeof(unsigned long))
 		{
 			printf("%08X%08X ::",(uint32_t)(a>>32),(uint32_t)a);
 		}
 		else
+#endif
 		{
 			printf("%08X ::",(uint32_t)a);
 		}

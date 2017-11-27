@@ -43,6 +43,7 @@ typedef void (*reset_t)(void);
 extern void timer_init(void (*cbk)(void));
 void rt_console_putc(int c);
 extern void pci_init(void);
+extern void vic_setup(void);
 extern unsigned int _start;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

@@ -18,6 +18,7 @@
 #include "Os.h"
 #include "asdebug.h"
 #include "CanIf.h"
+#include "CanIf_Cbk.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define BL_FLASH_IDENTIFIER   0xFF
 #define BL_EEPROM_IDENTIFIER  0xEE

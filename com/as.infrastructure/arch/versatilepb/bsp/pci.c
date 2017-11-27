@@ -44,8 +44,8 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* according to https://github.com/qemu/qemu/blob/master/hw/arm/versatilepb.c */
-static void *versatile_pci_base = 0x10001000;
-static void *versatile_cfg_base[2] = { 0x41000000, 0x42000000 };
+static void *versatile_pci_base = (void *)0x10001000;
+static void *versatile_cfg_base[2] = { (void *)0x41000000, (void *)0x42000000 };
 static u32 pci_slot_ignore;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void *versatile_map_bus(unsigned int busnr,
@@ -223,7 +223,7 @@ void pci_write_config_reg8(pci_reg *reg, uint8 offset, const uint8 value)
 #ifndef USE_STDRT
 int pci_disable_IRQ_line(uint32 irq) { irq_disable_line(irq); return 0; }
 int pci_enable_IRQ_line(uint32 irq)  { irq_enable_line(irq); return 0; }
-int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return irq_install_isr(irq,handle); }
+int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return irq_install_isr(irq,(isr_callback_t)handle); }
 #else
 int pci_disable_IRQ_line(uint32 irq) { rt_hw_interrupt_mask(irq); return 0; }
 int pci_enable_IRQ_line(uint32 irq)  { rt_hw_interrupt_unmask(irq); return 0; }

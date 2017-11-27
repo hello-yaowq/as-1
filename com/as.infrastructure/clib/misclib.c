@@ -33,7 +33,7 @@ static int _eval(const char **expr)
 		if(**expr == '(')
 		{
 			(*expr)++;
-			number = eval(expr);
+			number = _eval(expr);
 		}
 		else
 		{
