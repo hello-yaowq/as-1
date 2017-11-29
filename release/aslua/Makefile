@@ -328,7 +328,11 @@ clean-dist:clean
 	make dep board=pyas compiler=posix-gcc
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
+ifeq ($(host), Linux)
 	@(cd $(exe-dir);make all CXX="${CXX}")
+else
+	@(cd $(exe-dir);make all -f $(LUA)/pyas/Makefile)
+endif
 ifeq ($(host), Linux)	
 	@(cp -v $(exe-dir)/*.so $(prj-dir)/com/as.tool/lua/script)
 else

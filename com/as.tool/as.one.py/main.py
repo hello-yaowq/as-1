@@ -77,7 +77,8 @@ class Window(QMainWindow):
         self.setCentralWidget(wid)
         self.creMenu()
 
-        self.onAction('Sg')
+        if(os.name != 'nt'):
+            self.onAction('Sg')
         self.onAction('Can')
         self.onAction('Flashloader')
         self.onAction('Dcm')
