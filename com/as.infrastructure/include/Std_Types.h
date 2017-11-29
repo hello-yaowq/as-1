@@ -109,7 +109,6 @@
 #include <rtthread.h>
 #define malloc rt_malloc
 #define strcmp rt_strcmp
-#define printf rt_kprintf
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef CONFIG_ARCH_VEXPRESS

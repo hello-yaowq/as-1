@@ -27,6 +27,9 @@
 /* dfs Filesystem APIs */
 #include <dfs_fs.h>
 #endif
+#ifdef RT_USING_PTHREADS
+#include <pthread.h>
+#endif
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 
@@ -59,6 +62,13 @@ int main(int argc,char* argv[])
 	return 0;
 }
 #ifdef USE_STDRT
+void rt_init_thread(void* parameter)
+{
+	rt_kprintf("rt_init_thread is running!\n");
+#ifdef RT_USING_PTHREADS
+	pthread_system_init();
+#endif
+}
 void rt_hw_board_init(void)
 {
 
@@ -111,6 +121,13 @@ void rt_application_init(void)
     tid = rt_thread_create("init",
 		                  (void(*)(void*))EcuM_Init, RT_NULL,
                            2048, 0, 20);
+
+    if (tid != RT_NULL)
+        rt_thread_startup(tid);
+
+	tid = rt_thread_create("rtinit",
+		                  (void(*)(void*))rt_init_thread, RT_NULL,
+                           2048, 32, 20);
 
     if (tid != RT_NULL)
         rt_thread_startup(tid);

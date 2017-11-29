@@ -43,11 +43,11 @@ PY34 ?= python3
 else
 ifeq ($(msys),yes)
 PY27 = /c/Python27/python
-PY34 = /c/Python34/python
+PY34 = /c/Python36/python
 HOME = /c/Users/parai.wang
 else
-PY27 = C:Python27/python
-PY34 = C:Python34/python
+PY27 = C:/Python27/python
+PY34 = C:/Python36/python
 HOME = C:/Users/parai.wang
 endif
 ifeq ($(HOME), $(wildcard $(HOME)))

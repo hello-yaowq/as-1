@@ -59,7 +59,10 @@ def PrepareBuilding(env):
         win32_spawn = Win32Spawn()
         win32_spawn.env = env
         env['SPAWN'] = win32_spawn.spawn
-        env['python3'] = 'c:/Python34/python'
+        if(os.path.exists('c:/Python34')):
+            env['python3'] = 'c:/Python34/python'
+        else:
+            env['python3'] = 'c:/Python36/python'
         env['python2'] = 'c:/Python27/python'
         env['python'] =  'c:/Python27/python'
     if(0 != os.system('%s --version'%(env['python3']))):
