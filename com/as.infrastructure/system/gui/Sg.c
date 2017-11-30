@@ -17,14 +17,20 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
+#if defined(__WINDOWS__) || defined(__LINUX__)
 #include <math.h>
+#endif
+#ifdef USE_AWS
 #include "json-c/json.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_AWS
 extern int AsWsjOnline(void);
 extern void AsWsjCall(const char* api,const char* verb,const char* obj);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_LCD
 static boolean sgUpdateInProcessing  = FALSE;
@@ -127,6 +133,7 @@ static boolean SgDrawBMP0(SgWidget* w)
 
 	return rv;
 }
+#if defined(__WINDOWS__) || defined(__LINUX__)
 void Sg_Calc(uint32 *px,uint32 *py,uint32 cx,uint32 cy,uint16 d)
 { /* This is difficult, I think I need a lib to do this job */
 	if(d == 0)
@@ -145,6 +152,9 @@ void Sg_Calc(uint32 *px,uint32 *py,uint32 cx,uint32 cy,uint16 d)
 		py[0]= (uint32)(((double)(x-(int)cx)*SIN + (double)(y-(int)cy)*COS) + (int)cy);
 	}
 }
+#else
+#define Sg_Calc(px, py, cx, cy, d)
+#endif
 static boolean SgDrawBMPd(SgWidget* w)
 {
 	const SgBMP* bmp;
@@ -272,6 +282,7 @@ static void SgCache(void)
 }
 #endif /* USE_LCD */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifdef USE_AWS
 void Sg_WsjRefresh(void)
 {
 	uint32 i;
@@ -312,6 +323,7 @@ void Sg_WsjRefresh(void)
 	AsWsjCall("Sg","refresh",json_object_to_json_string_length(obj,0,NULL));
 	json_object_put(obj);
 }
+#endif
 #ifdef USE_LCD
 void Sg_Init(void)
 {
@@ -333,12 +345,13 @@ void Sg_ManagerTask(void)
 {
 	SgWidget* w;
 	uint32_t weight=0;
-
+#ifdef USE_AWS
 	if(AsWsjOnline())
 	{
 		Sg_WsjRefresh();
 		return;
 	}
+#endif
 	if(sgUpdateInProcessing)
 	{
 		/* do nothing as now, only 1 buffer is used */

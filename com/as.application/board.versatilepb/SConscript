@@ -38,7 +38,7 @@ if('run' in COMMAND_LINE_TARGETS):
             RunCommand('dd if=/dev/zero of=%s/asblk1.img bs=1M count=32'%(build))
             RunCommand('sudo mkfs.ext4 -b 4096 %s/asblk1.img'%(build))
 
-    params = '-nographic -serial tcp:127.0.0.1:1103,server'
+    params = '-serial tcp:127.0.0.1:1103,server'
     params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
     if('gdb' in COMMAND_LINE_TARGETS):
         params += ' -gdb tcp::1234 -S'
@@ -49,6 +49,7 @@ if('run' in COMMAND_LINE_TARGETS):
         RunCommand('cd %s && start %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))
         RunCommand('sleep 1 && telnet 127.0.0.1 1103')
     else:
+        fp = open('%s/telnet.sh'%(build),'w')
         fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
         fp.close()
         fp = open('%s/qemu.sh'%(build),'w')
@@ -86,7 +87,11 @@ MODULES = ['ECUM','SCHM','MCU',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'SOAD','DOIP','LWIP','PCI',
+           'LCD','GUI','SG',
            ]
+
+print('WARNING: force using SGAPP watch for versatilepb!')
+asenv['SGAPP']='watch'
 
 if(asenv['RTOS'] != 'rtthread'):
     MODULES += ['FATFS','LWEXT4',

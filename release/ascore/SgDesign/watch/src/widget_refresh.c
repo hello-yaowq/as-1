@@ -1,6 +1,19 @@
 #ifdef USE_GUI
 #include "Sg.h"
 #include <time.h>
+#if !defined(__WINDOWS__) && !defined(__LINUX__)
+time_t time(time_t *result)
+{
+	return 0;
+}
+struct tm* localtime(const time_t* t)
+{
+	static struct tm lt;
+	lt.tm_hour = 8;
+
+	return &lt;
+}
+#endif
 void* RefreshPointerHour(SgWidget* w)
 {
 	time_t t = time(0);

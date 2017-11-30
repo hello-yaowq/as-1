@@ -12,8 +12,8 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef COM_CLANG_INCLUDE_LCD_H_
-#define COM_CLANG_INCLUDE_LCD_H_
+#ifndef _LCD_H_
+#define _LCD_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 
@@ -27,4 +27,4 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(void);
 void LCD_DrawPixel( uint32 x, uint32 y, uint32 color );
-#endif /* COM_CLANG_INCLUDE_LCD_H_ */
+#endif /* _LCD_H_ */

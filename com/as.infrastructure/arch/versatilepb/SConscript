@@ -16,7 +16,18 @@ else:
     objs += Glob('bsp/pci.c')
     asenv.Append(CCFLAGS='-I%s/rtbsp'%(cwd))
     asenv.Append(ASFLAGS='-I%s/rtbsp'%(cwd))
-objs += Glob('mcal/*.c')
+
+if('CAN' in MODULES):
+    objs += Glob('mcal/Can.c')
+    asenv.Append(CCFLAGS='-DUSE_CAN')
+
+if('LCD' in MODULES):
+    objs += Glob('mcal/Lcd.c')
+    asenv.Append(CCFLAGS='-DUSE_LCD')
+
+if('MCU' in MODULES):
+    objs += Glob('mcal/Mcu.c')
+    asenv.Append(CCFLAGS='-DUSE_MCU')
 
 if('LWIP' in MODULES):
     objs += Glob('../stm32f1/lwip/netbios.c')
@@ -26,9 +37,6 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     asenv.Append(CCFLAGS=' -I%s/../stm32f1/lwip '%(cwd))
     if(os.name == 'nt'):
         asenv.Append(CCFLAGS='-DLWIP_TIMEVAL_PRIVATE=0')
-
-#by default, use CAN and MCU
-asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
 
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -g ')

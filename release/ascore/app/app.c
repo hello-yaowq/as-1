@@ -393,12 +393,13 @@ void __error__(char *pcFilename, unsigned long ulLine)
 	printf(" error @ %d of %s\n",ulLine,pcFilename);
 }
 
-#if 0
-void _sbrk(void) {}
-void _write(void) {}
-void _close(void) {}
-void _fstat(void) {}
-void _isatty(void) {}
-void _lseek(void) {}
-void _read(void) {}
+#if !defined(__WINDOWS__) && !defined(__LINUX__)
+void abort(void) { printf("%s\n",__func__); while(1); }
+void _sbrk(void) { printf("%s\n",__func__); while(1); }
+void _write(void) { printf("%s\n",__func__); while(1); }
+void _close(void) { printf("%s\n",__func__); while(1); }
+void _fstat(void) { printf("%s\n",__func__); while(1); }
+void _isatty(void) { printf("%s\n",__func__); while(1); }
+void _lseek(void) { printf("%s\n",__func__); while(1); }
+void _read(void) { printf("%s\n",__func__); while(1); }
 #endif

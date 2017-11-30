@@ -6,6 +6,11 @@ cwd = GetCurrentDir()
 Import('asenv')
 
 sgapp = os.getenv('SGAPP')
+if(sgapp is None):
+    try:
+        sgapp = asenv['SGAPP']
+    except KeyError:
+        pass
 
 if(sgapp is None):
     print('WARNING: using default SGAPP virtual_cluster!')
