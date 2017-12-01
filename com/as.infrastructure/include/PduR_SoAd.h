@@ -40,6 +40,7 @@ void PduR_SoAdIfTriggerTransmit(PduIdType TxPduId, uint8 *SduPtr);
 
 BufReq_ReturnType PduR_SoAdTpStartOfReception(PduIdType id, PduLengthType TpSduLength, PduLengthType* bufferSizePtr);
 BufReq_ReturnType PduR_SoAdTpCopyRxData(PduIdType id, PduInfoType* info, PduLengthType* bufferSizePtr);
+BufReq_ReturnType PduR_SoAdTpCopyTxData(PduIdType id, PduInfoType* info, RetryInfoType* retry, PduLengthType* availableDataPtr );
 #endif
 
 #endif /* PDUR_SOAD_H_ */

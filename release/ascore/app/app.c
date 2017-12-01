@@ -393,7 +393,7 @@ void __error__(char *pcFilename, unsigned long ulLine)
 	printf(" error @ %d of %s\n",ulLine,pcFilename);
 }
 
-#if !defined(__WINDOWS__) && !defined(__LINUX__)
+#if 0
 void abort(void) { printf("%s\n",__func__); while(1); }
 void _sbrk(void) { printf("%s\n",__func__); while(1); }
 void _write(void) { printf("%s\n",__func__); while(1); }

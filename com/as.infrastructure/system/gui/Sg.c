@@ -17,6 +17,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
+#include "asdebug.h"
 #if defined(__WINDOWS__) || defined(__LINUX__)
 #include <math.h>
 #endif
@@ -126,7 +127,7 @@ static boolean SgDrawBMP0(SgWidget* w)
 	else
 	{
 		/* out of range */
-		assert(0);
+		asAssert(0);
 	}
 
 	sgX = width;
@@ -201,7 +202,7 @@ static boolean SgDrawBMP(SgWidget* w)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		rv = TRUE;
 	}
 
@@ -239,7 +240,7 @@ static boolean SgDrawTXT(SgWidget* w)
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 
 	return TRUE;
@@ -260,7 +261,7 @@ static boolean SgDrawWidget(SgWidget* w)
 			break;
 		default:
 			rv = TRUE;
-			assert(0);
+			asAssert(0);
 			break;
 	}
 
@@ -316,7 +317,7 @@ void Sg_WsjRefresh(void)
 			case SGT_TXT:
 				break;
 			default:
-				assert(0);
+				asAssert(0);
 				break;
 		}
 	}
