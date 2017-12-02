@@ -233,7 +233,7 @@ typedef struct {
 // 10.2.14 DemEventClass
 typedef struct {
 	boolean						ConsiderPtoStatus;									// (1)
-	const Dem_DTCOriginType 		EventDestination[DEM_MAX_NR_OF_EVENT_DESTINATION+1];// (0..4)
+	const Dem_DTCOriginType 		EventDestination[DEM_MAX_NR_OF_EVENT_DESTINATION];// (0..4)
 	uint8						EventPriority;										// (1)
 	boolean						FFPrestorageSupported;								// (1)
 	boolean						HealingAllowed;										// (1)

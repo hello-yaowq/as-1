@@ -25,11 +25,15 @@
 #if defined(USE_NVM)
 #include "NvM.h"
 #endif
+#if defined(USE_DEM)
+#include "Dem.h"
+#endif
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 //#define ENABLE_FEE_TEST
-#define ENABLE_NVM_TEST
+//#define ENABLE_NVM_TEST
 //#define ENABLE_EA_TEST
+#define ENABLE_DEM_TEST
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -193,6 +197,23 @@ static void Ea_Test(void)
 	}
 }
 #endif
+#ifdef ENABLE_DEM_TEST
+static void Dem_Test(void)
+{
+	uint8 status = -1;
+	Dem_GetEventStatus(DEM_EVENT_ID_AIRBAG_FAILED,&status);
+	Dem_SetOperationCycleState(DEM_IGNITION,DEM_CYCLE_STATE_START);
+	printf("DEM airbag status is 0x%X\n",status);
+	if(DEM_TEST_FAILED_THIS_OPERATION_CYCLE != status)
+	{
+		Dem_ReportErrorStatus(DEM_EVENT_ID_AIRBAG_FAILED,DEM_EVENT_STATUS_FAILED);
+	}
+	else
+	{
+		Dem_ReportErrorStatus(DEM_EVENT_ID_AIRBAG_FAILED,DEM_EVENT_STATUS_PASSED);
+	}
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void tester_time_1000ms_runnable(void)
 {
@@ -247,6 +268,9 @@ void tester_nvm_1000ms_runnable(void)
 	#endif
 	#ifdef ENABLE_NVM_TEST
 	NvM_Test();
+	#endif
+	#ifdef ENABLE_DEM_TEST
+	Dem_Test();
 	#endif
 
 	fflush(stdout);

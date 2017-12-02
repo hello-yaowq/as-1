@@ -179,10 +179,6 @@ def GenC():
             fp.write('\t\t#endif\n')
             fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
             fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
-            if(id+1 == len(BlockList)): 
-                fp.write('\t\t.EaBlockEOL = TRUE\n')
-            else:
-                fp.write('\t\t.EaBlockEOL = FALSE\n')
             fp.write('\t},\n')
         else:
             for i in range(0,Integer(GAGet(block,'ArraySize'))):
@@ -195,10 +191,6 @@ def GenC():
                 fp.write('\t\t#endif\n')
                 fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
                 fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
-                if(id+1 == len(BlockList)): 
-                    fp.write('\t\t.EaBlockEOL = TRUE\n')
-                else:
-                    fp.write('\t\t.EaBlockEOL = FALSE\n')
                 fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('#endif /* USE_EA */\n')

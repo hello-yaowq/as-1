@@ -51,7 +51,7 @@ def GenH():
     fp.write('''#define DEM_FF_DID_LENGTH                    TBD    // Length of DID & PID of FreezeFrames in Bytes.
 #define DEM_MAX_NUMBER_EVENT_ENTRY_MIR        0    // Max nr of events stored in mirror memory.
 #define DEM_MAX_NUMBER_EVENT_ENTRY_PER        0    // Max nr of events stored in permanent memory.
-#define DEM_MAX_NUMBER_EVENT_ENTRY_PRI        10    // Max nr of events stored in primary memory.
+#define DEM_MAX_NUMBER_EVENT_ENTRY_PRI        DEM_MAX_NUMBER_EVENT    // Max nr of events stored in primary memory.
 #define DEM_MAX_NUMBER_EVENT_ENTRY_SEC        0    // Max nr of events stored in secondary memory.
 #define DEM_MAX_NUMBER_PRESTORED_FF            0    // Max nr of prestored FreezeFrames. 0=Not supported.
 
@@ -59,7 +59,7 @@ def GenH():
  * Size limitations of the types derived from DemGeneral
  */
 #define DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA    10    // 0..253 according to Autosar
-#define DEM_MAX_NR_OF_EVENT_DESTINATION             4    // 0..4 according to Autosar
+#define DEM_MAX_NR_OF_EVENT_DESTINATION             1    // 0..4 according to Autosar
 
 /*
  * Size limitations of storage area
@@ -142,6 +142,7 @@ def GenC():
     General= GLGet('General')
     fp = open('%s/Dem_Cfg.c'%(__dir),'w')
     fp.write(GHeader('Dem'))
+    fp.write('#ifdef USE_DEM\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Dem.h"\n\n')
     fp.write('#ifdef USE_NVM\n')
@@ -155,6 +156,7 @@ def GenC():
     for cst in EventClassList:
         fp.write('static const Dem_EventClassType EventClass_%s = \n{\n'%(GAGet(cst,'Name')))
         fp.write('\t.ConsiderPtoStatus=%s,\n'%(GAGet(cst,'ConsiderPtoStatus').upper()))
+        fp.write('\t.EventDestination={ DEM_DTC_ORIGIN_PRIMARY_MEMORY },\n')
         fp.write('\t.EventPriority=%s,\n'%(GAGet(cst,'EventPriority')))
         fp.write('\t.FFPrestorageSupported=%s,\n'%(GAGet(cst,'FFPrestorageSupported').upper()))
         fp.write('\t.HealingAllowed=%s,\n'%(GAGet(cst,'HealingAllowed').upper()))
@@ -197,4 +199,5 @@ def GenC():
     fp.write('const NvM_BlockIdType HealingBlockId = NVM_BLOCK_ID_%s;\n\n'%(GAGet(General,'NvMHealingBlock')))
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    fp.write('#endif\n')
     fp.close()

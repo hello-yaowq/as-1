@@ -105,6 +105,10 @@
 #error "DEM_TYPE_OF_DTC_SUPPORTED is not set to ISO15031-6 or ISO14229-1. Only these are supported by the code."
 #endif
 
+#if DEM_MAX_NUMBER_EVENT > DEM_MAX_NUMBER_EVENT_PRI_MEM
+#error "DEM_MAX_NUMBER_EVENT must be bigger than DEM_MAX_NUMBER_EVENT_PRI_MEM!"
+#endif
+
 
 /*
  * Local types
@@ -1553,7 +1557,7 @@ static boolean lookupExtendedDataPriMem(Dem_EventIdType eventId, ExtDataRecType 
  * Description: Copies Nvram to buffer
  */
 
-Std_ReturnType copyNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
+static Std_ReturnType copyNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
 {
 
 #if (DEM_USE_NVM == STD_ON)
@@ -1577,7 +1581,7 @@ Std_ReturnType copyNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const
  * Procedure:	writeNvmMirror
  * Description: store data in NVRam
  */
-Std_ReturnType writeNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
+static Std_ReturnType writeNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
 {
 #if (DEM_USE_NVM == STD_ON)
 	Std_ReturnType blockWriteStatus = E_NOT_OK;

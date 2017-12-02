@@ -53,6 +53,10 @@ if('RTE' in MODULES):
     objs += Glob('rte/*.c')
     objs += Glob('rte/*.xml')
 
+if(os.getenv('TESTER') == 'yes'):
+    objs += Glob('test/*.c')
+    objs += Glob('test/*.xml')
+
 asenv.Append(CCFLAGS='-I%s/config'%(cwd))
 
 Return('objs')
