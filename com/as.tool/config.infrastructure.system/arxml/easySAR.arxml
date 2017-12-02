@@ -336,7 +336,7 @@
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
 					StartBit="Integer Range=0~63 PosGUI=3 
-					\n BITMAP锛� MSB              LSB
+					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -348,7 +348,7 @@
 					Size="Integer Range=1~64 Default=8 PosGUI=4"
 					UpdateBitUsed="Boolean Default=False PosGUI=5"
 					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
-					\n BITMAP锛� MSB              LSB
+					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -370,7 +370,7 @@
 							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 							StartBit="Integer Range=0~63 PosGUI=3
-							\n BITMAP锛� MSB              LSB
+							\n BITMAP MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
 							\n BYTE2 23 22 21 20 19 18 17 16
@@ -382,7 +382,7 @@
 							Size="Integer Range=1~64 Default=8 PosGUI=4"
 							UpdateBitUsed="Boolean Default=False PosGUI=5"
 							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
-							\n BITMAP锛� MSB              LSB
+							\n BITMAP MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
 							\n BYTE2 23 22 21 20 19 18 17 16
@@ -405,7 +405,7 @@
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
 					StartBit="Integer Range=0~63 PosGUI=4
-					\n BITMAP锛� MSB              LSB
+					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -418,7 +418,7 @@
 					InitialValue="Text Default=0 PosGUI=6"
 					UpdateBitUsed="Boolean Default=False PosGUI=7"
 					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
-					\n BITMAP锛� MSB              LSB
+					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -789,7 +789,9 @@
 			BlockSize="Integer Default=0 PosGUI=1"
 			ImmediateData="Boolean Default=False PosGUI=2"
 			NumberOfWriteCycles="Integer Default=0xFFFFFFFF PosGUI=3"
-			Comment="TextArea Default=* PosGUI=4"
+			IsArray="Boolean Default=False PosGUI=4"
+			ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6"
 			/>
 	</BlockList>
 </Fee>
@@ -810,7 +812,9 @@
 			BlockSize="Integer Default=0 PosGUI=1"
 			ImmediateData="Boolean Default=False PosGUI=2"
 			NumberOfWriteCycles="Integer Default=0xFFFFFFFF PosGUI=3"
-			Comment="TextArea Default=* PosGUI=4"
+			IsArray="Boolean Default=False PosGUI=4"
+			ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6"
 			/>
 	</BlockList>
 </Ea>
@@ -838,7 +842,9 @@
 			BlockNumRef0="EnumRef=Fee.BlockList Enabled=(Self.NvramDeviceId==Fee) PosGUI=6"
 			BlockNumRef1="EnumRef=Ea.BlockList Enabled=(Self.NvramDeviceId==Ea) PosGUI=7"
 			InitBlockCallback="Text Default=NULL PosGUI=8"
-			Comment="TextArea Default=* PosGUI=9"
+			IsArray="Boolean Default=False PosGUI=9"
+			ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=10"
+			Comment="TextArea Default=* PosGUI=11"
 			>
 		<DataList Max="65535">
 			<Data 
@@ -849,6 +855,22 @@
 				DefaultValue="TextArea Default=0 PosGUI=4"
 				Comment="TextArea Default=* PosGUI=5"
 				/>
+			<Struct
+				Name="Text PosGUI=0"
+				IsArray="Boolean Default=False PosGUI=1"
+				ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=2"
+				Comment="TextArea Default=* PosGUI=3" >
+				<DataList Max="65535">
+					<Data 
+						Name="Text PosGUI=0"
+						IsArray="Boolean Default=False PosGUI=1"
+						Type="Enum=(uint8,uint16,uint32,sint8,sint16,sint32) Default=uint32 PosGUI=2"
+						ArraySize="Integer Default=2 Enabled=(Self.IsArray==True) PosGUI=3"
+						DefaultValue="TextArea Default=0 PosGUI=4"
+						Comment="TextArea Default=* PosGUI=5"
+						/>
+				</DataList>
+			</Struct>
 		</DataList>
 		</Block>
 	</BlockList>
@@ -951,8 +973,11 @@
 		DEM_TYPE_OF_DTC_SUPPORTED="Enum=(0x01,0x02) Default=0x01 PosGUI=4"
 		DEM_DTC_STATUS_AVAILABILITY_MASK="Text Default=0xFF PosGUI=5"
 		DEM_CLEAR_ALL_EVENTS="Enum=(ON,OFF) Default=OFF PosGUI=6"
-		DEM_BSW_ERROR_BUFFER_SIZE="Text Default=20 PosGUI=7"
-		Comment="TextArea Default=* PosGUI=8"
+		DEM_USE_NVM="Enum=(ON,OFF) Default=ON PosGUI=7"
+		DEM_MAX_NUMBER_FF_DATA_PRI_MEM="Integer Default=5 PosGUI=8"
+		NvMFreezeFrameBlock="EnumRef=NvM.BlockList PosGUI=9"
+		NvMHealingBlock="EnumRef=NvM.BlockList PosGUI=10"
+		Comment="TextArea Default=* PosGUI=11"
 		>
 	</General>
 	<EventClassList Max="65535">

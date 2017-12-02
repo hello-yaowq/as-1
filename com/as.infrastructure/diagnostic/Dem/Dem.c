@@ -207,11 +207,9 @@ static ExtDataRecType		preInitExtDataBuffer[DEM_MAX_NUMBER_EXT_DATA_PRE_INIT];
 /** @req DEM162 */
 EventRecType 		        priMemEventBuffer[DEM_MAX_NUMBER_EVENT_PRI_MEM];
 static FreezeFrameRecType	priMemFreezeFrameBuffer[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];
-//FreezeFrameRecType        FreezeFrameMirrorBuffer[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];
-extern FreezeFrameRecType*  FreezeFrameMirrorBuffer[];
+extern FreezeFrameRecType*  const FreezeFrameMirrorBuffer[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];
 ExtDataRecType		priMemExtDataBuffer[DEM_MAX_NUMBER_EXT_DATA_PRI_MEM];
 HealingRecType         		priMemAgingBuffer[DEM_MAX_NUMBER_AGING_PRI_MEM];
-extern HealingRecType   		HealingMirrorBuffer[DEM_MAX_NUMBER_AGING_PRI_MEM];
 
 /* block in NVRam, use for freezeframe */
 extern const NvM_BlockIdType FreezeFrameBlockId[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];
@@ -1558,7 +1556,7 @@ static boolean lookupExtendedDataPriMem(Dem_EventIdType eventId, ExtDataRecType 
 Std_ReturnType copyNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
 {
 
-#if (DEM_USE_NVM == STD_ON  && DEM_UNIT_TEST == STD_OFF)
+#if (DEM_USE_NVM == STD_ON)
 	Std_ReturnType blockReadStatus = E_NOT_OK;
 	NvM_RequestResultType requestResult;
 
@@ -1581,7 +1579,7 @@ Std_ReturnType copyNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const
  */
 Std_ReturnType writeNvmMirror(const NvM_BlockIdType BlockId, uint8 *dstPtr, const uint8 *srcPtr, uint8 len)
 {
-#if (DEM_USE_NVM == STD_ON && DEM_UNIT_TEST == STD_OFF)
+#if (DEM_USE_NVM == STD_ON)
 	Std_ReturnType blockWriteStatus = E_NOT_OK;
 	NvM_RequestResultType requestResult;
 

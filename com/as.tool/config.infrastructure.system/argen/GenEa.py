@@ -37,9 +37,19 @@ def GenH():
     General=GLGet('General')
     BlockList = GLGet('BlockList')
     cstr = ''
-    for id,block in enumerate(BlockList):
-        cstr += '#define EA_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),id+1)
-    cstr += '\n#define EA_NUMBER_OF_BLOCKS %s\n\n'%(len(BlockList))
+    nbrBlk=0
+    id = 1
+    for block in BlockList:
+        if(GAGet(block,'IsArray')=='False'):
+            cstr += '#define EA_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),id)
+            id += 1
+            nbrBlk+=1
+        else:
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                cstr += '#define EA_BLOCK_NUM_%x32s_%s %s\n'%(GAGet(block,'Name'),i,id)
+                id += 1
+                nbrBlk+=1
+    cstr += '\n#define EA_NUMBER_OF_BLOCKS %s\n\n'%(nbrBlk)
     max_block_size = 0
     for block in BlockList:
         block_size = Integer(GAGet(block,'BlockSize'))
@@ -159,20 +169,37 @@ def GenC():
      
     fp.write('\nconst Ea_BlockConfigType Ea_BlockConfigData[] = {\n')     
     for id,block in enumerate(BlockList):
-        fp.write('\t{    /* %s */\n'%(GAGet(block,'Name')))
-        fp.write('\t\t.EaBlockNumber = EA_BLOCK_NUM_%s,\n'%(GAGet(block,'Name')))
-        fp.write('\t\t#ifdef USE_NVM\n')
-        fp.write('\t\t.EaBlockSize  =  NVM_EA_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
-        fp.write('\t\t#else\n')
-        fp.write('\t\t.EaBlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
-        fp.write('\t\t#endif\n')
-        fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
-        fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
-        if(id+1 == len(BlockList)): 
-            fp.write('\t\t.EaBlockEOL = TRUE\n')
+        if(GAGet(block,'IsArray')=='False'):
+            fp.write('\t{    /* %s */\n'%(GAGet(block,'Name')))
+            fp.write('\t\t.EaBlockNumber = EA_BLOCK_NUM_%s,\n'%(GAGet(block,'Name')))
+            fp.write('\t\t#ifdef USE_NVM\n')
+            fp.write('\t\t.EaBlockSize  =  NVM_EA_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
+            fp.write('\t\t#else\n')
+            fp.write('\t\t.EaBlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
+            fp.write('\t\t#endif\n')
+            fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
+            fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
+            if(id+1 == len(BlockList)): 
+                fp.write('\t\t.EaBlockEOL = TRUE\n')
+            else:
+                fp.write('\t\t.EaBlockEOL = FALSE\n')
+            fp.write('\t},\n')
         else:
-            fp.write('\t\t.EaBlockEOL = FALSE\n')
-        fp.write('\t},\n') 
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                fp.write('\t{    /* %s %s */\n'%(GAGet(block,'Name'),i))
+                fp.write('\t\t.EaBlockNumber = EA_BLOCK_NUM_%s_%s,\n'%(GAGet(block,'Name'),i))
+                fp.write('\t\t#ifdef USE_NVM\n')
+                fp.write('\t\t.EaBlockSize  =  NVM_EA_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
+                fp.write('\t\t#else\n')
+                fp.write('\t\t.EaBlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
+                fp.write('\t\t#endif\n')
+                fp.write('\t\t.EaImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
+                fp.write('\t\t.EaDeviceIndex = EA_INDEX,\n') 
+                if(id+1 == len(BlockList)): 
+                    fp.write('\t\t.EaBlockEOL = TRUE\n')
+                else:
+                    fp.write('\t\t.EaBlockEOL = FALSE\n')
+                fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('#endif /* USE_EA */\n')
     fp.close()    

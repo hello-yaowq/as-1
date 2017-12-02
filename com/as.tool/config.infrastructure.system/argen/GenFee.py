@@ -38,11 +38,33 @@ def GenH():
     BlockList = GLGet('BlockList')
     page_size = Integer(GAGet(General,'VirtualPageSize'))
     cstr = ''
-    Num = 1
+    Num = '1'
+    nbrBlk=0
+    cstr += '#ifdef USE_NVM\n'
     for block in BlockList:
-        cstr += '#define FEE_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),Num)
-        Num += (Integer(GAGet(block,'BlockSize'))+page_size-1)/page_size
-    cstr += '#define FEE_NUM_OF_BLOCKS  %s\n'%(len(BlockList))
+        if(GAGet(block,'IsArray')=='False'):
+            cstr += '#define FEE_BLOCK_NUM_%-32s (%s)\n'%(GAGet(block,'Name'),Num)
+            Num += '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'))
+            nbrBlk+=1
+        else:
+            anum = Num
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                cstr += '#define FEE_BLOCK_NUM_%s_%s (%s)\n'%(GAGet(block,'Name'),i,anum)
+                anum = Num + '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)*%s/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'),i)
+                nbrBlk+=1
+            Num += '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)*%s/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'),GAGet(block,'ArraySize'))
+    cstr += '#else\n'
+    Num=1
+    for block in BlockList:
+        if(GAGet(block,'IsArray')=='False'):
+            cstr += '#define FEE_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),Num)
+            Num += (Integer(GAGet(block,'BlockSize'))+page_size-1)/page_size
+        else:
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                cstr += '#define FEE_BLOCK_NUM_%s_%s %s\n'%(GAGet(block,'Name'),i,Num)
+                Num += (Integer(GAGet(block,'BlockSize'))+page_size-1)/page_size
+    cstr += '#endif\n'
+    cstr += '#define FEE_NUM_OF_BLOCKS  %s\n'%(nbrBlk)
     fp.write('''#ifndef FEE_CFG_H_
 #define FEE_CFG_H_
 
@@ -84,17 +106,31 @@ def GenC():
         fp.write('extern void %s(void);\n'%(GAGet(General,'NvmJobErrorNotification')))   
     fp.write('\nstatic const Fee_BlockConfigType BlockConfigList[] = {\n')     
     for block in BlockList:
-        fp.write('\t{    /* %s */\n'%(GAGet(block,'Name')))
-        fp.write('\t\t.DeviceIndex = FEE_INDEX,\n')  
-        fp.write('\t\t.BlockNumber = FEE_BLOCK_NUM_%s,\n'%(GAGet(block,'Name')))
-        fp.write('\t\t#ifdef USE_NVM\n')
-        fp.write('\t\t.BlockSize  =  NVM_FEE_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
-        fp.write('\t\t#else\n')
-        fp.write('\t\t.BlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
-        fp.write('\t\t#endif\n')
-        fp.write('\t\t.ImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
-        fp.write('\t\t.NumberOfWriteCycles = %s\n'%(GAGet(block,'NumberOfWriteCycles')))
-        fp.write('\t},\n') 
+        if(GAGet(block,'IsArray')=='False'):
+            fp.write('\t{    /* %s */\n'%(GAGet(block,'Name')))
+            fp.write('\t\t.DeviceIndex = FEE_INDEX,\n')  
+            fp.write('\t\t.BlockNumber = FEE_BLOCK_NUM_%s,\n'%(GAGet(block,'Name')))
+            fp.write('\t\t#ifdef USE_NVM\n')
+            fp.write('\t\t.BlockSize  =  NVM_FEE_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
+            fp.write('\t\t#else\n')
+            fp.write('\t\t.BlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
+            fp.write('\t\t#endif\n')
+            fp.write('\t\t.ImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
+            fp.write('\t\t.NumberOfWriteCycles = %s\n'%(GAGet(block,'NumberOfWriteCycles')))
+            fp.write('\t},\n')
+        else:
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                fp.write('\t{    /* %s %s */\n'%(GAGet(block,'Name'),i))
+                fp.write('\t\t.DeviceIndex = FEE_INDEX,\n')  
+                fp.write('\t\t.BlockNumber = FEE_BLOCK_NUM_%s_%s,\n'%(GAGet(block,'Name'),i))
+                fp.write('\t\t#ifdef USE_NVM\n')
+                fp.write('\t\t.BlockSize  =  NVM_FEE_BLOCK_SIZE_%s,\n'%(GAGet(block,'Name')))
+                fp.write('\t\t#else\n')
+                fp.write('\t\t.BlockSize  =  %s,\n'%(GAGet(block,'BlockSize')))
+                fp.write('\t\t#endif\n')
+                fp.write('\t\t.ImmediateData = %s,\n'%(GAGet(block,'ImmediateData').upper()))
+                fp.write('\t\t.NumberOfWriteCycles = %s\n'%(GAGet(block,'NumberOfWriteCycles')))
+                fp.write('\t},\n')
     fp.write('};\n\n')  
     fp.write('''const Fee_ConfigType Fee_Config = {
     .General = {

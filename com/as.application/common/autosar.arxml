@@ -343,22 +343,24 @@
 <Fee>
 <General Comment="*" DevelopmentErrorDetection="ON" NvmJobEndNotification="NULL" NvmJobErrorNotification="NULL" PollingMode="ON" VersionInfoApi="OFF" VirtualPageSize="8" />
 <BlockList Max="TBD">
-<Block BlockSize="16" Comment="*" ImmediateData="False" Name="Time" NumberOfWriteCycles="0xFFFFFFFF" />
-<Block BlockSize="36" Comment="*" ImmediateData="False" Name="Config" NumberOfWriteCycles="0xFFFFFFFF" />
-<Block BlockSize="260" Comment="*" ImmediateData="False" Name="Finger_Print" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="16" Comment="*" ImmediateData="False" IsArray="False" Name="Time" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="264" Comment="*" ImmediateData="False" IsArray="False" Name="Config" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="36" Comment="*" ImmediateData="False" IsArray="False" Name="Finger_Print" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="68" Comment="*" ImmediateData="False" IsArray="False" Name="DemHealing" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="5" BlockSize="28" Comment="ArraySize must be the size value of DemFreezeFrame" ImmediateData="False" IsArray="True" Name="Dem_DemFreezeFrame" NumberOfWriteCycles="0xFFFFFFFF" />
 </BlockList>
 </Fee>
 <Ea>
 <General Comment="*" DevelopmentErrorDetection="ON" NvmJobEndNotification="NULL" NvmJobErrorNotification="NULL" SetModeApi="ON" VersionInfoApi="OFF" VirtualPageSize="8" />
 <BlockList Max="TBD">
-<Block BlockSize="32" Comment="*" ImmediateData="False" Name="EaTest1" NumberOfWriteCycles="0xFFFFFFFF" />
-<Block BlockSize="32" Comment="*" ImmediateData="False" Name="EaTest2" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="32" Comment="*" ImmediateData="False" IsArray="False" Name="EaTest1" NumberOfWriteCycles="0xFFFFFFFF" />
+<Block ArraySize="2" BlockSize="32" Comment="*" ImmediateData="False" IsArray="False" Name="EaTest2" NumberOfWriteCycles="0xFFFFFFFF" />
 </BlockList>
 </Ea>
 <NvM>
 <General Comment="*" ConfigClass="CLASS_2" DevelopmentErrorDetection="ON" ImmediateJobQueueSize="8" MultiBlockCallback="NULL" PollingMode="OFF" RamBlockStatusApi="OFF" StandardJobQueueSize="8" VersionInfoApi="OFF" />
 <BlockList Max="TBD">
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Time" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="Time" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Time" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="Time" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
 <Data ArraySize="2" Comment="*" DefaultValue="2015" IsArray="False" Name="Year" Type="uint16" />
 <Data ArraySize="2" Comment="*" DefaultValue="12" IsArray="False" Name="Month" Type="uint8" />
@@ -368,17 +370,17 @@
 <Data ArraySize="2" Comment="*" DefaultValue="7" IsArray="False" Name="Second" Type="uint8" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Finger_Print" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="FingerPrint" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Finger_Print" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="FingerPrint" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
 <Data ArraySize="32" Comment="*" DefaultValue="{0,}" IsArray="True" Name="bytes" Type="uint8" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Config" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="Config" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Config" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="Config" NvramDeviceId="Fee" SelectBlockForReadall="True">
 <DataList Max="TBD">
 <Data ArraySize="260" Comment="*" DefaultValue="{0,}" IsArray="True" Name="bytes" Type="uint8" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest1" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="EaTest1" NvramDeviceId="Ea" SelectBlockForReadall="True">
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest1" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="EaTest1" NvramDeviceId="Ea" SelectBlockForReadall="True">
 <DataList Max="TBD">
 <Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data0" Type="uint32" />
 <Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data1" Type="uint32" />
@@ -386,12 +388,39 @@
 <Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="Data3" Type="uint32" />
 </DataList>
 </Block>
-<Block BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest2" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" Name="EaTest2" NvramDeviceId="Ea" SelectBlockForReadall="True">
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="TBD" BlockNumRef1="EaTest2" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="EaTest2" NvramDeviceId="Ea" SelectBlockForReadall="True">
 <DataList Max="TBD">
 <Data ArraySize="2" Comment="*" DefaultValue="1" IsArray="False" Name="Data1" Type="uint32" />
 <Data ArraySize="2" Comment="*" DefaultValue="2" IsArray="False" Name="Data2" Type="uint32" />
 <Data ArraySize="2" Comment="*" DefaultValue="3" IsArray="False" Name="Data3" Type="uint32" />
 <Data ArraySize="2" Comment="*" DefaultValue="4" IsArray="False" Name="Data4" Type="uint32" />
+</DataList>
+</Block>
+<Block ArraySize="2" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="DemHealing" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="False" Name="DemHealing" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Struct ArraySize="8" Comment="*" IsArray="True" Name="HealingRec">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="eventId" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="agingCounter" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="checksum" Type="uint16" />
+</DataList>
+</Struct>
+</DataList>
+</Block>
+<Block ArraySize="5" BlockCRCType="Crc16" BlockManagementType="NATIVE" BlockNumRef0="Dem_DemFreezeFrame" BlockNumRef1="TBD" BlockUseCrc="True" Comment="*" InitBlockCallback="NULL" IsArray="True" Name="DemFreezeFrame" NvramDeviceId="Fee" SelectBlockForReadall="True">
+<DataList Max="TBD">
+<Struct ArraySize="2" Comment="*" IsArray="False" Name="FreezeFrameRec">
+<DataList Max="TBD">
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="eventId" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="kind" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="occurrence" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="dataSize" Type="uint16" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="recordNumber" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="timeStamp" Type="uint32" />
+<Data ArraySize="10" Comment="DEM_MAX_SIZE_FF_DATA" DefaultValue="0" IsArray="True" Name="data" Type="uint8" />
+<Data ArraySize="2" Comment="*" DefaultValue="0" IsArray="False" Name="checksum" Type="uint16" />
+</DataList>
+</Struct>
 </DataList>
 </Block>
 </BlockList>
@@ -438,7 +467,7 @@
 </SwcList>
 </Rte>
 <Dem>
-<General Comment="*" DEM_BSW_ERROR_BUFFER_SIZE="20" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" />
+<General Comment="DEM_MAX_NUMBER_FF_DATA_PRI_MEM must be the size value of DemFreezeFrame" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_MAX_NUMBER_FF_DATA_PRI_MEM="5" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DEM_USE_NVM="ON" DevelopmentErrorDetection="OFF" NvMFreezeFrameBlock="DemFreezeFrame" NvMHealingBlock="DemHealing" VersionInfoApi="OFF" />
 <EventClassList Max="TBD">
 <EventClass Comment="*" ConfirmationCycleCounterThreshold="8" ConsiderPtoStatus="False" EventPriority="1" FFPrestorageSupported="False" HealingAllowed="False" HealingCycleCounter="8" HealingCycleRef="IGNITION" Name="BSWEventClass" OperationCycleRef="IGNITION" />
 <EventClass Comment="*" ConfirmationCycleCounterThreshold="8" ConsiderPtoStatus="False" EventPriority="1" FFPrestorageSupported="False" HealingAllowed="False" HealingCycleCounter="8" HealingCycleRef="IGNITION" Name="SWCEventClass" OperationCycleRef="IGNITION" />

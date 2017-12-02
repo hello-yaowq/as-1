@@ -32,6 +32,7 @@ def GenDem(root,dir):
 def GenH():
     global __dir
     General= GLGet('General')
+    EventParameterList= GLGet('EventParameterList')
     fp = open('%s/Dem_Cfg.h'%(__dir),'w')
     fp.write(GHeader('Dem'))
     fp.write('#ifndef DEM_CFG_H\n#define DEM_CFG_H\n')
@@ -39,12 +40,14 @@ def GenH():
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define DEM_VERSION_INFO_API        STD_%s\n'%(GAGet(General,'VersionInfoApi')))
     fp.write('#define DEM_DEV_ERROR_DETECT        STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
+    fp.write('#define DEM_USE_NVM                 STD_%s\n'%(GAGet(General,'DEM_USE_NVM')))
     fp.write('#define DEM_OBD_SUPPORT             STD_%s\n'%(GAGet(General,'DEM_OBD_SUPPORT')))
     fp.write('#define DEM_PTO_SUPPORT             STD_%s\n'%(GAGet(General,'DEM_PTO_SUPPORT')))
     fp.write('#define DEM_CLEAR_ALL_EVENTS        STD_%s\n\n'%(GAGet(General,'DEM_CLEAR_ALL_EVENTS')))
     fp.write('#define DEM_TYPE_OF_DTC_SUPPORTED          %s\n'%(GAGet(General,'DEM_TYPE_OF_DTC_SUPPORTED')))
     fp.write('#define DEM_DTC_STATUS_AVAILABILITY_MASK   %s\n'%(GAGet(General,'DEM_DTC_STATUS_AVAILABILITY_MASK')))
-    fp.write('#define DEM_BSW_ERROR_BUFFER_SIZE          %s\n'%(GAGet(General,'DEM_BSW_ERROR_BUFFER_SIZE')))
+    fp.write('#define DEM_MAX_NUMBER_EVENT               %s\n'%(len(EventParameterList)))
+    fp.write('#define DEM_MAX_NUMBER_FF_DATA_PRI_MEM     %s\n'%(GAGet(General,'DEM_MAX_NUMBER_FF_DATA_PRI_MEM')))
     fp.write('''#define DEM_FF_DID_LENGTH                    TBD    // Length of DID & PID of FreezeFrames in Bytes.
 #define DEM_MAX_NUMBER_EVENT_ENTRY_MIR        0    // Max nr of events stored in mirror memory.
 #define DEM_MAX_NUMBER_EVENT_ENTRY_PER        0    // Max nr of events stored in permanent memory.
@@ -63,14 +66,12 @@ def GenH():
  */
 #define DEM_MAX_SIZE_FF_DATA                     10    // Max number of bytes in one freeze frame
 #define DEM_MAX_SIZE_EXT_DATA                     10    // Max number of bytes in one extended data record
-#define DEM_MAX_NUMBER_EVENT                    100    // Max number of events to keep status on
 
 #define DEM_MAX_NUMBER_EVENT_PRE_INIT             20    // Max number of events status to keep before init
 #define DEM_MAX_NUMBER_FF_DATA_PRE_INIT             20    // Max number of freeze frames to store before init
 #define DEM_MAX_NUMBER_EXT_DATA_PRE_INIT         20    // Max number of extended data to store before init
 
 #define DEM_MAX_NUMBER_EVENT_PRI_MEM            (DEM_MAX_NUMBER_EVENT_ENTRY_PRI)    // Max number of events status to store in primary memory
-#define DEM_MAX_NUMBER_FF_DATA_PRI_MEM            5                                    // Max number of freeze frames to store in primary memory
 #define DEM_MAX_NUMBER_EXT_DATA_PRI_MEM            5                                    // Max number of extended data to store in primary memory
 
 #define DEM_MAX_NUMBER_AGING_PRI_MEM 1
@@ -78,13 +79,14 @@ def GenH():
 #define DEM_MAX_NR_OF_RECORDS_IN_FREEZEFRAME_DATA 1
 #define DEM_DID_IDENTIFIER_SIZE_OF_BYTES 1
 #define DEM_FREEZEFRAME_DEFAULT_VALUE 1\n''')
+    fp.write('\n#define HealingMirrorBuffer ((void*)&NvM_Block_%s_DataGroup_RAM)\n\n'%(GAGet(General,'NvMHealingBlock')))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('#endif\n\n')
-    EventParameterList= GLGet('EventParameterList')
+
     fp = open('%s/Dem_IntErrId.h'%(__dir),'w')
     fp.write(GHeader('Dem'))
     fp.write('#ifndef DEM_INTERRID_H\n#define DEM_INTERRID_H\n')
@@ -137,10 +139,14 @@ enum {
 def GenC():
     global __dir
     global __dir
+    General= GLGet('General')
     fp = open('%s/Dem_Cfg.c'%(__dir),'w')
     fp.write(GHeader('Dem'))
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Dem.h"\n\n')
+    fp.write('#ifdef USE_NVM\n')
+    fp.write('#include "NvM.h"\n')
+    fp.write('#endif\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -180,10 +186,15 @@ def GenC():
     fp.write('\t.EventParameter=EventParameterList,\n')
     fp.write('};\n\n')
     fp.write('const Dem_ConfigType DEM_Config = { .ConfigSet = &DemConfig };\n\n')
-    fp.write('FreezeFrameRecType  FreezeFrameMirrorBuffer[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];\n\n')
-    fp.write('HealingRecType           HealingMirrorBuffer[DEM_MAX_NUMBER_AGING_PRI_MEM];\n\n')
-    fp.write('const NvM_BlockIdType FreezeFrameBlockId[DEM_MAX_NUMBER_FF_DATA_PRI_MEM];\n\n')
-    fp.write('const NvM_BlockIdType HealingBlockId;\n\n')
+    fp.write('FreezeFrameRecType * const FreezeFrameMirrorBuffer[DEM_MAX_NUMBER_FF_DATA_PRI_MEM] = \n{\n')
+    for i in range(0,Integer(GAGet(General,'DEM_MAX_NUMBER_FF_DATA_PRI_MEM'))):
+        fp.write('\t(FreezeFrameRecType*)&NvM_Block_%s_DataGroup_RAM[%s],\n'%(GAGet(General,'NvMFreezeFrameBlock'),i))
+    fp.write('};\n\n')
+    fp.write('const NvM_BlockIdType FreezeFrameBlockId[DEM_MAX_NUMBER_FF_DATA_PRI_MEM] = \n{\n')
+    for i in range(0,Integer(GAGet(General,'DEM_MAX_NUMBER_FF_DATA_PRI_MEM'))):
+        fp.write('\tNVM_BLOCK_ID_%s_%s,\n'%(GAGet(General,'NvMFreezeFrameBlock'),i))
+    fp.write('};\n\n')
+    fp.write('const NvM_BlockIdType HealingBlockId = NVM_BLOCK_ID_%s;\n\n'%(GAGet(General,'NvMHealingBlock')))
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.close()

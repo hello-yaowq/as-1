@@ -24,7 +24,12 @@ __dir = '.'
 def __GetBlockSize(block):
     Size = 0
     for data in GLGet(block,'DataList'):
-        if(GAGet(data,'IsArray')=='True'):
+        if(data.tag == 'Struct'):
+            ssz = __GetBlockSize(data)
+            if(GAGet(data,'IsArray')=='True'):
+                ssz = ssz * Integer(GAGet(data,'ArraySize'))
+            Size += ssz
+        elif(GAGet(data,'IsArray')=='True'):
             if(GAGet(data,'Type')=='uint32' or GAGet(data,'Type')=='sint32'):
                 Size += 4*Integer(GAGet(data,'ArraySize'))
             elif(GAGet(data,'Type')=='uint16' or GAGet(data,'Type')=='uint16'):
@@ -120,26 +125,42 @@ def GenH():
     fp.write('#define NVM_EA_MAX_BLOCK_LENGTH  %s\n'%(max_block_size_ea))
                 
     fp.write('#define NVM_MAX_BLOCK_LENGTH    %s\n\n'%(max_block_size))
-    fp.write('#define NVM_NUM_OF_NVRAM_BLOCKS %s\n\n'%(len(BlockList)))
+    
     #Zero Id reserved by NvM
+    nbrBlk = 0
     Id = 1
     for block in BlockList:
-        fp.write('#define NVM_BLOCK_ID_%s %s\n'%(GAGet(block,'Name'),Id))
-        Id += 1      
+        if(GAGet(block,'IsArray')=='False'):
+            fp.write('#define NVM_BLOCK_ID_%s %s\n'%(GAGet(block,'Name'),Id))
+            Id += 1
+            nbrBlk += 1
+        else:
+            for i in range(0,Integer(GAGet(block,'ArraySize'))):
+                fp.write('#define NVM_BLOCK_ID_%s_%s %s\n'%(GAGet(block,'Name'),i,Id))
+                Id += 1
+                nbrBlk += 1
+    fp.write('#define NVM_NUM_OF_NVRAM_BLOCKS %s\n\n'%(nbrBlk))
     #for each block, generate a readable memory map type
     for block in BlockList:
         cstr = '\ntypedef struct{\n'
         for data in GLGet(block,'DataList'):
-            if(GAGet(data,'IsArray')=='False'):
+            if(data.tag == 'Struct'):
+                cstr += '\tstruct \n\t{ \n'
+                for da2 in GLGet(data,'DataList'):
+                    if(GAGet(da2,'IsArray')=='False'):
+                        cstr += '\t\t%s %s;\n'%(GAGet(da2,'Type'),GAGet(da2,'Name'))
+                    else:
+                        cstr += '\t\t%s %s[%s];\n'%(GAGet(da2,'Type'),GAGet(da2,'Name'),GAGet(da2,'ArraySize'))
+                if(GAGet(data,'IsArray')=='False'):
+                    cstr += '\t} %s;\n'%(GAGet(data,'Name'))
+                else:
+                    cstr += '\t} %s[%s];\n'%(GAGet(data,'Name'),GAGet(data,'ArraySize'))
+            elif(GAGet(data,'IsArray')=='False'):
                 cstr += '\t%s _%s;\n'%(GAGet(data,'Type'),GAGet(data,'Name'))
             else:
                 cstr += '\t%s _%s[%s];\n'%(GAGet(data,'Type'),GAGet(data,'Name'),GAGet(data,'ArraySize'))
         cstr += '}NvM_Block_%s_DataGroupType;\n\n'%(GAGet(block,'Name'))
-        fp.write(cstr)       
-    for block in GLGet('FeeBlockList'):
-        cstr = '\nextern NvM_Block_%s_DataGroupType NvM_Block%s_DataGroup_RAM;\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
-        cstr+= 'extern const NvM_Block_%s_DataGroupType NvM_Block%s_DataGroup_ROM;\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
-        fp.write(cstr)      
+        fp.write(cstr)
     fp.write("""
 #define Rte_NvMReadBuffer(GroupName)    ((uint8*)&NvM_Block_##GroupName##_DataGroup_RAM)    
 #define Rte_NvMRead(GroupName,DataName) (NvM_Block_##GroupName##_DataGroup_RAM._##DataName)
@@ -156,10 +177,13 @@ def GenH():
 
 #define Rte_NvmWriteBlock(GroupName) NvM_WriteBlock(NVM_BLOCK_ID_##GroupName,(uint8*)&NvM_Block_##GroupName##_DataGroup_RAM)
 #define Rte_NvmReadBlock(GroupName)  NvM_ReadBlock(NVM_BLOCK_ID_##GroupName,(uint8*)&NvM_Block_##GroupName##_DataGroup_RAM)      \n\n""")
-    
     for block in BlockList:
-        cstr = '\nextern NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_RAM;\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
-        cstr+= 'extern const NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_ROM;\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
+        if(GAGet(block,'IsArray')=='False'):
+            posfix=''
+        else:
+            posfix='[%s]'%(GAGet(block,'ArraySize'))
+        cstr = '\nextern NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_RAM%s;\n'%(GAGet(block,'Name'),GAGet(block,'Name'),posfix)
+        cstr+= 'extern const NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_ROM%s;\n'%(GAGet(block,'Name'),GAGet(block,'Name'),posfix)
         fp.write(cstr)
         
     fp.write('\n\n#endif /*NVM_CFG_H_*/\n\n')
@@ -179,15 +203,21 @@ def GenC():
 #endif\n\n''') 
     BlockList = GLGet('BlockList')
     for block in BlockList:
-        cstr = '\nNvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_RAM;\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
-        cstr+= 'const NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_ROM={\n'%(GAGet(block,'Name'),GAGet(block,'Name'))
+        if(GAGet(block,'IsArray')=='False'):
+            posfix = ''
+        else:
+            posfix ='[%s]'%(GAGet(block,'ArraySize'))
+        cstr = '\nNvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_RAM%s;\n'%(GAGet(block,'Name'),GAGet(block,'Name'),posfix)
+        cstr+= 'const NvM_Block_%s_DataGroupType NvM_Block_%s_DataGroup_ROM%s={\n'%(GAGet(block,'Name'),GAGet(block,'Name'),posfix)
         for data in GLGet(block,'DataList'):
-            if( GAGet(data,'IsArray')=='False' ):
+            if(data.tag == 'Struct'):
+                pass
+            elif( GAGet(data,'IsArray')=='False' ):
                 cstr += '\t._%s=%s,\n'%(GAGet(data,'Name'),GAGet(data,'DefaultValue'))
             else:
                 cstr += '\t._%s=%s,\n'%(GAGet(data,'Name'),GAGet(data,'DefaultValue'))
         cstr += '};\n\n'
-        fp.write(cstr)       
+        fp.write(cstr)
     cstr = 'const NvM_BlockDescriptorType BlockDescriptorList[] = {\n'
     for block in BlockList:
         NvramDeviceId = GAGet(block,'NvramDeviceId')
@@ -195,7 +225,18 @@ def GenC():
             BlockNumRef = GAGet(block,'BlockNumRef0')
         else:
             BlockNumRef = GAGet(block,'BlockNumRef1')
-        cstr += """
+        if(GAGet(block,'IsArray')=='False'):
+            i = 1
+        else:
+            i = Integer(GAGet(block,'ArraySize'))
+        for i in range(0,i):
+            if(GAGet(block,'IsArray')=='False'):
+                posfix = ''
+                idfix = ''
+            else:
+                posfix = '[%s]'%(i)
+                idfix='_%s'%(i)
+            cstr += """
     {
         .BlockManagementType = NVM_BLOCK_%s,
         .SelectBlockForReadall = %s,
@@ -203,24 +244,24 @@ def GenC():
         .NvBlockLength        = %s,
         .BlockUseCrc  = %s,
         .BlockCRCType =NVM_%s,
-        .RamBlockDataAddress = (uint8*)&NvM_Block_%s_DataGroup_RAM,
+        .RamBlockDataAddress = (uint8*)&NvM_Block_%s_DataGroup_RAM%s,
         .CalcRamBlockCrc = FALSE, // TODO
-        .NvBlockNum = %s_BLOCK_NUM_%s,
+        .NvBlockNum = %s_BLOCK_NUM_%s%s,
         .NvramDeviceId = %s_INDEX,
-        .NvBlockBaseNumber = %s_BLOCK_NUM_%s,
+        .NvBlockBaseNumber = %s_BLOCK_NUM_%s%s,
         .InitBlockCallback = NULL,
-        .RomBlockDataAdress = (uint8*)&NvM_Block_%s_DataGroup_ROM,
+        .RomBlockDataAdress = (uint8*)&NvM_Block_%s_DataGroup_ROM%s,
     },\n"""%(
              GAGet(block,'BlockManagementType'),
              GAGet(block,'SelectBlockForReadall'),
              __GetBlockSize(block),
              GAGet(block,'BlockUseCrc').upper(),
              GAGet(block,'BlockCRCType').upper(),
-             GAGet(block,'Name'),
-             NvramDeviceId.upper(),BlockNumRef,
+             GAGet(block,'Name'),posfix,
+             NvramDeviceId.upper(),BlockNumRef,idfix,
              NvramDeviceId.upper(),
-             NvramDeviceId.upper(),BlockNumRef,
-             GAGet(block,'Name'),
+             NvramDeviceId.upper(),BlockNumRef,idfix,
+             GAGet(block,'Name'),posfix
              )
     cstr += """};
 
