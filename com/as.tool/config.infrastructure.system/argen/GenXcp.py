@@ -151,7 +151,7 @@ def GenC():
         fp.write('static Xcp_DaqListType* XcpEventChannelTriggeredDaqListRef_%s[%s]'%(
                                                         GAGet(evchl,'Name'),
                                                         GAGet(evchl,'DAQListRefSize')))
-        if(GLGet(evchl,'XcpStaticDaqList') and len(GLGet(evchl,'XcpStaticDaqList'))>0):
+        if(len(GLGet(evchl,'XcpStaticDaqList'))>0):
             fp.write(' =\n{\n')
             for daq in GLGet(evchl,'XcpStaticDaqList'):
                 fp.write('    &xcpDaqList[XCP_STATIC_DAQ_ID_%s],\n'%(GAGet(daq,'Name')))
@@ -160,7 +160,7 @@ def GenC():
             fp.write(';\n')
     fp.write('static Xcp_EventChannelType xcpEventChannel[%s] = \n{\n'%(len(GLGet('XcpEventChannelList'))))
     for id,evchl in enumerate(GLGet('XcpEventChannelList')):
-        if(GLGet(evchl,'XcpStaticDaqList') and len(GLGet(evchl,'XcpStaticDaqList'))>0):
+        if(len(GLGet(evchl,'XcpStaticDaqList'))>0):
             XcpEventChannelDaqCount = len(GLGet(evchl,'XcpStaticDaqList'))
         else:
             XcpEventChannelDaqCount = 0

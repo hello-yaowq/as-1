@@ -26,7 +26,7 @@ SrcRemove(objs, 'Ipc_Cfg.c')
 asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET',
+           'DET','DEM',
            'CAN','CANIF','PDUR','COM','COMM','CANTP',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
@@ -48,13 +48,17 @@ MODULES += ['CLIB_MBOX']
 
 MODULES += ['RTE','RTE_SWC_TELLTALE']
 
-if(os.getenv('GUI') in ['GTK','OPENVG']):
-    MODULES.append(os.getenv('GUI'))
+if(cwd.find('travis') != -1):
+    # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
+    MODULES.remove('LCD')
 else:
-    print('WARNING: use default GTK GUI for posix')
-    MODULES.append('GTK')
+    if(os.getenv('GUI') in ['GTK','OPENVG']):
+        MODULES.append(os.getenv('GUI'))
+    else:
+        print('WARNING: use default GTK GUI for posix')
+        MODULES.append('GTK')
 
-MODULES.append('SG')
+    MODULES.append('SG')
 
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):

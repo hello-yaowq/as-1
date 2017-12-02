@@ -336,7 +336,7 @@
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
 					StartBit="Integer Range=0~63 PosGUI=3 
-					\n BITMAP： MSB              LSB
+					\n BITMAP锛� MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -348,7 +348,7 @@
 					Size="Integer Range=1~64 Default=8 PosGUI=4"
 					UpdateBitUsed="Boolean Default=False PosGUI=5"
 					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
-					\n BITMAP： MSB              LSB
+					\n BITMAP锛� MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -370,7 +370,7 @@
 							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 							StartBit="Integer Range=0~63 PosGUI=3
-							\n BITMAP： MSB              LSB
+							\n BITMAP锛� MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
 							\n BYTE2 23 22 21 20 19 18 17 16
@@ -382,7 +382,7 @@
 							Size="Integer Range=1~64 Default=8 PosGUI=4"
 							UpdateBitUsed="Boolean Default=False PosGUI=5"
 							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
-							\n BITMAP： MSB              LSB
+							\n BITMAP锛� MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
 							\n BYTE2 23 22 21 20 19 18 17 16
@@ -405,7 +405,7 @@
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
 					StartBit="Integer Range=0~63 PosGUI=4
-					\n BITMAP： MSB              LSB
+					\n BITMAP锛� MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -418,7 +418,7 @@
 					InitialValue="Text Default=0 PosGUI=6"
 					UpdateBitUsed="Boolean Default=False PosGUI=7"
 					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
-					\n BITMAP： MSB              LSB
+					\n BITMAP锛� MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
 					\n BYTE2 23 22 21 20 19 18 17 16
@@ -942,4 +942,40 @@
 		</Swc>
 	</SwcList>
 </Rte>
+<Dem>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		DEM_OBD_SUPPORT="Enum=(ON,OFF) Default=OFF PosGUI=2"
+		DEM_PTO_SUPPORT="Enum=(ON,OFF) Default=OFF PosGUI=3"
+		DEM_TYPE_OF_DTC_SUPPORTED="Enum=(0x01,0x02) Default=0x01 PosGUI=4"
+		DEM_DTC_STATUS_AVAILABILITY_MASK="Text Default=0xFF PosGUI=5"
+		DEM_CLEAR_ALL_EVENTS="Enum=(ON,OFF) Default=OFF PosGUI=6"
+		DEM_BSW_ERROR_BUFFER_SIZE="Text Default=20 PosGUI=7"
+		Comment="TextArea Default=* PosGUI=8"
+		>
+	</General>
+	<EventClassList Max="65535">
+		<EventClass
+			Name="Text PosGUI=0"
+			ConsiderPtoStatus="Boolean Default=False PosGUI=1"
+			EventPriority="Integer Default=1 Range=0~255 PosGUI=2"
+			FFPrestorageSupported="Boolean Default=False PosGUI=3"
+			HealingAllowed="Boolean Default=False PosGUI=4"
+			OperationCycleRef="Enum=(ACTIVE,POWER,IGNITION,WARMUP,OBD_DCY) Default=IGNITION PosGUI=5"
+			HealingCycleRef="Enum=(ACTIVE,POWER,IGNITION,WARMUP,OBD_DCY) Default=IGNITION PosGUI=6"
+			HealingCycleCounter="Integer Default=8 Range=0~255 PosGUI=7"
+			ConfirmationCycleCounterThreshold="Integer Default=8 Range=0~255 PosGUI=8"
+			Comment="TextArea Default=* PosGUI=9"
+			/>
+	</EventClassList>
+	<EventParameterList Max="65535">
+		<EventParameter
+			Name="Text PosGUI=0"
+			EventKind="Enum=(BSW,SWC) Default=SWC PosGUI=1"
+			EventClassRef="EnumRef=Dem.EventClassList PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3" >
+		</EventParameter>
+	</EventParameterList>
+</Dem>
 </AUTOSAR>

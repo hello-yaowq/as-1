@@ -73,12 +73,6 @@ for obj in sobjs:
     else:
         objs.append(obj)
 
-if('studio' in COMMAND_LINE_TARGETS):
-    assert(arxml)
-    pd = os.path.dirname(str(arxml))
-    RunCommand('cd %s && %s studio.py %s'%(studio,asenv['python3'],pd))
-    exit(0)
-
 cfgdir = '%s/config'%(bdir)
 cfgdone = '%s/config.done'%(cfgdir)
 if((not os.path.exists(cfgdone)) and (not asenv.GetOption('clean'))):
@@ -89,6 +83,12 @@ if((not os.path.exists(cfgdone)) and (not asenv.GetOption('clean'))):
     xcc.XCC(cfgdir)
     argen.ArGen.ArGenMain(str(arxml),cfgdir)
     MKFile(cfgdone)
+
+if('studio' in COMMAND_LINE_TARGETS):
+    assert(arxml)
+    pd = os.path.abspath(cfgdir)
+    RunCommand('cd %s && %s studio.py %s'%(studio,asenv['python3'],pd))
+    exit(0)
 
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CCFLAGS='-I%s'%(cfgdir))

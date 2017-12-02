@@ -25,6 +25,9 @@ if('CANSM' in MODULES):
 if('COMM' in MODULES):
     objs += Glob('config/ComM*.c')
 
+if('DEM' in MODULES):
+    objs += Glob('config/Dem*.c')
+
 if('ECUM' in MODULES):
     objs += Glob('config/EcuM*.c')
 

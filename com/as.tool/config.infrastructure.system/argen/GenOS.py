@@ -33,6 +33,8 @@ def GenOS(root,dir):
     for lst in root:
         for obj in lst:
             os_list.append(obj)
+        if(lst.tag == 'General'):
+            os_list.append(lst)
     gen_askar(dir,os_list)
     print('    >>> Gen OS DONE <<<')
 

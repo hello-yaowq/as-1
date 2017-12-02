@@ -83,12 +83,17 @@ asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET',
+           'DET','DEM',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'SOAD','DOIP','LWIP','PCI',
-           'LCD','GUI','SG',
            ]
+
+if(cwd.find('travis') != -1):
+    # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
+    pass
+else:
+    MODULES += ['LCD','GUI','SG']
 
 print('WARNING: force using SGAPP watch for versatilepb!')
 asenv['SGAPP']='watch'
