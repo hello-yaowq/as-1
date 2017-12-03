@@ -980,6 +980,36 @@
 		Comment="TextArea Default=* PosGUI=11"
 		>
 	</General>
+	<FFIdClassList Max="65535">
+		<FFIdClass
+			Name="Text PosGUI=0"
+			DidConditionCheckReadFnc="Enum=(NULL,USED)  Default=NULL PosGUI=1"
+			DidIdentifier="Integer Default=1 Range=0~65535 PosGUI=2"
+			DidReadDataLengthFnc="Enum=(NULL,USED) Default=NULL PosGUI=3"
+			DidReadFnc="Enum=(NULL,USED) Default=NULL PosGUI=4"
+			PidIndentifier="Integer Default=1 Range=0~255 PosGUI=5"
+			PidOrDidSize="Integer Default=1 Range=0~255 PosGUI=6"
+			PidReadFnc="Enum=(NULL,USED) Default=NULL PosGUI=7"
+			Comment="TextArea Default=* PosGUI=8"
+			>
+		</FFIdClass>
+	</FFIdClassList>
+	<FreezeFrameClassList Max="65535">
+		<FreezeFrameClass
+			Name="Text PosGUI=0"
+			FFKind="Enum=(NON_OBD,OBD) Default=NON_OBD PosGUI=1"
+			FFRecordNumber="Integer Default=1 Range=0~255 PosGUI=2"
+			FFStorageCondition="Enum=(PREFAILED,FAILED) Default=PREFAILED PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			>
+			<FFIdClassRefList Max="65535">
+				<FFIdClassRef
+					Name="EnumRef=Dem.FFIdClassList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</FFIdClassRefList>
+		</FreezeFrameClass>
+	</FreezeFrameClassList>
 	<EventClassList Max="65535">
 		<EventClass
 			Name="Text PosGUI=0"
@@ -998,8 +1028,14 @@
 		<EventParameter
 			Name="Text PosGUI=0"
 			EventKind="Enum=(BSW,SWC) Default=SWC PosGUI=1"
-			EventClassRef="EnumRef=Dem.EventClassList PosGUI=2"
+			EventClassRef="EnumRef=Dem.EventClassList Default=NULL PosGUI=2"
 			Comment="TextArea Default=* PosGUI=3" >
+			<FreezeFrameClassRefList Max="65535">
+				<FreezeFrameClassRef
+					Name="EnumRef=Dem.FreezeFrameClassList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</FreezeFrameClassRefList>
 		</EventParameter>
 	</EventParameterList>
 </Dem>

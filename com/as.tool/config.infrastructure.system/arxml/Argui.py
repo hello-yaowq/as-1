@@ -213,17 +213,16 @@ class ArgSelect(QComboBox):
         self.currentTextChanged.connect(self.onTextChanged)
         
     def initItems(self):
+        reDeafult = re.compile(r'\s+Default=([^\s=\(\)]+)')
+        descriptor = self.arobj.arxml.getKeyDescriptor(self.key)
         if(self.isEnabled()==False):
             # if disabled set it to default
-            reDeafult = re.compile(r'\s+Default=([^\s=\(\)]+)')
             var = 'TBD'
-            descriptor = self.arobj.arxml.getKeyDescriptor(self.key)
             if(reDeafult.search(descriptor)):
                 var = reDeafult.search(descriptor).groups()[0]
             self.arobj.arxml.attrib(self.key,var)  
             return
         reSelect = re.compile(r'^(EnumRef|Enum|Boolean)')
-        descriptor = self.arobj.arxml.getKeyDescriptor(self.key)
         type = reSelect.search(descriptor).groups()[0]
         if(type == 'Enum'):
             reList = re.compile(r'^Enum=\(([^\s]+)\)')
@@ -245,6 +244,7 @@ class ArgSelect(QComboBox):
                     else:
                         break
                 ref = ref.replace('(Self.%s)'%(keyL),tarobj.arxml.attrib(key))
+
             list = []
             url=self.root.getURL(ref)
             if(url!=None):
@@ -257,6 +257,10 @@ class ArgSelect(QComboBox):
                             list.append(uu.attrib['Name'])
                     else:
                         list.append(uu.attrib['Name'])
+            if(reDeafult.search(descriptor)):
+                var = reDeafult.search(descriptor).groups()[0]
+                if(var not in list):
+                    list.append(var)
             self.addItems(list)
         self.setCurrentIndex(self.findText(self.arobj.arxml.attrib(self.key)))
     def onTextChanged(self,text):

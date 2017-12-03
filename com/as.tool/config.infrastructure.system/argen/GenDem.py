@@ -149,9 +149,44 @@ def GenC():
     fp.write('#include "NvM.h"\n')
     fp.write('#endif\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
+    FFIdClassList= GLGet('FFIdClassList')
+    for id,obj in enumerate(FFIdClassList):
+        fp.write('#define INDEX_OF_FFIDCLASS_%s %s\n'%(GAGet(obj,'Name'),id))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    for id,obj in enumerate(FFIdClassList):
+        if(GAGet(obj,'DidConditionCheckReadFnc') != 'NULL'):
+            fp.write('#if defined(USE_DCM)\n')
+            fp.write('extern Std_ReturnType Dem_DidConditionCheckReadFnc_%s(Dcm_NegativeResponseCodeType *Nrc);\n'%(GAGet(obj,'Name')))
+            fp.write('#else\n')
+            fp.write('extern Std_ReturnType Dem_DidConditionCheckReadFnc_%s(uint8 *Nrc);\n'%(GAGet(obj,'Name')))
+            fp.write('#endif\n')
+        if(GAGet(obj,'DidReadDataLengthFnc') != 'NULL'):
+            fp.write('extern Std_ReturnType Dem_DidReadDataLengthFnc_%s(uint16 *DidLength);\n'%(GAGet(obj,'Name')))
+        if(GAGet(obj,'DidReadFnc') != 'NULL'):
+            fp.write('extern Std_ReturnType Dem_DidReadFnc_%s(uint8 *Data);\n'%(GAGet(obj,'Name')))
+        if(GAGet(obj,'PidReadFnc') != 'NULL'):
+            fp.write('extern Std_ReturnType Dem_PidReadFnc_%s(uint8 *DataValueBuffer);\n'%(GAGet(obj,'Name')))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    fp.write('static const Dem_PidOrDidType Dem_PidOrDid[]=\n{\n')
+    def FFIdFunc(obj,f):
+        if(GAGet(obj,f) == 'NULL'):
+            return 'NULL'
+        else:
+            return 'Dem_%s_%s'%(f,GAGet(obj,'Name'))
+    for obj in FFIdClassList:
+        fp.write('\t{ /* %s */\n'%(GAGet(obj,'Name')))
+        fp.write('\t\t.DidConditionCheckReadFnc=%s,\n'%(FFIdFunc(obj,'DidConditionCheckReadFnc')))
+        fp.write('\t\t.DidIdentifier=%s,\n'%(GAGet(obj,'DidIdentifier')))
+        fp.write('\t\t.DidReadDataLengthFnc=%s,\n'%(FFIdFunc(obj,'DidReadDataLengthFnc')))
+        fp.write('\t\t.DidReadFnc=%s,\n'%(FFIdFunc(obj,'DidReadFnc')))
+        fp.write('\t\t.PidIndentifier=%s,\n'%(GAGet(obj,'PidIndentifier')))
+        fp.write('\t\t.PidOrDidSize=%s,\n'%(GAGet(obj,'PidOrDidSize')))
+        fp.write('\t\t.PidOrDidUsePort=%s,\n'%('FALSE'))
+        fp.write('\t\t.PidReadFnc=%s,\n'%(FFIdFunc(obj,'PidReadFnc')))
+        fp.write('\t\t.Arc_EOL=%s,\n'%('FALSE'))
+        fp.write('\t},\n')
+    fp.write('\t{\n\t\t.Arc_EOL=TRUE\n\t}\n};\n\n')
     EventClassList= GLGet('EventClassList')
     for cst in EventClassList:
         fp.write('static const Dem_EventClassType EventClass_%s = \n{\n'%(GAGet(cst,'Name')))
