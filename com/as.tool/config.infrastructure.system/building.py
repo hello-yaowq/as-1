@@ -68,13 +68,17 @@ def PrepareBuilding(env):
         raise Exception('no python2 installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['python']))):
         raise Exception('no python installed, fix the path maybe!')
-        # add comstr option
+    # add comstr option
     AddOption('--verbose',
             dest='verbose',
             action='store_true',
             default=False,
             help='print verbose information during build')
-
+    AddOption('--force',
+            dest='force',
+            action='store_true',
+            default=False,
+            help='force rebuild of all')
     if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(

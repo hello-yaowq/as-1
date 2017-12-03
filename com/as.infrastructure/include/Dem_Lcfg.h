@@ -75,9 +75,9 @@ typedef Std_ReturnType (*Dem_CallbackGetFaultDetectionCounterFncType)(sint8 *Eve
 typedef Std_ReturnType (*Dem_CallbackGetPIDValueFncType)(uint8 *DataValueBuffer); /** @req DEM326 */
 
 typedef enum{
-	FF_STORAGE_CONDITION_WRONG = 0,	//FF storage condition is wrong
-	PREFAILED = 1,						//store FF when the event status is prefailed
-	FAILED = 2							//store FF when the event status is failed
+	DEM_FF_STORAGE_CONDITION_WRONG = 0,	//FF storage condition is wrong
+	DEM_FF_STORAGE_PREFAILED = 1,						//store FF when the event status is prefailed
+	DEM_FF_STORAGE_FAILED = 2							//store FF when the event status is failed
 }Dem_FreezeFrameStorageConditonType; /** @req Dem001_private */
 
 typedef enum {
@@ -127,7 +127,6 @@ typedef struct {
 	uint8									PidOrDidSize;				// (1)
 	boolean									PidOrDidUsePort;			// (1) Not used in current implementation	
 	Dem_CallbackGetPIDValueFncType			PidReadFnc;					// (0..1)
-	boolean									Arc_EOL;
 } Dem_PidOrDidType; /** @req DEM136 */
 
 // 10.2.18 DemFreezeFrameClass
@@ -175,7 +174,6 @@ typedef struct {
 	const Dem_CallbackDTCStatusChangedType	*CallbackDTCStatusChanged;	// (0..*)
 	const Dem_CallbackInitMForFType			*CallbackInitMForF;			// (0..*)
 	// Dem_DTCSeverityType					DTCSeverity					// (0..1)  Optional
-	boolean									Arc_EOL;
 } Dem_DTCClassType; /** @req DEM132 */
 
 // 10.2.5 DemCallbackEventStatusChanged
@@ -253,7 +251,7 @@ typedef struct {
 	Dem_EventKindType							EventKind;					// (1)
 	const Dem_EventClassType					*EventClass;				// (1)
 	const Dem_ExtendedDataClassType				*ExtendedDataClassRef;		// (0..1)
-	const Dem_FreezeFrameClassType				**FreezeFrameClassRef; //[DEM_MAX_NR_OF_CLASSES_IN_FREEZEFRAME_DATA+1];		// (0..255) (Only 0..1 supported)/** @req DEM021 */
+	const Dem_FreezeFrameClassType				**FreezeFrameClassRef;		// (0..255) (Only 0..1 supported)/** @req DEM021 */
 	const Dem_CallbackInitMforEType				*CallbackInitMforE;			// (0..1)
 	const Dem_CallbackEventStatusChangedType	*CallbackEventStatusChanged;// (0..*)
 	const Dem_DTCClassType						*DTCClassRef;				// (0..1)

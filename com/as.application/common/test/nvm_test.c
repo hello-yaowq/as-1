@@ -198,6 +198,10 @@ static void Ea_Test(void)
 }
 #endif
 #ifdef ENABLE_DEM_TEST
+Std_ReturnType Dem_DidConditionCheckReadFnc_AirbagFFIdClass(Dcm_NegativeResponseCodeType *Nrc) { return E_OK; }
+Std_ReturnType Dem_DidReadDataLengthFnc_AirbagFFIdClass(uint16 *DidLength)  { return E_OK; }
+Std_ReturnType Dem_DidReadFnc_AirbagFFIdClass(uint8 *Data) { return E_OK; }
+Std_ReturnType Dem_PidReadFnc_AirbagFFIdClass(uint8 *DataValueBuffer) { return E_OK; }
 static void Dem_Test(void)
 {
 	uint8 status = -1;

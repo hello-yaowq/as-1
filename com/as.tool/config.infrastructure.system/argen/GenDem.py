@@ -75,8 +75,6 @@ def GenH():
 #define DEM_MAX_NUMBER_EXT_DATA_PRI_MEM            5                                    // Max number of extended data to store in primary memory
 
 #define DEM_MAX_NUMBER_AGING_PRI_MEM 1
-#define DEM_MAX_NR_OF_CLASSES_IN_FREEZEFRAME_DATA 1
-#define DEM_MAX_NR_OF_RECORDS_IN_FREEZEFRAME_DATA 1
 #define DEM_DID_IDENTIFIER_SIZE_OF_BYTES 1
 #define DEM_FREEZEFRAME_DEFAULT_VALUE 1\n''')
     fp.write('\n#define HealingMirrorBuffer ((void*)&NvM_Block_%s_DataGroup_RAM)\n\n'%(GAGet(General,'NvMHealingBlock')))
@@ -152,6 +150,9 @@ def GenC():
     FFIdClassList= GLGet('FFIdClassList')
     for id,obj in enumerate(FFIdClassList):
         fp.write('#define INDEX_OF_FFIDCLASS_%s %s\n'%(GAGet(obj,'Name'),id))
+    FreezeFrameClassList=GLGet('FreezeFrameClassList')
+    for id,obj in enumerate(FreezeFrameClassList):
+        fp.write('#define INDEX_OF_FFCLASS_%s %s\n'%(GAGet(obj,'Name'),id))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     for id,obj in enumerate(FFIdClassList):
@@ -184,9 +185,9 @@ def GenC():
         fp.write('\t\t.PidOrDidSize=%s,\n'%(GAGet(obj,'PidOrDidSize')))
         fp.write('\t\t.PidOrDidUsePort=%s,\n'%('FALSE'))
         fp.write('\t\t.PidReadFnc=%s,\n'%(FFIdFunc(obj,'PidReadFnc')))
-        fp.write('\t\t.Arc_EOL=%s,\n'%('FALSE'))
         fp.write('\t},\n')
-    fp.write('\t{\n\t\t.Arc_EOL=TRUE\n\t}\n};\n\n')
+    fp.write('};\n\n')
+
     EventClassList= GLGet('EventClassList')
     for cst in EventClassList:
         fp.write('static const Dem_EventClassType EventClass_%s = \n{\n'%(GAGet(cst,'Name')))
@@ -200,14 +201,44 @@ def GenC():
         fp.write('\t.HealingCycleCounter=%s,\n'%(GAGet(cst,'HealingCycleCounter')))
         fp.write('\t.ConfirmationCycleCounterThreshold=%s,\n'%(GAGet(cst,'ConfirmationCycleCounterThreshold')))
         fp.write('};\n\n')
+
+    for obj in FreezeFrameClassList:
+        FFIdClassRefList = GLGet(obj,'FFIdClassRefList')
+        if(len(FFIdClassRefList) == 0): continue
+        fp.write('const Dem_PidOrDidType *%s_FFIdClassRef[] = \n{\n'%(GAGet(obj,'Name')))
+        for ref in FFIdClassRefList:
+            fp.write('\t&Dem_PidOrDid[INDEX_OF_FFIDCLASS_%s],\n'%(GAGet(ref,'Name')))
+        fp.write('\tNULL\n};\n\n')
+    fp.write('static const Dem_FreezeFrameClassType Dem_FreezeFrameClass[]=\n{\n')
+    for obj in FreezeFrameClassList:
+        fp.write('\t{ /* %s */\n'%(GAGet(obj,'Name')))
+        fp.write('\t\t.FFKind=DEM_FREEZE_FRAME_%s,\n'%(GAGet(obj,'FFKind')))
+        fp.write('\t\t.FFRecordNumber=%s,\n'%(GAGet(obj,'FFRecordNumber')))
+        fp.write('\t\t.FFStorageCondition=DEM_FF_STORAGE_%s,\n'%(GAGet(obj,'FFStorageCondition')))
+        fp.write('\t\t.FFIdClassRef=%s_FFIdClassRef,\n'%(GAGet(obj,'Name')))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
+
     EventParameterList= GLGet('EventParameterList')
+    for obj in EventParameterList:
+        FreezeFrameClassRefList = GLGet(obj,'FreezeFrameClassRefList')
+        if(len(FreezeFrameClassRefList) == 0): continue
+        fp.write('const Dem_FreezeFrameClassType *%s_FreezeFrameClassRef[] = \n{\n'%(GAGet(obj,'Name')))
+        for ref in FreezeFrameClassRefList:
+            fp.write('\t&Dem_FreezeFrameClass[INDEX_OF_FFCLASS_%s],\n'%(GAGet(ref,'Name')))
+        fp.write('\tNULL\n};\n\n')
     fp.write('static const Dem_EventParameterType EventParameterList[] = \n{\n')
+    def FFRef(obj,f):
+        lst = GLGet(obj,'%sList'%(f))
+        if(len(lst) == 0): return 'NULL'
+        return '%s_%s'%(GAGet(obj,'Name'),f)
     for evt in EventParameterList:
         if(GAGet(evt,'EventKind') == 'BSW'):
             fp.write('\t{\n')
             fp.write('\t\t.EventID=%s,\n'%(GAGet(evt,'Name')))
             fp.write('\t\t.EventKind=DEM_EVENT_KIND_%s,\n'%(GAGet(evt,'EventKind')))
             fp.write('\t\t.EventClass=&EventClass_%s,\n'%(GAGet(evt,'EventClassRef')))
+            fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     for evt in EventParameterList:
@@ -216,6 +247,7 @@ def GenC():
             fp.write('\t\t.EventID=DEM_EVENT_ID_%s,\n'%(GAGet(evt,'Name')))
             fp.write('\t\t.EventKind=DEM_EVENT_KIND_%s,\n'%(GAGet(evt,'EventKind')))
             fp.write('\t\t.EventClass=&EventClass_%s,\n'%(GAGet(evt,'EventClassRef')))
+            fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     fp.write('\t{\n\t\t.Arc_EOL=TRUE\n\t}\n};\n\n')
