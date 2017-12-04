@@ -58,7 +58,6 @@ def GenH():
 /*
  * Size limitations of the types derived from DemGeneral
  */
-#define DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA    10    // 0..253 according to Autosar
 #define DEM_MAX_NR_OF_EVENT_DESTINATION             1    // 0..4 according to Autosar
 
 /*
@@ -153,6 +152,9 @@ def GenC():
     FreezeFrameClassList=GLGet('FreezeFrameClassList')
     for id,obj in enumerate(FreezeFrameClassList):
         fp.write('#define INDEX_OF_FFCLASS_%s %s\n'%(GAGet(obj,'Name'),id))
+    ExtendedDataRecordClassList = GLGet('ExtendedDataRecordClassList')
+    for id,obj in enumerate(ExtendedDataRecordClassList):
+        fp.write('#define INDEX_OF_EDRC_%s %s\n'%(GAGet(obj,'Name'),id))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     for id,obj in enumerate(FFIdClassList):
@@ -168,6 +170,9 @@ def GenC():
             fp.write('extern Std_ReturnType Dem_DidReadFnc_%s(uint8 *Data);\n'%(GAGet(obj,'Name')))
         if(GAGet(obj,'PidReadFnc') != 'NULL'):
             fp.write('extern Std_ReturnType Dem_PidReadFnc_%s(uint8 *DataValueBuffer);\n'%(GAGet(obj,'Name')))
+    for obj in ExtendedDataRecordClassList:
+        if(GAGet(obj,'CallbackGetExtDataRecord') != 'NULL'):
+            fp.write('extern Std_ReturnType Dem_CallbackGetExtDataRecord_%s(uint8 *ExtendedDataRecord);\n'%(GAGet(obj,'Name')))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('static const Dem_PidOrDidType Dem_PidOrDid[]=\n{\n')
     def FFIdFunc(obj,f):
@@ -188,6 +193,16 @@ def GenC():
         fp.write('\t},\n')
     fp.write('};\n\n')
 
+    fp.write('static const Dem_ExtendedDataRecordClassType Dem_ExtendedDataRecord[]=\n{\n')
+    for obj in ExtendedDataRecordClassList:
+        fp.write('\t{ /* %s */\n'%(GAGet(obj,'Name')))
+        fp.write('\t\t.RecordNumber=%s,\n'%(GAGet(obj,'RecordNumber')))
+        fp.write('\t\t.DataSize=%s,\n'%(GAGet(obj,'DataSize')))
+        fp.write('\t\t.UpdateRule=DEM_UPDATE_RECORD_%s,\n'%(GAGet(obj,'UpdateRule')))
+        fp.write('\t\t.CallbackGetExtDataRecord=%s,\n'%(FFIdFunc(obj,'CallbackGetExtDataRecord')))
+        fp.write('\t\t.InternalDataElement=DEM_%s,\n'%(GAGet(obj,'InternalDataElement')))
+        fp.write('\t},\n')
+    fp.write('};\n\n')
     EventClassList= GLGet('EventClassList')
     for cst in EventClassList:
         fp.write('static const Dem_EventClassType EventClass_%s = \n{\n'%(GAGet(cst,'Name')))
@@ -205,7 +220,7 @@ def GenC():
     for obj in FreezeFrameClassList:
         FFIdClassRefList = GLGet(obj,'FFIdClassRefList')
         if(len(FFIdClassRefList) == 0): continue
-        fp.write('const Dem_PidOrDidType *%s_FFIdClassRef[] = \n{\n'%(GAGet(obj,'Name')))
+        fp.write('static const Dem_PidOrDidType *%s_FFIdClassRef[] = \n{\n'%(GAGet(obj,'Name')))
         for ref in FFIdClassRefList:
             fp.write('\t&Dem_PidOrDid[INDEX_OF_FFIDCLASS_%s],\n'%(GAGet(ref,'Name')))
         fp.write('\tNULL\n};\n\n')
@@ -223,15 +238,26 @@ def GenC():
     for obj in EventParameterList:
         FreezeFrameClassRefList = GLGet(obj,'FreezeFrameClassRefList')
         if(len(FreezeFrameClassRefList) == 0): continue
-        fp.write('const Dem_FreezeFrameClassType *%s_FreezeFrameClassRef[] = \n{\n'%(GAGet(obj,'Name')))
+        fp.write('static const Dem_FreezeFrameClassType *%s_FreezeFrameClassRef[] = \n{\n'%(GAGet(obj,'Name')))
         for ref in FreezeFrameClassRefList:
             fp.write('\t&Dem_FreezeFrameClass[INDEX_OF_FFCLASS_%s],\n'%(GAGet(ref,'Name')))
         fp.write('\tNULL\n};\n\n')
+        ExtendedDataClassRefList = GLGet(obj,'ExtendedDataClassRefList')
+        if(len(ExtendedDataClassRefList) == 0): continue
+        fp.write('static const Dem_ExtendedDataRecordClassType *%s_ExtendedDataClassRef2[] = \n{\n'%(GAGet(obj,'Name')))
+        for ref in ExtendedDataClassRefList:
+            fp.write('\t&Dem_ExtendedDataRecord[INDEX_OF_EDRC_%s],\n'%(GAGet(ref,'Name')))
+        fp.write('\tNULL\n};\n\n')
+        fp.write('static const Dem_ExtendedDataClassType %s_ExtendedDataClassRef = { .ExtendedDataRecordClassRef = %s_ExtendedDataClassRef2 };\n\n'%(GAGet(obj,'Name'),GAGet(obj,'Name')))
     fp.write('static const Dem_EventParameterType EventParameterList[] = \n{\n')
     def FFRef(obj,f):
         lst = GLGet(obj,'%sList'%(f))
         if(len(lst) == 0): return 'NULL'
         return '%s_%s'%(GAGet(obj,'Name'),f)
+    def EDRCRef(obj,f):
+        lst = GLGet(obj,'%sList'%(f))
+        if(len(lst) == 0): return 'NULL'
+        return '&%s_%s'%(GAGet(obj,'Name'),f)
     for evt in EventParameterList:
         if(GAGet(evt,'EventKind') == 'BSW'):
             fp.write('\t{\n')
@@ -239,6 +265,7 @@ def GenC():
             fp.write('\t\t.EventKind=DEM_EVENT_KIND_%s,\n'%(GAGet(evt,'EventKind')))
             fp.write('\t\t.EventClass=&EventClass_%s,\n'%(GAGet(evt,'EventClassRef')))
             fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
+            fp.write('\t\t.ExtendedDataClassRef=%s,\n'%(EDRCRef(evt,'ExtendedDataClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     for evt in EventParameterList:
@@ -248,6 +275,7 @@ def GenC():
             fp.write('\t\t.EventKind=DEM_EVENT_KIND_%s,\n'%(GAGet(evt,'EventKind')))
             fp.write('\t\t.EventClass=&EventClass_%s,\n'%(GAGet(evt,'EventClassRef')))
             fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
+            fp.write('\t\t.ExtendedDataClassRef=%s,\n'%(EDRCRef(evt,'ExtendedDataClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     fp.write('\t{\n\t\t.Arc_EOL=TRUE\n\t}\n};\n\n')

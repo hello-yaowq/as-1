@@ -472,7 +472,7 @@
 <FFIdClass Comment="*" DidConditionCheckReadFnc="USED" DidIdentifier="0xFFFF" DidReadDataLengthFnc="USED" DidReadFnc="USED" Name="AirbagFFIdClass" PidIndentifier="1" PidOrDidSize="1" PidReadFnc="USED" />
 </FFIdClassList>
 <FreezeFrameClassList Max="TBD">
-<FreezeFrameClass Comment="*" FFKind="NON_OBD" FFRecordNumber="1" FFStorageCondition="PREFAILED" Name="AirbagFreezeFrameClass">
+<FreezeFrameClass Comment="*" FFKind="NON_OBD" FFRecordNumber="1" FFStorageCondition="FAILED" Name="AirbagFreezeFrameClass">
 <FFIdClassRefList Max="TBD">
 <FFIdClassRef Comment="*" Name="AirbagFFIdClass" />
 </FFIdClassRefList>
@@ -498,7 +498,13 @@
 <FreezeFrameClassRefList Max="TBD">
 <FreezeFrameClassRef Comment="*" Name="AirbagFreezeFrameClass" />
 </FreezeFrameClassRefList>
+<ExtendedDataClassRefList>
+<ExtendedDataClassRef Comment="*" Name="ExtendedDataRecordClass_Odometer" />
+</ExtendedDataClassRefList>
 </EventParameter>
 </EventParameterList>
+<ExtendedDataRecordClassList Max="TBD">
+<ExtendedDataRecordClass CallbackGetExtDataRecord="USED" Comment="*" DataSize="4" InternalDataElement="NO_ELEMENT" Name="ExtendedDataRecordClass_Odometer" RecordNumber="1" UpdateRule="VOLATILE" />
+</ExtendedDataRecordClassList>
 </Dem>
 </AUTOSAR>

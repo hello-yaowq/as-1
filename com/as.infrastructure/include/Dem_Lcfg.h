@@ -114,7 +114,7 @@ typedef struct {
 
 // 10.2.13 DemExtendedDataClass
 typedef struct {
-	const Dem_ExtendedDataRecordClassType *const ExtendedDataRecordClassRef[DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA+1]; // (1..253)
+	const Dem_ExtendedDataRecordClassType **const ExtendedDataRecordClassRef; // (1..253)
 } Dem_ExtendedDataClassType; /** @req DEM135 */
 
 // 10.2.8 DemPidOrDid

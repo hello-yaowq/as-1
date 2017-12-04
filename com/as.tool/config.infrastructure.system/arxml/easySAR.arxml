@@ -980,6 +980,17 @@
 		Comment="TextArea Default=* PosGUI=11"
 		>
 	</General>
+	<ExtendedDataRecordClassList Max="65535">
+		<ExtendedDataRecordClass
+			Name="Text PosGUI=0"
+			RecordNumber="Integer Default=1 Range=0~65535 PosGUI=1"
+			DataSize="Integer Default=1 Range=0~65535 PosGUI=2"
+			UpdateRule="Enum=(NO,YES,VOLATILE) Default=NULL PosGUI=3"
+			CallbackGetExtDataRecord="Enum=(NULL,USED) Default=NULL PosGUI=4"
+			InternalDataElement="Enum=(NO_ELEMENT,OCCCTR,FAULTDETCTR,MAXFAULTDETCTR) Default=NO_ELEMENT Enabled=(Self.CallbackGetExtDataRecord==NULL) PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6"
+			/>
+	</ExtendedDataRecordClassList>
 	<FFIdClassList Max="65535">
 		<FFIdClass
 			Name="Text PosGUI=0"
@@ -1036,6 +1047,12 @@
 					Comment="TextArea Default=* PosGUI=1"
 					/>
 			</FreezeFrameClassRefList>
+			<ExtendedDataClassRefList>
+				<ExtendedDataClassRef
+					Name="EnumRef=Dem.ExtendedDataRecordClassList PosGUI=0"
+					Comment="TextArea Default=* PosGUI=1"
+					/>
+			</ExtendedDataClassRefList>
 		</EventParameter>
 	</EventParameterList>
 </Dem>

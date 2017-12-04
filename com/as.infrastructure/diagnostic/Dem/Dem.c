@@ -1229,7 +1229,7 @@ static void storeExtendedData(const Dem_EventParameterType *eventParam, boolean 
 		// Check if any pointer to extended data class
 		if (eventParam->ExtendedDataClassRef != NULL) {
 			// Request extended data and copy it to the buffer
-			for (i = 0; (i < DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA) && (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
+			for (i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
 				extendedDataRecord = eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
 				if( DEM_UPDATE_RECORD_VOLATILE != extendedDataRecord->UpdateRule )
 				{
@@ -1467,7 +1467,7 @@ static void mergeExtendedDataEvtMem(const Dem_EventParameterType *eventParam, co
 
 			/* Only copy extended data related to event set during pre-init */
 			Irq_Save(state);
-			for(i = 0; (i < DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA) && (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
+			for(i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
 				extendedDataRecordClass = eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
 				if( DEM_UPDATE_RECORD_VOLATILE != extendedDataRecordClass->UpdateRule ) {
 					if( DEM_UPDATE_RECORD_YES == extendedDataRecordClass->UpdateRule ) {
@@ -1515,7 +1515,7 @@ static boolean lookupExtendedDataRecNumParam(uint8 extendedDataNumber, const Dem
 		uint16 i;
 
 		// Request extended data and copy it to the buffer
-		for (i = 0; (i < DEM_MAX_NR_OF_RECORDS_IN_EXTENDED_DATA) && (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL) && (!recNumFound); i++) {
+		for (i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL) && (!recNumFound); i++) {
 			if (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i]->RecordNumber == extendedDataNumber) {
 				*extDataRecClassPtr =  eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
 				*posInExtData = byteCnt;
