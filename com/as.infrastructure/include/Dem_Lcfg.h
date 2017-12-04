@@ -112,11 +112,6 @@ typedef struct {
 	Dem_InternalDataElementType InternalDataElement;
 } Dem_ExtendedDataRecordClassType; /** @req DEM135 */
 
-// 10.2.13 DemExtendedDataClass
-typedef struct {
-	const Dem_ExtendedDataRecordClassType **const ExtendedDataRecordClassRef; // (1..253)
-} Dem_ExtendedDataClassType; /** @req DEM135 */
-
 // 10.2.8 DemPidOrDid
 typedef struct {
 	Dem_CallbackConditionCheckReadFncType		DidConditionCheckReadFnc;	// (0..1)
@@ -156,35 +151,15 @@ typedef struct {
  * DemConfigSetType types
  */
 
-// 10.2.6 DemCallbackDTCStatusChanged
-typedef struct {
-	Dem_CallbackDTCStatusChangedFncType CallbackDTCStatusChangedFnc;	// (0..1)
-} Dem_CallbackDTCStatusChangedType; /** @req DEM140 */
-
-// 10.2.26 DemCallbackInitMForF
-typedef struct {
-	Dem_CallbackInitMonitorForFunctionFncType	CallbackInitMForF;		// (0..1)
-} Dem_CallbackInitMForFType;
-
 // 10.2.17 DemDTCClass
 typedef struct {
 	uint32									DTC;						// (1)
 	uint8									DTCFunctionalUnit;			// (1)
 	Dem_DTCKindType							DTCKind;					// (1)
-	const Dem_CallbackDTCStatusChangedType	*CallbackDTCStatusChanged;	// (0..*)
-	const Dem_CallbackInitMForFType			*CallbackInitMForF;			// (0..*)
+	Dem_CallbackDTCStatusChangedFncType CallbackDTCStatusChangedFnc;
+	Dem_CallbackInitMonitorForFunctionFncType	CallbackInitMForF;
 	// Dem_DTCSeverityType					DTCSeverity					// (0..1)  Optional
 } Dem_DTCClassType; /** @req DEM132 */
-
-// 10.2.5 DemCallbackEventStatusChanged
-typedef struct {
-	Dem_CallbackEventStatusChangedFncType	CallbackEventStatusChangedFnc;	// (0..1)
-} Dem_CallbackEventStatusChangedType; /** @req DEM140 */
-
-// 10.2.27 DemCallbackInitMForE
-typedef struct {
-	Dem_CallbackInitMonitorForEventFncType	CallbackInitMForEFnc;	// (0..1)
-} Dem_CallbackInitMforEType; /** @req DEM130 */
 
 // 10.2.15
 typedef struct {
@@ -250,10 +225,9 @@ typedef struct {
 	uint16										EventID;					// (1)
 	Dem_EventKindType							EventKind;					// (1)
 	const Dem_EventClassType					*EventClass;				// (1)
-	const Dem_ExtendedDataClassType				*ExtendedDataClassRef;		// (0..1)
+	const Dem_ExtendedDataRecordClassType		**ExtendedDataClassRef;
 	const Dem_FreezeFrameClassType				**FreezeFrameClassRef;		// (0..255) (Only 0..1 supported)/** @req DEM021 */
-	const Dem_CallbackInitMforEType				*CallbackInitMforE;			// (0..1)
-	const Dem_CallbackEventStatusChangedType	*CallbackEventStatusChanged;// (0..*)
+	Dem_CallbackInitMonitorForEventFncType		CallbackInitMForEFnc;
 	const Dem_DTCClassType						*DTCClassRef;				// (0..1)
 	boolean										Arc_EOL;
 } Dem_EventParameterType; /** @req DEM130 */
@@ -274,9 +248,6 @@ typedef struct {
 // 10.2.9 DemConfigSet
 typedef struct {
 	const Dem_EventParameterType	*EventParameter;	// (0..65535)
-	const Dem_DTCClassType 			*DTCClass;			// (1..16777214)
-	const Dem_GroupOfDtcType		*GroupOfDtc;		// (1.16777214)
-	const Dem_OemIdClassType		*OemIdClass;		// (0..*)
 } Dem_ConfigSetType; /** @req DEM130 */
 
 // 10.2.2 Dem

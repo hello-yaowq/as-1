@@ -126,5 +126,10 @@ Std_ReturnType Dem_CallbackGetExtDataRecord_ExtendedDataRecordClass_Odometer(uin
 {
 	return E_OK;
 }
+
+Std_ReturnType Dem_CallbackInitMForEFnc_AIRBAG_FAILED(Dem_InitMonitorKindType InitMonitorKind)
+{
+	return E_OK;
+}
 #endif
 

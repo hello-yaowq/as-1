@@ -1229,8 +1229,8 @@ static void storeExtendedData(const Dem_EventParameterType *eventParam, boolean 
 		// Check if any pointer to extended data class
 		if (eventParam->ExtendedDataClassRef != NULL) {
 			// Request extended data and copy it to the buffer
-			for (i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
-				extendedDataRecord = eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
+			for (i = 0; (eventParam->ExtendedDataClassRef[i] != NULL); i++) {
+				extendedDataRecord = eventParam->ExtendedDataClassRef[i];
 				if( DEM_UPDATE_RECORD_VOLATILE != extendedDataRecord->UpdateRule )
 				{
 					recordSize = extendedDataRecord->DataSize;
@@ -1467,8 +1467,8 @@ static void mergeExtendedDataEvtMem(const Dem_EventParameterType *eventParam, co
 
 			/* Only copy extended data related to event set during pre-init */
 			Irq_Save(state);
-			for(i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL); i++) {
-				extendedDataRecordClass = eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
+			for(i = 0; (eventParam->ExtendedDataClassRef[i] != NULL); i++) {
+				extendedDataRecordClass = eventParam->ExtendedDataClassRef[i];
 				if( DEM_UPDATE_RECORD_VOLATILE != extendedDataRecordClass->UpdateRule ) {
 					if( DEM_UPDATE_RECORD_YES == extendedDataRecordClass->UpdateRule ) {
 						/* Copy records that failed during pre init */
@@ -1515,14 +1515,14 @@ static boolean lookupExtendedDataRecNumParam(uint8 extendedDataNumber, const Dem
 		uint16 i;
 
 		// Request extended data and copy it to the buffer
-		for (i = 0; (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i] != NULL) && (!recNumFound); i++) {
-			if (eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i]->RecordNumber == extendedDataNumber) {
-				*extDataRecClassPtr =  eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i];
+		for (i = 0; (eventParam->ExtendedDataClassRef[i] != NULL) && (!recNumFound); i++) {
+			if (eventParam->ExtendedDataClassRef[i]->RecordNumber == extendedDataNumber) {
+				*extDataRecClassPtr =  eventParam->ExtendedDataClassRef[i];
 				*posInExtData = byteCnt;
 				recNumFound = TRUE;
 			}
-			if(DEM_UPDATE_RECORD_VOLATILE != eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i]->UpdateRule) {
-				byteCnt += eventParam->ExtendedDataClassRef->ExtendedDataRecordClassRef[i]->DataSize;
+			if(DEM_UPDATE_RECORD_VOLATILE != eventParam->ExtendedDataClassRef[i]->UpdateRule) {
+				byteCnt += eventParam->ExtendedDataClassRef[i]->DataSize;
 			}
 		}
 	}
@@ -3024,8 +3024,8 @@ Dem_ReturnClearDTCType Dem_ClearDTC(uint32 dtc, Dem_DTCKindType dtcKind, Dem_DTC
 									{
 									case DEM_DTC_ORIGIN_PRIMARY_MEMORY:
 										/** @req DEM077 */
-										if ((eventParam->CallbackInitMforE != NULL) && (eventParam->CallbackInitMforE->CallbackInitMForEFnc != NULL))
-											eventParam->CallbackInitMforE->CallbackInitMForEFnc(DEM_INIT_MONITOR_CLEAR);
+										if ((eventParam->CallbackInitMForEFnc != NULL))
+											eventParam->CallbackInitMForEFnc(DEM_INIT_MONITOR_CLEAR);
 										deleteEventPriMem(eventParam);
 										deleteFreezeFrameDataPriMem(eventParam);
 										deleteExtendedDataPriMem(eventParam);
@@ -3117,8 +3117,8 @@ Dem_ReturnControlDTCStorageType Dem_EnableDTCStorage(Dem_DTCGroupType dtcGroup, 
 					if ((DEM_CLEAR_ALL_EVENTS == STD_ON) || (eventParam->DTCClassRef != NULL)) {
 						if (checkDtcKind(disableDtcStorage.dtcKind, eventParam)) {
 							if (checkDtcGroup(disableDtcStorage.dtcGroup, eventParam)) {
-								if ((eventParam->CallbackInitMforE != NULL) && (eventParam->CallbackInitMforE->CallbackInitMForEFnc != NULL))
-									eventParam->CallbackInitMforE->CallbackInitMForEFnc(DEM_INIT_MONITOR_RESTART);
+								if ((eventParam->CallbackInitMForEFnc != NULL))
+									eventParam->CallbackInitMForEFnc(DEM_INIT_MONITOR_RESTART);
 							}
 						}
 					}

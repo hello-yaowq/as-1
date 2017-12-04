@@ -468,6 +468,9 @@
 </Rte>
 <Dem>
 <General Comment="DEM_MAX_NUMBER_FF_DATA_PRI_MEM must be the size value of DemFreezeFrame" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_MAX_NUMBER_FF_DATA_PRI_MEM="5" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DEM_USE_NVM="ON" DevelopmentErrorDetection="ON" NvMFreezeFrameBlock="DemFreezeFrame" NvMHealingBlock="DemHealing" VersionInfoApi="ON" />
+<ExtendedDataRecordClassList Max="TBD">
+<ExtendedDataRecordClass CallbackGetExtDataRecord="USED" Comment="*" DataSize="4" InternalDataElement="NO_ELEMENT" Name="ExtendedDataRecordClass_Odometer" RecordNumber="1" UpdateRule="VOLATILE" />
+</ExtendedDataRecordClassList>
 <FFIdClassList Max="TBD">
 <FFIdClass Comment="*" DidConditionCheckReadFnc="USED" DidIdentifier="0xFFFF" DidReadDataLengthFnc="USED" DidReadFnc="USED" Name="AirbagFFIdClass" PidIndentifier="1" PidOrDidSize="1" PidReadFnc="USED" />
 </FFIdClassList>
@@ -483,18 +486,18 @@
 <EventClass Comment="*" ConfirmationCycleCounterThreshold="8" ConsiderPtoStatus="False" EventPriority="1" FFPrestorageSupported="False" HealingAllowed="False" HealingCycleCounter="8" HealingCycleRef="IGNITION" Name="SWCEventClass" OperationCycleRef="IGNITION" />
 </EventClassList>
 <EventParameterList Max="TBD">
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="EEP_E_WRITE_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="EEP_E_READ_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_ERASE_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_WRITE_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_READ_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="CANNM_E_NETWORK_TIMEOUT" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="PDUR_E_PDU_INSTANCE_LOST" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="NVM_E_INTEGRITY_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="NVM_E_REQ_FAILED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="ECUM_E_ALL_RUN_REQUESTS_KILLED" />
-<EventParameter Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="ECUM_E_RAM_CHECK_FAILED" />
-<EventParameter Comment="*" EventClassRef="SWCEventClass" EventKind="SWC" Name="AIRBAG_FAILED">
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="EEP_E_WRITE_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="EEP_E_READ_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_ERASE_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_WRITE_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="FLS_E_READ_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="CANNM_E_NETWORK_TIMEOUT" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="PDUR_E_PDU_INSTANCE_LOST" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="NVM_E_INTEGRITY_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="NVM_E_REQ_FAILED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="ECUM_E_ALL_RUN_REQUESTS_KILLED" />
+<EventParameter CallbackInitMForEFnc="NULL" Comment="*" EventClassRef="BSWEventClass" EventKind="BSW" Name="ECUM_E_RAM_CHECK_FAILED" />
+<EventParameter CallbackInitMForEFnc="USED" Comment="*" EventClassRef="SWCEventClass" EventKind="SWC" Name="AIRBAG_FAILED">
 <FreezeFrameClassRefList Max="TBD">
 <FreezeFrameClassRef Comment="*" Name="AirbagFreezeFrameClass" />
 </FreezeFrameClassRefList>
@@ -503,8 +506,5 @@
 </ExtendedDataClassRefList>
 </EventParameter>
 </EventParameterList>
-<ExtendedDataRecordClassList Max="TBD">
-<ExtendedDataRecordClass CallbackGetExtDataRecord="USED" Comment="*" DataSize="4" InternalDataElement="NO_ELEMENT" Name="ExtendedDataRecordClass_Odometer" RecordNumber="1" UpdateRule="VOLATILE" />
-</ExtendedDataRecordClassList>
 </Dem>
 </AUTOSAR>
