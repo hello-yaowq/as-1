@@ -17,6 +17,9 @@
 #include "Os.h"
 #include "Mcu.h"
 #include "asdebug.h"
+#ifdef USE_DEM
+#include "Dem.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_DIAG 1
 /* ============================ [ TYPES     ] ====================================================== */
@@ -98,6 +101,30 @@ Std_ReturnType Diag_ProtocolIndicationCbk(uint8 *requestData, uint16 dataSize)
 {
 	return E_OK;
 }
+#ifdef USE_DEM
+Std_ReturnType Dem_DidConditionCheckReadFnc_AirbagFFIdClass(Dcm_NegativeResponseCodeType *Nrc)
+{
+	return E_OK;
+}
 
+Std_ReturnType Dem_DidReadDataLengthFnc_AirbagFFIdClass(uint16 *DidLength)
+{
+	return E_OK;
+}
 
+Std_ReturnType Dem_DidReadFnc_AirbagFFIdClass(uint8 *Data)
+{
+	return E_OK;
+}
+
+Std_ReturnType Dem_PidReadFnc_AirbagFFIdClass(uint8 *DataValueBuffer)
+{
+	return E_OK;
+}
+
+Std_ReturnType Dem_CallbackGetExtDataRecord_ExtendedDataRecordClass_Odometer(uint8 *ExtendedDataRecord)
+{
+	return E_OK;
+}
+#endif
 

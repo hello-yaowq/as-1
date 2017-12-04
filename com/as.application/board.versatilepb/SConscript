@@ -83,7 +83,7 @@ asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET','DEM',
+           'DET',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'SOAD','DOIP','LWIP','PCI',
