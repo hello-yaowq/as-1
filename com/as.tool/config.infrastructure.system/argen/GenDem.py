@@ -210,6 +210,15 @@ def GenC():
         fp.write('\t\t.InternalDataElement=DEM_%s,\n'%(GAGet(obj,'InternalDataElement')))
         fp.write('\t},\n')
     fp.write('};\n\n')
+
+    DTCClassList= GLGet('DTCClassList')
+    for obj in DTCClassList:
+        fp.write('static const Dem_DTCClassType DTCClassRef_%s=\n{\n'%(GAGet(obj,'Name')))
+        fp.write('\t.DTC=%s,\n'%(GAGet(obj,'DTC')))
+        fp.write('\t.DTCFunctionalUnit=%s,\n'%(GAGet(obj,'DTCFunctionalUnit')))
+        fp.write('\t.DTCKind=DEM_DTC_KIND_%s,\n'%(GAGet(obj,'DTCKind')))
+        fp.write('};\n\n')
+
     EventClassList= GLGet('EventClassList')
     for cst in EventClassList:
         fp.write('static const Dem_EventClassType EventClass_%s = \n{\n'%(GAGet(cst,'Name')))
@@ -259,6 +268,10 @@ def GenC():
         lst = GLGet(obj,'%sList'%(f))
         if(len(lst) == 0): return 'NULL'
         return '%s_%s'%(GAGet(obj,'Name'),f)
+    def DTCClassRef(obj,f):
+        if(GAGet(obj,f) != 'NULL'):
+            return '&%s_%s'%(f,GAGet(obj,f))
+        return 'NULL'
     for evt in EventParameterList:
         if(GAGet(evt,'EventKind') == 'BSW'):
             fp.write('\t{\n')
@@ -268,6 +281,7 @@ def GenC():
             fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
             fp.write('\t\t.ExtendedDataClassRef=%s,\n'%(FFRef(evt,'ExtendedDataClassRef')))
             fp.write('\t\t.CallbackInitMForEFnc=%s,\n'%(FFIdFunc(evt,'CallbackInitMForEFnc')))
+            fp.write('\t\t.DTCClassRef=%s,\n'%(DTCClassRef(evt,'DTCClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     for evt in EventParameterList:
@@ -279,6 +293,7 @@ def GenC():
             fp.write('\t\t.FreezeFrameClassRef=%s,\n'%(FFRef(evt,'FreezeFrameClassRef')))
             fp.write('\t\t.ExtendedDataClassRef=%s,\n'%(FFRef(evt,'ExtendedDataClassRef')))
             fp.write('\t\t.CallbackInitMForEFnc=%s,\n'%(FFIdFunc(evt,'CallbackInitMForEFnc')))
+            fp.write('\t\t.DTCClassRef=%s,\n'%(DTCClassRef(evt,'DTCClassRef')))
             fp.write('\t\t.Arc_EOL=FALSE,\n')
             fp.write('\t},\n')
     fp.write('\t{\n\t\t.Arc_EOL=TRUE\n\t}\n};\n\n')

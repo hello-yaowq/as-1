@@ -156,8 +156,8 @@ typedef struct {
 	uint32									DTC;						// (1)
 	uint8									DTCFunctionalUnit;			// (1)
 	Dem_DTCKindType							DTCKind;					// (1)
-	Dem_CallbackDTCStatusChangedFncType CallbackDTCStatusChangedFnc;
-	Dem_CallbackInitMonitorForFunctionFncType	CallbackInitMForF;
+	// Dem_CallbackDTCStatusChangedFncType CallbackDTCStatusChangedFnc;
+	// Dem_CallbackInitMonitorForFunctionFncType	CallbackInitMForF;
 	// Dem_DTCSeverityType					DTCSeverity					// (0..1)  Optional
 } Dem_DTCClassType; /** @req DEM132 */
 
