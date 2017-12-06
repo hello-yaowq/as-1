@@ -21,12 +21,16 @@
 
 #define ECUM_USER_User_1    0
 
-#define SCHM_MF_MEM_PERIOD 		20
+#define SCHM_MAIN_FUNCTION_PERIOD 10
+
+#define SCHM_MAIN_ALARM_CYCLE MS2TICKS(SCHM_MAIN_FUNCTION_PERIOD)
+
+#define SCHM_MF_MEM_PERIOD 		SCHM_MAIN_FUNCTION_PERIOD
 
 /*
- * Scheduling BSW Unit in Ticks(5ms) of SchM_BswService
+ * Scheduling BSW Unit in Ticks(10ms) of SchM_BswService
  */
-#define SCHM_CYCLE_MAIN				(2)
+#define SCHM_CYCLE_MAIN				(1)
 
 #define SCHM_MAINFUNCTION_CYCLE_ADC     SCHM_CYCLE_MAIN
 #define SCHM_MAINFUNCTION_CYCLE_CAN_WRITE     SCHM_CYCLE_MAIN

@@ -27,7 +27,9 @@
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define FL_ERASE_PER_CYCLE 32
 #else
+#ifndef FL_ERASE_PER_CYCLE
 #define FL_ERASE_PER_CYCLE 1
+#endif
 #endif
 #define FL_WRITE_PER_CYCLE (4096/FLASH_WRITE_SIZE)
 #define FL_READ_PER_CYCLE  (4096/FLASH_WRITE_SIZE)
@@ -369,7 +371,10 @@ void BL_MainFunction(void)
 
 		Irq_Save(imask);
 
-		ASLOG(BL,"appTimer timeout, jump to application @%p 0x%X!\n",application_main,*(uint32_t*)application_main);
+		ASLOG(BL,"appTimer timeout, jump to application @%p 0x%X FLSDRV@%X!\n",
+				application_main,
+				*(uint32_t*)application_main,
+				FLASH_DRIVER_STARTADDRESS);
 		if((*(uint32_t*)application_main) != 0)
 		{
 			application_main();

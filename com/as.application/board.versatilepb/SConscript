@@ -72,6 +72,7 @@ asenv.Append(CCFLAGS=' -DMEMORY_SIZE=0x8000000 ')
 asenv.Append(CCFLAGS=' -DSYSTEM_REGION_START=0x10000000 ')
 asenv.Append(CCFLAGS=' -DSYSTEM_REGION_END=0x101f4000 ')
 asenv.Append(CCFLAGS=' -DPAGE_SIZE=0x1000 ')
+asenv.Append(CCFLAGS='-DOS_TICKS_PER_SECOND=100')
 
 if(asenv['RELEASE']=='asboot'):
     lds = '%s/../board.bcm2835/script/linker-boot.lds'%(cwd)
@@ -79,6 +80,7 @@ else:
     lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
 if(asenv['RTOS'] == 'rtthread'):
     lds = '%s/versatilepb.lds'%(cwd)
+    asenv.Append(CCFLAGS='-DRT_TICK_PER_SECOND=100')
 asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
 
@@ -117,6 +119,7 @@ arch='arm'
 
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):
+    asenv.Append(CCFLAGS='-DFL_ERASE_PER_CYCLE=2048')
     MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
                'DCM',
@@ -130,7 +133,7 @@ if(asenv['RELEASE']=='asboot'):
                                   '-DFLS_START_ADDRESS=0x00040000',
                                   '-DFLS_END_ADDRESS=0x08000000',
                                   '-I%s/com/as.infrastructure/include'%(ASROOT)],
-                       'LINKFLAGS':['-static','-T %s'%(lds)],
+                       'LINKFLAGS':['-static','-T%s'%(lds)],
                        'objs':[]}
 
 asenv['MODULES'] = MODULES

@@ -399,7 +399,7 @@ TASK(SchM_Startup){
 	SchM_StartupHook();
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
-	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 2);
+	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 1);
 
 	/*
 	 * Call EcuM_StartupTwo that do:
@@ -411,7 +411,7 @@ TASK(SchM_Startup){
 
 	/* Start to schedule BSW parts */
 	CancelAlarm(ALARM_ID_Alarm_BswService);
-	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 5);
+	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, SCHM_MAIN_ALARM_CYCLE);
 
 #if !defined(CFG_SCHM_DISABLE_ECUM_REQUEST_RUN)
 	EcuM_RequestRUN(ECUM_USER_User_1);

@@ -16,7 +16,8 @@ SECTIONS
 {
     .text :
     {
-        *(.data.*)
+		*(.rodata*)
+        *(.data*)
         *(.text*)
     } > FLASH
 }

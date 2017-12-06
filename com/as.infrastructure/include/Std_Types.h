@@ -104,6 +104,11 @@
 
 #define SIZE_OF_ARRAY(a) 	(sizeof(a)/sizeof(a[0]))
 
+#ifndef OS_TICKS_PER_SECOND
+#define OS_TICKS_PER_SECOND 1000
+#endif
+
+#define MS2TICKS(m) ((m+(1000/OS_TICKS_PER_SECOND -1))/(1000/OS_TICKS_PER_SECOND))
 
 #ifdef USE_STDRT
 #include <rtthread.h>

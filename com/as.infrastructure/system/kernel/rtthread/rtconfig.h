@@ -15,7 +15,9 @@
 // </integer>
 #define RT_THREAD_PRIORITY_MAX	256
 // <integer name="RT_TICK_PER_SECOND" description="OS tick per second" default="100" />
+#ifndef RT_TICK_PER_SECOND
 #define RT_TICK_PER_SECOND	1000
+#endif
 // <section name="RT_DEBUG" description="Kernel Debug Configuration" default="true" >
 // #define RT_DEBUG
 // <bool name="RT_THREAD_DEBUG" description="Thread debug enable" default="false" />

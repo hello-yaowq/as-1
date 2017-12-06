@@ -81,8 +81,8 @@ class dcm():
     def __show_request__(self,req):
         ss = "  >> dcm request %s = ["%(self.__get_service_name__(req[0]))
         length = len(req)
-#         if(length > 32):
-#             length = 32
+        if(length > 32):
+            length = 32
         for i in range(length):
             ss += '%02X,'%(req[i])
         ss+=']'
@@ -91,8 +91,8 @@ class dcm():
     def __show_response__(self,res):
         ss = "  >> dcm response = ["
         length = len(res)
-#         if(length > 32):
-#             length = 32
+        if(length > 32):
+            length = 32
         for i in range(length):
             ss += '%02X,'%(res[i])
         ss+=']'

@@ -34,7 +34,7 @@ else:
         if(b in board_list):
             BOARD = b
 
-if(os.name == 'nt'):
+if(BOARD is None):
     if(os.getenv('BOARD') in board_list):
         BOARD = os.getenv('BOARD')
 
@@ -92,6 +92,7 @@ asenv.Append(ASFLAGS='-I%s'%(cfgdir))
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)
+    RunCommand('rm -fv *.s19')
 
 asenv.Program(BOARD,objs)
 
@@ -100,7 +101,21 @@ try:
     flsobjs = flsdrv['objs']
     flsenv = Environment(CC=asenv['CC'], LINK=asenv['LINK'],
                          CCFLAGS=flsdrv['CCFLAGS'], LINKFLAGS=flsdrv['LINKFLAGS'])
+    if(not GetOption('verbose')):
+        # override the default verbose command string
+        flsenv.Replace(
+          ARCOMSTR = 'AR $SOURCE',
+          ASCOMSTR = 'AS $SOURCE',
+          ASPPCOMSTR = 'AS $SOURCE',
+          CCCOMSTR = 'CC $SOURCE',
+          CXXCOMSTR = 'CXX $SOURCE',
+          LINKCOMSTR = 'LINK $TARGET'
+        )
     flsenv.Program(BOARD+'-flsdrv',flsobjs)
+    target=BOARD+'-flsdrv'
+    if(os.name == 'nt'):target += '.exe'
+    action = '%s %s %s-flsdrv.s19'%(asenv['S19'],target,BOARD)
+    asenv.AddPostAction(target,action)
 except KeyError:
     pass
 
