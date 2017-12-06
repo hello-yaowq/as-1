@@ -143,11 +143,7 @@ void Mcu_DistributePllClock( void )
 	Irq_Save(mask);
 #ifndef USE_STDRT
 #ifndef __AS_BOOTLOADER__
-	/* for application bcm2835, need to reset the handler array*/
-	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*8),32);
 	timer_init(NULL);
-#else
-	memcpy((void*)(0x8000+4*24),(void*)(((unsigned int)(&_start))+4*32),32);
 #endif
 	printf(" >> versatilepb startup done,start @%p\n",&_start);
 #endif

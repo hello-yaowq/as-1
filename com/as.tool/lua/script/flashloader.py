@@ -26,6 +26,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 import os
+import glob
 
 __all__ = ['UIFlashloader']
 
@@ -294,12 +295,16 @@ class UIFlashloader(QWidget):
         self.btnOpenFlsDrv.clicked.connect(self.on_btnOpenFlsDrv_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         
-        if(os.name == 'nt'):
-            default_app = 'D:/repository/as/release/asboot/out/stm32f107vc.s19'
-            default_flsdrv = 'D:/repository/as/release/asboot/out/stm32f107vc-flsdrv.s19'
-        else:
-            default_app = '/home/parai/workspace/as/release/ascore/out/stm32f107vc.s19'
-            default_flsdrv = '/home/parai/workspace/as/release/asboot/out/stm32f107vc-flsdrv.s19'
+        release = os.path.abspath('%s/../../../release'%(os.curdir))
+        default_app=''
+        default_flsdrv=''
+        if(os.path.exists(release)):
+            for s19 in glob.glob('%s/ascore/*.s19'%(release)):
+                default_app = s19
+                break
+            for s19 in glob.glob('%s/asboot/*-flsdrv.s19'%(release)):
+                default_flsdrv = s19
+                break
         if(os.path.exists(default_app)):
             self.leApplication.setText(default_app)
         if(os.path.exists(default_flsdrv)):

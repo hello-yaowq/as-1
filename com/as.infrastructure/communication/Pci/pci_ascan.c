@@ -211,7 +211,7 @@ static void can_isr(void)
 				uint8_t dlc;
 				uint16 Hrh;
 				unsigned char data[8];
-				const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[ctlrId].Can_Arc_Hoh;
+				const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[configId].Can_Arc_Hoh;
 				hoh --;
 				do{
 					hoh ++;

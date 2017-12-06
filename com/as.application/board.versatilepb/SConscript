@@ -44,10 +44,10 @@ if('run' in COMMAND_LINE_TARGETS):
         params += ' -gdb tcp::1234 -S'
     if(os.name == 'nt'):
         RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,asenv['python3']))
-        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
-        RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
+        RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
+        RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
         RunCommand('cd %s && start %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))
-        RunCommand('sleep 1 && telnet 127.0.0.1 1103')
+        RunCommand('sleep 2 && telnet 127.0.0.1 1103')
     else:
         fp = open('%s/telnet.sh'%(build),'w')
         fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
@@ -125,6 +125,13 @@ if(asenv['RELEASE']=='asboot'):
                'CLIB_ASHEAP','CLIB_MISCLIB',
                'CLIB_STDIO_PRINTF',
                ]
+    lds = '%s/com/as.application/board.bcm2835/script/linker-flsdrv.lds'%(ASROOT)
+    asenv['flsdrv'] = {'CCFLAGS':['-DFLASH_DRIVER_DYNAMIC_DOWNLOAD',
+                                  '-DFLS_START_ADDRESS=0x00040000',
+                                  '-DFLS_END_ADDRESS=0x08000000',
+                                  '-I%s/com/as.infrastructure/include'%(ASROOT)],
+                       'LINKFLAGS':['-static','-T %s'%(lds)],
+                       'objs':[]}
 
 asenv['MODULES'] = MODULES
 asenv['ARCH'] = ARCH

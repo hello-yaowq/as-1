@@ -73,4 +73,7 @@ else:
     assert(os.path.exists(libgcc))
     asenv.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
+if(asenv['RELEASE']=='asboot'):
+    asenv['flsdrv']['objs'] += Glob('../common/mcal/RamFlash.c')
+    
 Return('objs')

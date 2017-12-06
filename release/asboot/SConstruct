@@ -96,6 +96,15 @@ if(asenv.GetOption('clean')):
 asenv.Program(BOARD,objs)
 
 try:
+    flsdrv = asenv['flsdrv']
+    flsobjs = flsdrv['objs']
+    flsenv = Environment(CC=asenv['CC'], LINK=asenv['LINK'],
+                         CCFLAGS=flsdrv['CCFLAGS'], LINKFLAGS=flsdrv['LINKFLAGS'])
+    flsenv.Program(BOARD+'-flsdrv',flsobjs)
+except KeyError:
+    pass
+
+try:
     target = BOARD
     if(os.name == 'nt'):target += '.exe'
     action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)

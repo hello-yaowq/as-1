@@ -369,8 +369,15 @@ void BL_MainFunction(void)
 
 		Irq_Save(imask);
 
-		ASLOG(BL,"appTimer timeout, jump to application!\n");
-		application_main();
+		ASLOG(BL,"appTimer timeout, jump to application @%p 0x%X!\n",application_main,*(uint32_t*)application_main);
+		if((*(uint32_t*)application_main) != 0)
+		{
+			application_main();
+		}
+		else
+		{
+			ASLOG(BL,"invalid application entry point, stay in bootloader.\n");
+		}
 
 		Irq_Restore(imask);
 		/* impossible return, failed */
