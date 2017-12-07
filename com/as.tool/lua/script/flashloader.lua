@@ -29,9 +29,21 @@ local FLASH_READ_SIZE  = 512
 
 local l_flsdrv = nil
 local l_app = nil
-
+local l_flsdrv_s = nil
+local l_app_s = nil
 -- ===================== [ DATA     ] ================================
 -- ===================== [ FUNCTION ] ================================
+function is_all_zero(data,size)
+  bAllZero = true
+  for i=1,size,1 do
+    if data[i] ~= 0 then
+      bAllZero = false
+      break
+    end
+  end
+  return bAllZero
+end
+
 function enter_extend_session()
   ercd,res = dcm.transmit(dcm_chl,{0x10,0x03})
   
@@ -106,7 +118,7 @@ end
 
 function routine_erase_flash()
 
-  srecord = s19.open(l_app)
+  srecord = l_app_s
   
   if( nil == srecord ) then
     print("  >> invalid application srecord file!")
@@ -116,7 +128,9 @@ function routine_erase_flash()
   secnbr = rawlen(srecord)
   for i=1,secnbr,1 do
     ss = srecord[i]
-	eaddr = ss["addr"]+ss["size"]
+    if false == is_all_zero(ss["data"],ss["size"]) then
+      eaddr = ss["addr"]+ss["size"]
+    end
   end
 
   addr =  srecord[1]["addr"]
@@ -337,7 +351,7 @@ function upload_one_record(addr,size,mem)
 end
 
 function download_flash_driver()
-  srecord = s19.open(l_flsdrv)
+  srecord = l_flsdrv_s
   
   if( nil == srecord ) then
     print("  >> invalid flash driver srecord file!")
@@ -416,7 +430,7 @@ end
 
 function download_application()
 
-  srecord = s19.open(l_app)
+  srecord = l_app_s
   
   if( nil == srecord ) then
     print("  >> invalid application srecord file!")
@@ -427,9 +441,11 @@ function download_application()
   for i=1,secnbr,1 do
     ss = srecord[i]
     addr =  ss["addr"]
+    if false == is_all_zero(ss["data"],ss["size"]) then
     ercd =  download_one_record(addr,ss["size"],ss["data"],0xFF)
     if (false == ercd) then
       break
+    end
     end
   end
  
@@ -443,7 +459,7 @@ function download_application()
 end
 
 function check_application()
-  srecord = s19.open(l_app)
+  srecord = l_app_s
   
   if( nil == srecord ) then
     print("  >> invalid application srecord file!")
@@ -454,6 +470,7 @@ function check_application()
   for i=1,secnbr,1 do
     ss = srecord[i]
     addr =  ss["addr"]
+    if false == is_all_zero(ss["data"],ss["size"]) then
     ercd,record =  upload_one_record(addr,ss["size"],0xFF)
     if (false == ercd) then
       break
@@ -464,6 +481,7 @@ function check_application()
         s19.dump(app,"application_dump.s19")
         break
       end
+    end
     end
   end
   s19.dump(app,"application_dump.s19")
@@ -526,6 +544,9 @@ function main(argc,argv)
   dcm.init(dcm_chl,can_bus,0x732,0x731)
   
   os.usleep(1000000)
+  
+  l_flsdrv_s = s19.open(l_flsdrv)
+  l_app_s = s19.open(l_app)
 
   for i=1,rawlen(operation_list),1 do
     ercd = operation_list[i]()

@@ -94,7 +94,7 @@ MODULES = ['ECUM','SCHM','MCU',
 if(cwd.find('travis') != -1):
     # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
     pass
-else:
+elif(os.getenv('SGAPP') != None):
     MODULES += ['LCD','GUI','SG']
 
 print('WARNING: force using SGAPP watch for versatilepb!')
@@ -132,6 +132,7 @@ if(asenv['RELEASE']=='asboot'):
     asenv['flsdrv'] = {'CCFLAGS':['-DFLASH_DRIVER_DYNAMIC_DOWNLOAD',
                                   '-DFLS_START_ADDRESS=0x00040000',
                                   '-DFLS_END_ADDRESS=0x08000000',
+                                  '-DFLASH_WRITE_SIZE=2',
                                   '-I%s/com/as.infrastructure/include'%(ASROOT)],
                        'LINKFLAGS':['-static','-T%s'%(lds)],
                        'objs':[]}

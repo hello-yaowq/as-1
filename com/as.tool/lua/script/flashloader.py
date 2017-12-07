@@ -277,7 +277,7 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.leApplication,0,1)
         self.btnOpenApp = QPushButton('...')
         grid.addWidget(self.btnOpenApp,0,2)
-        
+
         grid.addWidget(QLabel('Flash Driver'),1,0)
         self.leFlsDrv = QLineEdit()
         grid.addWidget(self.leFlsDrv,1,1)
@@ -290,6 +290,19 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.pgbProgress,2,1)
         self.btnStart=QPushButton('Start')
         grid.addWidget(self.btnStart,2,2)
+        
+        grid.addWidget(QLabel('aslua bootloader:'),3,0)
+        self.cmbxCanDevice = QComboBox()
+        self.cmbxCanDevice.addItems(['socket','serial','vxl','peak','tcp'])
+        self.cmbxCanPort = QComboBox()
+        self.cmbxCanPort.addItems(['port 0','port 1','port 2','port 3','port 4','port 5','port 6','port 7'])
+        self.cmbxCanBaud = QComboBox()
+        self.cmbxCanBaud.addItems(['125000','250000','500000','1000000','115200'])
+        self.btnStartASLUA=QPushButton('Start')
+        grid.addWidget(self.cmbxCanDevice,3,1)
+        grid.addWidget(self.cmbxCanPort,3,2)
+        grid.addWidget(self.cmbxCanBaud,3,3)
+        grid.addWidget(self.btnStartASLUA,3,4)
         vbox.addLayout(grid)
         
         hbox = QHBoxLayout()
@@ -311,6 +324,7 @@ class UIFlashloader(QWidget):
         self.btnOpenApp.clicked.connect(self.on_btnOpenApp_clicked)
         self.btnOpenFlsDrv.clicked.connect(self.on_btnOpenFlsDrv_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
+        self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
         
         release = os.path.abspath('%s/../../../release'%(os.curdir))
         default_app=''
@@ -351,4 +365,17 @@ class UIFlashloader(QWidget):
             self.loader.start()
         else:
             QMessageBox.information(self, 'Tips', 'Please load a valid application first!')
-        
+
+    def on_btnStartASLUA_clicked(self):
+        aslua = os.path.abspath('%s/pyas/aslua.exe'%(os.curdir))
+        fbl = os.path.abspath('%s/pyas/flashloader.lua'%(os.curdir))
+        cmd = '%s %s %s %s %s %s %s'%(aslua, fbl, self.leFlsDrv.text(), self.leApplication.text(),
+                             self.cmbxCanDevice.currentText(),
+                             str(self.cmbxCanPort.currentText()).replace('port',''),
+                             self.cmbxCanBaud.currentText())
+        print(cmd)
+        self.leinfor.append(cmd+'\n')
+        if(0 == os.system(cmd)):
+            self.leinfor.append('run aslua bootloader done successfully!')
+        else:
+            self.leinfor.append('run aslua bootloader done failed!')

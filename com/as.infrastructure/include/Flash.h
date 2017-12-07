@@ -73,7 +73,9 @@
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
 
 /* must be n times of 4 */
+#ifndef FLASH_WRITE_SIZE
 #define FLASH_WRITE_SIZE  4
+#endif
 #define FLASH_IS_WRITE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_WRITE_SIZE-1)&(a)) )
 
 /* must be 1 or 2 */

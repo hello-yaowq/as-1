@@ -234,11 +234,8 @@ class UISg(QWidget):
         self.aws = aws()
         self.fd = self.aws.server('127.0.0.1',8080)
 
-        if(os.name == 'nt'):
-            default_xml = 'D:/repository/as/release/ascore/SgDesign/virtual_cluster/Sg.xml'
-        else:
-            default_xml = '/home/parai/workspace/as/release/ascore/SgDesign/virtual_cluster/Sg.xml'
-
+        default_xml = os.path.abspath('%s/../../../release/ascore/SgDesign/virtual_cluster/Sg.xml'%(os.curdir))
+        
         self.sgWidget = SgWidget(default_xml)
         self.vbox.addWidget(self.sgWidget)
         self.setLayout(self.vbox)
