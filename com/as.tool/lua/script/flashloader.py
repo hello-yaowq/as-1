@@ -78,7 +78,7 @@ class AsFlashloader(QThread):
                 ercd = False
         if(ercd == True): 
             self.infor.emit('  success')
-            self.step_progress(1)
+            self.step_progress(0.1)
         else:
             self.infor.emit('  failed')
         return ercd,res
@@ -126,7 +126,9 @@ class AsFlashloader(QThread):
         left_size = size
         pos = 0
         ability = int(((4096-4)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
-        ercd,res = self.request_download(address,size,identifier)
+        # round up
+        size2 = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
+        ercd,res = self.request_download(address,size2,identifier)
         if(ercd == False):return ercd,res
         while(left_size>0 and ercd==True):
             req = [0x36,blockSequenceCounter,0,identifier]
@@ -155,7 +157,9 @@ class AsFlashloader(QThread):
         blockSequenceCounter = 1
         left_size = size
         ability = int(((4096-4)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
-        ercd,res = self.request_upload(address,size,identifier)
+        # round up
+        size2 = int((left_size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
+        ercd,res = self.request_upload(address,size2,identifier)
         if(ercd == False):return ercd,res,None
         data = []
         while(left_size>0 and ercd==True):
@@ -202,11 +206,24 @@ class AsFlashloader(QThread):
         return ercd,res
     
     def routine_erase_flash(self):
-        return self.transmit([0x31,0x01,0xFF,0x01,0x00,0x01,0x00,0x00,0x00,0x03,0x00,0x00,0xFF],[0x71,0x01,0xFF,0x01])
+        app = s19(self.app)
+        ary = app.getData(True)
+        saddr = ary[0]['address']
+        eaddr = ary[0]['address'] + ary[0]['size']
+        for ss in ary:
+            if(ss['address']< saddr):
+                saddr = ss['address']
+            if(ss['address']+ss['size'] > eaddr):
+                eaddr = ss['address']+ss['size']
+        eaddr = int((eaddr+511)/512)*512
+        return self.transmit([0x31,0x01,0xFF,0x01,
+                              (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
+                              (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
+                              0xFF],[0x71,0x01,0xFF,0x01])
     
     def download_application(self):
         app = s19(self.app)
-        ary = app.getData()
+        ary = app.getData(True)
         for ss in ary:
             ercd,res = self.download_one_section(ss['address'],ss['size'],ss['data'],0xFF)
             if(ercd == False):return ercd,res

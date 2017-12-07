@@ -87,8 +87,20 @@ class s19:
         fp.close()
         self.dump('%s.debug'%(file))
 
-    def getData(self):
-        return self.data
+    def getData(self,ignore=False):
+        if(ignore):
+            data = []
+            for ss in self.data:
+                bAllZero = True
+                for b in ss['data']:
+                    if(b != 0):
+                        bAllZero = False
+                        break
+                if(not bAllZero):
+                    data.append(ss)
+        else:
+            data = self.data
+        return data
 
     def dump(self,file):
         fp = open(file,'w')
