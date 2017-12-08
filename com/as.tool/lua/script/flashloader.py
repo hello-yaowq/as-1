@@ -35,13 +35,14 @@ class AsFlashloader(QThread):
     progress = QtCore.pyqtSignal(int)
     def __init__(self,parent=None):
         super(QThread, self).__init__(parent)
-        self.steps = [ self.enter_extend_session, self.security_extds_access,
-                  self.enter_program_session,self.security_prgs_access,
-                  self.download_flash_driver,
-                  self.routine_erase_flash, self.download_application ]
+        self.steps = [ (self.enter_extend_session,True), (self.security_extds_access,True),
+                  (self.enter_program_session,True),(self.security_prgs_access,True),
+                  (self.download_flash_driver,True),(self.check_flash_driver,False),
+                  (self.routine_erase_flash,True), (self.download_application,True),
+                  (self.check_application,False), (self.launch_application,True) ]
         self.enable = []
         for s in self.steps:
-            self.enable.append(True)
+            self.enable.append(s[1])
         self.dcm = dcm(0,0x732,0x731)
         self.progress_value = 0
         self.app = None
@@ -54,12 +55,12 @@ class AsFlashloader(QThread):
     def GetSteps(self):
         ss = []
         for s in self.steps:
-            ss.append(s.__name__.replace('_',' '))
+            ss.append((s[0].__name__.replace('_',' '),s[1]))
         return ss
     
     def SetEnable(self,step,enable):
         for id,s in enumerate(self.steps):
-            if(step == s.__name__.replace('_',' ')):
+            if(step == s[0].__name__.replace('_',' ')):
                 self.enable[id] = enable
 
     def step_progress(self,v):
@@ -191,7 +192,11 @@ class AsFlashloader(QThread):
         for ss in ary:
             ercd,res = self.download_one_section(ss['address']-ary[0]['address'],ss['size'],ss['data'],0xFD)
             if(ercd == False):return ercd,res
-        
+        return ercd,res
+
+    def check_flash_driver(self):
+        flsdrv = s19(self.flsdrv)
+        ary = flsdrv.getData()
         flsdrvr = s19()
         for ss in ary:
             ercd,res,up = self.upload_one_section(ss['address']-ary[0]['address'],ss['size'],0xFD)
@@ -227,7 +232,11 @@ class AsFlashloader(QThread):
         for ss in ary:
             ercd,res = self.download_one_section(ss['address'],ss['size'],ss['data'],0xFF)
             if(ercd == False):return ercd,res
-        
+        return ercd,res
+
+    def check_application(self):
+        app = s19(self.app)
+        ary = app.getData(True)
         appr = s19()
         for ss in ary:
             ercd,res,up = self.upload_one_section(ss['address'],ss['size'],0xFF)
@@ -240,14 +249,17 @@ class AsFlashloader(QThread):
                 return False,res
         appr.dump('read_%s'%(os.path.basename(self.app)))
         return ercd,res
-    
+
+    def launch_application(self):
+        return self.transmit([0x31,0x01,0xFF,0x03], [0x71,0x01,0xFF,0x03])
+
     def run(self):
         self.infor.emit("starting ... ")
         self.progress_value = 0
         for id,s in enumerate(self.steps):
             if(self.enable[id] == True):
-                self.infor.emit('>> '+s.__name__.replace('_',' '))
-                ercd,res = s()
+                self.infor.emit('>> '+s[0].__name__.replace('_',' '))
+                ercd,res = s[0]()
                 if(ercd == False):
                     self.infor.emit("\n\n  >> boot failed <<\n\n")
                     return
@@ -308,8 +320,8 @@ class UIFlashloader(QWidget):
         hbox = QHBoxLayout()
         vbox2 = QVBoxLayout()
         for s in self.loader.GetSteps():
-            cbxEnable = AsStepEnable(s)
-            cbxEnable.setChecked(True)
+            cbxEnable = AsStepEnable(s[0])
+            cbxEnable.setChecked(s[1])
             cbxEnable.enableChanged.connect(self.on_enableChanged)
             vbox2.addWidget(cbxEnable)
         hbox.addLayout(vbox2)

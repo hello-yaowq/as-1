@@ -26,13 +26,19 @@
 #include "pci_core.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_PCI 1
+#define AS_LOG_PCI 0
 /* sys API wrapper */
+#if AS_LOG_PCI
 #define _sys_printf    printf
+#define _sys_putchar   __putchar
+#else
+#define _sys_printf(fmt,...)
+#define _sys_putchar(c)
+#endif
 #define _sys_kmalloc   malloc
 #define _sys_memset32  memset
 #define _sys_memcpy    memcpy
-#define _sys_putchar   __putchar
+
 
 #define     MAX_DEVICE                  256
 
