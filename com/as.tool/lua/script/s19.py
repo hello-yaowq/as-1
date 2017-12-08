@@ -85,7 +85,6 @@ class s19:
             else:
                 print("unsupport S19 record format @ %s '%s'"%(linno,el))
         fp.close()
-        self.dump('%s.debug'%(file))
 
     def getData(self,ignore=False):
         if(ignore):

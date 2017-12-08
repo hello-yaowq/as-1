@@ -47,7 +47,10 @@ class AsFlashloader(QThread):
         self.progress_value = 0
         self.app = None
         self.flsdrv = None
-
+    def is_check_application_enabled(self):
+        return self.enable[8]
+    def is_check_flash_driver_enabled(self):
+        return self.enable[5]
     def setTarget(self,app,flsdrv=None):
         self.app = app
         self.flsdrv = flsdrv
@@ -64,8 +67,7 @@ class AsFlashloader(QThread):
                 self.enable[id] = enable
 
     def step_progress(self,v):
-        self.progress_value += v
-        self.progress.emit(self.progress_value)
+        self.progress.emit(v)
         
     def transmit(self,req,exp):
         ercd,res = self.dcm.transmit(req)
@@ -77,9 +79,10 @@ class AsFlashloader(QThread):
                         break
             else:
                 ercd = False
-        if(ercd == True): 
+        if(ercd == True):
+            self.txSz += len(req)
             self.infor.emit('  success')
-            self.step_progress(0.1)
+            self.step_progress((self.txSz*100)/self.sumSz)
         else:
             self.infor.emit('  failed')
         return ercd,res
@@ -187,7 +190,7 @@ class AsFlashloader(QThread):
         return True
 
     def download_flash_driver(self):
-        flsdrv = s19(self.flsdrv)
+        flsdrv = self.flsdrvs
         ary = flsdrv.getData()
         for ss in ary:
             ercd,res = self.download_one_section(ss['address']-ary[0]['address'],ss['size'],ss['data'],0xFD)
@@ -195,7 +198,7 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def check_flash_driver(self):
-        flsdrv = s19(self.flsdrv)
+        flsdrv = self.flsdrvs
         ary = flsdrv.getData()
         flsdrvr = s19()
         for ss in ary:
@@ -211,7 +214,7 @@ class AsFlashloader(QThread):
         return ercd,res
     
     def routine_erase_flash(self):
-        app = s19(self.app)
+        app = self.apps
         ary = app.getData(True)
         saddr = ary[0]['address']
         eaddr = ary[0]['address'] + ary[0]['size']
@@ -227,7 +230,7 @@ class AsFlashloader(QThread):
                               0xFF],[0x71,0x01,0xFF,0x01])
     
     def download_application(self):
-        app = s19(self.app)
+        app = self.apps
         ary = app.getData(True)
         for ss in ary:
             ercd,res = self.download_one_section(ss['address'],ss['size'],ss['data'],0xFF)
@@ -256,6 +259,22 @@ class AsFlashloader(QThread):
     def run(self):
         self.infor.emit("starting ... ")
         self.progress_value = 0
+        def ssz(ss):
+            sz = 0
+            for s in ss.getData(True):
+                sz += s['size']
+            return sz
+        self.flsdrvs = s19(self.flsdrv)
+        self.sumSz = ssz(self.flsdrvs)
+        if(self.is_check_flash_driver_enabled()):
+            self.sumSz += ssz(self.flsdrvs)
+        self.apps = s19(self.app)
+        self.sumSz += ssz(self.apps)
+        if(self.is_check_application_enabled()):
+            self.sumSz += ssz(self.apps)
+        self.txSz = 0
+        self.infor.emit('summary transfer size is %s bytes(app %s, flsdrv %s)!'%(
+                        self.sumSz,ssz(self.apps),ssz(self.flsdrvs)))
         for id,s in enumerate(self.steps):
             if(self.enable[id] == True):
                 self.infor.emit('>> '+s[0].__name__.replace('_',' '))
