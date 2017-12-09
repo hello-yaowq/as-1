@@ -1,4 +1,3 @@
-from email._header_value_parser import Address
 __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
