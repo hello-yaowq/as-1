@@ -67,7 +67,6 @@ void rt_init_thread(void* parameter)
 	rt_kprintf("rt_init_thread is running!\n");
 #ifdef RT_USING_PTHREADS
 	pthread_system_init();
-	test();
 #endif
 }
 void rt_hw_board_init(void)

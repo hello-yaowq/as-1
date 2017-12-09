@@ -29,4 +29,7 @@ asenv.Append(CCFLAGS = '-I%s/lwip/src/include'%(cwd))
 asenv.Append(CCFLAGS = '-I%s/lwip/src/include/ipv4'%(cwd))
 asenv.Append(CCFLAGS = '-DUSE_LWIP')
 
+if(os.getenv('LWIP_DEBUG')=='yes'):
+    asenv.Append(CCFLAGS = '-DLWIP_DEBUG=1')
+
 Return('objs')

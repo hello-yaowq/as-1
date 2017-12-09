@@ -17,7 +17,7 @@ if(sgapp is None):
     sgapp = 'virtual_cluster'
 
 doneFlag = '%s/SgRes/%s.done'%(cwd,sgapp)
-if(not os.path.exists(doneFlag)):
+if((not os.path.exists(doneFlag)) and (not asenv.GetOption('clean'))):
     RMDir('%s/SgRes'%(cwd))
     MKDir('%s/SgRes'%(cwd))
     py = 'python3'
@@ -26,6 +26,9 @@ if(not os.path.exists(doneFlag)):
         py = 'C:/Python34/python.exe'
     RunCommand('cd %s && %s %s/com/as.tool/config.infrastructure.gui/Sg.py %s/%s/Sg.xml'%(cwd,py,asenv['ASROOT'],cwd,sgapp))
     MKFile(doneFlag)
+
+if(asenv.GetOption('clean')):
+    RMDir('%s/SgRes'%(cwd))
 
 objs = []
 

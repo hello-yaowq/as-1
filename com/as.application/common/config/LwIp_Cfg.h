@@ -35,8 +35,9 @@
 #define EVENT_MASK_START_TCPIP EVENT_MASK_TaskLwip_Event23
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
 
-
+#ifndef LWIP_DEBUG
 #define LWIP_DEBUG 0
+#endif
 #if LWIP_DEBUG == 1
 #define LWIP_DBG_MIN_LEVEL              LWIP_DBG_LEVEL_ALL
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON

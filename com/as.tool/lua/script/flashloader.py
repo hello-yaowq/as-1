@@ -44,7 +44,6 @@ class AsFlashloader(QThread):
         for s in self.steps:
             self.enable.append(s[1])
         self.dcm = dcm(0,0x732,0x731)
-        self.progress_value = 0
         self.app = None
         self.flsdrv = None
     def is_check_application_enabled(self):
@@ -258,7 +257,6 @@ class AsFlashloader(QThread):
 
     def run(self):
         self.infor.emit("starting ... ")
-        self.progress_value = 0
         def ssz(ss):
             sz = 0
             for s in ss.getData(True):
