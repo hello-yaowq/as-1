@@ -151,8 +151,8 @@ static CanIf_Arc_ChannelIdType CanIf_Arc_FindHrhChannel( Can_Arc_HRHType hrh )
 
   return (CanIf_Arc_ChannelIdType) -1;
 }
-#if (CANIF_TASK_FIFO_MODE==STD_ON)
-static void schedultTxConfirmation(PduIdType canTxPduId)
+
+static void scheduleTxConfirmation(PduIdType canTxPduId)
 {
 	const CanIf_TxPduConfigType* entry;
 	if(canTxPduId < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds)
@@ -177,6 +177,7 @@ static void schedultTxConfirmation(PduIdType canTxPduId)
 		asAssert(0); /* impossible case */
 	}
 }
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
 static void scheduleTxFifo(void)
 {
 	CanIf_TxFifoType *fifo;
@@ -198,9 +199,10 @@ static void scheduleTxFifo(void)
 		}
 		Irq_Restore(imask);
 
-		schedultTxConfirmation(canTxPduId);
+		scheduleTxConfirmation(canTxPduId);
 	}
 }
+#endif
 static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 		const uint8 *CanSduPtr) {
 	/* Check PDU mode before continue processing */
@@ -334,6 +336,7 @@ static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 // Did not find the PDU, something is wrong
 	VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_LPDU);
 }
+#if (CANIF_TASK_FIFO_MODE==STD_ON)
 static void scheduldRxFifo(void)
 {
 	CanIf_RxFifoType *fifo;
@@ -995,7 +998,7 @@ void CanIf_TxConfirmation(PduIdType canTxPduId)
 		asAssert(0);
 	}
 #else
-	schedultTxConfirmation(canTxPduId);
+	scheduleTxConfirmation(canTxPduId);
 #endif
 	return;
 }
@@ -1032,7 +1035,7 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 		asAssert(0);
 	}
 #else
-	sheduleRxIndication(Hrh,CanId,CanDlc,CanSduPtr);
+	scheduleRxIndication(Hrh,CanId,CanDlc,CanSduPtr);
 #endif
 
 }
@@ -1155,6 +1158,11 @@ TASK(TaskCanIf)
 {
 	scheduleTxFifo();
 	scheduldRxFifo();
+	OsTerminateTask(TaskCanIf);
+}
+#else
+TASK(TaskCanIf)
+{
 	OsTerminateTask(TaskCanIf);
 }
 #endif
