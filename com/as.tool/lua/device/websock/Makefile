@@ -50,6 +50,9 @@ ifeq ($(host),Linux)
 	@(cd $(download)/json-c;sh ./autogen.sh; ./configure; make)
 else
 	@(cd $(download)/json-c;cp config.h.win32 config.h;cp json_config.h.win32 json_config.h)
+	@(sed -i "116c //" $(download)/json-c/config.h)
+	@(sed -i "117c //" $(download)/json-c/config.h)
+	@(sed -i "11c #include <windows.h>" $(download)/json-c/json_util.c)
 endif
 
 asjson-c:$(download)/json-c

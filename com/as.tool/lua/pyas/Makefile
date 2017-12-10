@@ -13,7 +13,7 @@ CPPFLAGS = -DNDEBUG -DUNICODE -DQT_LARGEFILE_SUPPORT -I. -I$(PYDIR)/include
 CFLAGS = --std=gnu99 -O2 -Wall
 CXXFLAGS = -O2 -Wall
 LFLAGS = -mthreads -Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -shared -Wl,-subsystem,windows -Wl,-s
-LIBS = -LD:/repository/as/release/aslua/out $(PYDIR)/libs/python$(PYVER).lib -lpyas -laws -lpyas -lpthread -lm -lPCANBasic -lwsock32
+LIBS = -L$(CURDIR) $(PYDIR)/libs/python$(PYVER).lib -lpyas -laws -lpyas -lpthread -lm -lPCANBasic -lwsock32
 LIBS += $(PYDIR)/python$(PYVER).dll
 .SUFFIXES: .cpp .cxx .cc .C .c
 

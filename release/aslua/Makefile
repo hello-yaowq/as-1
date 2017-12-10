@@ -44,15 +44,9 @@ else
 ifeq ($(msys),yes)
 PY27 = /c/Python27/python
 PY34 = /c/Python36/python
-HOME = /c/Users/parai.wang
 else
 PY27 = C:/Python27/python
 PY34 = C:/Python36/python
-HOME = C:/Users/parai.wang
-endif
-ifeq ($(HOME), $(wildcard $(HOME)))
-#else
-#$(error fix your home path)
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
@@ -220,7 +214,7 @@ dep-posix: aslibaws
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
@@ -257,7 +251,7 @@ dep-pyas:
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-	@(cd $(src-dir);cp C:/Users/parai.wang/Downloads/peak-can/PCAN-Basic\ API/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
 endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)	

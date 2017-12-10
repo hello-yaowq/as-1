@@ -102,6 +102,8 @@ char* stpcpy(char* __to, const char* __from)
 		src ++;
 	}
 
+	*dst = '\0';
+
 	return dst;
 }
 
@@ -117,4 +119,29 @@ int vasprintf(char **ret, const char *format, va_list ap)
 	if (len < 0 || (*ret = malloc(size = len + 1)) == NULL)
 		return -1;
 	return vsnprintf(*ret, size, format, ap);
+}
+
+char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz)
+{
+	size_t sz = 0;
+	char* dst = (char*) __to;
+	const char* src = (const char*) __from;
+	while('\0' != *src)
+	{
+		*dst = * src;
+		dst ++;
+		src ++;
+		sz ++;
+		if( (sz >= doSz) || (sz >= dsize))
+		{
+			break;
+		}
+	}
+
+	if(sz < dsize)
+	{
+		*dst = '\0';
+	}
+
+	return __to;
 }

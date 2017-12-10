@@ -518,11 +518,8 @@ class UIXcp(QWidget):
         self.tabWidget = QTabWidget(self)
         self.vbox.addWidget(self.tabWidget)
         self.setLayout(self.vbox)
-        
-        if(os.name == 'nt'):
-            default_cml = 'D:/repository/as/com/as.application/common/xcp.cml'
-        else:
-            default_cml = '/home/parai/workspace/as/com/as.application/common/xcp.cml'
+
+        default_cml = os.path.abspath('%s/../../../com/as.application/common/xcp.cml'%(os.curdir))
 
         self.leCml.setText(default_cml)
         self.loadCml(default_cml)

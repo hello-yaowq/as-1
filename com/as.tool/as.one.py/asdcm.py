@@ -460,10 +460,7 @@ class UIDcm(QWidget):
         self.vbox.addWidget(self.tabWidget)
         self.setLayout(self.vbox)
         
-        if(os.name == 'nt'):
-            default_dml = 'D:/repository/as/com/as.application/common/diagnostic.dml'
-        else:
-            default_dml = '/home/parai/workspace/as/com/as.application/common/diagnostic.dml'
+        default_dml = os.path.abspath('%s/../../../com/as.application/common/diagnostic.dml'%(os.curdir))
 
         self.leDml.setText(default_dml)
         self.loadDml(default_dml)

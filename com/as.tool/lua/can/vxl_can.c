@@ -31,6 +31,7 @@ struct Can_VxlHandle_s
 {
 	XLportHandle xlHandle;
 	XLaccess     xlAccess;
+	XLdriverConfig  xlDrvConfig;
 	uint32_t busid;
 	uint32_t port;
 	uint32_t baudrate;
@@ -44,6 +45,7 @@ struct Can_VxlHandleList_s
 	STAILQ_HEAD(,Can_VxlHandle_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
+extern char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz);
 static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
 static boolean vxl_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
 static void vxl_close(uint32_t port);
@@ -75,14 +77,64 @@ static struct Can_VxlHandle_s* getHandle(uint32_t port)
 	}
 	return handle;
 }
+
+static void vxlPrintConfig(XLdriverConfig *xlDrvConfig)
+{
+
+	unsigned int i;
+	char         str[100];
+
+	printf("----------------------------------------------------------\n");
+	printf("- %02d channels       Hardware Configuration               -\n", xlDrvConfig->channelCount);
+	printf("----------------------------------------------------------\n");
+
+	for (i=0; i < xlDrvConfig->channelCount; i++)
+	{
+
+		printf("- Ch:%02d, CM:0x%03I64x,",
+				xlDrvConfig->channel[i].channelIndex, xlDrvConfig->channel[i].channelMask);
+
+		strncpy_s(str, 100, xlDrvConfig->channel[i].name, 23);
+		printf(" %23s,", str);
+
+		memset(str, 0, sizeof(str));
+
+		if (xlDrvConfig->channel[i].transceiverType != XL_TRANSCEIVER_TYPE_NONE)
+		{
+			strncpy_s( str, 100, xlDrvConfig->channel[i].transceiverName, 13);
+			printf("%13s -\n", str);
+		}
+		else
+		{
+			printf("    no Cab!   -\n");
+		}
+	}
+
+	printf("----------------------------------------------------------\n\n");
+
+}
+
 static boolean open_vxl(struct Can_VxlHandle_s *handle)
 {
 	char userName[32];
 	XLstatus status;
 	XLaccess accessMask;
 
+	status = xlGetDriverConfig(&handle->xlDrvConfig);
+
+	if(XL_SUCCESS == status)
+	{
+		vxlPrintConfig(&handle->xlDrvConfig);
+	}
+	else
+	{
+		ASWARNING("CAN VXL get driver config error<%d>: %s\n",status, xlGetErrorString(status));
+		return FALSE;
+	}
+
 	sprintf(userName,"port%d",(int)handle->port);
 	accessMask = 1<<handle->port;
+	handle->xlAccess = accessMask;
 	status= xlOpenPort(&handle->xlHandle,userName,accessMask,&handle->xlAccess,512,XL_INTERFACE_VERSION,XL_BUS_TYPE_CAN);
 	if(XL_SUCCESS != status)
 	{
@@ -227,14 +279,23 @@ static void rx_notifiy(struct Can_VxlHandle_s* handle)
 	uint8_t data[8];
 	char sdata[32];
 	status = xlReceive(handle->xlHandle,&EventCount,&Event);
+	if(XL_ERR_QUEUE_IS_EMPTY != status)
+	{
+		return;
+	}
+
 	if(XL_SUCCESS != status)
 	{
 		ASWARNING("CAN VXL port=%d receive message failed: %s!\n",handle->port,xlGetErrorString(status));
 		return;
 	}
 	string = xlGetEventString(&Event);
+	if(NULL != strstr(string,"ERROR_FRAME"))
+	{
+		ASWARNING("%s!\n",string);
+	}
 	/* RX_MSG c=0, t=222, id=0510 l=8, 0000000000000000 tid=00 */
-	if(NULL != strstr(string,"RX_MSG"))
+	else if(NULL != strstr(string,"RX_MSG"))
 	{
 		sscanf(string,"RX_MSG c=%d, t=%d, id=%X l=%d, %s tid=%d",&port,&time,&canid,&dlc,sdata,&tid);
 		asAssert((dlc*2)<=strlen(sdata));
