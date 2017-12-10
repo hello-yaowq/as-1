@@ -236,7 +236,7 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def check_application(self):
-        app = s19(self.app)
+        app = self.apps
         ary = app.getData(True)
         appr = s19()
         for ss in ary:
@@ -261,10 +261,12 @@ class AsFlashloader(QThread):
             for s in ss.getData(True):
                 sz += s['size']
             return sz
-        self.flsdrvs = s19(self.flsdrv)
-        self.sumSz = ssz(self.flsdrvs)
-        if(self.is_check_flash_driver_enabled()):
-            self.sumSz += ssz(self.flsdrvs)
+        self.sumSz = 0
+        if(os.path.exists(self.flsdrv)):
+            self.flsdrvs = s19(self.flsdrv)
+            self.sumSz = ssz(self.flsdrvs)
+            if(self.is_check_flash_driver_enabled()):
+                self.sumSz += ssz(self.flsdrvs)
         self.apps = s19(self.app)
         self.sumSz += ssz(self.apps)
         if(self.is_check_application_enabled()):
@@ -358,11 +360,11 @@ class UIFlashloader(QWidget):
         default_app=''
         default_flsdrv=''
         if(os.path.exists(release)):
-            for s19 in glob.glob('%s/ascore/*.s19'%(release)):
-                default_app = s19
+            for ss in glob.glob('%s/ascore/*.s19'%(release)):
+                default_app = ss
                 break
-            for s19 in glob.glob('%s/asboot/*-flsdrv.s19'%(release)):
-                default_flsdrv = s19
+            for ss in glob.glob('%s/asboot/*-flsdrv.s19'%(release)):
+                default_flsdrv = ss
                 break
         if(os.path.exists(default_app)):
             self.leApplication.setText(default_app)

@@ -310,7 +310,6 @@ static void rx_notifiy(struct Can_VxlHandle_s* handle)
 	{
 		ASWARNING("CAN VXL port=%d receive unknown message: '%s'!\n",handle->port,string);
 	}
-	free(string);
 }
 static void * rx_daemon(void * param)
 {
