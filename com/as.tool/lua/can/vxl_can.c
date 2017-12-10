@@ -279,7 +279,7 @@ static void rx_notifiy(struct Can_VxlHandle_s* handle)
 	uint8_t data[8];
 	char sdata[32];
 	status = xlReceive(handle->xlHandle,&EventCount,&Event);
-	if(XL_ERR_QUEUE_IS_EMPTY != status)
+	if(XL_ERR_QUEUE_IS_EMPTY == status)
 	{
 		return;
 	}
