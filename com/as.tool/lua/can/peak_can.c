@@ -151,7 +151,7 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 	{
 		uint32_t peak_baud = baudrate;
 		uint32_t peak_port = port;
-		boolean rv = get_peak_param(&peak_port,&peak_port);
+		boolean rv = get_peak_param(&peak_port,&peak_baud);
 		if( rv )
 		{
 			TPCANStatus status = CAN_Initialize(peak_port,peak_baud,0,0,0);
@@ -162,7 +162,7 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 			}
 			else
 			{
-				ASWARNING("CAN PEAK port=%d is is not able to be opened,error=%X!\n",port,status);
+				ASWARNING("CAN PEAK port=%d is not able to be opened,error=%X!\n",port,status);
 				rv = FALSE;
 			}
 		}

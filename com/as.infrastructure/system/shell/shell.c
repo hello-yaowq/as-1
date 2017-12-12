@@ -77,6 +77,7 @@ char __weak SHELL_getc(void)
 {
 	return 0;
 }
+#if 0
 /**
  * Removes backspace from string s and returns the null
  * terminated string in d.
@@ -119,7 +120,7 @@ static char *trim(char *s)
    return(s);
 }
 
-
+#endif
 /**
  * Split and string into tokens and strip the token from whitespace.
  *

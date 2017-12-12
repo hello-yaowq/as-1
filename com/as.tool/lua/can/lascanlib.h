@@ -49,6 +49,7 @@ extern const Can_DeviceOpsType can_serial_ops;
 #ifdef __WINDOWS__
 extern const Can_DeviceOpsType can_vxl_ops;
 extern const Can_DeviceOpsType can_peak_ops;
+extern const Can_DeviceOpsType can_zlg_ops;
 #endif
 extern const Can_DeviceOpsType can_socket_ops;
 /* ============================ [ DATAS     ] ====================================================== */

@@ -13,6 +13,12 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef __WINDOWS__
+#include <windows.h>
+#ifdef SLIST_ENTRY
+#undef SLIST_ENTRY
+#endif
+#endif
 #include <sys/types.h>
 #include <sys/queue.h>
 #include <pthread.h>
@@ -88,7 +94,7 @@ const LAS_DeviceOpsType websock_dev_ops = {
 	.close = lasdev_close,
 	.ioctl = lasdev_ioctl
 };
-static const struct afb_wsj1_itf wsj1_itf =
+static struct afb_wsj1_itf wsj1_itf =
 {
 	.on_hangup = on_hangup,
 	.on_call = on_call,
@@ -102,7 +108,7 @@ static int lasdev_open  (const char* device, const char* option, void** param)
 {
 	const char* uri;
 	const char* p;
-	int s,port,is_server,is_num,n;
+	int s,port,is_server;
 	(void)device;
 	/* option format "uri\0port\0server", e.g. "127.0.0.1\08080\01" */
 	uri = option;
@@ -442,12 +448,14 @@ static void lasdev_close(void* param)
 		pthread_mutex_unlock(&pp->mutex);
 	}
 
-	close(PPARAM(param)->s);
+	ask_close(PPARAM(param)->s);
 	free(param);
 }
 static int lasdev_ioctl (void* param,int type, const char* data,size_t size,char** rdata)
 {
 	int rv = 0;
+	(void)data;
+	(void)size;
 	switch(type)
 	{
 		case 0:
@@ -495,7 +503,7 @@ static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
 	LAS_MessgaeType *m = malloc(sizeof(LAS_MessgaeType));
 	ASLOG(LAS_DEV,"ON-HANGUP on %s<%d> %s:%d\n",LAS_WS_NAME(param->is_server),param->s,param->uri,param->port);
-
+	(void)wsj1;
 	asAssert(m);
 	m->type = LAS_HANGUP;
 	pthread_mutex_lock(&param->mutex);

@@ -554,7 +554,7 @@ int asdev_write(int fd, unsigned char* data, unsigned long len)
 	}
 	else if(d->ops->write != NULL)
 	{
-		rv = d->ops->write(d->param,data,len);
+		rv = d->ops->write(d->param,(const char*)data,len);
 
 		if(rv < 0)
 		{
@@ -582,7 +582,7 @@ int asdev_read(int fd, unsigned char** data)
 	}
 	else if(d->ops->read != NULL)
 	{
-		rv = d->ops->read(d->param,data);
+		rv = d->ops->read(d->param,(char **)data);
 
 		if(rv > 0)
 		{
@@ -614,7 +614,7 @@ int asdev_ioctl(int fd, int type, unsigned char* data,unsigned long len, unsigne
 	}
 	else if(d->ops->ioctl != NULL)
 	{
-		rv = d->ops->ioctl(d->param,type,data,len,rdata);
+		rv = d->ops->ioctl(d->param,type,(char*)data,len,(char**)rdata);
 		if(rv < 0)
 		{
 			printf("%s ioctl on device %s failed(%d)\n",__func__,d->name,rv);

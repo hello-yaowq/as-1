@@ -80,6 +80,7 @@ static const Can_DeviceOpsType* canOps [] =
 	#ifdef __WINDOWS__
 	&can_vxl_ops,
 	&can_peak_ops,
+	&can_zlg_ops,
 	#endif
 	&can_socket_ops,
 	NULL

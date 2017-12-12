@@ -49,7 +49,7 @@ class UICan(QWidget):
             self.btnOpen.append(QPushButton('Open'))
             
             self.cmbxCanBus[i].addItems(['bus 0','bus 1','bus 2','bus 3','bus 4','bus 5','bus 6','bus 7'])
-            self.cmbxCanDevice[i].addItems(['socket','serial','vxl','peak','tcp'])
+            self.cmbxCanDevice[i].addItems(['socket','serial','vxl','peak','tcp','zlg'])
             self.cmbxCanPort[i].addItems(['port 0','port 1','port 2','port 3','port 4','port 5','port 6','port 7'])
             self.cmbxCanBaud[i].addItems(['125000','250000','500000','1000000','115200'])
         

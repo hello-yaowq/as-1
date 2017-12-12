@@ -98,6 +98,7 @@ ldflags-y +=  -ldl -lreadline
 else
 ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
+ldflags-y += $(src-dir)/ControlCAN.lib
 endif
 ldflags-y += -lm -lstdc++
 # inter processor communication		 
@@ -123,6 +124,7 @@ ldflags-y +=  -ldl -lreadline
 else
 ldflags-y +=-lwinmm
 ldflags-y += $(src-dir)/PCANBasic.lib
+ldflags-y += $(src-dir)/ControlCAN.lib
 endif
 ldflags-y += -lm
 cflags-y +=-Wextra 
@@ -190,6 +192,23 @@ $(LUA)/device/websock/out/libaws.a:libaws
 
 aslibaws:$(LUA)/device/websock/out/libaws.a
 
+$(download)/CAN_lib.zip:
+ifeq ($(host),Linux)
+else
+	@(cd $(download);wget http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip)
+endif
+
+$(download)/CAN_lib:$(download)/CAN_lib.zip
+ifeq ($(host),Linux)
+else
+	@(cd $(download);unzip CAN_lib.zip)
+endif
+
+aszlg:$(download)/CAN_lib
+	@(sed -i "148c #define EXTERNC extern" $(download)/CAN_lib/32bit/ControlCAN.h)
+	@(sed -i "168c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
+		$(download)/CAN_lib/32bit/ControlCAN.h)
+
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
@@ -215,6 +234,7 @@ ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
@@ -237,7 +257,11 @@ pysip:$(exe-dir)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.h)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyasdev.h)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
+ifeq ($(host),Linux)
+else
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir);$(LNFS) $(src-dir)/ControlCAN.lib libZLGCAN.a)
+endif
 	@(cd $(exe-dir);$(LNFS) $(LUA)/device/websock/out/libaws.a)
 	@echo $(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)
 	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))	
@@ -252,6 +276,7 @@ ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
 endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)	
@@ -359,5 +384,5 @@ extract-pyserial:
 pyserial:pyserial-3.1.1.tar.gz extract-pyserial
 
 
-aslua: libaws 81 82 91 92
+aslua: libaws aszlg 81 82 91 92
 

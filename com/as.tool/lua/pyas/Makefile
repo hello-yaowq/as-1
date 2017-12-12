@@ -14,6 +14,7 @@ CFLAGS = --std=gnu99 -O2 -Wall
 CXXFLAGS = -O2 -Wall
 LFLAGS = -mthreads -Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -shared -Wl,-subsystem,windows -Wl,-s
 LIBS = -L$(CURDIR) $(PYDIR)/libs/python$(PYVER).lib -lpyas -laws -lpyas -lpthread -lm -lPCANBasic -lwsock32
+LIBS += -lZLGCAN
 LIBS += $(PYDIR)/python$(PYVER).dll
 .SUFFIXES: .cpp .cxx .cc .C .c
 

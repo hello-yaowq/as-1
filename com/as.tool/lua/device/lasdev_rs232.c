@@ -60,8 +60,8 @@ const LAS_DeviceOpsType rs232_dev_ops = {
 /* ============================ [ LOCALS    ] ====================================================== */
 static int lasdev_open  (const char* device, const char* option, void** param)
 {
-	char* modes;
-	int n,baudrate,port;
+	const char* modes;
+	int baudrate,port;
 
 	if(0 == strcmp(device,"COMTCP"))
 	{
@@ -108,7 +108,7 @@ static int lasdev_open  (const char* device, const char* option, void** param)
 			/* Connect to server. */
 			if(connect(s, (struct sockaddr*) & addr, sizeof (addr)) < 0)
 			{
-				#ifdef __WINDOES__
+				#ifdef __WINDOWS__
 				ASWARNING("Serial TCP connect failed: %d\n", WSAGetLastError());
 				closesocket(s);
 				#else
@@ -187,7 +187,7 @@ static void lasdev_close (void* param)
 {
 	if( CAN_TCP_SERIAL_PORT == PPARAM(param)->port)
 	{
-		#ifdef __WINDOES__
+		#ifdef __WINDOWS__
 		closesocket(PPARAM(param)->s);
 		#else
 		close(PPARAM(param)->s);

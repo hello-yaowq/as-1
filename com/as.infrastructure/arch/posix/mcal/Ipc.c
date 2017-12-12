@@ -218,7 +218,7 @@ void Ipc_Init(const Ipc_ConfigType* config)
 		for(i=0;i<IPC_CHL_NUM;i++)
 		{
 			#ifdef __WINDOWS__
-			ipc.runtime[i].thread = CreateThread( NULL, 0, Ipc_Daemon, (void*)i, 0, NULL );
+			ipc.runtime[i].thread = CreateThread( NULL, 0, Ipc_Daemon, (void*)(unsigned long)i, 0, NULL );
 			#else
 			pthread_create((pthread_t*)&(ipc.runtime[i].thread),NULL,Ipc_Daemon,(void*)(unsigned long)i);
 			#endif
