@@ -202,12 +202,13 @@ $(download)/CAN_lib:$(download)/CAN_lib.zip
 ifeq ($(host),Linux)
 else
 	@(cd $(download);unzip CAN_lib.zip)
-endif
-
-aszlg:$(download)/CAN_lib
 	@(sed -i "148c #define EXTERNC extern" $(download)/CAN_lib/32bit/ControlCAN.h)
 	@(sed -i "168c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
 		$(download)/CAN_lib/32bit/ControlCAN.h)
+	@(cp -fv $(download)/CAN_lib/32bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+endif
+
+aszlg:$(download)/CAN_lib
 
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
