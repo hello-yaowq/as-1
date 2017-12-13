@@ -42,7 +42,7 @@ As below picture shows, it was an virtual cluster based on AUTOSAR and can be si
 * [virtio ring buffer](http://www.ibm.com/developerworks/cn/linux/1402_caobb_virtio/)
 
 ## 5. Lua & Python Integrated
-* support CAN device by lascanlib or pyas: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN),also provide a kind of python library for CAN access.
+* support CAN device by lascanlib or pyas: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN), [ZLG USBCAN](http://www.zlg.cn/can/can/product/id/22.html),also provide a kind of python library for CAN access.
 * support miscellaneous device by lasdevlib with the smae API interface "open/read/write/ioctl/close": rs232
 * a powerful python as.one.py tool: Dcm Xcp Bootloader and others.
 
@@ -80,7 +80,6 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ## Setup Environment
 
 * check the [asenv repository](https://github.com/parai/asenv)
-
 
 ## Build
 

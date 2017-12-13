@@ -31,6 +31,12 @@ from bitarray import bitarray
 
 __all__ = ['UIDcm']
 
+def FormatMessage(res):
+    ss = "["
+    for v in res.toarray():
+        ss += '%02X,'%(v)
+    ss+=']'
+    return ss
 
 class dcmbits():
     def __init__(self):
@@ -425,6 +431,94 @@ class UIRoutineControl(QGroupBox):
         else:
             self.leResult.setText('check it by the raw response: %s'%(FormatMessage(res)))
 
+class UISessionControl(QGroupBox):
+    def __init__(self,xml,parent=None):
+        super(QGroupBox, self).__init__(xml.tag,parent)
+        self.XML = xml
+        self.cmbxSessions = QComboBox()
+        for obj in xml:
+            self.cmbxSessions.addItem(obj.attrib['name'])
+        grid = QGridLayout()
+        grid.addWidget(QLabel('Session:'), 0, 0)
+        self.btnEnter = QPushButton('Enter')
+        grid.addWidget(self.cmbxSessions,0,1)
+        grid.addWidget(self.btnEnter,0,2)
+        self.setLayout(grid)
+        self.btnEnter.clicked.connect(self.on_btnEnter_clicked)
+
+    def on_btnEnter_clicked(self):
+        data = dcmbits()
+        data.append(0x10,8)
+        session = str(self.cmbxSessions.currentText())
+        for obj in self.XML:
+            if(session==obj.attrib['name']):
+                data.append(str2int(obj.attrib['id']),8)
+                break
+        res = Dcm_TransmitMessage(data.toarray())  
+        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res.toarray()[0]!=0x50):
+            QMessageBox(QMessageBox.Critical, 'Error', 'SessionControl Failed!  %s.'%(Dcm_GetLastError())).exec_()
+        else:
+            QMessageBox(QMessageBox.Information,'Info', 'SessionControl okay with response %s'%(FormatMessage(res))).exec_()
+
+class UISecurityAccess(QGroupBox):
+    def __init__(self,xml,parent=None):
+        super(QGroupBox, self).__init__(xml.tag,parent)
+        self.XML = xml
+        self.cmbxSecurityLevels = QComboBox()
+        for obj in xml:
+            self.cmbxSecurityLevels.addItem(obj.attrib['name'])
+        grid = QGridLayout()
+        grid.addWidget(QLabel('Security Level:'), 0, 0)
+        self.btnUnlock = QPushButton('Unlock')
+        grid.addWidget(self.cmbxSecurityLevels,0,1)
+        grid.addWidget(self.btnUnlock,0,2)
+        self.setLayout(grid)
+        self.btnUnlock.clicked.connect(self.on_btnUnlock_clicked)
+
+    def Seed2Key(self, Level, res):
+        fp = open('./SeedToKey.py','w')
+        alg = Level.attrib['algorithm']
+        if(alg.startswith('def')):
+            alg = alg.replace('\\n','\n')
+            alg = alg.replace('$LSL','>>')
+            alg = alg.replace('$LSR','<<')
+            alg = alg.replace('$AND','&')
+            fp.write(alg)
+            fp.close()
+            import SeedToKey
+            return SeedToKey.CalculateKey(res.toarray())
+        else:
+            assert(0)
+
+    def on_btnUnlock_clicked(self):
+        data = dcmbits()
+        data.append(0x27,8)
+        level = str(self.cmbxSecurityLevels.currentText())
+        for obj in self.XML:
+            if(level==obj.attrib['name']):
+                levelV = str2int(obj.attrib['id'])
+                Level = obj
+                break
+        data.append(levelV,8)
+        res = Dcm_TransmitMessage(data.toarray())  
+        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res.toarray()[0]!=0x67):
+            QMessageBox(QMessageBox.Critical, 'Error', 'SecurityAccess request seed Failed!  %s.'%(Dcm_GetLastError())).exec_();
+            return
+        data = dcmbits()
+        data.append(0x27,8)
+        data.append(levelV+1,8)
+        key = self.Seed2Key(Level,res)
+        for v in key:
+            data.append(v,8)
+        res = Dcm_TransmitMessage(data.toarray())  
+        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res.toarray()[0]!=0x67):
+            QMessageBox(QMessageBox.Critical, 'Error', 'SecurityAccess send key Failed!  %s.'%(Dcm_GetLastError())).exec_()
+        else:
+            QMessageBox(QMessageBox.Information,'Info', 'SecurityAccess okay with response %s'%(FormatMessage(res))).exec_()
+    
 class UIGroup(QScrollArea):
     def __init__(self, xml,parent=None):
         super(QScrollArea, self).__init__(parent)
@@ -437,6 +531,10 @@ class UIGroup(QScrollArea):
                 vBox.addWidget(UIDataIdentifier(service))
             elif(service.tag=='RoutineControl'):
                 vBox.addWidget(UIRoutineControl(service))
+            elif(service.tag=='SessionControl'):
+                vBox.addWidget(UISessionControl(service))
+            elif(service.tag=='SecurityAccess'):
+                vBox.addWidget(UISecurityAccess(service))
         wd.setLayout(vBox)
         self.setWidget(wd)
 
@@ -455,6 +553,9 @@ class UIDcm(QWidget):
         self.cbxDoIpMode = QCheckBox("DoIp mode")
         grid.addWidget(self.cbxDoIpMode,1,0)
 
+        self.cbxTesterPresent = QCheckBox("Tester Present")
+        grid.addWidget(self.cbxTesterPresent,1,1)
+
         self.vbox.addLayout(grid)
         self.tabWidget = QTabWidget(self)
         self.vbox.addWidget(self.tabWidget)
@@ -466,9 +567,20 @@ class UIDcm(QWidget):
         self.loadDml(default_dml)
 
         self.btnOpenDml.clicked.connect(self.on_btnOpenDml_clicked)
-        self.cbxDoIpMode.stateChanged .connect(self.on_cbxDoIpMode_stateChanged )
+        self.cbxDoIpMode.stateChanged.connect(self.on_cbxDoIpMode_stateChanged)
+        self.cbxTesterPresent.stateChanged.connect(self.on_cbxTesterPresent_stateChanged)
+
     def on_cbxDoIpMode_stateChanged(self,state):
         switch_to_doip(state)
+
+    def on_cbxTesterPresent_stateChanged(self,state):
+        if(state):
+            self.TPtimer = self.startTimer(3000)
+        else:
+            self.killTimer(self.TPtimer)
+
+    def timerEvent(self,event):
+        Dcm_TransmitMessage([0x3e,0x80])
 
     def loadDml(self,dml):
         self.tabWidget.clear()

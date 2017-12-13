@@ -2,6 +2,19 @@
 
 <Diagnostic>
 	<General>
+		<SessionControl>
+			<Session name='default' id='1'/>
+			<Session name='program' id='2'/>
+			<Session name='extend'  id='3'/>
+		</SessionControl>
+		<SecurityAccess>
+			<Level name='extend' id='1' 
+				algorithm='def CalculateKey(res):
+\n    seed = (res[2]$LSR24) + (res[3]$LSR16) + (res[4]$LSR8) +(res[5]$LSR0)
+\n    key = (seed^0x78934673)		
+\n    return [(key$LSL24)$AND0xFF,(key$LSL16)$AND0xFF,(key$LSL8)$AND0xFF,(key$LSL0)$AND0xFF]'
+			/>
+		</SecurityAccess>
 		<DataIdentifier name='Finger Print' ID='0xFF01' attribute='rw'>
 			<Data name='vendor' type='U8Array' size='32' display='hex' default='text=as.by.parai@foxmail.com' />
 			<Data name='year'  type='U16' display='dec' default='2016' />

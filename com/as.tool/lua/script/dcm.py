@@ -23,7 +23,7 @@ except:
     from doip import *
 
 __all__ = ['dcm']
-                
+
 class dcm():
     __service__ = { 0x10:"diagnostic session control",0x11:"ecu reset",0x14:"clear diagnostic information",
                 0x19:"read dtc information",0x22:"read data by identifier",0x23:"read memory by address",
@@ -35,7 +35,7 @@ class dcm():
                 0x85:"control dtc setting",0x01:"request current powertrain diagnostic data",0x02:"request powertrain freeze frame data",
                 0x04:"clear emission related diagnostic information",0x03:"request emission related diagnostic trouble codes",0x07:"request emission related diagnostic trouble codes detected during current or last completed driving cycle",
                 0x09:"request vehicle information"}
-                
+
     __nrc__ = { 0x10:"general reject",0x21:"busy repeat request",0x22:"conditions not correct",
                 0x24:"request sequence error",0x31:"request out of range",0x33:"secutity access denied",
                 0x35:"invalid key",0x72:"general programming failure",0x73:"wrong block sequence counter",
@@ -48,6 +48,8 @@ class dcm():
                 0x93:"voltage too low",0x00:"positive response",0x11:"service not supported",
                 0x12:"sub function not supported",0x13:"incorrect message length or invalid format",0x78:"response pending",
                 0x7F:"service not supported in active session"}
+    # service list which support sub function
+    __sbr__ = [0x3E]
     def __init__(self,busid_or_uri,rxid_or_port,txid=None,cfgSTmin=10,cfgBS=8,padding=0x55):
         if(txid != None):
             self.cantp = cantp(busid_or_uri,rxid_or_port,txid,cfgSTmin,cfgBS,padding)
@@ -102,6 +104,9 @@ class dcm():
         response  = None
         self.__show_request__(req)
         ercd = self.cantp.transmit(req)
+        if((len(req)>=2) and (req[0] in self.__sbr__) and ((req[1]&0x80) != 0)):
+            # suppress positive response
+            return True,[]
         while(ercd == True):
             ercd,res = self.cantp.receive()
             if(ercd == True):
@@ -118,7 +123,6 @@ class dcm():
                     ercd = False 
             else:
                 ercd = False
-
         return ercd,response
 
 if(__name__ == '__main__'):
