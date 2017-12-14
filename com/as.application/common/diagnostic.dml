@@ -43,4 +43,7 @@
 			<Data name='telltale5' type='U2Select'><Select name='on'  value='0x01'/><Select name='1hz' value='0x02'/><Select name='off' value='0x00'/></Data>
 		</InputOutputControl>
 	</General>
+	<DTC>
+		<DTC></DTC>
+	</DTC>
 </Diagnostic>

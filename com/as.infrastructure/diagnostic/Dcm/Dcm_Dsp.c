@@ -1073,7 +1073,7 @@ static Dcm_NegativeResponseCodeType udsReadDtcInfoSub_0x04(const PduInfoType *pd
 			for (index = 0; pEventParaTemp->FreezeFrameClassRef[index] != NULL; index++){
 				if (pEventParaTemp->FreezeFrameClassRef[index]->FFRecordNumber == RecordNumber) {
 					// Calculate the Number of Dids in FF
-					for (FFIdNumber = 0; pEventParaTemp->FreezeFrameClassRef[index]->FFIdClassRef[FFIdNumber]->Arc_EOL == FALSE; FFIdNumber++) {
+					for (FFIdNumber = 0; pEventParaTemp->FreezeFrameClassRef[index]->FFIdClassRef[FFIdNumber] != NULL; FFIdNumber++) {
 						;
 					}
 					break;
@@ -1170,8 +1170,8 @@ static Dcm_NegativeResponseCodeType udsReadDtcInfoSub_0x14(const PduInfoType *pd
 void DspUdsReadDtcInformation(const PduInfoType *pduRxData, PduInfoType *pduTxData)
 {
 	/** @req DCM248 */
-	// Sub function number         0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10 11 12 13 14 15
-	const uint8 sduLength[0x16] = {0, 3, 3, 2, 6, 3, 6, 4, 4, 5, 2, 2, 2, 2, 2, 3, 6, 3, 3, 3, 2, 2};
+	// Sub function number                0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10 11 12 13 14 15
+	static const uint8 sduLength[0x16] = {0, 3, 3, 2, 6, 3, 6, 4, 4, 5, 2, 2, 2, 2, 2, 3, 6, 3, 3, 3, 2, 2};
 
 	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
 

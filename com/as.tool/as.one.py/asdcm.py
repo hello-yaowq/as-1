@@ -87,12 +87,20 @@ def switch_to_doip(state):
 
 def Dcm_TransmitMessage(req):
     ercd,res = __dcm__.transmit(req)
-    if(ercd==True):
+    if((ercd==True) or (res is not None)):
         res2 = dcmbits()
         for d in res:
             res2.append(d, 8)
         return res2
+
+    QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();
     return None
+
+def Dcm_GetResponse():
+    return __dcm__.last_reponse
+
+def Dcm_GetLastError():
+    return __dcm__.last_error
 
 class wDataUS(QComboBox):
     '''Data UxxSelect, 0<xx<=32'''
@@ -260,7 +268,7 @@ class UIInputOutputControl(QGroupBox):
             leData.getValue(data)
 
         res = Dcm_TransmitMessage(data.toarray()) 
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
+        if(res==None):return
         if(res.toarray()[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
               
@@ -271,7 +279,7 @@ class UIInputOutputControl(QGroupBox):
         data.append(did,16)
         data.append(0x00,8)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x6F):
             QMessageBox(QMessageBox.Critical, 'Error', 'IOC Return Control to ECU Failed!  %s.'%(Dcm_GetLastError())).exec_();
 
@@ -318,7 +326,7 @@ class UIDataIdentifier(QGroupBox):
         data.append(did,16)
        
         res = Dcm_TransmitMessage(data.toarray()) 
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
+        if(res==None):return
         start = 3
         if(res.toarray()[0]!=0x62):
             QMessageBox(QMessageBox.Critical, 'Error', 'DID Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
@@ -333,7 +341,7 @@ class UIDataIdentifier(QGroupBox):
         for leData in self.leDatas:
             leData.getValue(data)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x6E):
             QMessageBox(QMessageBox.Critical, 'Error', 'DID Write Failed!  %s.'%(Dcm_GetLastError())).exec_();
 
@@ -390,7 +398,7 @@ class UIRoutineControl(QGroupBox):
             else:
                 self.btnResult.setDisabled(True)
         except:
-            self.btnResult.setDisabled(True)            
+            self.btnResult.setDisabled(True)
         
         self.setLayout(grid)
         
@@ -404,7 +412,7 @@ class UIRoutineControl(QGroupBox):
             leData.getValue(data)
 
         res = Dcm_TransmitMessage(data.toarray()) 
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return
+        if(res==None):return
         if(res[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
         else:
@@ -416,7 +424,7 @@ class UIRoutineControl(QGroupBox):
         did = str2int(self.SRI.attrib['ID'])
         data.append(did,16)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Stop Failed!  %s.'%(Dcm_GetLastError())).exec_();   
     def on_btnResult_clicked(self):
@@ -425,7 +433,7 @@ class UIRoutineControl(QGroupBox):
         did = str2int(self.SRI.attrib['ID'])
         data.append(did,16)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Request Result Failed!  %s.'%(Dcm_GetLastError())).exec_();
         else:
@@ -455,7 +463,7 @@ class UISessionControl(QGroupBox):
                 data.append(str2int(obj.attrib['id']),8)
                 break
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x50):
             QMessageBox(QMessageBox.Critical, 'Error', 'SessionControl Failed!  %s.'%(Dcm_GetLastError())).exec_()
         else:
@@ -502,9 +510,16 @@ class UISecurityAccess(QGroupBox):
                 break
         data.append(levelV,8)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x67):
             QMessageBox(QMessageBox.Critical, 'Error', 'SecurityAccess request seed Failed!  %s.'%(Dcm_GetLastError())).exec_();
+            return
+        unlocked = True
+        for v in res.toarray()[2:]:
+            if(v != 0):
+                unlocked = False
+        if(unlocked):
+            QMessageBox(QMessageBox.Information,'Info', 'SecurityAccess okay with 0 seed, already unlocked!').exec_()
             return
         data = dcmbits()
         data.append(0x27,8)
@@ -513,12 +528,53 @@ class UISecurityAccess(QGroupBox):
         for v in key:
             data.append(v,8)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):QMessageBox(QMessageBox.Critical, 'Error', 'Communication Error or Timeout').exec_();return 
+        if(res==None):return 
         if(res.toarray()[0]!=0x67):
             QMessageBox(QMessageBox.Critical, 'Error', 'SecurityAccess send key Failed!  %s.'%(Dcm_GetLastError())).exec_()
         else:
             QMessageBox(QMessageBox.Information,'Info', 'SecurityAccess okay with response %s'%(FormatMessage(res))).exec_()
-    
+
+class UIDTC(QGroupBox):
+    def __init__(self,xml,parent=None):
+        super(QGroupBox, self).__init__(xml.tag,parent)
+        self.XML = xml
+        self.subfn={'reportNumberOfDTCByStatusMask':0x01, 'reportNumberOfDTCBySeverityMaskRecord':0x07,
+                    'reportNumberOfMirrorMemoryDTCByStatusMask':0x11, 'reportNumberOfEmissionRelatedOBDDTCByStatusMask':0x12,
+                    }
+        self.cmbxSubfn = QComboBox()
+        for k,v in self.subfn.items():
+            self.cmbxSubfn.addItem(k)
+        vbox = QVBoxLayout()
+        grid = QGridLayout()
+        grid.addWidget(QLabel('Function:'), 0, 0)
+        self.btnRead = QPushButton('Read')
+        grid.addWidget(self.cmbxSubfn,0,1)
+        self.leParam = QLineEdit('0xFF')
+        grid.addWidget(self.leParam,0,2)
+        grid.addWidget(self.btnRead,0,3)
+        vbox.addLayout(grid)
+        self.txtInfo=QTextEdit()
+        vbox.addWidget(self.txtInfo)
+        self.setLayout(vbox)
+        self.btnRead.clicked.connect(self.on_btnRead_clicked)
+
+    def on_btnRead_clicked(self):
+        data = dcmbits()
+        data.append(0x19,8)
+        fn = str(self.cmbxSubfn.currentText())
+        fv = self.subfn[fn]
+        data.append(fv,8)
+        lp = str(self.leParam.text())
+        for v in lp.split(' '):
+            if(v != ''):
+                data.append(str2int(v),8)
+        res = Dcm_TransmitMessage(data.toarray())  
+        if(res==None):return 
+        if(res.toarray()[0]!=0x59):
+            QMessageBox(QMessageBox.Critical, 'Error', 'Read DTC %s Failed!  %s.'%(fn,Dcm_GetLastError())).exec_()
+        else:
+            self.txtInfo.setText(str(self.txtInfo.toPlainText())+'%s %s\n'%(fn,FormatMessage(res)))
+
 class UIGroup(QScrollArea):
     def __init__(self, xml,parent=None):
         super(QScrollArea, self).__init__(parent)
@@ -535,6 +591,8 @@ class UIGroup(QScrollArea):
                 vBox.addWidget(UISessionControl(service))
             elif(service.tag=='SecurityAccess'):
                 vBox.addWidget(UISecurityAccess(service))
+            elif(service.tag=='DTC'):
+                vBox.addWidget(UIDTC(service))
         wd.setLayout(vBox)
         self.setWidget(wd)
 

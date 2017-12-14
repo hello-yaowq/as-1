@@ -76,7 +76,8 @@ class dcm():
         if((res[0] == 0x7f) and (len(res) == 3)):
             service = self.__get_service_name__(res[1])
             nrc = self.__get_nrc_name__(res[2])
-            print("  >> service '%s' negative response '%s' "%(service,nrc))
+            self.last_error = "  >> service '%s' negative response '%s' "%(service,nrc)
+            print(self.last_error)
         else:
             print("unknown response")
 
@@ -91,6 +92,7 @@ class dcm():
         print(ss)
 
     def __show_response__(self,res):
+        global last_reponse
         ss = "  >> dcm response = ["
         length = len(res)
         if(length > 32):
@@ -98,6 +100,7 @@ class dcm():
         for i in range(length):
             ss += '%02X,'%(res[i])
         ss+=']'
+        self.last_reponse = ss
         print(ss)
 
     def transmit(self,req):
@@ -106,7 +109,7 @@ class dcm():
         ercd = self.cantp.transmit(req)
         if((len(req)>=2) and (req[0] in self.__sbr__) and ((req[1]&0x80) != 0)):
             # suppress positive response
-            return True,[]
+            return True,[req[0]|0x40]
         while(ercd == True):
             ercd,res = self.cantp.receive()
             if(ercd == True):
@@ -120,6 +123,7 @@ class dcm():
                     continue
                 else:
                     self.__show_negative_response__(res)
+                    response = res
                     ercd = False 
             else:
                 ercd = False

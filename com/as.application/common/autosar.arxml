@@ -300,6 +300,22 @@
 <Session Comment="*" Name="PRGS" />
 </SessionList>
 </Service>
+<Service Comment="*" Name="READ_DTC_INFORMATION" SubFunctionSupported="True">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="EXTDS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="EXTDS" />
+</SessionList>
+</Service>
+<Service Comment="*" Name="CLEAR_DIAGNOSTIC_INFORMATION" SubFunctionSupported="False">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="EXTDS" />
+</SecurityList>
+<SessionList Max="TBD">
+<Session Comment="*" Name="EXTDS" />
+</SessionList>
+</Service>
 </ServiceList>
 </ServiceTable>
 <ServiceTable Comment="*" Name="ServiceTableP2A">
