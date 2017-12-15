@@ -79,3 +79,31 @@ for _ in range(1000):
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+index = 10
+while(index >= 0):
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtGui import QImage
+    app = QApplication(sys.argv)
+    index = input('index of test image of MNIST:')
+    index = int(index)
+    if(index < 0): break
+    # save the test image to png file for check
+    img = QImage(28,28,QImage.Format_RGB32)
+    for i,b in enumerate(mnist.test.images[index]):
+        def RGB(b):
+            if(0 == b):
+                return 0xFFFFFFFF
+            return int((b*255))&0xFF
+        rgb = RGB(b)
+        img.setPixel(int(i/28),i%28,rgb)
+        iname = 'test.png'
+        img.save(iname,'PNG')
+
+    a = sess.run(y, feed_dict={x: mnist.test.images[index:index+1]})
+    for i,p in enumerate(a[0]):
+        if(p> 0.5):
+            fix = 'Y'
+        else:
+            fix = 'N'
+        print('[%d](./test.png) is %02d%% percent to be %s %s'%(index,int(p*100),i,fix))
