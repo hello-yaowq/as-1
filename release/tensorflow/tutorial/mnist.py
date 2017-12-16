@@ -1,6 +1,7 @@
 #! /bin/python3
 
 # according to https://www.tensorflow.org/get_started/mnist/beginners
+# pip install --ignore-installed --upgrade tensorflow
 import os
 import sys
 

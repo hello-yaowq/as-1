@@ -3,9 +3,9 @@
 <Diagnostic>
 	<General>
 		<SessionControl>
+			<Session name='extend'  id='3'/>
 			<Session name='default' id='1'/>
 			<Session name='program' id='2'/>
-			<Session name='extend'  id='3'/>
 		</SessionControl>
 		<SecurityAccess>
 			<Level name='extend' id='1' 
@@ -44,6 +44,8 @@
 		</InputOutputControl>
 	</General>
 	<DTC>
-		<DTC></DTC>
+		<DTC>
+			<Event name="airbag status" ID="0x180001" />
+		</DTC>
 	</DTC>
 </Diagnostic>

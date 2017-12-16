@@ -26,6 +26,7 @@ import sys,os
 import xml.etree.ElementTree as ET
 from pyas.dcm import *
 import traceback
+import re
 
 from bitarray import bitarray
 
@@ -538,42 +539,140 @@ class UIDTC(QGroupBox):
     def __init__(self,xml,parent=None):
         super(QGroupBox, self).__init__(xml.tag,parent)
         self.XML = xml
-        self.subfn={'reportNumberOfDTCByStatusMask':0x01, 'reportNumberOfDTCBySeverityMaskRecord':0x07,
-                    'reportNumberOfMirrorMemoryDTCByStatusMask':0x11, 'reportNumberOfEmissionRelatedOBDDTCByStatusMask':0x12,
-                    }
+        self.subfn=[self.reportNumberOfDTCByStatusMask,
+                    self.reportNumberOfDTCBySeverityMaskRecord,
+                    self.reportNumberOfMirrorMemoryDTCByStatusMask,
+                    self.reportNumberOfEmissionRelatedOBDDTCByStatusMask,
+                    self.reportDTCByStatusMask,
+                    ]
+        self.subfn_leParam_defaut=['0xFF',
+                    '[0xE0,0xFF]',
+                    '0xFF',
+                    '0xFF',
+                    '0xFF',
+                    ]
         self.cmbxSubfn = QComboBox()
-        for k,v in self.subfn.items():
-            self.cmbxSubfn.addItem(k)
+        for fn in self.subfn:
+            self.cmbxSubfn.addItem(fn.__name__)
         vbox = QVBoxLayout()
         grid = QGridLayout()
         grid.addWidget(QLabel('Function:'), 0, 0)
         self.btnRead = QPushButton('Read')
         grid.addWidget(self.cmbxSubfn,0,1)
         self.leParam = QLineEdit('0xFF')
+        self.leParam.setToolTip('''StatusMask: 8 bits, eg 0xFF
+SeverityMask:16 bits [8 bits SeverityMask, 8 bits StatusMask], eg [0xFF,0xFF]''')
         grid.addWidget(self.leParam,0,2)
         grid.addWidget(self.btnRead,0,3)
         vbox.addLayout(grid)
         self.txtInfo=QTextEdit()
+        self.txtInfo.setMinimumSize(600, 400)
+        self.txtInfo.setReadOnly(True)
         vbox.addWidget(self.txtInfo)
         self.setLayout(vbox)
         self.btnRead.clicked.connect(self.on_btnRead_clicked)
+        self.cmbxSubfn.currentIndexChanged.connect(self.on_cmbxSubfn_currentIndexChanged)
 
-    def on_btnRead_clicked(self):
+    def on_cmbxSubfn_currentIndexChanged(self,index):
+        self.leParam.setText(self.subfn_leParam_defaut[index])
+
+    def addInfo(self,info):
+        self.txtInfo.append(info)
+
+    def reportDTCCommon(self,req=[]):
         data = dcmbits()
         data.append(0x19,8)
-        fn = str(self.cmbxSubfn.currentText())
-        fv = self.subfn[fn]
-        data.append(fv,8)
-        lp = str(self.leParam.text())
-        for v in lp.split(' '):
-            if(v != ''):
-                data.append(str2int(v),8)
+        for v in req:
+            data.append(v,8)
         res = Dcm_TransmitMessage(data.toarray())  
-        if(res==None):return 
+        if(res==None):return None
         if(res.toarray()[0]!=0x59):
-            QMessageBox(QMessageBox.Critical, 'Error', 'Read DTC %s Failed!  %s.'%(fn,Dcm_GetLastError())).exec_()
+            QMessageBox(QMessageBox.Critical, 'Error', 'Read DTC Failed! %s.'%(Dcm_GetLastError())).exec_()
+            return None
         else:
-            self.txtInfo.setText(str(self.txtInfo.toPlainText())+'%s %s\n'%(fn,FormatMessage(res)))
+            return res
+
+    def showNumberOfDTCCommon(self,res):
+        res = res.toarray()
+        self.addInfo('\tStatusAvailabilityMask = 0x%02X'%(res[2]))
+        self.addInfo('\tFormatIdentifier       = 0x%02X'%(res[3]))
+        self.addInfo('\tNumber                 = %s'%((res[4]<<8)+res[5]))
+
+    def reportNumberOfDTCByStatusMask(self,fnid=0x01):
+        statusMask = str2int(str(self.leParam.text()))
+        res = self.reportDTCCommon([fnid,statusMask]) 
+        if(res==None):return
+        self.showNumberOfDTCCommon(res)
+
+    def reportNumberOfDTCBySeverityMaskRecord(self):
+        reMatch = re.compile(r'^\s*\[\s*(\w+)\s*,\s*(\w+)\s*\]\s*$')
+        data = [0x07]
+        param = str(self.leParam.text())
+        m = reMatch.search(param)
+        if(m):
+            data.append(str2int(m.groups()[0])) # SeverityMask
+            data.append(str2int(m.groups()[1])) # StatusMask
+        else:
+            QMessageBox(QMessageBox.Critical, 'Error', 'Invalid parameter!').exec_()
+            return
+        res = self.reportDTCCommon(data) 
+        if(res==None):return
+        self.showNumberOfDTCCommon(res)
+
+    def reportNumberOfMirrorMemoryDTCByStatusMask(self):
+        self.reportNumberOfDTCByStatusMask(0x11)
+
+    def reportNumberOfEmissionRelatedOBDDTCByStatusMask(self):
+        self.reportNumberOfDTCByStatusMask(0x12)
+
+    def strStatusMask(self,mask):
+        ss = ''
+        if(mask&0x01):
+            ss += '\n\t\tTEST_FAILED'
+        if(mask&0x02):
+            ss += '\n\t\tTEST_FAILED_THIS_OPERATION_CYCLE'
+        if(mask&0x04):
+            ss += '\n\t\tPENDING_DTC,'
+        if(mask&0x08):
+            ss += '\n\t\tCONFIRMED_DTC'
+        if(mask&0x10):
+            ss += '\n\t\tTEST_NOT_COMPLETED_SINCE_LAST_CLEAR'
+        if(mask&0x20):
+            ss += '\n\t\tTEST_FAILED_SINCE_LAST_CLEAR'
+        if(mask&0x40):
+            ss += '\n\t\tTEST_NOT_COMPLETED_THIS_OPERATION_CYCLE'
+        if(mask&0x80):
+            ss += '\n\t\tWARNING_INDICATOR_REQUESTED'
+        return ss
+
+    def strDtcName(self,id):
+        for dtc in self.XML:
+            if(str2int(dtc.attrib['ID'])==id):
+                return dtc.attrib['name']
+        return 'unknown'
+
+    def showDTCCommon(self,res):
+        res = res.toarray()
+        self.addInfo('\tStatusAvailabilityMask = 0x%02X'%(res[2]))
+        for dtc in range(int((len(res)-3)/4)):
+            id = (res[3+4*dtc]<<16)+(res[3+4*dtc+1]<<8)+(res[3+4*dtc+2]<<0)
+            status = res[3+4*dtc+3]
+            self.addInfo('\tDTC ID=0x%06X (%s)'%(id,self.strDtcName(id)))
+            self.addInfo('\tStatusMask = 0x%02X%s'%(status,self.strStatusMask(status)))
+
+    def reportDTCByStatusMask(self):
+        statusMask = str2int(str(self.leParam.text()))
+        res = self.reportDTCCommon([0x02,statusMask]) 
+        if(res==None):return
+        self.showDTCCommon(res)
+
+    def on_btnRead_clicked(self):
+        fn = str(self.cmbxSubfn.currentText())
+        for f in self.subfn:
+            if(f.__name__ == fn):
+                self.addInfo('%s:'%(fn)) 
+                f()
+                break
 
 class UIGroup(QScrollArea):
     def __init__(self, xml,parent=None):

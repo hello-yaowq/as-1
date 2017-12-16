@@ -488,7 +488,7 @@
 <ExtendedDataRecordClass CallbackGetExtDataRecord="USED" Comment="*" DataSize="4" InternalDataElement="NO_ELEMENT" Name="ExtendedDataRecordClass_Odometer" RecordNumber="1" UpdateRule="VOLATILE" />
 </ExtendedDataRecordClassList>
 <DTCClassList Max="TBD">
-<DTCClass Comment="*" DTC="0" DTCFunctionalUnit="0" DTCKind="ALL_DTCS" Name="DTCAirbag" />
+<DTCClass Comment="*" DTC="0x180001" DTCFunctionalUnit="0" DTCKind="ALL_DTCS" Name="DTCAirbag" />
 </DTCClassList>
 <FFIdClassList Max="TBD">
 <FFIdClass Comment="*" DidConditionCheckReadFnc="USED" DidIdentifier="0xFFFF" DidReadDataLengthFnc="USED" DidReadFnc="USED" Name="AirbagFFIdClass" PidIndentifier="1" PidOrDidSize="1" PidReadFnc="USED" />

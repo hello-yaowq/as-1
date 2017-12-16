@@ -55,6 +55,9 @@ class dcm():
             self.cantp = cantp(busid_or_uri,rxid_or_port,txid,cfgSTmin,cfgBS,padding)
         else:
             self.cantp = doip(busid_or_uri,rxid_or_port)
+        self.last_error = None
+        self.last_reponse = None
+
 
     def __get_service_name__(self,serviceid):
         try:
@@ -92,7 +95,6 @@ class dcm():
         print(ss)
 
     def __show_response__(self,res):
-        global last_reponse
         ss = "  >> dcm response = ["
         length = len(res)
         if(length > 32):
@@ -104,6 +106,8 @@ class dcm():
         print(ss)
 
     def transmit(self,req):
+        self.last_error = None
+        self.last_reponse = None
         response  = None
         self.__show_request__(req)
         ercd = self.cantp.transmit(req)
