@@ -190,6 +190,7 @@ void LwIP_Init(void)
 #endif
 
 #ifdef __WINDOWS__
+#ifndef MINGW_HAS_SECURE_API
 #include <time.h>
 int gmtime_s(struct tm* now,time_t * t)
 {
@@ -198,6 +199,7 @@ int gmtime_s(struct tm* now,time_t * t)
 
 	return 0;
 }
+#endif
 #endif
 #ifdef __TERMUX__
 int _isnan()

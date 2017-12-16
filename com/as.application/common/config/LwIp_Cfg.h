@@ -80,6 +80,7 @@
 #ifdef __WINDOWS__
 #include <errno.h>
 typedef enum {
+#ifndef EWOULDBLOCK
 	EWOULDBLOCK = 0x0043,		// Operation would block
 	EINPROGRESS = 0x0044,		// Operation now in progress
 	EALREADY = 0x0045,			// Operation already in progress
@@ -106,6 +107,9 @@ typedef enum {
 	ECONNREFUSED = 0x005d,		// Connection refused
 	ELOOP = 0x005e,				// Too many levels of symbolic links
 	EHOSTUNREACH = 0x0061,		// No route to host
+#else
+	SoAd_TcpIpErrorType_dummy=0
+#endif
 } SoAd_TcpIpErrorType; /** @req SOAD117 */
 #endif
 /* ============================ [ DECLARES  ] ====================================================== */

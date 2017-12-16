@@ -83,6 +83,15 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 
 * for windows x64, follow below steps
 
+### install [python27 64bit](https://www.python.org) as C:\Python27
+
+### install [scons 3.0.0 zip](http://scons.org/pages/download.html) for python27
+
+```sh
+cd scons-3.0.0
+C:\Python27\python.exe setup.py install
+```
+
 ### install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
 
 ### install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
@@ -90,8 +99,7 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ### then run below commands in cmd
 
 ```sh
-set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
-conda install -c anaconda scons
+set PATH=C:\Python27;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
 conda install -c anaconda pyserial
 pacman -Sy
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
@@ -99,8 +107,11 @@ pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x
 
 ## Build
 
+* launch the [/as/Console.bat](https://github.com/parai/as/blob/master/Console.bat) as Administrator
+
 ```sh
-cd as/release/aslua
+set PATH=C:\Python27;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
+cd release/aslua
 mkdir -p ../download
 make aslua
 cd as/release/ascore

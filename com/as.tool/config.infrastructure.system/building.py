@@ -35,6 +35,11 @@ class Win32Spawn:
         os.environ['PATH'] = _e['PATH']
 
         try:
+            _e['PATH'] = Env['EXTRAPATH']+';'+_e['PATH']
+        except KeyError:
+            pass
+
+        try:
             proc = subprocess.Popen(cmdline, env=_e, shell=False)
         except Exception as e:
             print('Error in calling:\n%s'%(cmdline))
@@ -57,21 +62,23 @@ def PrepareBuilding(env):
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     if(os.name == 'nt'):
-        win32_spawn = Win32Spawn()
-        win32_spawn.env = env
-        env['SPAWN'] = win32_spawn.spawn
-        env['python3'] = 'c:/Python36/python'
+        env['python3'] = 'c:/Python36/python.exe'
         if(not os.path.exists(env['python3'])):
-            env['python3'] = 'c:/Anaconda3/python'
-        env['python2'] = 'c:/Python27/python'
-        env['python'] =  'c:/Python27/python'
+            env['python3'] = 'c:/Anaconda3/python.exe'
+        env['python2'] = 'c:/Python27/python.exe'
+        env['python'] =  'c:/Python27/python.exe'
         uname = RunSysCmd('uname')
         if(uname.startswith('MSYS_NT')):
             print('build on %s, default assume 64 bit machine'%(uname.strip()))
             env['msys2'] = True
             env['pkgconfig'] = 'c:/msys64/mingw64/bin/pkg-config'
+            env['CC'] = 'c:/msys64/mingw64/bin/gcc'
+            env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
+            env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
         else:
             env['msys2'] = False
+        win32_spawn = Win32Spawn()
+        env['SPAWN'] = win32_spawn.spawn
     if(0 != os.system('%s --version'%(env['python3']))):
         raise Exception('no python3 installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['python2']))):
@@ -80,6 +87,8 @@ def PrepareBuilding(env):
         raise Exception('no python installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['pkgconfig']))):
         raise Exception('no pkg-config installed, fix the path maybe!')
+    if(0 != os.system('%s --version'%(env['CC']))):
+        raise Exception('no C Compiler installed, fix the path maybe!')
     # add comstr option
     AddOption('--verbose',
             dest='verbose',

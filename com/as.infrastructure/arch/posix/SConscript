@@ -90,8 +90,11 @@ if('LWIP' in MODULES):
                 unzip WpdPack_4_1_2.zip'''%(download))
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
         asenv.Append(CCFLAGS='-I%s/WpdPack/Include'%(cwd))
-        asenv.Append(LIBS=['packet','wpcap'])
-        asenv.Append(LIBPATH=['%s/WpdPack/Lib'%(cwd)])
+        if(asenv['msys2']):
+            objs += Glob('%s/WpdPack/Lib/x64/*.lib'%(cwd))
+        else:
+            asenv.Append(LIBS=['packet','wpcap'])
+            asenv.Append(LIBPATH=['%s/WpdPack/Lib'%(cwd)])
         if('-D_MSC_VER' not in asenv['CCFLAGS']):
             asenv.Append(CCFLAGS='-D_MSC_VER')
 
@@ -120,6 +123,10 @@ asenv.Append(LIBS=['pthread','stdc++','m'])
 if(os.name == 'nt'):
     asenv.Append(LIBS=['wsock32'])
     asenv.Append(CCFLAGS='-D__WINDOWS__')
+    if(asenv['msys2']):
+        asenv.Append(CCFLAGS='-D__X86_64__')
+        print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2tcpip.h line 86-103, add WS2TCPIP_INLINE')
+        print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2ipdef.h line 127, add WS2TCPIP_INLINE')
 else:
     asenv.Append(CCFLAGS='-D__LINUX__')
 
