@@ -16,16 +16,30 @@ if(os.name == 'nt'):
     MKSymlink('%s/../../cancasexl.access/vxlapi.h'%(cwd),'%s/vxlapi.h'%(cwd))
     MKSymlink('%s/../../cancasexl.access/xlLoadlib.cpp'%(cwd),'%s/xlLoadlib.c'%(cwd))
     asenv.Append(CCFLAGS=['-DDYNAMIC_XLDRIVER_DLL', '-DPOINTER_32='])
-    asenv.Append(CCFLAGS='-I%s/release/download/CAN_lib/32bit'%(asenv['ASROOT']))
-    MKSymlink('%s/release/download/CAN_lib/32bit/ControlCAN.dll'%(asenv['ASROOT']),
-              '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+    if(asenv['msys2']):
+        asenv.Append(CCFLAGS='-I%s/release/download/CAN_lib/64bit'%(asenv['ASROOT']))
+        
+        MKSymlink('%s/release/download/CAN_lib/64bit/ControlCAN.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/pcan-basic/x64/PCANBasic.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+    else:
+        asenv.Append(CCFLAGS='-I%s/release/download/CAN_lib/32bit'%(asenv['ASROOT']))
+        MKSymlink('%s/release/download/CAN_lib/32bit/ControlCAN.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/pcan-basic/Win32/PCANBasic.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
 
 objs +=  Glob('*.c')
 objs +=  Glob('rs232/*.c')
 
 if(os.name == 'nt'):
-    objs += Glob('peak-can/lib/win32/PCANBasic.lib')
-    objs += Glob('%s/release/download/CAN_lib/32bit/ControlCAN.lib'%(asenv['ASROOT']))
+    if(asenv['msys2']):
+        objs += Glob('%s/release/download/pcan-basic/x64/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
+        objs += Glob('%s/release/download/CAN_lib/64bit/ControlCAN.lib'%(asenv['ASROOT']))
+    else:
+        objs += Glob('%s/release/download/pcan-basic/Win32/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
+        objs += Glob('%s/release/download/CAN_lib/32bit/ControlCAN.lib'%(asenv['ASROOT']))
     if(asenv.GetOption('clean')):
         RMFile('%s/socketwin_can_driver.exe'%(cwd))
     elif(not os.path.exists('%s/socketwin_can_driver.exe'%(cwd))):

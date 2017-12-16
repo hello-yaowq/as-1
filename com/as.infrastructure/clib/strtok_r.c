@@ -120,7 +120,7 @@ int vasprintf(char **ret, const char *format, va_list ap)
 		return -1;
 	return vsnprintf(*ret, size, format, ap);
 }
-
+#ifndef MINGW_HAS_SECURE_API
 char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz)
 {
 	size_t sz = 0;
@@ -145,3 +145,4 @@ char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz)
 
 	return __to;
 }
+#endif

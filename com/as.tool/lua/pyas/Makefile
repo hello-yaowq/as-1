@@ -12,10 +12,14 @@ LINK = g++
 CPPFLAGS = -DNDEBUG -DUNICODE -DQT_LARGEFILE_SUPPORT -I. -I$(PYDIR)/include
 CFLAGS = --std=gnu99 -O2 -Wall
 CXXFLAGS = -O2 -Wall
+ifeq ($(msys2),yes)
+CXXFLAGS += -D_hypot=hypot
+endif
 LFLAGS = -mthreads -Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -shared -Wl,-subsystem,windows -Wl,-s
 LIBS = -L$(CURDIR) $(PYDIR)/libs/python$(PYVER).lib -lpyas -laws -lpyas -lpthread -lm -lPCANBasic -lwsock32
 LIBS += -lZLGCAN
 LIBS += $(PYDIR)/python$(PYVER).dll
+
 .SUFFIXES: .cpp .cxx .cc .C .c
 
 

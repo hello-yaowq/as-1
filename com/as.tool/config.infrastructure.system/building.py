@@ -55,19 +55,31 @@ def PrepareBuilding(env):
     env['python3'] = 'python3'
     env['python2'] = 'python2'
     env['python'] = 'python'
+    env['pkgconfig'] = 'pkg-config'
     if(os.name == 'nt'):
         win32_spawn = Win32Spawn()
         win32_spawn.env = env
         env['SPAWN'] = win32_spawn.spawn
         env['python3'] = 'c:/Python36/python'
+        if(not os.path.exists(env['python3'])):
+            env['python3'] = 'c:/Anaconda3/python'
         env['python2'] = 'c:/Python27/python'
         env['python'] =  'c:/Python27/python'
+        uname = RunSysCmd('uname')
+        if(uname.startswith('MSYS_NT')):
+            print('build on %s, default assume 64 bit machine'%(uname.strip()))
+            env['msys2'] = True
+            env['pkgconfig'] = 'c:/msys64/mingw64/bin/pkg-config'
+        else:
+            env['msys2'] = False
     if(0 != os.system('%s --version'%(env['python3']))):
         raise Exception('no python3 installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['python2']))):
         raise Exception('no python2 installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['python']))):
         raise Exception('no python installed, fix the path maybe!')
+    if(0 != os.system('%s --version'%(env['pkgconfig']))):
+        raise Exception('no pkg-config installed, fix the path maybe!')
     # add comstr option
     AddOption('--verbose',
             dest='verbose',
@@ -153,6 +165,13 @@ def RunCommand(cmd):
         cmd = '.scons.bat'
     if(0 != os.system(cmd)):
         raise Exception('FAIL of RunCommand "%s"'%(cmd))
+
+def RunSysCmd(cmd):
+    import subprocess
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    (output, err) = p.communicate()
+    p_status = p.wait()
+    return output
 
 def DefineGroup(name, src, depend, **parameters):
     global Env

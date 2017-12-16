@@ -45,7 +45,9 @@ struct Can_VxlHandleList_s
 	STAILQ_HEAD(,Can_VxlHandle_s) head;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifndef MINGW_HAS_SECURE_API
 extern char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz);
+#endif
 static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
 static boolean vxl_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
 static void vxl_close(uint32_t port);

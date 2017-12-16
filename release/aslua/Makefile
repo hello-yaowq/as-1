@@ -41,12 +41,20 @@ ifeq ($(host), Linux)
 PY27 ?= python2
 PY34 ?= python3
 else
-ifeq ($(msys),yes)
+ifeq ($(host), MINGW64_NT-10.0)
+export msys2 = yes
+endif
+ifeq ($(host), MSYS_NT-10.0)
+export msys2 = yes
+endif
+ifeq ($(msys2),yes)
 PY27 = /c/Python27/python
 PY34 = /c/Python36/python
+
 else
 PY27 = C:/Python27/python
 PY34 = C:/Python36/python
+$(error this is not right)
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
@@ -61,6 +69,11 @@ SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
+ifeq ($(msys2),yes)
+export AS  = /mingw64/bin/gcc
+export CC  = /mingw64/bin/gcc
+export AR  = /mingw64/bin/ar
+endif
 include ../make/posix.mk
 endif
 
@@ -91,6 +104,10 @@ def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
+ifeq ($(msys2),yes)
+def-y += -D__X86_64__
+def-y += -DFORCEINLINE=static\ inline
+endif
 endif	
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
@@ -205,11 +222,36 @@ else
 	@(sed -i "148c #define EXTERNC extern" $(download)/CAN_lib/32bit/ControlCAN.h)
 	@(sed -i "168c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
 		$(download)/CAN_lib/32bit/ControlCAN.h)
-	@(cp -fv $(download)/CAN_lib/32bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(sed -i "163c #define EXTERNC extern" $(download)/CAN_lib/64bit/ControlCAN.h)
+	@(sed -i "183c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
+		$(download)/CAN_lib/64bit/ControlCAN.h)
 endif
 
 aszlg:$(download)/CAN_lib
+ifeq ($(host),Linux)
+else
+ifeq ($(msys2),yes)
+	@(cp -fv $(download)/CAN_lib/64bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+else
+	@(cp -fv $(download)/CAN_lib/32bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+endif
+endif
 
+$(download)/pcan-basic.zip:
+	@(cd $(download);wget https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip)
+
+$(download)/pcan-basic:$(download)/pcan-basic.zip
+	@(cd $(download); mkdir -p pcan-basic; cd pcan-basic; unzip ../pcan-basic.zip)
+
+aspeak:$(download)/pcan-basic
+ifeq ($(host),Linux)
+else
+ifeq ($(msys2),yes)
+	@(cp -fv $(download)/pcan-basic/x64/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
+else
+	@(cp -fv $(download)/pcan-basic/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
+endif
+endif
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
@@ -234,8 +276,13 @@ dep-posix: aslibaws
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
+ifeq ($(msys2),yes)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/64bit FALSE)
+else
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
+endif
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
@@ -276,8 +323,13 @@ dep-pyas:
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(LUA)/can/peak-can/lib/win32/PCANBasic.lib PCANBasic.lib)
+ifeq ($(msys2),yes)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/64bit FALSE)
+else
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
 	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
+endif
 endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)	
@@ -303,7 +355,7 @@ all:exe can_socket
 depc:
 	@($(DEPC) $(obj-dir) $(obj-dir)/as.dep)
 
-clean: 
+clean: cleanaws
 	@rm -frv $(obj-dir)/*
 	@rm -frv $(exe-dir)/*
 
@@ -384,6 +436,8 @@ extract-pyserial:
 
 pyserial:pyserial-3.1.1.tar.gz extract-pyserial
 
+$(download):
+	mkdir -p $@
 
-aslua: libaws aszlg 81 82 91 92
+aslua: $(download) libaws aszlg aspeak 81 82 91 92
 
