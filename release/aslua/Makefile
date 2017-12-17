@@ -49,11 +49,11 @@ export msys2 = yes
 endif
 ifeq ($(msys2),yes)
 PY27 = /c/Python27/python
-PY34 = /c/Python36/python
+PY34 = /c/Anaconda3/python
 
 else
 PY27 = C:/Python27/python
-PY34 = C:/Python36/python
+PY34 = C:/Anaconda3/python
 $(error this is not right)
 endif
 endif

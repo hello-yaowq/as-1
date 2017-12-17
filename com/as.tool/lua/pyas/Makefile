@@ -5,7 +5,7 @@ OFILES = sipAScmodule.o sipASasdev.o sipAScan.o
 HFILES = sipAPIAS.h 
 
 PYVER ?= 36
-PYDIR ?= C:/Python$(PYVER)
+PYDIR ?= C:/Anaconda3
 CC = gcc
 CXX = g++
 LINK = g++

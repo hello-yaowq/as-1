@@ -77,26 +77,26 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 * [FatFS](http://elm-chan.org/fsw/ff/00index_e.html)
 * [lwext4](https://github.com/gkostka/lwext4.git)
 
-## Setup Environment
+## 8. Setup Environment
 
 * check the [asenv repository](https://github.com/parai/asenv) for win32 development
 
 * for windows x64, follow below steps
 
-### install [python27 64bit](https://www.python.org) as C:\Python27
+### 8.1 install [python27 64bit](https://www.python.org) as C:\Python27
 
-### install [scons 3.0.0 zip](http://scons.org/pages/download.html) for python27
+### 8.2 install [scons 3.0.0 zip](http://scons.org/pages/download.html) for python27
 
 ```sh
 cd scons-3.0.0
 C:\Python27\python.exe setup.py install
 ```
 
-### install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
+### 8.3 install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
 
-### install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
+### 8.4 install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
 
-### then run below commands in cmd
+### 8.5 then run below commands in cmd
 
 ```sh
 set PATH=C:\Python27;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
@@ -105,17 +105,17 @@ pacman -Sy
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
 ```
 
-## Build
+## 9. Build
 
 * launch the [/as/Console.bat](https://github.com/parai/as/blob/master/Console.bat) as Administrator
 
 ```sh
-set PATH=C:\Python27;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
-cd release/aslua
-mkdir -p ../download
+# in the cmd of aslua
 make aslua
-cd as/release/ascore
+# in the cmd of asboot or ascore
 scons # build, it will hint you the boards supported
 scons run
 scons -c # clean
+# in the cmd of as.one.py
+python main.py
 ```

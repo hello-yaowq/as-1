@@ -62,9 +62,7 @@ def PrepareBuilding(env):
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     if(os.name == 'nt'):
-        env['python3'] = 'c:/Python36/python.exe'
-        if(not os.path.exists(env['python3'])):
-            env['python3'] = 'c:/Anaconda3/python.exe'
+        env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'
         env['python'] =  'c:/Python27/python.exe'
         uname = RunSysCmd('uname')
