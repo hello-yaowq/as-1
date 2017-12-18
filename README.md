@@ -100,9 +100,13 @@ C:\Python27\python.exe setup.py install
 
 ```sh
 set PATH=C:\Python27;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
-conda install -c anaconda pyserial
 pacman -Sy
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
+pacman -Syuu
+wget https://pypi.python.org/packages/1f/3b/ee6f354bcb1e28a7cd735be98f39ecf80554948284b41e9f7965951befa6/pyserial-3.2.1.tar.gz#md5=7142a421c8b35d2dac6c47c254db023d
+tar xf pyserial-3.2.1.tar.gz
+cd pyserial-3.2.1
+C:/Anaconda3/python setup.py install
 ```
 
 ## 9. Build
