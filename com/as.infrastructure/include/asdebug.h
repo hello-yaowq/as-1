@@ -95,7 +95,7 @@
 #ifdef USE_DET
 #define asAssert(e)  																					\
 	do {																								\
-		if(FALSE==(e))																					\
+		if(!(e))																					\
 		{																								\
 			ASLOG(STDERR,"assert error on condition(%s) at line %d of %s\n",#e, __LINE__, __FILE__);	\
 			asAssertErrorHook();																		\
