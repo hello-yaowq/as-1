@@ -1,5 +1,9 @@
+from building import *
+
 Import('asenv')
 MODULES = asenv['MODULES']
+
+cwd = GetCurrentDir()
 
 objs = []
 
@@ -8,5 +12,9 @@ if(('FATFS' in MODULES) and (asenv['RTOS'] != 'rtthread')):
 
 if('LWEXT4' in MODULES):
     objs += SConscript('lwext4/SConscript')
+
+if(('LWEXT4' in MODULES) or (('FATFS' in MODULES))):
+    objs += Glob('vfs/*.c')
+    asenv.Append(CCFLAGS = '-I%s/vfs'%(cwd))
 
 Return('objs')

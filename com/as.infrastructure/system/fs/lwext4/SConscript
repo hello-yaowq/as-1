@@ -16,6 +16,10 @@ if(not os.path.exists(lwext4)):
 
 MKSymlink(lwext4,'%s/lwext4'%(cwd))
 
+if((os.name == 'nt') and asenv['msys2'] and 
+   not os.path.exists('%s/build_generic'%(lwext4))):
+    RunCommand('cd %s/lwext4 && make && cd build_generic && make'%(download))
+
 objs = []
 
 objs += Glob('lwext4/src/*.c')

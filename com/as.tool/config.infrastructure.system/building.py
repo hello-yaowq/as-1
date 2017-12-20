@@ -61,6 +61,7 @@ def PrepareBuilding(env):
     env['python2'] = 'python2'
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
+    env['msys2'] = False
     if(os.name == 'nt'):
         env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'
@@ -73,8 +74,6 @@ def PrepareBuilding(env):
             env['CC'] = 'c:/msys64/mingw64/bin/gcc'
             env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
             env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
-        else:
-            env['msys2'] = False
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
     if(0 != os.system('%s --version'%(env['python3']))):

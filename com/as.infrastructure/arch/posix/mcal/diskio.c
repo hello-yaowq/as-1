@@ -78,7 +78,9 @@ DSTATUS disk_initialize (
 		if(NULL == fp)
 		{
 			system("dd if=/dev/zero of=" FATFS_IMG " bs=1M count=32");
+			#ifdef __LINUX__
 			system("sudo mkfs.fat " FATFS_IMG);
+			#endif
 			ASLOG(FATFS,"simulation on new created 32Mb " FATFS_IMG "\n");
 		}
 		else
@@ -234,7 +236,9 @@ void ext_mount(void)
     if(NULL == fp)
     {
         system("dd if=/dev/zero of=" EXTFS_IMG " bs=1M count=32");
+		#ifdef __LINUX__
         system("sudo mkfs.ext4 " EXTFS_IMG);
+		#endif
         ASLOG(EXTFS,"simulation on new created 32Mb " EXTFS_IMG "\n");
     }
     else
@@ -263,6 +267,6 @@ void ext_mount(void)
         ASLOG(EXTFS, "mount ext4 device failed\n");
     }
 
-    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/‘ OK\n");
+    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/鈥� OK\n");
 }
 #endif /* USE_FATFS */

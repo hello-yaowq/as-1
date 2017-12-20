@@ -1,5 +1,9 @@
+from building import *
+
 Import('asenv')
 MODULES = asenv['MODULES']
+
+cwd = GetCurrentDir()
 
 objs = []
 
@@ -7,5 +11,10 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     objs += SConscript('lwip/SConscript')
 elif(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
     asenv.Append(CCFLAGS = '-DUSE_LWIP')
+
+if(('LWIP' in MODULES) and ('FTP' in MODULES)):
+   objs += Glob('ftp/*.c')
+   asenv.Append(CCFLAGS = '-DUSE_FTP')
+   asenv.Append(CCFLAGS = '-I%s/ftp'%(cwd))
 
 Return('objs')

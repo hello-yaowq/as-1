@@ -217,7 +217,10 @@ void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor)
 void asEnvInit(int argc,char* argv[])
 {
 #if defined(__WINDOWS__)
-	LoadLibraryA("backtrace.dll");
+	if(0 != LoadLibraryA("backtrace.dll"))
+	{
+		printf("load backtrace.dll failed\n");
+	}
 #endif
 	g_argc = argc;
 	g_argv = argv;
