@@ -14,7 +14,9 @@ if(not os.path.exists(fatfs)):
     try:
         RunCommand('''cd %s && wget http://elm-chan.org/fsw/ff/arc/ff13.zip && 
         mkdir ff13 && cd ff13 && unzip ../ff13.zip && rm source/diskio.c'''%(download))
-        RunCommand('cd %s/ff13/source && sed -i "138c #define FF_FS_RPATH        2" ffconf.h'%(download))
+        cmd = 'sed -i "138c #define FF_FS_RPATH        2" ffconf.h'
+        cmd += ' && sed -i "41c #define FF_USE_MKFS        1" ffconf.h'
+        RunCommand('cd %s/ff13/source && '%(download,cmd))
     except:
         uri='https://raw.githubusercontent.com/RT-Thread/rt-thread/master/components/dfs/filesystems/elmfat'
         cmd='wget %s/diskio.h && '%(uri)

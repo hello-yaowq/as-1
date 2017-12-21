@@ -37,14 +37,13 @@
 #include <stddef.h>
 
 #define vfs_load_plugin(x)
-#define bcopy(src, dest, len) memmove(dest, src, len)
 
 typedef DIR vfs_dir_t;
 typedef FIL vfs_file_t;
 typedef struct {
 	long st_size;
 	char st_mode;
-	 struct {
+	struct {
 		short date;
 		short time;
 	} st_mtime;

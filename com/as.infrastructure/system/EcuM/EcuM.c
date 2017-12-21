@@ -249,7 +249,26 @@ void EcuM_StartupTwo(void)
 #endif
 
 #ifdef USE_FATFS
-	f_mount(&FatFs, "", 1);
+	{
+		FRESULT rc;
+		rc = f_mount(&FatFs, "", 1);
+		if(FR_OK != rc)
+		{
+			rc = f_mkfs("", FM_ANY, 0, FatFs.win, sizeof(FatFs.win));
+			if(FR_OK != rc)
+			{
+				ASLOG(ERROR, "FatFS mkfs failed with error code %d\n", rc);
+			}
+			else
+			{
+				rc = f_mount(&FatFs, "", 1);
+				if(FR_OK != rc)
+				{
+					ASLOG(ERROR, "FatFS mount failed with error code %d\n", rc);
+				}
+			}
+		}
+	}
 #endif
 #ifdef USE_LWEXT4
 	ext_mount();

@@ -45,6 +45,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
+
 #if (LWIP_VERSION_MAJOR == 1U)
 #define IP_SET_TYPE_VAL(ipaddr, iptype)
 #define IPADDR_TYPE_V4 0
@@ -485,7 +487,7 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 			current_year = s_time->tm_year;
 
 			vfs_stat(fsd->msgfs->vfs, fsd->vfs_dirent->name, &st);
-			s_time = gmtime(&st.st_mtime);
+			s_time = gmtime((const time_t *)&st.st_mtime);
 			if (s_time->tm_year == current_year)
 				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %02i:%02i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_hour, s_time->tm_min, fsd->vfs_dirent->name);
 			else
@@ -1228,7 +1230,7 @@ static err_t ftpd_msgrecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t 
 			struct ftpd_command *ftpd_cmd;
 
 			for (q = p; q != NULL; q = q->next) {
-				bcopy(q->payload, pt, q->len);
+				memcpy(pt, q->payload, q->len);
 				pt += q->len;
 			}
 			*pt = '\0';

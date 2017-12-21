@@ -12,18 +12,23 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef USE_FATFS
+
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#ifdef USE_FATFS
 #include "diskio.h"
+#endif
 #include "asdebug.h"
+#ifdef USE_LWEXT4
 #include "ext4.h"
-#ifdef __LINUX__
+#include <ext4.h>
+#include <ext4_mkfs.h>
+#include <ext4_config.h>
+#include <ext4_blockdev.h>
+#include <ext4_errno.h>
 #include "file_dev.h"
-#else
-#include "file_windows.h"
 #endif
 
 /* ============================ [ MACROS    ] ====================================================== */
@@ -40,6 +45,7 @@
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifdef USE_FATFS
 DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
@@ -227,7 +233,9 @@ DWORD get_fattime (void)
 {
 	return time(0);
 }
+#endif
 
+#ifdef USE_LWEXT4
 void ext_mount(void)
 {
     int rc;
@@ -247,14 +255,9 @@ void ext_mount(void)
         fclose(fp);
     }
 
-#ifdef __WINDOWS__
-    file_windows_name_set(EXTFS_IMG);
-    bd = file_windows_dev_get();
-
-#else
     file_dev_name_set(EXTFS_IMG);
     bd = file_dev_get();
-#endif
+
     rc = ext4_device_register(bd, EXTFS_IMG);
     if(rc != EOK)
     {
@@ -264,9 +267,26 @@ void ext_mount(void)
 	rc = ext4_mount(EXTFS_IMG, "/", false);
 	if (rc != EOK)
     {
-        ASLOG(EXTFS, "mount ext4 device failed\n");
+		static struct ext4_fs fs;
+		static struct ext4_mkfs_info info = {
+			.block_size = 512,
+			.journal = true,
+		};
+		rc = ext4_mkfs(&fs, bd, &info, F_SET_EXT4);
+		if (rc != EOK)
+		{
+			printf("ext4_mkfs error: %d\n", rc);
+		}
+		else
+		{
+			rc = ext4_mount(EXTFS_IMG, "/", false);
+			if (rc != EOK)
+			{
+				ASLOG(EXTFS, "mount ext4 device failed\n");
+			}
+		}
     }
 
-    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/鈥� OK\n");
+    ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/' OK\n");
 }
-#endif /* USE_FATFS */
+#endif /* USE_LWEXT4 */
