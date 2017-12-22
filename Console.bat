@@ -8,24 +8,27 @@ cd %ASPATH%
 
 if NOT EXIST "%ASPATH%\Console.bat" goto perror
 
-set PATH=C:\Python27;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
+set PATH=C:\Anaconda3;C:\Python27;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
 set BOARD=posix
 
-cd release/asboot
-start cmd
+if NOT EXIST "%ASPATH%\release\download" mkdir %ASPATH%\release\download
 
-cd ../..
-cd release/ascore
-start cmd
+set CZ=%ASPATH%\release\download\ConsoleZ\Console.exe
 
-cd ../..
-cd release/aslua
-start cmd
+if EXIST %CZ% goto launchCZ
 
-cd ../..
-set PATH=C:\Anaconda3;%PATH%
-cd com/as.tool/as.one.py
-cmd
+cd %ASPATH%\release\download
+wget https://github.com/cbucher/console/releases/download/1.18.2/ConsoleZ.x64.1.18.2.17272.zip
+mkdir ConsoleZ
+cd ConsoleZ
+unzip ..\ConsoleZ.x64.1.18.2.17272.zip
+
+:launchCZ
+
+cd %ASPATH%
+start %CZ% -ws %ASPATH%\ConsoleZ.workspace
+
+exit 0
 
 :perror
 echo Please fix the var "ASDISK" and "ASPATH" to the right path!

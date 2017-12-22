@@ -254,6 +254,7 @@ void EcuM_StartupTwo(void)
 		rc = f_mount(&FatFs, "", 1);
 		if(FR_OK != rc)
 		{
+			ASWARNING("FatFs is invalid, do mkfs!\n");
 			rc = f_mkfs("", FM_ANY, 0, FatFs.win, sizeof(FatFs.win));
 			if(FR_OK != rc)
 			{

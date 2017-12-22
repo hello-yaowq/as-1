@@ -478,20 +478,33 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 			fsd->vfs_dirent = NULL;
 		} else {
 			vfs_stat_t st;
+			#ifdef USE_FTPD_TIME
 			time_t current_time;
 			int current_year;
-			struct tm *s_time;
-
-			time(&current_time);
-			s_time = gmtime(&current_time);
-			current_year = s_time->tm_year;
+			const struct tm *s_time;
+			#endif
 
 			vfs_stat(fsd->msgfs->vfs, fsd->vfs_dirent->name, &st);
-			s_time = gmtime((const time_t *)&st.st_mtime);
+			#ifdef USE_FTPD_TIME
+			time(&current_time);
+			s_time = gmtime(&current_time);
+			if(NULL == s_time)
+			{
+				static const struct tm tmdef =
+				{
+					.tm_year = 2017-1900,
+				};
+				s_time = &tmdef;
+			}
+			current_year = s_time->tm_year;
+
 			if (s_time->tm_year == current_year)
 				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %02i:%02i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_hour, s_time->tm_min, fsd->vfs_dirent->name);
 			else
 				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %5i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_year + 1900, fsd->vfs_dirent->name);
+			#else
+				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s\r\n", st.st_size, fsd->vfs_dirent->name);
+			#endif
 			if (VFS_ISDIR(st.st_mode))
 				buffer[0] = 'd';
 			if (sfifo_space(&fsd->fifo) < len) {

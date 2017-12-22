@@ -269,13 +269,16 @@ void ext_mount(void)
     {
 		static struct ext4_fs fs;
 		static struct ext4_mkfs_info info = {
-			.block_size = 512,
+			.block_size = 4096,
 			.journal = true,
 		};
+
+		ASWARNING(EXTFS_IMG " is invalid, do mkfs!\n");
+
 		rc = ext4_mkfs(&fs, bd, &info, F_SET_EXT4);
 		if (rc != EOK)
 		{
-			printf("ext4_mkfs error: %d\n", rc);
+			ASLOG(ERROR,"ext4_mkfs error: %d\n", rc);
 		}
 		else
 		{

@@ -8,7 +8,7 @@ ASROOT = asenv['ASROOT']
 
 print('native run command:scons run')
 if('run' in COMMAND_LINE_TARGETS):
-    build = '%s/release/%s/build/posix'%(ASROOT,asenv['RELEASE'])
+    build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
     if(os.name == 'nt'):
         if(not asenv['msys2']):
             RunCommand('%s -O2 -shared -Wall -o %s/backtrace.dll %s/com/as.infrastructure/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__'

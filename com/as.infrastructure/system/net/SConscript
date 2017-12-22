@@ -16,6 +16,6 @@ if(('LWIP' in MODULES) and ('FTP' in MODULES)):
    objs += Glob('ftp/*.c')
    asenv.Append(CPPDEFINES = 'USE_FTP')
    asenv.Append(CPPDEFINES = 'FTPD_DEBUG')
-   asenv.Append(CPPPATH = '%s/ftp'%(cwd))
+   asenv.Append(CPPPATH = ['%s/ftp'%(cwd)])
 
 Return('objs')
