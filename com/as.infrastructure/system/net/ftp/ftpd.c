@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2002 Florian Schulze.
+ * Copyright (C) 2017  AS <parai@foxmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -329,9 +330,9 @@ static int sfifo_write(sfifo_t *f, const void *_buf, int len)
 
 struct ftpd_datastate {
 	int connected;
-	vfs_dir_t *vfs_dir;
-	vfs_dirent_t *vfs_dirent;
-	vfs_file_t *vfs_file;
+	VFS_DIR *vfs_dir;
+	struct vfs_dirent *vfs_dirent;
+	VFS_FILE *vfs_file;
 	sfifo_t fifo;
 	struct tcp_pcb *msgpcb;
 	struct ftpd_msgstate *msgfs;
@@ -340,7 +341,6 @@ struct ftpd_datastate {
 struct ftpd_msgstate {
 	enum ftpd_state_e state;
 	sfifo_t fifo;
-	vfs_t *vfs;
 	struct ip_addr dataip;
 	u16_t dataport;
 	struct tcp_pcb *datapcb;
@@ -428,11 +428,9 @@ static void send_file(struct ftpd_datastate *fsd, struct tcp_pcb *pcb)
 		}
 		if (len > 2048)
 			len = 2048;
-		len = vfs_read(buffer, 1, len, fsd->vfs_file);
+		len = vfs_fread(buffer, 1, len, fsd->vfs_file);
 		if (len == 0) {
-			if (vfs_eof(fsd->vfs_file) == 0)
-				return;
-			vfs_close(fsd->vfs_file);
+			vfs_fclose(fsd->vfs_file);
 			fsd->vfs_file = NULL;
 			return;
 		}
@@ -469,7 +467,7 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 
 	if (fsd->vfs_dirent) {
 		if (shortlist) {
-			len = sprintf(buffer, "%s\r\n", fsd->vfs_dirent->name);
+			len = sprintf(buffer, "%s\r\n", fsd->vfs_dirent->d_name);
 			if (sfifo_space(&fsd->fifo) < len) {
 				send_data(pcb, fsd);
 				return;
@@ -477,14 +475,14 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 			sfifo_write(&fsd->fifo, buffer, len);
 			fsd->vfs_dirent = NULL;
 		} else {
-			vfs_stat_t st;
+			struct vfs_stat st;
 			#ifdef USE_FTPD_TIME
 			time_t current_time;
 			int current_year;
 			const struct tm *s_time;
 			#endif
 
-			vfs_stat(fsd->msgfs->vfs, fsd->vfs_dirent->name, &st);
+			vfs_stat(fsd->vfs_dirent->d_name, &st);
 			#ifdef USE_FTPD_TIME
 			time(&current_time);
 			s_time = gmtime(&current_time);
@@ -499,11 +497,11 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 			current_year = s_time->tm_year;
 
 			if (s_time->tm_year == current_year)
-				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %02i:%02i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_hour, s_time->tm_min, fsd->vfs_dirent->name);
+				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %02i:%02i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_hour, s_time->tm_min, fsd->vfs_dirent->d_name);
 			else
-				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %5i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_year + 1900, fsd->vfs_dirent->name);
+				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s %02i %5i %s\r\n", st.st_size, month_table[s_time->tm_mon], s_time->tm_mday, s_time->tm_year + 1900, fsd->vfs_dirent->d_name);
 			#else
-				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s\r\n", st.st_size, fsd->vfs_dirent->name);
+				len = sprintf(buffer, "-rw-rw-rw-   1 user     ftp  %11ld %s\r\n", st.st_size, fsd->vfs_dirent->d_name);
 			#endif
 			if (VFS_ISDIR(st.st_mode))
 				buffer[0] = 'd';
@@ -569,7 +567,7 @@ static err_t ftpd_datarecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 		for (q = p; q != NULL; q = q->next) {
 			int len;
 
-			len = vfs_write(q->payload, 1, q->len, fsd->vfs_file);
+			len = vfs_fwrite(q->payload, 1, q->len, fsd->vfs_file);
 			tot_len += len;
 			if (len != q->len)
 				break;
@@ -587,7 +585,7 @@ static err_t ftpd_datarecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 		fsm = fsd->msgfs;
 		msgpcb = fsd->msgpcb;
 
-		vfs_close(fsd->vfs_file);
+		vfs_fclose(fsd->vfs_file);
 		fsd->vfs_file = NULL;
 		ftpd_dataclose(pcb, fsd);
 		fsm->datapcb = NULL;
@@ -741,7 +739,7 @@ static void cmd_quit(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 
 static void cmd_cwd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	if (!vfs_chdir(fsm->vfs, arg)) {
+	if (!vfs_chdir(arg)) {
 		send_msg(pcb, fsm, msg250);
 	} else {
 		send_msg(pcb, fsm, msg550);
@@ -750,7 +748,7 @@ static void cmd_cwd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_cdup(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	if (!vfs_chdir(fsm->vfs, "..")) {
+	if (!vfs_chdir("..")) {
 		send_msg(pcb, fsm, msg250);
 	} else {
 		send_msg(pcb, fsm, msg550);
@@ -761,7 +759,7 @@ static void cmd_pwd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 {
 	char *path;
 
-	if ((path = vfs_getcwd(fsm->vfs, NULL, 0))) {
+	if ((path = vfs_getcwd(NULL, 0))) {
 		send_msg(pcb, fsm, msg257PWD, path);
 		free(path);
 	}
@@ -769,15 +767,15 @@ static void cmd_pwd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_list_common(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm, int shortlist)
 {
-	vfs_dir_t *vfs_dir;
+	VFS_DIR *vfs_dir;
 	char *cwd;
 
-	cwd = vfs_getcwd(fsm->vfs, NULL, 0);
+	cwd = vfs_getcwd(NULL, 0);
 	if ((!cwd)) {
 		send_msg(pcb, fsm, msg451);
 		return;
 	}
-	vfs_dir = vfs_opendir(fsm->vfs, cwd);
+	vfs_dir = vfs_opendir(cwd);
 	free(cwd);
 	if (!vfs_dir) {
 		send_msg(pcb, fsm, msg451);
@@ -811,15 +809,15 @@ static void cmd_list(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 
 static void cmd_retr(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	vfs_file_t *vfs_file;
-	vfs_stat_t st;
+	VFS_FILE *vfs_file;
+	struct vfs_stat st;
 
-	vfs_stat(fsm->vfs, arg, &st);
+	vfs_stat(arg, &st);
 	if (!VFS_ISREG(st.st_mode)) {
 		send_msg(pcb, fsm, msg550);
 		return;
 	}
-	vfs_file = vfs_open(fsm->vfs, arg, "rb");
+	vfs_file = vfs_fopen(arg, "rb");
 	if (!vfs_file) {
 		send_msg(pcb, fsm, msg550);
 		return;
@@ -828,7 +826,7 @@ static void cmd_retr(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 	send_msg(pcb, fsm, msg150recv, arg, st.st_size);
 
 	if (open_dataconnection(pcb, fsm) != 0) {
-		vfs_close(vfs_file);
+		vfs_fclose(vfs_file);
 		return;
 	}
 
@@ -838,9 +836,9 @@ static void cmd_retr(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 
 static void cmd_stor(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	vfs_file_t *vfs_file;
+	VFS_FILE *vfs_file;
 
-	vfs_file = vfs_open(fsm->vfs, arg, "wb");
+	vfs_file = vfs_fopen(arg, "wb");
 	if (!vfs_file) {
 		send_msg(pcb, fsm, msg550);
 		return;
@@ -849,7 +847,7 @@ static void cmd_stor(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 	send_msg(pcb, fsm, msg150stor, arg);
 
 	if (open_dataconnection(pcb, fsm) != 0) {
-		vfs_close(vfs_file);
+		vfs_fclose(vfs_file);
 		return;
 	}
 
@@ -1009,7 +1007,7 @@ static void cmd_rnto(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 		send_msg(pcb, fsm, msg501);
 		return;
 	}
-	if (vfs_rename(fsm->vfs, fsm->renamefrom, arg)) {
+	if (vfs_rename(fsm->renamefrom, arg)) {
 		send_msg(pcb, fsm, msg450);
 	} else {
 		send_msg(pcb, fsm, msg250);
@@ -1026,7 +1024,7 @@ static void cmd_mkd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 		send_msg(pcb, fsm, msg501);
 		return;
 	}
-	if (vfs_mkdir(fsm->vfs, arg, VFS_IRWXU | VFS_IRWXG | VFS_IRWXO) != 0) {
+	if (vfs_mkdir(arg, S_IRWXU | S_IRWXG | S_IRWXO) != 0) {
 		send_msg(pcb, fsm, msg550);
 	} else {
 		send_msg(pcb, fsm, msg257, arg);
@@ -1035,7 +1033,7 @@ static void cmd_mkd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	vfs_stat_t st;
+	struct vfs_stat st;
 
 	if (arg == NULL) {
 		send_msg(pcb, fsm, msg501);
@@ -1045,7 +1043,7 @@ static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 		send_msg(pcb, fsm, msg501);
 		return;
 	}
-	if (vfs_stat(fsm->vfs, arg, &st) != 0) {
+	if (vfs_stat(arg, &st) != 0) {
 		send_msg(pcb, fsm, msg550);
 		return;
 	}
@@ -1053,7 +1051,7 @@ static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 		send_msg(pcb, fsm, msg550);
 		return;
 	}
-	if (vfs_rmdir(fsm->vfs, arg) != 0) {
+	if (vfs_rmdir(arg) != 0) {
 		send_msg(pcb, fsm, msg550);
 	} else {
 		send_msg(pcb, fsm, msg250);
@@ -1062,7 +1060,7 @@ static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_dele(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	vfs_stat_t st;
+	struct vfs_stat st;
 
 	if (arg == NULL) {
 		send_msg(pcb, fsm, msg501);
@@ -1072,7 +1070,7 @@ static void cmd_dele(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 		send_msg(pcb, fsm, msg501);
 		return;
 	}
-	if (vfs_stat(fsm->vfs, arg, &st) != 0) {
+	if (vfs_stat(arg, &st) != 0) {
 		send_msg(pcb, fsm, msg550);
 		return;
 	}
@@ -1080,7 +1078,7 @@ static void cmd_dele(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 		send_msg(pcb, fsm, msg550);
 		return;
 	}
-	if (vfs_remove(fsm->vfs, arg) != 0) {
+	if (vfs_unlink(arg) != 0) {
 		send_msg(pcb, fsm, msg550);
 	} else {
 		send_msg(pcb, fsm, msg250);
@@ -1186,8 +1184,6 @@ static void ftpd_msgerr(void *arg, err_t err)
 	if (fsm->datafs)
 		ftpd_dataclose(fsm->datapcb, fsm->datafs);
 	sfifo_close(&fsm->fifo);
-	vfs_close(fsm->vfs);
-	fsm->vfs = NULL;
 	if (fsm->renamefrom)
 		free(fsm->renamefrom);
 	fsm->renamefrom = NULL;
@@ -1202,8 +1198,6 @@ static void ftpd_msgclose(struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 	if (fsm->datafs)
 		ftpd_dataclose(fsm->datapcb, fsm->datafs);
 	sfifo_close(&fsm->fifo);
-	vfs_close(fsm->vfs);
-	fsm->vfs = NULL;
 	if (fsm->renamefrom)
 		free(fsm->renamefrom);
 	fsm->renamefrom = NULL;
@@ -1329,11 +1323,6 @@ static err_t ftpd_msgaccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	/* Initialize the structure. */
 	sfifo_init(&fsm->fifo, 2000);
 	fsm->state = FTPD_IDLE;
-	fsm->vfs = vfs_openfs();
-	if (!fsm->vfs) {
-		free(fsm);
-		return ERR_CLSD;
-	}
 
 	/* Tell TCP that this is the structure we wish to be passed for our
 	   callbacks. */
@@ -1359,8 +1348,6 @@ static err_t ftpd_msgaccept(void *arg, struct tcp_pcb *pcb, err_t err)
 void ftpd_init(void)
 {
 	struct tcp_pcb *pcb;
-
-	vfs_load_plugin(vfs_default_fs);
 
 	pcb = tcp_new();
 	tcp_bind(pcb, IP_ADDR_ANY, 21);

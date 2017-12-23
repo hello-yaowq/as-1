@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2002 Florian Schulze.
+ * Copyright (C) 2017  AS <parai@foxmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
