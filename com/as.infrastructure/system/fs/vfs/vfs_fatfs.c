@@ -24,7 +24,10 @@
 #include "vfs.h"
 #include <string.h>
 #include <stdlib.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_FATFS 1
+#define TO_FATFS_PATH(f) (&((f)[5]))
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern const struct vfs_filesystem_ops fatfs_ops;
@@ -39,6 +42,8 @@ static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 	VFS_FILE *f;
 	BYTE flags = 0;
 	FRESULT r;
+
+	ASLOG(FATFS, "fopen(%s,%s)\n", filename, opentype);
 
 	f = malloc(sizeof(VFS_FILE));
 	if(NULL == f)
@@ -60,7 +65,7 @@ static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 		opentype++;
 	}
 
-	r = f_open(f->priv, &filename[5], flags);
+	r = f_open(f->priv, TO_FATFS_PATH(filename), flags);
 	if (FR_OK != r)
 	{
 		free(f->priv);
@@ -151,7 +156,9 @@ static int fatfs_unlink (const char *filename)
 {
 	FRESULT r;
 
-	r = f_unlink(filename);
+	ASLOG(FATFS, "unlink(%s)\n", filename);
+
+	r = f_unlink(TO_FATFS_PATH(filename));
 	if (FR_OK == r)
 	{
 		return 0;
@@ -165,7 +172,9 @@ static int fatfs_stat (const char *filename, struct vfs_stat *buf)
 	FILINFO f;
 	FRESULT r;
 
-	r = f_stat(filename, &f);
+	ASLOG(FATFS, "stat(%s)\n", filename);
+
+	r = f_stat(TO_FATFS_PATH(filename), &f);
 
 	if (FR_OK != r)
 	{
@@ -201,9 +210,11 @@ static int fatfs_stat (const char *filename, struct vfs_stat *buf)
 
 static VFS_DIR * fatfs_opendir (const char *dirname)
 {
-
 	VFS_DIR* dir;
 	FRESULT r;
+
+	ASLOG(FATFS, "opendir(%s)\n", dirname);
+
 	dir = malloc(sizeof(VFS_DIR));
 
 	if(NULL != dir)
@@ -218,12 +229,16 @@ static VFS_DIR * fatfs_opendir (const char *dirname)
 		return NULL;
 	}
 
-	r = f_opendir(dir->priv, dirname);
+	r = f_opendir(dir->priv, TO_FATFS_PATH(dirname));
 	if (FR_OK != r)
 	{
 		free(dir->priv);
 		free(dir);
 		return NULL;
+	}
+	else
+	{
+		dir->fops = &fatfs_ops;
 	}
 
 	return dir;
@@ -268,10 +283,93 @@ static int fatfs_closedir(VFS_DIR* dir)
 	return EBADF;
 }
 
+static int fatfs_chdir (const char *filename)
+{
+	FRESULT r;
+
+	ASLOG(FATFS, "chdir(%s)\n", filename);
+
+	r = f_chdir(TO_FATFS_PATH(filename));
+
+	if (FR_OK == r)
+	{
+		return 0;
+	}
+
+	return ENOTDIR;
+}
+
+static int fatfs_mkdir (const char *filename, uint32_t mode)
+{
+	FRESULT r;
+
+	ASLOG(FATFS, "mkdir(%s, 0x%x)\n", filename, mode);
+
+	r = f_mkdir(TO_FATFS_PATH(filename));
+
+	if (FR_OK == r)
+	{
+		return 0;
+	}
+
+	if ( FR_EXIST == r )
+	{
+		return EEXIST;
+	}
+
+	return EACCES;
+}
+
+static int fatfs_rmdir (const char *filename)
+{
+	FRESULT r;
+
+	ASLOG(FATFS, "rmdir(%s)\n", filename);
+
+	r = f_rmdir(TO_FATFS_PATH(filename));
+
+	if (FR_OK == r)
+	{
+		return 0;
+	}
+
+	return EACCES;
+}
+
+static int fatfs_rename (const char *oldname, const char *newname)
+{
+	FRESULT r;
+
+	ASLOG(FATFS, "rename(%s,%s)\n", oldname, newname);
+
+	r = f_rename(TO_FATFS_PATH(oldname),TO_FATFS_PATH(newname));
+
+	if (FR_OK == r)
+	{
+		return 0;
+	}
+
+	return EACCES;
+}
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 const struct vfs_filesystem_ops fatfs_ops =
 {
-	.name = "/vfat",
-
+	.name = "/vfat/",
+	.fopen = fatfs_fopen,
+	.fclose = fatfs_fclose,
+	.fread = fatfs_fread,
+	.fwrite = fatfs_fwrite,
+	.fflush = fatfs_fflush,
+	.fseek = fatfs_fseek,
+	.unlink = fatfs_unlink,
+	.stat = fatfs_stat,
+	.opendir = fatfs_opendir,
+	.readdir = fatfs_readdir,
+	.closedir = fatfs_closedir,
+	.chdir = fatfs_chdir,
+	.mkdir = fatfs_mkdir,
+	.rmdir = fatfs_rmdir,
+	.rename = fatfs_rename
 };
 #endif

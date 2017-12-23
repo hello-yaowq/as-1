@@ -76,7 +76,6 @@ struct vfs_filesystem_ops
     int (*closedir) (VFS_DIR *dirstream);
 
     int (*chdir) (const char *filename);
-    char * (*getcwd)  (char *buffer, size_t size);
     int (*mkdir) (const char *filename, uint32_t mode);
     int (*rmdir) (const char *filename);
     int (*rename) (const char *oldname, const char *newname);
