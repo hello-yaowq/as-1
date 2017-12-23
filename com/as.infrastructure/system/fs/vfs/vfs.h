@@ -16,6 +16,7 @@
 #define _VFS_H
 
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/stat.h>
@@ -51,7 +52,7 @@ struct vfs_stat {
 struct vfs_dirent
 {
 	unsigned short	d_namlen;	/* Length of name in d_name. */
-	char		d_name[260]; /* [FILENAME_MAX] */ /* File name. */
+	char		d_name[FILENAME_MAX]; /* [FILENAME_MAX] */ /* File name. */
 };
 
 /* File system operations */
@@ -77,7 +78,7 @@ struct vfs_filesystem_ops
     int (*chdir) (const char *filename);
     char * (*getcwd)  (char *buffer, size_t size);
     int (*mkdir) (const char *filename, uint32_t mode);
-    int  (*rmdir) (const char *filename);
+    int (*rmdir) (const char *filename);
     int (*rename) (const char *oldname, const char *newname);
 };
 /* ============================ [ DATAS     ] ====================================================== */
@@ -101,7 +102,7 @@ int vfs_closedir (VFS_DIR *dirstream);
 int vfs_chdir (const char *filename);
 char * vfs_getcwd  (char *buffer, size_t size);
 int vfs_mkdir (const char *filename, uint32_t mode);
-int  vfs_rmdir (const char *filename);
+int vfs_rmdir (const char *filename);
 int vfs_rename (const char *oldname, const char *newname);
 
 #endif /* _VFS_H */

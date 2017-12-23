@@ -26,12 +26,13 @@
 #include <stdlib.h>
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+/* ============================ [ DECLARES  ] ====================================================== */
+extern const struct vfs_filesystem_ops fatfs_ops;
 /* ============================ [ DATAS     ] ====================================================== */
 /* dirent that will be given to callers;
  * note: both APIs assume that only one dirent ever exists
  */
 static struct vfs_dirent dir_ent;
-/* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 {
@@ -59,12 +60,16 @@ static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 		opentype++;
 	}
 
-	r = f_open(f->priv, filename, flags);
+	r = f_open(f->priv, &filename[5], flags);
 	if (FR_OK != r)
 	{
 		free(f->priv);
 		free(f);
 		return NULL;
+	}
+	else
+	{
+		f->fops = &fatfs_ops;
 	}
 
 	return f;
@@ -264,5 +269,9 @@ static int fatfs_closedir(VFS_DIR* dir)
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
+const struct vfs_filesystem_ops fatfs_ops =
+{
+	.name = "/vfat",
 
+};
 #endif
