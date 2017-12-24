@@ -24,6 +24,9 @@
 #ifdef USE_FATFS
 extern const struct vfs_filesystem_ops fatfs_ops;
 #endif
+#ifdef USE_LWEXT4
+extern const struct vfs_filesystem_ops lwext_ops;
+#endif
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype);
 static int lvfs_fclose (VFS_FILE* stream);
 static int lvfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream);
@@ -67,6 +70,9 @@ static const struct vfs_filesystem_ops* vfs_ops[] =
 {
 #ifdef USE_FATFS
 	&fatfs_ops,
+#endif
+#ifdef USE_LWEXT4
+	&lwext_ops,
 #endif
 	/* must be the last one */
 	&lvfs_ops,
