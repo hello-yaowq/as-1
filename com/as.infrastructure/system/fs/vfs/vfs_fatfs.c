@@ -297,13 +297,21 @@ static int fatfs_chdir (const char *filename)
 	FRESULT r;
 
 	ASLOG(FATFS, "chdir(%s)\n", filename);
-
-	r = f_chdir(TO_FATFS_PATH(filename));
+	if(('\0' == TO_FATFS_PATH(filename)[0]))
+	{
+		r = f_chdir("/");
+	}
+	else
+	{
+		r = f_chdir(TO_FATFS_PATH(filename));
+	}
 
 	if (FR_OK == r)
 	{
 		return 0;
 	}
+
+	ASLOG(FATFS, "chdir(%s) failed!(%d)\n", filename, r);
 
 	return ENOTDIR;
 }
@@ -321,6 +329,7 @@ static int fatfs_mkdir (const char *filename, uint32_t mode)
 		return 0;
 	}
 
+	ASLOG(FATFS, "mkdir failed!(%d)\n", r);
 	if ( FR_EXIST == r )
 	{
 		return EEXIST;

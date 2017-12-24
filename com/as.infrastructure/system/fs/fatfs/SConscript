@@ -9,6 +9,8 @@ ASROOT = asenv['ASROOT']
 download = '%s/release/download'%(ASROOT)
 fatfs='%s/ff13'%(download)
 
+objs = []
+
 if(not os.path.exists(fatfs)):
     MKDir(download)
     try:
@@ -18,20 +20,9 @@ if(not os.path.exists(fatfs)):
         cmd += ' && sed -i "41c #define FF_USE_MKFS        1" ffconf.h'
         RunCommand('cd %s/ff13/source && %s'%(download,cmd))
     except:
-        uri='https://raw.githubusercontent.com/RT-Thread/rt-thread/master/components/dfs/filesystems/elmfat'
-        cmd='wget %s/diskio.h && '%(uri)
-        cmd+='wget %s/ff.c && '%(uri)
-        cmd+='wget %s/ff.h && '%(uri)
-        cmd+='wget %s/ffconf.h && '%(uri)
-        cmd+='wget %s/integer.h'%(uri)
-        cmd+=' && sed -i "28c //" ff.h'
-        cmd+=' && sed -i "6061c //" ff.c'
-        cmd+=' && sed -i "6062c #if 0" ff.c'
-        cmd+=' && sed -i "150c #define _FS_RPATH    2" ffconf.h'
-        RunCommand('''cd %s && mkdir -p ff13/source && cd ff13/source && %s'''%(download,cmd))
-MKSymlink(fatfs,'%s/fatfs'%(cwd))
+        Return('objs')
 
-objs = []
+MKSymlink(fatfs,'%s/fatfs'%(cwd))
 
 objs += Glob('fatfs/source/*.c')
 

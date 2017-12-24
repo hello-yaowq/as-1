@@ -240,35 +240,81 @@ static const struct vfs_filesystem_ops* search_ops(const char *filename)
 	return ops;
 }
 
-static char* abs_path(const char * path)
+static char* relpath(const char * path)
 {
 	char* abspath;
+	char* p;
+	const char* s;
 
 	abspath = malloc(FILENAME_MAX);
 
-	if('/' == path[0])
+	if(NULL != abspath)
 	{
-		if(NULL != abspath)
-		{
-			abspath = strncpy(abspath, path, FILENAME_MAX);
-		}
-	}
-	else
-	{
-		if(NULL != abspath)
-		{
-			if('\0' == vfs_cwd[1])
+		p = abspath;
+
+		memset(p,0,FILENAME_MAX);
+
+		if('/' != path[0])
+		{ 	/* relative path */
+			s = vfs_cwd;
+			while('\0' != *s)
 			{
-				abspath[0] = '/';
-				strncpy(&abspath[1], path, FILENAME_MAX);
+				*p = *s;
+				p++;
+				s++;
+			}
+
+			if(*(p-1) != '/')
+			{
+				*p = '/';
+				p++;
+			}
+
+			s = path;
+		}
+		else
+		{
+			s = path;
+		}
+
+		while('\0' != *s)
+		{
+			if(('.' == *s) && ('.' == *(s+1)))
+			{
+				if(('/' == *(p-1)) && ((p-abspath)>=2))
+				{
+					p = p-2;
+				}
+
+				while(('/' != *p) && (p > abspath))
+				{
+					p--;
+				}
+
+				s = s+2;
+			}
+			else if(('/' == *s) && ('/' == *(p-1)))
+			{
+				/* skip extra '/' */
 			}
 			else
 			{
-				snprintf(abspath, FILENAME_MAX, "%s/%s", vfs_cwd, path);
+				*p = *s;
+				p++;
+				s++;
 			}
 		}
+
+		if(p == abspath)
+		{
+			*p = '/';
+			p++;
+		}
+
+		*p = '\0';
 	}
 
+	ASLOG(VFS, "relpath(%s) = %s\n", path, abspath);
 	return abspath;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -280,7 +326,7 @@ VFS_FILE* vfs_fopen (const char *filename, const char *opentype)
 
 	ASLOG(VFS, "fopen(%s,%s)\n", filename, opentype);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -328,7 +374,7 @@ int vfs_unlink (const char *filename)
 
 	ASLOG(VFS, "unlink(%s)\n", filename);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -351,7 +397,7 @@ int vfs_stat (const char *filename, struct vfs_stat *buf)
 
 	ASLOG(VFS, "stat(%s)\n", filename);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -374,7 +420,7 @@ VFS_DIR * vfs_opendir (const char *dirname)
 
 	ASLOG(VFS, "opendir(%s)\n", dirname);
 
-	abspath = abs_path(dirname);
+	abspath = relpath(dirname);
 
 	if(NULL != abspath)
 	{
@@ -407,7 +453,7 @@ int vfs_chdir (const char *filename)
 
 	ASLOG(VFS, "chdir(%s)\n", filename);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -459,7 +505,7 @@ int vfs_mkdir (const char *filename, uint32_t mode)
 
 	ASLOG(VFS, "mkdir(%s, 0x%x)\n", filename, mode);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -482,7 +528,7 @@ int  vfs_rmdir (const char *filename)
 
 	ASLOG(VFS, "rmdir(%s)\n", filename);
 
-	abspath = abs_path(filename);
+	abspath = relpath(filename);
 
 	if(NULL != abspath)
 	{
@@ -506,8 +552,8 @@ int vfs_rename (const char *oldname, const char *newname)
 
 	ASLOG(VFS, "rename(%s,%s)\n", oldname, newname);
 
-	abspath_old = abs_path(oldname);
-	abspath_new = abs_path(newname);
+	abspath_old = relpath(oldname);
+	abspath_new = relpath(newname);
 
 	if(NULL != abspath_old)
 	{
