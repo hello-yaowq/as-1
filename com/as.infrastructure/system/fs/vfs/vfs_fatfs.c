@@ -174,11 +174,21 @@ static int fatfs_stat (const char *filename, struct vfs_stat *buf)
 
 	ASLOG(FATFS, "stat(%s)\n", filename);
 
-	r = f_stat(TO_FATFS_PATH(filename), &f);
-
-	if (FR_OK != r)
+	if(('\0' == TO_FATFS_PATH(filename)[0])
+		|| (0 == strcmp(TO_FATFS_PATH(filename),"/")) )
+	{	/* just the root */
+		f.fsize = 0;
+		f.fattrib = AM_DIR;
+	}
+	else
 	{
-		return ENOENT;
+		r = f_stat(TO_FATFS_PATH(filename), &f);
+
+		if (FR_OK != r)
+		{
+			ASLOG(FATFS, "stat failed!(%d)\n", r);
+			return ENOENT;
+		}
 	}
 
 	buf->st_size = f.fsize;
@@ -203,8 +213,6 @@ static int fatfs_stat (const char *filename, struct vfs_stat *buf)
 		buf->st_mode |= S_IEXEC|S_IREAD|S_IWRITE;
 	}
 
-	buf->st_mtime = f.ftime;
-
 	return 0;
 }
 
@@ -217,13 +225,13 @@ static VFS_DIR * fatfs_opendir (const char *dirname)
 
 	dir = malloc(sizeof(VFS_DIR));
 
-	if(NULL != dir)
+	if(NULL == dir)
 	{
 		return NULL;
 	}
 
 	dir->priv = malloc(sizeof(DIR));
-	if(NULL != dir)
+	if(NULL == dir->priv)
 	{
 		free(dir);
 		return NULL;
@@ -232,6 +240,7 @@ static VFS_DIR * fatfs_opendir (const char *dirname)
 	r = f_opendir(dir->priv, TO_FATFS_PATH(dirname));
 	if (FR_OK != r)
 	{
+		ASLOG(FATFS, "opendir(%s) failed!(%d)\n", dirname, r);
 		free(dir->priv);
 		free(dir);
 		return NULL;
@@ -355,7 +364,7 @@ static int fatfs_rename (const char *oldname, const char *newname)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 const struct vfs_filesystem_ops fatfs_ops =
 {
-	.name = "/vfat/",
+	.name = "/vfat",
 	.fopen = fatfs_fopen,
 	.fclose = fatfs_fclose,
 	.fread = fatfs_fread,

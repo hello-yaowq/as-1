@@ -42,11 +42,8 @@ typedef struct
 } VFS_FILE;
 
 struct vfs_stat {
-    uint32_t st_mode;     /* File mode */
-    size_t   st_size;     /* File size (regular files only) */
-    time_t   st_atime;    /* Last access time */
-    time_t   st_mtime;    /* Last data modification time */
-    time_t   st_ctime;    /* Last file status change time */
+	uint32_t st_mode;     /* File mode */
+	size_t   st_size;     /* File size (regular files only) */
 };
 
 struct vfs_dirent
