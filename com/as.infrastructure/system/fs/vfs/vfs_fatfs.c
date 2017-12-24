@@ -271,7 +271,7 @@ static struct vfs_dirent* fatfs_readdir(VFS_DIR* dir)
 
 	dir_ent.d_namlen = strnlen(fi.fname,sizeof(fi.fname));
 
-	memcpy(dir_ent.d_name, fi.fname, dir_ent.d_namlen);
+	strcpy(dir_ent.d_name, fi.fname);
 
 	return &dir_ent;
 }
