@@ -27,60 +27,107 @@ extern const struct vfs_filesystem_ops lwext_ops;
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* lwext_fopen (const char *filename, const char *opentype)
 {
-	(void)filename;
-	(void)opentype;
+	VFS_FILE *f;
+	int r;
 
-	return NULL;
+	ASLOG(LWEXT, "fopen(%s,%s)\n", filename, opentype);
+
+	f = malloc(sizeof(VFS_FILE));
+	if(NULL != f)
+	{
+		f->priv = malloc(sizeof(ext4_file));
+		if(NULL == f->priv)
+		{
+			free(f);
+			f = NULL;
+		}
+		else
+		{
+			r = ext4_fopen(f->priv, TO_LWEXT_PATH(filename), opentype);
+			if (0 != r)
+			{
+				free(f->priv);
+				free(f);
+				f = NULL;
+			}
+			else
+			{
+				f->fops = &lwext_ops;
+			}
+		}
+	}
+
+	return f;
 }
 
 static int lwext_fclose (VFS_FILE* stream)
 {
-	(void)stream;
+	int r;
 
-	return EACCES;
+	r = ext4_fclose(stream->priv);
+
+	if (0 == r)
+	{
+		free(stream->priv);
+		free(stream);
+	}
+
+	return r;
 }
 
 static int lwext_fread (void *data, size_t size, size_t count, VFS_FILE *stream)
 {
-	(void)data;
-	(void)size;
-	(void)count;
-	(void)stream;
+	size_t bytesread = 0;
+	int r;
 
-	return EACCES;
+	r = ext4_fread(stream->priv, data, size*count, &bytesread);
+	if (0 != r)
+	{
+		bytesread = 0;
+	}
+
+	return bytesread;
 }
 
 static int lwext_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream)
 {
-	(void)data;
-	(void)size;
-	(void)count;
-	(void)stream;
+	size_t byteswritten = 0;
+	int r;
 
-	return EACCES;
+	r = ext4_fwrite(stream->priv, data, size*count, &byteswritten);
+	if (0 != r)
+	{
+		byteswritten = 0;
+	}
+
+	return byteswritten;
 }
 
 static int lwext_fflush (VFS_FILE *stream)
 {
-	(void)stream;
+	(void) stream;
 
-	return EACCES;
+	return ENOTSUP;
 }
 
 static int lwext_fseek (VFS_FILE *stream, long int offset, int whence)
 {
-	(void)stream;
-	(void)offset;
-	(void)whence;
+	int r;
 
-	return EACCES;
+	r = ext4_fseek(stream->priv, offset, whence);
+
+	return r;
 }
 
 static int lwext_unlink (const char *filename)
 {
-	(void)filename;
+	int r;
 
-	return EACCES;
+	ASLOG(LWEXT, "unlink(%s)\n", filename);
+
+	r = ext4_fremove(TO_LWEXT_PATH(filename));
+
+	return r;
 }
 
 static int lwext_stat (const char *filename, struct vfs_stat *buf)
@@ -214,30 +261,54 @@ static int lwext_closedir (VFS_DIR *dirstream)
 static int lwext_chdir (const char *filename)
 {
 
-	return 0;
+	int r = ENOTDIR;
+
+	ASLOG(LWEXT, "chdir(%s)\n", filename);
+
+	if(('\0' == TO_LWEXT_PATH(filename)[0]))
+	{
+		r = 0;
+	}
+	else
+	{
+		r = ext4_inode_exist(TO_LWEXT_PATH(filename), EXT4_DE_DIR);;
+	}
+
+	return r;
+
 }
 
 static int lwext_mkdir (const char *filename, uint32_t mode)
 {
-	(void)filename;
-	(void)mode;
+	int r;
 
-	return EACCES;
+	ASLOG(LWEXT, "mkdir(%s, 0x%x)\n", filename, mode);
+
+	r = ext4_dir_mk(TO_LWEXT_PATH(filename));
+
+	return r;
 }
 
 static int lwext_rmdir (const char *filename)
 {
-	(void)filename;
+	int r;
 
-	return EACCES;
+	ASLOG(LWEXT, "rmdir(%s)\n", filename);
+
+	r = ext4_dir_rm(TO_LWEXT_PATH(filename));
+
+	return r;
 }
 
 static int lwext_rename (const char *oldname, const char *newname)
 {
-	(void)oldname;
-	(void)newname;
+	int r;
 
-	return EACCES;
+	ASLOG(LWEXT, "rename (%s, %s)\n", oldname, newname);
+
+	r = ext4_frename(TO_LWEXT_PATH(oldname), TO_LWEXT_PATH(newname));
+
+	return r;
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */

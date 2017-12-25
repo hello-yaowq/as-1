@@ -955,12 +955,14 @@ static void cmd_abrt(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 static void cmd_type(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
 	dbg_printf("Got TYPE -%s-\n", arg);
-	
+
+#if 0
 	if(strcmp(arg, "I") != 0) {
 		send_msg(pcb, fsm, msg502);
 		return;
 	}
-	
+#endif
+
 	send_msg(pcb, fsm, msg200);
 }
 
@@ -1115,7 +1117,7 @@ static struct ftpd_command ftpd_commands[] = {
 	{"RMD", cmd_rmd},
 	{"XRMD", cmd_rmd},
 	{"DELE", cmd_dele},
-	//{"PASV", cmd_pasv},
+	{"PASV", cmd_pasv},
 	{NULL, NULL}
 };
 

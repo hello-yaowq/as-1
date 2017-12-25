@@ -195,9 +195,14 @@ static int lvfs_closedir (VFS_DIR *dirstream)
 
 static int lvfs_chdir (const char *filename)
 {
-	strncpy(vfs_cwd, filename, FILENAME_MAX);
+	int r = EACCES;
 
-	return 0;
+	if(('/'==filename[0]) && ('\0'==filename[1]))
+	{
+		r = 0;
+	}
+
+	return r;
 }
 
 static int lvfs_mkdir (const char *filename, uint32_t mode)
@@ -302,6 +307,7 @@ static char* relpath(const char * path)
 			else if(('/' == *s) && ('/' == *(p-1)))
 			{
 				/* skip extra '/' */
+				s++;
 			}
 			else
 			{
