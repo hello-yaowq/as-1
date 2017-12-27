@@ -53,7 +53,7 @@ class RTCONFIG():
         PatchedPreProcessor.stop_handling_includes = stop_handling_includes
         # parse rtconfig.h to get used component
         PreProcessor = PatchedPreProcessor()
-        f = file('%s/rtconfig.h'%(cwd), 'r')
+        f = file('%s/menuconfig/rtconfig.h'%(cwd), 'r')
         contents = f.read()
         f.close()
         PreProcessor.process_contents(contents)
@@ -64,6 +64,16 @@ class RTCONFIG():
 Import('asenv')
 
 rtroot = '%s/rt-thread'%(cwd)
+
+if(asenv.GetOption('menuconfig')):
+    MKDir('%s/release/download/rttpkgs'%(asenv['ASROOT']))
+    cmd = 'export BSP_DIR=%s/release/download/rttpkgs'%(asenv['ASROOT'])
+    cmd += ' && export RTT_DIR=%s'%(rtroot)
+    cmd += ' && export RTT_ROOT=%s'%(rtroot)
+    cmd += ' && export BSP_DIR=%s/menuconfig'%(cwd)
+    cmd += ' && cd %s/menuconfig && scons --menuconfig'%(cwd)
+    RunCommand(cmd)
+    exit(0)
 
 remove_components=['external','gdb','vmm','vbus','utilities']
 RTT_ROOT=rtroot
@@ -77,11 +87,11 @@ if(not os.path.exists(rtroot)):
 
 MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
 
-asenv.Append(CCFLAGS=' -I%s '%(cwd))
-asenv.Append(CCFLAGS=' -I%s/../small '%(cwd))
-asenv.Append(CCFLAGS=' -I%s/components/drivers/include '%(rtroot))
-asenv.Append(CCFLAGS='-DUSE_OSAL')
-asenv.Append(CCFLAGS='-DUSE_STDRT')
+asenv.Append(CPPPATH=['%s/menuconfig'%(cwd)])
+asenv.Append(CPPPATH=['%s/../small'%(cwd)])
+asenv.Append(CPPPATH=['%s/components/drivers/include'%(rtroot)])
+asenv.Append(CPPDEFINES='USE_OSAL')
+asenv.Append(CPPDEFINES='USE_STDRT')
 objs = Glob('*.c')
 
 list = os.listdir(rtroot)

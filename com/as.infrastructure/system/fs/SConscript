@@ -15,6 +15,6 @@ if('LWEXT4' in MODULES):
 
 if(('LWEXT4' in MODULES) or (('FATFS' in MODULES))):
     objs += Glob('vfs/*.c')
-    asenv.Append(CCFLAGS = '-I%s/vfs'%(cwd))
+    asenv.Append(CPPPATH =['%s/vfs'%(cwd)])
 
 Return('objs')

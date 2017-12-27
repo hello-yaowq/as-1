@@ -88,7 +88,9 @@ void rt_console_putc(int c)
 static struct rt_device    console_device;
 static rt_uint8_t  rx_buffer[CONSOLE_RX_BUFFER_SIZE];
 static rt_uint32_t read_index, save_index;
-
+#ifdef RT_USING_POSIX
+static struct rt_semaphore rxsem;
+#endif
 static rt_err_t rt_console_init (rt_device_t dev)
 {
     return RT_EOK;
@@ -192,7 +194,9 @@ static void rt_console_isr(int vector, void* param)
 		clear_rxe_irq();
 		/* enable interrupt */
 		rt_hw_interrupt_enable(level);
-
+#ifdef RT_USING_POSIX
+		rt_sem_release(&rxsem);
+#else
 		/* invoke callback */
 		if (console_device.rx_indicate != RT_NULL)
 		{
@@ -212,6 +216,7 @@ static void rt_console_isr(int vector, void* param)
 		{
 
 		}
+#endif
 	}
 }
 
@@ -238,7 +243,9 @@ void rt_hw_console_init(void)
     console_device.write 	    = rt_console_write;
     console_device.control      = rt_console_control;
     console_device.user_data    = RT_NULL;
-
+#ifdef RT_USING_POSIX
+	rt_sem_init(&rxsem, "uartrx", 0, 0);
+#endif
     /* register a character device */
     rt_device_register(&console_device,
                               "console",
@@ -264,5 +271,16 @@ void rt_hw_console_output(const char* str)
     }
 }
 
+#ifdef RT_USING_POSIX
+int __srget_r(struct _reent * re, FILE * f)
+{
+	char ch;
+
+	while (rt_device_read(&console_device, -1, &ch, 1) != 1)
+		rt_sem_take(&rxsem, RT_WAITING_FOREVER);
+
+	return ch;
+}
+#endif
 /*@}*/
 

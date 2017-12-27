@@ -299,7 +299,7 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 			rt_err_t err;
 			/* timer maybe already stopped, so no check of the error code */
 			(void)rt_timer_stop(&osTmr[AlarmId]);
-			err = rt_timer_delete(&osTmr[AlarmId]);
+			err = rt_timer_detach(&osTmr[AlarmId]);
 			if(RT_EOK != err)
 			{
 				ercd = E_OS_ACCESS;

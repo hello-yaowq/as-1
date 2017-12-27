@@ -97,6 +97,13 @@ def PrepareBuilding(env):
             action='store_true',
             default=False,
             help='force rebuild of all')
+    if(os.name != 'nt'):
+        AddOption('--menuconfig', 
+                    dest = 'menuconfig',
+                    action = 'store_true',
+                    default = False,
+                    help = 'make menuconfig for RT-Thread BSP')
+
     if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(

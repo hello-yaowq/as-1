@@ -80,7 +80,6 @@ else:
     lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
 if(asenv['RTOS'] == 'rtthread'):
     lds = '%s/versatilepb.lds'%(cwd)
-    asenv.Append(CCFLAGS='-DRT_TICK_PER_SECOND=100')
 asenv.Append(LINKFLAGS=' -static -T %s '%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
 

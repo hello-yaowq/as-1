@@ -71,31 +71,6 @@ void rt_init_thread(void* parameter)
 	pthread_system_init();
 #endif
 
-	ftpd_start();
-}
-void rt_hw_board_init(void)
-{
-
-}
-void rt_application_init(void)
-{
-    rt_thread_t tid;
-
-#ifdef RT_USING_HEAP
-	/* init memory system */
-	rt_system_heap_init((void *)ucHeap, (void *)&ucHeap[RT_HEAP_SIZE]);
-#endif
-
-    /* init the console */
-    rt_hw_console_init();
-    rt_console_set_device("console");
-
-#ifdef RT_USING_FINSH
-    /* init finsh */
-    finsh_system_init();
-    finsh_set_device("console");
-#endif
-
 #ifdef RT_USING_DFS
 	rt_hw_asblk_init_all();
 
@@ -133,6 +108,32 @@ void rt_application_init(void)
 	}
 #endif
 #endif  /* RT_USING_DFS */
+	ftpd_start();
+}
+void rt_hw_board_init(void)
+{
+
+}
+void rt_application_init(void)
+{
+    rt_thread_t tid;
+
+#ifdef RT_USING_HEAP
+	/* init memory system */
+	rt_system_heap_init((void *)ucHeap, (void *)&ucHeap[RT_HEAP_SIZE]);
+#endif
+
+    /* init the console */
+    rt_hw_console_init();
+    rt_console_set_device("console");
+
+#ifdef RT_USING_FINSH
+    /* init finsh */
+    finsh_system_init();
+#ifndef RT_USING_POSIX
+    finsh_set_device("console");
+#endif
+#endif
 
     tid = rt_thread_create("init",
 		                  (void(*)(void*))EcuM_Init, RT_NULL,
