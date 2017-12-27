@@ -34,13 +34,14 @@
 #endif
 #endif
 
+/* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_FATFS 0
 #define AS_LOG_EXTFS 1
 /* Definitions of physical drive number for each drive */
 #define DEV_MMC		0	/* Example: Map MMC/SD card to physical drive 0 : default */
 #define DEV_RAM		1	/* Example: Map Ramdisk to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
-/* ============================ [ MACROS    ] ====================================================== */
+
 enum {
 	IMG_FATFS = 0,
 	IMG_EXT4,
@@ -59,6 +60,7 @@ enum{
 };
 
 #define EXTFS_IMG	"ExtFs.img"
+#define EXT4_FILEDEV_BSIZE 4096
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_LWEXT4
@@ -80,7 +82,7 @@ int PciBlk_Size(uint32_t blkid, uint32_t *size);
 static pci_dev *pdev = NULL;
 static void* __iobase= NULL;
 #ifdef USE_LWEXT4
-EXT4_BLOCKDEV_STATIC_INSTANCE(ext4_blkdev, 4096, 0, blockdev_open,
+EXT4_BLOCKDEV_STATIC_INSTANCE(ext4_blkdev, EXT4_FILEDEV_BSIZE, 0, blockdev_open,
 			      blockdev_bread, blockdev_bwrite, blockdev_close,
 			      blockdev_lock, blockdev_unlock);
 #endif
@@ -525,7 +527,7 @@ void ext_mount(void)
 	{
 		static struct ext4_fs fs;
 		static struct ext4_mkfs_info info = {
-			.block_size = 4096,
+			.block_size = EXT4_FILEDEV_BSIZE,
 			.journal = true,
 		};
 		rc = ext4_mkfs(&fs, &ext4_blkdev, &info, F_SET_EXT4);

@@ -283,6 +283,7 @@ static void asblk_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				}
 				else
 				{
+					fflush(d->fp[d->blkid]);
 					d->flag |= FLG_TX;
 				}
 			}

@@ -493,7 +493,7 @@ char * vfs_getcwd  (char *buffer, size_t size)
 	if(NULL == buffer)
 	{
 		size = rsize+1;
-		buffer = malloc(strlen(vfs_cwd));
+		buffer = malloc(size);
 	}
 
 	if(size < rsize)

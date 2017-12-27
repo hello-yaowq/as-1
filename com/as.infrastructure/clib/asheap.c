@@ -531,7 +531,7 @@ void free( void *pv )
 
 void *calloc(size_t nelem, size_t elsize)
 {
-	return malloc(nelem*elsize);
+	return kzmalloc(nelem*elsize);
 }
 
 void* kzmalloc(size_t size)
