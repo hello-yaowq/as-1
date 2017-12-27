@@ -261,5 +261,5 @@
  * And the maximal length must great than 64
  * #define RT_DFS_ELM_MAX_LFN	128
  */
-
+#define DFS_FILESYSTEM_TYPES_MAX 4
 #endif

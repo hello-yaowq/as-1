@@ -24,6 +24,7 @@
 #ifdef RT_USING_DFS
 /* dfs filesystem:ELM filesystem init */
 #include <dfs_elm.h>
+#include <dfs_ext.h>
 /* dfs Filesystem APIs */
 #include <dfs_fs.h>
 #endif
@@ -103,11 +104,13 @@ void rt_application_init(void)
     elm_init();
 #endif
 
+    dfs_ext_init();
+
 #ifdef RT_USING_MODULE
     rt_system_module_init();
 #endif
 
-    /* mount sd card fat partition 1 as root directory */
+#if 0
     if (dfs_mount("asblk0", "/", "elm", 0, 0) == 0)
     {
         rt_kprintf("File System FATFS initialized!\n");
@@ -116,6 +119,16 @@ void rt_application_init(void)
 	{
         rt_kprintf("File System FATFS initialzation failed!\n");
 	}
+#else
+	if (dfs_mount("asblk1", "/", "ext", 0, 0) == 0)
+	{
+		rt_kprintf("File System EXTFS initialized!\n");
+	}
+	else
+	{
+		rt_kprintf("File System EXTFS initialzation failed!\n");
+	}
+#endif
 #endif  /* RT_USING_DFS */
 
     tid = rt_thread_create("init",
