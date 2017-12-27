@@ -142,10 +142,8 @@
 #define RT_LWIP_IGMP
 #define RT_LWIP_ICMP
 /* RT_LWIP_SNMP is not set */
-#define RT_LWIP_DNS
-#define RT_LWIP_DHCP
-#define IP_SOF_BROADCAST 1
-#define IP_SOF_BROADCAST_RECV 1
+/* RT_LWIP_DNS is not set */
+/* RT_LWIP_DHCP is not set */
 
 /* Static IPv4 Address */
 
@@ -180,7 +178,7 @@
 /* Modbus master and slave stack */
 
 /* RT_USING_MODBUS is not set */
-#define LWIP_USING_DHCPD
+/* LWIP_USING_DHCPD is not set */
 /* RT_USING_NETUTILS is not set */
 
 /* RT-Thread UI Engine */
