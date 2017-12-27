@@ -28,7 +28,7 @@
 #include <rtthread.h>
 
 #ifndef RT_DFS_EXT_DRIVES
-#define RT_DFS_EXT_DRIVES 1
+#define RT_DFS_EXT_DRIVES 4
 #endif
 
 int dfs_ext_init(void);

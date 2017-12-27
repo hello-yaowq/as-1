@@ -46,6 +46,7 @@ extern void tap_netif_hw_init(void);
 extern void lwip_system_init(void);
 extern void netbios_init(void);
 extern void rt_hw_asblk_init_all(void);
+extern void ftpd_start();
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_STDRT
@@ -69,6 +70,8 @@ void rt_init_thread(void* parameter)
 #ifdef RT_USING_PTHREADS
 	pthread_system_init();
 #endif
+
+	ftpd_start();
 }
 void rt_hw_board_init(void)
 {

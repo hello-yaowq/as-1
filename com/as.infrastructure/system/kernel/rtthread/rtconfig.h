@@ -105,7 +105,7 @@
 // <integer name="DFS_FILESYSTEMS_MAX" description="The maximal number of mounted file system" default="4" />
 #define DFS_FILESYSTEMS_MAX	2
 // <integer name="DFS_FD_MAX" description="The maximal number of opened files" default="4" />
-#define DFS_FD_MAX	4
+#define DFS_FD_MAX	32
 // <bool name="RT_USING_DFS_ELMFAT" description="Using ELM FatFs" default="true" />
 #define RT_USING_DFS_ELMFAT
 #define RT_USING_DFS_LWEXT4
@@ -148,7 +148,7 @@
 // <bool name="RT_LWIP_DNS" description="Enable DNS protocol" default="true" />
 #define RT_LWIP_DNS
 // <integer name="RT_LWIP_TCP_PCB_NUM" description="Maximal number of simultaneously active TCP connections" default="5" />
-#define RT_LWIP_TCP_PCB_NUM	5
+#define RT_LWIP_TCP_PCB_NUM	32
 // <integer name="RT_LWIP_TCP_SND_BUF" description="TCP sender buffer size" default="8192" />
 #define RT_LWIP_TCP_SND_BUF	8192
 // <integer name="RT_LWIP_TCP_WND" description="TCP receive window" default="8192" />

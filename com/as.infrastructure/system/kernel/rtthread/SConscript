@@ -91,4 +91,7 @@ for d in list:
     if os.path.isfile(os.path.join(path, 'SConscript')):
         objs = objs + SConscript(os.path.join('rt-thread', d, 'SConscript'))
 
+if('FTP' in asenv['MODULES']):
+    objs += Glob('rt-thread/components/net/lwip-1.3.2/apps/ftpd.c')
+
 Return('objs')

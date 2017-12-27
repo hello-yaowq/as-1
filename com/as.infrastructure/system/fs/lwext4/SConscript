@@ -34,6 +34,8 @@ else:
     objs += Glob('*.c')
     asenv.Append(CCFLAGS = '-I%s'%(cwd))
 
+asenv.Append(CPPDEFINES='CONFIG_HAVE_OWN_OFLAGS=0')
+
 if(asenv['BOARD']=='posix'):
     objs += Glob('lwext4/blockdev/linux/*.c')
     asenv.Append(CPPPATH = ['%s/lwext4/blockdev/linux'%(cwd)])

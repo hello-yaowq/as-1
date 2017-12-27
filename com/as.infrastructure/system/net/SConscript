@@ -12,10 +12,11 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
 elif(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
     asenv.Append(CPPDEFINES = 'USE_LWIP')
 
-if(('LWIP' in MODULES) and ('FTP' in MODULES)):
-   objs += Glob('ftp/*.c')
-   asenv.Append(CPPDEFINES = 'USE_FTP')
-   asenv.Append(CPPDEFINES = 'FTPD_DEBUG')
-   asenv.Append(CPPPATH = ['%s/ftp'%(cwd)])
+if(('LWIP' in MODULES) and ('FTP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+    objs += Glob('ftp/*.c')
+    asenv.Append(CPPDEFINES = 'USE_FTP')
+    asenv.Append(CPPDEFINES = 'FTPD_DEBUG')
+    asenv.Append(CPPPATH = ['%s/ftp'%(cwd)])
+
 
 Return('objs')
