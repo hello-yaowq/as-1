@@ -11,24 +11,29 @@ objs += SConscript('kernel/SConscript')
 
 if('ECUM' in MODULES):
     objs += Glob('EcuM/*.c')
-    asenv.Append(CCFLAGS='-I%s/EcuM'%(cwd)) 
-    asenv.Append(CCFLAGS='-DUSE_ECUM')
+    asenv.Append(CPPPATH=['%s/EcuM'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_ECUM')
 
 if('SCHM' in MODULES):
     objs += Glob('SchM/*.c')
-    asenv.Append(CCFLAGS='-I%s/SchM'%(cwd)) 
-    asenv.Append(CCFLAGS='-DUSE_SCHM')
+    asenv.Append(CPPPATH=['%s/SchM'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_SCHM')
 
 if('SG' in MODULES):
     objs += Glob('gui/*.c')
-    asenv.Append(CCFLAGS='-I%s/gui'%(cwd))
+    asenv.Append(CPPPATH=['%s/gui'%(cwd)])
     if('OPENVG' in MODULES):
-        asenv.Append(CCFLAGS='-I%s/gui/openvg/include'%(cwd))
-    asenv.Append(CCFLAGS=['-DUSE_SG','-DUSE_GUI'])
+        asenv.Append(CPPPATH=['%s/gui/openvg/include'%(cwd)])
+    asenv.Append(CPPDEFINES=['USE_SG','USE_GUI'])
 
 objs += Glob('Crc/*.c')
 
 objs += SConscript('net/SConscript')
 objs += SConscript('fs/SConscript')
+
+if('SHELL' in MODULES):
+    objs += Glob('shell/*.c')
+    objs += Glob('shell/*.xml')
+    asenv.Append(CPPDEFINES='USE_SHELL')
 
 Return('objs')

@@ -87,8 +87,7 @@ if('studio' in COMMAND_LINE_TARGETS):
     exit(0)
 
 objs += Glob('%s/*.c'%(cfgdir))
-asenv.Append(CCFLAGS='-I%s'%(cfgdir))
-asenv.Append(ASFLAGS='-I%s'%(cfgdir))
+asenv.Append(CPPPATH=['%s'%(cfgdir)])
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)
@@ -100,6 +99,7 @@ try:
     flsdrv = asenv['flsdrv']
     flsobjs = flsdrv['objs']
     flsenv = Environment(CC=asenv['CC'], LINK=asenv['LINK'],
+                         CPPDEFINES=flsdrv['CPPDEFINES'],CPPPATH=flsdrv['CPPPATH'],
                          CCFLAGS=flsdrv['CCFLAGS'], LINKFLAGS=flsdrv['LINKFLAGS'])
     if(not GetOption('verbose')):
         # override the default verbose command string
@@ -117,7 +117,7 @@ try:
     action = '%s %s %s-flsdrv.s19'%(asenv['S19'],target,BOARD)
     asenv.AddPostAction(target,action)
 except KeyError:
-    pass
+    print('there is no flash-drv!')
 
 try:
     target = BOARD

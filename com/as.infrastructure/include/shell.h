@@ -43,7 +43,7 @@ int SHELL_Mainloop( void );
 #define SHELL_putc(c) putchar(c)
 #endif
 
-char SHELL_getc(void);
+void SHELL_input(char c);
 
 #ifdef __cplusplus
 }

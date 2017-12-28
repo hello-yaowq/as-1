@@ -27,7 +27,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "shell.h"
-
+#include "Os.h"
 /* ----------------------------[Private define]------------------------------*/
 
 /* The maximum number of arguments when calling a shell function */
@@ -70,13 +70,11 @@ static ShellCmdT helpInfo  = {
 
 static char cmdBuf[CMDLINE_MAX];
 
-
-/* ----------------------------[Private functions]---------------------------*/
-
-char __weak SHELL_getc(void)
+static char SHELL_getc(void)
 {
-	return 0;
+	OsWaitEvent(TaskShell, EventShellInput);
 }
+/* ----------------------------[Private functions]---------------------------*/
 #if 0
 /**
  * Removes backspace from string s and returns the null
@@ -317,8 +315,13 @@ int SHELL_Mainloop( void ) {
 			cmdLine[lineIndex++] = c;
 			SHELL_putc(c);
 		}
-
 	}
 }
 
+TASK(TaskShell)
+{
+	SHELL_Init();
+	SHELL_Mainloop();
+	OsTerminateTask(TaskShell);
+}
 

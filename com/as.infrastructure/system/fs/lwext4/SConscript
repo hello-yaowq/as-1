@@ -26,13 +26,13 @@ objs = []
 
 objs += Glob('lwext4/src/*.c')
 
-asenv.Append(CCFLAGS = '-I%s/lwext4/include'%(cwd))
-asenv.Append(CCFLAGS = '-DCONFIG_USE_DEFAULT_CFG')
+asenv.Append(CPPPATH = ['%s/lwext4/include'%(cwd)])
+asenv.Append(CPPDEFINES = 'CONFIG_USE_DEFAULT_CFG')
 if(asenv['RTOS'] != 'rtthread'):
-    asenv.Append(CCFLAGS = '-DUSE_LWEXT4')
+    asenv.Append(CPPDEFINES = 'USE_LWEXT4')
 else:
     objs += Glob('*.c')
-    asenv.Append(CCFLAGS = '-I%s'%(cwd))
+    asenv.Append(CPPPATH = ['%s'%(cwd)])
 
 asenv.Append(CPPDEFINES='CONFIG_HAVE_OWN_OFLAGS=0')
 
