@@ -182,6 +182,7 @@ static int dfs_ext_mkfs(rt_device_t devid)
 
 	return rc;
 }
+
 static int dfs_ext_ioctl(struct dfs_fd* file, int cmd, void* args)
 {
     return -RT_EIO;
@@ -334,14 +335,19 @@ static int dfs_ext_stat(struct dfs_filesystem* fs, const char *path, struct stat
 
 static int dfs_ext_getdents(struct dfs_fd* file, struct dirent* dirp, rt_uint32_t count)
 {
-	int r;
-	int i;
+	int index;
 	struct dirent *d;
 	const ext4_direntry * rentry;
 
-	for(i=0; (i*sizeof(struct dirent))<count; i++)
-	{
-		d = dirp + i;
+    /* make integer count */
+    count = (count / sizeof(struct dirent)) * sizeof(struct dirent);
+    if (count == 0)
+        return -EINVAL;
+
+    index = 0;
+    while (1)
+    {
+		d = dirp + index;
 
 		rentry = ext4_dir_entry_next(file->data);
 		if(NULL != rentry)
@@ -355,6 +361,13 @@ static int dfs_ext_getdents(struct dfs_fd* file, struct dirent* dirp, rt_uint32_
 			{
 				d->d_type = DT_REG;
 			}
+			d->d_namlen = (rt_uint8_t)rentry->name_length;
+			d->d_reclen = (rt_uint16_t)sizeof(struct dirent);
+
+			index ++;
+			if (index * sizeof(struct dirent) >= count)
+				break;
+
 		}
 		else
 		{
@@ -362,7 +375,9 @@ static int dfs_ext_getdents(struct dfs_fd* file, struct dirent* dirp, rt_uint32_
 		}
 	}
 
-	return i*sizeof(struct dirent);
+    file->pos += index * sizeof(struct dirent);
+
+    return index * sizeof(struct dirent);
 }
 
 static int dfs_ext_rename  (struct dfs_filesystem *fs, const char *oldpath, const char *newpath)
