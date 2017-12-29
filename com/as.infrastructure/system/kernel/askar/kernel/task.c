@@ -20,6 +20,15 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 TaskVarType TaskVarArray[TASK_NUM];
+#ifdef USE_SHELL
+static const char* statsNames[] =
+{
+	"SUSPENDED",
+	"RUNNING",
+	"READY",
+	"WAITING"
+};
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static void InitContext(TaskVarType* pTaskVar)
 {
@@ -37,6 +46,32 @@ static void InitContext(TaskVarType* pTaskVar)
 
 	Os_PortInitContext(pTaskVar);
 }
+#ifdef USE_SHELL
+static const char* taskStateToString(TaskStateType state)
+{
+	const char* p = "unknown";
+	if(state < sizeof(statsNames)/sizeof(char*))
+	{
+		p = statsNames[state];
+	}
+
+	return p;
+}
+static int checkStackUsage(const TaskConstType* pTaskConst, uint32_t* used)
+{
+	uint32_t i;
+	uint8_t* pStack = pTaskConst->pStack;
+
+	for(i=0; (i<pTaskConst->stackSize) && (0u == *pStack); i++, pStack++)
+	{
+		/* do nothing */
+	}
+
+	*used = pTaskConst->stackSize - i;
+	/* round up */
+	return (*used +(pTaskConst->stackSize/100 -1))*100/pTaskConst->stackSize;
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------------| */
 /* | Syntax:          | StatusType ActivateTask ( TaskType <TaskID> )              | */
@@ -46,7 +81,7 @@ static void InitContext(TaskVarType* pTaskVar)
 /* | Parameter (Out): | none                                                       | */
 /* |------------------+------------------------------------------------------------| */
 /* | Description:     | The task <TaskID> is transferred from the suspended state  | */
-/* |                  | into the ready state. The operating system ensures that    | */
+/* |                  | into the ready state. The operating system encheckStackUsagesures that    | */
 /* |                  | the task code is being executed from the first statement.  | */
 /* |------------------+------------------------------------------------------------| */
 /* | Particularities: | 1) The service may be called from interrupt level and from | */
@@ -86,6 +121,8 @@ StatusType ActivateTask ( TaskType TaskID )
 			pTaskVar-> activation = 1;
 			#endif
 
+			OS_TRACE_TASK_ACTIVATION(pTaskVar);
+
 			Sched_AddReady(TaskID);
 		}
 		else
@@ -93,6 +130,7 @@ StatusType ActivateTask ( TaskType TaskID )
 			#ifdef MULTIPLY_TASK_ACTIVATION
 			if(pTaskVar->activation < pTaskVar->pConst->maxActivation)
 			{
+				OS_TRACE_TASK_ACTIVATION(pTaskVar);
 				pTaskVar-> activation++;
 				Sched_AddReady(TaskID);
 			}
@@ -334,6 +372,7 @@ StatusType ChainTask    ( TaskType TaskID )
 
 		if(ercd == E_OK)
 		{
+			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			OSPostTaskHook();
 			Irq_Save(mask);
 			Sched_GetReady();
@@ -527,6 +566,9 @@ void Os_TaskInit(void)
 
 		pTaskVar->state = SUSPENDED;
 		pTaskVar->pConst = pTaskConst;
+		#ifdef USE_SHELL
+		pTaskVar->actCnt = 0;
+		#endif
 
 		if(TRUE == pTaskConst->autoStart)
 		{
@@ -534,3 +576,39 @@ void Os_TaskInit(void)
 		}
 	}
 }
+
+#ifdef USE_SHELL
+void statOsTask(void)
+{
+	TaskType id;
+
+	const TaskConstType* pTaskConst;
+	TaskVarType* pTaskVar;
+	int pused;
+	uint32_t used;
+	printf("Name             State      Prio IPrio RPrio  StackBase  StackSize"
+			"   Used       Event(set/wait)   Act/ActSum\n");
+
+	for(id=0; id < TASK_NUM; id++)
+	{
+		pTaskConst = &TaskConstArray[id];
+		pTaskVar   = &TaskVarArray[id];
+		pused = checkStackUsage(pTaskConst,&used);
+		printf("%-16s %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) ",
+				pTaskConst->name, taskStateToString(pTaskVar->state),
+				pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
+				pTaskConst->pStack, pTaskConst->stackSize, pused, used);
+		if(NULL != pTaskConst->pEventVar)
+		{
+			printf("%08X/%08X %-3d/%d\n",
+					pTaskConst->pEventVar->set, pTaskConst->pEventVar->wait,
+					pTaskVar->activation, pTaskVar->actCnt);
+		}
+		else
+		{
+			printf("null              %-3d/%d\n",
+					pTaskVar->activation, pTaskVar->actCnt);
+		}
+	}
+}
+#endif

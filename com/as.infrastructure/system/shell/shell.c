@@ -66,7 +66,7 @@ extern const ShellCmdT* __ssymtab_end[];
 /* ----------------------------[Private variables]---------------------------*/
 struct shellWord shellWorld;
 
-static ShellCmdT helpInfo  = {
+static SHELL_CONST ShellCmdT helpInfo  = {
 		shellHelp,
 		0,1,
 		"help",
@@ -176,7 +176,7 @@ static int shellHelp(int argc, char *argv[] ) {
 #if defined(__GNUC__)
 		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
 		{
-			SHELL_printf("::%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
+			SHELL_printf("%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
 		}
 #endif
 	} else {
@@ -192,7 +192,7 @@ static int shellHelp(int argc, char *argv[] ) {
 		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
 		{
 			if( strcmp(cmd,(*iter)->cmd) == 0 ) {
-				SHELL_printf("::%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
+				SHELL_printf("%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
 				SHELL_printf("%s\n",(*iter)->longDesc);
 			}
 		}
@@ -209,12 +209,11 @@ static int shellHelp(int argc, char *argv[] ) {
  * @return
  */
 int SHELL_Init( void ) {
-
 	shellWorld.initialized = 1;
 	TAILQ_INIT(&shellWorld.cmdHead);
-
+#if !defined(__GNUC__)
 	SHELL_AddCmd(&helpInfo);
-
+#endif
 	return 0;
 }
 
@@ -223,7 +222,6 @@ int SHELL_Init( void ) {
  * @param shellCmd
  * @return
  */
-
 int SHELL_AddCmd(ShellCmdT *shellCmd) {
 	if(shellWorld.initialized != 1 ) {
 		SHELL_Init();

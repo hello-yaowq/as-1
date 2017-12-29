@@ -22,6 +22,8 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_SHELL
 static int statOsFunc(int argc, char* argv[]);
+extern void statOsTask(void);
+extern void statOsAlarm(void);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 OSServiceIdType _errorhook_svcid;
@@ -35,8 +37,8 @@ static AppModeType appMode;
 static SHELL_CONST ShellCmdT statOsCmd  = {
 	statOsFunc,
 	0,0,
-	"statos",
-	"statos <task/alarm/counter/event>",
+	"stat",
+	"stat <task/alarm/counter>",
 	"Show the status of operationg system\n",
 	{NULL,NULL}
 };
@@ -57,7 +59,15 @@ static void Os_MiscInit(void)
 #ifdef USE_SHELL
 static int statOsFunc(int argc, char* argv[])
 {
-	printf(" stat of askar:\n");
+	if((1 == argc) || (0 == strcmp(argv[1],"task")))
+	{
+		statOsTask();
+	}
+
+	if((1 == argc) || (0 == strcmp(argv[1],"alarm")))
+	{
+		statOsAlarm();
+	}
 	return 0;
 }
 #endif

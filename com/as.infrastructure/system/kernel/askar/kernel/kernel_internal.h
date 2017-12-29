@@ -245,6 +245,9 @@ typedef struct
 	#endif
 	StatusType state;
 	ResourceType currentResource;
+	#ifdef USE_SHELL
+	uint32 actCnt;
+	#endif
 } TaskVarType;
 
 struct AlarmVar;
@@ -257,6 +260,7 @@ typedef struct
 
 typedef struct
 {
+	const char* name;
 	CounterVarType     *pVar;
 	const AlarmBaseType base;
 } CounterConstType;
@@ -270,6 +274,7 @@ typedef struct AlarmVar
 
 typedef struct
 {
+	const char* name;
 	AlarmVarType*     pVar;
 	const CounterConstType* pCounter;
 	void (*Start)(void);

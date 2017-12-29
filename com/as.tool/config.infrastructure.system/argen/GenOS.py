@@ -329,6 +329,7 @@ def GenC(gendir,os_list):
         fp.write('const CounterConstType CounterConstArray[COUNTER_NUM] =\n{\n')
         for id,counter in enumerate(counter_list):
             fp.write('\t{\n')
+            fp.write('\t\t/*.name=*/"%s",\n'%(GAGet(counter,'Name')))
             fp.write('\t\t/*.pVar=*/&CounterVarArray[COUNTER_ID_%s],\n'%(GAGet(counter,'Name')))
             fp.write('\t\t/*.base=*/{\n\t\t\t/*.maxallowedvalue=*/%s,\n'%(GAGet(counter,'MaxAllowed')))
             fp.write('\t\t\t/*.ticksperbase=*/%s,\n'%(GAGet(counter,'TicksPerBase')))
@@ -360,6 +361,7 @@ def GenC(gendir,os_list):
         fp.write('const AlarmConstType AlarmConstArray[ALARM_NUM] =\n{\n')
         for id,alarm in enumerate(alarm_list):
             fp.write('\t{\n')
+            fp.write('\t\t/*.name=*/"%s",\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pVar=*/&AlarmVarArray[ALARM_ID_%s],\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pCounter=*/&CounterConstArray[COUNTER_ID_%s],\n'%(GAGet(alarm,'Counter')))
             fp.write('\t\t/*.Start=*/%s_Autostart,\n'%(GAGet(alarm,'Name')))
