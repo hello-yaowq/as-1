@@ -40,7 +40,7 @@ int __irq_call_isr(int num, void *cpu)
 
 void irq_init()
 {
-	memset(isr_handler_table, 0, sizeof(isr_callback_t) * 32);
+	memset(isr_handler_table, 0, sizeof(isr_handler_table));
 }
 
 

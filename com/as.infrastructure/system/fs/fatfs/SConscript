@@ -26,7 +26,7 @@ MKSymlink(fatfs,'%s/fatfs'%(cwd))
 
 objs += Glob('fatfs/source/*.c')
 
-asenv.Append(CCFLAGS = '-I%s/fatfs/source'%(cwd))
-asenv.Append(CCFLAGS = '-DUSE_FATFS')
+asenv.Append(CPPPATH = ['%s/fatfs/source'%(cwd)])
+asenv.Append(CPPDEFINES = 'USE_FATFS')
 
 Return('objs')

@@ -11,72 +11,72 @@ objs = []
 if('CANIF' in MODULES):
     objs += Glob('CanIf/*.c')
     objs += Glob('CanIf/*.xml')
-    asenv.Append(CCFLAGS='-DUSE_CANIF')
+    asenv.Append(CPPDEFINES='USE_CANIF')
 
 if('CANNM' in MODULES):
     objs += Glob('CanNm/*.c')
-    asenv.Append(CCFLAGS='-DUSE_CANNM')
+    asenv.Append(CPPDEFINES='USE_CANNM')
 
 if('CANSM' in MODULES):
     objs += Glob('CanSM/*.c')
-    asenv.Append(CCFLAGS='-I%s/CanSM'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_CANSM')
+    asenv.Append(CPPATH=['%s/CanSM'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_CANSM')
 
 if('CANTP' in MODULES):
     objs += Glob('CanTp/*.c')
-    asenv.Append(CCFLAGS='-I%s/CanTp'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_CANTP')
+    asenv.Append(CPPPATH=['%s/CanTp'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_CANTP')
 
 if('COM' in MODULES):
     objs += Glob('Com/*.c')
-    asenv.Append(CCFLAGS='-I%s/Com'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_COM')
+    asenv.Append(CPPPATH=['%s/Com'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_COM')
 
 if('COMM' in MODULES):
     objs += Glob('ComM/*.c')
-    asenv.Append(CCFLAGS='-I%s/ComM'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_COMM')
+    asenv.Append(CPPPATH=['%s/ComM'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_COMM')
 
 if('DOIP' in MODULES):
     objs += Glob('DoIP/*.c')
-    asenv.Append(CCFLAGS='-I%s/DoIP'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_DOIP')
+    asenv.Append(CPPPATH=['%s/DoIP'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_DOIP')
 
 if('NM' in MODULES):
     objs += Glob('Nm/*.c')
-    asenv.Append(CCFLAGS='-I%s/Nm'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_NM')
+    asenv.Append(CPPPATH=['%s/Nm'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_NM')
 
 if('OSEKNM' in MODULES):
     objs += Glob('OsekNm/*.c')
-    asenv.Append(CCFLAGS='-I%s/OsekNm'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_OSEKNM')
+    asenv.Append(CPPPATH=['%s/OsekNm'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_OSEKNM')
 
 if('PCI' in MODULES):
     objs += Glob('Pci/pci*.c')
-    asenv.Append(CCFLAGS='-I%s/Pci'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_PCI')
+    asenv.Append(CPPPATH=['%s/Pci'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_PCI')
     if(os.name == 'nt'):
-        asenv.Append(CCFLAGS='-DUSE_PCAPIF')
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
 
 if('PDUR' in MODULES):
     objs += Glob('PduR/*.c')
-    asenv.Append(CCFLAGS='-I%s/PduR'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_PDUR')
+    asenv.Append(CPPPATH=['%s/PduR'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_PDUR')
 
 if('RPMSG' in MODULES):
     objs += Glob('RPmsg/*.c')
-    asenv.Append(CCFLAGS='-I%s/RPmsg'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_RPMSG')
+    asenv.Append(CPPPATH=['%s/RPmsg'%(cwd)])
+    asenv.Append(CPPDEFINES='-DUSE_RPMSG')
 
 if('SOAD' in MODULES):
     objs += Glob('SoAd/*.c')
-    asenv.Append(CCFLAGS='-I%s/SoAd'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_SOAD')
+    asenv.Append(CPPPATH=['%s/SoAd'%(cwd)])
+    asenv.Append(CPPDEFINES='-DUSE_SOAD')
 
 if('XCP' in MODULES):
     objs += Glob('Xcp/*.c')
-    asenv.Append(CCFLAGS='-I%s/Xcp'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_XCP')
+    asenv.Append(CPPPATH=['%s/Xcp'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_XCP')
 
 Return('objs')

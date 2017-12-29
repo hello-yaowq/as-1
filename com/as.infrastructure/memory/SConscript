@@ -10,19 +10,19 @@ objs = []
 
 if('EA' in MODULES):
     objs += Glob('Ea/*.c')
-    asenv.Append(CCFLAGS='-I%s/Ea'%(cwd))
-    asenv.Append(CCFLAGS='-DUSE_EA')
+    asenv.Append(CPPPATH=['%s/Ea'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_EA')
 
 if('FEE' in MODULES):
     objs += Glob('Fee/*.c')
-    asenv.Append(CCFLAGS='-DUSE_FEE')
+    asenv.Append(CPPDEFINES='USE_FEE')
 
 if('MEMIF' in MODULES):
     objs += Glob('MemIf/*.c')
-    asenv.Append(CCFLAGS='-DUSE_MEMIF')
+    asenv.Append(CPPDEFINES='USE_MEMIF')
 
 if('NVM' in MODULES):
     objs += Glob('NvM/*.c')
-    asenv.Append(CCFLAGS='-DUSE_NVM')
+    asenv.Append(CPPDEFINES='USE_NVM')
 
 Return('objs')

@@ -135,9 +135,9 @@ void Mcu_DistributePllClock( void )
 {
 	imask_t mask;
 #ifndef USE_STDRT
-	serial_init();
 	vic_setup();
 	irq_init();
+	serial_init();
 #endif
 
 	Irq_Save(mask);

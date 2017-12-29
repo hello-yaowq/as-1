@@ -4,6 +4,9 @@
 #include "Std_Types.h"
 #include "io.h"
 #include "irq.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 
 #define __iobase		0x101f1000
 #define IRQ_UART_NUM	12
@@ -81,9 +84,8 @@ char uart_rxdata()
 static int serial_irq_handler(void *ctx)
 {
 	(void) ctx;
-#ifndef USE_PCI
-	extern void Can_MainFunction_Read_InISR(void);
-	Can_MainFunction_Read_InISR();
+#ifdef USE_SHELL
+	SHELL_input(uart_rxdata());
 #endif
 	clear_rxe_irq();
 	return 0;

@@ -45,6 +45,12 @@ SECTIONS {
 	 **/
 	.text : {
 		*(.text)
+        /* section information for shell */
+        . = ALIGN(4);
+        __ssymtab_start = .;
+        KEEP(*(SSymTab))
+        __ssymtab_end = .;
+
 	} > RAM
     _etext = .;
 

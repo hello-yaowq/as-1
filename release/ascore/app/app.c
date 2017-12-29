@@ -310,13 +310,13 @@ void __error__(char *pcFilename, unsigned long ulLine)
 
 #if 1
 #ifndef USE_STDRT
-void abort(void) { printf("%s\n",__func__); while(1); }
+void abort(void) { printf("%s\n",__func__); asAssert(0); while(1); }
 #endif
-void _sbrk(void) { printf("%s\n",__func__); while(1); }
-void _write(void) { printf("%s\n",__func__); while(1); }
-void _close(void) { printf("%s\n",__func__); while(1); }
-void _fstat(void) { printf("%s\n",__func__); while(1); }
-void _isatty(void) { printf("%s\n",__func__); while(1); }
-void _lseek(void) { printf("%s\n",__func__); while(1); }
-void _read(void) { printf("%s\n",__func__); while(1); }
+void _sbrk(void) { printf("%s\n",__func__); asAssert(0); }
+void _write(void) { printf("%s\n",__func__); asAssert(0); }
+void _close(void) { printf("%s\n",__func__); asAssert(0); }
+void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
+void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
+void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
+void _read(void) { printf("%s\n",__func__); asAssert(0); }
 #endif

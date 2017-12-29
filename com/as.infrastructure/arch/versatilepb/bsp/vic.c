@@ -80,6 +80,7 @@ static int vic_irq_handler(void *cpu)
 {
  	uint32_t irqstatus = readl(__iobase + IRQ_STATUS);
 	uint32_t i = 0;
+
 	for (i = 0; i < 32; i++) {
 		if (irqstatus & 1) {
 			__irq_call_isr(i, cpu);
@@ -133,6 +134,7 @@ static int vic_enable_line(int num)
 {
 	if (num > 63)
 		return -1;
+
 	if(num < 32)
 	{
 		writel(__iobase + INT_ENABLE, (1 << num));

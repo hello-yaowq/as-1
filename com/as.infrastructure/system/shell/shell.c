@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include "shell.h"
 #include "Os.h"
+#include "asdebug.h"
 /* ----------------------------[Private define]------------------------------*/
 
 /* The maximum number of arguments when calling a shell function */
@@ -39,6 +40,9 @@
 #define CMDLINE_MAX		40
 #endif
 
+#define IBUFFER_MAX    32
+
+#define AS_LOG_SHELL 0
 
 /* ----------------------------[Private macro]-------------------------------*/
 /* ----------------------------[Private typedef]-----------------------------*/
@@ -70,55 +74,61 @@ static ShellCmdT helpInfo  = {
 
 static char cmdBuf[CMDLINE_MAX];
 
+static uint32_t rpos=0;
+static uint32_t wpos=0;
+static volatile uint32_t isize=0;
+static char     ibuffer[IBUFFER_MAX];
+
+void SHELL_input(char c)
+{
+	if(isize < IBUFFER_MAX)
+	{
+		ibuffer[wpos] = c;
+		wpos ++;
+		if(wpos >= IBUFFER_MAX)
+		{
+			wpos = 0;
+		}
+		isize ++;
+	}
+	else
+	{
+		ASWARNING("shell input buffer overflow!\n");
+	}
+
+	if(E_OK != OsSetEvent(TaskShell, EventShellInput))
+	{
+		asAssert(0);
+	}
+}
+
 static char SHELL_getc(void)
 {
-	OsWaitEvent(TaskShell, EventShellInput);
+	char c;
+	imask_t imask;
+	while(0 == isize)
+	{
+		if(E_OK != OsWaitEvent(TaskShell, EventShellInput))
+		{
+			asAssert(0);
+		}
+		OsClearEvent(TaskShell, EventShellInput);	
+	}
+
+	c = ibuffer[rpos];
+
+	rpos ++;
+	if(rpos >= IBUFFER_MAX)
+	{
+		rpos = 0;
+	}
+	Irq_Save(imask);
+	isize --;
+	Irq_Restore(imask);
+
+	return c;
 }
 /* ----------------------------[Private functions]---------------------------*/
-#if 0
-/**
- * Removes backspace from string s and returns the null
- * terminated string in d.
- *
- * @param d  String without backspace
- * @param s  String with potential backspaces.
- * @return   Returns d.
- */
-static char *fix(char *d, char *s) {
-	int i = 0;
-	int di = 0;
-
-	while(s[i]) {
-		if( s[i] == '\b' ) {
-			--di;
-			if(di<0) {
-				di = 0;
-			}
-		} else {
-			d[di++] = s[i];
-		}
-		i++;
-	}
-	d[di] = '\0';
-	return &d[0];
-}
-
-/**
- * Trim initial spaces...
- *
- * @param s
- * @return
- */
-static char *trim(char *s)
-{
-   while(*s && (isspace((int)*s))) {
-   	s++;
-   }
-
-   return(s);
-}
-
-#endif
 /**
  * Split and string into tokens and strip the token from whitespace.
  *
@@ -223,9 +233,6 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 
 	ASLOG(SHELL,"run cmd '%s'\n",cmdArgs);
 
-	/* Remove backspace */
-//	cmdArgs = fix((char *)cmdArgs, (char *)cmdArgs);
-
 	if (cmdArgs == NULL) {
 		return SHELL_E_CMD_IS_NULL;
 	}
@@ -304,9 +311,12 @@ int SHELL_Mainloop( void ) {
 		if( c == '\b') {
 			lineIndex--;
 			SHELL_putc(c);
-		} else if( c == '\n' || c == '\r' ) {
+		} else if( c == '\r')
+		{
+			SHELL_putc(c);
+		} 
+		else if( c == '\n' ) {
 			SHELL_putc('\n');
-			cmdLine[lineIndex++] = '\n';
 			cmdLine[lineIndex] = '\0';
 			SHELL_RunCmd(cmdLine,&cmdRv);
 			lineIndex = 0;

@@ -9,9 +9,7 @@ extern "C" {
 #endif
 
 #include <sys/queue.h>
-#include "asdebug.h"
 
-#define AS_LOG_SHELL 0
 typedef int (*ShellFuncT)(int argc, char *argv[]);
 
 typedef struct ShellCmd {
@@ -40,7 +38,7 @@ int SHELL_Mainloop( void );
 #else
 #define SHELL_printf  printf
 #define SHELL_puts    puts
-#define SHELL_putc(c) putchar(c)
+#define SHELL_putc(c) printf("%c", c)
 #endif
 
 void SHELL_input(char c);
