@@ -39,6 +39,7 @@ int SHELL_Mainloop( void );
 #define SHELL_E_CMD_TOO_LONG	1
 #define SHELL_E_CMD_IS_NULL		2
 #define SHELL_E_NO_SUCH_CMD		3
+#define SHELL_E_INVAID_ARG		4
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #define SHELL_printf  PRINTF
 #define SHELL_puts    PRINTF

@@ -17,8 +17,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "asdebug.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_VFS 1
+#define AS_LOG_VFS 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_FATFS
@@ -45,6 +48,14 @@ static int lvfs_chdir (const char *filename);
 static int lvfs_mkdir (const char *filename, uint32_t mode);
 static int lvfs_rmdir (const char *filename);
 static int lvfs_rename (const char *oldname, const char *newname);
+
+#ifdef USE_SHELL
+static int lsFunc(int argc, char* argv[]);
+static int chdirFunc(int argc, char* argv[]);
+static int mkdirFunc(int argc, char* argv[]);
+static int rmFunc(int argc, char* argv[]);
+static int pwdFunc(int argc, char* argv[]);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 static const struct vfs_filesystem_ops lvfs_ops =
 {
@@ -81,6 +92,57 @@ static const struct vfs_filesystem_ops* vfs_ops[] =
 
 static char vfs_cwd[FILENAME_MAX] = "/";
 
+#ifdef USE_SHELL
+static SHELL_CONST ShellCmdT lsVfsCmd  = {
+	lsFunc,
+	0,1,
+	"ls",
+	"ls [path]",
+	"list files of current directory or path directory\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(lsVfsCmd);
+
+static SHELL_CONST ShellCmdT chdirVfsCmd  = {
+	chdirFunc,
+	0,1,
+	"cd",
+	"cd path",
+	"change current working directory\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(chdirVfsCmd);
+
+static SHELL_CONST ShellCmdT pwdVfsCmd  = {
+	pwdFunc,
+	0,0,
+	"pwd",
+	"pwd",
+	"show full path of current working directory\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(pwdVfsCmd);
+
+static SHELL_CONST ShellCmdT mkdirVfsCmd  = {
+	mkdirFunc,
+	1,1,
+	"mkdir",
+	"mkdir path",
+	"making a directory specified by path\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(mkdirVfsCmd);
+
+static SHELL_CONST ShellCmdT rmVfsCmd  = {
+	rmFunc,
+	1,1,
+	"rm",
+	"rm path",
+	"remove a directory or file specified by path\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(rmVfsCmd);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype)
 {
@@ -304,6 +366,14 @@ static char* relpath(const char * path)
 
 				s = s+2;
 			}
+			else if('.' == *s)
+			{
+				if( ('/' == *(p-1)) && ( ('/'==*(s+1)) || ('\0'==*(s+1)) ) )
+				{
+					p = p-1;
+				}
+				s++;
+			}
 			else if(('/' == *s) && ('/' == *(p-1)))
 			{
 				/* skip extra '/' */
@@ -329,6 +399,102 @@ static char* relpath(const char * path)
 	ASLOG(VFS, "relpath(%s) = %s\n", path, abspath);
 	return abspath;
 }
+#ifdef USE_SHELL
+static int lsFunc(int argc, char* argv[])
+{
+	int r = 0;
+	const char* path;
+	VFS_DIR* dir;
+	struct vfs_dirent * dirent;
+	struct vfs_stat st;
+
+	if(1 == argc)
+	{
+		path = vfs_cwd;
+	}
+	else
+	{
+		path = argv[1];
+	}
+
+	dir = vfs_opendir(path);
+
+	if(NULL != dir)
+	{
+		dirent = vfs_readdir(dir);
+		while(NULL != dirent)
+		{
+			r = vfs_stat(dirent->d_name, &st);
+			if(0 == r)
+			{
+				printf("%srw-rw-rw- 1 as vfs %11ld %s\r\n", VFS_ISDIR(st.st_mode)?"d":"-", st.st_size, dirent->d_name);
+				dirent = vfs_readdir(dir);
+			}
+			else
+			{
+				dirent = NULL; /* stat error, stop listing */
+			}
+
+		}
+		vfs_closedir(dir);
+	}
+	else
+	{
+		r = -1;
+	}
+
+	return r;
+}
+
+static int chdirFunc(int argc, char* argv[])
+{
+	int r;
+
+	if(2 == argc)
+	{
+		r = vfs_chdir(argv[1]);
+	}
+	else
+	{
+		r = vfs_chdir("/");
+	}
+
+	return r;
+}
+
+static int pwdFunc(int argc, char* argv[])
+{
+	printf("\n%s\n",vfs_cwd);
+	return 0;
+}
+
+static int mkdirFunc(int argc, char* argv[])
+{
+	return vfs_mkdir(argv[1],0);
+}
+
+static int rmFunc(int argc, char* argv[])
+{
+	int r;
+	struct vfs_stat st;
+
+	r = vfs_stat(argv[1], &st);
+
+	if(0 == r)
+	{
+		if(VFS_ISDIR(st.st_mode))
+		{
+			r = vfs_rmdir(argv[1]);
+		}
+		else
+		{
+			r = vfs_unlink(argv[1]);
+		}
+	}
+
+	return r;
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 VFS_FILE* vfs_fopen (const char *filename, const char *opentype)
 {

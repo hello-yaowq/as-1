@@ -38,7 +38,7 @@ static SHELL_CONST ShellCmdT statOsCmd  = {
 	statOsFunc,
 	0,0,
 	"stat",
-	"stat <task/alarm/counter>",
+	"stat <task/alarm>",
 	"Show the status of operationg system\n",
 	{NULL,NULL}
 };

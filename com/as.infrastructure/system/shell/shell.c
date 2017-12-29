@@ -36,11 +36,11 @@
 #define MAX_ARGS		128
 #define CMDLINE_MAX		4096
 #else
-#define MAX_ARGS		10
-#define CMDLINE_MAX		40
+#define MAX_ARGS		32
+#define CMDLINE_MAX		256
 #endif
 
-#define IBUFFER_MAX    32
+#define IBUFFER_MAX    CMDLINE_MAX
 
 #define AS_LOG_SHELL 0
 
@@ -303,7 +303,7 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 		argc++;
 
 		while( (arg = strtokAndTrim(NULL, delim, &token_r)) != NULL ) {
-			assert(argc<MAX_ARGS);
+			asAssert(argc<MAX_ARGS);
 
 			if(NULL == arg)
 			{
@@ -314,7 +314,15 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 			argv[argc++] = arg;
 		}
 
+		if ( FALSE == ( ((argc-1)>=runCmd->argMin) && ((argc-1)<=runCmd->argMax) ) )
+		{
+			SHELL_printf("Invalid number of args\n");
+			return SHELL_E_INVAID_ARG;
+		}
+
 		*cmdRv = runCmd->func(argc, argv);
+
+		SHELL_printf("\nexit(%d)\n", *cmdRv);
 
 	} else {
 		SHELL_printf("No such command:\"%s\",strlen=%d\n",cmdStr,(int)strlen(cmdStr));
