@@ -22,6 +22,14 @@ typedef struct ShellCmd {
 	TAILQ_ENTRY(ShellCmd) cmdEntry;
 } ShellCmdT;
 
+#if defined(__GNUC__)
+#define SHELL_CONST const
+#define SHELL_CMD_EXPORT(cmd) \
+	const ShellCmdT* const __attribute__((section("SSymTab"))) cmd##Ref = &cmd; 
+#else
+#define SHELL_CONST
+#define SHELL_CMD_EXPORT(cmd)
+#endif
 int SHELL_AddCmd(ShellCmdT *shellCmd);
 int SHELL_RunCmd(const char *cmdArgs, int *cmdRv );
 int SHELL_Init( void );

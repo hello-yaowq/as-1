@@ -59,7 +59,10 @@ static int shellHelp(int argc, char *argv[] );
 #ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
 #endif
-
+#if defined(__GNUC__)
+extern const ShellCmdT* __ssymtab_start[];
+extern const ShellCmdT* __ssymtab_end[];
+#endif
 /* ----------------------------[Private variables]---------------------------*/
 struct shellWord shellWorld;
 
@@ -71,6 +74,8 @@ static ShellCmdT helpInfo  = {
 		"Show all commands all help no a specific command\n",
 		{NULL,NULL}
 };
+
+SHELL_CMD_EXPORT(helpInfo);
 
 static char cmdBuf[CMDLINE_MAX];
 
@@ -158,6 +163,9 @@ static char *strtokAndTrim(char *s1, const char *s2, char **s3)
 static int shellHelp(int argc, char *argv[] ) {
 	char *cmd = NULL;
 	ShellCmdT *iCmd;
+#if defined(__GNUC__)
+	const ShellCmdT** iter;
+#endif
 
 	if(argc == 1 ) {
 		/* display "help" */
@@ -165,6 +173,12 @@ static int shellHelp(int argc, char *argv[] ) {
 		TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
 			SHELL_printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
 		}
+#if defined(__GNUC__)
+		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
+		{
+			SHELL_printf("::%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
+		}
+#endif
 	} else {
 		cmd = argv[1];
 		/* display "help <cmd>" */
@@ -174,7 +188,15 @@ static int shellHelp(int argc, char *argv[] ) {
 				SHELL_printf("%s\n",iCmd->longDesc);
 			}
 		}
-
+#if defined(__GNUC__)
+		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
+		{
+			if( strcmp(cmd,(*iter)->cmd) == 0 ) {
+				SHELL_printf("::%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
+				SHELL_printf("%s\n",(*iter)->longDesc);
+			}
+		}
+#endif
 	}
 
 	return 0;
@@ -187,6 +209,7 @@ static int shellHelp(int argc, char *argv[] ) {
  * @return
  */
 int SHELL_Init( void ) {
+
 	shellWorld.initialized = 1;
 	TAILQ_INIT(&shellWorld.cmdHead);
 
@@ -224,10 +247,13 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 	ShellCmdT *iCmd;
 	size_t len;
 	char *cmdStr;
-	ShellCmdT *runCmd = NULL;
+	const ShellCmdT *runCmd = NULL;
 	int argc = 0;
 	char *argv[MAX_ARGS];
 	char *arg;
+#if defined(__GNUC__)
+	const ShellCmdT** iter;
+#endif
 
 	*cmdRv = 1;
 
@@ -253,6 +279,17 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 		return SHELL_E_CMD_IS_NULL;
 	}
 
+#if defined(__GNUC__)
+	for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
+	{
+		if( strcmp(cmdStr,(*iter)->cmd) == 0 ) {
+			runCmd = *iter;
+			break;
+		}
+	}
+#endif
+
+	/* post add cmd has higher priority */
 	/* Search for the command */
 	TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
 		if( strcmp(cmdStr,iCmd->cmd) == 0 ) {

@@ -14,9 +14,15 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_SHELL
+static int statOsFunc(int argc, char* argv[]);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 OSServiceIdType _errorhook_svcid;
 _ErrorHook_Par  _errorhook_par1, _errorhook_par2, _errorhook_par3;
@@ -25,6 +31,17 @@ TaskVarType* RunningVar;
 TaskVarType* ReadyVar;
 unsigned int CallLevel;
 static AppModeType appMode;
+#ifdef USE_SHELL
+static SHELL_CONST ShellCmdT statOsCmd  = {
+	statOsFunc,
+	0,0,
+	"statos",
+	"statos <task/alarm/counter/event>",
+	"Show the status of operationg system\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(statOsCmd);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static void Os_MiscInit(void)
 {
@@ -33,7 +50,17 @@ static void Os_MiscInit(void)
 	CallLevel  = TCL_NULL;
 
 	Sched_Init();
+#if defined(USE_SHELL) && !defined(__GNUC__)
+	SHELL_AddCmd(&statOsCmd);
+#endif
 }
+#ifdef USE_SHELL
+static int statOsFunc(int argc, char* argv[])
+{
+	printf(" stat of askar:\n");
+	return 0;
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------| */
 /* | Syntax:          | void StartOS ( AppModeType <Mode> )                  | */
