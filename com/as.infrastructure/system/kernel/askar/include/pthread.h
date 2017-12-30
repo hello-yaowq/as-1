@@ -17,6 +17,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
 #include "sched.h"
+#include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define PTHREAD_CREATE_JOINABLE     0x00
 #define PTHREAD_CREATE_DETACHED     0x01
@@ -26,6 +27,9 @@
 
 #define PTHREAD_SCOPE_PROCESS   0
 #define PTHREAD_SCOPE_SYSTEM    1
+
+#define PTHREAD_COND_INITIALIZER    { {NULL, NULL}, FALSE }
+#define PTHREAD_MUTEX_INITIALIZER   { {NULL, NULL}, FALSE }
 
 /* ============================ [ TYPES     ] ====================================================== */
 struct pthread
@@ -50,6 +54,25 @@ struct pthread_attr
 };
 typedef struct pthread_attr pthread_attr_t;
 
+typedef unsigned int pthread_condattr_t;
+typedef unsigned int pthread_mutexattr_t;
+
+struct pthread_mutex
+{
+	TAILQ_HEAD(pthread_mutex_head,TaskVar) head;
+
+	boolean locked;
+
+};
+typedef struct pthread_mutex pthread_mutex_t;
+
+struct pthread_cond
+{
+	TAILQ_HEAD(pthread_cond_head,TaskVar) head;
+
+	unsigned int signals;
+};
+typedef struct pthread_cond pthread_cond_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -77,7 +100,23 @@ int pthread_attr_getguardsize(pthread_attr_t const *attr, size_t *guard_size);
 int pthread_attr_setscope(pthread_attr_t *attr, int scope);
 int pthread_attr_getscope(pthread_attr_t const *attr);
 
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+
+int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
+int pthread_cond_destroy(pthread_cond_t *cond);
+int pthread_cond_broadcast(pthread_cond_t *cond);
+int pthread_cond_signal(pthread_cond_t *cond);
+
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+int pthread_cond_timedwait(pthread_cond_t        *cond,
+                           pthread_mutex_t       *mutex,
+                           const struct timespec *abstime);
+
 int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
     void *(*start) (void *), void *arg);
-
+void pthread_exit (void *value_ptr);
 #endif

@@ -23,7 +23,7 @@
 /* ============================ [ DATAS     ] ====================================================== */
 const pthread_attr_t pthread_default_attr =
 {
-	0,                          /* stack base */
+	NULL,                       /* stack base */
 	PTHREAD_DEFAULT_STACK_SIZE, /* stack size */
 	PTHREAD_DEFAULT_PRIORITY,   /* priority */
 	PTHREAD_CREATE_JOINABLE,    /* detach state */
@@ -125,12 +125,14 @@ int pthread_attr_getstacksize(pthread_attr_t const *attr, size_t *stack_size)
 
 int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stack_addr)
 {
-	return -EOPNOTSUPP;
+	attr->stack_base = stack_addr;
+	return 0;
 }
 
 int pthread_attr_getstackaddr(pthread_attr_t const *attr, void **stack_addr)
 {
-	return -EOPNOTSUPP;
+	*stack_addr = attr->stack_base;
+	return 0;
 }
 
 int pthread_attr_setstack(pthread_attr_t *attr,

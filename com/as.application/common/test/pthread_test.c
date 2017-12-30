@@ -16,42 +16,104 @@
 #include "Os.h"
 #if(OS_PTHREAD_NUM > 0)
 #include "pthread.h"
+#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
+#define BUFFER_SIZE 16
+#define OVER (-1)
+#if BUFFER_SIZE < 2
+#error BUFFER_SIZE must bigger than 2
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
+/* Circular buffer of integers. */
+struct prodcons {
+  int buffer[BUFFER_SIZE];      /* the actual data */
+  pthread_mutex_t lock;         /* mutex ensuring exclusive access to buffer */
+  int readpos, writepos;        /* positions for reading and writing */
+  pthread_cond_t notempty;      /* signaled when buffer is not empty */
+  pthread_cond_t notfull;       /* signaled when buffer is not full */
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static pthread_t threadC;
 static pthread_t threadP;
+struct prodcons buffer;
 /* ============================ [ LOCALS    ] ====================================================== */
+/* Initialize a buffer */
+
+static void init(struct prodcons * b)
+{
+	pthread_mutex_init(&b->lock, NULL);
+	pthread_cond_init(&b->notempty, NULL);
+	pthread_cond_init(&b->notfull, NULL);
+	b->readpos = 0;
+	b->writepos = 0;
+}
+
+/* Store an integer in the buffer */
+static void put(struct prodcons * b, int data)
+{
+	pthread_mutex_lock(&b->lock);
+	/* Wait until buffer is not full */
+	while ((b->writepos + 1) % BUFFER_SIZE == b->readpos) {
+		pthread_cond_wait(&b->notfull, &b->lock);
+		/* pthread_cond_wait reacquired b->lock before returning */
+	}
+	/* Write the data and advance write pointer */
+	b->buffer[b->writepos] = data;
+	b->writepos++;
+	if (b->writepos >= BUFFER_SIZE) b->writepos = 0;
+	/* Signal that the buffer is now not empty */
+	pthread_cond_signal(&b->notempty);
+	pthread_mutex_unlock(&b->lock);
+}
+
+/* Read and remove an integer from the buffer */
+
+static int get(struct prodcons * b)
+{
+	int data;
+	pthread_mutex_lock(&b->lock);
+	/* Wait until buffer is not empty */
+	while (b->writepos == b->readpos) {
+		pthread_cond_wait(&b->notempty, &b->lock);
+	}
+	/* Read the data and advance read pointer */
+	data = b->buffer[b->readpos];
+	b->readpos++;
+	if (b->readpos >= BUFFER_SIZE) b->readpos = 0;
+	/* Signal that the buffer is now not full */
+	pthread_cond_signal(&b->notfull);
+	pthread_mutex_unlock(&b->lock);
+	return data;
+}
 static void* consumer(void* arg)
 {
-	int count = 0;
-	for(;;)
-	{
-		count ++;
-		printf("consumer is running %d\n", count);
-		Os_Sleep(300);
+	int d;
+	while (1) {
+		d = get(&buffer);
+		if (d == OVER) break;
+		printf("---> %d\n", d);
 	}
-
 	return NULL;
 }
 
 static void* producer(void* arg)
 {
-	int count = 0;
-	for(;;)
-	{
-		count ++;
-		printf("producer is running %d\n", count);
-		Os_Sleep(200);
+	int n;
+	for (n = 0; n < 10000; n++) {
+		printf("%d --->\n", n);
+		put(&buffer, n);
+		//usleep(1000);
 	}
-
+	put(&buffer, OVER);
 	return NULL;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void pthread_test(void)
 {
 	int r;
+
+	init(&buffer);
 
 	r = pthread_create(&threadC, NULL, consumer, NULL);
 

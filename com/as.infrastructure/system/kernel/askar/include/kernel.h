@@ -33,6 +33,8 @@
 #define READY                      ((StatusType) 2)
 #define WAITING                    ((StatusType) 3)
 #define SLEEPING                   ((StatusType) 4)
+#define WAITING_MUTEX              ((StatusType) 5)
+#define WAITING_COND               ((StatusType) 6)
 
 #define INVALID_TASK            ((TaskType)-1)
 #define INVALID_RESOURCE        ((ResourceType)-1)

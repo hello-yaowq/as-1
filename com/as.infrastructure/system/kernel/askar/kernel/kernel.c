@@ -140,6 +140,7 @@ void OsTick(void)
 {
 #if(OS_PTHREAD_NUM > 0)
 	TaskVarType *pTaskVar;
+	TaskVarType *pNext;
 #endif
 	OsTickCounter ++;
 
@@ -149,16 +150,21 @@ void OsTick(void)
 	}
 
 #if(OS_PTHREAD_NUM > 0)
-	TAILQ_FOREACH(pTaskVar, &sleepListHead, entry)
+	pTaskVar = TAILQ_FIRST(&sleepListHead);
+	while(NULL != pTaskVar)
 	{
+		pNext = TAILQ_NEXT(pTaskVar, entry);
+
 		pTaskVar->sleep_tick --;
 		if(0u == pTaskVar->sleep_tick)
 		{
-			TAILQ_REMOVE(&sleepListHead, pTaskVar, entry);
 			pTaskVar->state = READY;
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			Sched_PosixAddReady(pTaskVar-TaskVarArray);
+			TAILQ_REMOVE(&sleepListHead, pTaskVar, entry);
 		}
+
+		pTaskVar = pNext;
 	}
 #endif
 }
