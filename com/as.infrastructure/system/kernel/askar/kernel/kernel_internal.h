@@ -195,6 +195,11 @@ enum {
 
 #define OS_IS_ALARM_STARTED(pVar) (NULL != ((pVar)->entry.tqe_prev))
 #define OS_STOP_ALARM(pVar) do { ((pVar)->entry.tqe_prev) = NULL; } while(0)
+
+#if(OS_PTHREAD_NUM > 0)
+#define PTHREAD_DEFAULT_STACK_SIZE  4096
+#define PTHREAD_DEFAULT_PRIORITY    (OS_PTHREAD_PRIORITY/2)
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -238,7 +243,7 @@ typedef struct
 	boolean autoStart;
 } TaskConstType;
 
-typedef struct
+typedef struct TaskVar
 {
 	TaskContextType context;
 	PriorityType priority;
@@ -250,6 +255,12 @@ typedef struct
 	ResourceType currentResource;
 	#ifdef USE_SHELL
 	uint32 actCnt;
+	#endif
+	#if(OS_PTHREAD_NUM > 0)
+	/* generic entry for event/timer/mutex/semaphore etc. */
+	TAILQ_ENTRY(TaskVar) entry;
+	/* for sleep purpose */
+	TickType sleep_tick;
 	#endif
 } TaskVarType;
 
@@ -295,7 +306,7 @@ extern TaskVarType* RunningVar;
 extern TaskVarType* ReadyVar;
 extern unsigned int CallLevel;
 extern const TaskConstType TaskConstArray[TASK_NUM];
-extern TaskVarType TaskVarArray[TASK_NUM];
+extern TaskVarType TaskVarArray[TASK_NUM+OS_PTHREAD_NUM];
 extern CounterVarType CounterVarArray[COUNTER_NUM];
 extern const CounterConstType CounterConstArray[COUNTER_NUM];
 extern AlarmVarType AlarmVarArray[ALARM_NUM];
@@ -318,5 +329,7 @@ extern void Sched_AddReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
 extern bool Sched_Schedule(void);
-
+#if(OS_PTHREAD_NUM > 0)
+extern void Sched_PosixAddReady(TaskType TaskID);
+#endif
 #endif /* KERNEL_INTERNAL_H_ */

@@ -28,6 +28,12 @@ _ErrorHook_Par  _errorhook_par1, _errorhook_par2, _errorhook_par3;
 
 TaskVarType* RunningVar;
 TaskVarType* ReadyVar;
+
+TickType				OsTickCounter;
+
+#if(OS_PTHREAD_NUM > 0)
+static TAILQ_HEAD(sleep_list, TaskVar) sleepListHead;
+#endif
 unsigned int CallLevel;
 static AppModeType appMode;
 #ifdef USE_SHELL
@@ -47,6 +53,12 @@ static void Os_MiscInit(void)
 	RunningVar = NULL;
 	ReadyVar   = NULL;
 	CallLevel  = TCL_NULL;
+
+	OsTickCounter = 1;
+
+#if(OS_PTHREAD_NUM > 0)
+	TAILQ_INIT(&sleepListHead);
+#endif
 
 	Sched_Init();
 #if defined(USE_SHELL) && !defined(__GNUC__)
@@ -122,4 +134,54 @@ void ShutdownOS( StatusType Error )
 AppModeType GetActiveApplicationMode ( void )
 {
 	return appMode;
+}
+
+void OsTick(void)
+{
+#if(OS_PTHREAD_NUM > 0)
+	TaskVarType *pTaskVar;
+#endif
+	OsTickCounter ++;
+
+	if(0 == OsTickCounter)
+	{	/* 0 reserved as stopped */
+		OsTickCounter = 1;
+	}
+
+#if(OS_PTHREAD_NUM > 0)
+	TAILQ_FOREACH(pTaskVar, &sleepListHead, entry)
+	{
+		pTaskVar->sleep_tick --;
+		if(0u == pTaskVar->sleep_tick)
+		{
+			TAILQ_REMOVE(&sleepListHead, pTaskVar, entry);
+			pTaskVar->state = READY;
+			OS_TRACE_TASK_ACTIVATION(pTaskVar);
+			Sched_PosixAddReady(pTaskVar-TaskVarArray);
+		}
+	}
+#endif
+}
+
+#if(OS_PTHREAD_NUM > 0)
+void Os_Sleep(TickType tick)
+{
+	imask_t imask;
+
+	Irq_Save(imask);
+	if(NULL != RunningVar)
+	{
+		RunningVar->state = SLEEPING;
+		RunningVar->sleep_tick = tick;
+		TAILQ_INSERT_TAIL(&sleepListHead, RunningVar, entry);
+		Sched_GetReady();
+		Os_PortDispatch();
+	}
+	Irq_Restore(imask);
+}
+#endif
+
+TickType GetOsTick(void)
+{
+	return OsTickCounter;
 }

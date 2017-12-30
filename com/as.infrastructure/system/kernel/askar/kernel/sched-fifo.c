@@ -145,6 +145,38 @@ static inline PriorityType Sched_GetReadyBit(void)
 
 	return ((Z<<6) + (X<<3) + Y);
 }
+
+static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
+{
+	const ReadyFIFOType* fifo;
+
+	asAssert(priority <= PRIORITY_NUM);
+
+	fifo = &ReadyFIFO[priority];
+
+	asAssert(fifo->pFIFO);
+
+	asAssert(SCHED_FIFO_SIZE(fifo) < (fifo->max-SCHED_FIFO_SLOT_OFFSET));
+
+	SCHED_FIFO_SIZE(fifo) ++;
+	fifo->pFIFO[SCHED_FIFO_TAIL(fifo)] = TaskID;
+	SCHED_FIFO_TAIL(fifo) ++;
+	if(SCHED_FIFO_TAIL(fifo) >= fifo->max)
+	{
+		SCHED_FIFO_TAIL(fifo) = SCHED_FIFO_SLOT_OFFSET;
+	}
+
+	Sched_SetReadyBit(priority);
+
+	if(ReadyVar == RunningVar)
+	{
+		priority = Sched_GetReadyBit();
+		fifo = &ReadyFIFO[priority];
+		asAssert(fifo->pFIFO);
+	}
+
+	ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sched_Init(void)
 {
@@ -179,38 +211,15 @@ void Sched_Init(void)
 
 void Sched_AddReady(TaskType TaskID)
 {
-	const ReadyFIFOType* fifo;
-
-	PriorityType priority = TaskConstArray[TaskID].initPriority;
-
-	asAssert(priority <= PRIORITY_NUM);
-
-	fifo = &ReadyFIFO[priority];
-
-	asAssert(fifo->pFIFO);
-
-	asAssert(SCHED_FIFO_SIZE(fifo) < (fifo->max-SCHED_FIFO_SLOT_OFFSET));
-
-	SCHED_FIFO_SIZE(fifo) ++;
-	fifo->pFIFO[SCHED_FIFO_TAIL(fifo)] = TaskID;
-	SCHED_FIFO_TAIL(fifo) ++;
-	if(SCHED_FIFO_TAIL(fifo) >= fifo->max)
-	{
-		SCHED_FIFO_TAIL(fifo) = SCHED_FIFO_SLOT_OFFSET;
-	}
-
-	Sched_SetReadyBit(priority);
-
-	if(ReadyVar == RunningVar)
-	{
-		priority = Sched_GetReadyBit();
-		fifo = &ReadyFIFO[priority];
-		asAssert(fifo->pFIFO);
-	}
-
-	ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
+	Sched_AddReadyInternal(TaskID, TaskConstArray[TaskID].initPriority);
 }
 
+#if(OS_PTHREAD_NUM > 0)
+void Sched_PosixAddReady(TaskType TaskID)
+{
+	Sched_AddReadyInternal(TaskID, TaskVarArray[TaskID].priority);
+}
+#endif
 void Sched_Preempt(void)
 {
 	PriorityType priority;

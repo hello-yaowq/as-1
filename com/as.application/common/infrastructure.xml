@@ -13,6 +13,8 @@
 	    		StartupHook="StartupHook" 
 	    		Conformance="ECC1"
 	    		Status="EXTENDED"
+	    		PTHREAD="32"
+	    		PTHREAD_PRIORITY="32"
 	    		Comment="Not Used" />
 		
 		<ApplicationMode Name="OSDEFAULTAPPMODE" Comment="*" />

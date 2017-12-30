@@ -112,6 +112,12 @@ def GenH(gendir,os_list):
             fp.write('#define OS_USE_POSTTASK_HOOK\n')
     except KeyError:
         fp.write('#define OS_USE_POSTTASK_HOOK\n')
+    try:
+        fp.write('#define OS_PTHREAD_NUM %s\n'%(GAGet(general,'PTHREAD')))
+        fp.write('#define OS_PTHREAD_PRIORITY %s\n'%(GAGet(general,'PTHREAD_PRIORITY')))
+    except KeyError:
+        fp.write('#define OS_PTHREAD_NUM 0\n')
+        fp.write('#define OS_PTHREAD_PRIORITY 0\n')
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')
@@ -151,7 +157,7 @@ def GenH(gendir,os_list):
         if((seqMask>>i)==0):
             seqShift=i
             break
-    fp.write('#define PRIORITY_NUM %s\n'%(maxPrio))
+    fp.write('#define PRIORITY_NUM (OS_PTHREAD_PRIORITY+%s)\n'%(maxPrio))
     fp.write('#define ACTIVATION_SUM %s\n'%(sumAct+1))
     if(multiPrio):
         fp.write('#define MULTIPLY_TASK_PER_PRIORITY\n')
@@ -243,6 +249,13 @@ def GenC(gendir,os_list):
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
+    general = ScanFrom(os_list,'General')[0]
+    try:
+        pthnum = Integer(GAGet(general,'PTHREAD'))
+        pthprio = Integer(GAGet(general,'PTHREAD_PRIORITY'))
+    except KeyError:
+        pthnum = 0
+        pthprio = 0
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('static uint32_t %s_Stack[(%s*4+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
@@ -303,8 +316,8 @@ def GenC(gendir,os_list):
         fp.write('\t\t#if (OS_STATUS == EXTENDED)\n')
         fp.write('\t\t/*.CheckAccess =*/ %s_CheckAccess,\n'%(GAGet(task,'Name')))
         fp.write('\t\t#endif\n')
-        fp.write('\t\t/*.initPriority =*/ %s,\n'%(GAGet(task,'Priority')))
-        fp.write('\t\t/*.runPriority =*/ %s,\n'%(runPrio))
+        fp.write('\t\t/*.initPriority =*/ OS_PTHREAD_PRIORITY + %s,\n'%(GAGet(task,'Priority')))
+        fp.write('\t\t/*.runPriority =*/ OS_PTHREAD_PRIORITY + %s,\n'%(runPrio))
         fp.write('\t\t/*.name =*/ "%s",\n'%(GAGet(task,'Name')))
         fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
         fp.write('\t\t/*.maxActivation =*/ %s,\n'%(maxAct))
@@ -314,13 +327,13 @@ def GenC(gendir,os_list):
     fp.write('};\n\n')
     fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')
     fp.write('\t{\n')
-    fp.write('\t\t/*.ceilPrio =*/ PRIORITY_NUM, /* RES_SCHEDULER */\n')
+    fp.write('\t\t/*.ceilPrio =*/ OS_PTHREAD_PRIORITY + PRIORITY_NUM, /* RES_SCHEDULER */\n')
     fp.write('\t},\n')
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('\t{\n')
-        fp.write('\t\t/*.ceilPrio =*/ %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
+        fp.write('\t\t/*.ceilPrio =*/ PTHREAD_PRIORITY + %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
     counter_list = ScanFrom(os_list,'Counter')
@@ -398,7 +411,11 @@ def GenC(gendir,os_list):
         if(prio > maxPrio):
             maxPrio = prio
     fp.write('#ifdef ENABLE_FIFO_SCHED\n')
-    cstr = '\nconst ReadyFIFOType ReadyFIFO[PRIORITY_NUM+1]=\n{\n'
+    cstr = '\nconst ReadyFIFOType ReadyFIFO[OS_PTHREAD_PRIORITY+PRIORITY_NUM+1]=\n{\n'
+    for prio in range(pthprio):
+        sumact = pthnum
+        fp.write('static TaskType ReadyFIFO_pthread_prio%s[%s];\n'%(prio,sumact))
+        cstr += '\t{\n\t\t/*.max=*/%s,\n\t\t/*.pFIFO=*/ReadyFIFO_pthread_prio%s\n\t},\n'%(sumact, prio)
     for prio in range(maxPrio+1):
         sumact = 3+2 # 2 for the ceiling of resource and one more additional slow
         comments = ''

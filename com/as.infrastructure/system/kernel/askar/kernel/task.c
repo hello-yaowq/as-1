@@ -19,14 +19,15 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-TaskVarType TaskVarArray[TASK_NUM];
+TaskVarType TaskVarArray[TASK_NUM+OS_PTHREAD_NUM];
 #ifdef USE_SHELL
 static const char* statsNames[] =
 {
 	"SUSPENDED",
 	"RUNNING",
 	"READY",
-	"WAITING"
+	"WAITING",
+	"SLEEPING"
 };
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -575,6 +576,13 @@ void Os_TaskInit(void)
 			(void)ActivateTask(id);
 		}
 	}
+#if(OS_PTHREAD_NUM > 0)
+	for(id=0; id < OS_PTHREAD_NUM; id++)
+	{
+		pTaskVar   = &TaskVarArray[TASK_NUM+id];
+		pTaskVar->pConst = NULL;
+	}
+#endif
 }
 
 #ifdef USE_SHELL

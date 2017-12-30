@@ -22,6 +22,7 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void tester_time_1000ms_runnable(void);
 extern void tester_nvm_1000ms_runnable(void);
+extern void pthread_test(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TimerType timer;
@@ -30,6 +31,9 @@ KSM(Tester,Init)
 {
 	KGS(Tester,RoundRobin);
 	StartTimer(&timer);
+#if(OS_PTHREAD_NUM > 0)
+	pthread_test();
+#endif
 }
 
 KSM(Tester,Start)

@@ -30,10 +30,18 @@
 #endif
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#ifdef USE_FEE
 //#define ENABLE_FEE_TEST
+#endif
+#ifdef USE_NVM
 //#define ENABLE_NVM_TEST
+#endif
+#ifdef USE_EA
 //#define ENABLE_EA_TEST
+#endif
+#ifdef USE_DEM
 #define ENABLE_DEM_TEST
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -220,6 +228,7 @@ void tester_time_1000ms_runnable(void)
 	static boolean called = False;
 	if(!called)
 	{
+#ifdef USE_NVM
 #if 0
 		SystemTime.year   = Rte_NvMRead(Time,Year,SystemTime.year);
 		SystemTime.month  = Rte_NvMRead(Time,Month,SystemTime.month);
@@ -229,6 +238,7 @@ void tester_time_1000ms_runnable(void)
 		SystemTime.second = Rte_NvMRead(Time,Second,SystemTime.second);
 #else
 		memcpy(&SystemTime,Rte_NvMReadBuffer(Time),sizeof(App_TimeType));
+#endif
 #endif
 	}
 	SystemTime.second ++;
@@ -272,6 +282,4 @@ void tester_nvm_1000ms_runnable(void)
 	#ifdef ENABLE_DEM_TEST
 	Dem_Test();
 	#endif
-
-	fflush(stdout);
 }

@@ -32,6 +32,7 @@
 #define RUNNING                    ((StatusType) 1)
 #define READY                      ((StatusType) 2)
 #define WAITING                    ((StatusType) 3)
+#define SLEEPING                   ((StatusType) 4)
 
 #define INVALID_TASK            ((TaskType)-1)
 #define INVALID_RESOURCE        ((ResourceType)-1)
@@ -215,4 +216,6 @@ void ResumeAllInterrupts ( void );
 
 void SuspendOSInterrupts( void );
 void ResumeOSInterrupts ( void );
+
+void Os_Sleep(TickType tick);
 #endif /* KERNEL_H_ */

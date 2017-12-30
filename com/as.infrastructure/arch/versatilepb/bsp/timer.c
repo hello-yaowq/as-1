@@ -34,6 +34,12 @@ uint8 __weak SignalCounter(uint8 counter)
 	(void) counter;
 	return 0;
 }
+
+void __weak OsTick(void)
+{
+
+};
+
 void __weak tpl_call_counter_tick()
 {
 	SignalCounter(0);
@@ -45,12 +51,8 @@ int timer_irq_handler(void *ctx)
 
 	if(NULL == callback)
 	{
-		#if defined(__AS_BOOTLOADER__)
-		extern void OsTick(void);
 		OsTick();
-		#else
 		tpl_call_counter_tick();
-		#endif
 	}
 	else
 	{
