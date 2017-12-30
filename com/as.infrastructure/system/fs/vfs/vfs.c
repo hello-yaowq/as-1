@@ -55,6 +55,7 @@ static int chdirFunc(int argc, char* argv[]);
 static int mkdirFunc(int argc, char* argv[]);
 static int rmFunc(int argc, char* argv[]);
 static int pwdFunc(int argc, char* argv[]);
+static int catFunc(int argc, char* argv[]);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 static const struct vfs_filesystem_ops lvfs_ops =
@@ -142,6 +143,16 @@ static SHELL_CONST ShellCmdT rmVfsCmd  = {
 	{NULL,NULL}
 };
 SHELL_CMD_EXPORT(rmVfsCmd);
+
+static SHELL_CONST ShellCmdT catVfsCmd  = {
+	catFunc,
+	1,1,
+	"cat",
+	"cat file",
+	"show file content in ascii mode\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(catVfsCmd);
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype)
@@ -372,6 +383,11 @@ static char* relpath(const char * path)
 				{
 					p = p-1;
 				}
+				else
+				{
+					*p = *s;
+					p++;
+				}
 				s++;
 			}
 			else if(('/' == *s) && ('/' == *(p-1)))
@@ -427,14 +443,13 @@ static int lsFunc(int argc, char* argv[])
 			r = vfs_stat(dirent->d_name, &st);
 			if(0 == r)
 			{
-				printf("%srw-rw-rw- 1 as vfs %11ld %s\r\n", VFS_ISDIR(st.st_mode)?"d":"-", st.st_size, dirent->d_name);
+				SHELL_printf("%srw-rw-rw- 1 as vfs %11ld %s\r\n", VFS_ISDIR(st.st_mode)?"d":"-", st.st_size, dirent->d_name);
 				dirent = vfs_readdir(dir);
 			}
 			else
 			{
 				dirent = NULL; /* stat error, stop listing */
 			}
-
 		}
 		vfs_closedir(dir);
 	}
@@ -464,7 +479,7 @@ static int chdirFunc(int argc, char* argv[])
 
 static int pwdFunc(int argc, char* argv[])
 {
-	printf("\n%s\n",vfs_cwd);
+	SHELL_printf("\n%s\n",vfs_cwd);
 	return 0;
 }
 
@@ -492,6 +507,33 @@ static int rmFunc(int argc, char* argv[])
 		}
 	}
 
+	return r;
+}
+
+static int catFunc(int argc, char* argv[])
+{
+	VFS_FILE* f;
+	char buf[33];
+	int r = 0;
+
+	f = vfs_fopen(argv[1], "r");
+
+	if(NULL != f)
+	{
+		do {
+			r = vfs_fread(buf, sizeof(buf)-1, 1, f);
+
+			if(r > 0)
+			{
+				buf[r] = '\0';
+				SHELL_printf("%s",buf);
+			}
+		} while(r > 0);
+	}
+	else
+	{
+		r = -1;
+	}
 	return r;
 }
 #endif

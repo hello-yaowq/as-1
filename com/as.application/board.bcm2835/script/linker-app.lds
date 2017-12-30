@@ -44,7 +44,7 @@ SECTIONS {
 	 *
 	 **/
 	.text : {
-		*(.text)
+		*(.text*)
         /* section information for shell */
         . = ALIGN(4);
         __ssymtab_start = .;
@@ -58,7 +58,8 @@ SECTIONS {
 	* Next we put the data.
 	*/
 	.data : {
-		*(.data)
+		*(.data*)
+		*(.rodata*)
 	} > RAM
 	
 

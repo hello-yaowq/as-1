@@ -347,12 +347,14 @@ struct pbuf *tap_netif_rx(rt_device_t dev)
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 {
+	imask_t imask;
 	pdev = find_pci_dev_from_id(0xcaac,0x0002);
 	if(NULL != pdev)
 	{
 		uint32 val;
 		__iobase = (void*)(pdev->mem_addr[1]);
 
+		Irq_Save(imask);
 		enable_pci_resource(pdev);
 		#ifdef __X86__
 		pci_register_irq(pdev->irq_num,Eth_Isr);
@@ -380,6 +382,7 @@ void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 		val = readl(__iobase+REG_MACH);
 		hwaddr[4] = (val>>0)&0xFF;
 		hwaddr[5] = (val>>8)&0xFF;
+		Irq_Restore(imask);
 	}
 	else
 	{
@@ -409,8 +412,12 @@ struct pbuf * low_level_input(void)
 		len2 --;
 	}
 
-	Irq_Restore(irq_state);
-	if(0 == len) return NULL;
+
+	if(0 == len)
+	{
+		Irq_Restore(irq_state);
+		return NULL;
+	}
 
 	/* We allocate a pbuf chain of pbufs from the pool. */
 	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
@@ -431,7 +438,7 @@ struct pbuf * low_level_input(void)
 	} else {
 		/* drop packet(); */
 	}
-
+	Irq_Restore(irq_state);
 	return p;
 }
 
@@ -446,6 +453,7 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 
 	if(NULL == __iobase) return ERR_ABRT;
 
+	Irq_Save(irq_state);
 	/* initiate transfer(); */
 
 	bufptr = &pkbuf[0];
@@ -459,7 +467,6 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 		bufptr += q->len;
 	}
 
-	Irq_Save(irq_state);
 	/* signal that packet should be sent(); */
 	writel(__iobase+REG_LENGTH,p->tot_len);
 	while(p->tot_len > 0)

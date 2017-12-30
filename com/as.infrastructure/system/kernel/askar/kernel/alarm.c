@@ -428,13 +428,13 @@ void statOsAlarm(void)
 	AlarmVarType *pVar;
 	const AlarmConstType *pConst;
 
-	printf("\nName             Status Value      Period     Counter\n");
+	SHELL_printf("\nName             Status Value      Period     Counter\n");
 	for(id=0; id < ALARM_NUM; id++)
 	{
 		pConst = &AlarmConstArray[id];
 		pVar = &AlarmVarArray[id];
 
-		printf("%-16s %-6s %-10d %-10d %s(%d)\n",
+		SHELL_printf("%-16s %-6s %-10d %-10d %s(%d)\n",
 				pConst->name, OS_IS_ALARM_STARTED(pVar)?"start":"stop",
 				pVar->value, pVar->period,
 				pConst->pCounter->name, pConst->pCounter->pVar->value);

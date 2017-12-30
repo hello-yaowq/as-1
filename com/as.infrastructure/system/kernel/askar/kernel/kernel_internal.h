@@ -18,6 +18,9 @@
 #include "Os.h"
 #include <sys/queue.h>
 #include "portable.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /*
  * BCC1 (only basic tasks, limited to one activation request per task and one task per

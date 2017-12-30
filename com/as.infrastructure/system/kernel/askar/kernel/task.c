@@ -586,7 +586,7 @@ void statOsTask(void)
 	TaskVarType* pTaskVar;
 	int pused;
 	uint32_t used;
-	printf("Name             State      Prio IPrio RPrio  StackBase  StackSize"
+	SHELL_printf("Name             State      Prio IPrio RPrio  StackBase  StackSize"
 			"   Used       Event(set/wait)   Act/ActSum\n");
 
 	for(id=0; id < TASK_NUM; id++)
@@ -594,19 +594,19 @@ void statOsTask(void)
 		pTaskConst = &TaskConstArray[id];
 		pTaskVar   = &TaskVarArray[id];
 		pused = checkStackUsage(pTaskConst,&used);
-		printf("%-16s %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) ",
+		SHELL_printf("%-16s %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) ",
 				pTaskConst->name, taskStateToString(pTaskVar->state),
 				pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
 				pTaskConst->pStack, pTaskConst->stackSize, pused, used);
 		if(NULL != pTaskConst->pEventVar)
 		{
-			printf("%08X/%08X %-3d/%d\n",
+			SHELL_printf("%08X/%08X %-3d/%d\n",
 					pTaskConst->pEventVar->set, pTaskConst->pEventVar->wait,
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 		else
 		{
-			printf("null              %-3d/%d\n",
+			SHELL_printf("null              %-3d/%d\n",
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 	}
