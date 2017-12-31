@@ -75,41 +75,38 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(NULL != pTaskVar)
 	{
-		pthread = malloc(sizeof(struct pthread));
-		if(NULL != pthread)
-		{
+
+		if((NULL != attr) && (NULL != attr->stack_base))
+		{	/* to create it totally static by using stack to allocate pthread */
+			pthread = (pthread_t)attr->stack_base;
 			pthread->pTaskVar = pTaskVar;
 			pTaskConst = &(pthread->TaskConst);
 
-			if((NULL != attr) && (NULL != attr->stack_base))
-			{
-				pTaskConst->pStack = attr->stack_base;
-				pTaskConst->stackSize = attr->stack_size;
-				pTaskConst->initPriority = attr->priority;
-				pTaskConst->runPriority = attr->priority;
-				DYNAMIC_CREATED_PTHREAD(pTaskConst) = TRUE;
-				asAssert(attr->priority < OS_PTHREAD_PRIORITY);
-			}
-			else
-			{
-				pTaskConst->pStack = malloc(PTHREAD_DEFAULT_STACK_SIZE);
-				if(NULL == pTaskConst->pStack)
-				{
-					free(pthread);
-					ercd = -ENOMEM;
-				}
-				else
-				{
-					pTaskConst->stackSize = PTHREAD_DEFAULT_STACK_SIZE;
-					pTaskConst->initPriority = PTHREAD_DEFAULT_PRIORITY;
-					pTaskConst->runPriority = PTHREAD_DEFAULT_PRIORITY;
-					DYNAMIC_CREATED_PTHREAD(pTaskConst) = FALSE;
-				}
-			}
+			pTaskConst->pStack = attr->stack_base+sizeof(struct pthread);
+			pTaskConst->stackSize = attr->stack_size - sizeof(struct pthread);
+			pTaskConst->initPriority = attr->priority;
+			pTaskConst->runPriority = attr->priority;
+			DYNAMIC_CREATED_PTHREAD(pTaskConst) = FALSE;
+			asAssert(attr->priority < OS_PTHREAD_PRIORITY);
 		}
 		else
 		{
-			ercd = -ENOMEM;
+			pthread = malloc(PTHREAD_DEFAULT_STACK_SIZE+sizeof(struct pthread));
+			if(NULL == pthread)
+			{
+				free(pthread);
+				ercd = -ENOMEM;
+			}
+			else
+			{
+				pthread->pTaskVar = pTaskVar;
+				pTaskConst = &(pthread->TaskConst);
+				pTaskConst->pStack = ((void*)pthread)+sizeof(struct pthread);
+				pTaskConst->stackSize = PTHREAD_DEFAULT_STACK_SIZE;
+				pTaskConst->initPriority = PTHREAD_DEFAULT_PRIORITY;
+				pTaskConst->runPriority = PTHREAD_DEFAULT_PRIORITY;
+				DYNAMIC_CREATED_PTHREAD(pTaskConst) = TRUE;
+			}
 		}
 	}
 	else
@@ -154,10 +151,8 @@ void pthread_exit (void *value_ptr)
 
 	if(TRUE == DYNAMIC_CREATED_PTHREAD(pTaskConst))
 	{
-		free(pTaskConst->pStack);
+		free(pTaskConst);
 	}
-
-	free(pTaskConst);
 
 	Sched_GetReady();
 	Os_PortDispatch();
@@ -284,6 +279,9 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 {
 	TaskVarType* pTaskVar;
 	TaskVarType *pNext;
+	imask_t imask;
+
+	Irq_Save(imask);
 
 	pTaskVar = TAILQ_FIRST(&(cond->head));
 	while(NULL != pTaskVar)
@@ -296,6 +294,8 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 		TAILQ_REMOVE(&(cond->head), pTaskVar, entry);
 		pTaskVar = pNext;
 	}
+
+	Irq_Restore(imask);
 
 	return 0;
 }

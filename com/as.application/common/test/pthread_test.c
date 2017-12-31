@@ -37,6 +37,7 @@ struct prodcons {
 static pthread_t threadC;
 static pthread_t threadP;
 struct prodcons buffer;
+static uint32_t threadCStack[1024];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* Initialize a buffer */
 
@@ -112,10 +113,17 @@ static void* producer(void* arg)
 void pthread_test(void)
 {
 	int r;
-
+	pthread_attr_t attr;
+	struct sched_param param;
 	init(&buffer);
 
-	r = pthread_create(&threadC, NULL, consumer, NULL);
+	pthread_attr_init(&attr);
+	param.sched_priority = OS_PTHREAD_PRIORITY-1; /* highest */
+
+	pthread_attr_setschedparam(&attr, &param);
+	pthread_attr_setstack(&attr, threadCStack, sizeof(threadCStack));
+
+	r = pthread_create(&threadC, &attr, consumer, NULL);
 
 	if(0 != r)
 	{
