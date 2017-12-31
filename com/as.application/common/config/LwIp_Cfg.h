@@ -22,15 +22,11 @@
 #define LWIP_DHCP 0
 
 #define ETH_MAC_ADDR {0xde,0xed,0xbe,0xef,0xaa,0xbb}
-#ifdef USE_PCAPIF
-#define	GET_BOOT_IPADDR ipaddr.addr = inet_addr("192.168.56.200")
-#define	GET_BOOT_NETMASK netmask.addr = inet_addr("255.255.255.0")
-#define	GET_BOOT_GW gw.addr = inet_addr("192.168.56.1")
-#else
+/* On Windows, by default use the VirtualBox Host-Only Ethernet Adapter #2,
+ * And please configure its IPv4 address to 172.18.0.100. */
 #define	GET_BOOT_IPADDR ipaddr.addr = inet_addr("172.18.0.200")
 #define	GET_BOOT_NETMASK netmask.addr = inet_addr("255.255.255.0")
 #define	GET_BOOT_GW gw.addr = inet_addr("172.18.0.1")
-#endif
 
 #define EVENT_MASK_SLEEP_TCPIP EVENT_MASK_TaskLwip_Event22
 #define EVENT_MASK_START_TCPIP EVENT_MASK_TaskLwip_Event23

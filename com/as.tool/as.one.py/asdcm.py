@@ -77,10 +77,7 @@ def switch_to_doip(state):
     global __dcm__
 
     if(state):
-        if(os.name == 'nt'):
-            __dcm__ = dcm('192.168.56.200',8989)
-        else:
-            __dcm__ = dcm('172.18.0.200',8989)
+        __dcm__ = dcm('172.18.0.200',8989)
         print("switch to UDS on DoIP mode")
     else:
         __dcm__ = dcm(0,0x732,0x731)

@@ -25,11 +25,11 @@ objs += Glob('lwip/src/core/snmp/*.c')
 objs += Glob('lwip/src/netif/*.c')
 objs += Glob('lwip/src/netif/ppp/*.c')
 
-asenv.Append(CCFLAGS = '-I%s/lwip/src/include'%(cwd))
-asenv.Append(CCFLAGS = '-I%s/lwip/src/include/ipv4'%(cwd))
-asenv.Append(CCFLAGS = '-DUSE_LWIP')
+asenv.Append(CPPPATH = ['%s/lwip/src/include'%(cwd)])
+asenv.Append(CPPPATH = ['%s/lwip/src/include/ipv4'%(cwd)])
+asenv.Append(CPPDEFINES = 'USE_LWIP')
 
 if(os.getenv('LWIP_DEBUG')=='yes'):
-    asenv.Append(CCFLAGS = '-DLWIP_DEBUG=1')
+    asenv.Append(CPPDEFINES = '-DLWIP_DEBUG=1')
 
 Return('objs')

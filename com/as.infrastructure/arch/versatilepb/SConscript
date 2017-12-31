@@ -52,6 +52,8 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     else:
         objs += Glob('../common/lwip/*.c')
     asenv.Append(CPPDEFINES='LWIP_TIMEVAL_PRIVATE=0')
+    if(os.name == 'nt'):
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
 
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -g ')

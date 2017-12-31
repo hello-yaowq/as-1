@@ -9,11 +9,11 @@ cwd = GetCurrentDir()
 Import('asenv')
 arch = asenv['arch']
 
-asenv.Append(CCFLAGS='-I%s'%(cwd))
+asenv.Append(CPPPATH=['%s'%(cwd)])
 if(arch=='arm'):
-    asenv.Append(CCFLAGS='-I%s/portable/posix'%(cwd))
+    asenv.Append(CPPPATH=['%s/portable/posix'%(cwd)])
 else:
-    asenv.Append(CCFLAGS='-I%s/portable/%s'%(cwd,arch))
+    asenv.Append(CPPPATH=['%s/portable/%s'%(cwd,arch)])
 
 objs = []
 

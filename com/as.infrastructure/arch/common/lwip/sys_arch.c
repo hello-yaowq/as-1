@@ -593,7 +593,7 @@ struct netif * LwIP_Init(void)
 	Set_MAC_Address(macaddress);
 
 	/* Add network interface to the netif_list */
-#ifdef __WINDOWS__
+#ifdef USE_PCAPIF
 	extern err_t pcapif_init(struct netif *netif);
 	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &pcapif_init, &tcpip_input);
 #else

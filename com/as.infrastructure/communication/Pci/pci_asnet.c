@@ -480,7 +480,11 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 	return ERR_OK;
 }
 
+#ifdef USE_PCAPIF
+err_t pcapif_init(struct netif *netif)
+#else
 err_t tapif_init(struct netif *netif)
+#endif
 {
 	uint32 mtu;
 	PciNet_Init(netif->gw.addr, netif->netmask.addr, netif->hwaddr,&mtu);

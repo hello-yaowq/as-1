@@ -92,6 +92,7 @@ if('studio' in COMMAND_LINE_TARGETS):
 
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CPPPATH=['%s'%(cfgdir)])
+asenv.Append(ASFLAGS='-I%s'%(cfgdir))
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)

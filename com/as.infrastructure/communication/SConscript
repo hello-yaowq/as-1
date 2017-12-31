@@ -56,8 +56,6 @@ if('PCI' in MODULES):
     objs += Glob('Pci/pci*.c')
     asenv.Append(CPPPATH=['%s/Pci'%(cwd)])
     asenv.Append(CPPDEFINES='USE_PCI')
-    if(os.name == 'nt'):
-        asenv.Append(CPPDEFINES='USE_PCAPIF')
 
 if('PDUR' in MODULES):
     objs += Glob('PduR/*.c')

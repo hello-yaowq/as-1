@@ -372,20 +372,28 @@ int SHELL_Mainloop( void ) {
 
 		if( c == '\b') {
 			lineIndex--;
+			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
+			#endif
 		} else if( c == '\r')
 		{
+			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
-		} 
+			#endif
+		}
 		else if( c == '\n' ) {
-			SHELL_putc('\n');
+			#ifdef ENABLE_SHELL_ECHO_BACK
+			SHELL_putc(c);
+			#endif
 			cmdLine[lineIndex] = '\0';
 			SHELL_RunCmd(cmdLine,&cmdRv);
 			lineIndex = 0;
 			doPrompt();
 		} else {
 			cmdLine[lineIndex++] = c;
+			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
+			#endif
 		}
 	}
 }
