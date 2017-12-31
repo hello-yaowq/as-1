@@ -32,7 +32,7 @@ TaskVarType* ReadyVar;
 TickType				OsTickCounter;
 
 #if(OS_PTHREAD_NUM > 0)
-static TAILQ_HEAD(sleep_list, TaskVar) sleepListHead;
+TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
 #endif
 unsigned int CallLevel;
 static AppModeType appMode;
@@ -57,7 +57,7 @@ static void Os_MiscInit(void)
 	OsTickCounter = 1;
 
 #if(OS_PTHREAD_NUM > 0)
-	TAILQ_INIT(&sleepListHead);
+	TAILQ_INIT(&OsSleepListHead);
 #endif
 
 	Sched_Init();
@@ -150,18 +150,18 @@ void OsTick(void)
 	}
 
 #if(OS_PTHREAD_NUM > 0)
-	pTaskVar = TAILQ_FIRST(&sleepListHead);
+	pTaskVar = TAILQ_FIRST(&OsSleepListHead);
 	while(NULL != pTaskVar)
 	{
-		pNext = TAILQ_NEXT(pTaskVar, entry);
+		pNext = TAILQ_NEXT(pTaskVar, sentry);
 
 		pTaskVar->sleep_tick --;
 		if(0u == pTaskVar->sleep_tick)
 		{
-			pTaskVar->state = READY;
+			pTaskVar->state &= ~PTHREAD_STATE_SLEEPING;
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			Sched_PosixAddReady(pTaskVar-TaskVarArray);
-			TAILQ_REMOVE(&sleepListHead, pTaskVar, entry);
+			TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
 		}
 
 		pTaskVar = pNext;
@@ -177,9 +177,9 @@ void Os_Sleep(TickType tick)
 	Irq_Save(imask);
 	if(NULL != RunningVar)
 	{
-		RunningVar->state = SLEEPING;
+		RunningVar->state |= PTHREAD_STATE_SLEEPING;
 		RunningVar->sleep_tick = tick;
-		TAILQ_INSERT_TAIL(&sleepListHead, RunningVar, entry);
+		TAILQ_INSERT_TAIL(&OsSleepListHead, RunningVar, sentry);
 		Sched_GetReady();
 		Os_PortDispatch();
 	}

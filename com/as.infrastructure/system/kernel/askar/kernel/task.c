@@ -27,7 +27,6 @@ static const char* statsNames[] =
 	"RUNNING",
 	"READY",
 	"WAITING",
-	"SLEEPING"
 };
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -51,9 +50,9 @@ static void InitContext(TaskVarType* pTaskVar)
 static const char* taskStateToString(TaskStateType state)
 {
 	const char* p = "unknown";
-	if(state < sizeof(statsNames)/sizeof(char*))
+	if((state&OSEK_TASK_STATE_MASK) < sizeof(statsNames)/sizeof(char*))
 	{
-		p = statsNames[state];
+		p = statsNames[state&OSEK_TASK_STATE_MASK];
 	}
 
 	return p;

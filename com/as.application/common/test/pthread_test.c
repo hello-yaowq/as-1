@@ -73,10 +73,16 @@ static void put(struct prodcons * b, int data)
 static int get(struct prodcons * b)
 {
 	int data;
+	int r;
+	struct timespec abstime = { 1, 0 };
 	pthread_mutex_lock(&b->lock);
 	/* Wait until buffer is not empty */
 	while (b->writepos == b->readpos) {
-		pthread_cond_wait(&b->notempty, &b->lock);
+		r = pthread_cond_timedwait(&b->notempty, &b->lock, &abstime);
+		if(-ETIMEDOUT == r)
+		{
+			printf("consumer get timeout!\n");
+		}
 	}
 	/* Read the data and advance read pointer */
 	data = b->buffer[b->readpos];

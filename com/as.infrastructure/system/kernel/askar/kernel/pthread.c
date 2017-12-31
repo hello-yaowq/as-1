@@ -23,6 +23,9 @@
 #define DYNAMIC_CREATED_PTHREAD(pConst) (pTaskConst->autoStart)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#if(OS_PTHREAD_NUM > 0)
+extern TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TaskVarType* pthread_malloc_tcb(void)
@@ -187,7 +190,7 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 	if(TRUE == mutex->locked)
 	{
 		/* wait it forever */
-		RunningVar->state = WAITING_MUTEX;
+		RunningVar->state |= PTHREAD_STATE_WAITING;;
 		TAILQ_INSERT_TAIL(&(mutex->head), RunningVar, entry);
 		Sched_GetReady();
 		Os_PortDispatch();
@@ -216,7 +219,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 		{
 			pTaskVar = TAILQ_FIRST(&(mutex->head));
 			TAILQ_REMOVE(&(mutex->head), pTaskVar, entry);
-			pTaskVar->state = READY;
+			pTaskVar->state &= ~PTHREAD_STATE_WAITING;;
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			Sched_PosixAddReady(pTaskVar-TaskVarArray);
 		}
@@ -286,7 +289,7 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 	pTaskVar = TAILQ_FIRST(&(cond->head));
 	while(NULL != pTaskVar)
 	{
-		pTaskVar->state = READY;
+		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
 		OS_TRACE_TASK_ACTIVATION(pTaskVar);
 		Sched_PosixAddReady(pTaskVar-TaskVarArray);
 
@@ -314,7 +317,7 @@ int pthread_cond_signal(pthread_cond_t *cond)
 	{
 		pTaskVar = TAILQ_FIRST(&(cond->head));
 		TAILQ_REMOVE(&(cond->head), pTaskVar, entry);
-		pTaskVar->state = READY;
+		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
 		OS_TRACE_TASK_ACTIVATION(pTaskVar);
 		Sched_PosixAddReady(pTaskVar-TaskVarArray);
 	}
@@ -340,6 +343,7 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 	int ercd = 0;
 	imask_t imask;
 	TaskVarType* pTaskVar;
+	TickType ticks;
 
 	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
 	asAssert(mutex->locked);
@@ -353,7 +357,7 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 		{
 			pTaskVar = TAILQ_FIRST(&(mutex->head));
 			TAILQ_REMOVE(&(mutex->head), pTaskVar, entry);
-			pTaskVar->state = READY;
+			pTaskVar->state &= ~PTHREAD_STATE_WAITING;
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			Sched_PosixAddReady(pTaskVar-TaskVarArray);
 		}
@@ -363,16 +367,40 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 		}
 
 		/* do cond signal wait */
-		RunningVar->state = WAITING_COND;
+		RunningVar->state |= PTHREAD_STATE_WAITING;
 		TAILQ_INSERT_TAIL(&(cond->head), RunningVar, entry);
+
+		if(NULL != abstime)
+		{
+			ticks = (abstime->tv_sec*1000000 + abstime->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK;
+			RunningVar->sleep_tick = ticks;
+			RunningVar->state |= PTHREAD_STATE_SLEEPING;
+			TAILQ_INSERT_TAIL(&OsSleepListHead, RunningVar, sentry);
+		}
+
 		Sched_GetReady();
 		Os_PortDispatch();
+
+		/* wakeup */
+		if(RunningVar->state&PTHREAD_STATE_WAITING)
+		{	/* this is timeout */
+			TAILQ_REMOVE(&(cond->head), RunningVar, entry);
+			ercd = -ETIMEDOUT;
+		}
+		else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
+		{	/* signal reached before timeout */
+			TAILQ_REMOVE(&OsSleepListHead, RunningVar, sentry);
+		}
+		else
+		{
+			/* do nothing */
+		}
 
 		/* do lock again */
 		if(TRUE == mutex->locked)
 		{
 			/* wait it forever */
-			RunningVar->state = WAITING_MUTEX;
+			RunningVar->state |= PTHREAD_STATE_WAITING;
 			TAILQ_INSERT_TAIL(&(mutex->head), RunningVar, entry);
 			Sched_GetReady();
 			Os_PortDispatch();

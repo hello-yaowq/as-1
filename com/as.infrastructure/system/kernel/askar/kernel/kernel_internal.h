@@ -261,6 +261,7 @@ typedef struct TaskVar
 	TAILQ_ENTRY(TaskVar) entry;
 	/* for sleep purpose */
 	TickType sleep_tick;
+	TAILQ_ENTRY(TaskVar) sentry;
 	#endif
 } TaskVarType;
 

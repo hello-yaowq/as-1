@@ -28,13 +28,17 @@
 
 #define OSDEFAULTAPPMODE           ((AppModeType)1)
 
+/* OSEK task state: lower 4 bits */
 #define SUSPENDED                  ((StatusType) 0)
 #define RUNNING                    ((StatusType) 1)
 #define READY                      ((StatusType) 2)
 #define WAITING                    ((StatusType) 3)
-#define SLEEPING                   ((StatusType) 4)
-#define WAITING_MUTEX              ((StatusType) 5)
-#define WAITING_COND               ((StatusType) 6)
+
+#define OSEK_TASK_STATE_MASK       ((StatusType) 0x0F)
+
+/* PTHREAD state bit mask: higher 4 bits */
+#define PTHREAD_STATE_SLEEPING           ((StatusType) 0x10)
+#define PTHREAD_STATE_WAITING            ((StatusType) 0x20)
 
 #define INVALID_TASK            ((TaskType)-1)
 #define INVALID_RESOURCE        ((ResourceType)-1)
