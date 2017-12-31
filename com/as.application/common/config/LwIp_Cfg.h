@@ -16,6 +16,7 @@
 #define COM_AS_APPLICATION_COMMON_CONFIG_LWIP_CFG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "asdebug.h"
+#include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define LWIP_ICMP 1
 #define LWIP_DHCP 0

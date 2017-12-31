@@ -333,7 +333,7 @@ def GenC(gendir,os_list):
     for id,res in enumerate(res_list):
         if(GAGet(res,'Name') == 'RES_SCHEDULER'):continue
         fp.write('\t{\n')
-        fp.write('\t\t/*.ceilPrio =*/ PTHREAD_PRIORITY + %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
+        fp.write('\t\t/*.ceilPrio =*/ OS_PTHREAD_PRIORITY + %s, /* %s */\n'%(GAGet(res,'Priority'),GAGet(res,'Name')))
         fp.write('\t},\n')
     fp.write('};\n\n')
     counter_list = ScanFrom(os_list,'Counter')

@@ -319,4 +319,6 @@ void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
 void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
 void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
 void _read(void) { printf("%s\n",__func__); asAssert(0); }
+
+void _gettimeofday(void) {  }
 #endif

@@ -35,6 +35,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define SHELL_CMD_CACHE_SIZE  4096
+#define AS_LOG_SHELL 1
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef USE_SHELL
 typedef struct {

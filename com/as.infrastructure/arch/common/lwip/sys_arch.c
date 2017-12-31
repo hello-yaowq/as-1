@@ -32,6 +32,7 @@
 #include "Os.h"
 #include "mbox.h"
 #include "asdebug.h"
+#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_LWIP 1
 
@@ -57,6 +58,7 @@ struct semlist_t
 err_t ethernetif_input(struct netif *netif, struct pbuf *p);
 err_t ethernetif_init(struct netif *netif);
 #endif /* LWIP_POSIX_ARCH */
+extern void Eth_Isr(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct netif netif;
 static boolean tcpip_initialized = FALSE;
@@ -81,24 +83,19 @@ static void sys_sleep(TickType tick)
 	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
 	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
 }
-
-/* Eth Isr routine */
-void __weak Eth_Isr(void)
-{
-	/* move received packet into a new pbuf */
-	struct pbuf *p = low_level_input();
-
-	if(p!=NULL){
-		tcpip_input(p, &netif);
-	}
-}
 #endif /* LWIP_POSIX_ARCH */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#ifndef LWIP_POSIX_ARCH
 struct netif* sys_get_netif(void)
 {
 	return &netif;
 }
+#if defined(__LINUX__) || defined(__WINDOWS__)
+void __weak Eth_Isr(void)
+{
+
+}
+#endif
+#ifndef LWIP_POSIX_ARCH
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short
@@ -577,7 +574,9 @@ struct netif * LwIP_Init(void)
 	uint32 lockcnt = 0;
 	while(tcpip_initialized == FALSE){
 		lockcnt++;
-		//SLEEP(0);
+#ifdef LWIP_POSIX_ARCH
+		usleep(1000);
+#endif
 	};
 #endif
 
@@ -627,6 +626,11 @@ struct netif * LwIP_Init(void)
 #ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
+#ifdef LWIP_POSIX_ARCH
+	printf("!!!LWIP run on pthreads!!!\n");
+#else
+	printf("!!!LWIP run on OSEK OS!!!\n");
+#endif
 	KGS(LwipIdle,Running);
 }
 
@@ -642,10 +646,8 @@ KSM(LwipIdle,Stop)
 
 KSM(LwipIdle,Running)
 {
-#ifndef LWIP_POSIX_ARCH
 #ifdef USE_LWIP
 	Eth_Isr();
 #endif
-#endif /* LWIP_POSIX_ARCH */
 }
 #endif

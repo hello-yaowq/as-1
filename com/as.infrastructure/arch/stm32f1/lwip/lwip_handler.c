@@ -22,11 +22,11 @@
 #include "lwip/inet.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
-#include "ethernetif.h"
 #include "lwip_handler.h"
 #include <stdio.h>
-#include "netbios.h"
 
+#include "../../common/lwip/netbios.h"
+#include "ethernetif.h"
 #include "stm32_eth.h"
 
 #include "Os.h"

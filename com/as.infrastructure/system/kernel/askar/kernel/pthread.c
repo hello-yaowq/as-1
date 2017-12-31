@@ -183,8 +183,6 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 	int ercd = 0;
 	imask_t imask;
 
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
-
 	Irq_Save(imask);
 
 	if(TRUE == mutex->locked)
@@ -208,8 +206,6 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 	int ercd = 0;
 	imask_t imask;
 	TaskVarType* pTaskVar;
-
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
 
 	Irq_Save(imask);
 
@@ -242,8 +238,6 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex)
 {
 	int ercd = 0;
 	imask_t imask;
-
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
 
 	Irq_Save(imask);
 
@@ -309,8 +303,6 @@ int pthread_cond_signal(pthread_cond_t *cond)
 	imask_t imask;
 	TaskVarType* pTaskVar;
 
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
-
 	Irq_Save(imask);
 
 	if(FALSE == TAILQ_EMPTY(&(cond->head)))
@@ -345,7 +337,6 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 	TaskVarType* pTaskVar;
 	TickType ticks;
 
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
 	asAssert(mutex->locked);
 
 	Irq_Save(imask);

@@ -238,10 +238,16 @@ endif
 endif
 
 $(download)/pcan-basic.zip:
+ifeq ($(host), Linux)
+else
 	@(cd $(download);wget https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip)
+endif
 
 $(download)/pcan-basic:$(download)/pcan-basic.zip
+ifeq ($(host), Linux)
+else
 	@(cd $(download); mkdir -p pcan-basic; cd pcan-basic; unzip ../pcan-basic.zip)
+endif
 
 aspeak:$(download)/pcan-basic
 ifeq ($(host),Linux)

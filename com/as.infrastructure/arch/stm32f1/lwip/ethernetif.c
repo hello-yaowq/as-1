@@ -43,6 +43,8 @@
  * something that better describes your network interface.
  */
 
+#include "ethernetif.h"
+
 #include "lwip/opt.h"
 #include "lwip/def.h"
 #include "lwip/pbuf.h"
@@ -52,8 +54,6 @@
 #include "netif/etharp.h"
 #include "netif/ppp_oe.h"
 #include "lwip/err.h"
-#include "ethernetif.h"
-
 #include "stm32_eth.h"
 #include "stm32f10x.h"
 #include "stm32f10x_rcc.h"

@@ -14,36 +14,51 @@ if(asenv['RTOS'] != 'rtthread'):
 else:
     objs += Glob('rtbsp/*.c')
     objs += Glob('bsp/pci.c')
-    asenv.Append(CCFLAGS='-I%s/rtbsp'%(cwd))
-    asenv.Append(ASFLAGS='-I%s/rtbsp'%(cwd))
+    asenv.Append(CPPPATH=['%s/rtbsp'%(cwd)])
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CCFLAGS='-DUSE_CAN')
+    asenv.Append(CPPDEFINES='USE_CAN')
 
 if('LCD' in MODULES):
     objs += Glob('mcal/Lcd.c')
-    asenv.Append(CCFLAGS='-DUSE_LCD')
+    asenv.Append(CPPDEFINES='USE_LCD')
 
 if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
-    asenv.Append(CCFLAGS='-DUSE_MCU')
-
-if('LWIP' in MODULES):
-    objs += Glob('../stm32f1/lwip/netbios.c')
+    asenv.Append(CPPDEFINES='USE_MCU')
 
 if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
-    objs += Glob('../posix/lwip/sys_arch.c')
-    asenv.Append(CCFLAGS=' -I%s/../stm32f1/lwip '%(cwd))
-    if(os.name == 'nt'):
-        asenv.Append(CCFLAGS='-DLWIP_TIMEVAL_PRIVATE=0')
+    asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
+    if(os.getenv('PTHREAD') == 'yes'):
+        download = '%s/release/download'%(ASROOT)
+        lwip='%s/lwip-contrib'%(download)
+
+        if(not os.path.exists(lwip)):
+            MKDir(download)
+            RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && 
+                cd lwip-contrib && git checkout STABLE-1_4_1'''%(download))
+            RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
+
+        MKSymlink(lwip,'%s/lwip-contrib'%(cwd))
+        MKDir('%s/lwip'%(cwd))
+        asenv.Append(CPPPATH=['%s/lwip'%(cwd)])
+        objs += Glob('lwip-contrib/ports/unix/sys_arch.c')
+        MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
+                  '%s/lwip/lwip_sys_arch.h'%(cwd))
+        objs += Glob('lwip-contrib/apps/httpserver/*.c')
+        objs += Glob('../common/lwip/*.c')
+        asenv.Append(CPPDEFINES='LWIP_POSIX_ARCH')
+    else:
+        objs += Glob('../common/lwip/*.c')
+    asenv.Append(CPPDEFINES='LWIP_TIMEVAL_PRIVATE=0')
 
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -g ')
 
 asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
 asenv.Append(ASFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
-asenv.Append(CCFLAGS=' -I%s/bsp -I%s/mcal '%(cwd,cwd))
+asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
 asenv['CC']='arm-none-eabi-gcc'
 asenv['AS']='arm-none-eabi-as'
 asenv['LINK']='arm-none-eabi-ld'

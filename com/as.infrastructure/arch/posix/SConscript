@@ -63,12 +63,13 @@ if('LWIP' in MODULES):
         RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
 
     MKSymlink(lwip,'%s/lwip-contrib'%(cwd))
-    asenv.Append(CCFLAGS='-I%s/lwip'%(cwd))
+    asenv.Append(CPPPATH=['%s/lwip'%(cwd)])
+    asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
     if(os.name == 'nt'):
         objs += Glob('lwip-contrib/ports/win32/pcapif.c')
         #objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
-        asenv.Append(CCFLAGS='-DPCAPIF_HANDLE_LINKSTATE=0')
-        asenv.Append(CCFLAGS='-DUSE_PCAPIF')
+        asenv.Append(CPPDEFINES='PCAPIF_HANDLE_LINKSTATE=0')
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
         objs += Glob('lwip-contrib/ports/win32/sys_arch.c')
         MKSymlink('%s/lwip-contrib/ports/win32/include/arch/sys_arch.h'%(cwd),
                   '%s/lwip/lwip_sys_arch.h'%(cwd))
@@ -79,9 +80,8 @@ if('LWIP' in MODULES):
         MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
                   '%s/lwip/lwip_sys_arch.h'%(cwd))
         objs += Glob('lwip/tapif.c')
-    objs += Glob('lwip/sys_arch.c')
     objs += Glob('lwip-contrib/apps/httpserver/*.c')
-    objs += Glob('../stm32f1/lwip/netbios.c')
+    objs += Glob('../common/lwip/*.c')
 
     if(os.name == 'nt'):
         pcap='%s/WpdPack'%(download)
@@ -89,17 +89,17 @@ if('LWIP' in MODULES):
             RunCommand('''cd %s && wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
                 unzip WpdPack_4_1_2.zip'''%(download))
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
-        asenv.Append(CCFLAGS='-I%s/WpdPack/Include'%(cwd))
+        asenv.Append(CPPPATH=['%s/WpdPack/Include'%(cwd)])
         if(asenv['msys2']):
             objs += Glob('%s/WpdPack/Lib/x64/*.lib'%(cwd))
         else:
             asenv.Append(LIBS=['packet','wpcap'])
             asenv.Append(LIBPATH=['%s/WpdPack/Lib'%(cwd)])
         if('-D_MSC_VER' not in asenv['CCFLAGS']):
-            asenv.Append(CCFLAGS='-D_MSC_VER')
+            asenv.Append(CPPDEFINES='_MSC_VER')
 
-asenv.Append(CCFLAGS='-D__AS_CAN_BUS__')
-asenv.Append(CCFLAGS='-I%s/com/as.infrastructure/communication/RPmsg'%(asenv['ASROOT']))
+asenv.Append(CPPDEFINES='__AS_CAN_BUS__')
+asenv.Append(CPPPATH=['%s/com/as.infrastructure/communication/RPmsg'%(asenv['ASROOT'])])
 
 objs += SConscript('%s/com/as.tool/lua/SConscript'%(asenv['ASROOT']))
 
@@ -116,24 +116,24 @@ if('GTK' in MODULES):
     if('dwmapi' in asenv['LIBS']):
         asenv['LIBS'].remove('dwmapi')
 elif('OPENVG' in MODULES):
-    asenv.Append(CCFLAGS='-I%s/openvg'%(cwd))
+    asenv.Append(CPPPATH=['%s/openvg'%(cwd)])
 
 asenv.Append(LIBS=['pthread','stdc++','m'])
 
 if(os.name == 'nt'):
     asenv.Append(LIBS=['wsock32'])
-    asenv.Append(CCFLAGS='-D__WINDOWS__')
+    asenv.Append(CPPDEFINES='__WINDOWS__')
     if(asenv['msys2']):
-        asenv.Append(CCFLAGS='-D__X86_64__')
+        asenv.Append(CPPDEFINES='__X86_64__')
         print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2tcpip.h line 86-103, add WS2TCPIP_INLINE')
         print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2ipdef.h line 127, add WS2TCPIP_INLINE')
 else:
-    asenv.Append(CCFLAGS='-D__LINUX__')
+    asenv.Append(CPPDEFINES='__LINUX__')
 
 asenv.Append(CCFLAGS='-std=gnu99')
 asenv.Append(CCFLAGS='-O0')
 asenv.Append(CCFLAGS='-g')
 
-asenv.Append(CCFLAGS='-I%s/mcal'%(cwd))
+asenv.Append(CPPPATH='%s/mcal'%(cwd))
 
 Return('objs')
