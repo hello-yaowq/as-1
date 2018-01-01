@@ -374,12 +374,10 @@ static void runMemory( void ) {
 	SCHM_MAINFUNCTION_SPI();
 }
 
-#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__) || defined(__UCOSII_OS__)
 void SchM_RunMemory(void)
 {
 	runMemory();
 }
-#endif
 /**
  * Startup task.
  */
@@ -399,7 +397,7 @@ TASK(SchM_Startup){
 	SchM_StartupHook();
 	/* At this point EcuM ==  ECUM_STATE_STARTUP_ONE */
 	/* Set events on TASK_ID_BswService_Mem */
-	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 1);
+	/* SetRelAlarm(ALARM_ID_Alarm_BswService, 10, 1); */
 
 	/*
 	 * Call EcuM_StartupTwo that do:
@@ -410,7 +408,7 @@ TASK(SchM_Startup){
 	EcuM_StartupTwo();
 
 	/* Start to schedule BSW parts */
-	CancelAlarm(ALARM_ID_Alarm_BswService);
+	/* CancelAlarm(ALARM_ID_Alarm_BswService); */
 	SetRelAlarm(ALARM_ID_Alarm_BswService, 10, SCHM_MAIN_ALARM_CYCLE);
 
 #if !defined(CFG_SCHM_DISABLE_ECUM_REQUEST_RUN)

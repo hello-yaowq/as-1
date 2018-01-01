@@ -427,6 +427,9 @@ void statOsAlarm(void)
 	AlarmType id;
 	AlarmVarType *pVar;
 	const AlarmConstType *pConst;
+	imask_t mask;
+
+	Irq_Save(mask);
 
 	SHELL_printf("\nName             Status Value      Period     Counter\n");
 	for(id=0; id < ALARM_NUM; id++)
@@ -439,11 +442,15 @@ void statOsAlarm(void)
 				pVar->value, pVar->period,
 				pConst->pCounter->name, pConst->pCounter->pVar->value);
 	}
+
+	Irq_Restore(mask);
 }
 #endif
 #else
+#ifdef USE_SHELL
 void statOsAlarm(void)
 {
 	printf("Alarm is not configured!\n");
 }
+#endif
 #endif /* #if (ALARM_NUM > 0) */

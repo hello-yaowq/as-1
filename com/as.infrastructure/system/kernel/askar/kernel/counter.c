@@ -76,4 +76,36 @@ void Os_CounterInit(void)
 		TAILQ_INIT(&CounterVarArray[id].head);
 	}
 }
+#ifdef USE_SHELL
+void statOsCounter(void)
+{
+	CounterType id;
+	AlarmVarType *pVar;
+	const CounterConstType *pConst;
+	imask_t mask;
+
+	Irq_Save(mask);
+
+	SHELL_printf("\nName\n");
+	for(id=0; id < COUNTER_NUM; id++)
+	{
+		SHELL_printf("%-16s ", CounterConstArray[id].name);
+		TAILQ_FOREACH(pVar, &(CounterVarArray[id].head), entry)
+		{
+			SHELL_printf("%s(%d) -> ",
+					AlarmConstArray[pVar-AlarmVarArray].name,
+					pVar->value);
+		}
+	}
+
+	Irq_Restore(mask);
+}
+#endif
+#else
+#ifdef USE_SHELL
+void statOsCounter(void)
+{
+	printf("Counter is not configured!\n");
+}
+#endif
 #endif /* #if (COUNTER_NUM > 0) */

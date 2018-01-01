@@ -28,6 +28,10 @@
 #include <stdio.h>
 #include "shell.h"
 #if defined(__LINUX__) || defined(__WINDOWS__)
+#include <pthread.h>
+#ifdef USE_SCHM
+#include "Os.h"
+#endif
 #else
 #include "Os.h"
 #endif
@@ -62,17 +66,12 @@ static int shellHelp(int argc, char *argv[] );
 #ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
 #endif
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
-#if defined(__GNUC__)
+#if defined(USE_SHELL_SYMTAB)
 extern const ShellCmdT* __ssymtab_start[];
 extern const ShellCmdT* __ssymtab_end[];
 #endif
-#endif
 /* ----------------------------[Private variables]---------------------------*/
 struct shellWord shellWorld;
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
 static SHELL_CONST ShellCmdT helpInfo  = {
 		shellHelp,
 		0,1,
@@ -83,11 +82,18 @@ static SHELL_CONST ShellCmdT helpInfo  = {
 };
 
 SHELL_CMD_EXPORT(helpInfo);
-#endif
+
 static char cmdBuf[CMDLINE_MAX];
 
 #if defined(__LINUX__) || defined(__WINDOWS__)
+#ifdef USE_SCHM
+char SHELL_getc(void)
+{
+	return getchar();
+}
+#else
 extern char SHELL_getc(void);
+#endif
 #else
 static uint32_t rpos=0;
 static uint32_t wpos=0;
@@ -174,7 +180,7 @@ static char *strtokAndTrim(char *s1, const char *s2, char **s3)
 static int shellHelp(int argc, char *argv[] ) {
 	char *cmd = NULL;
 	ShellCmdT *iCmd;
-#if defined(__GNUC__)
+#if defined(USE_SHELL_SYMTAB)
 	const ShellCmdT** iter;
 #endif
 
@@ -184,14 +190,11 @@ static int shellHelp(int argc, char *argv[] ) {
 		TAILQ_FOREACH(iCmd,&shellWorld.cmdHead,cmdEntry ) {
 			SHELL_printf("%-15s - %s\n",iCmd->cmd, iCmd->shortDesc);
 		}
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
-#if defined(__GNUC__)
+#if defined(USE_SHELL_SYMTAB)
 		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
 		{
 			SHELL_printf("%-15s - %s\n",(*iter)->cmd, (*iter)->shortDesc);
 		}
-#endif
 #endif
 	} else {
 		cmd = argv[1];
@@ -202,9 +205,7 @@ static int shellHelp(int argc, char *argv[] ) {
 				SHELL_printf("%s\n",iCmd->longDesc);
 			}
 		}
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
-#if defined(__GNUC__)
+#if defined(USE_SHELL_SYMTAB)
 		for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
 		{
 			if( strcmp(cmd,(*iter)->cmd) == 0 ) {
@@ -212,7 +213,6 @@ static int shellHelp(int argc, char *argv[] ) {
 				SHELL_printf("%s\n",(*iter)->longDesc);
 			}
 		}
-#endif
 #endif
 	}
 
@@ -228,7 +228,7 @@ static int shellHelp(int argc, char *argv[] ) {
 int SHELL_Init( void ) {
 	shellWorld.initialized = 1;
 	TAILQ_INIT(&shellWorld.cmdHead);
-#if !defined(__GNUC__)
+#if !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&helpInfo);
 #endif
 	return 0;
@@ -266,7 +266,7 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 	int argc = 0;
 	char *argv[MAX_ARGS];
 	char *arg;
-#if defined(__GNUC__)
+#if defined(USE_SHELL_SYMTAB)
 	const ShellCmdT** iter;
 #endif
 
@@ -293,9 +293,8 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 		ASLOG(SHELL,"error when parse cmdStr\n");
 		return SHELL_E_CMD_IS_NULL;
 	}
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
-#if defined(__GNUC__)
+
+#if defined(USE_SHELL_SYMTAB)
 	for(iter=__ssymtab_start; iter < __ssymtab_end; iter++)
 	{
 		if( strcmp(cmdStr,(*iter)->cmd) == 0 ) {
@@ -303,7 +302,6 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 			break;
 		}
 	}
-#endif
 #endif
 
 	/* post add cmd has higher priority */
@@ -398,12 +396,15 @@ int SHELL_Mainloop( void ) {
 	}
 }
 
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#else
+#ifdef USE_SCHM
 TASK(TaskShell)
 {
-	SHELL_Init();
+#if defined(__LINUX__) || defined(__WINDOWS__)
+	pthread_t thread;
+	pthread_create(&thread, NULL, (void * (*)(void *))SHELL_Mainloop, NULL);
+#else
 	SHELL_Mainloop();
+#endif
 	OsTerminateTask(TaskShell);
 }
 #endif

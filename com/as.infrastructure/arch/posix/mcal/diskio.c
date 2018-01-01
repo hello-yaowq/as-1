@@ -79,10 +79,17 @@ DSTATUS disk_initialize (
 
 	case DEV_MMC :
 	{
-		FILE* fp = fopen(FATFS_IMG,"r");
+		FILE* fp = fopen(FATFS_IMG,"rb");
 		if(NULL == fp)
 		{
-			system("dd if=/dev/zero of=" FATFS_IMG " bs=1M count=32");
+			fp = fopen(FATFS_IMG,"wb+");
+			asAssert(fp);
+			for(int i=0;i<32*1024*1024;i++)
+			{
+				uint8_t data = 0xFF;
+				fwrite(&data,1,1,fp);
+			}
+			fclose(fp);
 			ASLOG(FATFS,"simulation on new created 32Mb " FATFS_IMG "\n");
 		}
 		else
@@ -114,7 +121,7 @@ DRESULT disk_read (
 
 	case DEV_MMC :
 	{
-		FILE* fp=fopen(FATFS_IMG,"r");
+		FILE* fp=fopen(FATFS_IMG,"rb");
 		asAssert(fp);
 		fseek(fp,512*sector,SEEK_SET);
 		int len=fread(buff,sizeof(char),count*512,fp);
@@ -153,7 +160,7 @@ DRESULT disk_write (
 
 	case DEV_MMC :
 	{
-		FILE* fp=fopen(FATFS_IMG,"r+");
+		FILE* fp=fopen(FATFS_IMG,"rb+");
 		asAssert(fp);
 		fseek(fp,512*sector,SEEK_SET);
 		int len=fwrite(buff,sizeof(char),count*512,fp);
@@ -197,7 +204,7 @@ DRESULT disk_ioctl (
 
 		case GET_SECTOR_COUNT:
 		{
-			FILE* fp = fopen(FATFS_IMG,"r");
+			FILE* fp = fopen(FATFS_IMG,"rb");
 			asAssert(fp);
 			fseek(fp, 0L, SEEK_END);
 			*(DWORD*)buff = ftell(fp)/512;
@@ -236,10 +243,17 @@ void ext_mount(void)
 {
     int rc;
     struct ext4_blockdev * bd;
-    FILE* fp = fopen(EXTFS_IMG,"r");
+    FILE* fp = fopen(EXTFS_IMG,"rb");
     if(NULL == fp)
     {
-        system("dd if=/dev/zero of=" EXTFS_IMG " bs=1M count=32");
+		fp = fopen(EXTFS_IMG,"wb+");
+		asAssert(fp);
+		for(int i=0;i<32*1024*1024;i++)
+		{
+			uint8_t data = 0xFF;
+			fwrite(&data,1,1,fp);
+		}
+		fclose(fp);
         ASLOG(EXTFS,"simulation on new created 32Mb " EXTFS_IMG "\n");
     }
     else

@@ -66,6 +66,16 @@
 #if defined(USE_DET)
 #include "Det.h"
 #endif
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#ifdef USE_VFS
+#undef USE_VFS
+#endif
+#endif
+#if defined(USE_VFS)
+#include "vfs.h"
+#else
+#include <stdio.h>
+#endif
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -76,7 +86,24 @@
 
 #define MODULE_NAME 	"/driver/Eep"
 
+#if defined(USE_VFS)
+#if defined(USE_FATFS)
+#define EEPROM_IMG "/vfat/Eeprom.img"
+#elif defined(USE_LWEXT4)
+#define EEPROM_IMG "/ext/Eeprom.img"
+#else
+#error no supported vfs file system
+#endif
+#else
 #define EEPROM_IMG "Eeprom.img"
+#define vfs_fopen  fopen
+#define vfs_fread  fread
+#define vfs_fwrite fwrite
+#define vfs_fseek  fseek
+#define vfs_ftell  ftell
+#define vfs_fclose fclose
+#define VFS_FILE   FILE
+#endif
 
 // Define if you to check if the E2 seems sane at init..
 #define CFG_EEP_CHECK_SANE    1
@@ -215,24 +242,35 @@ void Eep_Init(const Eep_ConfigType* ConfigPtr) {
 
 	Eep_SetMode(Eep_Global.config->EepDefaultMode);
 
-	FILE* fp = fopen(EEPROM_IMG,"r");
+	VFS_FILE* fp = vfs_fopen(EEPROM_IMG,"rb");
 	if(NULL == fp)
 	{
-		fp = fopen(EEPROM_IMG,"w+");
+		imask_t imask;
+		void* data;
+		Irq_Save(imask);
+		fp = vfs_fopen(EEPROM_IMG,"wb+");
 		asAssert(fp);
-		for(int i=0;i<Eep_Global.config->EepSize;i++)
+		data = malloc(4096);
+		asAssert(data);
+		for(int i=0;i<Eep_Global.config->EepSize;i+=4096)
 		{
-			uint8_t data = 0xFF;
-			fwrite(&data,1,1,fp);
+			void* data = malloc(4096);
+			asAssert(data);
+			memset(data, 0xFF, 4096);
+			if(1 != vfs_fwrite(&data,4096,1,fp))
+			{
+				asAssert(0);
+			}
 		}
-		fclose(fp);
-
+		free(data);
+		vfs_fclose(fp);
+		Irq_Restore(imask);
 		ASLOG(EEP,"simulation on new created image %s(%dKb)\n",EEPROM_IMG,Eep_Global.config->EepSize/1024);
 	}
 	else
 	{
 		ASLOG(EEP,"simulation on old existed image %s(%dKb)\n",EEPROM_IMG,Eep_Global.config->EepSize/1024);
-		fclose(fp);
+		vfs_fclose(fp);
 	}
 
 }
@@ -377,7 +415,7 @@ MemIf_JobResultType Eep_GetJobResult(void) {
 }
 
 void Eep_MainFunction(void) {
-	FILE* fp = NULL;
+	VFS_FILE* fp = NULL;
 	int ercd;
 	int result;
 	uint32 chunkSize;
@@ -386,16 +424,19 @@ void Eep_MainFunction(void) {
 		switch (Eep_Global.jobType) {
 		case EEP_COMPARE:
 			chunkSize = MIN( Eep_Global.job.left, Eep_Global.job.chunkSize );
-			fp = fopen(EEPROM_IMG,"r");
+			fp = vfs_fopen(EEPROM_IMG,"rb");
+			asAssert(fp);
 			if(NULL != fp)
 			{
 				void* buffer = malloc(chunkSize);
-				fseek(fp,Eep_Global.job.eepAddr,SEEK_SET);
-				fread(buffer,chunkSize,1,fp);
-				fclose(fp);
+				asAssert(buffer);
+				if(0 != vfs_fseek(fp,Eep_Global.job.eepAddr,SEEK_SET)) { asAssert(0); }
+				if(Eep_Global.job.eepAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fread(buffer,chunkSize,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 
 				/** @req FLS244 */
-				result = memcmp((void *)Eep_Global.job.targetAddr,(void *)buffer, chunkSize );
+				result = memcmp(Eep_Global.job.targetAddr, buffer, chunkSize );
 				free(buffer);
 				Eep_Global.job.targetAddr += chunkSize;
 				Eep_Global.job.eepAddr    += chunkSize;
@@ -429,16 +470,19 @@ void Eep_MainFunction(void) {
 		case EEP_READ:
 			chunkSize = MIN( Eep_Global.job.left, Eep_Global.job.chunkSize );
 
-			fp = fopen(EEPROM_IMG,"r");
+			fp = vfs_fopen(EEPROM_IMG,"rb");
+			asAssert(fp);
 			if(NULL != fp)
 			{
 				void* buffer = malloc(chunkSize);
-				fseek(fp,Eep_Global.job.eepAddr,SEEK_SET);
-				fread(buffer,chunkSize,1,fp);
-				fclose(fp);
+				asAssert(buffer);
+				if(0 != vfs_fseek(fp,Eep_Global.job.eepAddr,SEEK_SET)) { asAssert(0); }
+				if(Eep_Global.job.eepAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fread(buffer,chunkSize,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 
 				/** @req FLS244 */
-				memcpy( (void *)Eep_Global.job.targetAddr, (void *) buffer, chunkSize );
+				memcpy(Eep_Global.job.targetAddr, buffer, chunkSize );
 				free(buffer);
 				Eep_Global.job.targetAddr += chunkSize;
 				Eep_Global.job.eepAddr    += chunkSize;
@@ -473,15 +517,18 @@ void Eep_MainFunction(void) {
 				break;
 			}
 
-			fp = fopen(EEPROM_IMG,"r+");
+			fp = vfs_fopen(EEPROM_IMG,"rb+");
+			asAssert(fp);
 			if(NULL != fp)
 			{
-				fseek(fp,Eep_Global.job.eepAddr,SEEK_SET);
-				fwrite((void*)(Eep_Global.job.targetAddr),chunkSize,1,fp);
+				void* buffer = Eep_Global.job.targetAddr;
+				if(0 != vfs_fseek(fp,Eep_Global.job.eepAddr,SEEK_SET)) { asAssert(0); }
+				if(Eep_Global.job.eepAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fwrite(buffer,chunkSize,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 				Eep_Global.job.targetAddr += chunkSize;
 				Eep_Global.job.eepAddr    += chunkSize;
 				Eep_Global.job.left       -= chunkSize;
-				fclose(fp);
 			}
 			else
 			{

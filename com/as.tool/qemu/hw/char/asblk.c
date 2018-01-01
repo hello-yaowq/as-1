@@ -214,11 +214,15 @@ static void asblk_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				d->fp[d->blkid]=fopen(img,"rb+");
 				if(NULL == d->fp[d->blkid])
 				{
-					char cmd[128];
-					snprintf(cmd, sizeof(cmd), "dd if=/dev/zero of=%s bs=1M count=32", img);
-					if(0 == system(cmd)) { /* do nothing */}
-					snprintf(cmd, sizeof(cmd), "sudo mkfs.%s %s", (0==d->blkid)?"fat":"ext4", img);
-					if(0 == system(cmd))  { /* do nothing */}
+					int i;
+					FILE* fp = fopen(img,"wb+");
+					assert(fp);
+					for(i=0;i<32*1024*1024;i++)
+					{
+						uint8_t data = 0xFF;
+						fwrite(&data,1,1,fp);
+					}
+					fclose(fp);
 					printf("asblk simulation on new created 32Mb %s %s\n", (0==d->blkid)?"vfat":"ext4", img);
 					d->fp[d->blkid]=fopen(img,"rb+");
 					assert(d->fp[d->blkid]);

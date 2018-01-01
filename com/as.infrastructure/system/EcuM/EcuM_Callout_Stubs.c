@@ -123,6 +123,10 @@
 #include "SoAd.h"
 #endif
 
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
+
 #include "asdebug.h"
 /* ----------------------------[private define]------------------------------*/
 
@@ -189,7 +193,9 @@ EcuM_ConfigType* EcuM_DeterminePbConfiguration(void) {
 void EcuM_AL_DriverInitZero(void)
 {
 //	VALIDATE_STATE( ECUM_STATE_STARTUP_ONE );
-
+#ifdef USE_SHELL
+	SHELL_Init();
+#endif
 #if defined(USE_DET)
 	Det_Init();/** @req EcuM2783 */
     Det_Start();/** @req EcuM2634 */

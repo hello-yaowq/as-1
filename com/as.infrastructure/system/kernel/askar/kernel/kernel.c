@@ -21,6 +21,7 @@
 static int statOsFunc(int argc, char* argv[]);
 extern void statOsTask(void);
 extern void statOsAlarm(void);
+extern void statOsCounter(void);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 OSServiceIdType _errorhook_svcid;
@@ -41,7 +42,7 @@ static SHELL_CONST ShellCmdT statOsCmd  = {
 	statOsFunc,
 	0,0,
 	"stat",
-	"stat <task/alarm>",
+	"stat <task/alarm/counter>",
 	"Show the status of operationg system\n",
 	{NULL,NULL}
 };
@@ -77,6 +78,12 @@ static int statOsFunc(int argc, char* argv[])
 	{
 		statOsAlarm();
 	}
+
+	if((1 == argc) || (0 == strcmp(argv[1],"counter")))
+	{
+		statOsCounter();
+	}
+
 	return 0;
 }
 #endif

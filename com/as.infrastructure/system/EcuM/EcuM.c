@@ -93,6 +93,9 @@
 #ifdef USE_LWEXT4
 extern void ext_mount(void);
 #endif
+#ifdef USE_VFS
+extern void vfs_init(void);
+#endif
 //#define USE_LDEBUG_PRINTF
 #include "asdebug.h"
 /* ----------------------------[private define]------------------------------*/
@@ -114,6 +117,8 @@ static FATFS FatFs;		/* FatFs work area needed for each volume */
 #endif
 DECLARE_WEAK void InitOS(void){}
 DECLARE_WEAK void Os_IsrInit(void){}
+
+extern void SchM_RunMemory(void);
 /**
  * Initialize EcuM.
  */
@@ -200,6 +205,9 @@ void EcuM_StartupTwo(void)
 	//TODO:  Validate that we are in state STARTUP_ONE.
 #if defined(USE_NVM)
 	TimerType nvmTimer,tickTimerElapsed;
+#ifdef USE_DET
+	TimerType tickTimerElapsed2;
+#endif
 	NvM_RequestResultType readAllResult;
 #endif
 
@@ -214,38 +222,6 @@ void EcuM_StartupTwo(void)
 	if( EcuM_World.config->EcuMWdgMConfig != NULL ) {
 	  WdgM_SetMode(EcuM_World.config->EcuMWdgMConfig->EcuMWdgMStartupMode);
 	}
-#endif
-
-	// Initialize drivers that don't need NVRAM data
-	EcuM_AL_DriverInitTwo(EcuM_World.config);
-
-#if defined(USE_NVM)
-	// Start timer to wait for NVM job to complete
-	StartTimer(&nvmTimer);
-#endif
-
-	// Prepare the system to startup RTE
-	// TODO EcuM_OnRTEStartup();
-#if defined(USE_RTE)
-	Rte_Start();
-#endif
-
-#if defined(USE_NVM)
-	/* Wait for the NVM job (NvM_ReadAll) to terminate. This assumes that:
-	 * - A task runs the memory MainFunctions, e.g. Ea_MainFunction(), Eep_MainFunction()
-	 *   are run in a higher priority task that the task that executes this code.
-	 */
-	do {
-        #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__) || defined(__UCOSII_OS__)
-        Schedule();
-        extern void SchM_RunMemory(void);
-        SchM_RunMemory();
-        #endif
-		/* Read the multiblock status */
-		NvM_GetErrorStatus(0, &readAllResult);
-		tickTimerElapsed = GetTimer(&nvmTimer);
-		/* The timeout EcuMNvramReadAllTimeout is in ms */
-	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < EcuM_World.config->EcuMNvramReadAllTimeout) );
 #endif
 
 #ifdef USE_FATFS
@@ -273,6 +249,47 @@ void EcuM_StartupTwo(void)
 #endif
 #ifdef USE_LWEXT4
 	ext_mount();
+#endif
+#ifdef USE_VFS
+	vfs_init();
+#endif
+
+	// Initialize drivers that don't need NVRAM data
+	EcuM_AL_DriverInitTwo(EcuM_World.config);
+
+#if defined(USE_NVM)
+	// Start timer to wait for NVM job to complete
+	StartTimer(&nvmTimer);
+#endif
+
+	// Prepare the system to startup RTE
+	// TODO EcuM_OnRTEStartup();
+#if defined(USE_RTE)
+	Rte_Start();
+#endif
+
+#if defined(USE_NVM)
+	/* Wait for the NVM job (NvM_ReadAll) to terminate. This assumes that:
+	 * - A task runs the memory MainFunctions, e.g. Ea_MainFunction(), Eep_MainFunction()
+	 *   are run in a higher priority task that the task that executes this code.
+	 */
+	do {
+		Schedule();
+		SchM_RunMemory();
+		/* Read the multiblock status */
+		NvM_GetErrorStatus(0, &readAllResult);
+		tickTimerElapsed = GetTimer(&nvmTimer);
+#ifdef USE_DET
+		if((0u == (tickTimerElapsed%OS_TICKS_PER_SECOND)) && (tickTimerElapsed2 != tickTimerElapsed))
+		{
+			tickTimerElapsed2=tickTimerElapsed;
+			printf("loading NVM... %d s elapsed, will timeout when %d s elapsed!\n",
+						tickTimerElapsed/OS_TICKS_PER_SECOND,
+						EcuM_World.config->EcuMNvramReadAllTimeout/1000);
+		}
+#endif
+		/* The timeout EcuMNvramReadAllTimeout is in ms */
+	} while( (readAllResult == NVM_REQ_PENDING) && (tickTimerElapsed < MS2TICKS(EcuM_World.config->EcuMNvramReadAllTimeout)) );
 #endif
 
 	// Initialize drivers that need NVRAM data

@@ -36,7 +36,7 @@ static int lvfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream);
 static int lvfs_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream);
 static int lvfs_fflush (VFS_FILE *stream);
 static int lvfs_fseek (VFS_FILE *stream, long int offset, int whence);
-
+static size_t lvfs_ftell (VFS_FILE *stream);
 static int lvfs_unlink (const char *filename);
 static int lvfs_stat (const char *filename, struct vfs_stat *buf);
 
@@ -67,6 +67,7 @@ static const struct vfs_filesystem_ops lvfs_ops =
 	.fwrite = lvfs_fwrite,
 	.fflush = lvfs_fflush,
 	.fseek = lvfs_fseek,
+	.ftell = lvfs_ftell,
 	.unlink = lvfs_unlink,
 	.stat = lvfs_stat,
 	.opendir = lvfs_opendir,
@@ -204,6 +205,12 @@ static int lvfs_fseek (VFS_FILE *stream, long int offset, int whence)
 	(void)whence;
 
 	return EACCES;
+}
+
+static size_t lvfs_ftell (VFS_FILE *stream)
+{
+	(void)stream;
+	return 0;
 }
 
 static int lvfs_unlink (const char *filename)
@@ -586,6 +593,11 @@ int vfs_fseek (VFS_FILE *stream, long int offset, int whence)
 	return stream->fops->fseek(stream, offset, whence);
 }
 
+size_t vfs_ftell (VFS_FILE *stream)
+{
+	return stream->fops->ftell(stream);
+}
+
 int vfs_unlink (const char *filename)
 {
 	char* abspath;
@@ -790,4 +802,19 @@ int vfs_rename (const char *oldname, const char *newname)
 	}
 
 	return rc;
+}
+
+void vfs_init(void)
+{
+#ifdef USE_SHELL
+#if !defined(USE_SHELL_SYMTAB)
+	SHELL_AddCmd(&lsVfsCmd);
+	SHELL_AddCmd(&chdirVfsCmd);
+	SHELL_AddCmd(&pwdVfsCmd);
+	SHELL_AddCmd(&mkdirVfsCmd);
+	SHELL_AddCmd(&rmVfsCmd);
+	SHELL_AddCmd(&catVfsCmd);
+#endif
+
+#endif
 }

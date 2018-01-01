@@ -48,7 +48,17 @@ def __GetBlockSize(block):
             else:
                 assert(0)
     return int((Size+3)/4)*4
-    
+
+def CrcSize(block):
+    if(GAGet(block,'BlockUseCrc')=='True'):
+        if(GAGet(block,'BlockCRCType')=='Crc16'):
+            crc_len = 2
+        else:
+            crc_len = 4
+    else:
+        crc_len = 0
+    return crc_len
+
 def GenNvM(root,dir):
     global __dir
     GLInit(root)
@@ -91,41 +101,28 @@ def GenH():
             GAGet(General,'RamBlockStatusApi'),
             GAGet(General,'ConfigClass'),
             GAGet(General,'PollingMode')))
-    max_block_size = 0
-    max_block_size_fee = 0
+
     max_block_size_ea  = 0
+    max_block_size=0
     for block in BlockList:
-        block_size = __GetBlockSize(block)
-        if(block_size>max_block_size):
-            max_block_size = block_size 
-            
         NvramDeviceId = GAGet(block,'NvramDeviceId')
-        if(GAGet(block,'BlockUseCrc')=='True'):
-            if(GAGet(block,'BlockCRCType')=='Crc16'):
-                crc_len = 2
-            else:
-                crc_len = 4
-        else:
-            crc_len = 0
-    
-        # for python 3, / will change type to float
-        block_size = int((block_size+crc_len+3)/4)*4
         if('Fee' == NvramDeviceId):
             BlockNumRef = GAGet(block,'BlockNumRef0')
-            if(block_size>max_block_size_fee):
-                max_block_size_fee = block_size 
-            fp.write('#define NVM_FEE_BLOCK_SIZE_%-16s %s\n'%(BlockNumRef,block_size))
+            fp.write('#define NVM_FEE_BLOCK_SIZE_%-16s (sizeof(NvM_Block_%s_DataGroupType)+%s)\n'%(
+                    BlockNumRef,GAGet(block,'Name'),CrcSize(block)))
         else:
             BlockNumRef = GAGet(block,'BlockNumRef1') 
+            fp.write('#define NVM_EA_BLOCK_SIZE_%-16s  (sizeof(NvM_Block_%s_DataGroupType)+%s)\n'%(
+                    BlockNumRef,GAGet(block,'Name'),CrcSize(block)))
+        block_size = __GetBlockSize(block)
+        if('Ea' == NvramDeviceId):
             if(block_size>max_block_size_ea):
-                max_block_size_ea = block_size 
-            fp.write('#define NVM_EA_BLOCK_SIZE_%-16s  %s\n'%(BlockNumRef,block_size))
-            
-    fp.write('#define NVM_FEE_MAX_BLOCK_LENGTH %s\n'%(max_block_size_fee))
+                max_block_size_ea = block_size
+        if(block_size>max_block_size):
+            max_block_size = block_size
+
     fp.write('#define NVM_EA_MAX_BLOCK_LENGTH  %s\n'%(max_block_size_ea))
-                
     fp.write('#define NVM_MAX_BLOCK_LENGTH    %s\n\n'%(max_block_size))
-    
     #Zero Id reserved by NvM
     nbrBlk = 0
     Id = 1
@@ -241,7 +238,7 @@ def GenC():
         .BlockManagementType = NVM_BLOCK_%s,
         .SelectBlockForReadall = %s,
         .SingleBlockCallback = NULL,
-        .NvBlockLength        = %s,
+        .NvBlockLength        = sizeof(NvM_Block_%s_DataGroupType),
         .BlockUseCrc  = %s,
         .BlockCRCType =NVM_%s,
         .RamBlockDataAddress = (uint8*)&NvM_Block_%s_DataGroup_RAM%s,
@@ -254,7 +251,7 @@ def GenC():
     },\n"""%(
              GAGet(block,'BlockManagementType'),
              GAGet(block,'SelectBlockForReadall'),
-             __GetBlockSize(block),
+             GAGet(block,'Name'),
              GAGet(block,'BlockUseCrc').upper(),
              GAGet(block,'BlockCRCType').upper(),
              GAGet(block,'Name'),posfix,

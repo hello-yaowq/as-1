@@ -136,6 +136,16 @@
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif
+#if defined(__LINUX__) || defined(__WINDOWS__)
+#ifdef USE_VFS
+#undef USE_VFS
+#endif
+#endif
+#if defined(USE_VFS)
+#include "vfs.h"
+#else
+#include <stdio.h>
+#endif
 #include "Mcu.h"
 #if (FLS_BASE_ADDRESS != 0)
 #error Virtual addresses not supported
@@ -147,7 +157,25 @@
 
 #define FLASH_NON_CORRECTABLE_ERROR 0x1
 
+#if defined(USE_VFS)
+#if defined(USE_FATFS)
+#define FLASH_IMG "/vfat/Flash.img"
+#elif defined(USE_LWEXT4)
+#define FLASH_IMG "/ext/Flash.img"
+#else
+#error no supported vfs file system
+#endif
+#else
 #define FLASH_IMG "Flash.img"
+#define vfs_fopen  fopen
+#define vfs_fread  fread
+#define vfs_fwrite fwrite
+#define vfs_fseek  fseek
+#define vfs_fclose fclose
+#define vfs_ftell  ftell
+#define VFS_FILE   FILE
+#endif
+
 
 /* Enable check:
  * - Check that the destination is actually 0xff
@@ -228,8 +256,7 @@ typedef enum {
 
 typedef struct {
 	uint32_t dest;
-//	uint32_t size;
-	uint32_t source;
+	const uint8*    source;
 	uint32_t left;
 
     uint32_t pDest;
@@ -393,24 +420,34 @@ void Fls_Init(const Fls_ConfigType *ConfigPtr) {
 	/** @req FLS191 */
 	Fls_Global.config = ConfigPtr;
 
-	FILE* fp = fopen(FLASH_IMG,"r");
+	VFS_FILE* fp = vfs_fopen(FLASH_IMG,"rb");
 	if(NULL == fp)
 	{
-		fp = fopen(FLASH_IMG,"w+");
+		imask_t imask;
+		void* data;
+		Irq_Save(imask);
+		fp = vfs_fopen(FLASH_IMG,"wb+");
 		asAssert(fp);
-		for(int i=0;i<FLS_TOTAL_SIZE;i++)
+		data = malloc(4096);
+		asAssert(data);
+		for(int i=0;i<FLS_TOTAL_SIZE;i+=4096)
 		{
-			uint8_t data = 0xFF;
-			fwrite(&data,1,1,fp);
+			memset(data, 0xFF, 4096);
+			if(1 != vfs_fwrite(&data,4096,1,fp))
+			{
+				asAssert(0);
+			}
 		}
-		fclose(fp);
+		free(data);
+		vfs_fclose(fp);
+		Irq_Restore(imask);
 
 		ASLOG(FLS,"simulation on new created image %s(%dKb)\n",FLASH_IMG,FLS_TOTAL_SIZE/1024);
 	}
 	else
 	{
 		ASLOG(FLS,"simulation on old existed image %s(%dKb)\n",FLASH_IMG,FLS_TOTAL_SIZE/1024);
-		fclose(fp);
+		vfs_fclose(fp);
 	}
 
 	/** @req FLS016 3.0 *//** @req FLS323 4.0 *//** @req FLS324 4.0*/
@@ -509,7 +546,7 @@ Std_ReturnType Fls_Write(Fls_AddressType TargetAddress,
 
 	// Fill in the required fields for programming...
 	/** @req FLS331 4.0 */
-	Fls_Global.flashWriteInfo.source = (uint32) SourceAddressPtr;
+	Fls_Global.flashWriteInfo.source = SourceAddressPtr;
 	Fls_Global.flashWriteInfo.dest = TargetAddress;
 	Fls_Global.flashWriteInfo.left = Length;
 
@@ -589,7 +626,7 @@ void Fls_MainFunction(void) {
 	/** !req FLS196 */
 
 
-	FILE* fp = NULL;
+	VFS_FILE* fp = NULL;
 
 	int result;
 
@@ -611,16 +648,20 @@ void Fls_MainFunction(void) {
 
 			chunkSize = MIN( Fls_Global.length, Fls_Global.readChunkSize );
 
-			fp = fopen(FLASH_IMG,"r");
+			fp = vfs_fopen(FLASH_IMG,"rb");
+			asAssert(fp);
 			if(NULL != fp)
 			{
 				void* buffer = malloc(chunkSize);
-				fseek(fp,Fls_Global.flashAddr,SEEK_SET);
-				fread(buffer,chunkSize,1,fp);
-				fclose(fp);
+				asAssert(buffer);
+				asAssert(Fls_Global.flashAddr < FLS_TOTAL_SIZE);
+				if(0 != vfs_fseek(fp,Fls_Global.flashAddr,SEEK_SET)) { asAssert(0); }
+				if(Fls_Global.flashAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fread(buffer,chunkSize,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 
 				/** @req FLS244 */
-				result = memcmp((void *)Fls_Global.ramAddr,(void *)buffer, chunkSize );
+				result = memcmp(Fls_Global.ramAddr, buffer, chunkSize );
 				free(buffer);
 				Fls_Global.ramAddr += chunkSize;
 				Fls_Global.flashAddr += chunkSize;
@@ -651,14 +692,18 @@ void Fls_MainFunction(void) {
 
 			break;
 		case FLS_JOB_ERASE: {
-			fp = fopen(FLASH_IMG,"r+");
+			fp = vfs_fopen(FLASH_IMG,"rb+");
+			asAssert(fp);
 			if(NULL != fp)
 			{
 				void* buffer = malloc(Fls_Global.length);
+				asAssert(buffer);
 				memset(buffer,0xFF,Fls_Global.length);
-				fseek(fp,Fls_Global.flashAddr,SEEK_SET);
-				fwrite(buffer,Fls_Global.length,1,fp);
-				fclose(fp);
+				asAssert(Fls_Global.flashAddr < FLS_TOTAL_SIZE);
+				if(0 != vfs_fseek(fp,Fls_Global.flashAddr,SEEK_SET)) { asAssert(0); }
+				if(Fls_Global.flashAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fwrite(buffer,Fls_Global.length,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 				free(buffer);
 				ercd = E_OK;
 			}
@@ -684,16 +729,20 @@ void Fls_MainFunction(void) {
 
 			chunkSize = MIN( Fls_Global.length, Fls_Global.readChunkSize );
 
-			fp = fopen(FLASH_IMG,"r");
+			fp = vfs_fopen(FLASH_IMG,"rb");
+			asAssert(fp);
 			if(NULL != fp)
 			{
 				void* buffer = malloc(chunkSize);
-				fseek(fp,Fls_Global.flashAddr,SEEK_SET);
-				fread(buffer,chunkSize,1,fp);
-				fclose(fp);
+				asAssert(buffer);
+				asAssert(Fls_Global.flashAddr < FLS_TOTAL_SIZE);
+				if(0 != vfs_fseek(fp,Fls_Global.flashAddr,SEEK_SET)) { asAssert(0); }
+				if(Fls_Global.flashAddr != vfs_ftell(fp)) { asAssert(0); }
+				if(1 != vfs_fread(buffer,chunkSize,1,fp)) { asAssert(0); }
+				vfs_fclose(fp);
 
 				/** @req FLS244 */
-				memcpy( (void *)Fls_Global.ramAddr, (void *) buffer, chunkSize );
+				memcpy(Fls_Global.ramAddr, buffer, chunkSize );
 				free(buffer);
 				Fls_Global.ramAddr += chunkSize;
 				Fls_Global.flashAddr += chunkSize;
@@ -761,15 +810,20 @@ void Fls_MainFunction(void) {
 				/* Double word programming */
 				LOG_HEX2("Fls_PP() ",Fls_Global.flashWriteInfo.dest," ", Fls_Global.flashWriteInfo.left);
 
-				fp = fopen(FLASH_IMG,"r+");
+				fp = vfs_fopen(FLASH_IMG,"rb+");
+				asAssert(fp);
 				if(NULL != fp)
 				{
-					fseek(fp,Fls_Global.flashWriteInfo.pDest,SEEK_SET);
-					fwrite((void*)(Fls_Global.flashWriteInfo.source),chunkSize,1,fp);
+					const void* buffer = Fls_Global.flashWriteInfo.source;
+					asAssert(Fls_Global.flashAddr < FLS_TOTAL_SIZE);
+					if(0 != vfs_fseek(fp,Fls_Global.flashWriteInfo.pDest,SEEK_SET)) { asAssert(0); }
+					if(Fls_Global.flashWriteInfo.pDest != vfs_ftell(fp)) { asAssert(0); }
+					if(1 != vfs_fwrite(buffer,chunkSize,1,fp)) { asAssert(0); }
+					vfs_fclose(fp);
+
 					Fls_Global.flashWriteInfo.source += chunkSize;
 					Fls_Global.flashWriteInfo.dest   += chunkSize;
 					Fls_Global.flashWriteInfo.left   -= chunkSize;
-					fclose(fp);
 					ercd = E_OK;
 				}
 				else

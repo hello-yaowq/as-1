@@ -189,6 +189,7 @@ void asAssertErrorHook(void)
 	asPrintCallStack();
 	exit(-1);
 #else
+	Irq_Disable();
 	while(1);
 #endif
 }

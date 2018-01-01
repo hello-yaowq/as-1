@@ -13,8 +13,9 @@ if(('FATFS' in MODULES) and (asenv['RTOS'] != 'rtthread')):
 if('LWEXT4' in MODULES):
     objs += SConscript('lwext4/SConscript')
 
-if(('LWEXT4' in MODULES) or (('FATFS' in MODULES))):
+if('VFS' in MODULES):
     objs += Glob('vfs/*.c')
     asenv.Append(CPPPATH =['%s/vfs'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_VFS')
 
 Return('objs')

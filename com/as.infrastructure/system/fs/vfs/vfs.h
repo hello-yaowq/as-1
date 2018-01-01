@@ -64,6 +64,7 @@ struct vfs_filesystem_ops
     int (*fwrite) (const void *data, size_t size, size_t count, VFS_FILE *stream);
     int (*fflush) (VFS_FILE *stream);
     int (*fseek) (VFS_FILE *stream, long int offset, int whence);
+	size_t (*ftell)  (VFS_FILE *stream);
 
     int (*unlink) (const char *filename);
     int (*stat) (const char *filename, struct vfs_stat *buf);
@@ -87,6 +88,7 @@ int vfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream);
 int vfs_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream);
 int vfs_fflush (VFS_FILE *stream);
 int vfs_fseek (VFS_FILE *stream, long int offset, int whence);
+size_t vfs_ftell (VFS_FILE *stream);
 
 int vfs_unlink (const char *filename);
 int vfs_stat (const char *filename, struct vfs_stat *buf);

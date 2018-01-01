@@ -60,8 +60,22 @@ static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 
 	while (*opentype != '\0')
 	{
-		if (*opentype == 'r') flags |= FA_READ;
-		if (*opentype == 'w') flags |= FA_WRITE | FA_CREATE_ALWAYS;
+		if (*opentype == 'r')
+		{
+			flags |= FA_READ;
+		}
+		else if (*opentype == 'w')
+		{
+			flags |= FA_WRITE | FA_CREATE_ALWAYS;
+		}
+		else if (*opentype == 'a')
+		{
+			flags |= FA_OPEN_APPEND;
+		}
+		else if (*opentype == '+')
+		{
+			flags |= FA_WRITE;
+		}
 		opentype++;
 	}
 
@@ -87,6 +101,7 @@ static int fatfs_fclose(VFS_FILE* stream)
 	r = f_close(stream->priv);
 	if (FR_OK != r)
 	{
+		ASLOG(FATFS, "fclose failed!(%d)\n", r);
 		return EOF;
 	}
 
@@ -101,13 +116,16 @@ static int fatfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream)
 	UINT bytesread;
 	FRESULT r;
 
+	ASLOG(FATFS, "fread(%p,%d,%d,%p)\n", data, size, count, stream);
+
 	r = f_read(stream->priv, data, size*count, &bytesread);
 	if (FR_OK != r)
 	{
+		ASLOG(FATFS, "fread failed!(%d)\n", r);
 		return 0;
 	}
 
-	return bytesread;
+	return (bytesread/size);
 }
 
 static int fatfs_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream)
@@ -115,13 +133,16 @@ static int fatfs_fwrite (const void *data, size_t size, size_t count, VFS_FILE *
 	UINT byteswritten;
 	FRESULT r;
 
+	ASLOG(FATFS, "fwrite(%p,%d,%d,%p)\n", data, size, count, stream);
+
 	r = f_write(stream->priv, data, size*count, &byteswritten);
 	if (FR_OK != r)
 	{
+		ASLOG(FATFS, "fwrite failed!(%d)\n", r);
 		return 0;
 	}
 
-	return byteswritten;
+	return (byteswritten/size);
 }
 
 static int fatfs_fflush (VFS_FILE *stream)
@@ -149,7 +170,14 @@ static int fatfs_fseek (VFS_FILE *stream, long int offset, int whence)
 		return 0;
 	}
 
+	ASLOG(FATFS, "fseek failed!(%d)\n", r);
+
 	return EOF;
+}
+
+static size_t fatfs_ftell (VFS_FILE *stream)
+{
+	return ((FIL*)(stream->priv))->fptr;
 }
 
 static int fatfs_unlink (const char *filename)
@@ -380,6 +408,7 @@ const struct vfs_filesystem_ops fatfs_ops =
 	.fwrite = fatfs_fwrite,
 	.fflush = fatfs_fflush,
 	.fseek = fatfs_fseek,
+	.ftell = fatfs_ftell,
 	.unlink = fatfs_unlink,
 	.stat = fatfs_stat,
 	.opendir = fatfs_opendir,

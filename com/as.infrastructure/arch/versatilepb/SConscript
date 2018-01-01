@@ -28,6 +28,14 @@ if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
     asenv.Append(CPPDEFINES='USE_MCU')
 
+if('EEP' in MODULES):
+    objs += Glob('../posix/mcal/Eep.c')
+    asenv.Append(CPPDEFINES='USE_EEP')
+
+if('FLS' in MODULES):
+    objs += Glob('../posix/mcal/Fls.c')
+    asenv.Append(CPPDEFINES='USE_FLS')
+
 if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
     if(os.getenv('PTHREAD') == 'yes'):

@@ -45,10 +45,10 @@ void FlashInit(tFlashParam* FlashParam)
 		 (FLASH_DRIVER_VERSION_MINOR == FlashParam->minornumber) ||
 		 (FLASH_DRIVER_VERSION_MAJOR == FlashParam->majornumber) )
 	{
-		FILE* fp = fopen(FLASH_IMG,"r");
+		FILE* fp = fopen(FLASH_IMG,"rb");
 		if(NULL == fp)
 		{
-			fp = fopen(FLASH_IMG,"w+");
+			fp = fopen(FLASH_IMG,"wb+");
 			asAssert(fp);
 			for(int i=0;i<FLS_TOTAL_SIZE;i++)
 			{
@@ -102,7 +102,7 @@ void FlashErase(tFlashParam* FlashParam)
 		{
 			FILE* fp = NULL;
 			static unsigned char EraseMask[4] = {0xFF,0xFF,0xFF,0xFF};
-			fp = fopen(FLASH_IMG,"r+");
+			fp = fopen(FLASH_IMG,"rb+");
 			if(NULL == fp)
 			{
 				FlashParam->errorcode = kFlashFailed;
@@ -154,7 +154,7 @@ void FlashWrite(tFlashParam* FlashParam)
 		else
 		{
 			FILE* fp = NULL;
-			fp = fopen(FLASH_IMG,"r+");
+			fp = fopen(FLASH_IMG,"rb+");
 			if(NULL == fp)
 			{
 				FlashParam->errorcode = kFlashFailed;
@@ -203,7 +203,7 @@ void FlashRead(tFlashParam* FlashParam)
 		else
 		{
 			FILE* fp = NULL;
-			fp = fopen(FLASH_IMG,"r+");
+			fp = fopen(FLASH_IMG,"rb+");
 			if(NULL == fp)
 			{
 				FlashParam->errorcode = kFlashFailed;

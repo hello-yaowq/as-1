@@ -530,6 +530,7 @@ void ext_mount(void)
 			.block_size = EXT4_FILEDEV_BSIZE,
 			.journal = true,
 		};
+		ASWARNING("ExtFs is invalid, do mkfs!\n");
 		rc = ext4_mkfs(&fs, &ext4_blkdev, &info, F_SET_EXT4);
 		if (rc != EOK)
 		{

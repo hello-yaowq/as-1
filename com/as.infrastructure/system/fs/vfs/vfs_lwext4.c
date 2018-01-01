@@ -86,7 +86,7 @@ static int lwext_fread (void *data, size_t size, size_t count, VFS_FILE *stream)
 		bytesread = 0;
 	}
 
-	return bytesread;
+	return (bytesread/size);
 }
 
 static int lwext_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream)
@@ -100,7 +100,7 @@ static int lwext_fwrite (const void *data, size_t size, size_t count, VFS_FILE *
 		byteswritten = 0;
 	}
 
-	return byteswritten;
+	return (byteswritten/size);
 }
 
 static int lwext_fflush (VFS_FILE *stream)
@@ -117,6 +117,11 @@ static int lwext_fseek (VFS_FILE *stream, long int offset, int whence)
 	r = ext4_fseek(stream->priv, offset, whence);
 
 	return r;
+}
+
+static size_t lwext_ftell (VFS_FILE *stream)
+{
+	return ext4_ftell(stream->priv);
 }
 
 static int lwext_unlink (const char *filename)
@@ -321,6 +326,7 @@ const struct vfs_filesystem_ops lwext_ops =
 	.fwrite = lwext_fwrite,
 	.fflush = lwext_fflush,
 	.fseek = lwext_fseek,
+	.ftell = lwext_ftell,
 	.unlink = lwext_unlink,
 	.stat = lwext_stat,
 	.opendir = lwext_opendir,

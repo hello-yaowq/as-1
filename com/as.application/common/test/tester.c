@@ -49,7 +49,7 @@ KSM(Tester,Stop)
 
 KSM(Tester,RoundRobin)
 {
-	if(GetTimer(&timer) > 1000)
+	if(GetTimer(&timer) > MS2TICKS(1000))
 	{
 		ASLOG(KSM,"Teter 1s runnable\n");
 		StartTimer(&timer);

@@ -63,9 +63,6 @@ if('run' in COMMAND_LINE_TARGETS):
 
 objs = []
 
-objs += Glob('%s/../board.bcm2835/common/*.c'%(cwd))
-
-asenv.Append(CPPPATH=['%s/../board.bcm2835/common'%(cwd)])
 if(asenv['RELEASE']=='asboot'):
     asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x8000')
 else:
@@ -103,11 +100,13 @@ print('WARNING: force using SGAPP watch for versatilepb!')
 asenv['SGAPP']='watch'
 
 if(asenv['RTOS'] != 'rtthread'):
-    MODULES += ['FATFS','LWEXT4',
+    MODULES += ['FATFS','LWEXT4','VFS',
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_MBOX','CLIB_QSORT',
            'CLIB_STDIO_PRINTF',
            'FTP','SHELL',
+           'EEP','FLS','EA','FEE','MEMIF','NVM',
+           'DEM'
            ]
 else:
     asenv.Append(CPPDEFINES='RT_HEAP_SIZE=0x800000')
@@ -142,5 +141,16 @@ if(asenv['RELEASE']=='asboot'):
 asenv['MODULES'] = MODULES
 asenv['ARCH'] = ARCH
 asenv['arch'] = arch
+
+asenv.Append(CPPPATH=['%s/../board.posix/common'%(cwd)])
+
+if('MCU' in MODULES):
+    objs += Glob('%s/../board.posix/common/Mcu*.c'%(cwd))
+
+if('EEP' in MODULES):
+    objs += Glob('%s/../board.posix/common/Eep*.c'%(cwd))
+
+if('FLS' in MODULES):
+    objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
 
 Return('objs')

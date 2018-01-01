@@ -22,6 +22,8 @@ if('run' in COMMAND_LINE_TARGETS):
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 0'%(ASROOT))
         RunCommand('start %s/com/as.tool/lua/can/socketwin_can_driver.exe 1'%(ASROOT))
     target = '%s/release/%s/posix'%(ASROOT,asenv['RELEASE'])
+    if(os.name != 'nt'):
+        target = 'sudo ' + target
     RunCommand('cd %s && %s'%(build,target))
     exit(0)
 
@@ -35,7 +37,7 @@ SrcRemove(objs, 'Ipc_Cfg.c')
 asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET','DEM',
+           'DET','DEM','SHELL',
            'CAN','CANIF','PDUR','COM','COMM','CANTP',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
@@ -46,9 +48,9 @@ MODULES = ['ECUM','SCHM','MCU',
 ARCH='posix'
 arch='posix'
 
-MODULES += ['SOAD','DOIP','LWIP']
+#MODULES += ['SOAD','DOIP','LWIP']
 
-MODULES += ['FATFS','LWEXT4','FTP']
+MODULES += ['FATFS','LWEXT4','VFS','FTP']
 
 if(os.name == 'nt'):
     MODULES += ['CLIB_STRTOK_R']
