@@ -719,6 +719,7 @@ static void DriveBlock( const NvM_BlockDescriptorType	*bPtr,
 			if( multiBlock && (dataPtr!=NULL)) {
 				NVM_ASSERT(0);
 			}
+			NVM_ASSERT((bPtr->NvBlockLength+4) <= sizeof(Nvm_WorkBuffer));
 			/* Copy to work buffer */
 			memcpy( Nvm_WorkBuffer, ramData, bPtr->NvBlockLength );
 			/* Add the CRC to write */
@@ -789,6 +790,7 @@ static void DriveBlock( const NvM_BlockDescriptorType	*bPtr,
 				 */
 				Irq_Save(state);
 
+				NVM_ASSERT(length <= sizeof(Nvm_WorkBuffer));
 				/* We want to read from MemIf, but the device may be busy.
 				 */
 				rv = MemIf_Read(bPtr->NvramDeviceId,

@@ -31,6 +31,8 @@
 #endif
 #endif
 
+#include "asdebug.h"
+
 
 
 // States used by EA_MainFunction to control the internal state of the module.
@@ -105,7 +107,8 @@ static Ea_GlobalType Ea_Global = {
 	EA_JOB_NONE,
 };
 
-static uint8 Ea_TempBuffer[EA_MAX_BLOCK_SIZE + sizeof(Ea_AdminBlock)];
+/* +4 to make place for max crc length */
+static uint8 Ea_TempBuffer[EA_MAX_BLOCK_SIZE + 4 + sizeof(Ea_AdminBlock)];
 
 /*
  * Function prototypes
@@ -305,6 +308,7 @@ Std_ReturnType Ea_Write(uint16 BlockNumber, uint8* DataBufferPtr)
 	adminBlock->blockState = BLOCK_INCONSISTENT;
 	addChecksum(adminBlock);
 
+	asAssert(EaBlockCon[BlockIndex].EaBlockSize <= (sizeof(Ea_TempBuffer)-sizeof(Ea_AdminBlock)));
 	/* Copy the data to the buffer */
 	uint8* destMem = (uint8*) (Ea_TempBuffer + sizeof(Ea_AdminBlock));
 	memcpy(destMem, DataBufferPtr, EaBlockCon[BlockIndex].EaBlockSize);
@@ -551,6 +555,7 @@ void Ea_MainFunction(void)
 				/*@req <EA072> */
 				if (MEMIF_IDLE == Eep_GetStatus())
 				{
+					asAssert(Ea_Global.Length <= sizeof(Ea_TempBuffer));
 					result = Eep_Read(Ea_Global.EepAddress, (uint8*) Ea_TempBuffer, Ea_Global.Length);
 					if (E_OK == result)
 					{

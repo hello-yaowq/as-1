@@ -32,7 +32,7 @@ KSM(Tester,Init)
 	KGS(Tester,RoundRobin);
 	StartTimer(&timer);
 #if(OS_PTHREAD_NUM > 0)
-	pthread_test();
+	//pthread_test();
 #endif
 }
 
