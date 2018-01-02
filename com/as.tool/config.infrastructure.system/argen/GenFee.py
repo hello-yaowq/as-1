@@ -38,33 +38,16 @@ def GenH():
     BlockList = GLGet('BlockList')
     page_size = Integer(GAGet(General,'VirtualPageSize'))
     cstr = ''
-    Num = '1'
-    nbrBlk=0
-    cstr += '#ifdef USE_NVM\n'
+    Num = 1
     for block in BlockList:
         if(GAGet(block,'IsArray')=='False'):
             cstr += '#define FEE_BLOCK_NUM_%-32s (%s)\n'%(GAGet(block,'Name'),Num)
-            Num += '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'))
-            nbrBlk+=1
-        else:
-            anum = Num
-            for i in range(0,Integer(GAGet(block,'ArraySize'))):
-                cstr += '#define FEE_BLOCK_NUM_%s_%s (%s)\n'%(GAGet(block,'Name'),i,anum)
-                anum = Num + '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)*%s/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'),i)
-                nbrBlk+=1
-            Num += '+((NVM_FEE_BLOCK_SIZE_%s+FEE_VIRTUAL_PAGE_SIZE-1)*%s/FEE_VIRTUAL_PAGE_SIZE)'%(GAGet(block,'Name'),GAGet(block,'ArraySize'))
-    cstr += '#else\n'
-    Num=1
-    for block in BlockList:
-        if(GAGet(block,'IsArray')=='False'):
-            cstr += '#define FEE_BLOCK_NUM_%-32s %s\n'%(GAGet(block,'Name'),Num)
-            Num += (Integer(GAGet(block,'BlockSize'))+page_size-1)/page_size
+            Num += 1
         else:
             for i in range(0,Integer(GAGet(block,'ArraySize'))):
-                cstr += '#define FEE_BLOCK_NUM_%s_%s %s\n'%(GAGet(block,'Name'),i,Num)
-                Num += (Integer(GAGet(block,'BlockSize'))+page_size-1)/page_size
-    cstr += '#endif\n'
-    cstr += '#define FEE_NUM_OF_BLOCKS  %s\n'%(nbrBlk)
+                cstr += '#define FEE_BLOCK_NUM_%s_%s (%s)\n'%(GAGet(block,'Name'),i,Num)
+                Num += 1
+    cstr += '#define FEE_NUM_OF_BLOCKS  %s\n'%(Num -1)
     fp.write('''#ifndef FEE_CFG_H_
 #define FEE_CFG_H_
 
