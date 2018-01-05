@@ -191,7 +191,7 @@
 						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
 						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
 						TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=3"
-						UserNotification="Text Default=CanIf_UserTxConfirmation PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
+						UserNotification="Text Default=CanIf_User PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
 						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
 						Comment="TextArea Default=* PosGUI=6"
 						>

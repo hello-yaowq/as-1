@@ -103,7 +103,7 @@ if(asenv['RTOS'] != 'rtthread'):
     MODULES += ['FATFS','LWEXT4','VFS',
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_MBOX','CLIB_QSORT',
-           'CLIB_STDIO_PRINTF',
+           'CLIB_STDIO_PRINTF','CLIB_STDIO_CAN',
            'FTP','SHELL',
            'EEP','FLS','EA','FEE','MEMIF','NVM',
            'DEM'
@@ -113,6 +113,7 @@ else:
     MODULES += ['LWEXT4']
     MODULES += ['FTP']
     MODULES += ['CLIB_STDIO_PRINTF']
+    MODULES += ['CLIB_STDIO_CAN']
 
 ARCH='versatilepb'
 arch='arm'

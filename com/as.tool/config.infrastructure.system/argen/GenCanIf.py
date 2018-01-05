@@ -150,6 +150,9 @@ def GenC():
 #include "Xcp.h"
 #include "XcpOnCan_Cbk.h"
 #endif
+/* ============================ [ MACROS    ] ====================================================== */
+#define PDUR_ID2_STDOUT 0
+#define PDUR_ID_STDIN 0
 /* ============================ [ DECLARES  ] ====================================================== */
 /* Imported structs from Can_PBcfg.c */
 extern const Can_ControllerConfigType Can_ControllerCfgData[];
@@ -159,6 +162,17 @@ extern const Can_ConfigSetType Can_ConfigSetData;
         fp.write('extern void %s(uint8);\n'%(GAGet(GLGet('General'),'BusOffNotification')))
     if(GAGet(GLGet('General'),'ErrorNotification')!='NULL'):
         fp.write('extern void %s(uint8,Can_Arc_ErrorType);\n'%(GAGet(GLGet('General'),'ErrorNotification')))
+
+    for chl in GLGet('ChannelList'):
+        for hrh in GLGet(chl,'HrhList'):
+            for pdu in GLGet(hrh,'PduList'):
+                if(GAGet(pdu,'ReceivedNotifier')=='User'):
+                    fp.write('extern void %sRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId);\n'%(GAGet(pdu,'UserNotification')))
+        for hth in GLGet(chl,'HthList'):
+            for pdu in GLGet(hth,'PduList'):
+                if(GAGet(pdu,'TransmitNotifier')=='User'):
+                    fp.write('extern void %sTxConfirmation(PduIdType);\n'%(GAGet(pdu,'UserNotification')))
+
     fp.write("""
 /* ============================ [ DATAS     ] ====================================================== */
 /* Contains the mapping from CanIf-specific Channels to Can Controllers */
@@ -269,7 +283,7 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                     else:
                         notifier='%s_TxConfirmation'%(GAGet(pdu,'TransmitNotifier'))
                 else:
-                    notifier=GAGet(pdu,'UserNotification')
+                    notifier='%sTxConfirmation'%(GAGet(pdu,'UserNotification'))
                 if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):
                     IdType='CANIF_CAN_ID_TYPE_29'
                 else:
@@ -320,7 +334,7 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
                    (GAGet(pdu,'ReceivedNotifier')!='User')):
                     notifier='NULL'
                 else:
-                    notifier=GAGet(pdu,'UserNotification')
+                    notifier='%sRxIndication'%(GAGet(pdu,'UserNotification'))
                 if(GAGet(pdu,'ReceivedNotifier')=='PduR'):
                     notifierT='CANIF_USER_TYPE_CAN_PDUR'
                 elif(GAGet(pdu,'ReceivedNotifier')=='CanTp'):

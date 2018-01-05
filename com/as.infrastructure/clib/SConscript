@@ -21,6 +21,10 @@ if('CLIB_QSORT' in MODULES):
 if('CLIB_STDIO_PRINTF' in MODULES):
     objs += Glob('stdio_printf.c')
 
+if('CLIB_STDIO_CAN' in MODULES):
+    objs += Glob('stdio_can.c')
+    asenv.Append(CPPDEFINES='USE_STDIO_CAN')
+
 if('CLIB_STRTOK_R' in MODULES):
     objs += Glob('strtok_r.c')
 
