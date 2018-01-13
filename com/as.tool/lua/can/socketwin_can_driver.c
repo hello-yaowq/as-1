@@ -36,7 +36,7 @@
 /* -lwsock32 */
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define CAN_MAX_DLEN 8
+#define CAN_MAX_DLEN 64 /* 64 for CANFD */
 #define CAN_MTU sizeof(struct can_frame)
 #define CAN_PORT_MIN  80
 #define CAN_BUS_NODE_MAX 32	/* maximum node on the bus port */

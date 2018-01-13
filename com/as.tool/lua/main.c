@@ -54,7 +54,6 @@ static int lua_main_entry(int argc, char *argv[]);
 extern void luaclose_as(void);
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_SHELL
-static Shel_CmdInputCacheType shCmdCache;
 static ShellCmdT luacmd =
 {
 	.func = lua_main_entry,
@@ -65,7 +64,7 @@ static ShellCmdT luacmd =
 	.longDesc ="lua script executor",
 };
 #endif
-static const pthread_mutex_t mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
+
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_SHELL
 static void StartupHook(void)
@@ -82,8 +81,6 @@ static void StartupHook(void)
 	RPmsg_Init(&RPmsg_Config);
 #endif
 
-	memset(&shCmdCache,0,sizeof(shCmdCache));
-	memcpy(&shCmdCache.w_lock,&mutex_initializer,sizeof(mutex_initializer));
 	SHELL_Init();
 	SHELL_AddCmd(&luacmd);
 }
@@ -112,60 +109,21 @@ void RPmsg_Client_RxNotitication(RPmsg_ChannelType chl,void* data, uint16 len)
 	else
 	{	/* invalid command, use default */
 		strcpy(cmd,"lua d:/repository/as/com/as.tool/lua/script/flashloader.lua");
-	}
-	if( (shCmdCache.counter+len) < SHELL_CMD_CACHE_SIZE)
-	{
-		(void)pthread_mutex_lock(&shCmdCache.w_lock);
-		for(i=0;i<len;i++)
-		{
-			shCmdCache.cmd[shCmdCache.w_pos] = cmd[i];
-			shCmdCache.w_pos ++;
-			if(shCmdCache.w_pos >= SHELL_CMD_CACHE_SIZE)
-			{
-				shCmdCache.w_pos = 0;
-			}
-			shCmdCache.counter++;
-		}
-		(void)pthread_mutex_unlock(&shCmdCache.w_lock);
-	}
-	else
-	{
-		ASLOG(SHELL,"command buffer full, ignore cmd \"%s\"\n",cmd);
-	}
-}
-char SHELL_getc(void)
-{
-
-	char chr;
-	if(RPmsg_IsOnline())
-	{
-		while(0 == shCmdCache.counter)
-		{
-			usleep(1);
-		}
-		(void)pthread_mutex_lock(&shCmdCache.w_lock);
-		chr = shCmdCache.cmd[shCmdCache.r_pos];
-		shCmdCache.r_pos++;
-		if(shCmdCache.r_pos >= SHELL_CMD_CACHE_SIZE)
-		{
-			shCmdCache.r_pos = 0;
-		}
-		shCmdCache.counter--;
-		(void)pthread_mutex_unlock(&shCmdCache.w_lock);
-	}
-	else
-	{
-		chr = getchar();
+		len = strlen(cmd);
 	}
 
-	return chr;
-
+	for(i=0;i<len;i++)
+	{
+		SHELL_input(cmd[i]);
+	}
 }
 void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 {
 	asAssert(chl == RPMSG_CHL_CLIENT);
 }
 #endif /* USE_RPMSG */
+imask_t __Irq_Save(void) { return 0; }
+void Irq_Restore(imask_t mask) { (void) mask; }
 int main(int argc,char* argv[])
 {
 	ASENVINIT(argc,argv);

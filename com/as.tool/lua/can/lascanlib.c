@@ -415,7 +415,7 @@ int luai_can_write (lua_State *L)
 	if(3==n)
 	{
 		uint32 busid,canid,dlc;
-		uint8 data[8];
+		uint8 data[64]; /*64 for CANFD support */
 		int is_num;
 
 		busid = lua_tounsignedx(L, 1,&is_num);
@@ -453,6 +453,7 @@ int luai_can_write (lua_State *L)
 				lua_pushvalue(L, -2);
 				/* stack now contains: -1 => key; -2 => value; -3 => key; -4 => table
 				 * printf("%s => %s\n", lua_tostring(L, -1), lua_tostring(L, -2)); */
+				asAssert(i<sizeof(data));
 				data[i] = lua_tounsignedx(L, -2,&is_num);
 				if(!is_num)
 				{
@@ -746,7 +747,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 					busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]); */
 			rv = b->device.ops->write(b->device.port,canid,dlc,data);
 			#else
-			unsigned char buffer[8];
+			unsigned char buffer[64]; /* 64 for CANFD */
 			for(unsigned long i=0;i<dlc;i++)
 			{
 				buffer[i] = (IntH(data[2*i])<<4) + (IntH(data[2*i+1]));

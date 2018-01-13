@@ -32,37 +32,42 @@ _pkgfqn="${_realname}-${pkgver}"
 noextract=(${_pkgfqn}.tar.xz)
 
 prepare() {
+  asdir=${srcdir}/../../../..
   if ! [[ -d ${srcdir}/${_pkgfqn} ]] ; then
 
     tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} 2>/dev/null || true
     tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} --skip-old-files
-    cd ${srcdir}/../../../../release/aslua
+    cd ${asdir}/release/aslua
     make clean
     make 81 -i
     make 82 forceclib=yes msys=yes -i
-    cp ${srcdir}/../../../../release/aslua/out/libpyas.a /mingw64/lib -v
+    cp ${asdir}/release/aslua/out/libpyas.a /mingw64/lib -v
     
-    head -n 11 ${srcdir}/../hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
-    echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+    head -n 11 ${asdir}/com/as.tool/qemu//hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
+    echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib /mingw64/lib/ControlCAN.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
   fi
 
-  if ! [[ -d ${srcdir}/../../../../release/download/WpdPack ]] ; then
-    cd ${srcdir}/../../../../release/download/
+  if ! [[ -d ${asdir}/release/download/WpdPack ]] ; then
+    cd ${asdir}/release/download/
     wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
     unzip WpdPack_4_1_2.zip
     cd -
   fi
   
   if ! [[ -d /mingw64/include/pcap ]] ; then
-    cp ${srcdir}/../../../../release/download/WpdPack/Include/* /mingw64/include -rv
-    cp ${srcdir}/../../../../release/download/WpdPack/Lib/x64/* /mingw64/lib -v
+    cp ${asdir}/release/download/WpdPack/Include/* /mingw64/include -rv
+    cp ${asdir}/release/download/WpdPack/Lib/x64/* /mingw64/lib -v
   fi
   
   if ! [[ -f /mingw64/lib/PCANBasic.lib ]] ; then
-    cp ${srcdir}/../../../../com/as.tool/lua/can/peak-can/lib/x64/PCANBasic.lib /mingw64/lib -v
+    cp ${asdir}/release/download/pcan-basic/x64/VC_LIB/PCANBasic.lib /mingw64/lib -v
   fi
 
-  cp ${srcdir}/../hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v
+  if ! [[ -f /mingw64/lib/ControlCAN.lib ]] ; then
+    cp ${asdir}/release/download/CAN_lib/64bit/ControlCAN.lib /mingw64/lib -v
+  fi
+
+  cp ${asdir}/com/as.tool/qemu/hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v
 
   cd ${srcdir}/${_pkgfqn}
 }

@@ -86,15 +86,19 @@ SHELL_CMD_EXPORT(helpInfo);
 static char cmdBuf[CMDLINE_MAX];
 
 #if defined(__LINUX__) || defined(__WINDOWS__)
-#ifdef USE_SCHM
-char SHELL_getc(void)
+void* ProcessStdio(void* arg)
 {
-	return getchar();
+	char ch;
+	(void)arg;
+	while(1)
+	{
+		ch = getchar();
+		SHELL_input(ch);
+	}
+	return NULL;
 }
-#else
-extern char SHELL_getc(void);
 #endif
-#else
+
 static uint32_t rpos=0;
 static uint32_t wpos=0;
 static volatile uint32_t isize=0;
@@ -102,6 +106,7 @@ static char     ibuffer[IBUFFER_MAX];
 
 void SHELL_input(char c)
 {
+	imask_t imask;
 	if(isize < IBUFFER_MAX)
 	{
 		ibuffer[wpos] = c;
@@ -110,17 +115,20 @@ void SHELL_input(char c)
 		{
 			wpos = 0;
 		}
+		Irq_Save(imask);
 		isize ++;
+		Irq_Restore(imask);
 	}
 	else
 	{
 		ASWARNING("shell input buffer overflow!\n");
 	}
-
+#if !defined(__LINUX__) && !defined(__WINDOWS__)
 	if(E_OK != OsSetEvent(TaskShell, EventShellInput))
 	{
 		asAssert(0);
 	}
+#endif
 }
 
 static char SHELL_getc(void)
@@ -129,11 +137,13 @@ static char SHELL_getc(void)
 	imask_t imask;
 	while(0 == isize)
 	{
+#if !defined(__LINUX__) && !defined(__WINDOWS__)
 		if(E_OK != OsWaitEvent(TaskShell, EventShellInput))
 		{
 			asAssert(0);
 		}
-		OsClearEvent(TaskShell, EventShellInput);	
+		OsClearEvent(TaskShell, EventShellInput);
+#endif
 	}
 
 	c = ibuffer[rpos];
@@ -149,7 +159,6 @@ static char SHELL_getc(void)
 
 	return c;
 }
-#endif
 /* ----------------------------[Private functions]---------------------------*/
 /**
  * Split and string into tokens and strip the token from whitespace.
@@ -358,7 +367,10 @@ int SHELL_Mainloop( void ) {
 	static char cmdLine[CMDLINE_MAX];
 	int lineIndex = 0;
 	int cmdRv;
-
+#if defined(__LINUX__) || defined(__WINDOWS__)
+	pthread_t thread;
+	pthread_create(&thread, NULL, ProcessStdio, NULL);
+#endif
 	SHELL_puts("AS Shell version 0.1\n");
 	doPrompt();
 

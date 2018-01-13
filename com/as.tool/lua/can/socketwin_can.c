@@ -42,7 +42,7 @@
 /* -lwsock32 */
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define CAN_MAX_DLEN 8
+#define CAN_MAX_DLEN 64 /* 64 for CANFD */
 #define CAN_MTU sizeof(struct can_frame)
 #define CAN_PORT_MIN  80
 
@@ -227,6 +227,7 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 		struct can_frame frame;
 		mSetCANID(frame , canid);
 		mSetCANDLC(frame , dlc);
+		asAssert(dlc <= CAN_MAX_DLEN);
 		memcpy(frame.data,data,dlc);
 
 		if (send(handle->s, (const char*)&frame, CAN_MTU,0) != CAN_MTU) {
