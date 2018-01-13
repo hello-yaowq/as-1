@@ -97,8 +97,7 @@ def PrepareBuilding(env):
             action='store_true',
             default=False,
             help='force rebuild of all')
-    if(os.name != 'nt'):
-        AddOption('--menuconfig', 
+    AddOption('--menuconfig', 
                     dest = 'menuconfig',
                     action = 'store_true',
                     default = False,

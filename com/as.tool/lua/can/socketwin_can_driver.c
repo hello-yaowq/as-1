@@ -63,6 +63,8 @@
 #define mCANDLC(frame) ( frame->can_dlc )
 #define mSetCANDLC(frame,dlc) do { frame->can_dlc = dlc; } while(0)
 #endif
+#define in_range(c, lo, up)  ((uint8_t)c >= lo && (uint8_t)c <= up)
+#define isprint(c)           in_range(c, 0x20, 0x7f)
 //#define USE_RX_DAEMON
 /* ============================ [ TYPES     ] ====================================================== */
 /**
@@ -254,11 +256,29 @@ static void log_msg(struct can_frame* frame,float rtim)
 
 	if(bOut)
 	{
-		printf("canid=%08X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X] @ %f s\n",
-				mCANID(frame),mCANDLC(frame),
-				frame->data[0],frame->data[1],frame->data[2],frame->data[3],
-				frame->data[4],frame->data[5],frame->data[6],frame->data[7],
-				rtim);
+		int i;
+		printf("canid=%08X,dlc=%d,data=[",mCANID(frame),mCANDLC(frame));
+
+		for(i=0; i<8; i++)
+		{
+			printf("%02X,", frame->data[i]);
+		}
+
+		printf("] [");
+
+		for(i=0; i<8; i++)
+		{
+			if(isprint(frame->data[i]))
+			{
+				printf("%c",frame->data[i]);
+			}
+			else
+			{
+				printf(".");
+			}
+		}
+
+		printf("] @ %f s\n", rtim);
 	}
 }
 static void try_recv_forward(void)

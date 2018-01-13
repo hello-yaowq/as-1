@@ -645,12 +645,13 @@ void Can_SimulatorRunning(void)
 			canUnit = GET_PRIVATE_DATA(ctlrId);
 			if(CAN_EMPTY_MESSAGE_BOX != canUnit->swPduHandle)
 			{
+				PduIdType swPduHandle = canUnit->swPduHandle;
+				canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 				if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
 				{
-					Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
-					ASLOG(CAN,"TxComfirm(%d,%d)\n",configId,canUnit->swPduHandle);
+					Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(swPduHandle);
+					ASLOG(CAN,"TxComfirm(%d,%d)\n",configId,swPduHandle);
 				}
-				canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 			}
 		}
 		#ifndef __AS_CAN_BUS__

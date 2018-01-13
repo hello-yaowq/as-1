@@ -32,7 +32,11 @@
 #include "lwip/dhcp.h"
 #include "lwip/inet.h"
 #include "lwip_handler.h"
+#ifdef USE_STDRT
+#include "netif/ethernetif.h"
+#else
 #include "ethernetif.h"
+#endif
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_ETH 1

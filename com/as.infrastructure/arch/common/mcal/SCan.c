@@ -215,8 +215,9 @@ void Can_MainFunction_Write( void )
 {
 	if(CAN_EMPTY_MESSAGE_BOX != swPduHandle)
 	{
-		CanIf_TxConfirmation(swPduHandle);
+		PduIdType swPduHandle2 = swPduHandle;
 		swPduHandle = CAN_EMPTY_MESSAGE_BOX;
+		CanIf_TxConfirmation(swPduHandle2);
 	}
 }
 

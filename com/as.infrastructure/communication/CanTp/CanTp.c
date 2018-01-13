@@ -2,6 +2,7 @@
  * Arctic Core - the open source AUTOSAR platform http://arccore.com
  *
  * Copyright (C) 2009  ArcCore AB <contact@arccore.com>
+ * Copyright (C) 2017  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -13,6 +14,7 @@
  * for more details.
  * -------------------------------- Arctic Core ------------------------------*/
 
+/* CANFD https://www.can-cia.org/fileadmin/resources/documents/proceedings/2015_hartkopp.pdf */
 /** @addtogroup TBD
  *  @{ */
 

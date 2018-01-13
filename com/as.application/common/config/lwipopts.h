@@ -11,3 +11,12 @@
 #endif
 
 #include "LwIp_Cfg.h"
+
+#ifndef RECV_BUFSIZE_DEFAULT
+#define RECV_BUFSIZE_DEFAULT            8192
+#endif
+
+#ifdef USE_STDRT
+#include_next "lwipopts.h"
+#endif
+

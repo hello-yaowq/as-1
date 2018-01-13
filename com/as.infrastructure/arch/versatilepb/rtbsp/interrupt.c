@@ -184,4 +184,9 @@ void Irq_Restore(imask_t mask)
 {
 	rt_hw_interrupt_enable(mask);
 }
+
+void Irq_Disable(void)
+{
+	(void)rt_hw_interrupt_disable();
+}
 #endif

@@ -197,11 +197,12 @@ static void can_isr(void)
 			{
 				if(CAN_EMPTY_MESSAGE_BOX != canUnit->swPduHandle)
 				{
+					PduIdType swPduHandle = canUnit->swPduHandle;
+					canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 					if(NULL != Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation)
 					{
-						Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(canUnit->swPduHandle);
+						Can_Global.config->CanConfigSet->CanCallbacks->TxConfirmation(swPduHandle);
 					}
-					canUnit->swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 				}
 			}
 

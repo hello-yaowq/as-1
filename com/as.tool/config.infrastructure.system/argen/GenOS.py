@@ -299,6 +299,9 @@ def GenC(gendir,os_list):
                     if(GAGet(res,'Name')==GAGet(ires,'Name')):
                         if(Integer(GAGet(ires,'Priority')) > Integer(runPrio)):
                             runPrio = GAGet(res,'Priority')
+        # for IDLE task, priority is 0.
+        if(GAGet(task,'Name')=='TaskIdle'):
+            runPrio = '(-OS_PTHREAD_PRIORITY)'
         maxAct = Integer(GAGet(task,'Activation'))
         event  = 'NULL'
         if(len(GLGet(task,'EventList')) > 0):

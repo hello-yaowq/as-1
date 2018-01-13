@@ -324,7 +324,8 @@ void EcuM_Shutdown(void) {
 }
 
 Std_ReturnType EcuM_GetState(EcuM_StateType* state) {
-	VALIDATE_RV(EcuM_World.initiated, ECUM_GETSTATE_ID, ECUM_E_NOT_INITIATED, E_NOT_OK);VALIDATE_RV(state != NULL, ECUM_GETSTATE_ID, ECUM_E_NULL_POINTER, E_NOT_OK);
+	/* VALIDATE_RV(EcuM_World.initiated, ECUM_GETSTATE_ID, ECUM_E_NOT_INITIATED, E_NOT_OK); */
+	VALIDATE_RV(state != NULL, ECUM_GETSTATE_ID, ECUM_E_NULL_POINTER, E_NOT_OK);
 
 	*state = EcuM_World.current_state;
 

@@ -137,10 +137,6 @@ TASK(TaskIdle)
 
 #if defined(__FREEOSEK__) || defined(__UCOSII_OS__) || defined(__RTTHREAD_OS__)
 		(void)Schedule();
-#elif defined(__ASKAR_OS__)
-#if(OS_PTHREAD_NUM > 0)
-		Os_Sleep(1);
-#endif
 #endif
 
 #if !defined(__SMALL_OS__) && !defined(__CONTIKI_OS__)

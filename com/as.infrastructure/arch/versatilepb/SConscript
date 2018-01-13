@@ -15,6 +15,7 @@ else:
     objs += Glob('rtbsp/*.c')
     objs += Glob('bsp/pci.c')
     asenv.Append(CPPPATH=['%s/rtbsp'%(cwd)])
+    asenv.Append(ASFLAGS=['-I%s/rtbsp'%(cwd)])
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
@@ -63,6 +64,10 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 
+if(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
+    objs += Glob('../common/lwip/netbios.c')
+    if(os.name == 'nt'):
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -g ')
 

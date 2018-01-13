@@ -80,6 +80,7 @@ class Window(QMainWindow):
         if(os.name != 'nt'):
             self.onAction('Sg')
         self.onAction('Can')
+        self.onAction('Serial')
         self.onAction('Flashloader')
         self.onAction('Dcm')
         self.onAction('Xcp')

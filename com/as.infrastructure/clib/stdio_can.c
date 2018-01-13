@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "CanIf.h"
+#include "EcuM.h"
 #include "asdebug.h"
 #ifdef USE_SHELL
 #include "shell.h"
@@ -27,6 +28,7 @@ static uint32_t rpos=0;
 static uint32_t wpos=0;
 static volatile uint32_t isize=0;
 static char     ibuffer[IBUFFER_MAX];
+static uint32_t wmissing=0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void flush_can(void)
 {
@@ -37,6 +39,32 @@ static void flush_can(void)
 	int trpos;
 	Std_ReturnType ercd;
 	imask_t imask;
+	CanIf_ChannelGetModeType mode;
+	EcuM_StateType state;
+
+	EcuM_GetState(&state);
+	if(ECUM_STATE_APP_RUN != state)
+	{
+		return;
+	}
+
+	ercd = CanIf_GetPduMode(CANIF_CHL_LS, &mode);
+
+	if(E_OK == ercd)
+	{
+		if((CANIF_GET_TX_ONLINE == mode) || (CANIF_GET_ONLINE == mode))
+		{
+			/* pass check, possible to send */
+		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		return;
+	}
 
 	sz = isize;
 	if(sz > 8)
@@ -53,12 +81,18 @@ static void flush_can(void)
 		trpos = rpos;
 		while(sz > index)
 		{
-			data[index] = ibuffer[rpos];
+			data[index] = ibuffer[trpos];
 			trpos ++;
 			if(trpos >= IBUFFER_MAX)
 			{
 				trpos = 0;
 			}
+			index ++;
+		}
+
+		while(8 > index)
+		{
+			data[index] = 0x55;
 			index ++;
 		}
 
@@ -92,7 +126,8 @@ void Can_putc(char ch)
 	}
 	else
 	{
-		ASWARNING("shell input buffer overflow!\n");
+		/* do noting as full */
+		wmissing ++;
 	}
 
 	if( ('\r' == ch) || ('\n' == ch) || (isize >= 8) )
@@ -118,4 +153,17 @@ void CanIf_StdioRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr
 void CanIf_StdioTxConfirmation(PduIdType id)
 {
 	(void) id;
+	if(isize > 0)
+	{
+		flush_can();
+	}
+	else if(wmissing > 0)
+	{
+		printf("CANIO missing %d!\n", wmissing);
+		wmissing = 0;
+	}
+	else
+	{
+		/* nothing */
+	}
 }

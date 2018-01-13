@@ -23,6 +23,7 @@ from time import sleep
 from time import ctime
 from binascii import hexlify, unhexlify
 import sys
+from pyas.can import *
 
 __all__ = ['UISerial']
 
@@ -35,9 +36,14 @@ class AsSerial(QThread):
     recv_msg = QtCore.pyqtSignal(str)
     def __init__(self,parent=None):
         super(QThread, self).__init__(parent)
+        self.isCANMode=False
         
     def open(self, settings):
         self.__terminate = False
+        if(settings['port'] == 'CAN'):
+            self.isCANMode = True
+            self.start()
+            return (True, 'success')
         try:
             self.serial = Serial(settings['port'], settings['baund'], settings['bytesize'],
                     settings['parity'], settings['stopbits'], settings['timeout'])
@@ -45,10 +51,11 @@ class AsSerial(QThread):
             self.serial.flushOutput()
         except:
             return (False, "%s"%(sys.exc_info()[1]))
-        
+
         self.start()
         return (True, 'success')
     def resetArduino(self):
+        if(self.isCANMode): return
         self.serial.setDTR(0)
         sleep(0.1)
         self.serial.setDTR(1)
@@ -57,13 +64,41 @@ class AsSerial(QThread):
         self.__terminate = True
         
     def send(self, data):
+        if(self.isCANMode):
+            index = 0
+            pdu=[]
+            for d in data:
+                pdu.append(ord(d))
+                index +=1
+                if(index == 8):
+                    ercd = can_write(0,0x701,pdu)
+                    if(False == ercd):
+                        print('Seial: send can message failed!')
+                    index = 0
+                    pdu = []
+            if(index > 0):
+                ercd = can_write(0,0x701,pdu)
+                if(False == ercd):
+                    print('Seial: send can message failed!')
+            return
         self.serial.write(data)
     
     def __recv(self):
-        data, quit = None, False
+        data, quit = '', False
         while(True):
             if(self.__terminate):
                 break
+            if(self.isCANMode):
+                # default on CAN bus0, CANID 0x702
+                ercd,canid,d = can_read(0, 0x702)
+                if(ercd):
+                    for b in d:
+                        data += '%c'%(b)
+                        if('%c'%(b) =='\n'):
+                            quit = True
+                if(quit==True):
+                    break
+                continue
             data = self.serial.read(1)
             if(data == ''):
                 continue
@@ -81,6 +116,7 @@ class AsSerial(QThread):
         return data
     
     def close(self):
+        if(self.isCANMode): return
         if self.serial.isOpen():
             self.serial.close()
     
@@ -90,10 +126,9 @@ class AsSerial(QThread):
             if not data:
                 break
             self.recv_msg.emit(data)
-
+        if(self.isCANMode): return
         self.serial.close()  
-        
-        
+
 class UISerial(QWidget):
     toVisualHex = lambda self,data: ' '.join([hexlify(c) for c in data]).upper()
     toHex = lambda self,data: ''.join([unhexlify(data[i:i+2]) for i in xrange(0, len(data), 2)])
@@ -107,9 +142,9 @@ class UISerial(QWidget):
         grid = QGridLayout()
         grid.addWidget(QLabel('Port:'), 0, 0)
         self.cmdPorts = QComboBox()
-        self.cmdPorts.addItems(['COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9'])
+        self.cmdPorts.addItems(['CAN','COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9'])
         grid.addWidget(self.cmdPorts, 0, 1)
-        self.cmdPorts.setCurrentIndex(6)
+        self.cmdPorts.setCurrentIndex(0)
         self.cmdPorts.setEditable(True)
         
         grid.addWidget(QLabel('Baudrate:'), 0, 2)
@@ -158,13 +193,16 @@ class UISerial(QWidget):
         grid.addWidget(self.btnClearHistory, 1, 7)
         vbox.addLayout(grid)
         
-        self.tbHistory = QTextBrowser()
+        self.tbHistory = QTextEdit()
+        self.tbHistory.setReadOnly(True)
         self.tbHistory.setStyleSheet(_fromUtf8("background-color: rgb(36, 36, 36);\ncolor: rgb(12, 190, 255);"))
         vbox.addWidget(self.tbHistory)
        
         self.teInput = QTextEdit()
+        self.teInput.setMaximumHeight(50)
         self.teInput.setStyleSheet(_fromUtf8("background-color: rgb(36, 36, 36);\ncolor: rgb(12, 190, 255);"))
         vbox.addWidget(self.teInput)
+        self.teInput.textChanged.connect(self.on_teInput_textChanged)
         
         hbox = QHBoxLayout()
         self.btnResetArduin = QPushButton('ResetArduino')
@@ -208,19 +246,21 @@ class UISerial(QWidget):
         if(self.rbHex.isChecked()):
             data = ''.join(data.split())
             data = ' '.join([data[i:i+2] for i in xrange(0, len(data), 2)]).upper()
-        else:
-            data = data.replace('\n', '<br/>')
-        self.tbHistory.append('<b>Send</b> @%s<br/><font color="white">%s</font><br/><br/>'
-                                    % (ctime(), data))
+        self.tbHistory.insertPlainText(str(data))
         self.teInput.clear()
         bytes = self.rbAscii.isChecked() and len(data) or len(data) / 2
         self.lcdSendNbr.display(self.lcdSendNbr.intValue() + bytes)
-             
+
+    def on_teInput_textChanged(self):
+        data = str(self.teInput.toPlainText())
+        if('\n' in data):
+            self.on_btnSend_clicked()
+
     def on_btnSend_clicked(self):
         if(self.flags['opened']==False):
             QMessageBox.information(self, 'Tips', 'Please open COM fistly.')
             return
-        data = self.teInput.toPlainText().toUtf8().data()
+        data = self.teInput.toPlainText()
         ret, msg = self.checkData(data)
         if not ret:
             QMessageBox.critical(self, 'Error', msg)
@@ -234,10 +274,8 @@ class UISerial(QWidget):
         bytes = len(data)
         if(self.rbHex.isChecked()):
             data = self.toVisualHex(data)
-        else:
-            data = data.replace('\n', '<br/>')
-        self.tbHistory.append('<b>Recv</b> @%s<br/><font color="yellow">%s</font><br/><br/>'
-                                    % (ctime(), data))
+        self.tbHistory.insertPlainText(data)
+        self.tbHistory.moveCursor(QTextCursor.End)
         self.lcdRecvNbr.display(self.lcdRecvNbr.intValue() + bytes)
         
     def on_btnOpenClose_clicked(self):

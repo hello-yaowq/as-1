@@ -45,6 +45,7 @@ void rt_console_putc(int c);
 extern void pci_init(void);
 extern void vic_setup(void);
 extern unsigned int _start;
+extern void Can_putc(char ch);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -54,6 +55,9 @@ void __putchar(char ch)
 	serial_send_char(ch);
 #else
 	rt_console_putc(ch);
+#endif
+#ifdef USE_STDIO_CAN
+	Can_putc(ch);
 #endif
 }
 
