@@ -433,7 +433,7 @@ void Fls_Init(const Fls_ConfigType *ConfigPtr) {
 		for(int i=0;i<FLS_TOTAL_SIZE;i+=4096)
 		{
 			memset(data, 0xFF, 4096);
-			if(1 != vfs_fwrite(&data,4096,1,fp))
+			if(1 != vfs_fwrite(data,4096,1,fp))
 			{
 				asAssert(0);
 			}

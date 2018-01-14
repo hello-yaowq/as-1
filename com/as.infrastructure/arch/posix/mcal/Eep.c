@@ -254,10 +254,8 @@ void Eep_Init(const Eep_ConfigType* ConfigPtr) {
 		asAssert(data);
 		for(int i=0;i<Eep_Global.config->EepSize;i+=4096)
 		{
-			void* data = malloc(4096);
-			asAssert(data);
 			memset(data, 0xFF, 4096);
-			if(1 != vfs_fwrite(&data,4096,1,fp))
+			if(1 != vfs_fwrite(data,4096,1,fp))
 			{
 				asAssert(0);
 			}

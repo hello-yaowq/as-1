@@ -29,6 +29,7 @@
 #include "shell.h"
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #include <pthread.h>
+#include <semaphore.h>
 #ifdef USE_SCHM
 #include "Os.h"
 #endif
@@ -86,6 +87,7 @@ SHELL_CMD_EXPORT(helpInfo);
 static char cmdBuf[CMDLINE_MAX];
 
 #if defined(__LINUX__) || defined(__WINDOWS__)
+static sem_t semInput;
 void* ProcessStdio(void* arg)
 {
 	char ch;
@@ -128,6 +130,8 @@ void SHELL_input(char c)
 	{
 		asAssert(0);
 	}
+#else
+	sem_post(&semInput);
 #endif
 }
 
@@ -143,6 +147,8 @@ static char SHELL_getc(void)
 			asAssert(0);
 		}
 		OsClearEvent(TaskShell, EventShellInput);
+#else
+		sem_wait(&semInput);
 #endif
 	}
 
@@ -370,6 +376,7 @@ int SHELL_Mainloop( void ) {
 #if defined(__LINUX__) || defined(__WINDOWS__)
 	pthread_t thread;
 	pthread_create(&thread, NULL, ProcessStdio, NULL);
+	sem_init(&semInput, 0, 0);
 #endif
 	SHELL_puts("AS Shell version 0.1\n");
 	doPrompt();

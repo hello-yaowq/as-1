@@ -90,12 +90,6 @@ static void flush_can(void)
 			index ++;
 		}
 
-		while(8 > index)
-		{
-			data[index] = 0x55;
-			index ++;
-		}
-
 		ercd = CanIf_Transmit(CANIF_ID_STDOUT, &pdu);
 		if(E_OK == ercd)
 		{

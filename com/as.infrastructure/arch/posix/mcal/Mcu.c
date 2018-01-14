@@ -31,7 +31,15 @@
 //#define USE_LDEBUG_PRINTF 1
 #include "asdebug.h"
 
+extern void Can_putc(char ch);
 
+void __putchar(char ch)
+{
+	putchar(ch);
+#ifdef USE_STDIO_CAN
+	Can_putc(ch);
+#endif
+}
 void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
 

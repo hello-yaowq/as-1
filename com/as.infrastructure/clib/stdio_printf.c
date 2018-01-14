@@ -45,6 +45,7 @@ extern void __putchar(char chr);
 extern void __puts(const char * pszInfo);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+#if !defined(__LINUX__) && !defined(__WINDOWS__)
 static long divide(long *n, long base)
 {
 	long res;
@@ -217,7 +218,9 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 
 	return buf;
 }
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#if !defined(__LINUX__) && !defined(__WINDOWS__)
 size_t __weak strlen (const char *s)
 {
 	const char *sc;
@@ -534,6 +537,7 @@ int sprintf (char *__restrict buf, const char *__restrict format, ...)
 
 	return n;
 }
+#endif
 /**
  * This function will print a formatted string on system console
  *
@@ -610,6 +614,7 @@ int puts(const char* pstr)
 
 	return len;
 }
+#if !defined(__LINUX__) && !defined(__WINDOWS__)
 #ifdef putchar
 #undef putchar
 #endif
@@ -618,3 +623,4 @@ int putchar(int c)
 	__putchar(c);
 	return 1;
 }
+#endif

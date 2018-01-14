@@ -57,6 +57,7 @@ if(os.name == 'nt'):
 
 MODULES += ['CLIB_MBOX']
 
+MODULES += ['CLIB_STDIO_PRINTF']
 MODULES += ['CLIB_STDIO_CAN']
 
 MODULES += ['RTE','RTE_SWC_TELLTALE']
