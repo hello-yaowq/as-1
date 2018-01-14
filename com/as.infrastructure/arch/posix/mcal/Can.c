@@ -742,4 +742,27 @@ void Can_RPmsg_TxConfirmation(RPmsg_ChannelType chl)
 }
 #endif
 
+#ifdef USE_SHELL
+#include "shell.h"
+void statCan(void)
+{
+	Can_UnitType *canUnit;
+	const Can_ControllerConfigType *canHwConfig;
+	uint8 ctlrId;
+	if(Can_Global.initRun == CAN_READY)
+	{
+		/* Tx Confirmation Process*/
+		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++)
+		{
+			canHwConfig = GET_CONTROLLER_CONFIG(configId);
+			ctlrId = canHwConfig->CanControllerId;
+
+			canUnit = GET_PRIVATE_DATA(ctlrId);
+			SHELL_printf("CAN[%d] HRH is %d, TXCNT is %d\n",
+					ctlrId, canUnit->swPduHandle, canUnit->stats.txSuccessCnt);
+		}
+	}
+}
+#endif
+
 

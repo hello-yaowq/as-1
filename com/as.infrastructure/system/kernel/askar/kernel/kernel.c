@@ -62,7 +62,7 @@ static void Os_MiscInit(void)
 #endif
 
 	Sched_Init();
-#if defined(USE_SHELL) && !defined(__GNUC__)
+#if defined(USE_SHELL) && !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&statOsCmd);
 #endif
 }

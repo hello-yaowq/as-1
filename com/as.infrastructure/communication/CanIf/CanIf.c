@@ -44,6 +44,10 @@
 #include "XcpOnCan_Cbk.h"
 #endif
 
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
+
 #include "Os.h"
 
 #include "asdebug.h"
@@ -120,10 +124,39 @@ typedef struct
 
 /* ============================ [ DECLARES  ] ====================================================== */
 void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex);
-
+#ifdef USE_SHELL
+static int shellCanIf(int argc, char* argv[]);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 static CanIf_GlobalType CanIf_Global;
+#ifdef USE_SHELL
+static SHELL_CONST ShellCmdT canIfCmd  = {
+		shellCanIf,
+		1,3,
+		"can",
+		"can info / can write busid canid#data_in_hex_string\n",
+		"get can information or request send a CAN message\n"
+		"Example: can write 0 73f#11bb3344556677aa\n",
+		{NULL,NULL}
+};
+
+SHELL_CMD_EXPORT(canIfCmd);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_SHELL
+void __weak statCan(void)
+{
+	SHELL_printf("Get information of CAN is not available!\n");
+}
+static int shellCanIf(int argc, char* argv[])
+{
+	if(0 == strcmp(argv[1], "info"))
+	{
+		statCan();
+	}
+	return 0;
+}
+#endif
 static CanIf_Arc_ChannelIdType CanIf_Arc_FindHrhChannel( Can_Arc_HRHType hrh )
 {
   const CanIf_InitHohConfigType *hohConfig;
@@ -379,6 +412,10 @@ void CanIf_Init(const CanIf_ConfigType *ConfigPtr)
 
 
   CanIf_Global.initRun = TRUE;
+
+#if defined(USE_SHELL) && !defined(USE_SHELL_SYMTAB)
+	SHELL_AddCmd(&canIfCmd);
+#endif
 }
 
 /*
