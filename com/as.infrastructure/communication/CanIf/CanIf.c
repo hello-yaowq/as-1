@@ -134,7 +134,7 @@ static SHELL_CONST ShellCmdT canIfCmd  = {
 		shellCanIf,
 		1,3,
 		"can",
-		"can info / can write busid canid#data_in_hex_string\n",
+		"can info / can write hth canid#data_in_hex_string\n",
 		"get can information or request send a CAN message\n"
 		"Example: can write 0 73f#11bb3344556677aa\n",
 		{NULL,NULL}
@@ -148,11 +148,71 @@ void __weak statCan(void)
 {
 	SHELL_printf("Get information of CAN is not available!\n");
 }
+
 static int shellCanIf(int argc, char* argv[])
 {
+	int r = 0;
 	if(0 == strcmp(argv[1], "info"))
 	{
 		statCan();
+	}
+	else if(0 == strcmp(argv[1], "write"))
+	{
+		if((4 == argc) && ('#') == argv[3][3])
+		{
+			uint32 canid;
+			uint32 hth;
+			uint8  dlc;
+			uint8  data[64];
+			char bs[3] = { 0, 0, 0 };
+			const char* s;
+			Can_PduType pdu;
+
+			hth = strtoul(argv[2], NULL, 16);
+			argv[3][3] = '\0';
+			canid = strtoul(argv[3], NULL, 16);
+			dlc = 0;
+			s = &(argv[3][4]);
+			while(*s != '\0')
+			{
+				if(*(s+1) != '\0')
+				{
+					s += 2;
+					bs[0] = *s;
+					bs[1] = *(s+1);
+				}
+				else
+				{
+					bs[0] = *s;
+					bs[1] = '\0';
+					s += 1;
+				}
+
+				data[dlc] = strtoul(bs, NULL, 16);
+
+				dlc += 1;
+			}
+
+			pdu.id = canid;
+			pdu.sdu = data;
+			pdu.length = dlc;
+
+			r = Can_Write(hth, &pdu);
+			if(E_OK == r)
+			{
+				r = -EBUSY;
+			}
+		}
+		else
+		{
+			SHELL_printf("invalid args to CAN write!\n");
+			r = -EINVAL;
+		}
+	}
+	else
+	{
+		SHELL_printf("invalid operation '%s'\n", argv[1]);
+		r = -ENOTSUP;
 	}
 	return 0;
 }

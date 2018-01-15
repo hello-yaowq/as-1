@@ -56,7 +56,7 @@ if(os.name == 'nt'):
     MODULES += ['CLIB_STRTOK_R']
 
 MODULES += ['CLIB_MBOX']
-
+MODULES += ['CLIB_MISCLIB']
 MODULES += ['CLIB_STDIO_PRINTF']
 MODULES += ['CLIB_STDIO_CAN']
 

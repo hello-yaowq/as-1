@@ -77,6 +77,28 @@ static int _eval(const char **expr)
 
 	return result;
 }
+static uint32_t IntH(char chr)
+{
+	uint32_t v;
+	if( (chr>='0') && (chr<='9'))
+	{
+		v= chr - '0';
+	}
+	else if( (chr>='A') && (chr<='F'))
+	{
+		v= chr - 'A' + 10;
+	}
+	else if( (chr>='a') && (chr<='f'))
+	{
+		v= chr - 'a' + 10;
+	}
+	else
+	{
+		v = (uint32_t)-1; /* -1 to indicate error */
+	}
+
+	return v;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int eval(const char *expr)
 {
@@ -284,4 +306,32 @@ size_t strlcat (char       *dest,
 	*d = 0;
 
 	return dlength + (s - src);  /* count does not include NUL */
+}
+
+unsigned long int strtoul(const char* string, char ** tailptr, int base)
+{
+	unsigned long int result;
+	uint32_t v;
+
+	result = 0;
+
+	const char *s = string;
+
+	while (*s != 0)
+	{
+		v = IntH(*s);
+		if((uint32_t)-1 == v)
+		{
+			break;
+		}
+		result = result*base + v;
+		s++;
+	}
+
+	if(tailptr != NULL)
+	{
+		*tailptr = (char*)s;
+	}
+
+	return result;
 }
