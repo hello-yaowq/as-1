@@ -17,7 +17,11 @@
 #include <string.h>
 #include <stdlib.h>
 /* ============================ [ MACROS    ] ====================================================== */
-
+#if !defined(__weak) && defined(__GNUC__)
+#define __weak __attribute__((weak))
+#else
+#define __weak
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -104,7 +108,7 @@ int eval(const char *expr)
 {
 	return _eval(&expr);
 }
-void *memset (void *__s, int __c, size_t __n)
+void * __weak memset (void *__s, int __c, size_t __n)
 {
 	size_t i;
 	char* ptr = (char*) __s;
@@ -117,7 +121,7 @@ void *memset (void *__s, int __c, size_t __n)
 	return __s;
 }
 
-void *memcpy (void* __to, const void* __from, size_t __size)
+void *__weak memcpy (void* __to, const void* __from, size_t __size)
 {
 	size_t i;
 	char* dst = (char*) __to;
@@ -130,12 +134,13 @@ void *memcpy (void* __to, const void* __from, size_t __size)
 
 	return __to;
 }
-void *memmove (void *__dest, const void *__src, size_t __n)
+
+void *__weak memmove (void *__dest, const void *__src, size_t __n)
 {
 	return memcpy(__dest,__src,__n);
 }
 
-char* strcpy (char* __to, const char* __from)
+char* __weak strcpy (char* __to, const char* __from)
 {
 	char* dst = (char*) __to;
 	const char* src = (const char*) __from;
@@ -150,8 +155,7 @@ char* strcpy (char* __to, const char* __from)
 	return __to;
 }
 
-int
-strcmp(const char *s1, const char *s2)
+int __weak strcmp(const char *s1, const char *s2)
 {
 	for ( ; *s1 == *s2; s1++, s2++)
 	if (*s1 == '\0')
@@ -161,7 +165,7 @@ strcmp(const char *s1, const char *s2)
 	return ((*(unsigned char *)s1 < *(unsigned char *)s2) ? -1 : +1);
 }
 
-int strncmp(const char *s1, const char *s2, size_t n)
+int __weak strncmp(const char *s1, const char *s2, size_t n)
 {
 	for ( ; (*s1 == *s2) && (n > 0); s1++, s2++, n--)
 	if (*s1 == '\0')
@@ -175,8 +179,8 @@ int strncmp(const char *s1, const char *s2, size_t n)
 	}
 	return ((*(unsigned char *)s1 < *(unsigned char *)s2) ? -1 : +1);
 }
-int
-memcmp(const void *s1, const void *s2, size_t n)
+
+int __weak memcmp(const void *s1, const void *s2, size_t n)
 {
 	unsigned char u1, u2;
 
@@ -214,7 +218,7 @@ memcmp(const void *s1, const void *s2, size_t n)
  *
  * Returns: length of @src
  */
-size_t strlcpy (char       *dest,
+size_t __weak strlcpy (char       *dest,
            const char *src,
            size_t        dest_size)
 {
@@ -273,7 +277,7 @@ size_t strlcpy (char       *dest,
  *     (original dest)) + strlen (src), so if retval >= dest_size,
  *     truncation occurred.
  */
-size_t strlcat (char       *dest,
+size_t __weak strlcat (char       *dest,
            const char *src,
            size_t        dest_size)
 {
@@ -308,7 +312,7 @@ size_t strlcat (char       *dest,
 	return dlength + (s - src);  /* count does not include NUL */
 }
 
-unsigned long int strtoul(const char* string, char ** tailptr, int base)
+unsigned long int __weak strtoul(const char* string, char ** tailptr, int base)
 {
 	unsigned long int result;
 	uint32_t v;

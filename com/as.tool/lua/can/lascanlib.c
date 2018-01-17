@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
+#include <ctype.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
@@ -35,7 +36,7 @@ typedef struct {
     /* Length, max 8 bytes */
     uint8_t		length;
     /* data ptr */
-    uint8_t 		sdu[8];
+    uint8_t 		sdu[64];
 } Can_PduType;
 struct Can_Pdu_s {
 	Can_PduType msg;
@@ -275,7 +276,7 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 		ASWARNING("LUA CAN RX bus <%d> out of range, busid < %d is support only\n",busid,CAN_BUS_NUM);
 	}
 
-    ASLOG(LUA,"RPMAG RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
+    ASLOG(LUA,"LUA RX CAN ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",
 		  canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);
 }
 static const Can_DeviceOpsType* search_ops(const char* name)
@@ -305,6 +306,7 @@ static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t*
 	}
 	if(NULL != canLog)
 	{
+		uint32_t i;
 		struct timeval m1;
 		gettimeofday(&m1,NULL);
 
@@ -319,9 +321,30 @@ static void logCan(bool isRx,uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t*
 			rtim = rtim - 1 + (float)(1000000.0+m1.tv_usec-m0.tv_usec)/1000000.0;
 		}
 		/* gettimeofday(&m0,NULL); */ /* use absolute time */
-		fprintf(canLog,"busid=%d, %s canid=%04X dlc=%d data=[ %02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X ] @ %f s\n",
-				busid,isRx?"rx":"tx",canid,dlc,data[0],data[1],data[2],data[3],
-						data[4],data[5],data[6],data[7],rtim);
+		fprintf(canLog,"busid=%d %s canid=%04X dlc=%d data=[",busid,isRx?"rx":"tx",canid,dlc);
+		if(dlc < 8)
+		{
+			dlc = 8;
+		}
+		for(i=0; i<dlc; i++)
+		{
+			fprintf(canLog,"%02X,",data[i]);
+		}
+
+		fprintf(canLog,"] [");
+
+		for(i=0; i<dlc; i++)
+		{
+			if(isprint(data[i]))
+			{
+				fprintf(canLog,"%c",data[i]);
+			}
+			else
+			{
+				fprintf(canLog,".");
+			}
+		}
+		fprintf(canLog,"] @ %f s\n", rtim);
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -431,9 +454,9 @@ int luai_can_write (lua_State *L)
 		}
 
 		dlc = luaL_len ( L , 3 ) ;
-		if(dlc > 8)
+		if(dlc > 64)
 		{
-			return luaL_error(L,"len(data array{})>8 to function 'can_write'");
+			return luaL_error(L,"len(data array{})>64 to function 'can_write'");
 		}
 		else
 		{
@@ -734,7 +757,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	{
 		printf("ERROR :: can bus(%d) is not on-line 'can_write'\n",(int)busid);
 	}
-	else if(dlc > 8)
+	else if(dlc > 64)
 	{
 		printf("ERROR :: can bus(%d) 'can_write' with invalid dlc(%d>8)\n",(int)busid,(int)dlc);
 	}

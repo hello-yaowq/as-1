@@ -257,16 +257,21 @@ static void log_msg(struct can_frame* frame,float rtim)
 	if(bOut)
 	{
 		int i;
-		printf("canid=%08X,dlc=%d,data=[",mCANID(frame),mCANDLC(frame));
-
-		for(i=0; i<8; i++)
+		int dlc;
+		printf("canid=%08X,dlc=%02d,data=[",mCANID(frame),mCANDLC(frame));
+		dlc = mCANDLC(frame);
+		if(dlc < 8)
+		{
+			dlc = 8;
+		}
+		for(i=0; i<dlc; i++)
 		{
 			printf("%02X,", frame->data[i]);
 		}
 
 		printf("] [");
 
-		for(i=0; i<8; i++)
+		for(i=0; i<dlc; i++)
 		{
 			if(isprint(frame->data[i]))
 			{

@@ -485,7 +485,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 
   VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
   VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
-  VALIDATE( (pduInfo->length <= 8), 0x6, CAN_E_PARAM_DLC );
+  VALIDATE( (pduInfo->length <= 64), 0x6, CAN_E_PARAM_DLC );
   VALIDATE( (hth < NUM_OF_HTHS ), 0x6, CAN_E_PARAM_HANDLE );
 
   hohObj = Can_FindHoh(hth, &controller);
@@ -562,7 +562,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo ) {
 void Can_MainFunction_Read( void ) {
 	#ifdef __AS_CAN_BUS__
 	unsigned long busid,canid,dlc;
-	unsigned char data[8];
+	unsigned char data[64];
 	int ercd;
 
 	for(busid=0;busid<CAN_CTRL_CONFIG_CNT;busid++)

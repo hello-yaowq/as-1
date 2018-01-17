@@ -177,9 +177,9 @@ static int shellCanIf(int argc, char* argv[])
 			{
 				if(*(s+1) != '\0')
 				{
-					s += 2;
 					bs[0] = *s;
 					bs[1] = *(s+1);
+					s += 2;
 				}
 				else
 				{
