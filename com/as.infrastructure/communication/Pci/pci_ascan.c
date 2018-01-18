@@ -69,9 +69,8 @@ enum{
 	REG_PORT      = 0x08,
 	REG_CANID     = 0x0C,
 	REG_CANDLC    = 0x10,
-	REG_CANDL     = 0x14,
-	REG_CANDH     = 0x18,
-	REG_CANSTATUS = 0x1C,
+	REG_CANDATA   = 0x14,
+	REG_CANSTATUS = 0x18,
 	REG_CMD       = 0x1C,
 };
 /* ============================ [ TYPES     ] ====================================================== */
@@ -208,10 +207,10 @@ static void can_isr(void)
 
 			if(flag&(FLG_RX<<(4*ctlrId)))
 			{
-				uint32_t canid,val;
+				uint32_t canid, i;
 				uint8_t dlc;
 				uint16 Hrh;
-				unsigned char data[8];
+				unsigned char data[64];
 				const Can_HardwareObjectType  *hoh = Can_Global.config->CanConfigSet->CanController[configId].Can_Arc_Hoh;
 				hoh --;
 				do{
@@ -224,19 +223,12 @@ static void can_isr(void)
 				}while(FALSE == hoh->Can_Arc_EOL);
 				asAssert(0xFFFF != Hrh);
 				writel(__iobase+REG_BUSID,ctlrId);
-				writel(__iobase+REG_CMD,3);	/* locate current bus */
 				canid = readl(__iobase+REG_CANID);
 				dlc   = readl(__iobase+REG_CANDLC);
-				val   = readl(__iobase+REG_CANDL);
-				data[0] = (val>>0)&0xFF;
-				data[1] = (val>>8)&0xFF;
-				data[2] = (val>>16)&0xFF;
-				data[3] = (val>>24)&0xFF;
-				val   = readl(__iobase+REG_CANDH);
-				data[4] = (val>>0)&0xFF;
-				data[5] = (val>>8)&0xFF;
-				data[6] = (val>>16)&0xFF;
-				data[7] = (val>>24)&0xFF;
+				for(i=0; i<dlc; i++)
+				{
+					data[i] = readl(__iobase+REG_CANDATA);
+				}
 				asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
 				Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(Hrh, canid, dlc, data);
 				ASLOG(CANRX,"CAN%d ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",ctlrId,
@@ -395,7 +387,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 
 	VALIDATE( (Can_Global.initRun == CAN_READY), 0x6, CAN_E_UNINIT );
 	VALIDATE( (pduInfo != NULL), 0x6, CAN_E_PARAM_POINTER );
-	VALIDATE( (pduInfo->length <= 8), 0x6, CAN_E_PARAM_DLC );
+	VALIDATE( (pduInfo->length <= 64), 0x6, CAN_E_PARAM_DLC );
 	VALIDATE( (hth < NUM_OF_HTHS ), 0x6, CAN_E_PARAM_HANDLE );
 
 	hohObj = Can_FindHoh(hth, &controller);
@@ -422,14 +414,14 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 		Irq_Save(irq_state);
 		if(CAN_EMPTY_MESSAGE_BOX == canUnit->swPduHandle)	/* check for any free box */
 		{
-			uint32_t val;
+			uint32_t i;
 			writel(__iobase+REG_BUSID, controller);
 			writel(__iobase+REG_CANID, pduInfo->id);
 			writel(__iobase+REG_CANDLC, pduInfo->length);
-			val = pduInfo->sdu[0] + (pduInfo->sdu[1]<<8) + (pduInfo->sdu[2]<<16) + (pduInfo->sdu[3]<<24);
-			writel(__iobase+REG_CANDL, val);
-			val = pduInfo->sdu[4] + (pduInfo->sdu[5]<<8) + (pduInfo->sdu[6]<<16) + (pduInfo->sdu[7]<<24);
-			writel(__iobase+REG_CANDH, val);
+			for(i=0; i<64; i++)
+			{
+				writel(__iobase+REG_CANDATA, pduInfo->sdu[i]);
+			}
 			writel(__iobase+REG_CMD, 2);
 			ASLOG(CANTX,"CAN%d ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",controller,
 				pduInfo->id,pduInfo->length,pduInfo->sdu[0],pduInfo->sdu[1],pduInfo->sdu[2],pduInfo->sdu[3],

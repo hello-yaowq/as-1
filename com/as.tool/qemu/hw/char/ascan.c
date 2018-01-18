@@ -38,9 +38,8 @@ enum{
 	REG_PORT      = 0x08,
 	REG_CANID     = 0x0C,
 	REG_CANDLC    = 0x10,
-	REG_CANDL     = 0x14,
-	REG_CANDH     = 0x18,
-	REG_CANSTATUS = 0x1C,
+	REG_CANDATA   = 0x14,
+	REG_CANSTATUS = 0x18,
 	REG_CMD       = 0x1C,
 };
 
@@ -50,8 +49,8 @@ struct Can_Bus_s {
 
 	uint32_t canid;
 	uint32_t candlc;
-	uint32_t candl;
-	uint32_t candh;
+	uint32_t rwpos;
+	uint8_t  data[64];
 	STAILQ_ENTRY(Can_Bus_s) entry;	/* entry for Can_PduQueue_s, sort by CANID queue*/
 };
 typedef struct PCIASCANDevState {
@@ -83,11 +82,6 @@ typedef struct PCIASCANDevState {
 
 	uint32_t busid;
 	uint32_t port;
-	uint32_t canid;
-	uint32_t candlc;
-	uint32_t candl;
-	uint32_t candh;
-
 } PCIASCANDevState;
 
 static Property ascan_properties[] = {
@@ -185,14 +179,11 @@ static void checkBus(PCIASCANDevState *d)
 		else
 		{
 			int rv;
-			uint8_t  data[8];
-			rv = can_read(b->busid, -1, (unsigned long*)&b->canid, (unsigned long*)&b->candlc, data);
+			rv = can_read(b->busid, -1, (unsigned long*)&b->canid, (unsigned long*)&b->candlc, b->data);
 
 			if(TRUE == rv)
 			{
 				d->flag |= FLG_RX<<(4*b->busid);
-				b->candl = data[0] + (data[1]<<8) + (data[2]<<16) + (data[3]<<24);
-				b->candh = data[4] + (data[5]<<8) + (data[6]<<16) + (data[7]<<24);
 			}
 		}
 	}
@@ -261,15 +252,14 @@ static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 	break;
 	case REG_CANDLC:
 		assert(d->curbus);
+		/* read DLC and then read data */
+		d->curbus->rwpos = 0;
 		return d->curbus->candlc;
 	break;
-	case REG_CANDL:
+	case REG_CANDATA:
 		assert(d->curbus);
-		return d->curbus->candl;
-	break;
-	case REG_CANDH:
-		assert(d->curbus);
-		return d->curbus->candh;
+		assert(d->curbus->rwpos<sizeof(d->curbus->data));
+		return d->curbus->data[d->curbus->rwpos++];
 	break;
 	default:
 		printf ("%s: Bad register offset 0x%x\n", __func__, (int)addr);
@@ -294,21 +284,25 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 	case REG_BUSID:
 		d->busid = value;
 		assert(value < 8);
+		d->curbus = getBus(d, d->busid);
+		assert(d->curbus);
 		break;
 	case REG_PORT:
 		d->port = value;
 		break;
 	case REG_CANID:
-		d->canid = value;
+		assert(d->curbus);
+		d->curbus->canid = value;
 	break;
 	case REG_CANDLC:
-		d->candlc = value;
+		assert(d->curbus);
+		d->curbus->candlc = value;
+		d->curbus->rwpos = 0;
 	break;
-	case REG_CANDL:
-		d->candl = value;
-	break;
-	case REG_CANDH:
-		d->candh = value;
+	case REG_CANDATA:
+		assert(d->curbus);
+		assert(d->curbus->rwpos < sizeof(d->curbus->data));
+		d->curbus->data[d->curbus->rwpos++] = value;
 	break;
 	case REG_CMD:
 		switch(value)
@@ -342,16 +336,7 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 			case 2:
 			{
 				int rv;
-				uint8_t data[8];
-				data[0] = (d->candl>>0)&0xFF;
-				data[1] = (d->candl>>8)&0xFF;
-				data[2] = (d->candl>>16)&0xFF;
-				data[3] = (d->candl>>24)&0xFF;
-				data[4] = (d->candh>>0)&0xFF;
-				data[5] = (d->candh>>8)&0xFF;
-				data[6] = (d->candh>>16)&0xFF;
-				data[7] = (d->candh>>24)&0xFF;
-				rv = can_write(d->busid,d->canid,d->candlc,data);
+				rv = can_write(d->busid,d->curbus->canid,d->curbus->candlc,d->curbus->data);
 				if(TRUE == rv)
 				{
 					d->flag |= FLG_TX<<(4*d->busid);
@@ -359,10 +344,6 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 				}
 			}
 			break;
-			case 3:
-				d->curbus = getBus(d, d->busid);
-				assert(d->curbus);
-				break;
 			default:
 				printf ("%s: Bad command 0x%x\n", __func__, (int)value);
 			break;

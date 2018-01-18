@@ -23,7 +23,7 @@ if('run' in COMMAND_LINE_TARGETS):
     if((not os.path.exists(qemu)) and (os.name != 'nt')):
         RunCommand('cd %s/release/ascore/ && make asqemu'%(ASROOT))
 
-    build = '%s/release/%s/build/versatilepb'%(ASROOT,asenv['RELEASE'])
+    build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
 
     if(not os.path.exists('%s/asblk0.img'%(build))):
         if(os.name == 'nt'):
