@@ -48,7 +48,7 @@ if('run' in COMMAND_LINE_TARGETS):
         RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,asenv['python3']))
         RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
         RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
-        RunCommand('cd %s && start %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))
+        RunCommand('cd %s && start cmd /C %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))
         RunCommand('sleep 2 && telnet 127.0.0.1 1103')
     else:
         fp = open('%s/telnet.sh'%(build),'w')

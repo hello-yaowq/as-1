@@ -37,15 +37,16 @@ prepare() {
 
     tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} 2>/dev/null || true
     tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} --skip-old-files
-    cd ${asdir}/release/aslua
-    make clean
-    make 81 -i
-    make 82 forceclib=yes msys=yes -i
-    cp ${asdir}/release/aslua/out/libpyas.a /mingw64/lib -v
-    
+
     head -n 11 ${asdir}/com/as.tool/qemu//hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
     echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib /mingw64/lib/ControlCAN.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
   fi
+
+  cd ${asdir}/release/aslua
+  make clean
+  make 81 -i
+  make 82 forceclib=yes msys=yes -i
+  cp ${asdir}/release/aslua/out/libpyas.a /mingw64/lib -v
 
   if ! [[ -d ${asdir}/release/download/WpdPack ]] ; then
     cd ${asdir}/release/download/

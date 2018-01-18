@@ -418,7 +418,7 @@ Can_ReturnType Can_Write( Can_Arc_HTHType hth, Can_PduType *pduInfo )
 			writel(__iobase+REG_BUSID, controller);
 			writel(__iobase+REG_CANID, pduInfo->id);
 			writel(__iobase+REG_CANDLC, pduInfo->length);
-			for(i=0; i<64; i++)
+			for(i=0; i<pduInfo->length; i++)
 			{
 				writel(__iobase+REG_CANDATA, pduInfo->sdu[i]);
 			}

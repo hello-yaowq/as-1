@@ -196,6 +196,7 @@ static int shellCanIf(int argc, char* argv[])
 			pdu.id = canid;
 			pdu.sdu = data;
 			pdu.length = dlc;
+			pdu.swPduHandle = 0xFFFF; /* set to invalid */
 
 			r = Can_Write(hth, &pdu);
 			if(E_OK == r)

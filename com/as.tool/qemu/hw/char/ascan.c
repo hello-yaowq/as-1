@@ -285,7 +285,6 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		d->busid = value;
 		assert(value < 8);
 		d->curbus = getBus(d, d->busid);
-		assert(d->curbus);
 		break;
 	case REG_PORT:
 		d->port = value;
@@ -336,6 +335,7 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 			case 2:
 			{
 				int rv;
+				assert(d->curbus);
 				rv = can_write(d->busid,d->curbus->canid,d->curbus->candlc,d->curbus->data);
 				if(TRUE == rv)
 				{
