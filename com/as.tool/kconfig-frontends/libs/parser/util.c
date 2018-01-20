@@ -28,6 +28,7 @@ struct file *file_lookup(const char *name)
 	file->name = file_name;
 	file->next = file_list;
 	file_list = file;
+
 	return file;
 }
 

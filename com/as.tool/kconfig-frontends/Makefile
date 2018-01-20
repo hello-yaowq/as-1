@@ -34,13 +34,14 @@ CFLAGS += -DCURSES_LOC=\"ncurses.h\"
 CFLAGS += -DROOTMENU=\"Configuration\"
 CFLAGS += -DCONFIG_=\"CONFIG_\"
 CFLAGS += -DKBUILD_NO_NLS
-CFLAGS += -DGPERF_LEN_TYPE=size_t
 CFLAGS += -I$(src-dir)/libs
 CFLAGS += -I$(src-dir)/libs/parser
 LDFLAGS += -O3
 LIBS += -lncurses
 ifeq ($(host), Linux)
+CFLAGS += -DGPERF_LEN_TYPE=unsigned\ int
 else
+CFLAGS += -DGPERF_LEN_TYPE=size_t
 LIBS += -lregex
 CFLAGS += -D__WINDOWS__
 ifeq ($(msys2), yes)
@@ -80,6 +81,8 @@ $(src-dir)/libs/parser/hconf.c:$(src-dir)/libs/parser/hconf.gperf
 	gperf -t --output-file $@ -a -C -E -g -k 1,3,$$ -p -t $<
 
 all: $(PARSER) $(objs-y)
+	@echo
+	@echo "  >> LD $(TARGET)"
 	$(Q) $(LD) $(LDFLAGS) $(objs-y) $(LIBS) -o $(TARGET)
 
 clean:

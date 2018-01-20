@@ -826,6 +826,9 @@ next:
 	if (*tmpname) {
 		strcat(dirname, basename);
 		strcat(dirname, ".old");
+#ifdef __WINDOWS__
+		(void)remove(dirname);
+#endif
 		rename(newname, dirname);
 		if (rename(tmpname, newname))
 			return 1;

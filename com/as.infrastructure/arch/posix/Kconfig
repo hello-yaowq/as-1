@@ -1,0 +1,78 @@
+if ARCH_POSIX
+menu "AUTOSAR MCAL&CDD for arch posix"
+
+config CAN
+	bool "MCAL CAN driver"
+	default y
+
+config DIO
+	bool "MCAL DIO driver"
+	default y
+
+config FATFS
+	bool "FATFS diskio driver"
+	default y
+
+config LWEXT4
+	bool "LWEXT4 blockdev driver"
+	default y
+
+config EEP
+	bool "MCAL EEP driver"
+	default y
+
+config FLASH
+	bool "HIS FLASH driver for bootloader"
+	default n
+
+config FLS
+	bool "MCAL FLS driver"
+	default y
+
+config IPC
+	bool "Inter Processor Communication driver"
+	default n
+	help
+	  This driver is used to simulate the Inter Processor Communication device
+	  for the purpose to study RPMSG&VIRTIO
+
+config LCD
+	bool "LCD driver"
+	default y
+
+choice
+	prompt "LCD simulated by"
+
+config LCD_ON_GTK
+	bool "gtk"
+	depends on LCD
+	default y
+
+config LCD_ON_OPENVG
+	bool "openvg(windows only)"
+	depends on LCD
+	default n
+
+endchoice
+
+config MCU
+	bool "MCAL MCU driver"
+	default y
+
+config PORT
+	bool "MCAL PORT driver"
+	default y
+
+config STMO
+	bool "Step Motor driver"
+	default y
+	help
+	  This driver is used to simulate the step motor which if usually used by
+	  instrument cluster as gauge pointer.
+
+config LWIP
+	bool "LWIP driver"
+	default y
+
+endmenu
+endif

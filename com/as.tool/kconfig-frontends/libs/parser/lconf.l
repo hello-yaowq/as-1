@@ -312,13 +312,23 @@ void zconf_nextfile(const char *name)
 	struct buffer *buf = xmalloc(sizeof(*buf));
 	memset(buf, 0, sizeof(*buf));
 
-	current_buf->state = YY_CURRENT_BUFFER;
 	yyin = zconf_fopen(file->name);
 	if (!yyin) {
 		printf("%s:%d: can't open file \"%s\"\n",
 		    zconf_curname(), zconf_lineno(), file->name);
 		exit(1);
 	}
+
+	/* if no end of line at the end of file and which is a "source" */
+	if(NULL == current_buf) {
+		current_buf = xmalloc(sizeof(*current_buf));
+		memset(current_buf, 0, sizeof(*current_buf));
+
+		current_file = file_lookup(name);
+		current_file->lineno = 1;
+	}
+	current_buf->state = YY_CURRENT_BUFFER;
+	
 	yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
 	buf->parent = current_buf;
 	current_buf = buf;

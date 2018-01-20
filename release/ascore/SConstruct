@@ -14,8 +14,6 @@ asenv=Environment()
 asenv['ASROOT'] = ASROOT
 asenv['RELEASE'] = 'ascore'
 
-PrepareBuilding(asenv)
-
 board_list = []
 for dir in os.listdir('%s/com/as.application'%(ASROOT)):
     if(dir[:6]=='board.' and 
@@ -52,6 +50,8 @@ if(BOARD is None):
 
 asenv['BOARD'] = BOARD
 Export('asenv')
+
+PrepareBuilding(asenv)
 
 bdir = 'build/%s'%(BOARD)
 objs = []

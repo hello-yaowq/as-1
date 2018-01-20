@@ -1,0 +1,3 @@
+config ARCH_POSIX
+    bool
+    default y

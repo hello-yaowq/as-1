@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import string
 from SCons.Script import *
@@ -62,6 +63,10 @@ def PrepareBuilding(env):
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     env['msys2'] = False
+    if(sys.platform=='msys'):
+        # force os name to 'nt'
+        os.name = 'nt'
+        raise Exception('Native scons of msys is not supported yet!')
     if(os.name == 'nt'):
         env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'
@@ -98,10 +103,10 @@ def PrepareBuilding(env):
             default=False,
             help='force rebuild of all')
     AddOption('--menuconfig', 
-                    dest = 'menuconfig',
-                    action = 'store_true',
-                    default = False,
-                    help = 'make menuconfig for RT-Thread BSP')
+            dest = 'menuconfig',
+            action = 'store_true',
+            default = False,
+            help = 'make menuconfig for Automotive Software AS')
 
     if(not GetOption('verbose')):
     # override the default verbose command string
@@ -113,6 +118,53 @@ def PrepareBuilding(env):
           CXXCOMSTR = 'CXX $SOURCE',
           LINKCOMSTR = 'LINK $TARGET'
         )
+
+    if(GetOption('menuconfig')):
+        menuconfig(env)
+
+def GetConfig(cfg):
+    print("Get new configuration!")
+
+def menuconfig(env):
+    import time
+    kconfig = '%s/com/as.tool/kconfig-frontends/kconfig-mconf'%(env['ASROOT'])
+    cmd = ''
+    if(os.name == 'nt'):
+        kconfig += '.exe'
+        cmd += 'set BOARD=%s && set ASROOT=%s && start cmd /C '%(env['BOARD'],env['ASROOT'])
+    else:
+        cmd += 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
+    if(not os.path.exists(kconfig)):
+        RunCommand('cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT']))
+    if(os.path.exists(kconfig)):
+        assert(os.path.exists('Kconfig'))
+        cmd += kconfig + ' Kconfig'
+
+        fn = '.config'
+        if(os.path.isfile(fn)):
+            mtime = os.path.getmtime(fn)
+        else:
+            mtime = -1
+        RunCommand(cmd)
+        print('press Ctrl+C to exit!')
+        if(os.name == 'nt'): 
+            while(True): 
+                time.sleep(1)
+                if(os.path.isfile(fn)):
+                    mtime2 = os.path.getmtime(fn)
+                else:
+                    mtime2 = -1
+                if(mtime != mtime2):
+                    break
+        if(os.path.isfile(fn)):
+            mtime2 = os.path.getmtime(fn)
+        else:
+            mtime2 = -1
+        if(mtime != mtime2):
+            GetConfig(fn)
+        exit(0)
+    else:
+        raise Exception("can't find out %s"%(kconfig))
 
 def GetCurrentDir():
     conscript = File('SConscript')
@@ -172,7 +224,7 @@ def RunCommand(cmd):
         fp = open('.scons.bat','w')
         fp.write('@echo off\n')
         for c in cmds:
-            fp.write('%s\n'%(c))
+            fp.write('%s\n'%(c.strip()))
         fp.close()
         cmd = '.scons.bat'
     if(0 != os.system(cmd)):

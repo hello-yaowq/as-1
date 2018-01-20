@@ -688,7 +688,7 @@ static void conf(struct menu *menu, struct menu *active_menu)
 			switch (item_tag()) {
 			case 'm':
 				if (single_menu_mode)
-					submenu->data = (void *) (long) !submenu->data;
+					submenu->data = (void *) (unsigned long long) !submenu->data;
 				else
 					conf(submenu, NULL);
 				break;

@@ -1,0 +1,2 @@
+source "$ASROOT/com/as.infrastructure/arch/posix/Kconfig"
+source "$ASROOT/com/as.infrastructure/arch/versatilepb/Kconfig"

@@ -1,0 +1,39 @@
+if ARCH_VERSATILEPB
+menu "AUTOSAR MCAL&CDD for arch versatilepb"
+
+config CAN
+	bool "MCAL CAN driver"
+	default y
+
+config FATFS
+	bool "FATFS diskio driver"
+	default y
+
+config LWEXT4
+	bool "LWEXT4 blockdev driver"
+	default y
+
+config EEP
+	bool "MCAL EEP driver"
+	depends on (FATFS || LWEXT4)
+	default y
+
+config FLS
+	bool "MCAL FLS driver"
+	depends on (FATFS || LWEXT4)
+	default y
+
+config LCD
+	bool "LCD driver"
+	default y
+
+config MCU
+	bool "MCAL MCU driver"
+	default y
+
+config LWIP
+	bool "LWIP driver"
+	default y
+
+endmenu
+endif
