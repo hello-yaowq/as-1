@@ -1,0 +1,27 @@
+menu "System"
+
+config CRC
+	bool "CRC"
+	default y
+
+config ECUM
+	bool "Ecu Manager"
+	default y
+
+config SG
+	bool "Static GUI"
+	default y
+
+config SCHM
+	bool "Scheduler Manager"
+	default y
+
+config SHELL
+	bool "SHELL"
+	default y
+
+source "$ASROOT/com/as.infrastructure/system/fs/Kconfig"
+source "$ASROOT/com/as.infrastructure/system/kernel/Kconfig"
+source "$ASROOT/com/as.infrastructure/system/net/Kconfig"
+
+endmenu

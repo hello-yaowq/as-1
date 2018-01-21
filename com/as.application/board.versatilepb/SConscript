@@ -139,7 +139,11 @@ if(asenv['RELEASE']=='asboot'):
                        'LINKFLAGS':['-static','-T%s'%(lds)],
                        'objs':[]}
 
-asenv['MODULES'] = MODULES
+if(asenv['MODULES'] is None):
+    asenv['MODULES'] = MODULES
+else:
+    MODULES = asenv['MODULES']
+
 asenv['ARCH'] = ARCH
 asenv['arch'] = arch
 

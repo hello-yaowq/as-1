@@ -9,11 +9,11 @@ config DIO
 	bool "MCAL DIO driver"
 	default y
 
-config FATFS
+config FATFS_DRV
 	bool "FATFS diskio driver"
 	default y
 
-config LWEXT4
+config LWEXT4_DRV
 	bool "LWEXT4 blockdev driver"
 	default y
 
@@ -43,12 +43,12 @@ config LCD
 choice
 	prompt "LCD simulated by"
 
-config LCD_ON_GTK
+config GTK
 	bool "gtk"
 	depends on LCD
 	default y
 
-config LCD_ON_OPENVG
+config OPENVG
 	bool "openvg(windows only)"
 	depends on LCD
 	default n

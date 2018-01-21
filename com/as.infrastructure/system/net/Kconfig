@@ -1,0 +1,12 @@
+menu "Internet Protocol"
+config LWIP
+	bool "LWIP"
+	depends on LWIP_DRV
+	default y
+
+config FTP
+	bool "File Transfer Protocol Daemon"
+	depends on LWIP
+	default y
+
+endmenu

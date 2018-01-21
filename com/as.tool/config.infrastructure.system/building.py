@@ -122,8 +122,27 @@ def PrepareBuilding(env):
     if(GetOption('menuconfig')):
         menuconfig(env)
 
-def GetConfig(cfg):
-    print("Get new configuration!")
+    GetConfig('.config',env)
+
+def GetConfig(cfg,env):
+    import re
+    if(not os.path.exists(cfg)):
+        # None to use default confiuration
+        env['MODULES'] = None
+        print('WARNING: no menuconfig file(".config") found, will use default configuration!')
+        return
+    env['MODULES'] = []
+    reOne = re.compile(r'([^\s]+)\s*=\s*([^\s]+)')
+    fp = open(cfg)
+    for el in fp.readlines():
+        if(reOne.search(el)):
+            name,value = reOne.search(el).groups()
+            if(value=='y'):
+                env['MODULES'].append(name.replace('CONFIG_',''))
+            else:
+                assert(0)
+    fp.close()
+    print('Modules:',env['MODULES'])
 
 def menuconfig(env):
     import time
@@ -161,7 +180,7 @@ def menuconfig(env):
         else:
             mtime2 = -1
         if(mtime != mtime2):
-            GetConfig(fn)
+            GetConfig(fn,env)
         exit(0)
     else:
         raise Exception("can't find out %s"%(kconfig))

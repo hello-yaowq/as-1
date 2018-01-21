@@ -27,15 +27,6 @@ if('run' in COMMAND_LINE_TARGETS):
     RunCommand('cd %s && %s'%(build,target))
     exit(0)
 
-objs = []
-
-objs += Glob('common/*.c')
-objs += Glob('simulator/*.c')
-objs += Glob('simulator/*.xml')
-SrcRemove(objs, 'Ipc_Cfg.c')
-
-asenv.Append(CCFLAGS=' -I%s/common '%(cwd))
-
 MODULES = ['ECUM','SCHM','MCU',
            'DET','DEM','SHELL',
            'CAN','CANIF','PDUR','COM','COMM','CANTP',
@@ -82,12 +73,43 @@ if(asenv['RELEASE']=='asboot'):
                'FLASH',
                ]
 
-asenv['MODULES'] = MODULES
+if(asenv['MODULES'] is None):
+    asenv['MODULES'] = MODULES
+else:
+    MODULES = asenv['MODULES']
+
 asenv['ARCH'] = ARCH
 asenv['arch'] = arch
 
 if(asenv['RTOS'] != 'small'):
     print('WARNING: force RTOS to "small" instead of "%s"'%(asenv['RTOS']))
     asenv['RTOS']='small'
+
+objs = []
+
+asenv.Append(CPPPATH=['%s/common'%(cwd)])
+
+if('DIO' in MODULES):
+    objs += Glob('common/Dio*.c')
+
+if('EEP' in MODULES):
+    objs += Glob('common/Eep*.c')
+
+if('IPC' in MODULES):
+    objs += Glob('common/Ipc*.c')
+
+if('MCU' in MODULES):
+    objs += Glob('common/Mcu*.c')
+
+if('PORT' in MODULES):
+    objs += Glob('common/Port*.c')
+
+if('STMO' in MODULES):
+    objs += Glob('common/Stmo*.c')
+
+objs += Glob('simulator/*.c')
+objs += Glob('simulator/*.xml')
+
+
 
 Return('objs')

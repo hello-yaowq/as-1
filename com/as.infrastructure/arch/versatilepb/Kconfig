@@ -1,16 +1,23 @@
 if ARCH_VERSATILEPB
 menu "AUTOSAR MCAL&CDD for arch versatilepb"
 
+config PCI
+	bool "PCI driver"
+	default y
+
 config CAN
 	bool "MCAL CAN driver"
+	depends on PCI
 	default y
 
-config FATFS
+config FATFS_DRV
 	bool "FATFS diskio driver"
+	depends on PCI
 	default y
 
-config LWEXT4
+config LWEXT4_DRV
 	bool "LWEXT4 blockdev driver"
+	depends on PCI
 	default y
 
 config EEP
@@ -31,8 +38,9 @@ config MCU
 	bool "MCAL MCU driver"
 	default y
 
-config LWIP
+config LWIP_DRV
 	bool "LWIP driver"
+	depends on PCI
 	default y
 
 endmenu
