@@ -27,7 +27,7 @@ unzip ..\ConsoleZ.x64.1.18.2.17272.zip
 
 :prepareEnv
 if EXIST "%ASPATH%\scons.bat" goto launchCZ
-pacman -Syuu
+REM pacman -Syuu
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
 pacman -S ncurses-devel gperf scons
 REM TODO: use native scons of MSYS2 is not okay yet now

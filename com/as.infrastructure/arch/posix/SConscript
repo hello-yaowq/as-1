@@ -116,7 +116,13 @@ if('GTK' in MODULES):
     if('dwmapi' in asenv['LIBS']):
         asenv['LIBS'].remove('dwmapi')
 elif('OPENVG' in MODULES):
-    asenv.Append(CPPPATH=['%s/openvg'%(cwd)])
+    asenv.Append(CPPPATH=['%s/openvg/vg'%(cwd)])
+    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/gui/openvg/include/EGL'%(ASROOT)])
+    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/gui/openvg/include/VG'%(ASROOT)])
+    asenv.Append(CPPDEFINES=['OPENVG_STATIC_LIBRARY','EGL_STATIC_LIBRARY','_WIN32'])
+    objs += Glob('openvg/vg/win32/*.cpp')
+    objs += Glob('openvg/vg/*.cpp')
+    asenv.Append(CXXFLAGS='-fpermissive')
 
 asenv.Append(LIBS=['pthread','stdc++','m'])
 

@@ -91,6 +91,7 @@ def PrepareBuilding(env):
         raise Exception('no pkg-config installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['CC']))):
         raise Exception('no C Compiler installed, fix the path maybe!')
+    env['CXX'] = env['CC']
     # add comstr option
     AddOption('--verbose',
             dest='verbose',
