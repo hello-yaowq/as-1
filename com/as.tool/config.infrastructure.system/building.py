@@ -58,6 +58,7 @@ def PrepareRTTHREAD(opt):
 def PrepareBuilding(env):
     global Env
     Env = env
+    GetConfig('.config',env)
     env['python3'] = 'python3'
     env['python2'] = 'python2'
     env['python'] = 'python'
@@ -67,7 +68,17 @@ def PrepareBuilding(env):
         # force os name to 'nt'
         os.name = 'nt'
         raise Exception('Native scons of msys is not supported yet!')
-    if(os.name == 'nt'):
+    if((os.name == 'nt') and (env['CONFIGS'] != None)):
+        env['python3'] = env['CONFIGS']['PYTHON3_PATH'] + '/python'
+        env['python2'] = env['CONFIGS']['PYTHON2_PATH'] + '/python'
+        env['python']  = env['CONFIGS']['PYTHON2_PATH'] + '/python'
+        if('MINGW_GCC_PATH' in env['CONFIGS']):
+            env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
+            env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
+        elif('MSYS2_GCC_PATH' in env['CONFIGS']):
+            env['CC'] = env['CONFIGS']['MSYS2_GCC_PATH'] + '/gcc'
+            env['pkgconfig'] = env['CONFIGS']['MSYS2_GCC_PATH'] + '/pkg-config'
+    elif(os.name == 'nt'):
         env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'
         env['python'] =  'c:/Python27/python.exe'
@@ -79,6 +90,7 @@ def PrepareBuilding(env):
             env['CC'] = 'c:/msys64/mingw64/bin/gcc'
             env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
             env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
+    if(os.name == 'nt'):
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
     if(0 != os.system('%s --version'%(env['python3']))):
@@ -123,27 +135,31 @@ def PrepareBuilding(env):
     if(GetOption('menuconfig')):
         menuconfig(env)
 
-    GetConfig('.config',env)
-
 def GetConfig(cfg,env):
     import re
     if(not os.path.exists(cfg)):
         # None to use default confiuration
         env['MODULES'] = None
+        env['CONFIGS'] = None
         print('WARNING: no menuconfig file(".config") found, will use default configuration!')
         return
     env['MODULES'] = []
+    env['CONFIGS'] = {}
     reOne = re.compile(r'([^\s]+)\s*=\s*([^\s]+)')
     fp = open(cfg)
     for el in fp.readlines():
         if(reOne.search(el)):
             name,value = reOne.search(el).groups()
+            name = name.replace('CONFIG_','')
             if(value=='y'):
-                env['MODULES'].append(name.replace('CONFIG_',''))
+                env['MODULES'].append(name)
             else:
-                assert(0)
+                if(value[0]=='"'): value = value[1:]
+                if(value[-1]=='"'): value = value[:-1]
+                env['CONFIGS'][name]=value
     fp.close()
     print('Modules:',env['MODULES'])
+    print('Configs:',env['CONFIGS'])
 
 def menuconfig(env):
     import time

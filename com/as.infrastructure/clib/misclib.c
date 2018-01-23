@@ -339,3 +339,18 @@ unsigned long int __weak strtoul(const char* string, char ** tailptr, int base)
 
 	return result;
 }
+
+size_t __weak strnlen(const char* s, size_t maxlen)
+{
+	const char *sc;
+
+	for (sc = s; *sc != '\0'; ++sc)
+	{
+		if((sc-s) >= maxlen)
+		{
+			break;
+		}
+	}
+
+	return sc - s;
+}

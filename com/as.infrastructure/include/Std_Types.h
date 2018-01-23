@@ -110,6 +110,10 @@
 
 #define MS2TICKS(m) ((m+(1000/OS_TICKS_PER_SECOND -1))/(1000/OS_TICKS_PER_SECOND))
 
+#ifndef ENOTSUP
+#define ENOTSUP         129
+#endif
+
 #ifdef USE_STDRT
 #include <rtthread.h>
 #define malloc rt_malloc

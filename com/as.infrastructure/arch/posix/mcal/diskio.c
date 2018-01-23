@@ -299,4 +299,14 @@ void ext_mount(void)
 
     ASLOG(EXTFS, "mount ext4 device " EXTFS_IMG " on '/' OK\n");
 }
+
+int __weak fseeko (FILE *stream, off_t offset, int whence)
+{
+	return fseek(stream, offset, whence);
+}
+
+off_t __weak ftello (FILE *stream)
+{
+	return ftello(stream);
+}
 #endif /* USE_LWEXT4 */
