@@ -58,6 +58,8 @@ class dcm():
         self.last_error = None
         self.last_reponse = None
 
+    def set_ll_dl(self,v):
+        self.cantp.set_ll_dl(v)
 
     def __get_service_name__(self,serviceid):
         try:

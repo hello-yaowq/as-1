@@ -57,6 +57,9 @@ class doip():
             if(self.routingActivationResponseCode != 0x10):
                 raise Exception('  >> DoIP: do Routing Activation request failed as %s!'%(self.__rapc[self.routingActivationResponseCode]))
 
+    def set_ll_dl(self,v):
+        pass
+
     def checkResponse(self,res):
         ackcode = (res[2] << 8) + res[3]
         length  = (res[4] << 24) + (res[5] << 16) + (res[6] << 8) + res[7]

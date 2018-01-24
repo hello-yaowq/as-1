@@ -45,6 +45,10 @@ class AsFlashloader(QThread):
         self.dcm = dcm(0,0x732,0x731)
         self.app = None
         self.flsdrv = None
+
+    def set_ll_dl(self,v):
+        self.dcm.set_ll_dl(v)
+
     def is_check_application_enabled(self):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
@@ -318,8 +322,10 @@ class UIFlashloader(QWidget):
         self.pgbProgress = QProgressBar()
         self.pgbProgress.setRange(0,100)
         grid.addWidget(self.pgbProgress,2,1)
+        self.cbxCANFDMode = QCheckBox("CANFD mode")
+        grid.addWidget(self.cbxCANFDMode,2,2)
         self.btnStart=QPushButton('Start')
-        grid.addWidget(self.btnStart,2,2)
+        grid.addWidget(self.btnStart,2,3)
         
         grid.addWidget(QLabel('aslua bootloader:'),3,0)
         self.cmbxCanDevice = QComboBox()
@@ -355,7 +361,7 @@ class UIFlashloader(QWidget):
         self.btnOpenFlsDrv.clicked.connect(self.on_btnOpenFlsDrv_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
-        
+        self.cbxCANFDMode.stateChanged.connect(self.on_cbxCANFDMode_stateChanged)
         release = os.path.abspath('%s/../../../release'%(os.curdir))
         default_app=''
         default_flsdrv=''
@@ -370,6 +376,13 @@ class UIFlashloader(QWidget):
             self.leApplication.setText(default_app)
         if(os.path.exists(default_flsdrv)):
             self.leFlsDrv.setText(default_flsdrv)
+
+    def on_cbxCANFDMode_stateChanged(self,state):
+        if(state):
+            ll_dl=64
+        else:
+            ll_dl=8
+        self.loader.set_ll_dl(ll_dl)
 
     def on_enableChanged(self,step,enable):
         self.loader.SetEnable(step, enable)

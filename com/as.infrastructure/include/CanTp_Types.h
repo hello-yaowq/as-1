@@ -105,6 +105,7 @@ typedef struct {
 	/*const uint32							CanTpNSduRef ** req: CanTp241. This is PDU id - typeless enum. */
 	const CanTp_NSaType *CanTpNSa;
 	const CanTp_NTaType *CanTpNTa;
+	uint8_t ll_dl;
 	//CanTp_RxNPduType *CanTpRxNPdu;
 	//CanTp_TxFcNPduType *CanTpTxFcNPdu;
 	//const PduIdType CanTpRxPduId;
@@ -127,6 +128,7 @@ typedef struct {
 	/*const uint32						CanTpNSduRef ** req: CanTp261. This is PDU id - typeless enum. */
 	const CanTp_NSaType *CanTpNSa;
 	const CanTp_NTaType *CanTpNTa;
+	uint8_t ll_dl;
 	//CanTp_RxFcNPduType *CanTpRxFcNPdu;
 	//CanTp_TxNPduType *CanTpTxNPdu;
 	//PduIdType CanTpTxPduId;

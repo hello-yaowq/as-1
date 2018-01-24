@@ -11,6 +11,7 @@ config ECUM
 config SG
 	bool "Static GUI"
 	default y
+	depends on LCD
 
 config SCHM
 	bool "Scheduler Manager"

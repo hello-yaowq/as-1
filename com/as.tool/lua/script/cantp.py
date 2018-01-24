@@ -59,8 +59,13 @@ class cantp():
         self.cBS = cfgBS
         self.cfgSTmin = 0
         self.cfgBS = 0
-    
-    def __sendSF__(self,request):
+        self.ll_dl = 8
+
+    def set_ll_dl(self,v):
+        if(v in [8,64]):
+            self.ll_dl = v
+
+    def __sendSF_clasic(self,request):
         length = len(request)
         data = []
         data.append(ISO15765_TPCI_SF | (length&0x0F))
@@ -72,7 +77,27 @@ class cantp():
             i += 1
         return can_write(self.canbus,self.txid,data)
     
-    def __sendFF__(self,data):
+    def __sendSF_ll(self,request):
+        length = len(request)
+        data = []
+        data.append(ISO15765_TPCI_SF)
+        data.append(length)
+        for i,c in enumerate(request):
+            data.append(c&0xFF)
+        i = len(data)
+        while(i<self.ll_dl):
+            data.append(self.padding)
+            i += 1
+        return can_write(self.canbus,self.txid,data)
+
+    def __sendSF__(self,request):
+        if(len(request) <= 7):
+            r = self.__sendSF_clasic(request)
+        else:
+            r = self.__sendSF_ll(request)
+        return r
+    
+    def __sendFF_clasic(self,data):
         length = len(data)
         pdu = []
         pdu.append(ISO15765_TPCI_FF | ((length>>8)&0x0F))
@@ -86,7 +111,33 @@ class cantp():
         self.state = CANTP_ST_WAIT_FC
   
         return can_write(self.canbus,self.txid,pdu)
-    
+
+    def __sendFF_ll(self,data):
+        length = len(data)
+        pdu = []
+        pdu.append(ISO15765_TPCI_FF | 0)
+        pdu.append(0)
+        pdu.append((length>>24)&0xFF)
+        pdu.append((length>>16)&0xFF)
+        pdu.append((length>>8)&0xFF)
+        pdu.append(length&0xFF)
+
+        for d in data[:self.ll_dl-6]:
+            pdu.append(d)
+  
+        self.SN = 0
+        self.t_size = self.ll_dl-6
+        self.state = CANTP_ST_WAIT_FC
+  
+        return can_write(self.canbus,self.txid,pdu)
+
+    def __sendFF__(self,request):
+        if(self.ll_dl <= 8):
+            r = self.__sendFF_clasic(request)
+        else:
+            r = self.__sendFF_ll(request)
+        return r
+
     def __sendCF__(self,request): 
         sz = len(request)
         t_size = self.t_size
@@ -97,8 +148,8 @@ class cantp():
             self.SN = 0
             
         l_size = sz - t_size  #  left size 
-        if (l_size > 7):
-            l_size = 7
+        if (l_size > (self.ll_dl-1)):
+            l_size = self.ll_dl-1
   
         pdu.append(ISO15765_TPCI_CF | self.SN)
   
@@ -106,7 +157,7 @@ class cantp():
           pdu.append(request[t_size+i])
   
         i = len(pdu)
-        while(i<8):
+        while(i<self.ll_dl):
             pdu.append(self.padding)
             i = i + 1
   
@@ -175,7 +226,8 @@ class cantp():
          
     def transmit(self,request):
         assert(len(request) < 4096)
-        if(len(request) < 7):
+        if( (len(request) < 7) or 
+           ( (self.ll_dl > 8) and ((len(request)<=(self.ll_dl-2))) ) ):
             ercd = self.__sendSF__(request)
         else:
             ercd = self.__schedule_tx__(request)

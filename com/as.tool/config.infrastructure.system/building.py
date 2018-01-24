@@ -76,8 +76,11 @@ def PrepareBuilding(env):
             env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
             env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
         elif('MSYS2_GCC_PATH' in env['CONFIGS']):
-            env['CC'] = env['CONFIGS']['MSYS2_GCC_PATH'] + '/gcc'
-            env['pkgconfig'] = env['CONFIGS']['MSYS2_GCC_PATH'] + '/pkg-config'
+            env['msys2'] = True
+            mpath = env['CONFIGS']['MSYS2_GCC_PATH']
+            env['CC'] = mpath + '/gcc'
+            env['pkgconfig'] = mpath + '/pkg-config'
+            env['EXTRAPATH'] = '%s;%s'%(mpath, os.path.abspath(mpath+'/../usr/bin'))
     elif(os.name == 'nt'):
         env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'

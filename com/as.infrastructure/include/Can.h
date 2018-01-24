@@ -40,6 +40,11 @@
 
 #define CAN_E_DATALOST         0x07     /** @req 4.0.3/CAN395 */
 
+/* define it to 64 if CANFD supported */
+#ifndef CAN_LL_DL
+#define CAN_LL_DL 8
+#endif
+
 /** @name Service id's */
 //@{
 #define CAN_INIT_SERVICE_ID                         0x00

@@ -244,7 +244,8 @@
 			Nar="Integer Range=0~255 Default=25 PosGUI=8 \n Unit=ms \n Comment=(transmission time)"
 			Nbr="Integer Range=0~255 Default=25 PosGUI=9 \n Unit=ms \n Comment=(transmission time untill flow control)"
 			Ncr="Integer Range=0~255 Default=150 PosGUI=10 \n Unit=ms \n Comment=(transmission request delay)"
-			Comment="TextArea Default=* PosGUI=11"
+			ll_dl="Enum=(8,64) Default=8 PosGUI=11"
+			Comment="TextArea Default=* PosGUI=12"
 			>
 		</Sdu>
 	</RxSduList>
@@ -258,7 +259,8 @@
 			Nas="Integer Range=0~255 Default=25 PosGUI=5 \n Unit=ms \n Comment=(transmission time)"
 			Nbs="Integer Range=0~255 Default=75 PosGUI=6 \n Unit=ms \n Comment=(transmission time untill flow control)"
 			Ncs="Integer Range=0~255 Default=25 PosGUI=7 \n Unit=ms \n Comment=(transmission request delay)"
-			Comment="TextArea Default=* PosGUI=8"
+			ll_dl="Enum=(8,64) Default=8 PosGUI=8"
+			Comment="TextArea Default=* PosGUI=9"
 			>
 		</Sdu>
 	</TxSduList>

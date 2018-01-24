@@ -15,8 +15,8 @@
 #ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
 /* most of the code copy from https://github.com/linux-can/can-utils */
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #include <Ws2tcpip.h>
 
 #include <stdio.h>

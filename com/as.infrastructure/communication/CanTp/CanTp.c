@@ -57,7 +57,7 @@
 #include <string.h>
 
 
-#define AS_LOG_CANTP    0
+#define AS_LOG_CANTP    1
 #include "asdebug.h"
 
 #if  ( CANTP_DEV_ERROR_DETECT == STD_ON ) /** @req CANTP006 *//** @req CANTP134 */
@@ -147,7 +147,7 @@ void PduR_CanTpTxConfirmation(PduIdType CanTpTxPduId, NotifResultType Result) {
 
 #define SEGMENT_NUMBER_MASK			0x0f
 
-#define MAX_SEGMENT_DATA_SIZE		8 	// Size of a CAN frame data bytes.
+#define MAX_SEGMENT_DATA_SIZE		CAN_LL_DL 	// Size of a CAN frame data bytes.
 
 /*
  *
@@ -397,11 +397,18 @@ static boolean copySegmentToLocalRxBuffer /*writeDataSegmentToLocalBuffer*/(
 static Std_ReturnType canReceivePaddingHelper(
 		const CanTp_RxNSduType *rxConfig, CanTp_ChannelPrivateType *rxRuntime,
 		PduInfoType *PduInfoPtr) {
+	PduLengthType llLen;
+
 	if (rxConfig->CanTpRxPaddingActivation == CANTP_ON) {
-		for (int i = PduInfoPtr->SduLength; i < MAX_SEGMENT_DATA_SIZE; i++) {
+		if(PduInfoPtr->SduLength <= 8) {
+			llLen = 8;
+		} else {
+			llLen = MAX_SEGMENT_DATA_SIZE;
+		}
+		for (int i = PduInfoPtr->SduLength; i < llLen; i++) {
 			PduInfoPtr->SduDataPtr[i] = 0x0; // TODO: Does it have to be padded with zeroes?
 		}
-		PduInfoPtr->SduLength = MAX_SEGMENT_DATA_SIZE;
+		PduInfoPtr->SduLength = llLen;
 	}
 	rxRuntime->iso15765.NasNarTimeoutCount = CANTP_CONVERT_MS_TO_MAIN_CYCLES(rxConfig->CanTpNar); /** @req CANTP075 */
 	rxRuntime->iso15765.NasNarPending = TRUE;
@@ -413,7 +420,7 @@ static Std_ReturnType canReceivePaddingHelper(
 static Std_ReturnType canTansmitPaddingHelper(
 		const CanTp_TxNSduType *txConfig, CanTp_ChannelPrivateType *txRuntime,
 		PduInfoType *PduInfoPtr) {
-
+	PduLengthType llLen;
 	/** @req CANTP114 */
 	/** @req CANTP040 */
 	/** @req CANTP098 */
@@ -421,10 +428,15 @@ static Std_ReturnType canTansmitPaddingHelper(
 	/** @req CANTP059 */
 
 	if (txConfig->CanTpTxPaddingActivation == CANTP_ON) { /** @req CANTP225 */
-		for (int i = PduInfoPtr->SduLength; i < MAX_SEGMENT_DATA_SIZE; i++) {
+		if(PduInfoPtr->SduLength <= 8) {
+			llLen = 8;
+		} else {
+			llLen = MAX_SEGMENT_DATA_SIZE;
+		}
+		for (int i = PduInfoPtr->SduLength; i < llLen; i++) {
 			PduInfoPtr->SduDataPtr[i] = 0x0; // TODO: Does it have to be padded with zeroes?
 		}
-		PduInfoPtr->SduLength = MAX_SEGMENT_DATA_SIZE;
+		PduInfoPtr->SduLength = llLen;
 	}
 	txRuntime->iso15765.NasNarTimeoutCount = CANTP_CONVERT_MS_TO_MAIN_CYCLES(txConfig->CanTpNas); /** @req CANTP075 */
 	txRuntime->iso15765.NasNarPending = TRUE;
@@ -517,7 +529,7 @@ static void handleConsecutiveFrame(const CanTp_RxNSduType *rxConfig,
 			rxRuntime->iso15765.state = IDLE;
 			rxRuntime->mode = CANTP_RX_WAIT;
 		} else {
-			currentSegmentMaxSize = MAX_SEGMENT_DATA_SIZE - indexCount;
+			currentSegmentMaxSize = rxPduData->SduLength - indexCount;
 			bytesLeftToCopy = rxRuntime->transferTotal - rxRuntime->transferCount;
 			if (bytesLeftToCopy < currentSegmentMaxSize) {
 				currentSegmentSize = bytesLeftToCopy; // 1-5.
@@ -747,16 +759,27 @@ static void handleSingleFrame(const CanTp_RxNSduType *rxConfig,
 	(void) initRx15765RuntimeData(rxConfig, rxRuntime); /** @req CANTP124 */
 	pduLength = getPduLength(&rxConfig->CanTpAddressingFormant, SINGLE_FRAME, rxPduData);
 
-	if (rxRuntime->pdurBuffer != NULL) { // vad är detta? initieras ju till null
+	if (rxRuntime->pdurBuffer != NULL) {
 		VALIDATE_NO_RV( rxRuntime->pdurBuffer->SduDataPtr != NULL,
 				SERVICE_ID_CANTP_RX_INDICATION, CANTP_E_INVALID_RX_LENGTH );
 	}
 
 	if (rxConfig->CanTpAddressingFormant == CANTP_STANDARD) { /** @req CANTP094 *//** @req CANTP095 */
-		data = &rxPduData->SduDataPtr[1];
+		data = &rxPduData->SduDataPtr[0];
 	} else {
-		data = &rxPduData->SduDataPtr[2];
+		data = &rxPduData->SduDataPtr[1];
 	}
+
+	if(0 == pduLength)
+	{	/* okay, not classic CANTP */
+		pduLength = data[1];
+		data = &data[2];
+	}
+	else
+	{
+		data = &data[1];
+	}
+
 	rxRuntime->transferTotal = pduLength;
 	rxRuntime->iso15765.state = SF_OR_FF_RECEIVED_WAITING_PDUR_BUFFER;
 	rxRuntime->mode = CANTP_RX_PROCESSING;
@@ -769,11 +792,6 @@ static void handleSingleFrame(const CanTp_RxNSduType *rxConfig,
 		rxRuntime->iso15765.state = IDLE;
 		rxRuntime->mode = CANTP_RX_WAIT;
 	} else if (ret == BUFREQ_BUSY) {
-		if (rxConfig->CanTpAddressingFormant == CANTP_STANDARD) {
-			data = &rxPduData->SduDataPtr[1];
-		} else {
-			data = &rxPduData->SduDataPtr[2];
-		}
 		(void)copySegmentToLocalRxBuffer(rxRuntime, data, pduLength ); /** @req CANTP067 */
 		rxRuntime->iso15765.state = RX_WAIT_SDU_BUFFER;
 		rxRuntime->mode = CANTP_RX_PROCESSING;
@@ -792,6 +810,8 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 	BufReq_ReturnType ret;
 	PduLengthType pduLength = 0;
 	PduLengthType bytesWrittenToSduRBuffer;
+	uint8_t* data;
+
 
 	if (rxRuntime->iso15765.state != IDLE) {
 		ASLOG(CANTP, "First frame received during Rx-session!\n" );
@@ -801,6 +821,22 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 	(void) initRx15765RuntimeData(rxConfig, rxRuntime); /** @req CANTP124 */
 	pduLength = getPduLength(&rxConfig->CanTpAddressingFormant, FIRST_FRAME,
 			rxPduData);
+
+	if (rxConfig->CanTpAddressingFormant == CANTP_STANDARD) { /** @req CANTP094 *//** @req CANTP095 */
+		data = &rxPduData->SduDataPtr[0];
+	} else {
+		data = &rxPduData->SduDataPtr[1];
+	}
+
+	if(0 == pduLength)
+	{
+		pduLength = ((uint32_t)data[2]<<24) + ((uint32_t)data[3]<<16) + ((uint32_t)data[4]<<8) + ((uint32_t)data[5]);
+		data = &data[6];
+	}
+	else
+	{
+		data = &data[1];
+	}
 	rxRuntime->transferTotal = pduLength;
 
 	VALIDATE_NO_RV( rxRuntime->transferTotal != 0,
@@ -818,7 +854,8 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 		}
 	}
 	// Validate that the SDU is full length in this first frame.
-	if (rxPduData->SduLength < MAX_SEGMENT_DATA_SIZE) {
+	if ((rxPduData->SduLength < 8) ||
+		((rxPduData->SduLength > 8) && (rxPduData->SduLength < rxConfig->ll_dl))) {
 		return;
 	}
 
@@ -829,13 +866,13 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 
 	if (rxConfig->CanTpAddressingFormant == CANTP_STANDARD) {
 		ret = copySegmentToPduRRxBuffer(rxConfig, rxRuntime,
-				&rxPduData->SduDataPtr[2],
-				MAX_PAYLOAD_FF_STD_ADDR,
+				data,
+				rxPduData->SduLength - (data-rxPduData->SduDataPtr),
 				&bytesWrittenToSduRBuffer);
 	} else {
 		ret = copySegmentToPduRRxBuffer(rxConfig, rxRuntime,
-				&rxPduData->SduDataPtr[3],
-				MAX_PAYLOAD_FF_EXT_ADDR,
+				data,
+				rxPduData->SduLength - (data-rxPduData->SduDataPtr),
 				&bytesWrittenToSduRBuffer);
 	}
 	if (ret == BUFREQ_OK) {

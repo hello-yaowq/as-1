@@ -11,7 +11,7 @@ objs = []
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CCFLAGS='-DUSE_CAN')
+    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=64'])
 
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')

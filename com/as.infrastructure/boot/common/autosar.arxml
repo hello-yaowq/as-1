@@ -2,7 +2,7 @@
 
 <AUTOSAR>
 <OS>
-<General Comment="*" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" />
+<General Comment="*" Conformance="ECC1" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" Status="ECC1" />
 <ApplicationModeList Max="TBD" />
 <ApplicationList Max="TBD" />
 <TaskList Max="TBD" />
@@ -35,7 +35,7 @@
 <HthList Max="TBD">
 <Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
 <PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_UserTxConfirmation" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
 </PduList>
 </Hth>
 </HthList>
@@ -52,10 +52,10 @@
 <CanTp>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="OFF" />
 <RxSduList Max="TBD">
-<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="25" Nbr="25" Ncr="150" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" />
+<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="25" Nbr="25" Ncr="150" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" ll_dl="64" />
 </RxSduList>
 <TxSduList Max="TBD">
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="25" Nbs="75" Ncs="25" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" />
+<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="25" Nbs="75" Ncs="25" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" ll_dl="64" />
 </TxSduList>
 </CanTp>
 <PduR>
@@ -333,4 +333,13 @@
 <Rte>
 <SwcList Max="TBD" />
 </Rte>
+<Dem>
+<General Comment="*" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_MAX_NUMBER_FF_DATA_PRI_MEM="5" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DEM_USE_NVM="ON" DevelopmentErrorDetection="OFF" NvMFreezeFrameBlock="TBD" NvMHealingBlock="TBD" VersionInfoApi="OFF" />
+<ExtendedDataRecordClassList Max="TBD" />
+<DTCClassList Max="TBD" />
+<FFIdClassList Max="TBD" />
+<FreezeFrameClassList Max="TBD" />
+<EventClassList Max="TBD" />
+<EventParameterList Max="TBD" />
+</Dem>
 </AUTOSAR>

@@ -125,6 +125,7 @@ static const CanTp_NTaType CanTpNTaConfig =
         .configData.CanTpRxNSdu.CanTpSTmin  =  %s,
         .configData.CanTpRxNSdu.CanTpNSa =  &CanTpNSaConfig,
         .configData.CanTpRxNSdu.CanTpNTa =  &CanTpNTaConfig,
+        .configData.CanTpRxNSdu.ll_dl =  %s,
     },\n"""%(GAGet(obj,'RxPduRef'),
            GAGet(obj,'TxFcPduRef'),
            GAGet(obj,'RxPduRef'),
@@ -135,7 +136,8 @@ static const CanTp_NTaType CanTpNTaConfig =
            GAGet(obj,'RxPduRef'),
            GAGet(obj,'Padding'),
            GAGet(obj,'MaxBusyTransmission'),
-           GAGet(obj,'STmin'))
+           GAGet(obj,'STmin'),
+           GAGet(obj,'ll_dl'))
     Index = -1
     for obj in GLGet('TxSduList'):
         Index += 1
@@ -160,6 +162,7 @@ static const CanTp_NTaType CanTpNTaConfig =
         .configData.CanTpTxNSdu.CanTpTxTaType =  CANTP_PHYSICAL,
         .configData.CanTpTxNSdu.CanTpNSa =  &CanTpNSaConfig,
         .configData.CanTpTxNSdu.CanTpNTa =  &CanTpNTaConfig,
+        .configData.CanTpTxNSdu.ll_dl =  %s,
     },\n"""%(isLast,
            GAGet(obj,'RxFcPduRef'),
            GAGet(obj,'TxPduRef'),
@@ -168,7 +171,8 @@ static const CanTp_NTaType CanTpNTaConfig =
            GAGet(obj,'Nbs'),
            GAGet(obj,'Ncs'),
            GAGet(obj,'TxPduRef'),
-           GAGet(obj,'Padding'))
+           GAGet(obj,'Padding'),
+           GAGet(obj,'ll_dl'))
     cstr += '};\n\n'
     fp.write(cstr)
     cstr = 'const CanTp_RxIdType CanTp_RxIdList[] = \n{\n'

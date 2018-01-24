@@ -94,7 +94,7 @@ typedef struct
 typedef struct {
     uint32_t 			canid;
     uint16_t            hrh;
-    uint8_t 			data[8];
+    uint8_t 			data[CAN_LL_DL];
     uint8_t				dlc;
 } CanIf_PduType;
 
@@ -163,7 +163,7 @@ static int shellCanIf(int argc, char* argv[])
 			uint32 canid;
 			uint32 hth;
 			uint8  dlc;
-			uint8  data[64];
+			uint8  data[CAN_LL_DL];
 			char bs[3] = { 0, 0, 0 };
 			const char* s;
 			Can_PduType pdu;
@@ -1117,7 +1117,7 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 		pdu->canid = CanId;
 		pdu->dlc   =CanDlc;
 		pdu->hrh   = Hrh;
-		asAssert(CanDlc<=8);
+		asAssert(CanDlc<=CAN_LL_DL);
 		memcpy(pdu->data,CanSduPtr,CanDlc);
 		fifo->w_pos++;
 		if (fifo->w_pos >= CANIF_TX_FIFO_SIZE)
