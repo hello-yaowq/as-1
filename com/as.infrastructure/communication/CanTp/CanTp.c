@@ -907,6 +907,8 @@ static ISO15765FrameType calcRequiredProtocolFrameType(
 	if (txConfig->CanTpAddressingMode == CANTP_EXTENDED) {
 		if (txRuntime->transferTotal <= MAX_PAYLOAD_CF_EXT_ADDR) {
 			ret = SINGLE_FRAME;
+		} else if((txConfig->ll_dl > 8) && (txRuntime->transferTotal <= (txConfig->ll_dl-3))) {
+			ret = SINGLE_FRAME;
 		} else {
 			if (txConfig->CanTpTxTaType == CANTP_PHYSICAL) {
 				ret = FIRST_FRAME;
@@ -916,6 +918,8 @@ static ISO15765FrameType calcRequiredProtocolFrameType(
 		}
 	} else {	// CANTP_STANDARD
 		if (txRuntime->transferTotal <= MAX_PAYLOAD_CF_STD_ADDR) {
+			ret = SINGLE_FRAME;
+		} else if((txConfig->ll_dl > 8) && (txRuntime->transferTotal <= (txConfig->ll_dl-2))) {
 			ret = SINGLE_FRAME;
 		} else {
 			if (txConfig->CanTpTxTaType == CANTP_PHYSICAL) {

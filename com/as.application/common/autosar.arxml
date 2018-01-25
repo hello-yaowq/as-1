@@ -106,12 +106,12 @@
 <CanTp>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="OFF" />
 <RxSduList Max="TBD">
-<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" />
-<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2A" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2A" STmin="1" TxFcPduRef="TxDiagP2A" />
+<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" ll_dl="64" />
+<Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2A" Nar="100" Nbr="100" Ncr="100" Padding="ON" RxPduRef="RxDiagP2A" STmin="1" TxFcPduRef="TxDiagP2A" ll_dl="64" />
 </RxSduList>
 <TxSduList Max="TBD">
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" />
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2A" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2A" TxPduRef="TxDiagP2A" />
+<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" ll_dl="64" />
+<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2A" Nas="100" Nbs="100" Ncs="100" Padding="ON" RxFcPduRef="RxDiagP2A" TxPduRef="TxDiagP2A" ll_dl="64" />
 </TxSduList>
 </CanTp>
 <PduR>
