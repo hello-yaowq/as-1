@@ -901,17 +901,22 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 // - - - - - - - - - - - - - -
 
 static ISO15765FrameType calcRequiredProtocolFrameType(
-		const CanTp_TxNSduType *txConfig, CanTp_ChannelPrivateType *txRuntime) {
+		const CanTp_TxNSduType *txConfig, CanTp_ChannelPrivateType *txRuntime, boolean* isClassic) {
 
 	ISO15765FrameType ret = INVALID_FRAME;
+	*isClassic = TRUE;
 	if (txConfig->CanTpAddressingMode == CANTP_EXTENDED) {
 		if (txRuntime->transferTotal <= MAX_PAYLOAD_CF_EXT_ADDR) {
 			ret = SINGLE_FRAME;
 		} else if((txConfig->ll_dl > 8) && (txRuntime->transferTotal <= (txConfig->ll_dl-3))) {
+			*isClassic = FALSE;
 			ret = SINGLE_FRAME;
 		} else {
 			if (txConfig->CanTpTxTaType == CANTP_PHYSICAL) {
 				ret = FIRST_FRAME;
+				if(txConfig->ll_dl > 8) {
+					*isClassic = FALSE;
+				}
 			} else {
 				DET_REPORTERROR( MODULE_ID_CANTP, 0, SERVICE_ID_CANTP_TRANSMIT, CANTP_E_INVALID_TATYPE );
 			}
@@ -921,9 +926,13 @@ static ISO15765FrameType calcRequiredProtocolFrameType(
 			ret = SINGLE_FRAME;
 		} else if((txConfig->ll_dl > 8) && (txRuntime->transferTotal <= (txConfig->ll_dl-2))) {
 			ret = SINGLE_FRAME;
+			*isClassic = FALSE;
 		} else {
 			if (txConfig->CanTpTxTaType == CANTP_PHYSICAL) {
 				ret = FIRST_FRAME;
+				if(txConfig->ll_dl > 8) {
+					*isClassic = FALSE;
+				}
 			} else {
 				DET_REPORTERROR( MODULE_ID_CANTP, 0, SERVICE_ID_CANTP_TRANSMIT, CANTP_E_INVALID_TATYPE );
 			}
@@ -942,6 +951,7 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId,
 	CanTp_ChannelPrivateType *txRuntime = NULL;
 	Std_ReturnType ret = 0;
 	PduIdType CanTp_InternalTxNSduId;
+	boolean isClassic;
 
 	ASLOG(CANTP, "CanTp_Transmit called in polite index: %d!\n", CanTpTxSduId);
 
@@ -966,23 +976,48 @@ Std_ReturnType CanTp_Transmit(PduIdType CanTpTxSduId,
 			txRuntime->transferTotal = CanTpTxInfoPtr->SduLength; /** @req CANTP225 */
 			txRuntime->iso15765.stateTimeoutCount = CANTP_CONVERT_MS_TO_MAIN_CYCLES(txConfig->CanTpNcs); /** @req CANTP167 */
 			txRuntime->mode = CANTP_TX_PROCESSING;
-			iso15765Frame = calcRequiredProtocolFrameType(txConfig, txRuntime);
+			iso15765Frame = calcRequiredProtocolFrameType(txConfig, txRuntime, &isClassic);
 			if (txConfig->CanTpAddressingMode == CANTP_EXTENDED) { /** @req CANTP094 *//** @req CANTP095 */
 				txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
 						(uint8) txConfig->CanTpNTa->CanTpNTa; // Target address.
 			}
 			switch(iso15765Frame) {
 			case SINGLE_FRAME:
-				txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+				if(isClassic) {
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
 						ISO15765_TPCI_SF | (uint8)(txRuntime->transferTotal);
+				}
+				else
+				{
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						ISO15765_TPCI_SF;
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						(uint8)(txRuntime->transferTotal);
+				}
 				ret = E_OK;
 				txRuntime->iso15765.state = TX_WAIT_TRANSMIT;
 				break;
 			case FIRST_FRAME:
-				txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+				if(isClassic) {
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
 						ISO15765_TPCI_FF | (uint8)((txRuntime->transferTotal & 0xf00) >> 8);
-				txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
 						(uint8)(txRuntime->transferTotal & 0xff);
+				}
+				else
+				{
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						ISO15765_TPCI_FF;
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] = 0;
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						(uint8)((txRuntime->transferTotal>>24) & 0xff);
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						(uint8)((txRuntime->transferTotal>>16) & 0xff);
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						(uint8)((txRuntime->transferTotal>>8) & 0xff);
+					txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] =
+						(uint8)(txRuntime->transferTotal & 0xff);
+				}
 				// setup block size so that state machine waits for flow control after first frame
 				txRuntime->iso15765.nextFlowControlCount = 1;
 				txRuntime->iso15765.BS = 1;

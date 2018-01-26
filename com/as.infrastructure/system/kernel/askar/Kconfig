@@ -1,0 +1,12 @@
+choice
+	prompt "Schedule Policy"
+
+config SCHED_BUBBLE
+	bool "bubble sort scheduler"
+	default y
+
+config SCHED_FIFO
+	bool "fifo scheduler"
+	default n
+
+endchoice

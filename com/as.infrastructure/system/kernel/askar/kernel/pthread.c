@@ -23,9 +23,7 @@
 #define DYNAMIC_CREATED_PTHREAD(pConst) (pTaskConst->autoStart)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-#if(OS_PTHREAD_NUM > 0)
 extern TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
-#endif
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TaskVarType* pthread_malloc_tcb(void)

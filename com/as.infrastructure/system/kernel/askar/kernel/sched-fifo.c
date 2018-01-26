@@ -168,14 +168,21 @@ static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
 
 	Sched_SetReadyBit(priority);
 
-	if(ReadyVar == RunningVar)
+	if(priority > ReadyVar->priority)
+	{
+		ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
+	}
+	else if(ReadyVar == RunningVar)
 	{
 		priority = Sched_GetReadyBit();
 		fifo = &ReadyFIFO[priority];
 		asAssert(fifo->pFIFO);
+		ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
 	}
-
-	ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
+	else
+	{
+		/* no update of ReadyVar */
+	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sched_Init(void)

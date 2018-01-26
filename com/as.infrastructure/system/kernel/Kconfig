@@ -1,3 +1,24 @@
 menu "Operating System"
 
+choice
+	prompt "RTOS"
+
+config ASKAR
+	bool "askar:Automotive oSeK AutosaR/pthreads RTOS"
+	default y
+
+config SMALLOS
+	bool "small OSEK BCC1 RTOS"
+	default n
+
+config RTTHREAD
+	bool "rt-thread"
+	default n
+
+endchoice
+
+if ASKAR
+source "$ASROOT/com/as.infrastructure/system/kernel/askar/Kconfig"
+endif
+
 endmenu

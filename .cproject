@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.cygwin.base.187652737" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.cygwin.base.187652737" name="Default" optionalBuildProperties="" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="cdt.managedbuild.toolchain.gnu.cygwin.base.187652737.675186970" name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.base.2126511002" name="Cygwin GCC" superClass="cdt.managedbuild.toolchain.gnu.cygwin.base">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.Cygwin_PE" id="cdt.managedbuild.target.gnu.platform.cygwin.base.661879957" name="Debug Platform" osList="win32" superClass="cdt.managedbuild.target.gnu.platform.cygwin.base"/>
@@ -54,6 +54,8 @@
 									<listOptionValue builtIn="false" value="USE_SOAD"/>
 									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="USE_SHELL"/>
+									<listOptionValue builtIn="false" value="ENABLE_FIFO_SCHED"/>
+									<listOptionValue builtIn="false" value="OS_PTHREAD_NUM=32"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.567764495" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
@@ -87,6 +89,8 @@
 									<listOptionValue builtIn="false" value="USE_SOAD"/>
 									<listOptionValue builtIn="false" value="__WINDOWS__"/>
 									<listOptionValue builtIn="false" value="USE_SHELL"/>
+									<listOptionValue builtIn="false" value="ENABLE_FIFO_SCHED"/>
+									<listOptionValue builtIn="false" value="OS_PTHREAD_NUM=32"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1824387882" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
 							</tool>
@@ -192,4 +196,5 @@
 			</target>
 		</buildTargets>
 	</storageModule>
+	<storageModule moduleId="refreshScope"/>
 </cproject>

@@ -38,7 +38,6 @@ struct pthread
 	TaskVarType* pTaskVar;
 	void *(*start) (void *);
 	void* arg;
-
 };
 typedef struct pthread* pthread_t;
 
@@ -60,9 +59,7 @@ typedef unsigned int pthread_mutexattr_t;
 struct pthread_mutex
 {
 	TAILQ_HEAD(pthread_mutex_head,TaskVar) head;
-
 	boolean locked;
-
 };
 typedef struct pthread_mutex pthread_mutex_t;
 
