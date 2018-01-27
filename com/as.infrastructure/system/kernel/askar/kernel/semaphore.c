@@ -18,7 +18,6 @@
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -56,7 +55,6 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 	int ercd = 0;
 	imask_t imask;
 	TaskVarType* pTaskVar;
-	TickType ticks;
 
 	Irq_Save(imask);
 
@@ -74,10 +72,7 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 				RunningVar->state |= PTHREAD_STATE_WAITING;
 				TAILQ_INSERT_TAIL(&(sem->head), RunningVar, entry);
 
-				ticks = (abstime->tv_sec*1000000 + abstime->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK;
-				RunningVar->sleep_tick = ticks;
-				RunningVar->state |= PTHREAD_STATE_SLEEPING;
-				TAILQ_INSERT_TAIL(&OsSleepListHead, RunningVar, sentry);
+				Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
 			}
 			else
 			{
@@ -104,7 +99,7 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 			}
 			else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
 			{	/* signal reached before timeout */
-				TAILQ_REMOVE(&OsSleepListHead, RunningVar, sentry);
+				Os_SleepRemove(RunningVar);
 			}
 			else
 			{

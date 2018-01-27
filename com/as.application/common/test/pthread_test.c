@@ -96,10 +96,16 @@ static int get(struct prodcons * b)
 static void* consumer(void* arg)
 {
 	int d;
+	int n;
 	while (1) {
 		d = get(&buffer);
 		if (d == OVER) break;
 		printf("---> %d\n", d);
+	}
+	for(n=0;n<100;n++)
+	{
+		sleep(2);
+		printf("consumer is running %d\n",n);
 	}
 	return NULL;
 }
@@ -113,6 +119,12 @@ static void* producer(void* arg)
 		//usleep(1000);
 	}
 	put(&buffer, OVER);
+	for(n=0;n<100;n++)
+	{
+		sleep(1);
+		printf("producer is running %d\n",n);
+	}
+
 	return NULL;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

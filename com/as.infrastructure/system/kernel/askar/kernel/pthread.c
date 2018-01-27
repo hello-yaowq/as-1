@@ -18,12 +18,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <asdebug.h>
-#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define DYNAMIC_CREATED_PTHREAD(pConst) (pTaskConst->autoStart)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TaskVarType* pthread_malloc_tcb(void)
@@ -361,10 +359,7 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 
 		if(NULL != abstime)
 		{
-			ticks = (abstime->tv_sec*1000000 + abstime->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK;
-			RunningVar->sleep_tick = ticks;
-			RunningVar->state |= PTHREAD_STATE_SLEEPING;
-			TAILQ_INSERT_TAIL(&OsSleepListHead, RunningVar, sentry);
+			Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
 		}
 
 		Sched_GetReady();
@@ -378,7 +373,7 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 		}
 		else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
 		{	/* signal reached before timeout */
-			TAILQ_REMOVE(&OsSleepListHead, RunningVar, sentry);
+			Os_SleepRemove(RunningVar);
 		}
 		else
 		{
@@ -406,10 +401,5 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 	Irq_Restore(imask);
 
 	return ercd;
-}
-int usleep (unsigned long __useconds)
-{
-	Os_Sleep((__useconds+USECONDS_PER_TICK-1)/USECONDS_PER_TICK);
-	return __useconds;
 }
 #endif

@@ -200,6 +200,8 @@ enum {
 #define PTHREAD_DEFAULT_STACK_SIZE  4096
 #define PTHREAD_DEFAULT_PRIORITY    (OS_PTHREAD_PRIORITY/2)
 #endif
+
+#define TIMESPEC_TO_TICKS(ts) ((ts->tv_sec*1000000 + ts->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -332,5 +334,9 @@ extern void Sched_Preempt(void);
 extern bool Sched_Schedule(void);
 #if(OS_PTHREAD_NUM > 0)
 extern void Sched_PosixAddReady(TaskType TaskID);
+extern void Os_SleepInit(void);
+extern void Os_SleepTick(void);
+extern void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks);
+extern void Os_SleepRemove(TaskVarType* pTaskVar);
 #endif
 #endif /* KERNEL_INTERNAL_H_ */

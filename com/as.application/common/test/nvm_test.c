@@ -40,7 +40,7 @@
 //#define ENABLE_EA_TEST
 #endif
 #ifdef USE_DEM
-#define ENABLE_DEM_TEST
+//#define ENABLE_DEM_TEST
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
