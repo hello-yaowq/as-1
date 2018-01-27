@@ -55,7 +55,7 @@ if('run' in COMMAND_LINE_TARGETS):
         fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
         fp.close()
         fp = open('%s/qemu.sh'%(build),'w')
-        fp.write('%s -m 128 -M versatilepb -kernel %s %s & sh %s/telnet.sh'%(qemu,target,params,build))
+        fp.write('%s -m 128 -M versatilepb -kernel %s %s & sh %s/telnet.sh\nsleep 60\n'%(qemu,target,params,build))
         fp.close()
         RunCommand('sudo pgrep qemu-system-arm | xargs -i kill -9 {}')
         RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))

@@ -124,7 +124,7 @@ typedef struct PCIASNETDevState {
 	uint32_t gw;
 	uint32_t netmask;
 
-	uint32_t rxlength;
+	int rxlength;
 	uint32_t rxpos;
 	uint8_t rxdata[2048];
 
@@ -685,7 +685,7 @@ static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size) {
 		return d->mtu;
 		break;
 	case REG_DATA:
-		assert(d->rxpos < (sizeof(d->rxdata)/sizeof(d->rxdata[0])));
+		assert(d->rxpos < (sizeof(d->rxdata)));
 		val = d->rxdata[d->rxpos];
 		d->rxpos++;
 		return val;
