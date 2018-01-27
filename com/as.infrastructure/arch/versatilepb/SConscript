@@ -9,7 +9,7 @@ cwd = GetCurrentDir()
 
 objs = []
 
-if(asenv['RTOS'] != 'rtthread'):
+if('RTTHREAD' not in MODULES):
     objs += Glob('bsp/*.c')
 else:
     objs += Glob('rtbsp/*.c')
@@ -37,7 +37,7 @@ if('FLS' in MODULES):
     objs += Glob('../posix/mcal/Fls.c')
     asenv.Append(CPPDEFINES='USE_FLS')
 
-if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if(('LWIP' in MODULES) and ('RTTHREAD' not in MODULES)):
     asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
     if(os.getenv('PTHREAD') == 'yes'):
         download = '%s/release/download'%(ASROOT)
@@ -64,7 +64,7 @@ if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 
-if(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
+if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
     objs += Glob('../common/lwip/netbios.c')
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')

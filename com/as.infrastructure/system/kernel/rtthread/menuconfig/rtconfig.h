@@ -2,7 +2,67 @@
 #define RT_CONFIG_H__
 
 /* Automatically generated file; DO NOT EDIT. */
-/* RT-Thread Project Configuration */
+/* Automotive Software AS Configuration */
+
+/* automotive software toolchain */
+
+/* PLATFORM_MINGW is not set */
+#define PLATFORM_MSYS2
+/* PLATFORM_LINUX is not set */
+#define ARCH_VERSATILEPB
+#define CAN
+/* FATFS_DRV is not set */
+#define LWEXT4_DRV
+/* EEP is not set */
+/* FLS is not set */
+/* LCD is not set */
+#define MCU
+#define LWIP
+
+/* AUTOSAR MCAL&CDD for arch versatilepb */
+
+#define PCI
+#define LWIP_DRV
+
+/* AUTOSAR Communication Stack */
+
+#define CANIF
+#define CANNM
+#define CANSM
+#define CANTP
+#define COM
+#define COMM
+#define DOIP
+#define NM
+#define OSEKNM
+#define PDUR
+#define SOAD
+#define XCP
+
+/* AUTOSAR Diagnostic Stack */
+
+#define DCM
+#define DET
+
+/* AUTOSAR Memory Stack */
+
+/* System */
+
+#define CRC
+#define ECUM
+#define SCHM
+/* SHELL is not set */
+
+/* File System */
+
+#define LWEXT4
+/* VFS is not set */
+
+/* Operating System */
+
+/* ASKAR is not set */
+/* SMALLOS is not set */
+#define RTTHREAD
 
 /* RT-Thread Kernel */
 
@@ -194,67 +254,22 @@
 /* RT_USING_LOGTRACE is not set */
 /* RT_USING_RYM is not set */
 
-/* RT-Thread online packages */
-
-/* system packages */
-
-/* PKG_USING_PARTITION is not set */
-/* PKG_USING_SQLITE is not set */
-/* PKG_USING_RTI is not set */
-
-/* IoT - internet of things */
-
-/* PKG_USING_PAHOMQTT is not set */
-/* PKG_USING_WEBCLIENT is not set */
-/* PKG_USING_MONGOOSE is not set */
-/* PKG_USING_WEBTERMINAL is not set */
-/* PKG_USING_CJSON is not set */
-/* PKG_USING_EZXML is not set */
-/* PKG_USING_NANOPB is not set */
-
-/* Wi-Fi */
-
-/* Marvell WiFi */
-
-/* PKG_USING_WLANMARVELL is not set */
-
-/* Wiced WiFi */
-
-/* PKG_USING_WLAN_WICED is not set */
-
-/* security packages */
-
-/* PKG_USING_MBEDTLS is not set */
-/* PKG_USING_libsodium is not set */
-/* PKG_USING_TINYCRYPT is not set */
-
-/* language packages */
-
-/* PKG_USING_JERRYSCRIPT is not set */
-/* PKG_USING_MICROPYTHON is not set */
-
-/* multimedia packages */
-
-/* PKG_USING_OPENMV is not set */
-
-/* tools packages */
-
-/* PKG_USING_CMBACKTRACE is not set */
-/* PKG_USING_EASYLOGGER is not set */
-/* PKG_USING_SYSTEMVIEW is not set */
-/* PKG_USING_IPERF is not set */
-
-/* miscellaneous packages */
-
-/* PKG_USING_FASTLZ is not set */
-/* PKG_USING_MINILZO is not set */
-
-/* example package: hello */
-
-/* PKG_USING_HELLO is not set */
-
 /* as packages config */
 
 #define RT_USING_LWEXT4
+
+/* Internet Protocol */
+
+#define FTP
+
+/* C Library */
+
+/* CLIB_ASHEAP is not set */
+#define CLIB_MBOX
+/* CLIB_MISCLIB is not set */
+/* CLIB_QSORT is not set */
+#define CLIB_STDIO_PRINTF
+/* CLIB_STDIO_CAN is not set */
+/* CLIB_STRTOK_R is not set */
 
 #endif

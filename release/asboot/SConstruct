@@ -36,9 +36,6 @@ if(BOARD is None):
     if(os.getenv('BOARD') in board_list):
         BOARD = os.getenv('BOARD')
 
-asenv['RTOS']='small'
-print('RTOS is %s'%(asenv['RTOS']))
-
 if(BOARD is None):
     print('Error: no BOARD specified!')
     if(os.name=='nt'):

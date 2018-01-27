@@ -69,6 +69,9 @@ static void alloc_string(const char *str, int size)
 
 static void warn_ignored_character(char chr)
 {
+	/* just ignore this '\r' when Kconfig generated on DOS */
+	if('\r' == chr )
+		return;
 	fprintf(stderr,
 	        "%s:%d:warning: ignoring unsupported character '%c'\n",
 	        zconf_curname(), zconf_lineno(), chr);

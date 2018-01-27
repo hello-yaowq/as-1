@@ -5,6 +5,7 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 arch = asenv['arch']
+MODULES = asenv['MODULES']
 
 asenv.Append(CPPPATH=['%s/include'%(cwd)])
 asenv.Append(CPPPATH=['%s/kernel'%(cwd)])
@@ -16,7 +17,11 @@ objs += Glob('kernel/*.c')
 objs += Glob('portable/%s/*.c'%(arch))
 objs += Glob('portable/%s/*.S'%(arch))
 
-if(os.getenv('SCHED') == 'FIFO'):
+if('SCHED_BUBBLE' in MODULES):
+    asenv.Append(CPPDEFINES='ENABLE_BUBBLE_SCHED')
+elif('SCHED_FIFO' in MODULES):
     asenv.Append(CPPDEFINES='ENABLE_FIFO_SCHED')
+elif(os.getenv('SCHED') != None):
+    asenv.Append(CPPDEFINES='ENABLE_%s_SCHED'%(os.getenv('SCHED')))
 
 Return('objs')

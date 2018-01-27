@@ -5,6 +5,7 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 ASROOT = asenv['ASROOT']
+MODULES = asenv['MODULES']
 
 download = '%s/release/download'%(ASROOT)
 lwext4='%s/lwext4'%(download)
@@ -28,7 +29,7 @@ objs += Glob('lwext4/src/*.c')
 
 asenv.Append(CPPPATH = ['%s/lwext4/include'%(cwd)])
 asenv.Append(CPPDEFINES = 'CONFIG_USE_DEFAULT_CFG')
-if(asenv['RTOS'] != 'rtthread'):
+if('RTTHREAD' not in MODULES):
     asenv.Append(CPPDEFINES = 'USE_LWEXT4')
 else:
     objs += Glob('*.c')

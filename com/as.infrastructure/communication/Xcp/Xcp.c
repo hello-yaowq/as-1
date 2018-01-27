@@ -2068,6 +2068,7 @@ void Xcp_MainFunction_Channel(uint32 channel) {
 /** @req XCP823 *//*Xcp_MainFunction API definition*/
 /** @req XCP824 *//*Xcp_MainFunction shall be called cyclically - can not be tested with conventional module tests*/
 void Xcp_MainFunction(void) {
+	uint32 i;
 	DET_VALIDATE_NRV(Xcp_Inited, 0x04, XCP_E_NOT_INITIALIZED);
 
 	/* check if we have some queued worker */
@@ -2077,5 +2078,10 @@ void Xcp_MainFunction(void) {
 		Xcp_Recieve_Main();
 	}
 	Xcp_Transmit_Main();
+
+	for(i=0; i< Xcp_Config.XcpMaxEventChannel; i++)
+	{
+		Xcp_MainFunction_Channel(i);
+	}
 }
 #endif /* USE_XCP */

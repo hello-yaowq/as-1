@@ -1,12 +1,14 @@
 choice
 	prompt "Schedule Policy"
+	default SCHED_BUBBLE
 
 config SCHED_BUBBLE
 	bool "bubble sort scheduler"
-	default y
 
 config SCHED_FIFO
 	bool "fifo scheduler"
-	default n
+
+config SCHED_LIST
+	bool "list scheduler"
 
 endchoice

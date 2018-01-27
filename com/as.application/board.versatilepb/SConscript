@@ -64,7 +64,7 @@ if('run' in COMMAND_LINE_TARGETS):
 objs = []
 
 if(asenv['RELEASE']=='asboot'):
-    asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x8000')
+    asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x7000')
 else:
     asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x800000')
 asenv.Append(CPPDEFINES='MEMORY_SIZE=0x8000000')
@@ -78,7 +78,7 @@ if(asenv['RELEASE']=='asboot'):
     lds = '%s/../board.bcm2835/script/linker-boot.lds'%(cwd)
 else:
     lds = '%s/../board.bcm2835/script/linker-app.lds'%(cwd)
-if(asenv['RTOS'] == 'rtthread'):
+if((asenv['MODULES'] != None) and ('RTTHREAD' in asenv['MODULES'])):
     lds = '%s/versatilepb.lds'%(cwd)
 asenv.Append(LINKFLAGS='-static -T %s'%(lds))
 asenv.Append(LINKFLAGS='-Map build/versatilepb/versatilepb.map')
@@ -99,21 +99,23 @@ elif(os.getenv('SGAPP') != None):
 print('WARNING: force using SGAPP watch for versatilepb!')
 asenv['SGAPP']='watch'
 
-if(asenv['RTOS'] != 'rtthread'):
-    MODULES += ['FATFS','LWEXT4','VFS',
-           'CLIB_ASHEAP','CLIB_MISCLIB',
-           'CLIB_MBOX','CLIB_QSORT',
-           'CLIB_STDIO_PRINTF','CLIB_STDIO_CAN',
-           'FTP','SHELL',
-           'EEP','FLS','EA','FEE','MEMIF','NVM',
-           'DEM'
-           ]
-else:
+if((asenv['MODULES'] != None) and ('RTTHREAD' in asenv['MODULES'])):
     asenv.Append(CPPDEFINES='RT_HEAP_SIZE=0x800000')
     MODULES += ['LWEXT4']
     MODULES += ['FTP']
     MODULES += ['CLIB_STDIO_PRINTF']
     MODULES += ['CLIB_STDIO_CAN']
+else:
+    MODULES += ['FATFS','LWEXT4','VFS',
+       'CLIB_ASHEAP','CLIB_MISCLIB',
+       'CLIB_MBOX','CLIB_QSORT',
+       'CLIB_STDIO_PRINTF','CLIB_STDIO_CAN',
+       'FTP','SHELL',
+       'EEP','FLS','EA','FEE','MEMIF','NVM',
+       'DEM',
+       'ASKAR'
+       ]
+
 
 ARCH='versatilepb'
 arch='arm'
@@ -128,6 +130,7 @@ if(asenv['RELEASE']=='asboot'):
                'PCI',
                'CLIB_ASHEAP','CLIB_MISCLIB',
                'CLIB_STDIO_PRINTF',
+               'SMALLOS',
                ]
     lds = '%s/com/as.application/board.bcm2835/script/linker-flsdrv.lds'%(ASROOT)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',

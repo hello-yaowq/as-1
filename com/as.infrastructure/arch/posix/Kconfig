@@ -42,16 +42,15 @@ config LCD
 
 choice
 	prompt "LCD simulated by"
+	default GTK
 
 config GTK
 	bool "gtk"
 	depends on LCD
-	default y
 
 config OPENVG
 	bool "openvg(windows only)"
 	depends on LCD
-	default n
 
 endchoice
 

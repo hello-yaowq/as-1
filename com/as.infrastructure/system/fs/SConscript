@@ -7,7 +7,7 @@ cwd = GetCurrentDir()
 
 objs = []
 
-if(('FATFS' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if(('FATFS' in MODULES) and ('RTTHREAD' not in MODULES)):
     objs += SConscript('fatfs/SConscript')
 
 if('LWEXT4' in MODULES):

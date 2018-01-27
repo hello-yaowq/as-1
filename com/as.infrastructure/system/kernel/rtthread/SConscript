@@ -65,16 +65,6 @@ Import('asenv')
 
 rtroot = '%s/rt-thread'%(cwd)
 
-if(asenv.GetOption('menuconfig')):
-    MKDir('%s/release/download/rttpkgs'%(asenv['ASROOT']))
-    cmd = 'export BSP_DIR=%s/release/download/rttpkgs'%(asenv['ASROOT'])
-    cmd += ' && export RTT_DIR=%s'%(rtroot)
-    cmd += ' && export RTT_ROOT=%s'%(rtroot)
-    cmd += ' && export BSP_DIR=%s/menuconfig'%(cwd)
-    cmd += ' && cd %s/menuconfig && scons --menuconfig'%(cwd)
-    RunCommand(cmd)
-    exit(0)
-
 remove_components=['external','gdb','vmm','vbus','utilities']
 RTT_ROOT=rtroot
 rtconfig=RTCONFIG(asenv)

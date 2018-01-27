@@ -7,12 +7,12 @@ cwd = GetCurrentDir()
 
 objs = []
 
-if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if(('LWIP' in MODULES) and ('RTTHREAD' not in MODULES)):
     objs += SConscript('lwip/SConscript')
-elif(('LWIP' in MODULES) and (asenv['RTOS'] == 'rtthread')):
+elif(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
     asenv.Append(CPPDEFINES = 'USE_LWIP')
 
-if(('LWIP' in MODULES) and ('FTP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if(('LWIP' in MODULES) and ('FTP' in MODULES) and ('RTTHREAD' not in MODULES)):
     objs += Glob('ftp/*.c')
     asenv.Append(CPPDEFINES = 'USE_FTP')
     asenv.Append(CPPDEFINES = 'FTPD_DEBUG')

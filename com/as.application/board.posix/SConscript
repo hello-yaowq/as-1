@@ -34,6 +34,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
            'AWS','LCD',
+           'SMALLOS',
            ]
 
 ARCH='posix'
@@ -71,6 +72,7 @@ if(asenv['RELEASE']=='asboot'):
                'CAN','CANIF','PDUR','CANTP',
                'DCM',
                'FLASH',
+               'SMALLOS',
                ]
 
 if(asenv['MODULES'] is None):
@@ -80,10 +82,6 @@ else:
 
 asenv['ARCH'] = ARCH
 asenv['arch'] = arch
-
-if(asenv['RTOS'] != 'small'):
-    print('WARNING: force RTOS to "small" instead of "%s"'%(asenv['RTOS']))
-    asenv['RTOS']='small'
 
 objs = []
 

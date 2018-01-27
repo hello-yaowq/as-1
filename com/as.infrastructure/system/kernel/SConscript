@@ -4,10 +4,16 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
+MODULES = asenv['MODULES']
 asenv.Append(CCFLAGS='-I%s'%(cwd))
 
 objs = Glob('*.c')
 
-objs += SConscript('%s/SConscript'%(asenv['RTOS']))
+if('ASKAR' in MODULES):
+    objs += SConscript('askar/SConscript')
+elif('SMALLOS' in MODULES):
+    objs += SConscript('small/SConscript')
+elif('RTTHREAD' in MODULES):
+    objs += SConscript('rtthread/SConscript')
 
 Return('objs')

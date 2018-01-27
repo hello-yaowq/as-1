@@ -36,11 +36,6 @@ if(BOARD is None):
     if(os.getenv('BOARD') in board_list):
         BOARD = os.getenv('BOARD')
 
-asenv['RTOS']='askar'
-if(os.getenv('RTOS') in ['rtthread','small']):
-    asenv['RTOS'] = os.getenv('RTOS')
-print('RTOS is %s'%(asenv['RTOS']))
-
 if(BOARD is None):
     print('Error: no BOARD specified!')
     if(os.name=='nt'):

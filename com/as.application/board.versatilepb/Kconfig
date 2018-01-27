@@ -1,4 +1,3 @@
 config ARCH_VERSATILEPB
     bool
-    select CLIB_ASHEAP
     default y

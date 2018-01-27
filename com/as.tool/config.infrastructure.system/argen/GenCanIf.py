@@ -409,6 +409,21 @@ const CanIf_ConfigType CanIf_Config =
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef USE_STDIO_CAN
+void __weak CanIf_StdioTxConfirmation(PduIdType id)
+{
+    (void)id;
+}
+
+void __weak CanIf_StdioRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId)
+{
+    (void)channel;
+    (void)pduId;
+    (void)sduPtr;
+    (void)dlc;
+    (void)canId;
+}
+#endif
 \n\n"""%(cstr))
     fp.write('#endif /* USE_CANIF */')
     fp.close() 

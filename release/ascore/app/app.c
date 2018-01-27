@@ -193,13 +193,6 @@ TASK(TaskApp)
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
 #endif
 
-#ifdef USE_XCP
-	{
-		static int counter = 0;
-		counter ++;
-		if(0 ==(counter%100))Xcp_MainFunction_Channel(XCP_EVCHL_1000ms);
-	}
-#endif
 #ifndef USE_STDRT
 #ifdef USE_LWIP
 	OsActivateTask(TaskLwip);

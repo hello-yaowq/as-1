@@ -17,6 +17,7 @@ config MEMIF
 config NVM
 	bool "NVRAM Manager"
 	depends on MEMIF
+	select CLIB_MBOX
 	default y
 
 endmenu

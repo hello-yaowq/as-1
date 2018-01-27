@@ -1,7 +1,79 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# RT-Thread Project Configuration
+# Automotive Software AS Configuration
 #
+
+#
+# automotive software toolchain
+#
+# CONFIG_PLATFORM_MINGW is not set
+CONFIG_PLATFORM_MSYS2=y
+# CONFIG_PLATFORM_LINUX is not set
+CONFIG_MSYS2_GCC_PATH="c:/msys64/mingw64/bin"
+CONFIG_PYTHON2_PATH="c:/Python27"
+CONFIG_PYTHON3_PATH="c:/Anaconda3"
+CONFIG_ARCH_VERSATILEPB=y
+CONFIG_CAN=y
+# CONFIG_FATFS_DRV is not set
+CONFIG_LWEXT4_DRV=y
+# CONFIG_EEP is not set
+# CONFIG_FLS is not set
+# CONFIG_LCD is not set
+CONFIG_MCU=y
+CONFIG_LWIP=y
+
+#
+# AUTOSAR MCAL&CDD for arch versatilepb
+#
+CONFIG_PCI=y
+CONFIG_LWIP_DRV=y
+
+#
+# AUTOSAR Communication Stack
+#
+CONFIG_CANIF=y
+CONFIG_CANNM=y
+CONFIG_CANSM=y
+CONFIG_CANTP=y
+CONFIG_COM=y
+CONFIG_COMM=y
+CONFIG_DOIP=y
+CONFIG_NM=y
+CONFIG_OSEKNM=y
+CONFIG_PDUR=y
+CONFIG_SOAD=y
+CONFIG_XCP=y
+
+#
+# AUTOSAR Diagnostic Stack
+#
+CONFIG_DCM=y
+CONFIG_DET=y
+
+#
+# AUTOSAR Memory Stack
+#
+
+#
+# System
+#
+CONFIG_CRC=y
+CONFIG_ECUM=y
+CONFIG_SCHM=y
+# CONFIG_SHELL is not set
+
+#
+# File System
+#
+CONFIG_LWEXT4=y
+# CONFIG_VFS is not set
+
+#
+# Operating System
+#
+# CONFIG_ASKAR is not set
+# CONFIG_SMALLOS is not set
+CONFIG_RTTHREAD=y
 
 #
 # RT-Thread Kernel
@@ -214,79 +286,22 @@ CONFIG_LWIP_SO_RCVBUF=1
 # CONFIG_RT_USING_RYM is not set
 
 #
-# RT-Thread online packages
-#
-
-#
-# system packages
-#
-# CONFIG_PKG_USING_PARTITION is not set
-# CONFIG_PKG_USING_SQLITE is not set
-# CONFIG_PKG_USING_RTI is not set
-
-#
-# IoT - internet of things
-#
-# CONFIG_PKG_USING_PAHOMQTT is not set
-# CONFIG_PKG_USING_WEBCLIENT is not set
-# CONFIG_PKG_USING_MONGOOSE is not set
-# CONFIG_PKG_USING_WEBTERMINAL is not set
-# CONFIG_PKG_USING_CJSON is not set
-# CONFIG_PKG_USING_EZXML is not set
-# CONFIG_PKG_USING_NANOPB is not set
-
-#
-# Wi-Fi
-#
-
-#
-# Marvell WiFi
-#
-# CONFIG_PKG_USING_WLANMARVELL is not set
-
-#
-# Wiced WiFi
-#
-# CONFIG_PKG_USING_WLAN_WICED is not set
-
-#
-# security packages
-#
-# CONFIG_PKG_USING_MBEDTLS is not set
-# CONFIG_PKG_USING_libsodium is not set
-# CONFIG_PKG_USING_TINYCRYPT is not set
-
-#
-# language packages
-#
-# CONFIG_PKG_USING_JERRYSCRIPT is not set
-# CONFIG_PKG_USING_MICROPYTHON is not set
-
-#
-# multimedia packages
-#
-# CONFIG_PKG_USING_OPENMV is not set
-
-#
-# tools packages
-#
-# CONFIG_PKG_USING_CMBACKTRACE is not set
-# CONFIG_PKG_USING_EASYLOGGER is not set
-# CONFIG_PKG_USING_SYSTEMVIEW is not set
-# CONFIG_PKG_USING_IPERF is not set
-
-#
-# miscellaneous packages
-#
-# CONFIG_PKG_USING_FASTLZ is not set
-# CONFIG_PKG_USING_MINILZO is not set
-
-#
-# example package: hello
-#
-# CONFIG_PKG_USING_HELLO is not set
-
-#
 # as packages config
 #
 CONFIG_RT_USING_LWEXT4=y
+
+#
+# Internet Protocol
+#
+CONFIG_FTP=y
+
+#
+# C Library
+#
+# CONFIG_CLIB_ASHEAP is not set
+CONFIG_CLIB_MBOX=y
+# CONFIG_CLIB_MISCLIB is not set
+# CONFIG_CLIB_QSORT is not set
+CONFIG_CLIB_STDIO_PRINTF=y
+# CONFIG_CLIB_STDIO_CAN is not set
+# CONFIG_CLIB_STRTOK_R is not set

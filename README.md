@@ -13,7 +13,7 @@ As below picture shows, it was an virtual cluster based on AUTOSAR and can be si
 ## Key Point
 
 ### 1. Integrated ArcCore AUTOSAR 3.1 BSW
-* Communication: Can CanIf PduR Com SoAd
+* Communication: Can(CanFD) CanIf PduR Com SoAd
 * Diagnostic: CanTp Dcm DoIP Dem
 * System: EcuM SchM
 * Memory: Fls Fee Eep Ea NvM MemIf

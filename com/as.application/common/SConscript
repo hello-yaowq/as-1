@@ -13,7 +13,7 @@ if(asenv['RELEASE'] == 'ascore'):
     objs += Glob('*.xml')
     objs += Glob('*.arxml')
 
-if(('LWIP' in MODULES) and (asenv['RTOS'] != 'rtthread')):
+if(('LWIP' in MODULES) and ('RTTHREAD' not in MODULES)):
     objs += Glob('config/lwip.xml')
 
 if('CANNM' in MODULES):

@@ -1,20 +1,7 @@
-mainmenu "RT-Thread Project Configuration"
-
-config $BSP_DIR
-    string
-    option env="BSP_ROOT"
-    default "."
-
-config $RTT_DIR
+config RTT_DIR
     string
     option env="RTT_ROOT"
-    default "../.."
+    default "../../com/as.infrastructure/system/kernel/rtthread/rt-thread"
 
-config $PKGS_DIR
-    string
-    option env="PKGS_ROOT"
-    default "packages"
-
-source "$RTT_DIR/Kconfig"
-source "$PKGS_DIR/Kconfig"
-source "$BSP_DIR/aspkgs/Kconfig"
+source "$ASROOT/com/as.infrastructure/system/kernel/rtthread/rt-thread/Kconfig"
+source "$ASROOT/com/as.infrastructure/system/kernel/rtthread/menuconfig/aspkgs/Kconfig"

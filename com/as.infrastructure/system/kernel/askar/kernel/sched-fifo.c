@@ -12,9 +12,9 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef ENABLE_FIFO_SCHED
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
+#ifdef ENABLE_FIFO_SCHED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define SCHED_FIFO_SIZE(fifo) ((fifo)->pFIFO)[0]
