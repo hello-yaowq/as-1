@@ -21,6 +21,8 @@ if('SCHED_BUBBLE' in MODULES):
     asenv.Append(CPPDEFINES='ENABLE_BUBBLE_SCHED')
 elif('SCHED_FIFO' in MODULES):
     asenv.Append(CPPDEFINES='ENABLE_FIFO_SCHED')
+elif('SCHED_LIST' in MODULES):
+    asenv.Append(CPPDEFINES='ENABLE_LIST_SCHED')
 elif(os.getenv('SCHED') != None):
     asenv.Append(CPPDEFINES='ENABLE_%s_SCHED'%(os.getenv('SCHED')))
 

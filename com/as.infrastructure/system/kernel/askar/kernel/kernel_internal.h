@@ -42,6 +42,8 @@ enum {
 	STANDARD,
 	EXTENDED
 };
+
+#define TASK_STATE(pTaskVar) (((pTaskVar)->state)&OSEK_TASK_STATE_MASK)
 /*
  *  kernel call level
  */
@@ -262,9 +264,11 @@ typedef struct TaskVar
 	#ifdef USE_SHELL
 	uint32 actCnt;
 	#endif
-	#if(OS_PTHREAD_NUM > 0)
-	/* generic entry for event/timer/mutex/semaphore etc. */
+	#if (OS_PTHREAD_NUM > 0) || defined(ENABLE_LIST_SCHED)
+	/* generic entry for ready list/event/timer/mutex/semaphore etc. */
 	TAILQ_ENTRY(TaskVar) entry;
+	#endif
+	#if(OS_PTHREAD_NUM > 0)
 	/* for sleep purpose */
 	TickType sleep_tick;
 	TAILQ_ENTRY(TaskVar) sentry;

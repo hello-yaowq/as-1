@@ -1347,12 +1347,22 @@ static err_t ftpd_msgaccept(void *arg, struct tcp_pcb *pcb, err_t err)
 	return ERR_OK;
 }
 
-void ftpd_init(void)
+int ftpd_init(void)
 {
+	int r = 0;
 	struct tcp_pcb *pcb;
 
 	pcb = tcp_new();
-	tcp_bind(pcb, IP_ADDR_ANY, 21);
-	pcb = tcp_listen(pcb);
-	tcp_accept(pcb, ftpd_msgaccept);
+	if(NULL != pcb)
+	{
+		tcp_bind(pcb, IP_ADDR_ANY, 21);
+		pcb = tcp_listen(pcb);
+		tcp_accept(pcb, ftpd_msgaccept);
+	}
+	else
+	{
+		r = -1;
+	}
+
+	return r;
 }

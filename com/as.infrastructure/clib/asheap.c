@@ -77,6 +77,7 @@
  */
 #include "Std_Types.h"
 #include "asdebug.h"
+#ifndef USE_STDRT
 
 #define configUSE_MALLOC_FAILED_HOOK 1
 #ifndef configTOTAL_HEAP_SIZE
@@ -577,3 +578,5 @@ void* palloc(size_t size)
 	return p;
 }
 #endif
+#endif /* USE_STDRT */
+

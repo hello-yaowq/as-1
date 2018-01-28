@@ -204,8 +204,14 @@ TASK(TaskApp)
 		static int flag = 0;
 		if(0 == flag)
 		{
-			ftpd_init();
-			flag = 1;
+			if(0u == ftpd_init())
+			{
+				flag = 1;
+			}
+			else
+			{
+				/* try init ftpd next time */
+			}
 		}
 	}
 #endif

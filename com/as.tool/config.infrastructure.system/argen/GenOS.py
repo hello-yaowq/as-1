@@ -330,7 +330,7 @@ def GenC(gendir,os_list):
     fp.write('};\n\n')
     fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')
     fp.write('\t{\n')
-    fp.write('\t\t/*.ceilPrio =*/ OS_PTHREAD_PRIORITY + PRIORITY_NUM, /* RES_SCHEDULER */\n')
+    fp.write('\t\t/*.ceilPrio =*/ PRIORITY_NUM, /* RES_SCHEDULER */\n')
     fp.write('\t},\n')
     res_list = ScanFrom(os_list, 'Resource')
     for id,res in enumerate(res_list):

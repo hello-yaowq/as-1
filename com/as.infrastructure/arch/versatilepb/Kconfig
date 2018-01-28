@@ -4,6 +4,7 @@ menu "AUTOSAR MCAL&CDD for arch versatilepb"
 config PCI
 	bool "PCI driver"
 	default y
+	select CLIB_ASHEAP
 
 config CAN
 	bool "MCAL CAN driver"

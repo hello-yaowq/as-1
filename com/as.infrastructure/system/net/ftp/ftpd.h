@@ -35,6 +35,6 @@
 #ifndef __FTPD_H__
 #define __FTPD_H__
 
-void ftpd_init(void);
+int ftpd_init(void);
 
 #endif				/* __FTPD_H__ */

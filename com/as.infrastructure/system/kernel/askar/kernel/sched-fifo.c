@@ -97,12 +97,12 @@ static inline void Sched_SetReadyBit(PriorityType priority)
 	ReadyGroupTable[priority >> 6] |= (1u << ((priority&0x3Fu) >> 3));
 #endif
 
-	ReadyMapTable[(priority >> 6)*8 + ((priority&0x3Fu) >> 3)] |= (1u << ((priority&0x3Fu) & 0x7u));
+	ReadyMapTable[(priority >> 6)*8 + ((priority&0x3Fu) >> 3)] |= (1u << (priority&0x7u));
 }
 
 static inline void Sched_ClearReadyBit(PriorityType priority)
 {
-	ReadyMapTable[(priority >> 6)*8 + ((priority&0x3Fu) >> 3)] &= ~(1u << ((priority&0x3Fu) & 0x7u));
+	ReadyMapTable[(priority >> 6)*8 + ((priority&0x3Fu) >> 3)] &= ~(1u << (priority&0x7u));
 
 #if (PRIORITY_NUM > 7)
 	if(0u == ReadyMapTable[(priority >> 6)*8 + ((priority&0x3Fu) >> 3)])
