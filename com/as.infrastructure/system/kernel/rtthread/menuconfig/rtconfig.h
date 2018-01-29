@@ -63,6 +63,9 @@
 /* ASKAR is not set */
 /* SMALLOS is not set */
 #define RTTHREAD
+/* SCHED_BUBBLE is not set */
+/* SCHED_FIFO is not set */
+/* SCHED_LIST is not set */
 
 /* RT-Thread Kernel */
 
@@ -264,7 +267,7 @@
 
 /* C Library */
 
-/* CLIB_ASHEAP is not set */
+#define CLIB_ASHEAP
 #define CLIB_MBOX
 /* CLIB_MISCLIB is not set */
 /* CLIB_QSORT is not set */

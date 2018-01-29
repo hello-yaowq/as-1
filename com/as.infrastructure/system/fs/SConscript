@@ -13,9 +13,17 @@ if(('FATFS' in MODULES) and ('RTTHREAD' not in MODULES)):
 if('LWEXT4' in MODULES):
     objs += SConscript('lwext4/SConscript')
 
+if('LIBELF' in MODULES):
+    objs += SConscript('libelf/SConscript')
+
 if('VFS' in MODULES):
     objs += Glob('vfs/*.c')
     asenv.Append(CPPPATH =['%s/vfs'%(cwd)])
     asenv.Append(CPPDEFINES='USE_VFS')
+
+if('LIBDL' in MODULES):
+    objs += Glob('libdl/*.c')
+    asenv.Append(CPPPATH =['%s/libdl'%(cwd)])
+    asenv.Append(CPPDEFINES='USE_LIBDL')
 
 Return('objs')
