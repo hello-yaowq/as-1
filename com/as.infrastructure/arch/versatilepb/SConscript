@@ -71,8 +71,8 @@ if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
 asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
 asenv.Append(ASFLAGS=' -g ')
 
-asenv.Append(CCFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
-asenv.Append(ASFLAGS=' -mcpu=arm926ej-s -marm -fpic ')
+asenv.Append(CCFLAGS=['-mcpu=arm926ej-s','-marm'])
+asenv.Append(ASFLAGS=['-mcpu=arm926ej-s','-marm'])
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
 asenv['CC']='arm-none-eabi-gcc'
 asenv['AS']='arm-none-eabi-as'
@@ -80,7 +80,7 @@ asenv['LINK']='arm-none-eabi-ld'
 
 asenv['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
 
-asenv.Append(CCFLAGS='-ffunction-sections -fdata-sections')
+asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
 asenv.Append(LINKFLAGS='--gc-sections')
 
 asenv.Append(LIBS=['c','gcc'])

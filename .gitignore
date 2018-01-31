@@ -22,6 +22,8 @@ syntax: glob
 *.hex
 *.bak
 *~
+*.so
+*.os
 
 out
 

@@ -78,7 +78,9 @@
 #include "Std_Types.h"
 #include "asdebug.h"
 #ifndef USE_STDRT
-
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 #define configUSE_MALLOC_FAILED_HOOK 1
 #ifndef configTOTAL_HEAP_SIZE
 #define configTOTAL_HEAP_SIZE (8*1024)
@@ -577,6 +579,26 @@ void* palloc(size_t size)
 
 	return p;
 }
+#endif
+#ifdef USE_SHELL
+static int memFunc(int argc, char* argv[])
+{
+	SHELL_printf("%d%%(%d/%d) free!\n",
+			xFreeBytesRemaining*100/sizeof(ucHeap),
+			xFreeBytesRemaining,
+			sizeof(ucHeap));
+	return 0;
+}
+
+static SHELL_CONST ShellCmdT memCmd  = {
+	memFunc,
+	0,0,
+	"mem",
+	"mem",
+	"show asheap memory usage information\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(memCmd);
 #endif
 #endif /* USE_STDRT */
 

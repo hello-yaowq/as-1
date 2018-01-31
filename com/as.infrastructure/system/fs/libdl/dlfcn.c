@@ -87,7 +87,7 @@ void *dlopen(const char *filename, int flag)
 
 	if(NULL != dll)
 	{
-		if(1 != elf_loadFile(dll->addr, 0))
+		if(0 != elf_checkFile(dll->addr))
 		{
 			free(dll);
 			dll = NULL;

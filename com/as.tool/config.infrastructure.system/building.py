@@ -379,3 +379,19 @@ def GetConfigValue(name):
     except:
         return ''
 
+def GetDllEnv():
+    global Env
+    env = Environment(CC=Env['CC'],
+                      LINK=Env['CC'],
+                      CPPPATH=Env['CPPPATH'],
+                      CCFLAGS=Env['CCFLAGS'],
+                      LINKFLAGS=['-s'])
+    if(not GetOption('verbose')):
+    # override the default verbose command string
+        env.Replace(
+          ARCOMSTR = 'AR $SOURCE',
+          SHCCCOMSTR = 'SHCC $SOURCE',
+          SHCXXCOMSTR = 'SHCXX $SOURCE',
+          SHLINKCOMSTR = 'SHLINK $TARGET'
+        )
+    return env

@@ -108,3 +108,4 @@ try:
 except KeyError:
     pass
 
+SConscript('elf/SConscript')

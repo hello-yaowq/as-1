@@ -1,0 +1,5 @@
+from building import *
+
+env = GetDllEnv()
+
+env.SharedLibrary('sample.c')
