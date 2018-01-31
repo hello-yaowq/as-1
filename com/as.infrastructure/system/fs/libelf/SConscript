@@ -19,8 +19,9 @@ MKSymlink(libelf,'%s/libelf'%(cwd))
 objs = []
 
 objs += Glob('libelf/src/*.c')
+objs += Glob('*.c')
 
-asenv.Append(CPPPATH = ['%s/libelf/include'%(cwd)])
+asenv.Append(CPPPATH = ['%s/libelf/include'%(cwd),cwd])
 asenv.Append(CPPDEFINES = 'USE_LIBELF')
 
 Return('objs')

@@ -12,61 +12,51 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+/* http://infocenter.arm.com/help/topic/com.arm.doc.ihi0044f/IHI0044F_aaelf.pdf */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "dlfcn.h"
-#include "elfloader.h"
-#ifdef USE_SHELL
-#include "shell.h"
-#endif
+#include <stdlib.h>
+#include "vfs.h"
+#include "elf/elf.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifdef USE_SHELL
-static int dllFunc(int argc, char* argv[]);
-#endif
 /* ============================ [ DATAS     ] ====================================================== */
-#ifdef USE_SHELL
-static SHELL_CONST ShellCmdT dllCmd  = {
-	dllFunc,
-	1,1,
-	"dll",
-	"dll [path]",
-	"load dll and run the code from the main entry\n",
-	{NULL,NULL}
-};
-SHELL_CMD_EXPORT(dllCmd);
-#endif
 /* ============================ [ LOCALS    ] ====================================================== */
-#ifdef USE_SHELL
-static int dllFunc(int argc, char* argv[])
+static void* do_load_elf(void* elfFile)
 {
-	int r = 0;
-	void* dll = dlopen(argv[1], RTLD_NOW);
-	if(NULL != dll)
-	{
-		
-	}
-	else
-	{
-		r = -1;
-	}
-	return r;
+	void* elf = NULL;
+
+	return elf;
 }
-#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void *dlopen(const char *filename, int flag)
+void* ELF_LoadFile(const char* filename)
 {
-	(void) flag; /* always RTLD_NOW */
+	void* elf = NULL;
+	void* faddr = NULL;
+	VFS_FILE* fp;
+	struct vfs_stat st;
 
-	return ELF_LoadFile(filename);
+	if( (0==vfs_stat(filename, &st)) &&
+		(VFS_ISREG(st.st_mode)) )
+	{
+		fp = vfs_fopen(filename, "rb");
+
+		if(NULL != fp)
+		{
+			faddr = malloc(st.st_size);
+			if(NULL != faddr)
+			{
+				vfs_fread(faddr, st.st_size, 1, fp);
+			}
+			vfs_fclose(fp);
+		}
+	}
+
+	if(NULL != faddr)
+	{
+		free(faddr);
+		elf = do_load_elf(faddr);
+	}
+
+	return elf;
 }
-
-void *dlsym(void *handle, const char *symbol)
-{
-}
-
-int dlclose(void *handle)
-{
-
-}
-

@@ -12,61 +12,14 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+#ifndef _ELFLOADER_H_
+#define _ELFLOADER_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "dlfcn.h"
-#include "elfloader.h"
-#ifdef USE_SHELL
-#include "shell.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifdef USE_SHELL
-static int dllFunc(int argc, char* argv[]);
-#endif
 /* ============================ [ DATAS     ] ====================================================== */
-#ifdef USE_SHELL
-static SHELL_CONST ShellCmdT dllCmd  = {
-	dllFunc,
-	1,1,
-	"dll",
-	"dll [path]",
-	"load dll and run the code from the main entry\n",
-	{NULL,NULL}
-};
-SHELL_CMD_EXPORT(dllCmd);
-#endif
 /* ============================ [ LOCALS    ] ====================================================== */
-#ifdef USE_SHELL
-static int dllFunc(int argc, char* argv[])
-{
-	int r = 0;
-	void* dll = dlopen(argv[1], RTLD_NOW);
-	if(NULL != dll)
-	{
-		
-	}
-	else
-	{
-		r = -1;
-	}
-	return r;
-}
-#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void *dlopen(const char *filename, int flag)
-{
-	(void) flag; /* always RTLD_NOW */
-
-	return ELF_LoadFile(filename);
-}
-
-void *dlsym(void *handle, const char *symbol)
-{
-}
-
-int dlclose(void *handle)
-{
-
-}
-
+void* ELF_LoadFile(const char* filename);
+#endif /* _ELFLOADER_H_ */
