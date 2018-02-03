@@ -25,8 +25,8 @@ static boolean ELF32_GetVirtualAddress(void* elfFile, uint32_t *vstart_addr, uin
 {
 	uint32_t i;
 	boolean has_vstart;
-	struct Elf32_Header *fileHdr = elfFile;
-	struct Elf32_Phdr *phdr = elf32_getProgramHeaderTable(elfFile);
+	Elf32_Ehdr *fileHdr = elfFile;
+	Elf32_Phdr *phdr = elfFile + fileHdr->e_phoff;
 
 	has_vstart = FALSE;
 	for(i=0; i < fileHdr->e_phnum; i++)
@@ -95,9 +95,9 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 {
 	boolean r = TRUE;
 	uint32_t i;
-	struct Elf32_Header *fileHdr = elfFile;
-	struct Elf32_Phdr *phdr = elf32_getProgramHeaderTable(elfFile);
-	struct Elf32_Shdr *shdr = elf32_getSectionTable(elfFile);
+	Elf32_Ehdr *fileHdr = elfFile;
+	Elf32_Phdr *phdr = elfFile + fileHdr->e_phoff;
+	Elf32_Shdr *shdr = elfFile + fileHdr->e_shoff;
 
 	for(i=0; i < fileHdr->e_phnum; i++)
 	{
@@ -114,30 +114,30 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 	for (i = 0; i < fileHdr->e_shnum; i ++)
 	{
 		uint32_t j, nr_reloc;
-		struct Elf32_Sym *symtab;
-		struct Elf32_Rel *rel;
+		Elf32_Sym *symtab;
+		Elf32_Rel *rel;
 		uint8_t *strtab;
 
 		if(SHT_REL == shdr[i].sh_type)
 		{
 			/* get relocate item */
-			rel = (struct Elf32_Rel *)(elfFile + shdr[i].sh_offset);
+			rel = (Elf32_Rel *)(elfFile + shdr[i].sh_offset);
 			/* locate .rel.plt and .rel.dyn section */
-			symtab = (struct Elf32_Sym *)(elfFile + shdr[shdr[i].sh_link].sh_offset);
+			symtab = (Elf32_Sym *)(elfFile + shdr[shdr[i].sh_link].sh_offset);
 			strtab = (uint8_t *)(elfFile +
 					shdr[shdr[shdr[i].sh_link].sh_link].sh_offset);
-			nr_reloc = (uint32_t)(shdr[i].sh_size / sizeof(struct Elf32_Rel));
+			nr_reloc = (uint32_t)(shdr[i].sh_size / sizeof(Elf32_Rel));
 			/* relocate every items */
 			for (j = 0; j < nr_reloc; j ++)
 			{
-				struct Elf32_Sym *sym = &symtab[ELF32_R_SYM(rel->r_info)];
+				Elf32_Sym *sym = &symtab[ELF32_R_SYM(rel->r_info)];
 
 				ASLOG(ELF32, "relocate symbol %s shndx %d\n",
 						strtab + sym->st_name, sym->st_shndx);
 				if ((sym->st_shndx != SHT_NULL) ||
-					(ELF_ST_BIND(sym->st_info) == STB_LOCAL) ||
-					((ELF_ST_BIND(sym->st_info) == STB_GLOBAL) &&
-					 (ELF_ST_TYPE(sym->st_info) == STT_OBJECT)) )
+					(ELF32_ST_BIND(sym->st_info) == STB_LOCAL) ||
+					((ELF32_ST_BIND(sym->st_info) == STB_GLOBAL) &&
+					 (ELF32_ST_TYPE(sym->st_info) == STT_OBJECT)) )
 				{
 
 				}
@@ -187,7 +187,7 @@ static ELF32_ObjectType* ELF32_LoadSharedObject(void* elfFile)
 void* ELF32_Load(void* elfFile)
 {
 	void* elf = NULL;
-	switch(((struct Elf32_Header*)elfFile)->e_type)
+	switch(((Elf32_Ehdr*)elfFile)->e_type)
 	{
 		case ET_REL:
 			break;

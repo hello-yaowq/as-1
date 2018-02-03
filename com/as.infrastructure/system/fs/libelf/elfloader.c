@@ -17,8 +17,12 @@
 #include "vfs.h"
 #include "elfloader.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
-#define ISELF64(elfFile) ( ((struct Elf64_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
+#define ISELF(elfFile) ( (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG0] == ELFMAG0) && \
+						 (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG1] == ELFMAG1) && \
+						 (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG2] == ELFMAG2) && \
+						 (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG3] == ELFMAG3) )
+#define ISELF32(elfFile) ( ((Elf32_Ehdr*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
+#define ISELF64(elfFile) ( ((Elf32_Ehdr*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -29,7 +33,7 @@ static void* do_load_elf(void* elfFile)
 {
 	void* elf = NULL;
 
-	if (elf_checkFile(elfFile) != 0)
+	if (!ISELF(elfFile))
 	{
 		/* Invalid ELF */
 	}

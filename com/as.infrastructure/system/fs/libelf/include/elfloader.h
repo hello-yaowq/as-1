@@ -16,7 +16,7 @@
 #define _ELFLOADER_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <stdlib.h>
-#include "elf/elf.h"
+#include "elf.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define ELF32_MAGIC  0xEEFF3322
 #define ELF64_MAGIC  0xEEFF6644
