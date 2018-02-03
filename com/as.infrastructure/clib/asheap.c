@@ -551,7 +551,7 @@ void* kzmalloc(size_t size)
 
 void vApplicationMallocFailedHook(void)
 {
-	ASLOG(HEAP,"asmalloc failed\n");
+	ASLOG(ERROR,"asmalloc failed\n");
 	asAssert(0);
 }
 #ifdef configTOTAL_PAGE_COUNT
@@ -584,7 +584,7 @@ void* palloc(size_t size)
 static int memFunc(int argc, char* argv[])
 {
 	SHELL_printf("%d%%(%d/%d) free!\n",
-			xFreeBytesRemaining*100/sizeof(ucHeap),
+			(int)(((uint64_t)xFreeBytesRemaining*(uint64_t)100)/(uint64_t)sizeof(ucHeap)),
 			xFreeBytesRemaining,
 			sizeof(ucHeap));
 	return 0;

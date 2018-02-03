@@ -12,67 +12,10 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-/* http://infocenter.arm.com/help/topic/com.arm.doc.ihi0044f/IHI0044F_aaelf.pdf */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "vfs.h"
-#include "elfloader.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define ISELF32(elfFile) ( ((struct Elf32_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS32 )
-#define ISELF64(elfFile) ( ((struct Elf64_Header*)elfFile)->e_ident[EI_CLASS] == ELFCLASS64 )
-
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void* ELF32_Load(void* elfFile);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-static void* do_load_elf(void* elfFile)
-{
-	void* elf = NULL;
-
-	if (elf_checkFile(elfFile) != 0)
-	{
-		/* Invalid ELF */
-	}
-	else if (ISELF32(elfFile))
-	{
-		elf = ELF32_Load(elfFile);
-	}
-	else
-	{
-		/*ELF64 not supported now */
-	}
-
-	return elf;
-}
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void* ELF_LoadFile(const char* filename)
-{
-	void* elf = NULL;
-	void* faddr = NULL;
-	VFS_FILE* fp;
-	struct vfs_stat st;
-
-	if( (0==vfs_stat(filename, &st)) &&
-		(VFS_ISREG(st.st_mode)) )
-	{
-		fp = vfs_fopen(filename, "rb");
-
-		if(NULL != fp)
-		{
-			faddr = malloc(st.st_size);
-			if(NULL != faddr)
-			{
-				vfs_fread(faddr, st.st_size, 1, fp);
-			}
-			vfs_fclose(fp);
-		}
-	}
-
-	if(NULL != faddr)
-	{
-		elf = do_load_elf(faddr);
-		free(faddr);
-	}
-
-	return elf;
-}

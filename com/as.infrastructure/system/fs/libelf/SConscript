@@ -4,6 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
+arch = asenv['arch']
 ASROOT = asenv['ASROOT']
 MODULES = asenv['MODULES']
 
@@ -12,7 +13,7 @@ libelf='%s/libelf'%(download)
 
 if(not os.path.exists(libelf)):
     MKDir(download)
-    RunCommand('cd %s && git clone https://github.com/seL4/libelf.git'%(download))
+    RunCommand('cd %s && git clone https://github.com/parai/libelf.git'%(download))
 
 MKSymlink(libelf,'%s/libelf'%(cwd))
 
@@ -20,6 +21,7 @@ objs = []
 
 objs += Glob('libelf/src/*.c')
 objs += Glob('*.c')
+objs += Glob('arch/%s/*.c'%(arch))
 
 asenv.Append(CPPPATH = ['%s/libelf/include'%(cwd),cwd])
 asenv.Append(CPPDEFINES = 'USE_LIBELF')
