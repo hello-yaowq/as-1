@@ -7,8 +7,9 @@ default:all
 
 $(CURDIR)/minix:
 	@(git clone https://github.com/Stichting-MINIX-Research-Foundation/minix.git)
+	@(sudo cp -v $(CURDIR)/minix/etc/mk.conf /etc)
 
 all:$(CURDIR)/minix
-	@(cd minix && ./build.sh -m$(ARCH) -O $(CURDIR)/build-$(ARCH) tools && \
+	@(cd minix && export DESTDIR=$(CURDIR)/out-$(ARCH) && ./build.sh -m$(ARCH) -E -O $(CURDIR)/build-$(ARCH) tools && \
 		./build.sh -m$(ARCH) -O $(CURDIR)/build-${ARCH} -U distribution)
 

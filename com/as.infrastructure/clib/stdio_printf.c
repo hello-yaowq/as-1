@@ -624,3 +624,8 @@ int putchar(int c)
 	return 1;
 }
 #endif
+
+ELF_EXPORT(printf);
+ELF_EXPORT(snprintf);
+ELF_EXPORT(puts);
+ELF_EXPORT(putchar);

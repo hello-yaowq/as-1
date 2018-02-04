@@ -13,15 +13,14 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "elfloader.h"
-#include "asdebug.h"
+#include "elfinternal.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_ELF32 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-static boolean ELF32_GetVirtualAddress(void* elfFile, uint32_t *vstart_addr, uint32_t *vend_addr)
+static boolean ELF32_GetVirtualAddress(void* elfFile, Elf32_Addr *vstart_addr, Elf32_Addr *vend_addr)
 {
 	uint32_t i;
 	boolean has_vstart;
@@ -139,13 +138,27 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 					((ELF32_ST_BIND(sym->st_info) == STB_GLOBAL) &&
 					 (ELF32_ST_TYPE(sym->st_info) == STT_OBJECT)) )
 				{
-
+					ELF32_Relocate(elfObj, rel,
+								(Elf32_Addr)(elfObj->space
+										+ sym->st_value
+										- elfObj->vstart_addr));
 				}
 				else
 				{
-					uint32_t addr;
+					Elf32_Addr addr;
 
-					ASLOG(ELF32, "relocate symbol: %s\n", strtab + sym->st_name);
+					/* need to resolve symbol in kernel symbol table */
+					addr = ELF_FindSymbol((const char *)(strtab + sym->st_name));
+					if (addr == 0)
+					{
+						ASLOG(ERROR,"ELF: can't find %s in kernel symbol table\n",
+								strtab + sym->st_name);
+						r = FALSE;
+					}
+					else
+					{
+						ELF32_Relocate(elfObj, rel, addr);
+					}
 
 				}
 				rel ++;
@@ -158,7 +171,7 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 static ELF32_ObjectType* ELF32_LoadSharedObject(void* elfFile)
 {
 	ELF32_ObjectType* elfObj = NULL;
-	uint32_t vstart_addr, vend_addr;
+	Elf32_Addr vstart_addr, vend_addr;
 	uint32_t elf_size;
 
 	if(ELF32_GetVirtualAddress(elfFile, &vstart_addr, &vend_addr))

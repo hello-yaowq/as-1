@@ -13,7 +13,7 @@ objs = []
 objs += Glob('*.c')
 objs += Glob('arch/%s/*.c'%(arch))
 
-asenv.Append(CPPPATH = ['%s/include'%(cwd)])
+asenv.Append(CPPPATH = ['%s/include'%(cwd),cwd])
 asenv.Append(CPPDEFINES = 'USE_LIBELF')
 
 Return('objs')

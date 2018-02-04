@@ -50,6 +50,11 @@ SECTIONS {
         __ssymtab_start = .;
         KEEP(*(SSymTab))
         __ssymtab_end = .;
+        /* section information for ELF Symbols */
+        . = ALIGN(4);
+        __elfsymtab_start = .;
+        KEEP(*(ELFSymTab))
+        __elfsymtab_end = .;
 
 	} > RAM
     _etext = .;

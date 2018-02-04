@@ -14,8 +14,7 @@
  */
 /* http://infocenter.arm.com/help/topic/com.arm.doc.ihi0044f/IHI0044F_aaelf.pdf */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "vfs.h"
-#include "elfloader.h"
+#include "elfinternal.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define ISELF(elfFile) ( (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG0] == ELFMAG0) && \
 						 (((Elf32_Ehdr*)elfFile)->e_ident[EI_MAG1] == ELFMAG1) && \
@@ -26,7 +25,6 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void* ELF32_Load(void* elfFile);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static void* do_load_elf(void* elfFile)
@@ -79,4 +77,11 @@ void* ELF_LoadFile(const char* filename)
 	}
 
 	return elf;
+}
+
+Elf32_Addr ELF_FindSymbol(const char* name)
+{
+	Elf32_Addr addr = 0;
+
+	return addr;
 }

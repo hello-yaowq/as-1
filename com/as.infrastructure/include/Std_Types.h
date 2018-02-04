@@ -31,7 +31,13 @@
 #endif
 #include "io.h"
 #include "Compiler.h"
+#ifdef USE_LIBELF
+#include "elfloader.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
+#ifndef USE_LIBELF
+#define ELF_EXPORT(fnc)
+#endif
 #if !defined(HIGH_BYTE_FIRST)
 #define HIGH_BYTE_FIRST     0U
 #endif
