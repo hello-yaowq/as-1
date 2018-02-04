@@ -394,4 +394,6 @@ def GetDllEnv():
           SHCXXCOMSTR = 'SHCXX $SOURCE',
           SHLINKCOMSTR = 'SHLINK $TARGET'
         )
+    if(os.name == 'nt'):
+        env['SHLINKCOM'] = '$SHLINK $SHLINKFLAGS $SOURCES -o $TARGET'
     return env
