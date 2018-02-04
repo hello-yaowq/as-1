@@ -108,7 +108,7 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 	}
 
 	elfObj->entry = elfObj->space + fileHdr->e_entry - elfObj->vstart_addr;
-
+	ASLOG(ELF32, "entry is %p\n", elfObj->entry);
 	/* handle relocation section */
 	for (i = 0; i < fileHdr->e_shnum; i ++)
 	{
@@ -148,7 +148,7 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 					Elf32_Addr addr;
 
 					/* need to resolve symbol in kernel symbol table */
-					addr = ELF_FindSymbol((const char *)(strtab + sym->st_name));
+					addr = (Elf32_Addr)ELF_FindSymbol((const char *)(strtab + sym->st_name));
 					if (addr == 0)
 					{
 						ASLOG(ERROR,"ELF: can't find %s in kernel symbol table\n",
@@ -167,6 +167,69 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 	}
 
 	return r;
+}
+static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
+{
+	uint32_t i;
+	Elf32_Ehdr *fileHdr = elfFile;
+	Elf32_Shdr *shdr = elfFile + fileHdr->e_shoff;
+
+	/* construct module symbol table */
+	for (i = 0; i < fileHdr->e_shnum; i ++)
+	{
+		/* find .dynsym section */
+		uint8_t *shstrab;
+		shstrab = elfFile + shdr[fileHdr->e_shstrndx].sh_offset;
+		if (0 == strcmp((const char *)(shstrab + shdr[i].sh_name), ELF_DYNSYM))
+			break;
+	}
+	/* found .dynsym section */
+	if (i != fileHdr->e_shnum)
+	{
+		uint32_t j, count = 0;
+		Elf32_Sym  *symtab = NULL;
+		uint8_t *strtab = NULL;
+
+		symtab = elfFile + shdr[i].sh_offset;
+		strtab = elfFile + shdr[shdr[i].sh_link].sh_offset;
+
+		for (j = 0; j < shdr[i].sh_size / sizeof(Elf32_Sym); j++)
+		{
+			if ((ELF32_ST_BIND(symtab[j].st_info) == STB_GLOBAL) &&
+				(ELF32_ST_TYPE(symtab[j].st_info) == STT_FUNC))
+				count ++;
+		}
+
+		elfObj->symtab = malloc(count * sizeof(ELF32_SymtabType));
+		elfObj->nsym = count;
+		for (j = 0, count = 0; j < shdr[i].sh_size / sizeof(Elf32_Sym); j++)
+		{
+			size_t length;
+
+			if ((ELF32_ST_BIND(symtab[j].st_info) != STB_GLOBAL) ||
+				(ELF32_ST_TYPE(symtab[j].st_info) != STT_FUNC))
+				continue;
+
+			length = strlen((const char *)(strtab + symtab[j].st_name)) + 1;
+
+			elfObj->symtab[count].addr =
+				(void *)(elfObj->space + symtab[j].st_value);
+			elfObj->symtab[count].name = malloc(length);
+			memset((void *)elfObj->symtab[count].name, 0, length);
+			memcpy((void *)elfObj->symtab[count].name,
+					  strtab + symtab[j].st_name,
+					  length);
+			ASLOG(ELF32, "stmtab[%d] %s %p\n", count,
+						elfObj->symtab[count].name,
+						elfObj->symtab[count].addr);
+			count ++;
+		}
+	}
+	else
+	{
+		elfObj->symtab = NULL;
+		elfObj->nsym = 0;
+	}
 }
 static ELF32_ObjectType* ELF32_LoadSharedObject(void* elfFile)
 {
@@ -191,6 +254,10 @@ static ELF32_ObjectType* ELF32_LoadSharedObject(void* elfFile)
 				free(elfObj);
 				elfObj = NULL;
 			}
+			else
+			{
+				ELF32_ConstructSymbolTable(elfFile, elfObj);
+			}
 		}
 	}
 
@@ -213,4 +280,38 @@ void* ELF32_Load(void* elfFile)
 		break;
 	}
 	return elf;
+}
+
+void* ELF32_LookupSymbol(ELF32_ObjectType *elfObj, const char *symbol)
+{
+	void* addr = NULL;
+	uint32_t i;
+
+	for(i=0; i<elfObj->nsym; i++)
+	{
+		if(0 == strcmp(elfObj->symtab[i].name, symbol))
+		{
+			addr = elfObj->symtab[i].addr;
+			break;
+		}
+	}
+
+	return addr;
+}
+
+void ELF32_Close(ELF32_ObjectType *elfObj)
+{
+	uint32_t i;
+
+	for(i=0; i<elfObj->nsym; i++)
+	{
+		free(elfObj->symtab[i].name);
+	}
+
+	if(elfObj->nsym)
+	{
+		free(elfObj->symtab);
+	}
+
+	free(elfObj);
 }

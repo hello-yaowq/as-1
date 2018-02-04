@@ -41,10 +41,20 @@ SHELL_CMD_EXPORT(dllCmd);
 static int dllFunc(int argc, char* argv[])
 {
 	int r = 0;
+	ShellFuncT mentry;
 	void* dll = dlopen(argv[1], RTLD_NOW);
 	if(NULL != dll)
 	{
-		
+		mentry = dlsym(dll, "main");
+		if(NULL != mentry)
+		{
+			r = mentry(argc,argv);
+		}
+		else
+		{
+			SHELL_printf("no 'main' entry in dll\n");
+		}
+		dlclose(dll);
 	}
 	else
 	{
@@ -58,15 +68,16 @@ void *dlopen(const char *filename, int flag)
 {
 	(void) flag; /* always RTLD_NOW */
 
-	return ELF_LoadFile(filename);
+	return ELF_Open(filename);
 }
 
 void *dlsym(void *handle, const char *symbol)
 {
+	return ELF_LookupSymbol(handle, symbol);
 }
 
 int dlclose(void *handle)
 {
-
+	return ELF_Close(handle);
 }
 

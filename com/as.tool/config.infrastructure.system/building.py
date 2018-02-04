@@ -385,7 +385,7 @@ def GetDllEnv():
                       LINK=Env['CC'],
                       CPPPATH=Env['CPPPATH'],
                       CCFLAGS=Env['CCFLAGS'],
-                      LINKFLAGS=['-s'])
+                      LINKFLAGS=['-s','-nostdlib'])
     if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(

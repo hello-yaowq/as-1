@@ -25,6 +25,10 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#if defined(USE_ELF_SYMTAB)
+extern const ELF_SymbolType __elfsymtab_start[];
+extern const ELF_SymbolType __elfsymtab_end[];
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static void* do_load_elf(void* elfFile)
@@ -47,7 +51,7 @@ static void* do_load_elf(void* elfFile)
 	return elf;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void* ELF_LoadFile(const char* filename)
+void* ELF_Open(const char* filename)
 {
 	void* elf = NULL;
 	void* faddr = NULL;
@@ -79,9 +83,45 @@ void* ELF_LoadFile(const char* filename)
 	return elf;
 }
 
-Elf32_Addr ELF_FindSymbol(const char* name)
+void* ELF_LookupSymbol(void *handle, const char *symbol)
 {
-	Elf32_Addr addr = 0;
+	void* addr = NULL;
+	ELF32_ObjectType* elfObj = handle;
 
+	if(ELF32_MAGIC == elfObj->magic)
+	{
+		addr = ELF32_LookupSymbol(elfObj, symbol);
+	}
+
+	return addr;
+}
+
+int   ELF_Close(void *handle)
+{
+	ELF32_ObjectType* elfObj = handle;
+
+	if(ELF32_MAGIC == elfObj->magic)
+	{
+		ELF32_Close(elfObj);
+	}
+
+	return 0;
+}
+
+/* This is an internal API */
+void* ELF_FindSymbol(const char* name)
+{
+	void* addr = 0;
+#if defined(USE_ELF_SYMTAB)
+	const ELF_SymbolType* psym;
+	for(psym=__elfsymtab_start; psym<__elfsymtab_end; psym++)
+	{
+		if(0 == strcmp(psym->name, name))
+		{
+			addr = psym->entry;
+			break;
+		}
+	}
+#endif
 	return addr;
 }

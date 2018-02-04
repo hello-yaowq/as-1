@@ -38,5 +38,7 @@ typedef struct
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void* ELF_LoadFile(const char* filename);
+void* ELF_Open(const char* filename);
+void* ELF_LookupSymbol(void *handle, const char *symbol);
+int   ELF_Close(void *handle);
 #endif /* _ELFLOADER_H_ */
