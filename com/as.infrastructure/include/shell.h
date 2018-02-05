@@ -51,7 +51,7 @@ int SHELL_Mainloop( void );
 #define SHELL_putc(c)
 #else
 #define SHELL_printf  printf
-#define SHELL_puts    puts
+#define SHELL_puts    printf
 #define SHELL_putc(c) printf("%c", c)
 #endif
 

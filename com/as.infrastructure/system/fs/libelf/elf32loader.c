@@ -168,9 +168,9 @@ static boolean ELF32_LoadObject(void* elfFile,ELF32_ObjectType* elfObj)
 
 	return r;
 }
-static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
+static uint32_t ELF32_GetSymbolTableSize(void* elfFile, uint32_t *symtabCount)
 {
-	uint32_t i;
+	uint32_t i,sz;
 	Elf32_Ehdr *fileHdr = elfFile;
 	Elf32_Shdr *shdr = elfFile + fileHdr->e_shoff;
 
@@ -200,8 +200,57 @@ static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
 				count ++;
 		}
 
-		elfObj->symtab = malloc(count * sizeof(ELF32_SymtabType));
-		elfObj->nsym = count;
+		sz = count * sizeof(ELF32_SymtabType);
+		*symtabCount = count;
+
+		for (j = 0, count = 0; j < shdr[i].sh_size / sizeof(Elf32_Sym); j++)
+		{
+			size_t length;
+
+			if ((ELF32_ST_BIND(symtab[j].st_info) != STB_GLOBAL) ||
+				(ELF32_ST_TYPE(symtab[j].st_info) != STT_FUNC))
+				continue;
+
+			sz += strlen((const char *)(strtab + symtab[j].st_name)) + 1;
+			count ++;
+		}
+	}
+	else
+	{
+		sz = 0;
+		*symtabCount = 0;
+	}
+
+	return sz;
+}
+static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
+{
+	uint32_t i;
+	Elf32_Ehdr *fileHdr = elfFile;
+	Elf32_Shdr *shdr = elfFile + fileHdr->e_shoff;
+
+	/* construct module symbol table */
+	for (i = 0; i < fileHdr->e_shnum; i ++)
+	{
+		/* find .dynsym section */
+		uint8_t *shstrab;
+		shstrab = elfFile + shdr[fileHdr->e_shstrndx].sh_offset;
+		if (0 == strcmp((const char *)(shstrab + shdr[i].sh_name), ELF_DYNSYM))
+			break;
+	}
+	/* found .dynsym section */
+	if (i != fileHdr->e_shnum)
+	{
+		uint32_t j, count = 0;
+		Elf32_Sym  *symtab = NULL;
+		uint8_t *strtab = NULL;
+		void* strpool;
+
+		symtab = elfFile + shdr[i].sh_offset;
+		strtab = elfFile + shdr[shdr[i].sh_link].sh_offset;
+
+		strpool = elfObj->symtab + elfObj->nsym*sizeof(ELF32_SymtabType);
+
 		for (j = 0, count = 0; j < shdr[i].sh_size / sizeof(Elf32_Sym); j++)
 		{
 			size_t length;
@@ -214,7 +263,8 @@ static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
 
 			elfObj->symtab[count].addr =
 				(void *)(elfObj->space + symtab[j].st_value);
-			elfObj->symtab[count].name = malloc(length);
+			elfObj->symtab[count].name = strpool;
+			strpool += length;
 			memset((void *)elfObj->symtab[count].name, 0, length);
 			memcpy((void *)elfObj->symtab[count].name,
 					  strtab + symtab[j].st_name,
@@ -231,21 +281,28 @@ static void ELF32_ConstructSymbolTable(void* elfFile, ELF32_ObjectType* elfObj)
 		elfObj->nsym = 0;
 	}
 }
+
 static ELF32_ObjectType* ELF32_LoadSharedObject(void* elfFile)
 {
 	ELF32_ObjectType* elfObj = NULL;
 	Elf32_Addr vstart_addr, vend_addr;
 	uint32_t elf_size;
+	uint32_t symtab_size;
+	uint32_t nsym;
 
 	if(ELF32_GetVirtualAddress(elfFile, &vstart_addr, &vend_addr))
 	{
 		elf_size = vend_addr - vstart_addr;
 
-		elfObj = malloc(sizeof(ELF32_ObjectType)+elf_size);
+		symtab_size = ELF32_GetSymbolTableSize(elfFile,&nsym);
+
+		elfObj = malloc(sizeof(ELF32_ObjectType)+elf_size+symtab_size);
 		if(NULL != elfObj)
 		{
 			elfObj->magic = ELF32_MAGIC;
 			elfObj->space = &elfObj[1];
+			elfObj->symtab = ((void*)&elfObj[1]) + elf_size;
+			elfObj->nsym   = nsym;
 			elfObj->size  = elf_size;
 			elfObj->vstart_addr = vstart_addr;
 			memset(elfObj->space, 0, elf_size);
@@ -301,17 +358,5 @@ void* ELF32_LookupSymbol(ELF32_ObjectType *elfObj, const char *symbol)
 
 void ELF32_Close(ELF32_ObjectType *elfObj)
 {
-	uint32_t i;
-
-	for(i=0; i<elfObj->nsym; i++)
-	{
-		free(elfObj->symtab[i].name);
-	}
-
-	if(elfObj->nsym)
-	{
-		free(elfObj->symtab);
-	}
-
 	free(elfObj);
 }
