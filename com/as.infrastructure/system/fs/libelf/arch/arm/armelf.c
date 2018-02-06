@@ -111,6 +111,7 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 			lower = *(uint16_t *)((Elf32_Addr)where + 2);
 			break;
 		default:
+			ASLOG(ERROR, "ARMELF: invalid relocate TYPE\n");
 			return -1;
 	}
 
