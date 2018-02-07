@@ -45,7 +45,8 @@ if('run' in COMMAND_LINE_TARGETS):
     if('gdb' in COMMAND_LINE_TARGETS):
         params += ' -gdb tcp::1234 -S'
     if(os.name == 'nt'):
-        RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,asenv['python3']))
+        if('asone' in COMMAND_LINE_TARGETS):
+            RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,asenv['python3']))
         RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
         RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
         RunCommand('cd %s && start cmd /C %s -m 128 -M versatilepb -kernel %s %s'%(build,qemu,target,params))

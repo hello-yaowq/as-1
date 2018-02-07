@@ -30,14 +30,15 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 	where = (Elf32_Addr *)(elfObj->space
 						   + rel->r_offset
 						   - elfObj->vstart_addr);
+	asAssert(where < (Elf32_Addr *)(elfObj->space + elfObj->size));
 	switch (ELF32_R_TYPE(rel->r_info))
 	{
 		case R_ARM_NONE:
+			ASLOG(ARMELF, "R_ARM_NONE\n");
 			break;
 		case R_ARM_ABS32:
 			*where += (Elf32_Addr)sym_val;
-			ASLOG(ARMELF,"R_ARM_ABS32: %x -> %x\n",
-										   where, *where);
+			ASLOG(ARMELF,"R_ARM_ABS32: %x -> %x\n", where, *where);
 			break;
 		case R_ARM_PC24:
 		case R_ARM_PLT32:
@@ -60,6 +61,7 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 		case R_ARM_V4BX:
 			*where &= 0xf000000f;
 			*where |= 0x01a0f000;
+			ASLOG(ARMELF,"R_ARM_V4BX: %x -> %x\n", where, *where);
 			break;
 		case R_ARM_GLOB_DAT:
 		case R_ARM_JUMP_SLOT:
@@ -74,6 +76,7 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 			break;
 		case R_ARM_THM_PC22:
 		case R_ARM_THM_JUMP24:
+			ASLOG(ARMELF,"R_ARM_THM_PC22: %x\n", where);
 			upper  = *(uint16_t *)where;
 			lower  = *(uint16_t *)((Elf32_Addr)where + 2);
 
