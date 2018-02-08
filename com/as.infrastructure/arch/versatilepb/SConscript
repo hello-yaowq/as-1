@@ -68,8 +68,8 @@ if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
     objs += Glob('../common/lwip/netbios.c')
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
-asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
-asenv.Append(ASFLAGS=' -g ')
+asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
+asenv.Append(ASFLAGS=['-g'])
 
 asenv.Append(CCFLAGS=['-mcpu=arm926ej-s','-marm'])
 asenv.Append(ASFLAGS=['-mcpu=arm926ej-s','-marm'])

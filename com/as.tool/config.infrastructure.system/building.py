@@ -287,7 +287,7 @@ def RMFile(p):
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)
-    f.write('c')
+    f.write(c)
     f.close()
 
 def MKSymlink(src,dst):
@@ -379,14 +379,34 @@ def GetConfigValue(name):
     except:
         return ''
 
-def GetDllEnv():
+def GetELFEnv():
     global Env
+    cwd = os.path.abspath(os.path.curdir)
+    if(Env.GetOption('clean')):
+        RMFile('aself.lds')
+    if(not os.path.exists('aself.lds')):
+        MKFile('aself.lds',
+               '''SECTIONS
+{
+  . = 0;
+  .text : { *(.text*) }
+  . = ALIGN(4);
+  .data : { *(.data*) }
+  . = ALIGN(4);
+  .bss : { *(.bss*) }
+  . = ALIGN(4);
+  .rodata : { *(.rodata*) }
+  . = ALIGN(4);
+  .rel.plt : { *(.rel.*) }
+}\n''', 'w')
     env = Environment(CC=Env['CC'],
                       LINK=Env['CC'],
                       CPPPATH=Env['CPPPATH'],
-                      CCFLAGS=Env['CCFLAGS'],
-                      LINKFLAGS=['-s','-nostdlib'])
-    for flg in ['-ffunction-sections','-fdata-sections']:
+                      CCFLAGS=Env['CCFLAGS']+['-fPIC'],
+                      LINKFLAGS=['-e','main','-fPIC','-T','%s/aself.lds'%(cwd)],
+                      SHLINKFLAGS=['-fPIC','-shared','-s','-nostdlib',
+                                   '-T','%s/aself.lds'%(cwd)])
+    for flg in ['-ffunction-sections','-fdata-sections','-g']:
         if(flg in env['CCFLAGS']):
             env['CCFLAGS'].remove(flg)
     if(not GetOption('verbose')):

@@ -1,5 +1,6 @@
 from building import *
 
-env = GetDllEnv()
+env = GetELFEnv()
 
-env.SharedLibrary('sample.c')
+for src in Glob('*.c'):
+    env.SharedLibrary(src)
