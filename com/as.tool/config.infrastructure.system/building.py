@@ -386,6 +386,9 @@ def GetDllEnv():
                       CPPPATH=Env['CPPPATH'],
                       CCFLAGS=Env['CCFLAGS'],
                       LINKFLAGS=['-s','-nostdlib'])
+    for flg in ['-ffunction-sections','-fdata-sections']:
+        if(flg in env['CCFLAGS']):
+            env['CCFLAGS'].remove(flg)
     if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(
