@@ -434,37 +434,30 @@ static boolean ELF32_RelocateRELObject(void* elfFile,ELF32_ObjectType* elfObj,
 					ASLOG(ERROR, "ELF32 unhandled case for symbol : %s\n", strtab + sym->st_name);
 				}
 			}
-			else if (STT_FUNC == ELF32_ST_TYPE(sym->st_info))
-			{
-				/* relocate function */
-				ASLOG(ELF32, "relocate symbol: %s for function\n", strtab + sym->st_name);
-				ELF32_Relocate(elfObj, rel, (Elf32_Addr)(elfObj->space - vstart_addr + sym->st_value));
-			}
-			else
+			else if ( (STT_NOTYPE == ELF32_ST_TYPE(sym->st_info)) &&
+					  (STN_UNDEF == sym->st_shndx) )
 			{
 				Elf32_Addr addr;
 
-				if (ELF32_R_TYPE(rel->r_info) != R_ARM_V4BX)
+				ASLOG(ELF32, "relocate symbol: %s for NOTYPE UNDEF\n", strtab + sym->st_name);
+				/* need to resolve symbol in kernel symbol table */
+				addr = (Elf32_Addr)ELF_FindSymbol(strtab + sym->st_name);
+				if (addr != (Elf32_Addr)NULL)
 				{
-					ASLOG(ELF32, "relocate symbol: %s for !R_ARM_V4BX\n", strtab + sym->st_name);
-					/* need to resolve symbol in kernel symbol table */
-					addr = (Elf32_Addr)ELF_FindSymbol(strtab + sym->st_name);
-					if (addr != (Elf32_Addr)NULL)
-					{
-						ELF32_Relocate(elfObj, rel, addr);
-					}
-					else
-					{
-						ASLOG(ERROR, "ELF32: can't find %s in kernel symbol table\n", strtab + sym->st_name);
-						r = FALSE;
-					}
+					ELF32_Relocate(elfObj, rel, addr);
 				}
 				else
 				{
-					ASLOG(ELF32, "relocate symbol: %s\n", strtab + sym->st_name);
-					ELF32_Relocate(elfObj, rel, (Elf32_Addr)(elfObj->space - vstart_addr + sym->st_value));
+					ASLOG(ERROR, "ELF32: can't find %s in kernel symbol table\n", strtab + sym->st_name);
+					r = FALSE;
 				}
 			}
+			else
+			{
+				ASLOG(ELF32, "relocate symbol: %s\n", strtab + sym->st_name);
+				ELF32_Relocate(elfObj, rel, (Elf32_Addr)(elfObj->space - vstart_addr + sym->st_value));
+			}
+
 			rel ++;
 		}
 	}
