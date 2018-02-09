@@ -19,6 +19,7 @@ asenv.Append(LINKFLAGS='-Map build/x86/x86.map')
 
 MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
+           'CLIB_STDIO_PRINTF',
            'ASKAR',
            ]
 

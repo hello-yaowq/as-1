@@ -33,6 +33,8 @@ StackTop:						; 栈顶
 		global _start			; 导出 _start
 
 _start:
+	; for the purpose to check kernel is started
+
 		jmp	multiboot_entry
 
 		;;/* Align 32 bits boundary.  */

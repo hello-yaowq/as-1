@@ -4,10 +4,8 @@ extern	exception_handler
 extern	spurious_irq
 extern	clock_handler
 extern	disp_str
-extern	delay
-extern	TaskProcess
 
-extern	p_proc_ready
+extern	RunningVar
 extern	tss
 extern	disp_pos
 extern	k_reenter
@@ -58,7 +56,7 @@ global	hwint15
 	in	al, INT_M_CTLMASK	; ┓
 	or	al, (1 << %1)		; ┣ 屏蔽当前中断
 	out	INT_M_CTLMASK, al	; ┛
-	mov	al, EOI			; ┓置EOI位
+	mov	al, EOI				; ┓置EOI位
 	out	INT_M_CTL, al		; ┛
 	sti	; CPU在响应中断的过程中会自动关中断，这句之后就允许响应新的中断
 	push	%1						; ┓
@@ -261,7 +259,7 @@ save:
 sys_call:
 	call	save
 
-	push	dword [p_proc_ready]
+	push	dword [RunningVar]
 
 	sti
 
@@ -280,7 +278,7 @@ sys_call:
 ;                                   restart
 ; ====================================================================================
 restart:
-	mov	esp, [p_proc_ready]
+	mov	esp, [RunningVar]
 	lldt	[esp + P_LDT_SEL]
 	lea	eax, [esp + P_STACKTOP]
 	mov	dword [tss + TSS3_S_SP0], eax
@@ -293,8 +291,3 @@ restart_reenter:
 	popad
 	add	esp, 4
 	iretd
-
-task_entry:
-	push eax
-	call TaskProcess
-	jmp $

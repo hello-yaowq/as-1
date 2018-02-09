@@ -15,11 +15,19 @@
 #ifndef PORTABLE_H_
 #define PORTABLE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include "mmu.h"
+#include "x86.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define LDT_SIZE		2
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
-	void* sp;
+	cpu_context_t regs; /* process' registers saved in stack frame */
+
+	uint16_t ldt_sel;   /* selector in gdt giving ldt base and limit*/
+	mmu_descriptor_t ldts[LDT_SIZE]; /* local descriptors for code and data */
+									 /* 2 is LDT_SIZE - avoid include protect.h */
+
 	void (*pc)(void);
 } TaskContextType;
 /* ============================ [ DECLARES  ] ====================================================== */

@@ -64,6 +64,7 @@ def PrepareBuilding(env):
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     env['msys2'] = False
+    env['POSTACTION'] = ''
     if(sys.platform=='msys'):
         # force os name to 'nt'
         os.name = 'nt'

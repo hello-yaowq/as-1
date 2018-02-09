@@ -41,6 +41,9 @@ void __putchar(char ch)
 	(void)ch;
 #ifdef __RTTHREAD_OS__
 	rt_console_putc(ch);
+#else
+	char bf[2] = { ch, 0 };
+	disp_str(bf);
 #endif
 }
 
@@ -143,6 +146,11 @@ void Irq_Restore(imask_t irq_state)
 void  Irq_Enable(void)
 {
 	enable_int();
+}
+
+void Irq_Disable(void)
+{
+	disable_int();
 }
 
 #ifdef __RTTHREAD_OS__

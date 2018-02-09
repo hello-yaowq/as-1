@@ -12,6 +12,35 @@ objs = []
 objs += Glob('bsp/i8259.c')
 objs += Glob('bsp/protect.c')
 
+if('run' in COMMAND_LINE_TARGETS):
+    build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
+    RunCommand('cd %s && qemu-system-i386 -fda ./TINIX.IMG -boot a -m 64M -serial stdio'%(build))
+
+if(asenv.GetOption('clean')):
+    RunCommand('cd %s/bsp && rm -fv *.asm.obj'%(cwd))
+    RunCommand('cd %s/boot && rm -fv *.bin'%(cwd))
+else:
+    for src in Glob('bsp/*.asm'):
+        asm = os.path.basename(str(src))
+        RunCommand('cd %s/bsp && nasm -f elf -o %s.obj %s'%(cwd,asm,asm))
+    for src in Glob('boot/*.asm'):
+        asm = os.path.basename(str(src))
+        RunCommand('cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
+
+    if(asenv['POSTACTION'] != ''):
+        asenv['POSTACTION'] += ' && '
+    asenv['POSTACTION'] += 'dd if=/dev/zero of=TINIX.IMG bs=512 count=2880'
+    asenv['POSTACTION'] += ' && sudo mkfs.vfat TINIX.IMG'
+    asenv['POSTACTION'] += ' && dd conv=notrunc if=%s of=TINIX.IMG bs=512 count=1'%(str(Glob('boot/boot.bin')[0]))
+    asenv['POSTACTION'] += ' && mkdir -p tmp'
+    asenv['POSTACTION'] += ' && sudo mount -t vfat TINIX.IMG tmp'
+    asenv['POSTACTION'] += ' && sudo cp %s tmp'%(str(Glob('boot/loader.bin')[0]))
+    asenv['POSTACTION'] += ' && sudo cp x86 tmp/kernel.bin'
+    asenv['POSTACTION'] += ' && sudo sync'
+    asenv['POSTACTION'] += ' && sudo umount tmp'
+
+objs += Glob('bsp/*.asm.obj')
+
 if('PCI' in MODULES):
     objs += Glob('bsp/pci-x86.c')
 
@@ -33,11 +62,12 @@ if('FLS' in MODULES):
 
 asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
+asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
-asenv['CC'] +=' -m32 -fno-builtin -fno-stack-protector'
-asenv['AS'] ='nasm'
-asenv['LINK'] +=' -m32 -melf_i386'
+asenv['CC'] ='gcc -m32 -fno-stack-protector'
+asenv['AS'] ='gcc -m32'
+asenv['LINK'] ='ld -m32 -melf_i386'
 
 if(os.name != 'nt'):
     asenv.Append(CPPPATH=['/usr/include/newlib'])

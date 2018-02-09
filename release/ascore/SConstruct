@@ -108,4 +108,7 @@ try:
 except KeyError:
     pass
 
+if(asenv['POSTACTION'] != ''):
+    asenv.AddPostAction(target, asenv['POSTACTION'])
+
 SConscript('elf/SConscript')

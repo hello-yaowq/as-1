@@ -18,12 +18,10 @@
 #endif
 #include "asdebug.h"
 #include <stdarg.h>
-#ifdef __X86__
+
 #define in_range(c, lo, up)  ((uint8_t)c >= lo && (uint8_t)c <= up)
 #define isprint(c)           in_range(c, 0x20, 0x7f)
-#else
-#include <ctype.h>
-#endif
+
 #if defined(__LINUX__)
 #ifndef __TERMUX__
 #include <execinfo.h>
