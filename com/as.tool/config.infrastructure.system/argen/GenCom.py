@@ -155,6 +155,7 @@ def GenC():
     fp = open('%s/Com_PbCfg.c'%(__dir),'w')
     fp.write(GHeader('Com'))
     fp.write("""
+#ifdef USE_COM
 #include "Com.h"
 #include "Com_Internal.h"
 #if defined(USE_PDUR)
@@ -479,7 +480,7 @@ const Com_Arc_Config_type Com_Arc_Config = {
 #else
     .ComGroupSignal =  NULL
 #endif
-};    
-    """)
+};
+#endif /* USE_COM */\n""")
     fp.close()
     

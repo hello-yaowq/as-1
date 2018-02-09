@@ -1,0 +1,45 @@
+import os
+from building import *
+
+Import('asenv')
+MODULES=asenv['MODULES']
+ASROOT=asenv['ASROOT']
+
+cwd = GetCurrentDir()
+
+objs = []
+
+objs += Glob('bsp/i8259.c')
+objs += Glob('bsp/protect.c')
+
+if('PCI' in MODULES):
+    objs += Glob('bsp/pci-x86.c')
+
+if('CAN' in MODULES):
+    objs += Glob('mcal/Can.c')
+    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=64'])
+
+if('MCU' in MODULES):
+    objs += Glob('mcal/Mcu.c')
+    asenv.Append(CPPDEFINES='USE_MCU')
+
+if('EEP' in MODULES):
+    objs += Glob('../posix/mcal/Eep.c')
+    asenv.Append(CPPDEFINES='USE_EEP')
+
+if('FLS' in MODULES):
+    objs += Glob('../posix/mcal/Fls.c')
+    asenv.Append(CPPDEFINES='USE_FLS')
+
+asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
+asenv.Append(ASFLAGS=['-g'])
+
+asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
+asenv['CC'] +=' -m32 -fno-builtin -fno-stack-protector'
+asenv['AS'] ='nasm'
+asenv['LINK'] +=' -m32 -melf_i386'
+
+if(os.name != 'nt'):
+    asenv.Append(CPPPATH=['/usr/include/newlib'])
+
+Return('objs')

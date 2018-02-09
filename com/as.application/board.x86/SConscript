@@ -1,0 +1,47 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+
+objs = []
+
+asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x800000')
+asenv.Append(CPPDEFINES='PAGE_SIZE=0x1000')
+asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000')
+asenv.Append(CPPDEFINES='USECONDS_PER_TICK=10000')
+
+lds = '%s/script/linker-app.lds'%(cwd)
+asenv.Append(LINKFLAGS='-static -T %s'%(lds))
+asenv.Append(LINKFLAGS='-Map build/x86/x86.map')
+
+MODULES = ['ECUM','SCHM','MCU','DET',
+           'CLIB_ASHEAP','CLIB_MISCLIB',
+           'ASKAR',
+           ]
+
+ARCH='x86'
+arch='x86'
+
+if(asenv['MODULES'] is None):
+    asenv['MODULES'] = MODULES
+else:
+    MODULES = asenv['MODULES']
+
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
+
+asenv.Append(CPPPATH=['%s/../board.posix/common'%(cwd)])
+
+if('MCU' in MODULES):
+    objs += Glob('%s/../board.posix/common/Mcu*.c'%(cwd))
+
+if('EEP' in MODULES):
+    objs += Glob('%s/../board.posix/common/Eep*.c'%(cwd))
+
+if('FLS' in MODULES):
+    objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
+
+Return('objs')

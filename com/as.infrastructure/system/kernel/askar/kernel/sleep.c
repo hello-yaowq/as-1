@@ -45,7 +45,7 @@ void Os_Sleep(TickType tick)
 
 }
 
-int usleep (unsigned long __useconds)
+int usleep (useconds_t __useconds)
 {
 	Os_Sleep((__useconds+USECONDS_PER_TICK-1)/USECONDS_PER_TICK);
 	return __useconds;
