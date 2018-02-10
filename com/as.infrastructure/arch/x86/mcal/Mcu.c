@@ -22,10 +22,6 @@
 #include <rtthread.h>
 #include <rthw.h>
 #endif
-#ifdef USE_PCI
-#include "pci_core.h"
-#include "virtio_net.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_MCU 1
 #define enable_int() asm("sti")
@@ -113,12 +109,6 @@ void tpl_primary_syscall_handler(void)
 #endif
 void Mcu_DistributePllClock( void )
 {
-	#ifdef USE_PCI
-	pci_init();
-	pci_search_all_device();
-	virtio_net_init();
-	virtio_net_start();
-	#endif
 }
 
 int EnableInterrupts() {

@@ -140,9 +140,15 @@ void pci_init(void)
 
 }
 
+#ifdef USE_STDRT
 int pci_disable_IRQ_line(uint32 irq) { rt_hw_interrupt_mask(irq); return 0; }
 int pci_enable_IRQ_line(uint32 irq)  { rt_hw_interrupt_umask(irq); return 0; }
 int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return rt_hw_interrupt_install(irq,handle,NULL,"PCI-ISR"); }
+#else
+int pci_disable_IRQ_line(uint32 irq) { return 0; }
+int pci_enable_IRQ_line(uint32 irq)  { return 0; }
+int pci_sys_set_irq_handle(uint32 irq, void(*handle)(void)) { return 0; }
+#endif
 int pci_sys_irq_set_level_trigger(uint32 irq) { return 1; }
 int pci_sys_irq_set_edge_trigger(uint32 irq)  { return 1; }
 #endif

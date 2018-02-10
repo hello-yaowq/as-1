@@ -204,7 +204,7 @@
 
 
 #if ( FLS_DEV_ERROR_DETECT == STD_ON )
-#define VALIDATE_CONFIG(_x) assert(_x)
+#define VALIDATE_CONFIG(_x) asAssert(_x)
 
 #define DET_REPORTERROR(_x,_y,_z,_q) Det_ReportError(MODULE_ID_FLS, _y, _z, _q)
 
@@ -843,7 +843,7 @@ void Fls_MainFunction(void) {
 			break;
 		}
 		case FLS_JOB_NONE:
-			assert(0);
+			asAssert(0);
 			break;
 
 		default:

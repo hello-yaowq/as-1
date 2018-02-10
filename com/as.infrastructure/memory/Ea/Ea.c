@@ -642,7 +642,7 @@ void Ea_JobEndNotification(void)
 			EA_JOB_END_NOTIFICATION();
 			break;
 		default:
-			assert(0); // Should never come here
+			asAssert(0); // Should never come here
 			break;
 		}
 	}

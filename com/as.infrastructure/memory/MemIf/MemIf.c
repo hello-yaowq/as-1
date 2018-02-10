@@ -20,13 +20,13 @@
  */
 
 #include "MemIf.h"
-#include <assert.h>
+#include "asdebug.h"
 
 #if (MEMIF_NUMBER_OF_DEVICES > 1) || defined(CFG_MEMIF_NO_MACRO)
 
 void MemIf_SetMode(MemIf_ModeType Mode) {
 	//return _MemIf_SetMode(Mode);
-	assert(0);
+	asAssert(0);
 }
 
 Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOffset, uint8 *DataBufferPtr, uint16 Length) {
@@ -41,7 +41,7 @@ Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOff
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 
@@ -57,7 +57,7 @@ Std_ReturnType MemIf_Write(uint8 DeviceIndex, uint16 BlockNumber, uint8 *DataBuf
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 
@@ -73,7 +73,7 @@ void MemIf_Cancel(uint8 DeviceIndex) {
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 	}
 }
 MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
@@ -88,7 +88,7 @@ MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		return MEMIF_UNINIT;
 	}
 }
@@ -104,7 +104,7 @@ MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex) {
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		return MEMIF_JOB_FAILED;
 	}
 }
@@ -121,7 +121,7 @@ Std_ReturnType MemIf_InvalidateBlock(uint8 DeviceIndex, uint16 BlockNumber) {
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		return E_NOT_OK;
 	}
 }
@@ -137,7 +137,7 @@ Std_ReturnType MemIf_EraseImmediateBlock(uint8 DeviceIndex, uint16 BlockNumber) 
 	}
 	else
 	{
-		assert(0);
+		asAssert(0);
 		return E_NOT_OK;
 	}
 }

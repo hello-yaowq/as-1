@@ -12,13 +12,16 @@ objs = []
 objs += Glob('bsp/i8259.c')
 objs += Glob('bsp/protect.c')
 objs += Glob('bsp/serial.c')
+objs += Glob('bsp/mmu.c')
 
 if('run' in COMMAND_LINE_TARGETS):
     build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
-    params = ''
+    qemu = '%s/release/download/qemu/i386-softmmu/qemu-system-i386'%(ASROOT)
+
+    params = '-device pci-ascan -device pci-asnet -device pci-asblk'
     if('gdb' in COMMAND_LINE_TARGETS):
         params += ' -gdb tcp::1234 -S'
-    RunCommand('cd %s && qemu-system-i386 -fda ./TINIX.IMG -boot a -m 64M -serial stdio %s'%(build,params))
+    RunCommand('cd %s && %s -fda ./TINIX.IMG -boot a -m 64M -serial stdio %s'%(build,qemu,params))
 
 if(asenv.GetOption('clean')):
     RunCommand('cd %s/bsp && rm -fv *.asm.obj'%(cwd))
@@ -26,10 +29,12 @@ if(asenv.GetOption('clean')):
 else:
     for src in Glob('bsp/*.asm'):
         asm = os.path.basename(str(src))
-        RunCommand('cd %s/bsp && nasm -f elf -g -o %s.obj %s'%(cwd,asm,asm))
+        if(not os.path.exists(asm+'.obj')):
+            RunCommand('cd %s/bsp && nasm -f elf -g -o %s.obj %s'%(cwd,asm,asm))
     for src in Glob('boot/*.asm'):
         asm = os.path.basename(str(src))
-        RunCommand('cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
+        if(not os.path.exists(asm+'.bin')):
+            RunCommand('cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
 
     if(asenv['POSTACTION'] != ''):
         asenv['POSTACTION'] += ' && '
@@ -44,6 +49,8 @@ else:
     asenv['POSTACTION'] += ' && sudo umount tmp'
 
 objs += Glob('bsp/*.asm.obj')
+
+asenv.Append(CPPDEFINES=['__X86__'])
 
 if('PCI' in MODULES):
     objs += Glob('bsp/pci-x86.c')
@@ -63,6 +70,38 @@ if('EEP' in MODULES):
 if('FLS' in MODULES):
     objs += Glob('../posix/mcal/Fls.c')
     asenv.Append(CPPDEFINES='USE_FLS')
+
+if(('LWIP' in MODULES) and ('RTTHREAD' not in MODULES)):
+    asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
+    if(os.getenv('PTHREAD') == 'yes'):
+        download = '%s/release/download'%(ASROOT)
+        lwip='%s/lwip-contrib'%(download)
+
+        if(not os.path.exists(lwip)):
+            MKDir(download)
+            RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && 
+                cd lwip-contrib && git checkout STABLE-1_4_1'''%(download))
+            RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
+
+        MKSymlink(lwip,'%s/lwip-contrib'%(cwd))
+        MKDir('%s/lwip'%(cwd))
+        asenv.Append(CPPPATH=['%s/lwip'%(cwd)])
+        objs += Glob('lwip-contrib/ports/unix/sys_arch.c')
+        MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
+                  '%s/lwip/lwip_sys_arch.h'%(cwd))
+        objs += Glob('lwip-contrib/apps/httpserver/*.c')
+        objs += Glob('../common/lwip/*.c')
+        asenv.Append(CPPDEFINES='LWIP_POSIX_ARCH')
+    else:
+        objs += Glob('../common/lwip/*.c')
+    asenv.Append(CPPDEFINES='LWIP_TIMEVAL_PRIVATE=0')
+    if(os.name == 'nt'):
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
+
+if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
+    objs += Glob('../common/lwip/netbios.c')
+    if(os.name == 'nt'):
+        asenv.Append(CPPDEFINES='USE_PCAPIF')
 
 asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])

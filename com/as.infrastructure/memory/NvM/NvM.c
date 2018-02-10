@@ -888,7 +888,7 @@ static void DriveBlock( const NvM_BlockDescriptorType	*bPtr,
 					if( bPtr->CalcRamBlockCrc ) {
 						/* This block want its RAM block CRC checked */
 						DEBUG_PRINTF(">> Recalculation of RAM checksum \n",admPtr->NvCrc.crc16);
-						assert( bPtr->BlockUseCrc == 1);
+						asAssert( bPtr->BlockUseCrc == 1);
 						admPtr->BlockState = BLOCK_STATE_CALC_CRC_READ;
 						admPtr->BlockSubState = BLOCK_SUBSTATE_0;
 						admPtr->flags = 0;

@@ -534,7 +534,7 @@ void Eep_MainFunction(void) {
 			}
 			break;
 		case EEP_NONE:
-			assert(0);
+			asAssert(0);
 			break;
 		}
 	}
