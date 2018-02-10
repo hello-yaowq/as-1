@@ -41,6 +41,7 @@
 
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void init_prot(void);
+extern void serial_init(void);
 extern void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t limit, uint16_t attribute);
 extern uint32_t seg2phys(uint16_t seg);
 extern void init_clock(void);
@@ -103,13 +104,17 @@ void Os_PortInit(void)
 
 void Os_PortInitContext(TaskVarType* pTaskVar)
 {
-	uint16_t selector_ldt	= SELECTOR_LDT_FIRST+pTaskVar-TaskVarArray;
+	uint16_t selector_ldt = SELECTOR_LDT_FIRST+(pTaskVar-TaskVarArray)*(1<<3);
 	uint8_t privilege;
 	uint8_t rpl;
 	int	eflags;
 	privilege	= PRIVILEGE_TASK;
 	rpl		= RPL_TASK;
 	eflags = 0x1202; /* IF=1, IOPL=1, bit 2 is always 1 */
+
+	ASLOG(OS, "InitContext %s(%d)\n",
+			pTaskVar->pConst->name?:"null",
+			pTaskVar->pConst->initPriority);
 
 	pTaskVar->context.ldt_sel	= selector_ldt;
 	memcpy(&pTaskVar->context.ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(mmu_descriptor_t));
@@ -169,6 +174,8 @@ void Os_PortDispatch(void)
 void cstart(void)
 {
 	disp_pos = 0;
+
+	serial_init();
 	ASLOG(OS,"cstart begins\n");
 
 	/* copy the GDT of LOADER to the new GDT */

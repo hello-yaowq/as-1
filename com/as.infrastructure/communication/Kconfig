@@ -27,6 +27,7 @@ config COM
 
 config COMM
 	bool "Communication Manager"
+	depends on PDUR
 	default y
 
 config DOIP

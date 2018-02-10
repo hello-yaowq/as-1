@@ -19,6 +19,8 @@ global	disp_str
 global	disp_color_str
 global	out_byte
 global	in_byte
+global	outb
+global	inb
 global	enable_irq
 global	disable_irq
 global	enable_int
@@ -105,6 +107,7 @@ __putcs:
 ;                  void out_byte(t_port port, t_8 value);
 ; ========================================================================
 out_byte:
+outb:
 	mov	edx, [esp + 4]		; port
 	mov	al, [esp + 4 + 4]	; value
 	out	dx, al
@@ -116,6 +119,7 @@ out_byte:
 ;                  t_8 in_byte(t_port port);
 ; ========================================================================
 in_byte:
+inb:
 	mov	edx, [esp + 4]		; port
 	xor	eax, eax
 	in	al, dx

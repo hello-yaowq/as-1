@@ -39,9 +39,11 @@ typedef	void	(*t_pf_irq_handler)	(int irq);
 
 t_pf_irq_handler	irq_table[NR_IRQ];
 
-
+void out_byte(unsigned int port, unsigned char value);
 void spurious_irq(int irq);
 extern void Os_PortSysTick(void);
+extern void enable_irq(unsigned int irq);
+extern void disable_irq(unsigned int irq);
 /*======================================================================*
                             init_8259A
  *======================================================================*/
@@ -82,6 +84,14 @@ void spurious_irq(int irq)
 	printf("spurious_irq: %d\n",irq);
 }
 
+extern void serial_isr(void);
+
+void serial_enable_rx(void)
+{
+	put_irq_handler(RS232_IRQ, (t_pf_irq_handler)serial_isr);
+	enable_irq(RS232_IRQ);
+}
+
 void init_clock(void)
 {
 	/* 初始化 8253 PIT */
@@ -89,6 +99,11 @@ void init_clock(void)
 	out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
 	out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
 
-	put_irq_handler(CLOCK_IRQ, Os_PortSysTick);	/* 设定时钟中断处理程序 */
+	put_irq_handler(CLOCK_IRQ, (t_pf_irq_handler)Os_PortSysTick);	/* 设定时钟中断处理程序 */
 	enable_irq(CLOCK_IRQ);				/* 让8259A可以接收时钟中断 */
+
+	serial_enable_rx();
 }
+
+
+

@@ -11,6 +11,7 @@ objs = []
 
 objs += Glob('bsp/i8259.c')
 objs += Glob('bsp/protect.c')
+objs += Glob('bsp/serial.c')
 
 if('run' in COMMAND_LINE_TARGETS):
     build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])

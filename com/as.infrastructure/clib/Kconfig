@@ -22,6 +22,7 @@ config CLIB_STDIO_PRINTF
 
 config CLIB_STDIO_CAN
 	bool "stdio on CAN"
+	depends on CAN
 	default y
 
 config CLIB_STRTOK_R

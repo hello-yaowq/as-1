@@ -8,14 +8,15 @@
 #include "mmu.h"
 #include "x86.h"
 
-#define disp_int(a) printf("0x%X",a)
-
 extern uint32_t disp_pos;
 
 extern mmu_descriptor_t    gdt[GDT_SIZE];
 extern mmu_gate_t idt[IDT_SIZE];
 
 extern void init_8259A(void);
+
+extern void disp_str(char* str);
+extern void disp_color_str(char* str, int color);
 
 /* 本文件内函数声明 */
 void init_idt_desc(unsigned char vector, uint8_t desc_type, void (*handler)(void) , unsigned char privilege);
@@ -147,6 +148,13 @@ void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t limit, u
 	p_desc->limit_high_attr2	= ((limit >> 16) & 0x0F) |
 						(attribute >> 8) & 0xF0;// 段界限 2 + 属性 2
 	p_desc->base_high		= (base >> 24) & 0x0FF;		// 段基址 3		(1 字节)
+}
+
+void disp_int(int input)
+{
+	char output[16];
+	snprintf(output, sizeof(output), "0x%X", input);
+	disp_str(output);
 }
 
 /*======================================================================*
