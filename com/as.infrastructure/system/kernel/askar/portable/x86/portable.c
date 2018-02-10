@@ -16,7 +16,7 @@
 #include "kernel_internal.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_OS 1
+#define AS_LOG_OS 0
 
 /* GDT */
 /* 描述符索引 */
@@ -43,6 +43,11 @@
 extern void init_prot(void);
 extern void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t limit, uint16_t attribute);
 extern uint32_t seg2phys(uint16_t seg);
+extern void init_clock(void);
+extern void restart(void);
+extern void dispatch(void);
+static void sys_dispatch(void);
+
 /* ============================ [ DATAS     ] ====================================================== */
 uint8_t             gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
 mmu_descriptor_t    gdt[GDT_SIZE];
@@ -54,9 +59,14 @@ uint32_t k_reenter;
 
 tss_t tss;
 void* sys_call_table[] = {
-	NULL
+	sys_dispatch,
 };
 /* ============================ [ LOCALS    ] ====================================================== */
+static void sys_dispatch(void)
+{
+	RunningVar = ReadyVar;
+	restart();
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
 {
@@ -79,24 +89,83 @@ void Os_PortActivate(void)
 
 void Os_PortInit(void)
 {
+	int i;
+	uint16_t selector_ldt = INDEX_LDT_FIRST << 3;
+	for(i=0;i<TASK_NUM;i++){
+		asAssert((selector_ldt>>3) < GDT_SIZE);
+		init_descriptor(&gdt[selector_ldt>>3],
+				vir2phys(seg2phys(SELECTOR_KERNEL_DS), TaskVarArray[i].context.ldts),
+				LDT_SIZE * sizeof(mmu_descriptor_t) - 1,
+				DA_LDT);
+		selector_ldt += 1 << 3;
+	}
 }
 
 void Os_PortInitContext(TaskVarType* pTaskVar)
 {
+	uint16_t selector_ldt	= SELECTOR_LDT_FIRST+pTaskVar-TaskVarArray;
+	uint8_t privilege;
+	uint8_t rpl;
+	int	eflags;
+	privilege	= PRIVILEGE_TASK;
+	rpl		= RPL_TASK;
+	eflags = 0x1202; /* IF=1, IOPL=1, bit 2 is always 1 */
 
+	pTaskVar->context.ldt_sel	= selector_ldt;
+	memcpy(&pTaskVar->context.ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(mmu_descriptor_t));
+	pTaskVar->context.ldts[0].attr1 = DA_C | privilege << 5;	/* change the DPL */
+	memcpy(&pTaskVar->context.ldts[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(mmu_descriptor_t));
+	pTaskVar->context.ldts[1].attr1 = DA_DRW | privilege << 5;/* change the DPL */
+	pTaskVar->context.regs.cs		= ((8 * 0) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
+	pTaskVar->context.regs.ds		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
+	pTaskVar->context.regs.es		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
+	pTaskVar->context.regs.fs		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
+	pTaskVar->context.regs.ss		= ((8 * 1) & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
+	pTaskVar->context.regs.gs		= (SELECTOR_KERNEL_GS & SA_RPL_MASK) | rpl;
+	pTaskVar->context.regs.eip	= (uint32_t)Os_PortActivate;
+	pTaskVar->context.regs.esp	= (uint32_t)(pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4);
+	pTaskVar->context.regs.eflags	= eflags;
+
+	pTaskVar->context.regs.eax = (uint32_t)pTaskVar;
+}
+
+void Os_PortSysTick(void)
+{
+	unsigned int savedLevel = CallLevel;
+
+	CallLevel = TCL_ISR2;
+	OsTick();
+	SignalCounter(0);
+	CallLevel = savedLevel;
+
+	/* TODO: no dispatch here immediately here,
+	 * The Idle task will call Schedule to dispatch high ready .*/
 }
 
 void Os_PortStartDispatch(void)
 {
+	static int flag = 0;
+	if(0 == flag)
+	{
+		flag = 1;
+		init_clock();
+		RunningVar = ReadyVar;
+		Irq_Enable();
+		restart();
+	}
 
+	Irq_Enable();
+	dispatch();
+	/* should never return */
+	asAssert(0);
 }
 
 void Os_PortDispatch(void)
 {
-
+	Irq_Enable();
+	dispatch();
+	Irq_Disable();
 }
-
-
 void cstart(void)
 {
 	disp_pos = 0;

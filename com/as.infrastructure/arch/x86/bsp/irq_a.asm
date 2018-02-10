@@ -291,3 +291,9 @@ restart_reenter:
 	popad
 	add	esp, 4
 	iretd
+
+
+syscall_dispatch:
+	mov eax, 0
+	int 0x90
+

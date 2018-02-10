@@ -27,8 +27,6 @@ typedef struct
 	uint16_t ldt_sel;   /* selector in gdt giving ldt base and limit*/
 	mmu_descriptor_t ldts[LDT_SIZE]; /* local descriptors for code and data */
 									 /* 2 is LDT_SIZE - avoid include protect.h */
-
-	void (*pc)(void);
 } TaskContextType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

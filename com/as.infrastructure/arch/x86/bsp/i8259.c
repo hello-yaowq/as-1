@@ -41,7 +41,7 @@ t_pf_irq_handler	irq_table[NR_IRQ];
 
 
 void spurious_irq(int irq);
-extern void OsTick(void);
+extern void Os_PortSysTick(void);
 /*======================================================================*
                             init_8259A
  *======================================================================*/
@@ -89,6 +89,6 @@ void init_clock(void)
 	out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
 	out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
 
-	put_irq_handler(CLOCK_IRQ, OsTick);	/* 设定时钟中断处理程序 */
+	put_irq_handler(CLOCK_IRQ, Os_PortSysTick);	/* 设定时钟中断处理程序 */
 	enable_irq(CLOCK_IRQ);				/* 让8259A可以接收时钟中断 */
 }

@@ -135,7 +135,10 @@ TASK(TaskIdle)
 #endif
 		KSM_EXECUTE();
 
-#if defined(__FREEOSEK__) || defined(__UCOSII_OS__) || defined(__RTTHREAD_OS__)
+#if defined(__FREEOSEK__) \
+	|| defined(__UCOSII_OS__) \
+	|| defined(__RTTHREAD_OS__) \
+	|| defined(__ASKAR_OS__)
 		(void)Schedule();
 #endif
 
