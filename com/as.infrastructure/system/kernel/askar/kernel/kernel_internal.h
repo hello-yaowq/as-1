@@ -340,6 +340,7 @@ extern void Sched_AddReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
 extern bool Sched_Schedule(void);
+extern void OsTick(void);
 #if(OS_PTHREAD_NUM > 0)
 extern void Sched_PosixAddReady(TaskType TaskID);
 extern void Os_SleepInit(void);

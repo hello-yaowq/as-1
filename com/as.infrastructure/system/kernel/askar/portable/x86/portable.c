@@ -37,6 +37,9 @@
 #define	SELECTOR_KERNEL_CS	SELECTOR_FLAT_C
 #define	SELECTOR_KERNEL_DS	SELECTOR_FLAT_RW
 #define	SELECTOR_KERNEL_GS	SELECTOR_VIDEO
+
+#define CMD_DISPATCH       0
+#define CMD_START_DISPATCH 1
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -46,8 +49,8 @@ extern void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t l
 extern uint32_t seg2phys(uint16_t seg);
 extern void init_clock(void);
 extern void restart(void);
-extern void dispatch(void);
-static void sys_dispatch(void);
+extern void dispatch(int cmd);
+static void sys_dispatch(int cmd);
 
 /* ============================ [ DATAS     ] ====================================================== */
 uint8_t             gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
@@ -56,17 +59,38 @@ uint8_t             idt_ptr[6]; /* 0~15:Limit  16~47:Base */
 mmu_gate_t          idt[IDT_SIZE];
 
 uint32_t disp_pos;
-uint32_t k_reenter;
+int k_reenter;
 
 tss_t tss;
 void* sys_call_table[] = {
 	sys_dispatch,
 };
 /* ============================ [ LOCALS    ] ====================================================== */
-static void sys_dispatch(void)
+static void sys_dispatch(int cmd)
 {
+	imask_t mask;
+
+	Irq_Save(mask);
+
+	asAssert(RunningVar);
+	asAssert(ReadyVar);
+
+	if(CMD_START_DISPATCH == cmd)
+	{
+		/* reinitialize the context as the context modified
+		 * by "save" which is the first action of sys_call */
+		Os_PortInitContext(RunningVar);
+	}
+
 	RunningVar = ReadyVar;
+	#ifdef MULTIPLY_TASK_ACTIVATION
+	asAssert(RunningVar->activation > 0);
+	#endif
+	asAssert(0 == k_reenter);
+
 	restart();
+
+	Irq_Restore(mask);
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
@@ -155,21 +179,17 @@ void Os_PortStartDispatch(void)
 		flag = 1;
 		init_clock();
 		RunningVar = ReadyVar;
-		Irq_Enable();
 		restart();
 	}
 
-	Irq_Enable();
-	dispatch();
+	dispatch(CMD_START_DISPATCH);
 	/* should never return */
 	asAssert(0);
 }
 
 void Os_PortDispatch(void)
 {
-	Irq_Enable();
-	dispatch();
-	Irq_Disable();
+	dispatch(CMD_DISPATCH);
 }
 void cstart(void)
 {
@@ -207,4 +227,20 @@ void cstart(void)
 	tss.iobase	= sizeof(tss);	/* 没有I/O许可位图 */
 
 	ASLOG(OS,"cstart finished\n");
+}
+
+int ffs(int v)
+{
+	int i;
+	int r = 0;
+
+	for(i=0;i<32;i++)
+	{
+		if(v&(1<<i))
+		{
+			r = i+1;
+		}
+	}
+
+	return r;
 }

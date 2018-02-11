@@ -261,7 +261,7 @@ sys_call:
 
 	push	dword [RunningVar]
 
-	sti
+	;sti
 
 	push	ecx
 	push	ebx
@@ -270,7 +270,7 @@ sys_call:
 
 	mov	[esi + EAXREG - P_STACKBASE], eax
 
-	cli
+	;cli
 
 	ret
 
@@ -291,9 +291,4 @@ restart_reenter:
 	popad
 	add	esp, 4
 	iretd
-
-
-syscall_dispatch:
-	mov eax, 0
-	int 0x90
 

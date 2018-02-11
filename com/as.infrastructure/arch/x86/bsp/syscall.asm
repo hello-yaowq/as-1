@@ -8,7 +8,9 @@ global  dispatch
 bits 32
 [section .text]
 
+; void dispatch(int cmd)
 dispatch:
     mov eax, _NR_dispatch
+    mov ebx, [esp + 4]
     int INT_VECTOR_SYS_CALL
     ret

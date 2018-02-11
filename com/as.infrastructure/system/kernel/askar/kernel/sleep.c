@@ -61,6 +61,10 @@ void Os_SleepTick(void)
 {
 	TaskVarType *pTaskVar;
 	TaskVarType *pNext;
+
+	imask_t imask;
+
+	Irq_Save(imask);
 	pTaskVar = TAILQ_FIRST(&OsSleepListHead);
 
 	while(NULL != pTaskVar)
@@ -85,6 +89,8 @@ void Os_SleepTick(void)
 			break;
 		}
 	}
+
+	Irq_Restore(imask);
 }
 
 void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks)

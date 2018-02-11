@@ -209,4 +209,15 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 		disp_color_str("Error code:", text_color);
 		disp_int(err_code);
 	}
+
+	printf( "Exception! --> %s\n"
+			"EFLAGS: 0x%08X "
+			"CS: 0x%08X "
+			"EIP: 0x%08X "
+			"Error code: %d\n",
+			err_description[vec_no],
+			eflags,
+			cs,
+			eip,
+			err_code);
 }

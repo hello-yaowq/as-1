@@ -66,6 +66,7 @@ $(download)/qemu/hw/char/libpyas.a:
 $(download)/qemu: $(download)/qemu/hw/char/libpyas.a $(dep-wincap)
 	@(cd $(download); git clone https://github.com/qemu/qemu.git; \
 		cd qemu; git submodule update --init dtc ; \
+		git checkout v2.10.0; \
 		cd hw/char; $(LNFS) $(prj-dir)/com/as.tool/qemu/hw/char TRUE; \
 		cp $(prj-dir)/release/aslua/out/libpyas.a .; \
 		cat Makefile >> Makefile.objs)
