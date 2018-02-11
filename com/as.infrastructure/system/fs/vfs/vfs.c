@@ -22,6 +22,8 @@
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_VFS 0
+#define in_range(c, lo, up)  ((uint8_t)c >= lo && (uint8_t)c <= up)
+#define isprint(c)           in_range(c, 0x20, 0x7f)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_FATFS
@@ -56,6 +58,7 @@ static int mkdirFunc(int argc, char* argv[]);
 static int rmFunc(int argc, char* argv[]);
 static int pwdFunc(int argc, char* argv[]);
 static int catFunc(int argc, char* argv[]);
+static int hexdumpFunc(int argc, char* argv[]);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 static const struct vfs_filesystem_ops lvfs_ops =
@@ -154,6 +157,16 @@ static SHELL_CONST ShellCmdT catVfsCmd  = {
 	{NULL,NULL}
 };
 SHELL_CMD_EXPORT(catVfsCmd);
+
+static SHELL_CONST ShellCmdT hexdumpVfsCmd  = {
+	hexdumpFunc,
+	1,5,
+	"hexdump",
+	"hexdump file [-s offset -n size]",
+	"show file content in hex mode\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(hexdumpVfsCmd);
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype)
@@ -543,6 +556,93 @@ static int catFunc(int argc, char* argv[])
 	}
 	return r;
 }
+static int hexdumpFunc(int argc, char* argv[])
+{
+	VFS_FILE* f;
+	unsigned char buf[16];
+	int r = 0;
+	int i;
+	unsigned long size = -1;
+	unsigned long offset = 0;
+	char* file = NULL;
+
+	for(i=1; i<argc; i++)
+	{
+		if(0 == strcmp(argv[i],"-s"))
+		{
+			if(0 == strncmp(argv[i+1],"0x",2))
+			{
+				offset = strtoul(argv[i+1]+2, NULL, 16);
+			}
+			else
+			{
+				offset = strtoul(argv[i+1], NULL, 10);
+			}
+			i++;
+		}
+		else if(0 == strcmp(argv[i],"-n"))
+		{
+			size = strtoul(argv[i+1], NULL, 10);
+			i++;
+		}
+		else
+		{
+			file = argv[i];
+		}
+	}
+
+	if(NULL == file)
+	{
+		r = -EINVAL;
+	}
+	else
+	{
+		f = vfs_fopen(argv[1], "rb");
+
+		if(NULL != f)
+		{
+			r = vfs_fseek(f, (long int)offset, SEEK_SET);
+
+			if(0 == r)
+			{
+				printf("         :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+				do {
+					r = vfs_fread(buf, sizeof(buf), 1, f);
+
+					if(r > 0)
+					{
+						printf("%08X ::",(uint32_t)offset);
+						for(i=0;i<16;i++)
+						{
+							printf(" %02X",buf[i]);
+						}
+						printf("\t");
+						for(i=0;i<16;i++)
+						{
+							if(isprint(buf[i]))
+							{
+								printf("%c",buf[i]);
+							}
+							else
+							{
+								printf(".");
+							}
+						}
+						printf("\n");
+					}
+					offset += sizeof(buf);
+					size   -= size>sizeof(buf)?sizeof(buf):size;
+				} while((r > 0) && (size>0));
+			}
+		}
+		else
+		{
+			r = -1;
+		}
+	}
+
+	return r;
+}
 #endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 VFS_FILE* vfs_fopen (const char *filename, const char *opentype)
@@ -814,6 +914,7 @@ void vfs_init(void)
 	SHELL_AddCmd(&mkdirVfsCmd);
 	SHELL_AddCmd(&rmVfsCmd);
 	SHELL_AddCmd(&catVfsCmd);
+	SHELL_AddCmd(&hexdumpVfsCmd);
 #endif
 
 #endif
