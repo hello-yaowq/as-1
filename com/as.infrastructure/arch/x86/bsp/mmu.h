@@ -37,9 +37,6 @@
 #define	SELECTOR_KERNEL_DS	SELECTOR_FLAT_RW
 #define	SELECTOR_KERNEL_GS	SELECTOR_VIDEO
 
-/* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
-#define LDT_SIZE		2
-
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
 #define	DA_LIMIT_4K		0x8000	/* 段界限粒度为 4K 字节			*/
@@ -99,11 +96,6 @@
 
 /* 系统调用 */
 #define	INT_VECTOR_SYS_CALL		0x90
-
-
-/* GDT and IDT size */
-#define GDT_SIZE 128
-#define IDT_SIZE 256
 
 /* 宏 */
 /* 线性地址 → 物理地址 */

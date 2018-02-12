@@ -13,7 +13,10 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
+#include "kernel_internal.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /*******************************************************************/
 /* Serial Register */
@@ -36,8 +39,6 @@
 #define ERFIFO				0x80	/* Error receive Fifo */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-void outb(unsigned int port, unsigned char value);
-unsigned char inb(unsigned int port);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -74,15 +75,13 @@ void serial_putc(const char c)
 	outb(COM1+COMWRITE, c&0xff);
 }
 
-extern void SHELL_input(char c);
-#define TCL_ISR2		((unsigned int) 0x02)	/* interrupt type 2 ISR */
-extern unsigned int CallLevel;
 void serial_isr(void)
 {
-	unsigned int savedLevel = CallLevel;
+
 	char c;
 
-	CallLevel = TCL_ISR2;
+	EnterISR();
+
 	while((inb(COM1+COMSTATUS) & COMDATA)) {
 		c = inb(COM1+COMREAD);
 		#ifdef USE_SHELL
@@ -90,5 +89,6 @@ void serial_isr(void)
 		SHELL_input(c);
 		#endif
 	}
-	CallLevel = savedLevel;
+
+	LeaveISR();
 }

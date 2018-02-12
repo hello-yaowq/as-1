@@ -7,6 +7,7 @@
 #include "Std_Types.h"
 #include "mmu.h"
 #include "x86.h"
+#include "kernel_internal.h"
 
 extern uint32_t disp_pos;
 

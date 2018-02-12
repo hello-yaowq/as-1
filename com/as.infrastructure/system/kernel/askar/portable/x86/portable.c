@@ -18,26 +18,6 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
 
-/* GDT */
-/* 描述符索引 */
-#define	INDEX_DUMMY			0	// ┓
-#define	INDEX_FLAT_C		1	// ┣ LOADER 里面已经确定了的.
-#define	INDEX_FLAT_RW		2	// ┃
-#define	INDEX_VIDEO			3	// ┛
-#define	INDEX_TSS			4
-#define	INDEX_LDT_FIRST		5
-/* 选择子 */
-#define	SELECTOR_DUMMY		   0		// ┓
-#define	SELECTOR_FLAT_C		0x08		// ┣ LOADER 里面已经确定了的.
-#define	SELECTOR_FLAT_RW	0x10		// ┃
-#define	SELECTOR_VIDEO		(0x18+3)	// ┛<-- RPL=3
-#define	SELECTOR_TSS		0x20		// TSS. 从外层跳到内存时 SS 和 ESP 的值从里面获得.
-#define SELECTOR_LDT_FIRST	0x28
-
-#define	SELECTOR_KERNEL_CS	SELECTOR_FLAT_C
-#define	SELECTOR_KERNEL_DS	SELECTOR_FLAT_RW
-#define	SELECTOR_KERNEL_GS	SELECTOR_VIDEO
-
 #define CMD_DISPATCH       0
 #define CMD_START_DISPATCH 1
 /* ============================ [ TYPES     ] ====================================================== */
@@ -87,8 +67,6 @@ static void sys_dispatch(int cmd)
 	asAssert(RunningVar->activation > 0);
 	#endif
 	asAssert(0 == k_reenter);
-
-	restart();
 
 	Irq_Restore(mask);
 }
@@ -160,15 +138,12 @@ void Os_PortInitContext(TaskVarType* pTaskVar)
 
 void Os_PortSysTick(void)
 {
-	unsigned int savedLevel = CallLevel;
+	EnterISR();
 
-	CallLevel = TCL_ISR2;
 	OsTick();
 	SignalCounter(0);
-	CallLevel = savedLevel;
 
-	/* TODO: no dispatch here immediately here,
-	 * The Idle task will call Schedule to dispatch high ready .*/
+	LeaveISR();
 }
 
 void Os_PortStartDispatch(void)

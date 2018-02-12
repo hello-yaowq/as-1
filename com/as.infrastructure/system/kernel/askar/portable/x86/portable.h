@@ -17,8 +17,36 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "mmu.h"
 #include "x86.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+/* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
 #define LDT_SIZE		2
+/* GDT and IDT size */
+#define GDT_SIZE (INDEX_LDT_FIRST+TASK_NUM)
+#define IDT_SIZE 256
+
+#define EnterISR()			 \
+	unsigned int savedLevel; \
+	imask_t mask;			 \
+	Irq_Save(mask);			 \
+	savedLevel = CallLevel;	 \
+	CallLevel = TCL_ISR2;	 \
+	Irq_Restore(mask)
+
+#define LeaveISR()									  \
+	Irq_Save(mask);									  \
+	CallLevel = savedLevel;							  \
+	asAssert(RunningVar);							  \
+	asAssert(ReadyVar);								  \
+	if( (RunningVar != ReadyVar) &&					  \
+		(RunningVar->priority < ReadyVar->priority) ) \
+	{												  \
+		Sched_Preempt();							  \
+		RunningVar = ReadyVar;						  \
+	}												  \
+	Irq_Restore(mask);
+
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
