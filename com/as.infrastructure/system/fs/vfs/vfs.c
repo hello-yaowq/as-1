@@ -607,7 +607,7 @@ static int hexdumpFunc(int argc, char* argv[])
 			{
 				printf("         :: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
 				do {
-					r = vfs_fread(buf, sizeof(buf), 1, f);
+					r = vfs_fread(buf, 1, sizeof(buf), f);
 
 					if(r > 0)
 					{

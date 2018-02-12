@@ -34,10 +34,6 @@
 #endif
 #endif
 
-#ifdef __X86__
-#include "mmu.h"
-#endif
-
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_FATFS 0
 #define AS_LOG_EXTFS 1
@@ -264,10 +260,7 @@ int PciBlk_Init(uint32_t blkid)
 		pdev = find_pci_dev_from_id(0xcaac,0x0003);
 		if(NULL != pdev)
 		{
-			__iobase = (void*)(pdev->mem_addr[1]);
-#ifdef __X86__
-			__iobase = mmap(__iobase, pdev->mem_size[1], PROT_READ|PROT_WRITE);
-#endif
+			__iobase = pci_get_memio(pdev, 1);
 			enable_pci_resource(pdev);
 		}
 	}

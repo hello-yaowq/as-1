@@ -45,6 +45,8 @@ tss_t tss;
 void* sys_call_table[] = {
 	sys_dispatch,
 };
+
+static boolean knl_started = FALSE;
 /* ============================ [ LOCALS    ] ====================================================== */
 static void sys_dispatch(int cmd)
 {
@@ -148,10 +150,9 @@ void Os_PortSysTick(void)
 
 void Os_PortStartDispatch(void)
 {
-	static int flag = 0;
-	if(0 == flag)
+	if(FALSE == knl_started)
 	{
-		flag = 1;
+		knl_started = TRUE;
 		init_clock();
 		RunningVar = ReadyVar;
 		restart();

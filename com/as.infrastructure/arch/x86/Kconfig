@@ -9,7 +9,7 @@ config PCI
 config CAN
 	bool "MCAL CAN driver"
 	depends on PCI
-	default n
+	default y
 
 config FATFS_DRV
 	bool "FATFS diskio driver"
@@ -24,12 +24,12 @@ config LWEXT4_DRV
 config EEP
 	bool "MCAL EEP driver"
 	depends on (FATFS || LWEXT4)
-	default n
+	default y
 
 config FLS
 	bool "MCAL FLS driver"
 	depends on (FATFS || LWEXT4)
-	default n
+	default y
 
 config MCU
 	bool "MCAL MCU driver"
@@ -38,7 +38,7 @@ config MCU
 config LWIP_DRV
 	bool "LWIP driver"
 	depends on PCI
-	default n
+	default y
 
 endmenu
 endif

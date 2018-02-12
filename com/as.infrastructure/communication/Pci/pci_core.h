@@ -166,4 +166,6 @@ pci_dev *find_pci_dev_from_reg(pci_reg *reg);
 pci_dev *find_pci_dev_from_id(uint32 vendor_id, uint32 device_id);
 
 void pci_search_all_device(void);
+
+void* pci_get_memio(pci_dev *pdev, int index);
 #endif /* _PCI_CORE_H_ */

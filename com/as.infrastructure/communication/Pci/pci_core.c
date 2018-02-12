@@ -25,6 +25,9 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pci_core.h"
 #include "asdebug.h"
+#ifdef __X86__
+#include "mmu.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_PCI 0
 /* sys API wrapper */
@@ -496,6 +499,18 @@ pci_dev *find_pci_dev_from_reg(pci_reg *reg) {
 
 void pci_search_all_device(void) {
 	do_pci_search_all_device();
+}
+
+void* pci_get_memio(pci_dev *pdev, int index)
+{
+	void* addr;
+
+	addr = (void*)(pdev->mem_addr[index]);
+#ifdef __X86__
+	addr = mmap(addr, pdev->mem_size[index], PROT_READ|PROT_WRITE);
+#endif
+
+	return addr;
 }
 
 #endif /* USE_PCI */

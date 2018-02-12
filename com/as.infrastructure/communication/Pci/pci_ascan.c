@@ -252,7 +252,7 @@ void Can_Init( const Can_ConfigType *config )
 	pdev = find_pci_dev_from_id(0xcaac,0x0001);
 	if(NULL != pdev)
 	{
-		__iobase = (void*)(pdev->mem_addr[1]);
+		__iobase = pci_get_memio(pdev, 1);
 
 		enable_pci_resource(pdev);
 		#ifdef __X86__

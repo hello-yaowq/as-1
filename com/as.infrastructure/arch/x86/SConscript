@@ -16,7 +16,7 @@ objs += Glob('bsp/mmu.c')
 
 if('run' in COMMAND_LINE_TARGETS):
     build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
-    qemu = '%s/release/download/qemu/i386-softmmu/qemu-system-i386'%(ASROOT)
+    qemu = 'sudo %s/release/download/qemu/i386-softmmu/qemu-system-i386'%(ASROOT)
 
     params = '-device pci-ascan -device pci-asnet -device pci-asblk'
     if('gdb' in COMMAND_LINE_TARGETS):
@@ -44,7 +44,7 @@ else:
     asenv['POSTACTION'] += ' && mkdir -p tmp'
     asenv['POSTACTION'] += ' && sudo mount -t vfat TINIX.IMG tmp'
     asenv['POSTACTION'] += ' && sudo cp %s tmp'%(str(Glob('boot/loader.bin')[0]))
-    asenv['POSTACTION'] += ' && sudo cp x86 tmp/kernel.bin'
+    asenv['POSTACTION'] += ' && sudo objcopy -S x86 tmp/kernel.bin'
     asenv['POSTACTION'] += ' && sudo sync'
     asenv['POSTACTION'] += ' && sudo umount tmp'
 

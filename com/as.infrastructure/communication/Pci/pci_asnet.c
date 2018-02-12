@@ -194,7 +194,7 @@ static rt_err_t tap_netif_init(rt_device_t dev)
 		return -RT_ERROR;
 	}
 	
-	__iobase = (void*)(pdev->mem_addr[1]);
+	__iobase = pci_get_memio(pdev, 1);
 	enable_pci_resource(pdev);
 #ifdef __X86__
 	pci_register_irq(pdev->irq_num,Eth_Isr);
@@ -356,7 +356,7 @@ void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 	if(NULL != pdev)
 	{
 		uint32 val;
-		__iobase = (void*)(pdev->mem_addr[1]);
+		__iobase = pci_get_memio(pdev, 1);;
 
 		Irq_Save(imask);
 		enable_pci_resource(pdev);

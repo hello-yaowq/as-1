@@ -16,7 +16,7 @@
 #include "mmu.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_MMU 0
+#define AS_LOG_MMU 1
 /* information from loader, see boot/load.inc */
 #define PAGE_DIR_BASE (uint32_t*)0x200000
 #define PAGE_TBL_BASE (uint32_t*)0x201000
@@ -67,6 +67,8 @@ void *mmap(void *addr, size_t length, int flags)
 		pDir ++;
 		pTblE ++;
 	}
+
+	while(*pTblE != 0) pTblE++;
 
 	pDir--;
 	while(dsz > 0)
