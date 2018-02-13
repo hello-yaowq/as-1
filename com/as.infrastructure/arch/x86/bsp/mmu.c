@@ -16,7 +16,7 @@
 #include "mmu.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_MMU 1
+#define AS_LOG_MMU 0
 /* information from loader, see boot/load.inc */
 #define PAGE_DIR_BASE (uint32_t*)0x200000
 #define PAGE_TBL_BASE (uint32_t*)0x201000

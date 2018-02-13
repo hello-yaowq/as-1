@@ -409,6 +409,7 @@ DRESULT disk_read (
 			}
 			count --;
 			buff += 512;
+			sector ++;
 		};
 		break;
 	}
@@ -444,6 +445,7 @@ DRESULT disk_write (
 			}
 			count --;
 			buff += 512;
+			sector++;
 		};
 		break;
 	}

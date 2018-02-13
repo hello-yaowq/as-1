@@ -33,6 +33,18 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 	asAssert(where < (Elf32_Addr *)(elfObj->space + elfObj->size));
 	switch (ELF32_R_TYPE(rel->r_info))
 	{
+		case R_X86_64_GLOB_DAT:
+		case R_X86_64_JUMP_SLOT:
+			*where = (Elf32_Addr)sym_val;
+
+			ASLOG(X86ELF,"R_X86_64_JUMP_SLOT: 0x%x -> 0x%x 0x%x\n",
+				  (uint32_t)where, *where, sym_val);
+			break;
+		case R_X86_64_RELATIVE:
+			*where = (Elf32_Addr)sym_val + *where;
+			ASLOG(X86ELF, "R_X86_64_RELATIVE: 0x%x -> 0x%x 0x%x\n",
+				  (uint32_t)where, *where, sym_val);
+			break;
 		default:
 			ASLOG(ERROR, "X86ELF: invalid relocate TYPE\n");
 			return -1;
