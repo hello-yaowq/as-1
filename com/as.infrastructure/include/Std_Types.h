@@ -22,7 +22,9 @@
 #include <linux/printk.h>
 #else
 #include <stdint.h>
+#ifndef USE_NEWLIB
 #include <stdbool.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -97,6 +99,13 @@
 #endif
 #ifndef False
 #define False                   (boolean)0
+#endif
+
+#ifndef true
+#define true                    (boolean)1
+#endif
+#ifndef false
+#define false                   (boolean)0
 #endif
 
 #define STD_HIGH		0x01

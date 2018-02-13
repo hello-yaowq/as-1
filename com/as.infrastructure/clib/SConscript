@@ -28,4 +28,7 @@ if('CLIB_STDIO_CAN' in MODULES):
 if('CLIB_STRTOK_R' in MODULES):
     objs += Glob('strtok_r.c')
 
+if('CLIB_NWELIB' in MODULES):
+    objs += SConscript('newlib/SConscript')
+
 Return('objs')

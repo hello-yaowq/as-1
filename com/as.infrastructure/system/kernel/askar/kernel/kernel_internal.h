@@ -207,7 +207,7 @@ enum {
 #define PTHREAD_DEFAULT_PRIORITY    (OS_PTHREAD_PRIORITY/2)
 #endif
 
-#define TIMESPEC_TO_TICKS(ts) ((ts->tv_sec*1000000 + ts->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK)
+#define TIMESPEC_TO_TICKS(ts) ((uint32_t)(ts->tv_sec*1000000 + (uint32_t)ts->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -339,7 +339,7 @@ extern void Sched_Init(void);
 extern void Sched_AddReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
-extern bool Sched_Schedule(void);
+extern boolean Sched_Schedule(void);
 extern void OsTick(void);
 #if(OS_PTHREAD_NUM > 0)
 extern void Sched_PosixAddReady(TaskType TaskID);

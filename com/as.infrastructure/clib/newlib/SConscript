@@ -1,0 +1,30 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+MODULES = asenv['MODULES']
+
+download = '%s/release/download'%(ASROOT)
+newlib='%s/newlib-3.0.0'%(download)
+
+if(not os.path.exists(newlib)):
+    MKDir(download)
+    cmd = 'cd %s && wget ftp://sourceware.org/pub/newlib/newlib-3.0.0.tar.gz'%(download)
+    cmd += ' && tar xf newlib-3.0.0.tar.gz'
+    RunCommand(cmd)
+
+MKSymlink(newlib,'%s/newlib'%(cwd))
+
+asenv.Append(CPPPATH=['%s/newlib/newlib/libc/include'%(cwd)])
+asenv.Append(CPPDEFINES=['USE_NEWLIB'])
+
+# define this as not want to use newlib pthread
+asenv.Append(CPPDEFINES=['_SYS__PTHREADTYPES_H_'])
+
+objs = []
+
+
+Return('objs')

@@ -22,11 +22,14 @@ config CLIB_STDIO_PRINTF
 
 config CLIB_STDIO_CAN
 	bool "stdio on CAN"
-	depends on CAN
 	default y
 
 config CLIB_STRTOK_R
 	bool "string related"
 	default y
+
+config CLIB_NWELIB
+	bool "Newlib: a C library intended for use on embedded systems"
+	default n
 
 endmenu

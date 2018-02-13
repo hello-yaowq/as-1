@@ -172,9 +172,9 @@ void Sched_GetReady(void)
 	}
 }
 
-bool Sched_Schedule(void)
+boolean Sched_Schedule(void)
 {
-	bool needSchedule = FALSE;
+	boolean needSchedule = FALSE;
 
 	PriorityType priority = Sched_GetReadyBit();
 

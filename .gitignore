@@ -10,6 +10,7 @@ release/aslinux/kernel/drivers/remoteproc/rproc-asvirt
 *.exe
 *.EXE
 *.img
+*.IMG
 # std arccore directorys  >>>
 
 # use glob syntax.
@@ -24,7 +25,7 @@ syntax: glob
 *~
 *.so
 *.os
-
+*.bin
 out
 
 # switch to regexp syntax.
@@ -309,3 +310,4 @@ versatilepb.s19
 .config
 .config.old
 com/as.infrastructure/system/fs/libelf/libelf
+com/as.infrastructure/clib/newlib/newlib

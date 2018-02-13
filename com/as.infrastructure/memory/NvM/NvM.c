@@ -700,7 +700,7 @@ static void DriveBlock( const NvM_BlockDescriptorType	*bPtr,
 							boolean multiBlock,
 							boolean restoreFromRom )
 {
-	bool blockDone = 0;
+	boolean blockDone = 0;
 
 	DEBUG_BLOCK_STATE("DriveBlock", BLOCK_NR_FROM_PTR(bPtr), admPtr->BlockState );
 

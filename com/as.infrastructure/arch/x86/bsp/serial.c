@@ -85,6 +85,7 @@ void serial_isr(void)
 	while((inb(COM1+COMSTATUS) & COMDATA)) {
 		c = inb(COM1+COMREAD);
 		#ifdef USE_SHELL
+		if(0x7f == c) c = '\b';
 		if('\r' == c) c = '\n';
 		SHELL_input(c);
 		#endif

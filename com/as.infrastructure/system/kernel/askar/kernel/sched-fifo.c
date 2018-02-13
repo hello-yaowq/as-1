@@ -302,9 +302,9 @@ void Sched_GetReady(void)
 	}
 }
 
-bool Sched_Schedule(void)
+boolean Sched_Schedule(void)
 {
-	bool needSchedule = FALSE;
+	boolean needSchedule = FALSE;
 	const ReadyFIFOType* fifo;
 
 	PriorityType priority = Sched_GetReadyBit();

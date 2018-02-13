@@ -274,7 +274,7 @@ typedef struct {
 	uint8 *  			ramAddr;    // targetAddr
 	Fls_LengthType 		length;
 	Fls_ProgInfoType 	flashWriteInfo;
-	bool				mustCheck;
+	boolean  			mustCheck;
 	MemIf_ModeType		mode;
 	uint32_t 			readChunkSize;
 } Fls_GlobalType;

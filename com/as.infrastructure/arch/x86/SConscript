@@ -112,7 +112,4 @@ asenv['CC'] ='gcc -m32 -fno-stack-protector'
 asenv['AS'] ='gcc -m32'
 asenv['LINK'] ='ld -m32 -melf_i386'
 
-if(os.name != 'nt'):
-    asenv.Append(CPPPATH=['/usr/include/newlib'])
-
 Return('objs')
