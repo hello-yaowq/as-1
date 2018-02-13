@@ -418,7 +418,7 @@ size_t __weak strlcpy (char       *dest,
 char * __weak strncpy (char * __dest,
 		      const char * __src, size_t __n)
 {
-	strlcpy(__dest, __src, __n);
+	strlcpy(__dest, __src, __n+1);
 
 	return __dest;
 }

@@ -1250,10 +1250,16 @@ static err_t ftpd_msgrecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t 
 
 			dbg_printf("query: %s\n", text);
 
-			strncpy(cmd, text, 4);
-			for (pt = cmd; isalpha(*pt) && pt < &cmd[4]; pt++)
-				*pt = toupper(*pt);
-			*pt = '\0';
+			for (pt = text; ((pt-text) < 4) && (*pt != ' ') && (*pt != '\0'); pt++) {
+				if((*pt>='a') && (*pt<='z')) {
+					cmd[pt-text] = 'A' + (*pt-'a');
+				} else {
+					cmd[pt-text] = *pt;
+				}
+			}
+			cmd[pt-text] = '\0';
+
+			dbg_printf("cmd: %s\n", cmd);
 
 			for (ftpd_cmd = ftpd_commands; ftpd_cmd->cmd != NULL; ftpd_cmd++) {
 				if (!strcmp(ftpd_cmd->cmd, cmd))
