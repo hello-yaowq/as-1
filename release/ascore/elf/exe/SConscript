@@ -1,0 +1,8 @@
+from building import *
+
+env = GetELFEnv(False)
+
+if(env is not None):
+    env.Program('sample.exe', '../dll/sample.c')
+    for src in Glob('*.c'):
+        env.Program(src)
