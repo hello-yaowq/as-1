@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import string
+import re
 from SCons.Script import *
 
 Env = None
@@ -284,7 +285,9 @@ def RMDir(p):
 
 def RMFile(p):
     if(os.path.exists(p)):
-        os.remove(p)
+        print('removing %s'%(os.path.abspath(p)))
+        os.remove(os.path.abspath(p))
+
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)
@@ -380,8 +383,24 @@ def GetConfigValue(name):
     except:
         return ''
 
-def GetELFEnv():
+def GetELFEnv(so=True):
     global Env
+    mmap = '%s/release/%s/build/%s/%s.map'%(Env['ASROOT'], Env['RELEASE'],
+                Env['BOARD'],Env['BOARD'])
+    cstr = ''
+    if(os.path.exists(mmap) and (so==False)):
+        # for executale files, should know all basic API address
+        reSym = re.compile(r'^\s+(0x\w+)\s+([a-zA-Z_]\w+)$')
+        ignore = ['main']
+        fp = open(mmap)
+        for el in fp.readlines():
+            if(reSym.search(el)):
+                grp = reSym.search(el).groups()
+                if(grp[1] in ignore):continue
+                cstr += '%s = %s;\n'%(grp[1], grp[0])
+        fp.close()
+    elif(so == False):
+        return None
     cwd = os.path.abspath(os.path.curdir)
     if(Env.GetOption('clean')):
         RMFile('aself.lds')
@@ -399,12 +418,12 @@ def GetELFEnv():
   .rodata : { *(.rodata*) }
   . = ALIGN(4);
   .rel.plt : { *(.rel.*) }
-}\n''', 'w')
+}\n\n%s\n'''%(cstr), 'w')
     env = Environment(CC=Env['CC'],
                       LINK=Env['CC'],
                       CPPPATH=Env['CPPPATH'],
                       CCFLAGS=Env['CCFLAGS']+['-fPIC'],
-                      LINKFLAGS=['-e','main','-fPIC','-T','%s/aself.lds'%(cwd)],
+                      LINKFLAGS=['-e','main','-fPIC','-s','-nostdlib','-T','%s/aself.lds'%(cwd)],
                       SHLINKFLAGS=['-fPIC','-shared','-s','-nostdlib',
                                    '-T','%s/aself.lds'%(cwd)])
     for flg in ['-ffunction-sections','-fdata-sections','-g']:
@@ -414,6 +433,9 @@ def GetELFEnv():
     # override the default verbose command string
         env.Replace(
           ARCOMSTR = 'AR $SOURCE',
+          CCCOMSTR = 'ELFCC $SOURCE',
+          CXXCOMSTR = 'ELFCXX $SOURCE',
+          LINKCOMSTR = 'ELFLINK $TARGET',
           SHCCCOMSTR = 'SHCC $SOURCE',
           SHCXXCOMSTR = 'SHCXX $SOURCE',
           SHLINKCOMSTR = 'SHLINK $TARGET'

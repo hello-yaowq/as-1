@@ -191,6 +191,7 @@ static const char *month_table[12] = {
 	"Dez"
 };
 
+static boolean isBinaryMode = FALSE;
 /*
 ------------------------------------------------------------
 	SFIFO 1.3
@@ -699,6 +700,8 @@ static void cmd_user(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 {
 	send_msg(pcb, fsm, msg331);
 	fsm->state = FTPD_PASS;
+
+	isBinaryMode = FALSE;
 	/*
 	   send_msg(pcb, fs, msgLoginFailed);
 	   fs->state = FTPD_QUIT;
@@ -838,6 +841,11 @@ static void cmd_stor(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 {
 	VFS_FILE *vfs_file;
 
+	if(FALSE == isBinaryMode) {
+		send_msg(pcb, fsm, msg550 " %s", "please switch to binary mode firstly!");
+		return;
+	}
+
 	vfs_file = vfs_fopen(arg, "wb");
 	if (!vfs_file) {
 		send_msg(pcb, fsm, msg550);
@@ -956,12 +964,11 @@ static void cmd_type(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 {
 	dbg_printf("Got TYPE -%s-\n", arg);
 
-#if 0
 	if(strcmp(arg, "I") != 0) {
-		send_msg(pcb, fsm, msg502);
-		return;
+		isBinaryMode = FALSE;
+	} else {
+		isBinaryMode = TRUE;
 	}
-#endif
 
 	send_msg(pcb, fsm, msg200);
 }

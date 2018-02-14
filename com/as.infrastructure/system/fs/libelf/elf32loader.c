@@ -568,6 +568,62 @@ static ELF32_ObjectType* ELF32_LoadRelocatedObject(void* elfFile)
 
 	return elfObj;
 }
+
+static boolean ELF32_GetEXECVirtualAddress(void* elfFile, Elf32_Addr *vstart_addr, Elf32_Addr *vend_addr)
+{
+	return ELF32_GetDYNVirtualAddress(elfFile, vstart_addr, vend_addr);
+}
+
+static boolean ELF32_LoadEXECObject(void* elfFile,ELF32_ObjectType* elfObj)
+{
+	boolean r = TRUE;
+	uint32_t i;
+	Elf32_Ehdr *fileHdr = elfFile;
+	Elf32_Phdr *phdr = elfFile + fileHdr->e_phoff;
+
+	for(i=0; i < fileHdr->e_phnum; i++)
+	{
+		if(PT_LOAD == phdr[i].p_type)
+		{
+			memcpy(elfObj->space + phdr[i].p_vaddr - elfObj->vstart_addr,
+					elfFile + phdr[i].p_offset, phdr[i].p_filesz);
+		}
+	}
+
+	elfObj->entry = elfObj->space + fileHdr->e_entry - elfObj->vstart_addr;
+	ASLOG(ELF32, "entry is %p\n", elfObj->entry);
+
+	return TRUE;
+}
+static ELF32_ObjectType* ELF32_LoadExecObject(void* elfFile)
+{
+	ELF32_ObjectType* elfObj = NULL;
+	Elf32_Addr vstart_addr, vend_addr;
+	uint32_t elf_size;
+	if(ELF32_GetEXECVirtualAddress(elfFile, &vstart_addr, &vend_addr))
+	{
+		elf_size = vend_addr - vstart_addr;
+
+		elfObj = malloc(sizeof(ELF32_ObjectType)+elf_size);
+		if(NULL != elfObj)
+		{
+			elfObj->magic = ELF32_MAGIC;
+			elfObj->space = &elfObj[1];
+			elfObj->symtab = NULL;
+			elfObj->nsym   = 0;
+			elfObj->size  = elf_size;
+			elfObj->vstart_addr = vstart_addr;
+			memset(elfObj->space, 0, elf_size);
+			if(FALSE == ELF32_LoadEXECObject(elfFile, elfObj))
+			{
+				free(elfObj);
+				elfObj = NULL;
+			}
+		}
+	}
+
+	return elfObj;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void* ELF32_Load(void* elfFile)
 {
@@ -578,6 +634,7 @@ void* ELF32_Load(void* elfFile)
 			elf = ELF32_LoadRelocatedObject(elfFile);
 			break;
 		case ET_EXEC:
+			elf = ELF32_LoadExecObject(elfFile);
 			break;
 		case ET_DYN:
 			elf = ELF32_LoadSharedObject(elfFile);
@@ -600,6 +657,12 @@ void* ELF32_LookupSymbol(ELF32_ObjectType *elfObj, const char *symbol)
 			addr = elfObj->symtab[i].addr;
 			break;
 		}
+	}
+
+	/* assume main as the entry */
+	if((NULL == addr) && (0 == strcmp("main", symbol)))
+	{
+		addr = elfObj->entry;
 	}
 
 	return addr;
