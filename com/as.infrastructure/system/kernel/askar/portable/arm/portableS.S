@@ -131,7 +131,7 @@ EnterISR:
 	sub     r0, sp, #12
 	sub     r1, lr, #4              /* Adjust PC for return address to task */
 	mrs     r2, spsr                /* Copy SPSR (Task CPSR) */
-	;@ (PSR_SYS_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
+	;@ SYSMODE
 	msr     cpsr_c, #0xDF           /* Change to SYS mode,that is task's mode */
 									/* SAVE TASK''S CONTEXT ONTO OLD TASK''S STACK */
 	stmfd   sp!, {r1}               /* Push task''s PC */

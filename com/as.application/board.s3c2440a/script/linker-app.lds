@@ -28,6 +28,16 @@ SECTIONS
 		__ctors_start__ = .;
 		*(.ctors*)
 		__ctors_end__ = .;
+		/* section information for shell */
+		. = ALIGN(4);
+		__ssymtab_start = .;
+		KEEP(*(SSymTab))
+		__ssymtab_end = .;
+		/* section information for ELF Symbols */
+		. = ALIGN(4);
+		__elfsymtab_start = .;
+		KEEP(*(ELFSymTab))
+		__elfsymtab_end = .;
 		*(.rodata*)
 	} > FLASH
 
@@ -54,19 +64,19 @@ SECTIONS
 	.init_stack ALIGN(16) (NOLOAD) : 
 	{	
 		knl_irq_stack_start = .;
-	    . = . + 1024;  
+	    . = . + 2048;  
 	    knl_irq_stack_top = .;
 		
 		knl_fiq_stack_start = .; 
-		. = . + 1024; 	
+		. = . + 2048; 	
 		knl_fiq_stack_top = .;
 		
 		knl_undefined_stack_start = .;
-        . = . + 512;   
+        . = . + 2048;   
         knl_undefined_stack_top = .;
 		
 		knl_aboknl_stack_start = .;
-        . = . + 512;   
+        . = . + 2048;   
         knl_aboknl_stack_top = .;
 		
 		/* svc stack */

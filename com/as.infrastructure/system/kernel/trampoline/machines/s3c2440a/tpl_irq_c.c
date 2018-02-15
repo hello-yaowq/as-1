@@ -125,6 +125,11 @@ void tpl_arm_subarch_irq_handler(void)
 	}
 }
 
+void knl_isr_handler(void)
+{
+	tpl_arm_subarch_irq_handler();
+}
+
 ISR(TIMER4)
 {
 	tpl_call_counter_tick();

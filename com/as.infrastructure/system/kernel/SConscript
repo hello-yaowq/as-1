@@ -5,7 +5,7 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 MODULES = asenv['MODULES']
-asenv.Append(CCFLAGS='-I%s'%(cwd))
+asenv.Append(CPPPATH=[cwd])
 
 objs = Glob('*.c')
 
@@ -15,5 +15,8 @@ elif('SMALLOS' in MODULES):
     objs += SConscript('small/SConscript')
 elif('RTTHREAD' in MODULES):
     objs += SConscript('rtthread/SConscript')
-
+elif('ATK2_SC4' in MODULES):
+    objs += SConscript('toppers-atk/atk2-sc4/SConscript')
+elif('TRAMPOLINE' in MODULES):
+    objs += SConscript('trampoline/SConscript')
 Return('objs')

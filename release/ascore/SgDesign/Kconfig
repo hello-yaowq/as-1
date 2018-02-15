@@ -1,0 +1,13 @@
+choice
+	prompt "SG demo application"
+	default SG_DEMO_WATCH
+	depends on SG
+
+config SG_DEMO_CLUSTER
+	bool "automative virtual instrument cluster"
+
+config SG_DEMO_WATCH
+	bool "a sample watch"
+
+endchoice
+

@@ -4,7 +4,7 @@ from building import *
 cwd = GetCurrentDir()
 
 Import('asenv')
-asenv.Append(CCFLAGS=' -I%s/include '%(cwd))
+asenv.Append(CPPPATH=['%s/include'%(cwd)])
 
 objs = []
 list = os.listdir(cwd)

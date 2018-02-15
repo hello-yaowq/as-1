@@ -2,3 +2,4 @@ config ARCH_X86
     bool
     default y
     select CLIB_NWELIB
+    select DEFAULT_ASKAR

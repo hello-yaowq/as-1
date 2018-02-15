@@ -32,6 +32,7 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void knl_start_dispatch(void);
 extern void knl_activate_r(void);
+extern void knl_dispatch_entry(void);
 #if (ISR_NUM > 0)
 extern const FunctionRefType tisr_pc[ISR_NUM];
 #endif
@@ -49,11 +50,26 @@ const MemorySizeType	_ostksz = (MemorySizeType)&knl_system_stack_size;
 StackType * const	_ostkpt[1024] = (StackType *)&knl_system_stack_top;
 #endif /* TOPPERS_OSTKPT */
 uint32 knl_dispatch_started;
+static uint32 nested_lock = 0;
+static imask_t nested_imask;
 /* ============================ [ LOCALS    ] ====================================================== */
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
-void x_nested_lock_os_int(void){}
-void x_nested_unlock_os_int(void){}
+void x_nested_lock_os_int(void)
+{
+	nested_lock ++;
+	if(1 == nested_lock)
+		Irq_Save(nested_imask);
+}
+void x_nested_unlock_os_int(void)
+{
+	asAssert(nested_lock>0);
+	nested_lock--;
+	if(0 == nested_lock)
+		Irq_Restore(nested_imask);
+}
+
 void x_config_int(InterruptNumberType intno,AttributeType attr,PriorityType prio){
 
 }
@@ -115,6 +131,7 @@ void target_initialize(void) {
 	OsTickCounter = 1;
 	knl_taskindp = 0;
 	knl_dispatch_started = FALSE;
+	nested_lock = 0;
 	/* timer4, pre = 15+1 */
 	TCFG0 &= 0xffff00ff;
 	TCFG0 |= 15 << 8;
@@ -156,7 +173,7 @@ PriorityType x_get_ipm(void){
 	return 0;
 }
 void dispatch(void){
-
+	knl_dispatch_entry();
 }
 void start_dispatch(void){
 	knl_dispatch_started = TRUE;
@@ -207,12 +224,15 @@ ISR(TIMER4)
 	{
 		OsTickCounter = 1;
 	}
-	IncrementCounter(0);
+	if(knl_dispatch_started)
+	{
+		IncrementCounter(0);
+	}
 }
 
 void knl_isr_handler(void)
 {
-	 uint32_t intno;
+	uint32_t intno;
 
 	intno = INTOFFSET;
 	if(intno < ISR_NUM)

@@ -57,11 +57,25 @@ knl_start_dispatch:
     .global knl_dispatch_entry
     .type   knl_dispatch_entry, %function
 knl_dispatch_entry:
+	stmfd   sp, {r0-r2}
+	sub     r0, sp, #12
+	sub     r1, lr, #0              /* Adjust PC for return address to task */
+	mrs     r2, cpsr
+	stmfd   sp!, {r1}               /* Push task''s PC */
+	stmfd   sp!, {r3-r12, lr}       /* Push task''s LR,R12-R4 */
+	ldmfd   r0!, {r3-r5}            /* Load Task''s R0-R2 from stack */
+	stmfd   sp!, {r3-r5}            /* Push Task''s R0-R2 to SVC stack */
+	stmfd   sp!, {r2}               /* Push task''s SPSR */
 
-    .extern knl_system_tick_handler
-    .global knl_system_tick
-    .type   knl_system_tick, %function
-knl_system_tick:
+    ldr     r3, =p_runtsk
+    ldr     r4, [r3]
+
+    str     sp, [r4, TCB_SP_OFFSET]
+
+    ldr     r12, =knl_dispatch_r
+    str     r12, [r4, TCB_PC_OFFSET]
+
+    b knl_start_dispatch
 
     .global vector_irq
     .extern knl_isr_handler

@@ -27,6 +27,9 @@
 #include <string.h>
 #include "Os.h"
 #include "asdebug.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -50,7 +53,7 @@ static Can_SerialPduType rQ[CAN_SERIAL_Q_SIZE];
 static uint32_t r_pos;
 static uint32_t w_pos;
 static volatile uint32_t r_counter;
-static PduIdType swPduHandle;;
+static PduIdType swPduHandle = CAN_EMPTY_MESSAGE_BOX;
 static uint32_t IntH(char chr)
 {
 	uint32_t v;
@@ -115,7 +118,15 @@ static void rx_notifiy( void )
 	}
 	else
 	{
+#ifdef USE_SHELL
+		for(i=0; i<r_size; i++)
+		{
+			SHELL_input(r_cache[i]);
+		}
+		r_size = 0;
+#else
 		ASWARNING("CAN serial receiving invalid data:: %d/%s\n",r_size,r_cache);
+#endif
 	}
 
 	r_size = 0;

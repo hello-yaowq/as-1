@@ -5,16 +5,14 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 
-sgapp = os.getenv('SGAPP')
-if(sgapp is None):
-    try:
-        sgapp = asenv['SGAPP']
-    except KeyError:
-        pass
+MODULES=asenv['MODULES']
 
-if(sgapp is None):
-    print('WARNING: using default SGAPP virtual_cluster!')
+if('SG_DEMO_WATCH' in MODULES):
+    sgapp = 'watch'
+elif('SG_DEMO_CLUSTER' in MODULES):
     sgapp = 'virtual_cluster'
+else:
+    sgapp = 'watch'
 
 doneFlag = '%s/SgRes/%s.done'%(cwd,sgapp)
 if((not os.path.exists(doneFlag)) and (not asenv.GetOption('clean'))):

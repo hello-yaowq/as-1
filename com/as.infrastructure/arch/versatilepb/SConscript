@@ -74,9 +74,6 @@ asenv.Append(ASFLAGS=['-g'])
 asenv.Append(CCFLAGS=['-mcpu=arm926ej-s','-marm'])
 asenv.Append(ASFLAGS=['-mcpu=arm926ej-s','-marm'])
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
-asenv['CC']='arm-none-eabi-gcc'
-asenv['AS']='arm-none-eabi-as'
-asenv['LINK']='arm-none-eabi-ld'
 
 asenv['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
 
@@ -85,23 +82,7 @@ asenv.Append(LINKFLAGS='--gc-sections')
 
 asenv.Append(LIBS=['c','gcc'])
 
-if(os.name == 'nt'):
-    gccarm = 'gcc-arm-none-eabi-5_4-2016q3-20160926-win32'
-    gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
-    cpl = '%s/release/download/%s'%(ASROOT,gccarm)
-    if(not os.path.exists(cpl)):
-        RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
-    asenv.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
-    asenv.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
-    asenv['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
-    asenv['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
-    asenv['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
-    asenv['S19'] = '%s/bin/%s'%(cpl,asenv['S19'])
-else:
-    # FIXME to the right path
-    libgcc = '/usr/lib/gcc/arm-none-eabi/4.8.2'
-    assert(os.path.exists(libgcc))
-    asenv.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
+SelectCompilerArmNoneEabi()
 
 if(asenv['RELEASE']=='asboot'):
     asenv['flsdrv']['objs'] += Glob('../common/mcal/RamFlash.c')

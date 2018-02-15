@@ -313,6 +313,7 @@ def genForTrampoline_H(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __TRAMPOLINE_OS__\n\n')
     fp.write('#define ALARM ALARMCALLBACK\n\n')
+    fp.write('#define OSDEFAULTAPPMODE 0\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('DeclareResource(RES_SCHEDULER);\n\n')

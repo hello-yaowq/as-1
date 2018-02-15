@@ -50,7 +50,6 @@
 #ifdef CONFIG_ARCH_VEXPRESS
 #else
 #include <stdio.h>
-#include <assert.h>
 #endif
 #define DEBUG_LOW		1
 #define DEBUG_MEDIUM	2
@@ -91,10 +90,8 @@
 // will be for procedure arguments.
 //
 //*****************************************************************************
-#ifdef DEBUG
-#define ASSERT(expr) assert(expr)
-#else
-#define ASSERT(expr)
+#ifndef ASSERT
+#define ASSERT(expr) asAssert(expr)
 #endif
 
 

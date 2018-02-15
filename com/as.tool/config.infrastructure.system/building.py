@@ -289,6 +289,9 @@ def RMFile(p):
         os.remove(os.path.abspath(p))
 
 def MKObject(src, tgt, cmd):
+    if(Env.GetOption('clean')):
+        RMFile(tgt)
+        return
     mtime = os.path.getmtime(src)
     if(os.path.isfile(tgt)):
         mtime2 = os.path.getmtime(tgt)
@@ -453,20 +456,25 @@ def GetELFEnv(so=True):
     return env
 
 class Qemu():
-    def __init__(self):
-        special_boards = ['s3c2440a']
+    def __init__(self, qemu=None):
         arch_map = {'x86':'i386'}
         ASROOT = Env['ASROOT']
-        BOARD = Env['BOARD']
         ARCH = Env['ARCH']
         self.arch = Env['arch']
         self.params = ''
+        self.params = '-serial tcp:127.0.0.1:1103,server'
+        if('gdb' in COMMAND_LINE_TARGETS):
+            self.params += ' -gdb tcp::1234 -S'
         if(self.arch in arch_map.keys()):
             self.arch = arch_map[self.arch]
-        if(BOARD not in special_boards):
+        if(qemu is None):
+            self.isAsQemu = True
             self.qemu = self.LocateASQemu()
             self.CreateDiskImg('%s/release/%s/asblk0.img'%(ASROOT,Env['RELEASE']), 32*1024*1024, 'vfat')
             self.CreateDiskImg('%s/release/%s/asblk1.img'%(ASROOT,Env['RELEASE']), 32*1024*1024, 'ext4')
+        else:
+            self.isAsQemu = False
+            self.qemu = qemu
 
     def LocateASQemu(self):
         ASROOT = Env['ASROOT']
@@ -482,24 +490,24 @@ class Qemu():
         if(not os.path.exists(qemu)):
             print('%s is not exits, try build it out locally!'%(qemu))
             self.BuildASQemu()
-        self.params = '-serial tcp:127.0.0.1:1103,server'
         self.params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
-        if('gdb' in COMMAND_LINE_TARGETS):
-            params += ' -gdb tcp::1234 -S'
         return qemu
 
-    def Run(self, params):
+    def Run(self, params, where=None):
         ASROOT = Env['ASROOT']
         build = '%s/release/%s'%(ASROOT, Env['RELEASE'])
+        if(where is None):
+            where = build
         python = Env['python3']
         if(os.name == 'nt'):
             python = 'start ' + python
         if('asone' in COMMAND_LINE_TARGETS):
             RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,Env['python3']))
         if(os.name == 'nt'):
-            RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
-            RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
-            RunCommand('cd %s && start cmd /C %s %s %s'%(build, self.qemu, params, self.params))
+            if(self.isAsQemu):
+                RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
+                RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
+            RunCommand('cd %s && start cmd /C %s %s %s'%(where, self.qemu, params, self.params))
             RunCommand('sleep 2 && telnet 127.0.0.1 1103')
         else:
             fp = open('%s/telnet.sh'%(build),'w')
@@ -554,3 +562,41 @@ class Qemu():
             exit(-1)
         else:
             RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
+
+def SelectCompilerArmNoneEabi():
+    global Env
+    ASROOT = Env['ASROOT']
+    Env['CC']='arm-none-eabi-gcc'
+    Env['AS']='arm-none-eabi-as'
+    Env['LINK']='arm-none-eabi-ld'
+    Env['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
+    if(os.name == 'nt'):
+        gccarm = 'gcc-arm-none-eabi-5_4-2016q3-20160926-win32'
+        gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
+        cpl = '%s/release/download/%s'%(ASROOT,gccarm)
+        if(not os.path.exists(cpl)):
+            RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
+        Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
+        Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
+        Env['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
+        Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
+        Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
+        Env['S19'] = '%s/bin/%s'%(cpl,Env['S19'])
+    else:
+        # FIXME to the right path
+        libgcc = '/usr/lib/gcc/arm-none-eabi/4.8.2'
+        assert(os.path.exists(libgcc))
+        Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
+
+def BuildOFS(ofs):
+    for of in ofs:
+        src = str(of)
+        tgt = src[:-3]+'.h'
+        cflags = ''
+        for p in Env['CPPPATH']:
+            cflags += ' -I%s'%(p)
+        for d in Env['CPPDEFINES']:
+            cflags += ' -D%s'%(d)
+        cmd = 'cp %s .tmp.c && %s -S .tmp.c -o .tmp.S %s'%(src, Env['CC'], cflags)
+        cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
+        MKObject(src, tgt, cmd)

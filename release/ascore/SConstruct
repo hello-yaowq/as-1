@@ -51,6 +51,7 @@ PrepareBuilding(asenv)
 bdir = 'build/%s'%(BOARD)
 objs = []
 xmls = []
+ofs = []
 
 sobjs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
 sobjs += SConscript('app/SConscript',variant_dir=bdir+'/app', duplicate=0)
@@ -65,6 +66,8 @@ for obj in sobjs:
             raise Exception('too much arxml specified! [%s %s]'%(arxml,obj))
     elif(str(obj)[-4:]=='.xml'):
         xmls.append(obj)
+    elif(str(obj)[-3:]=='.of'):
+        ofs.append(obj)
     else:
         objs.append(obj)
 
@@ -92,6 +95,8 @@ asenv.Append(ASFLAGS='-I%s'%(cfgdir))
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)
     RunCommand('rm -fv *.s19')
+
+BuildOFS(ofs)
 
 asenv.Program(BOARD,objs)
 
