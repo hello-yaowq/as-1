@@ -14,15 +14,6 @@ objs += Glob('bsp/protect.c')
 objs += Glob('bsp/serial.c')
 objs += Glob('bsp/mmu.c')
 
-if('run' in COMMAND_LINE_TARGETS):
-    build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
-    qemu = 'sudo %s/release/download/qemu/i386-softmmu/qemu-system-i386'%(ASROOT)
-
-    params = '-device pci-ascan -device pci-asnet -device pci-asblk'
-    if('gdb' in COMMAND_LINE_TARGETS):
-        params += ' -gdb tcp::1234 -S'
-    RunCommand('cd %s && %s -fda ./TINIX.IMG -boot a -m 64M -serial stdio %s'%(build,qemu,params))
-
 if(asenv.GetOption('clean')):
     RunCommand('cd %s/bsp && rm -fv *.asm.obj'%(cwd))
     RunCommand('cd %s/boot && rm -fv *.bin'%(cwd))

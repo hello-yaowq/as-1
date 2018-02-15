@@ -61,7 +61,7 @@ dep-wincap=$(download)/WpdPack
 endif
 
 $(download)/qemu/hw/char/libpyas.a:
-	(cd $(prj-dir)/release/aslua; make 81; make 82 forceclib=yes)
+	(cd $(prj-dir)/release/aslua; make clean; make 81; make 82 forceclib=yes)
 
 $(download)/qemu: $(download)/qemu/hw/char/libpyas.a $(dep-wincap)
 	@(cd $(download); git clone https://github.com/qemu/qemu.git; \

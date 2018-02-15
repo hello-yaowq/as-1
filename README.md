@@ -28,7 +28,7 @@ As below picture shows, it was an virtual cluster based on AUTOSAR and can be si
 * [contiki](http://contiki-os.org/)
 * [trampoline](https://github.com/TrampolineRTOS/trampoline)
 * [rtthread](https://github.com/RT-Thread/rt-thread)
-* [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) : [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html) designed by me, [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) confirmed.
+* [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) : [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html) designed by me, [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) confirmed and a light weight posix thread interface based on it.
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.

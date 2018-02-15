@@ -15,7 +15,7 @@
 #ifndef _PTHREAD_H_
 #define _PTHREAD_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "kernel_internal.h"
+#include "Std_Types.h"
 #include "sched.h"
 #include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
@@ -32,13 +32,7 @@
 #define PTHREAD_MUTEX_INITIALIZER   { {NULL, NULL}, FALSE }
 
 /* ============================ [ TYPES     ] ====================================================== */
-struct pthread
-{
-	TaskConstType TaskConst;
-	TaskVarType* pTaskVar;
-	void *(*start) (void *);
-	void* arg;
-};
+struct pthread;
 typedef struct pthread* pthread_t;
 
 struct pthread_attr
@@ -56,19 +50,10 @@ typedef struct pthread_attr pthread_attr_t;
 typedef unsigned int pthread_condattr_t;
 typedef unsigned int pthread_mutexattr_t;
 
-struct pthread_mutex
-{
-	TAILQ_HEAD(pthread_mutex_head,TaskVar) head;
-	boolean locked;
-};
+struct pthread_mutex;
 typedef struct pthread_mutex pthread_mutex_t;
 
-struct pthread_cond
-{
-	TAILQ_HEAD(pthread_cond_head,TaskVar) head;
-
-	unsigned int signals;
-};
+struct pthread_cond;
 typedef struct pthread_cond pthread_cond_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */

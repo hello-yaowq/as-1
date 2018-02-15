@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pthread.h"
+#include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
 #include <errno.h>
 #include <stdlib.h>
@@ -21,6 +22,26 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define DYNAMIC_CREATED_PTHREAD(pConst) (pTaskConst->autoStart)
 /* ============================ [ TYPES     ] ====================================================== */
+struct pthread
+{
+	TaskConstType TaskConst;
+	TaskVarType* pTaskVar;
+	void *(*start) (void *);
+	void* arg;
+};
+
+struct pthread_mutex
+{
+	TAILQ_HEAD(pthread_mutex_head,TaskVar) head;
+	boolean locked;
+};
+
+struct pthread_cond
+{
+	TAILQ_HEAD(pthread_cond_head,TaskVar) head;
+
+	unsigned int signals;
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

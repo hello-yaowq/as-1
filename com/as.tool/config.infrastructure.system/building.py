@@ -451,3 +451,106 @@ def GetELFEnv(so=True):
     if(os.name == 'nt'):
         env['SHLINKCOM'] = '$SHLINK $SHLINKFLAGS $SOURCES -o $TARGET'
     return env
+
+class Qemu():
+    def __init__(self):
+        special_boards = ['s3c2440a']
+        arch_map = {'x86':'i386'}
+        ASROOT = Env['ASROOT']
+        BOARD = Env['BOARD']
+        ARCH = Env['ARCH']
+        self.arch = Env['arch']
+        self.params = ''
+        if(self.arch in arch_map.keys()):
+            self.arch = arch_map[self.arch]
+        if(BOARD not in special_boards):
+            self.qemu = self.LocateASQemu()
+            self.CreateDiskImg('%s/release/%s/asblk0.img'%(ASROOT,Env['RELEASE']), 32*1024*1024, 'vfat')
+            self.CreateDiskImg('%s/release/%s/asblk1.img'%(ASROOT,Env['RELEASE']), 32*1024*1024, 'ext4')
+
+    def LocateASQemu(self):
+        ASROOT = Env['ASROOT']
+        if(os.name == 'nt'):
+            # try default install location of qemu
+            qemu = 'C:/msys64/mingw64/bin/qemu-system-%s'%(self.arch)
+            if(not os.path.exists(qemu+'.exe')):
+                qemu = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
+        else:
+            qemu = '%s/release/download/qemu/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
+        if(os.name == 'nt'):
+            qemu += '.exe'
+        if(not os.path.exists(qemu)):
+            print('%s is not exits, try build it out locally!'%(qemu))
+            self.BuildASQemu()
+        self.params = '-serial tcp:127.0.0.1:1103,server'
+        self.params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
+        if('gdb' in COMMAND_LINE_TARGETS):
+            params += ' -gdb tcp::1234 -S'
+        return qemu
+
+    def Run(self, params):
+        ASROOT = Env['ASROOT']
+        build = '%s/release/%s'%(ASROOT, Env['RELEASE'])
+        python = Env['python3']
+        if(os.name == 'nt'):
+            python = 'start ' + python
+        if('asone' in COMMAND_LINE_TARGETS):
+            RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,Env['python3']))
+        if(os.name == 'nt'):
+            RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
+            RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
+            RunCommand('cd %s && start cmd /C %s %s %s'%(build, self.qemu, params, self.params))
+            RunCommand('sleep 2 && telnet 127.0.0.1 1103')
+        else:
+            fp = open('%s/telnet.sh'%(build),'w')
+            fp.write('sleep 0.5\ntelnet 127.0.0.1 1103\n')
+            fp.close()
+            fp = open('%s/qemu.sh'%(build),'w')
+            fp.write('%s %s %s & sh %s/telnet.sh\nsleep 60\n'%(self.qemu,params,self.params,build))
+            fp.close()
+            RunCommand('sudo pgrep qemu-system-%s | xargs -i kill -9 {}'%(self.arch))
+            RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
+        exit(0)
+
+    def CreateDiskImg(self, file, size, type='raw'):
+        ASROOT = Env['ASROOT']
+        if(os.path.exists(file)):
+            print('DiskImg "%s" already exist!'%(file))
+            return
+        print('Create a New DiskImg "%s"!'%(file))
+        if(os.name == 'nt'):
+            # try default install location of qemu
+            qemuimg = 'C:/msys64/mingw64/bin/qemu-img'
+            if(not os.path.exists(qemuimg+'.exe')):
+                qemuimg = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/qemu-img'%(ASROOT)
+        else:
+            qemuimg = '%s/release/download/qemu/qemu-img'%(ASROOT)
+            if(not os.path.exists(qemuimg)):
+                qemuimg = 'qemu-img'
+
+        RunCommand('%s create -f raw %s %s'%(qemuimg, file, size))
+
+        if(type.startswith('ext')):
+            if(os.name == 'nt'):
+                lwext4mkfs = '%s/release/download/lwext4/build_generic/fs_test/lwext4-mkfs.exe'%(ASROOT)
+                RunCommand('%s -i %s -b 4096 -e %s'%(lwext4mkfs,file,type[3]))
+            else:
+                RunCommand('sudo mkfs.%s -b 4096 %s'%(type,file))
+        elif(type.startswith('vfat')):
+            if(os.name == 'nt'):
+                pass # TODO
+            else:
+                RunCommand('sudo mkfs.fat %s'%(file))
+
+    def BuildASQemu(self):
+        ASROOT = Env['ASROOT']
+        if(os.name == 'nt'):
+            mpath = os.path.abspath(Env['CONFIGS']['MSYS2_GCC_PATH']+"/../..")
+            RunCommand('%s/msys2_shell.cmd -mingw64 -where %s/com/as.tool/qemu'%(mpath,ASROOT))
+            print('please mannuly invoke below comand in the poped up msys2 window:')
+            print('\tMINGW_INSTALLS=mingw64 makepkg-mingw -sLf')
+            print('\tpacman -U mingw-w64-x86_64-qemu.pkg.tar.xz')
+            print('and then do "scons run" again')
+            exit(-1)
+        else:
+            RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
