@@ -19,4 +19,8 @@ elif('ATK2_SC4' in MODULES):
     objs += SConscript('toppers-atk/atk2-sc4/SConscript')
 elif('TRAMPOLINE' in MODULES):
     objs += SConscript('trampoline/SConscript')
+elif('TOPPERS_OSEK' in MODULES):
+    objs += SConscript('toppers_osek/SConscript')
+else:
+    assert(0)
 Return('objs')

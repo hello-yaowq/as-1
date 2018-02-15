@@ -1,0 +1,28 @@
+import os
+from building import *
+import xcc
+
+xcc.SetDefaultRTOS('toppers_osek')
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+arch = asenv['arch']
+MODULES = asenv['MODULES']
+
+asenv.Append(CPPPATH=['%s/include'%(cwd)])
+asenv.Append(CPPPATH=['%s/kernel'%(cwd)])
+
+objs = []
+
+objs += Glob('kernel/*.c')
+
+if(arch == 'cortex-m3'):
+    asenv.Append(CPPPATH=['%s/portable/armv7_m'%(cwd)])
+    asenv.Append(ASFLAGS=['-I%s/portable/armv7_m'%(cwd)])
+    objs += Glob('%s/portable/armv7_m/*.c'%(cwd))
+    objs += Glob('%s/portable/armv7_m/gcc/*.s'%(cwd))
+else:
+    assert(0)
+
+Return('objs')

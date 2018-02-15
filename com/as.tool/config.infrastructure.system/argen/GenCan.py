@@ -242,7 +242,7 @@ def GenC():
     global __dir
     fp = open('%s/Can_PBCfg.c'%(__dir),'w')
     fp.write(GHeader('Can'))
-    fp.write('#ifdef USE_CAN\n')
+    fp.write('#if defined(USE_CAN) && !defined(NOT_PYGEN_CAN)\n')
     fp.write("""#include "Can.h"
 
 static const Can_FilterMaskType vCanFilterMask0=

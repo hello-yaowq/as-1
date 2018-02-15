@@ -17,7 +17,8 @@
 #define MCU_CFG_C_
 
 #include "Mcu.h"
-
+#include "stm32f10x.h"
+#include "stm32f10x_rcc.h"
 
 
 const Mcu_ClockSettingConfigType Mcu_ClockSettingConfigData[] =

@@ -1,0 +1,80 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+
+MODULES = ['ECUM','SCHM','MCU',
+           'DET','SHELL',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP',
+           'CANNM','CANSM','NM','OSEKNM','XCP',
+           'DCM',
+           'PORT','DIO',
+           'TOPPERS_OSEK',
+           ]
+
+ARCH='stm32f1'
+arch='cortex-m3'
+
+MODULES += ['CLIB_MBOX']
+MODULES += ['CLIB_MISCLIB']
+MODULES += ['CLIB_STDIO_PRINTF']
+MODULES += ['CLIB_STDIO_CAN']
+
+
+# post special process for asboot release
+if(asenv['RELEASE']=='asboot'):
+    MODULES = ['ECUM','SCHM','MCU','DET',
+               'CAN','CANIF','PDUR','CANTP',
+               'DCM',
+               'FLASH',
+               'SMALLOS',
+               ]
+
+if(asenv['MODULES'] is None):
+    asenv['MODULES'] = MODULES
+else:
+    MODULES = asenv['MODULES']
+
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
+
+objs = []
+
+if(asenv['RELEASE']=='asboot'):
+    lds = '%s/script/linker-boot.lds'%(cwd)
+else:
+    lds = '%s/script/linker-app.lds'%(cwd)
+asenv.Append(LINKFLAGS='-static -T %s'%(lds))
+asenv.Append(LINKFLAGS='-Map build/stm32f107vc/stm32f107vc.map')
+
+asenv.Append(CPPPATH=['%s/common'%(cwd)])
+
+if('CAN' in MODULES):
+    objs += Glob('common/Can*.c')
+    objs += Glob('common/isr_can.xml')
+    asenv.Append(CPPDEFINES=['NOT_PYGEN_CAN'])
+
+if('DIO' in MODULES):
+    objs += Glob('common/Dio*.c')
+
+if('MCU' in MODULES):
+    objs += Glob('common/Mcu*.c')
+
+if('PORT' in MODULES):
+    objs += Glob('common/Port*.c')
+
+if('LWIP_DRV' in MODULES):
+    objs += Glob('common/isr_eth.xml')
+    asenv.Append(CPPDEFINES=['USE_STDPERIPH_DRIVER'])
+
+if('DEMO_LED_APP' in MODULES):
+    objs += Glob('common/*.xml')
+    objs += Glob('common/*.c')
+
+asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
+
+
+Return('objs')

@@ -1,0 +1,9 @@
+config ARCH_STM31F1
+    bool
+    default y
+    select DEFAULT_ASKAR
+
+config DEMO_LED_APP
+	bool "demo led application"
+	default y
+	depends on DIO

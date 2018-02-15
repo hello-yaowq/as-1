@@ -1,4 +1,4 @@
 config ARCH_VERSATILEPB
     bool
     default y
-    select DEFAULT_ASKAR
+    select DEFAULT_TOPPERS_OSEK

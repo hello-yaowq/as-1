@@ -24,8 +24,13 @@
 #include "Dem.h"
 #endif
 #include "stm32f10x.h"
+#include "stm32f10x_gpio.h"
+#include "stm32f10x_usart.h"
+#include "stm32f10x_rcc.h"
 #include <string.h>
-//#include "Ramlog.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x)  (sizeof(_x)/sizeof((_x)[0]))
@@ -418,6 +423,21 @@ int putchar( int ch )	/* for printf */
   return ch;
 }
 #endif
+
+#ifndef USE_SIMUL_CAN
+void knl_isr_usart2_process(void)
+{
+
+	if(USART_GetITStatus(USART2,USART_IT_RXNE))
+	{
+		char ch = (char)(USART_ReceiveData(USART2)&0xFF);
+		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
+
+		SHELL_input(ch);
+	}
+	NVIC_ClearPendingIRQ(USART2_IRQn);
+}
+#endif
 static void Usart_Init(void)
 {
     USART_InitTypeDef USART_InitStructure;
@@ -626,4 +646,9 @@ uint32_t McuE_GetPeripheralClock(McuE_PeriperalClock_t type)
 void Mcu_ConfigureFlash(void)
 {
 
+}
+
+void assert_param(boolean okay)
+{
+	while(!okay);
 }
