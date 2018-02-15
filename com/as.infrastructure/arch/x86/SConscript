@@ -29,12 +29,12 @@ if(asenv.GetOption('clean')):
 else:
     for src in Glob('bsp/*.asm'):
         asm = os.path.basename(str(src))
-        if(not os.path.exists(str(src)+'.obj')):
-            RunCommand('cd %s/bsp && nasm -f elf -g -o %s.obj %s'%(cwd,asm,asm))
+        MKObject(str(src), str(src)+'.obj', 
+                 'cd %s/bsp && nasm -f elf -g -o %s.obj %s'%(cwd,asm,asm))
     for src in Glob('boot/*.asm'):
         asm = os.path.basename(str(src))
-        if(not os.path.exists(str(src)[:-4]+'.bin')):
-            RunCommand('cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
+        MKObject(str(src), str(src)[:-4]+'.bin', 
+                 'cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
 
     if(asenv['POSTACTION'] != ''):
         asenv['POSTACTION'] += ' && '

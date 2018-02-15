@@ -288,6 +288,14 @@ def RMFile(p):
         print('removing %s'%(os.path.abspath(p)))
         os.remove(os.path.abspath(p))
 
+def MKObject(src, tgt, cmd):
+    mtime = os.path.getmtime(src)
+    if(os.path.isfile(tgt)):
+        mtime2 = os.path.getmtime(tgt)
+    else:
+        mtime2 = -1
+    if(mtime2 < mtime):
+        RunCommand(cmd)
 
 def MKFile(p,c='',m='wb'):
     f = open(p,m)
