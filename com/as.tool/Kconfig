@@ -18,12 +18,12 @@ endchoice
 config MINGW_GCC_PATH
 	string "directory path of mingw gcc.exe"
 	default "c:/MinGW/bin"
-	depends on PLATFORM_MINGW
+	depends on (PLATFORM_MINGW || PLATFORM_MSYS2)
 
 config MSYS2_GCC_PATH
 	string "directory path of msys2 gcc.exe"
 	default "c:/msys64/mingw64/bin"
-	depends on PLATFORM_MSYS2
+	depends on (PLATFORM_MINGW || PLATFORM_MSYS2)
 
 config PYTHON2_PATH
 	string "directory path of python version 2.x"

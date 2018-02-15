@@ -14,6 +14,9 @@
  */
 #ifdef USE_PCI
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef USE_FATFS
+#include "diskio.h"
+#endif
 #include "Std_Types.h"
 #include "pci_core.h"
 #include "asdebug.h"
@@ -21,9 +24,6 @@
 #include "rtthread.h"
 #include "rthw.h"
 #else
-#ifdef USE_FATFS
-#include "diskio.h"
-#endif
 
 #ifdef USE_LWEXT4
 #include <ext4.h>

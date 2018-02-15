@@ -149,7 +149,7 @@ extern StatusType ReleaseResource(ResourceType resid);
 /*
  *  Event APIs
  */
-#ifndef WIN32
+#ifndef __WINDOWS__
 extern StatusType SetEvent(TaskType tskid, EventMaskType mask);
 #else
 extern StatusType SetEvent2(TaskType tskid, EventMaskType mask);

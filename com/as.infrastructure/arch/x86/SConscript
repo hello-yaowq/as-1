@@ -108,8 +108,10 @@ asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
-asenv['CC'] ='gcc -m32 -fno-stack-protector'
-asenv['AS'] ='gcc -m32'
-asenv['LINK'] ='ld -m32 -melf_i386'
+CC = asenv['CC']
+LD = CC
+asenv['CC'] =CC+' -m32 -fno-stack-protector'
+asenv['AS'] =CC+' -m32'
+asenv['LINK'] =LD+' -m32 -melf_i386'
 
 Return('objs')

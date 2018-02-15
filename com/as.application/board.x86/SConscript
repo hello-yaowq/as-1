@@ -16,7 +16,8 @@ asenv.Append(CPPDEFINES='ENABLE_SHELL_ECHO_BACK')
 
 lds = '%s/script/linker-app.lds'%(cwd)
 asenv.Append(LINKFLAGS='-static -T %s'%(lds))
-asenv.Append(LINKFLAGS='-Map build/x86/x86.map')
+if(os.name != 'nt'):
+    asenv.Append(LINKFLAGS='-Map build/x86/x86.map')
 
 MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
