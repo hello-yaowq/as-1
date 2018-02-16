@@ -3,6 +3,10 @@ config ARCH_AT91SAM3S
     default y
     select DEFAULT_TOPPERS_OSEK
 
+config ARCH
+    string
+    default "at91sam3s"
+
 config DEMO_LED_APP
 	bool "demo led application"
 	default y

@@ -2,3 +2,7 @@ config ARCH_POSIX
     bool
     default y
     select DEFAULT_SMALLOS
+
+config ARCH
+    string
+    default "posix"

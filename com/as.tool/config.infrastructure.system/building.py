@@ -457,7 +457,7 @@ def GetELFEnv(so=True):
 
 class Qemu():
     def __init__(self, qemu=None):
-        arch_map = {'x86':'i386'}
+        arch_map = {'x86':'i386','cortex-m':'arm'}
         ASROOT = Env['ASROOT']
         ARCH = Env['ARCH']
         self.arch = Env['arch']

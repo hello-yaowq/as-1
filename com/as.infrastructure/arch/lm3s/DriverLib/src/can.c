@@ -38,7 +38,7 @@
 #include "../hw_can.h"
 #include "debug.h"
 #include "sysctl.h"
-#include "can.h"
+#include "lm3scan.h"
 #include "lm3sinterrupt.h"
 
 //*****************************************************************************

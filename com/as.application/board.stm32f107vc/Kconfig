@@ -7,3 +7,7 @@ config DEMO_LED_APP
 	bool "demo led application"
 	default y
 	depends on DIO
+
+config ARCH
+    string
+    default "stm32f1"

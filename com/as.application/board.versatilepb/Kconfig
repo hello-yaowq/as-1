@@ -2,3 +2,7 @@ config ARCH_VERSATILEPB
     bool
     default y
     select DEFAULT_TOPPERS_OSEK
+
+config ARCH
+    string
+    default "versatilepb"
