@@ -324,7 +324,7 @@ def SrcRemove(src, remove):
     for item in src:
         if type(item) == type('str'):
             if os.path.basename(item) in remove:
-                src.remove(item)
+                src.remove(str(item))
         else:
             if os.path.basename(item.rstr()) in remove:
                 src.remove(item)
@@ -562,6 +562,29 @@ class Qemu():
             exit(-1)
         else:
             RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
+
+def SelectCompilerARMICC(iarPath=None):
+    import glob
+    iar = iarPath
+    if(iar is None):
+        # try search path of IAR
+        for disk in ['C:/','D:/','E:/','F:/']:
+            for prg in ['Program Files (x86)','Program Files','ProgramData']:
+                iar = os.path.join(disk, prg, 'IAR Systems')
+                if(os.path.exists(iar)):
+                    for bench in glob.glob(os.path.join(iar,'*')):
+                        iar = os.path.join(bench,'arm')
+                        if(os.path.exists(os.path.join(iar,'bin','iccarm.exe'))):
+                            print('IAR:: %s'%(iar))
+                            iarPath = iar
+    if(iarPath is not None):
+        print('IAR:: %s <== using this one'%(iarPath))
+        Env['CC']=os.path.join(iarPath,'bin','iccarm.exe')
+        Env['AS']=os.path.join(iarPath,'bin','iasmarm.exe')
+        Env['LINK']=os.path.join(iarPath,'bin','ilinkarm.exe')
+        Env['AR']=os.path.join(iarPath,'bin','iarchive.exe')
+
+    return iarPath
 
 def SelectCompilerArmNoneEabi():
     global Env

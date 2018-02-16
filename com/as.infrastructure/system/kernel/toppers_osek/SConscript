@@ -20,8 +20,13 @@ objs += Glob('kernel/*.c')
 if(arch == 'cortex-m3'):
     asenv.Append(CPPPATH=['%s/portable/armv7_m'%(cwd)])
     asenv.Append(ASFLAGS=['-I%s/portable/armv7_m'%(cwd)])
-    objs += Glob('%s/portable/armv7_m/*.c'%(cwd))
-    objs += Glob('%s/portable/armv7_m/gcc/*.s'%(cwd))
+    objs += Glob('portable/armv7_m/*.c')
+    if(asenv['CC'][-3:]=='gcc' or asenv['CC'][-7:]=='gcc.exe'):
+        objs += Glob('portable/armv7_m/gcc/*.s')
+    elif(asenv['CC'][-10:]=='iccarm.exe'):
+        objs += Glob('portable/armv7_m/icc/*.S')
+    else:
+        assert(0)
 else:
     assert(0)
 

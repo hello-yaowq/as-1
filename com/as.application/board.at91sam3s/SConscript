@@ -1,0 +1,42 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+
+MODULES = ['ECUM','SCHM','MCU',
+           'DET','SHELL',
+           'PORT','DIO',
+           'USB_DRV',
+           'TOPPERS_OSEK',
+           ]
+
+ARCH='at91sam3s'
+arch='cortex-m3'
+
+MODULES += ['CLIB_MBOX']
+
+if(asenv['MODULES'] is None):
+    asenv['MODULES'] = MODULES
+else:
+    MODULES = asenv['MODULES']
+
+asenv['ARCH'] = ARCH
+asenv['arch'] = arch
+
+objs = []
+
+asenv.Append(CPPPATH=['%s/../board.posix/common'%(cwd)])
+
+if('MCU' in MODULES):
+    objs += Glob('../board.posix/common/Mcu*.c')
+
+if('DEMO_LED_APP' in MODULES):
+    objs += Glob('leds/*.xml')
+    objs += Glob('leds/*.c')
+
+asenv.Append(CPPDEFINES=['CHIP_AT91SAM3S','sam3s4'])
+
+Return('objs')

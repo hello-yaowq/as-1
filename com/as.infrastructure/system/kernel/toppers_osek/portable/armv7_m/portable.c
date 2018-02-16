@@ -35,6 +35,7 @@ extern const uint32 __vector_table[];
 uint32 knl_dispatch_started;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifdef __GNUC__
 void Irq_Enable(void)
 {
 	enable_int();
@@ -43,6 +44,7 @@ void Irq_Disable(void)
 {
 	disable_int();
 }
+#endif
 void set_ipl(IPL ipl)
 {
 	if(ipl > 0)
