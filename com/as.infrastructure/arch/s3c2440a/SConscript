@@ -24,7 +24,7 @@ if('MCU' in MODULES):
 
 asenv.Append(ASFLAGS=['-DTEXT_BASE=0x30000000'])
 
-asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
+asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 
 asenv.Append(CCFLAGS=['-mcpu=arm920t','-marm'])

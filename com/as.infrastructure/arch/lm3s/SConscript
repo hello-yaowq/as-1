@@ -4,21 +4,21 @@ Import('asenv')
 cwd = GetCurrentDir()
 
 #by default, use CAN and MCU
-asenv.Append(CCFLAGS=' -DUSE_CAN -DUSE_MCU ')
+asenv.Append(CPPDEFINES=['USE_CAN','USE_MCU'])
 
-asenv.Append(CCFLAGS=' -std=gnu99 -O0 -g ')
-asenv.Append(ASFLAGS=' -g ')
+asenv.Append(CCFLAGS=['-O0','-g'])
+asenv.Append(ASFLAGS=['-g'])
 
-asenv.Append(CCFLAGS=' -mcpu=cortex-m3  -mthumb ')
-asenv.Append(ASFLAGS=' -mcpu=cortex-m3  -mthumb ')
-asenv.Append(CCFLAGS=' -I%s/DriverLib '%(cwd))
-asenv.Append(CCFLAGS=' -I%s/DriverLib/src '%(cwd))
+asenv.Append(CCFLAGS=['-mcpu=cortex-m3','-mthumb'])
+asenv.Append(ASFLAGS=['-mcpu=cortex-m3','-mthumb'])
+asenv.Append(CPPPATH=['%s/DriverLib'%(cwd)])
+asenv.Append(CPPPATH=['%s/DriverLib/src'%(cwd)])
 
-asenv.Append(CCFLAGS='-I%s/../stm32f1/Libraries/CMSIS/Include'%(cwd))
-asenv.Append(CCFLAGS='-DCHIP_LM3S6965')
+asenv.Append(CPPPATH=['%s/../stm32f1/Libraries/CMSIS/Include'%(cwd)])
+asenv.Append(CPPDEFINES='CHIP_LM3S6965')
 
-asenv.Append(CCFLAGS='-ffunction-sections -fdata-sections')
-asenv.Append(LINKFLAGS='--gc-sections')
+asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
+asenv.Append(LINKFLAGS=['--gc-sections'])
 
 asenv.Append(LIBS=['gcc'])
 

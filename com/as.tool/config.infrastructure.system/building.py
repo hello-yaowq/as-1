@@ -589,7 +589,7 @@ def SelectCompilerARMICC(iarPath=None):
 def SelectCompilerArmNoneEabi():
     global Env
     ASROOT = Env['ASROOT']
-    Env['CC']='arm-none-eabi-gcc'
+    Env['CC']='arm-none-eabi-gcc -std=gnu99'
     Env['CXX']='arm-none-eabi-g++'
     Env['AS']='arm-none-eabi-as'
     Env['LINK']='arm-none-eabi-ld'
@@ -602,7 +602,7 @@ def SelectCompilerArmNoneEabi():
             RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
         Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
         Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
-        Env['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
+        Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
         Env['CXX']='%s/bin/arm-none-eabi-g++'%(cpl)
         Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
         Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)

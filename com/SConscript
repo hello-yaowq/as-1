@@ -5,11 +5,4 @@ objs = []
 objs += SConscript('as.application/SConscript')
 objs += SConscript('as.infrastructure/SConscript')
 
-asenv['CXXFLAGS'] = asenv['CCFLAGS']
-
-# remove the c special flags for c++
-for cflgs in ['-std=gnu99']:
-    if(cflgs in asenv['CXXFLAGS']):
-        asenv['CXXFLAGS'].remove(cflgs)
-
 Return('objs')

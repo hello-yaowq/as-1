@@ -94,15 +94,16 @@ if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 
-asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
+asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
 CC = asenv['CC']
 LD = CC
-asenv['CC'] =CC+' -m32 -fno-stack-protector'
-asenv['AS'] =CC+' -m32'
-asenv['LINK'] =LD+' -m32 -melf_i386'
+asenv['CC'] = CC+' -std=gnu99 -m32 -fno-stack-protector'
+asenv['AS'] = CC+' -m32'
+asenv['CXX'] = CC+' -m32 -fno-stack-protector'
+asenv['LINK'] = LD+' -m32 -melf_i386'
 
 Return('objs')

@@ -39,7 +39,7 @@ asenv.Append(CPPPATH=['%s/Libraries/STM32F10x_StdPeriph_Driver/inc'%(cwd)])
 asenv.Append(CPPPATH=['%s/Libraries/CMSIS/Include'%(cwd)])
 asenv.Append(CPPPATH=['%s/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x'%(cwd)])
 
-asenv.Append(CCFLAGS=['-std=gnu99','-O0','-g'])
+asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 
 asenv.Append(CCFLAGS=['-mcpu=cortex-m3','-mthumb'])

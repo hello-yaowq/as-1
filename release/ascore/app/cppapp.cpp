@@ -49,9 +49,10 @@ public:
 
 extern "C" void cppapp_start(void) {
 	father f("Guangtoubaba");
-	son s("Xiaoming");
+	son* s = new son("Xiaoming");
 
 	f.sayHello();
-	s.sayHello();
+	s->sayHello();
+	delete s;
 
 }
