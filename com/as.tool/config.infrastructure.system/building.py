@@ -590,6 +590,7 @@ def SelectCompilerArmNoneEabi():
     global Env
     ASROOT = Env['ASROOT']
     Env['CC']='arm-none-eabi-gcc'
+    Env['CXX']='arm-none-eabi-g++'
     Env['AS']='arm-none-eabi-as'
     Env['LINK']='arm-none-eabi-ld'
     Env['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
@@ -602,6 +603,7 @@ def SelectCompilerArmNoneEabi():
         Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
         Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
         Env['CC']='%s/bin/arm-none-eabi-gcc'%(cpl)
+        Env['CXX']='%s/bin/arm-none-eabi-g++'%(cpl)
         Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
         Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
         Env['S19'] = '%s/bin/%s'%(cpl,Env['S19'])

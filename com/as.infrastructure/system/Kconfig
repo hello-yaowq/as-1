@@ -21,6 +21,10 @@ config SHELL
 	bool "SHELL"
 	default y
 
+config CPLUSPLUS
+	bool "C++ support"
+	default n
+
 source "$ASROOT/com/as.infrastructure/system/fs/Kconfig"
 source "$ASROOT/com/as.infrastructure/system/kernel/Kconfig"
 source "$ASROOT/com/as.infrastructure/system/net/Kconfig"

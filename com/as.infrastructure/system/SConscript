@@ -36,4 +36,8 @@ if('SHELL' in MODULES):
     objs += Glob('shell/*.xml')
     asenv.Append(CPPDEFINES='USE_SHELL')
 
+if('CPLUSPLUS' in MODULES):
+    asenv.Append(CPPDEFINES=['USE_CPLUSPLUS'])
+    objs += Glob('cplusplus/*.cpp')
+
 Return('objs')

@@ -12,6 +12,9 @@ objs = []
 objs +=  Glob('*.c')
 objs +=  Glob('*.xml')
 
+if('CPLUSPLUS' in MODULES):
+    objs +=  Glob('*.cpp')
+
 if('SG' in MODULES):
     objs += SConscript('%s/../SgDesign/SConscript'%(cwd))
 

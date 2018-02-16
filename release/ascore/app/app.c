@@ -35,6 +35,10 @@
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+
+#ifdef USE_CPLUSPLUS
+extern void cppapp_start(void);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_XCP
 #if defined(__LINUX__) || defined(__WINDOWS__)
@@ -214,6 +218,16 @@ TASK(TaskApp)
 			}
 		}
 	}
+#endif
+
+#ifdef USE_CPLUSPLUS
+{
+	static int flag = 0;
+	if(0 == flag) {
+		cppapp_start();
+		flag = 1;
+	}
+}
 #endif
 	OsTerminateTask(TaskApp);
 

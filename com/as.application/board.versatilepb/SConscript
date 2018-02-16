@@ -39,10 +39,7 @@ if(cwd.find('travis') != -1):
     # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
     pass
 elif(os.getenv('SGAPP') != None):
-    MODULES += ['LCD','GUI','SG']
-
-print('WARNING: force using SGAPP watch for versatilepb!')
-asenv['SGAPP']='watch'
+    MODULES += ['LCD','GUI','SG','SG_DEMO_WATCH']
 
 if((asenv['MODULES'] != None) and ('RTTHREAD' in asenv['MODULES'])):
     asenv.Append(CPPDEFINES='RT_HEAP_SIZE=0x800000')
