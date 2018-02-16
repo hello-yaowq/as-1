@@ -23,15 +23,22 @@ MODULES += ['CLIB_MISCLIB']
 MODULES += ['CLIB_STDIO_PRINTF']
 MODULES += ['CLIB_STDIO_CAN']
 
-
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):
     MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
                'DCM',
-               'FLASH',
+               'CLIB_STDIO_PRINTF',
                'SMALLOS',
                ]
+    lds = '%s/script/linker-flsdrv.lds'%(cwd)
+    asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
+                                  'FLASH_WRITE_SIZE=2',
+                                  'CHIP_STM32F10X','STM32F10X_CL'],
+                       'CCFLAGS':[],
+                       'CPPPATH':['%s/com/as.infrastructure/include'%(ASROOT)],
+                       'LINKFLAGS':['-static','-T%s'%(lds)],
+                       'objs':[]}
 
 if(asenv['MODULES'] is None):
     asenv['MODULES'] = MODULES
@@ -68,11 +75,10 @@ if('PORT' in MODULES):
 
 if('LWIP_DRV' in MODULES):
     objs += Glob('common/isr_eth.xml')
-    asenv.Append(CPPDEFINES=['USE_STDPERIPH_DRIVER'])
 
 if('DEMO_LED_APP' in MODULES):
-    objs += Glob('common/*.xml')
-    objs += Glob('common/*.c')
+    objs += Glob('leds/*.xml')
+    objs += Glob('leds/*.c')
 
 asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
 

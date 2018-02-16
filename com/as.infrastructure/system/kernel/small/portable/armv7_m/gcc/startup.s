@@ -31,10 +31,6 @@
 	.extern debug_monitor_handler
 	.extern knl_system_stack_top
 
-    #ifdef STM32F10X_CL
-	.extern knl_isr_usart2_process
-	#endif
-
 	.macro DEFAULT_ISR_HANDLER name=
   		.thumb_func
   		.weak \name

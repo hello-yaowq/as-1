@@ -431,9 +431,10 @@ void knl_isr_usart2_process(void)
 	if(USART_GetITStatus(USART2,USART_IT_RXNE))
 	{
 		char ch = (char)(USART_ReceiveData(USART2)&0xFF);
-		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
-
+#ifdef USE_SHELL
 		SHELL_input(ch);
+#endif
+		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
 	}
 	NVIC_ClearPendingIRQ(USART2_IRQn);
 }
@@ -646,9 +647,4 @@ uint32_t McuE_GetPeripheralClock(McuE_PeriperalClock_t type)
 void Mcu_ConfigureFlash(void)
 {
 
-}
-
-void assert_param(boolean okay)
-{
-	while(!okay);
 }

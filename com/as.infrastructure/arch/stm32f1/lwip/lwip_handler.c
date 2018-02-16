@@ -25,7 +25,7 @@
 #include "lwip_handler.h"
 #include <stdio.h>
 
-#include "../../common/lwip/netbios.h"
+#include "netbios.h"
 #include "ethernetif.h"
 #include "stm32_eth.h"
 

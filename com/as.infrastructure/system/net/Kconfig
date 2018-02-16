@@ -6,7 +6,7 @@ config LWIP
 
 config FTP
 	bool "File Transfer Protocol Daemon"
-	depends on LWIP
+	depends on LWIP && VFS
 	default y
 
 endmenu
