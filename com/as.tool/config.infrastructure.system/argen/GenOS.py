@@ -319,13 +319,17 @@ def GenC(gendir,os_list):
         fp.write('\t\t#if (OS_STATUS == EXTENDED)\n')
         fp.write('\t\t/*.CheckAccess =*/ %s_CheckAccess,\n'%(GAGet(task,'Name')))
         fp.write('\t\t#endif\n')
+        fp.write('\t\t/*.name =*/ "%s",\n'%(GAGet(task,'Name')))
         fp.write('\t\t/*.initPriority =*/ OS_PTHREAD_PRIORITY + %s,\n'%(GAGet(task,'Priority')))
         fp.write('\t\t/*.runPriority =*/ OS_PTHREAD_PRIORITY + %s,\n'%(runPrio))
-        fp.write('\t\t/*.name =*/ "%s",\n'%(GAGet(task,'Name')))
         fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
         fp.write('\t\t/*.maxActivation =*/ %s,\n'%(maxAct))
         fp.write('\t\t#endif\n')
-        fp.write('\t\t/*.autoStart =*/ %s,\n'%(GAGet(task,'Autostart').upper()))
+        def AST(task):
+            if(GAGet(task,'Autostart').upper() == 'TRUE'):
+                return 'TASK_AUTOSTART_MASK'
+            return 0
+        fp.write('\t\t/*.flag =*/ %s,\n'%(AST(task)))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')

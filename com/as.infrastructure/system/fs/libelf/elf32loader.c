@@ -272,7 +272,7 @@ static void ELF32_ConstructSymbolTable(void* elfFile, const char* byname, ELF32_
 			memcpy((void *)elfObj->symtab[count].name,
 					  strtab + symtab[j].st_name,
 					  length);
-			ASLOG(ELF32, "stmtab[%d] %s %p\n", count,
+			ASLOG(ELF32, "symtab[%d] %s %p\n", count,
 						elfObj->symtab[count].name,
 						elfObj->symtab[count].addr);
 			count ++;

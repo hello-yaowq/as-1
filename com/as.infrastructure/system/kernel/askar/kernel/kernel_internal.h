@@ -21,6 +21,7 @@
 #ifdef USE_SHELL
 #include "shell.h"
 #endif
+#include "sched.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /*
  * BCC1 (only basic tasks, limited to one activation request per task and one task per
@@ -207,6 +208,14 @@ enum {
 #define PTHREAD_DEFAULT_PRIORITY    (OS_PTHREAD_PRIORITY/2)
 #endif
 
+/* OSEK TASK flag mask */
+#define TASK_AUTOSTART_MASK 0x01
+
+/* PTHREAD TASK flag mask */
+#define PTHREAD_DYNAMIC_CREATED_MASK 0x10
+#define PTHREAD_JOINABLE_MASK        0x20
+#define PTHREAD_JOINED_MASK          0x40
+
 #define TIMESPEC_TO_TICKS(ts) ((uint32_t)(ts->tv_sec*1000000 + (uint32_t)ts->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
@@ -242,13 +251,13 @@ typedef struct
 	#if (OS_STATUS == EXTENDED)
 	boolean (*CheckAccess)(ResourceType);
 	#endif
+	const char* name;
 	PriorityType initPriority;
 	PriorityType runPriority;
-	const char* name;
 	#ifdef MULTIPLY_TASK_ACTIVATION
 	uint8 maxActivation;
 	#endif
-	boolean autoStart;
+	uint8 flag;
 } TaskConstType;
 
 typedef struct TaskVar
@@ -347,5 +356,7 @@ extern void Os_SleepInit(void);
 extern void Os_SleepTick(void);
 extern void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks);
 extern void Os_SleepRemove(TaskVarType* pTaskVar);
+int Os_ListWait(TaskListType* list, const struct timespec *abstime);
+int Os_ListPost(TaskListType* list, boolean schedule);
 #endif
 #endif /* KERNEL_INTERNAL_H_ */

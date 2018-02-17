@@ -12,8 +12,8 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef _PTHREAD_H_
-#define _PTHREAD_H_
+#ifndef _ASKAR_PTHREAD_H_
+#define _ASKAR_PTHREAD_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "sched.h"
@@ -50,10 +50,18 @@ typedef struct pthread_attr pthread_attr_t;
 typedef unsigned int pthread_condattr_t;
 typedef unsigned int pthread_mutexattr_t;
 
-struct pthread_mutex;
+struct pthread_mutex
+{
+	TaskListType head;
+	boolean locked;
+};
 typedef struct pthread_mutex pthread_mutex_t;
 
-struct pthread_cond;
+struct pthread_cond
+{
+	TaskListType head;
+	unsigned int signals;
+};
 typedef struct pthread_cond pthread_cond_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -101,4 +109,6 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
     void *(*start) (void *), void *arg);
 void pthread_exit (void *value_ptr);
-#endif
+int pthread_detach(pthread_t tid);
+int pthread_join(pthread_t tid, void ** thread_return);
+#endif /* _ASKAR_PTHREAD_H_ */

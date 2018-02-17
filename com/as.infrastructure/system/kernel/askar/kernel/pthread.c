@@ -20,27 +20,15 @@
 #include <stdlib.h>
 #include <asdebug.h>
 /* ============================ [ MACROS    ] ====================================================== */
-#define DYNAMIC_CREATED_PTHREAD(pConst) (pTaskConst->autoStart)
 /* ============================ [ TYPES     ] ====================================================== */
 struct pthread
 {
 	TaskConstType TaskConst;
 	TaskVarType* pTaskVar;
+	TaskListType joinList;
 	void *(*start) (void *);
 	void* arg;
-};
-
-struct pthread_mutex
-{
-	TAILQ_HEAD(pthread_mutex_head,TaskVar) head;
-	boolean locked;
-};
-
-struct pthread_cond
-{
-	TAILQ_HEAD(pthread_cond_head,TaskVar) head;
-
-	unsigned int signals;
+	void* ret;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -95,7 +83,6 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(NULL != pTaskVar)
 	{
-
 		if((NULL != attr) && (NULL != attr->stack_base))
 		{	/* to create it totally static by using stack to allocate pthread */
 			pthread = (pthread_t)attr->stack_base;
@@ -106,7 +93,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 			pTaskConst->stackSize = attr->stack_size - sizeof(struct pthread);
 			pTaskConst->initPriority = attr->priority;
 			pTaskConst->runPriority = attr->priority;
-			DYNAMIC_CREATED_PTHREAD(pTaskConst) = FALSE;
+			pTaskConst->flag = 0;
 			asAssert(attr->priority < OS_PTHREAD_PRIORITY);
 		}
 		else
@@ -125,7 +112,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 				pTaskConst->stackSize = PTHREAD_DEFAULT_STACK_SIZE;
 				pTaskConst->initPriority = PTHREAD_DEFAULT_PRIORITY;
 				pTaskConst->runPriority = PTHREAD_DEFAULT_PRIORITY;
-				DYNAMIC_CREATED_PTHREAD(pTaskConst) = TRUE;
+				pTaskConst->flag = PTHREAD_DYNAMIC_CREATED_MASK;
 			}
 		}
 	}
@@ -149,7 +136,13 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		pTaskVar->priority = pTaskConst->initPriority;
 		Os_PortInitContext(pTaskVar);
 
+		TAILQ_INIT(&pthread->joinList);
+
 		Irq_Save(imask);
+		if((NULL == attr) || (PTHREAD_CREATE_JOINABLE == attr->detachstate))
+		{
+			pTaskConst->flag |= PTHREAD_JOINABLE_MASK;
+		}
 		Sched_PosixAddReady(pTaskVar - TaskVarArray);
 		Irq_Restore(imask);
 	}
@@ -159,23 +152,96 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 void pthread_exit (void *value_ptr)
 {
-	TaskConstType* pTaskConst;
+	pthread_t tid;
+	TaskVarType *pTaskVar;
 
 	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
+	asAssert((RunningVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
 
-	pTaskConst = (TaskConstType*)RunningVar->pConst;
+	tid = (pthread_t)(RunningVar->pConst);
 
 	Irq_Disable();
 
-	RunningVar->pConst = NULL;
-
-	if(TRUE == DYNAMIC_CREATED_PTHREAD(pTaskConst))
+	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
-		free(pTaskConst);
+		tid->TaskConst.flag |= PTHREAD_JOINED_MASK;
+		if(0 == Os_ListPost(&tid->joinList, FALSE))
+		{
+			asAssert(TAILQ_EMPTY(&tid->joinList));
+		}
+	}
+	else
+	{
+		tid->pTaskVar->pConst = NULL;
+		if(tid->TaskConst.flag & PTHREAD_DYNAMIC_CREATED_MASK)
+		{
+			free(tid);
+		}
 	}
 
 	Sched_GetReady();
 	Os_PortDispatch();
+}
+
+int pthread_detach(pthread_t tid)
+{
+	int ercd = 0;
+	TaskVarType *pTaskVar;
+	imask_t imask;
+
+	asAssert(tid);
+	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
+	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
+
+	Irq_Save(imask);
+	if(tid->TaskConst.flag & PTHREAD_JOINED_MASK)
+	{	/* the tid is already exited */
+		tid->pTaskVar->pConst = NULL;
+		if(tid->TaskConst.flag & PTHREAD_DYNAMIC_CREATED_MASK)
+		{
+			free(tid);
+		}
+	}
+	else
+	{
+		tid->TaskConst.flag &= ~PTHREAD_JOINABLE_MASK;
+	}
+	Irq_Restore(imask);
+
+	return ercd;
+}
+
+int pthread_join(pthread_t tid, void ** thread_return)
+{
+	int ercd = 0;
+	TaskVarType *pTaskVar;
+	imask_t imask;
+
+	asAssert(tid);
+	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
+	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
+
+	Irq_Save(imask);
+	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
+	{
+		if(0u == (tid->TaskConst.flag & PTHREAD_JOINED_MASK))
+		{
+			(void)Os_ListWait(&tid->joinList, NULL);
+		}
+		asAssert(tid->TaskConst.flag & PTHREAD_JOINED_MASK);
+		tid->pTaskVar->pConst = NULL;
+		if(tid->TaskConst.flag & PTHREAD_DYNAMIC_CREATED_MASK)
+		{
+			free(tid);
+		}
+	}
+	else
+	{
+		ercd = -EACCES;
+	}
+	Irq_Restore(imask);
+
+	return ercd;
 }
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
@@ -205,10 +271,7 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 	if(TRUE == mutex->locked)
 	{
 		/* wait it forever */
-		RunningVar->state |= PTHREAD_STATE_WAITING;;
-		TAILQ_INSERT_TAIL(&(mutex->head), RunningVar, entry);
-		Sched_GetReady();
-		Os_PortDispatch();
+		Os_ListWait(&mutex->head, NULL);
 	}
 
 	mutex->locked = TRUE;
@@ -228,15 +291,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 
 	if(TRUE == mutex->locked)
 	{
-		if(FALSE == TAILQ_EMPTY(&(mutex->head)))
-		{
-			pTaskVar = TAILQ_FIRST(&(mutex->head));
-			TAILQ_REMOVE(&(mutex->head), pTaskVar, entry);
-			pTaskVar->state &= ~PTHREAD_STATE_WAITING;;
-			OS_TRACE_TASK_ACTIVATION(pTaskVar);
-			Sched_PosixAddReady(pTaskVar-TaskVarArray);
-		}
-		else
+		if(0 != Os_ListPost(&mutex->head, TRUE))
 		{
 			mutex->locked = FALSE;
 		}
@@ -297,17 +352,10 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 
 	Irq_Save(imask);
 
-	pTaskVar = TAILQ_FIRST(&(cond->head));
-	while(NULL != pTaskVar)
-	{
-		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
-		OS_TRACE_TASK_ACTIVATION(pTaskVar);
-		Sched_PosixAddReady(pTaskVar-TaskVarArray);
+	while(0 == Os_ListPost(&(cond->head), FALSE))
+		;
 
-		pNext = TAILQ_NEXT(pTaskVar, entry);
-		TAILQ_REMOVE(&(cond->head), pTaskVar, entry);
-		pTaskVar = pNext;
-	}
+	(void) Schedule();
 
 	Irq_Restore(imask);
 
@@ -322,15 +370,7 @@ int pthread_cond_signal(pthread_cond_t *cond)
 
 	Irq_Save(imask);
 
-	if(FALSE == TAILQ_EMPTY(&(cond->head)))
-	{
-		pTaskVar = TAILQ_FIRST(&(cond->head));
-		TAILQ_REMOVE(&(cond->head), pTaskVar, entry);
-		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
-		OS_TRACE_TASK_ACTIVATION(pTaskVar);
-		Sched_PosixAddReady(pTaskVar-TaskVarArray);
-	}
-	else
+	if(0 != Os_ListPost(&cond->head, TRUE))
 	{
 		cond->signals ++;
 	}
@@ -360,59 +400,14 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 
 	if(0 == cond->signals)
 	{
-		/* do unlock */
-		if(FALSE == TAILQ_EMPTY(&(mutex->head)))
+		ercd = pthread_mutex_unlock(mutex);
+
+		if(0 == ercd)
 		{
-			pTaskVar = TAILQ_FIRST(&(mutex->head));
-			TAILQ_REMOVE(&(mutex->head), pTaskVar, entry);
-			pTaskVar->state &= ~PTHREAD_STATE_WAITING;
-			OS_TRACE_TASK_ACTIVATION(pTaskVar);
-			Sched_PosixAddReady(pTaskVar-TaskVarArray);
-		}
-		else
-		{
-			mutex->locked = FALSE;
-		}
+			ercd = Os_ListWait(&(cond->head), abstime);
 
-		/* do cond signal wait */
-		RunningVar->state |= PTHREAD_STATE_WAITING;
-		TAILQ_INSERT_TAIL(&(cond->head), RunningVar, entry);
-
-		if(NULL != abstime)
-		{
-			Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
+			(void)pthread_mutex_lock(mutex);
 		}
-
-		Sched_GetReady();
-		Os_PortDispatch();
-
-		/* wakeup */
-		if(RunningVar->state&PTHREAD_STATE_WAITING)
-		{	/* this is timeout */
-			TAILQ_REMOVE(&(cond->head), RunningVar, entry);
-			ercd = -ETIMEDOUT;
-		}
-		else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
-		{	/* signal reached before timeout */
-			Os_SleepRemove(RunningVar);
-		}
-		else
-		{
-			/* do nothing */
-		}
-
-		/* do lock again */
-		if(TRUE == mutex->locked)
-		{
-			/* wait it forever */
-			RunningVar->state |= PTHREAD_STATE_WAITING;
-			TAILQ_INSERT_TAIL(&(mutex->head), RunningVar, entry);
-			Sched_GetReady();
-			Os_PortDispatch();
-		}
-
-		mutex->locked = TRUE;
-
 	}
 	else
 	{

@@ -18,11 +18,6 @@
 #if(OS_PTHREAD_NUM > 0)
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
-struct sem
-{
-	TAILQ_HEAD(sem_head,TaskVar) head;
-	unsigned int value;
-};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -70,48 +65,7 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 	}
 	else
 	{
-		if(NULL != abstime)
-		{
-			if((abstime->tv_nsec != 0) || (abstime->tv_nsec != 0))
-			{
-				/* do semaphore wait with timeout */
-				RunningVar->state |= PTHREAD_STATE_WAITING;
-				TAILQ_INSERT_TAIL(&(sem->head), RunningVar, entry);
-
-				Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
-			}
-			else
-			{
-				ercd = -ETIMEDOUT;
-			}
-		}
-		else
-		{
-			/* do semaphore wait forever*/
-			RunningVar->state |= PTHREAD_STATE_WAITING;
-			TAILQ_INSERT_TAIL(&(sem->head), RunningVar, entry);
-		}
-
-		if(0 == ercd)
-		{
-			Sched_GetReady();
-			Os_PortDispatch();
-
-			/* wakeup or timeout value is 0 */
-			if(RunningVar->state&PTHREAD_STATE_WAITING)
-			{	/* this is timeout */
-				TAILQ_REMOVE(&(sem->head), RunningVar, entry);
-				ercd = -ETIMEDOUT;
-			}
-			else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
-			{	/* signal reached before timeout */
-				Os_SleepRemove(RunningVar);
-			}
-			else
-			{
-				/* do nothing */
-			}
-		}
+		ercd = Os_ListWait(&(sem->head), abstime);
 	}
 
 	Irq_Restore(imask);
@@ -138,15 +92,7 @@ int sem_post(sem_t *sem)
 
 	Irq_Save(imask);
 
-	if(FALSE == TAILQ_EMPTY(&(sem->head)))
-	{
-		pTaskVar = TAILQ_FIRST(&(sem->head));
-		TAILQ_REMOVE(&(sem->head), pTaskVar, entry);
-		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
-		OS_TRACE_TASK_ACTIVATION(pTaskVar);
-		Sched_PosixAddReady(pTaskVar-TaskVarArray);
-	}
-	else
+	if(0 != Os_ListPost(&(sem->head), TRUE))
 	{
 		sem->value ++;
 	}

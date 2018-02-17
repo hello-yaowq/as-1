@@ -12,10 +12,10 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef _SCHED_H_
-#define _SCHED_H_
+#ifndef _ASKAR_SCHED_H_
+#define _ASKAR_SCHED_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-
+#include <sys/queue.h>
 /* ============================ [ MACROS    ] ====================================================== */
 /* Scheduling algorithms.  */
 #define SCHED_OTHER		0
@@ -29,8 +29,11 @@ struct sched_param
 {
 	int sched_priority;
 };
+
+struct TaskVar;
+typedef TAILQ_HEAD(TaskList, TaskVar) TaskListType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#endif /* _SCHED_H_ */
+#endif /* _ASKAR_SCHED_H_ */

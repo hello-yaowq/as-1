@@ -130,4 +130,81 @@ void Os_SleepRemove(TaskVarType* pTaskVar)
 {
 	TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
 }
+
+int Os_ListWait(TaskListType* list, const struct timespec *abstime)
+{
+	int ercd = 0;
+
+	if(NULL != abstime)
+	{
+		if((abstime->tv_sec != 0) || (abstime->tv_nsec != 0))
+		{
+			/* do wait event of list with timeout */
+			RunningVar->state |= PTHREAD_STATE_WAITING;
+			TAILQ_INSERT_TAIL(list, RunningVar, entry);
+
+			Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
+		}
+		else
+		{
+			ercd = -ETIMEDOUT;
+		}
+	}
+	else
+	{
+		/* do wait event of list forever*/
+		RunningVar->state |= PTHREAD_STATE_WAITING;
+		TAILQ_INSERT_TAIL(list, RunningVar, entry);
+	}
+
+	if(0 == ercd)
+	{
+		Sched_GetReady();
+		Os_PortDispatch();
+
+		if(NULL != abstime)
+		{
+			if(RunningVar->state&PTHREAD_STATE_WAITING)
+			{	/* this is timeout */
+				TAILQ_REMOVE(list, RunningVar, entry);
+				ercd = -ETIMEDOUT;
+			}
+			else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
+			{	/* event reached before timeout */
+				Os_SleepRemove(RunningVar);
+			}
+			else
+			{
+				/* do nothing */
+			}
+		}
+	}
+
+	return ercd;
+}
+
+int Os_ListPost(TaskListType* list, boolean schedule)
+{
+	int ercd = 0;
+	TaskVarType *pTaskVar;
+
+	if(FALSE == TAILQ_EMPTY(list))
+	{
+		pTaskVar = TAILQ_FIRST(list);
+		TAILQ_REMOVE(list, pTaskVar, entry);
+		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
+		OS_TRACE_TASK_ACTIVATION(pTaskVar);
+		Sched_PosixAddReady(pTaskVar-TaskVarArray);
+		if(schedule)
+		{
+			(void)Schedule();
+		}
+	}
+	else
+	{	/* nobody is waiting in the list */
+		ercd = -ENOENT;
+	}
+
+	return ercd;
+}
 #endif

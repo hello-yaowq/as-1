@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pthread.h"
+#include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
 #include <errno.h>
 #include <string.h>

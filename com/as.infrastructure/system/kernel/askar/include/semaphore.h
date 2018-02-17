@@ -12,14 +12,18 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifndef _SEMAPHORE_H_
-#define _SEMAPHORE_H_
+#ifndef _ASKAR_SEMAPHORE_H_
+#define _ASKAR_SEMAPHORE_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "kernel_internal.h"
 #include <sys/time.h>
+#include "sched.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
-struct sem;
+struct sem
+{
+	TaskListType head;
+	unsigned int value;
+};
 typedef struct sem sem_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -35,4 +39,4 @@ int sem_timedwait(sem_t *sem, const struct timespec *abs_timeout);
 int sem_trywait(sem_t *sem);
 int sem_unlink(const char *name);
 int sem_wait(sem_t *sem);
-#endif /* _SEMAPHORE_H_ */
+#endif /* _ASKAR_SEMAPHORE_H_ */

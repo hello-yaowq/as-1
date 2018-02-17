@@ -580,7 +580,7 @@ void Os_TaskInit(void)
 		pTaskVar->actCnt = 0;
 		#endif
 
-		if(TRUE == pTaskConst->autoStart)
+		if(pTaskConst->flag&TASK_AUTOSTART_MASK)
 		{
 			(void)ActivateTask(id);
 		}
