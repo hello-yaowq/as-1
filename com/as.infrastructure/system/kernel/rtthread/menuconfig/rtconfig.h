@@ -10,6 +10,11 @@
 #define PLATFORM_MSYS2
 /* PLATFORM_LINUX is not set */
 #define ARCH_VERSATILEPB
+#define ARCH "versatilepb"
+
+/* AUTOSAR MCAL&CDD for arch versatilepb */
+
+#define PCI
 #define CAN
 /* FATFS_DRV is not set */
 #define LWEXT4_DRV
@@ -17,11 +22,6 @@
 /* FLS is not set */
 /* LCD is not set */
 #define MCU
-#define LWIP
-
-/* AUTOSAR MCAL&CDD for arch versatilepb */
-
-#define PCI
 #define LWIP_DRV
 
 /* AUTOSAR Communication Stack */
@@ -52,6 +52,7 @@
 #define ECUM
 #define SCHM
 /* SHELL is not set */
+/* CPLUSPLUS is not set */
 
 /* File System */
 
@@ -60,12 +61,13 @@
 
 /* Operating System */
 
+#define DEFAULT_ASKAR
 /* ASKAR is not set */
 /* SMALLOS is not set */
 #define RTTHREAD
-/* SCHED_BUBBLE is not set */
-/* SCHED_FIFO is not set */
-/* SCHED_LIST is not set */
+/* ATK2_SC4 is not set */
+/* TRAMPOLINE is not set */
+/* TOPPERS_OSEK is not set */
 
 /* RT-Thread Kernel */
 
@@ -126,7 +128,9 @@
 /* Command shell */
 
 #define RT_USING_FINSH
+#define FINSH_THREAD_NAME "tshell"
 #define FINSH_USING_HISTORY
+#define FINSH_HISTORY_LINES 5
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
 #define FINSH_THREAD_PRIORITY 20
@@ -165,6 +169,7 @@
 /* RT_USING_DFS_ROMFS is not set */
 /* RT_USING_DFS_RAMFS is not set */
 /* RT_USING_DFS_UFFS is not set */
+/* RT_USING_DFS_JFFS2 is not set */
 /* RT_USING_DFS_NFS is not set */
 
 /* Device Drivers */
@@ -263,6 +268,7 @@
 
 /* Internet Protocol */
 
+#define LWIP
 #define FTP
 
 /* C Library */
@@ -274,5 +280,6 @@
 #define CLIB_STDIO_PRINTF
 /* CLIB_STDIO_CAN is not set */
 /* CLIB_STRTOK_R is not set */
+/* CLIB_NWELIB is not set */
 
 #endif

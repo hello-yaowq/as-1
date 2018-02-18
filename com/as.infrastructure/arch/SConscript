@@ -10,7 +10,10 @@ objs = []
 objs += SConscript('%s/SConscript'%(ARCH))
 
 if('LWIP' in MODULES):
-    objs += Glob('common/lwip/*.c')
-    asenv.Append(CPPPATH=['%s/common/lwip'%(cwd)])
+    if('RTTHREAD' in MODULES):
+        objs += Glob('common/lwip/netbios.c')
+    else:
+        objs += Glob('common/lwip/*.c')
+        asenv.Append(CPPPATH=['%s/common/lwip'%(cwd)])
 
 Return('objs')

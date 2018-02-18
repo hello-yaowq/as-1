@@ -4,11 +4,12 @@ config LWIP
 	depends on LWIP_DRV
 	default y
 
+if !RTTHREAD
 choice
 	prompt "Schedule Policy"
 	default LWIP_POSIX_ARCH if PTHREAD
 	default LWIP_OSEK_ARCH  if !PTHREAD
-	
+
 config LWIP_POSIX_ARCH
 	bool "lwip standard porting based on pthread"
 
@@ -16,10 +17,11 @@ config LWIP_OSEK_ARCH
 	bool "lwip standard porting based on OSEK"
 
 endchoice
+endif
 
 config FTP
 	bool "File Transfer Protocol Daemon"
-	depends on LWIP && VFS
+	depends on LWIP && (VFS || RT_USING_DFS)
 	default y
 
 endmenu
