@@ -12,3 +12,7 @@ config SCHED_LIST
 	bool "list scheduler"
 
 endchoice
+
+config PTHREAD
+	bool "posix pthreads based on askar OSEK core"
+	default y

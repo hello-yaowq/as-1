@@ -62,35 +62,7 @@ if('FLS' in MODULES):
     objs += Glob('../posix/mcal/Fls.c')
     asenv.Append(CPPDEFINES='USE_FLS')
 
-if(('LWIP' in MODULES) and ('RTTHREAD' not in MODULES)):
-    asenv.Append(CPPPATH=['%s/../common/lwip'%(cwd)])
-    if(os.getenv('PTHREAD') == 'yes'):
-        download = '%s/release/download'%(ASROOT)
-        lwip='%s/lwip-contrib'%(download)
-
-        if(not os.path.exists(lwip)):
-            MKDir(download)
-            RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && 
-                cd lwip-contrib && git checkout STABLE-1_4_1'''%(download))
-            RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
-
-        MKSymlink(lwip,'%s/lwip-contrib'%(cwd))
-        MKDir('%s/lwip'%(cwd))
-        asenv.Append(CPPPATH=['%s/lwip'%(cwd)])
-        objs += Glob('lwip-contrib/ports/unix/sys_arch.c')
-        MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
-                  '%s/lwip/lwip_sys_arch.h'%(cwd))
-        objs += Glob('lwip-contrib/apps/httpserver/*.c')
-        objs += Glob('../common/lwip/*.c')
-        asenv.Append(CPPDEFINES='LWIP_POSIX_ARCH')
-    else:
-        objs += Glob('../common/lwip/*.c')
-    asenv.Append(CPPDEFINES='LWIP_TIMEVAL_PRIVATE=0')
-    if(os.name == 'nt'):
-        asenv.Append(CPPDEFINES='USE_PCAPIF')
-
-if(('LWIP' in MODULES) and ('RTTHREAD' in MODULES)):
-    objs += Glob('../common/lwip/netbios.c')
+if('LWIP' in MODULES):
     if(os.name == 'nt'):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 

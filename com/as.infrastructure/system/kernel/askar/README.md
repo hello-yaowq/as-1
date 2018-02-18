@@ -33,4 +33,11 @@ freertos way is good as I think, but toppers 1/2 MAX of counter value way is als
 
 * But with idle task, there is a sacrifice of the real time as need to save the context of idle task and then switch to new high ready task, so this idle task is really optional.
 
+### posix interface
+
+* 1. pthread
+* 2. semphore
+* 3. mqueue
+
+
  

@@ -69,7 +69,7 @@ config STMO
 	  This driver is used to simulate the step motor which if usually used by
 	  instrument cluster as gauge pointer.
 
-config LWIP
+config LWIP_DRV
 	bool "LWIP driver"
 	default y
 

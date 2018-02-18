@@ -40,7 +40,7 @@ MODULES = ['ECUM','SCHM','MCU',
 ARCH='posix'
 arch='posix'
 
-MODULES += ['SOAD','DOIP','LWIP']
+MODULES += ['SOAD','DOIP','LWIP','LWIP_POSIX_ARCH']
 
 MODULES += ['FATFS','LWEXT4','VFS','FTP']
 

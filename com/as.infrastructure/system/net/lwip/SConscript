@@ -5,16 +5,25 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 ASROOT = asenv['ASROOT']
+MODULES=asenv['MODULES']
 
 download = '%s/release/download'%(ASROOT)
 lwip='%s/lwip'%(download)
+lwipc='%s/lwip-contrib'%(download)
 
 if(not os.path.exists(lwip)):
     MKDir(download)
     RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip.git && 
         cd lwip && git checkout STABLE-1_4_1'''%(download))
 
+if(not os.path.exists(lwipc)):
+    MKDir(download)
+    RunCommand('''cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && 
+        cd lwip-contrib && git checkout STABLE-1_4_1'''%(download))
+    RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
+
 MKSymlink(lwip,'%s/lwip'%(cwd))
+MKSymlink(lwipc,'%s/lwip-contrib'%(cwd))
 
 objs = []
 
@@ -28,6 +37,14 @@ objs += Glob('lwip/src/netif/ppp/*.c')
 asenv.Append(CPPPATH = ['%s/lwip/src/include'%(cwd)])
 asenv.Append(CPPPATH = ['%s/lwip/src/include/ipv4'%(cwd)])
 asenv.Append(CPPDEFINES = 'USE_LWIP')
+
+if('LWIP_POSIX_ARCH' in MODULES):
+    asenv.Append(CPPPATH=[cwd])
+    objs += Glob('lwip-contrib/ports/unix/sys_arch.c')
+    MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
+              '%s/lwip_sys_arch.h'%(cwd))
+    objs += Glob('lwip-contrib/apps/httpserver/*.c')
+    asenv.Append(CPPDEFINES='LWIP_POSIX_ARCH')
 
 if(os.getenv('LWIP_DEBUG')=='yes'):
     asenv.Append(CPPDEFINES = '-DLWIP_DEBUG=1')

@@ -31,12 +31,8 @@
  */
 #ifndef __SYS_ARCH_H__
 #define __SYS_ARCH_H__
-#include "Os.h"
 #include "Std_Types.h"
 /* define LWIP_POSIX_ARCH to disable osek base lwip sys arch, use the original unix posix based one */ 
-#ifdef __SMALL_OS__
-#define LWIP_POSIX_ARCH
-#endif
 #ifndef LWIP_POSIX_ARCH
 
 #define SYS_MBOX_NULL 0
