@@ -16,11 +16,53 @@
 #include "semaphore.h"
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
+#include <stdlib.h>
+#include <stdarg.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+/* this type is for named semaphore */
+struct semaphore
+{
+	sem_t sem;
+	unsigned int refcount;
+	unsigned int unlinked;
+	char* name;
+	TAILQ_ENTRY(semaphore) entry;
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+static TAILQ_HEAD(semaphore_list, semaphore) OsSemaphoreList = TAILQ_HEAD_INITIALIZER(OsSemaphoreList);
 /* ============================ [ LOCALS    ] ====================================================== */
+static struct semaphore * sem_find(const char *name)
+{
+	struct semaphore *sem = NULL;
+
+	TAILQ_FOREACH(sem, &OsSemaphoreList, entry)
+	{
+		if(0u == strcmp(sem->name, name))
+		{
+			break;
+		}
+	}
+
+	return sem;
+}
+
+static struct semaphore * sem_find2(struct semaphore *sem2)
+{
+	struct semaphore *sem = NULL;
+
+	TAILQ_FOREACH(sem, &OsSemaphoreList, entry)
+	{
+		if(sem == sem2)
+		{
+			break;
+		}
+	}
+
+	return sem;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int sem_init(sem_t *sem, int pshared, unsigned int value)
 {
@@ -101,5 +143,100 @@ int sem_post(sem_t *sem)
 
 	return ercd;
 }
+
+sem_t *sem_open(const char *name, int oflag, ...)
+{
+	imask_t imask;
+	struct semaphore *sem = NULL;
+	va_list arg;
+	mode_t mode;
+	unsigned int value;
+
+	asAssert(name != NULL);
+
+	Irq_Save(imask);
+	sem = sem_find(name);
+	Irq_Restore(imask);
+
+	if( (NULL == sem) && (0 != (oflag & O_CREAT)))
+	{
+		va_start(arg, oflag);
+		mode = (mode_t)va_arg(arg, mode_t);
+		mode = mode;
+		value = (unsigned int)va_arg(arg, unsigned int);
+		va_end(arg);
+
+		sem = malloc(sizeof(struct semaphore) + strlen(name)+1);
+		sem->name = (char*)&sem[1];
+		strcpy(sem->name, name);
+		sem->refcount = 0;
+		sem->unlinked = 0;
+		Irq_Save(imask);
+		/* no consideration of the sem_create race condition,
+		 * so just assert if such condition */
+		asAssert(NULL == sem_find(name));
+		TAILQ_INSERT_TAIL(&OsSemaphoreList, sem, entry);
+		Irq_Restore(imask);
+	}
+
+	if(NULL != sem)
+	{
+		Irq_Save(imask);
+		sem->refcount++;
+		Irq_Restore(imask);
+	}
+
+	return &(sem->sem);
+}
+
+int     sem_close(sem_t* sem2)
+{
+	int ercd = 0;
+	imask_t imask;
+	struct semaphore *sem;
+
+	Irq_Save(imask);
+	sem = sem_find2((struct semaphore *)sem2);
+	if((NULL != sem) && (sem->refcount > 0))
+	{
+		sem->refcount --;
+		if((0 == sem->refcount) &&  (sem->unlinked))
+		{
+			TAILQ_REMOVE(&OsSemaphoreList, sem, entry);
+			free(sem);
+		}
+	}
+	else
+	{
+		ercd = -EACCES;
+	}
+	Irq_Restore(imask);
+
+	return ercd;
+}
+
+int     sem_unlink(const char *name)
+{
+	int ercd = 0;
+	imask_t imask;
+	struct semaphore *sem;
+
+	Irq_Save(imask);
+	sem = sem_find(name);
+	if(NULL != sem)
+	{
+		sem->unlinked = 1;
+		if(0 == sem->refcount)
+		{
+			TAILQ_REMOVE(&OsSemaphoreList, sem, entry);
+			free(sem);
+		}
+	}
+	Irq_Restore(imask);
+
+	return ercd;
+
+}
+
 #endif /* OS_PTHREAD_NUM > 0 */
 
