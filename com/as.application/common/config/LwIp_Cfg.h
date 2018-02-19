@@ -73,6 +73,8 @@
 #define SNMP_MIB_DEBUG                  LWIP_DBG_ON
 #define DNS_DEBUG                       LWIP_DBG_ON
 #endif
+
+#define LWIP_COMPAT_SOCKETS 0
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef __WINDOWS__
 #include <errno.h>

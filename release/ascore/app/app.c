@@ -31,6 +31,7 @@
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
+#include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
@@ -377,7 +378,7 @@ ProtectionReturnType ProtectionHook(StatusType FatalError)
 
 void __error__(char *pcFilename, unsigned long ulLine)
 {
-	printf(" error @ %d of %s\n",ulLine,pcFilename);
+	printf(" error @ %d of %s\n",(int)ulLine,pcFilename);
 }
 
 #if 1
@@ -391,7 +392,11 @@ void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
 void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
 void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
 void _read(void) { printf("%s\n",__func__); asAssert(0); }
+#ifdef __LINUX__
+int __weak gettimeofday (struct timeval *tp, struct timezone *tzp)
+#else
 int __weak gettimeofday (struct timeval *tp, void *tzp)
+#endif
 {
 	if(tp != NULL)
 	{
