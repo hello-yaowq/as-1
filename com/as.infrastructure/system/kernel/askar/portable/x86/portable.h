@@ -22,7 +22,7 @@
 /* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
 #define LDT_SIZE		2
 /* GDT and IDT size */
-#define GDT_SIZE (INDEX_LDT_FIRST+TASK_NUM)
+#define GDT_SIZE (INDEX_LDT_FIRST+TASK_NUM+OS_PTHREAD_NUM)
 #define IDT_SIZE 256
 
 #define EnterISR()			 \

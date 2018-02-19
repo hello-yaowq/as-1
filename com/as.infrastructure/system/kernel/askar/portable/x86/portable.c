@@ -96,7 +96,7 @@ void Os_PortInit(void)
 {
 	int i;
 	uint16_t selector_ldt = INDEX_LDT_FIRST << 3;
-	for(i=0;i<TASK_NUM;i++){
+	for(i=0;i<TASK_NUM+OS_PTHREAD_NUM;i++){
 		asAssert((selector_ldt>>3) < GDT_SIZE);
 		init_descriptor(&gdt[selector_ldt>>3],
 				vir2phys(seg2phys(SELECTOR_KERNEL_DS), TaskVarArray[i].context.ldts),

@@ -311,3 +311,7 @@ versatilepb.s19
 .config.old
 com/as.infrastructure/system/fs/libelf/libelf
 com/as.infrastructure/clib/newlib/newlib
+com/as.infrastructure/system/net/lwip/lwip-contrib
+com/as.infrastructure/system/net/lwip/lwip_sys_arch.h
+x86
+aself.lds

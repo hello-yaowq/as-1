@@ -143,6 +143,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		pTaskConst->name = "pthread";
 		#ifdef MULTIPLY_TASK_ACTIVATION
 		pTaskConst->maxActivation = 1;
+		pTaskVar->activation = 1;
 		#endif
 		pTaskVar->state = READY;
 		memset(pTaskConst->pStack, 0, pTaskConst->stackSize);
