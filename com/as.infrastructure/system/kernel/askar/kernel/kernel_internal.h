@@ -268,7 +268,7 @@ typedef struct TaskVar
 	#ifdef MULTIPLY_TASK_ACTIVATION
 	uint8 activation;
 	#endif
-	StatusType state;
+	volatile StatusType state;
 	ResourceType currentResource;
 	#ifdef USE_SHELL
 	uint32 actCnt;

@@ -6,7 +6,7 @@ config LWIP
 
 if !RTTHREAD
 choice
-	prompt "Schedule Policy"
+	prompt "LWIP arch"
 	default LWIP_POSIX_ARCH if PTHREAD
 	default LWIP_OSEK_ARCH  if !PTHREAD
 

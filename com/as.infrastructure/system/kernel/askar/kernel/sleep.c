@@ -22,6 +22,8 @@
 #ifndef USECONDS_PER_TICK
 #define USECONDS_PER_TICK (10000000/OS_TICKS_PER_SECOND)
 #endif
+
+#define AS_LOG_OS 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -115,6 +117,7 @@ void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks)
 	}
 
 	pTaskVar->sleep_tick = ticks;
+	asAssert(0u == (pTaskVar->state&PTHREAD_STATE_SLEEPING));
 	pTaskVar->state |= PTHREAD_STATE_SLEEPING;
 
 	if(NULL != pPosVar)
@@ -150,7 +153,8 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		}
 		else
 		{
-			ercd = -ETIMEDOUT;
+			/* no "-" for lwip ports/unix/sys_arch.c line 396 */
+			ercd = ETIMEDOUT;
 		}
 	}
 	else
@@ -166,22 +170,17 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		Sched_GetReady();
 		Os_PortDispatch();
 
-		if(NULL != abstime)
-		{
-			if(RunningVar->state&PTHREAD_STATE_WAITING)
-			{	/* this is timeout */
-				RunningVar->state &= ~PTHREAD_STATE_WAITING;
-				TAILQ_REMOVE(list, RunningVar, entry);
-				ercd = -ETIMEDOUT;
-			}
-			else if(RunningVar->state&PTHREAD_STATE_SLEEPING)
-			{	/* event reached before timeout */
-				Os_SleepRemove(RunningVar);
-			}
-			else
-			{
-				/* do nothing */
-			}
+		if(RunningVar->state&PTHREAD_STATE_SLEEPING)
+		{	/* event reached before timeout */
+			Os_SleepRemove(RunningVar);
+		}
+
+		if(RunningVar->state&PTHREAD_STATE_WAITING)
+		{	/* this is timeout */
+			RunningVar->state &= ~PTHREAD_STATE_WAITING;
+			TAILQ_REMOVE(list, RunningVar, entry);
+			/* no "-" for lwip ports/unix/sys_arch.c line 396 */
+			ercd = ETIMEDOUT;
 		}
 	}
 

@@ -637,20 +637,6 @@ void SoAd_MainFunction(void)
 	}
 }
 
-#ifdef LWIP_POSIX_ARCH
-void* SoAd_Thread(void* p)
-{
-	ASLOG(ON, "SoAd Posix Thread daemon is running!\n");
-	for(;;)
-	{
-		SoAd_MainFunction();
-		usleep(SCHM_MAIN_FUNCTION_PERIOD*SCHM_MAINFUNCTION_CYCLE_SOAD*1000);
-	}
-
-	return NULL;
-}
-#endif
-
 /** @req SOAD209 */
 void SoAd_Cbk_LocalIpAssignmentChg( uint8 Index, boolean Valid, SoAd_SockAddrType Address ) {
 	// NOTE: use Index (and make sure it's valid)
@@ -813,9 +799,6 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 void TcpIp_Init(void)
 {
     LwIP_Init();
-#ifdef LWIP_POSIX_ARCH
-    pthread_create(NULL, NULL, SoAd_Thread, NULL);
-#endif
 }
 
 

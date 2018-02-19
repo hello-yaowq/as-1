@@ -90,6 +90,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(NULL != pTaskVar)
 	{
+		memset(pTaskVar, 0, sizeof(TaskVarType));
 		if((NULL != attr) && (NULL != attr->stack_base))
 		{	/* to create it totally static by using stack to allocate pthread */
 			pthread = (pthread_t)attr->stack_base;
@@ -143,6 +144,8 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		#ifdef MULTIPLY_TASK_ACTIVATION
 		pTaskConst->maxActivation = 1;
 		#endif
+		pTaskVar->state = READY;
+		memset(pTaskConst->pStack, 0, pTaskConst->stackSize);
 
 		pTaskVar->pConst = pTaskConst;
 		pTaskVar->priority = pTaskConst->initPriority;

@@ -26,7 +26,7 @@ static const char* statsNames[] =
 	"SUSPENDED",
 	"RUNNING",
 	"READY",
-	"WAITING",
+	"WAITING"
 };
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -53,6 +53,20 @@ static const char* taskStateToString(TaskStateType state)
 	if((state&OSEK_TASK_STATE_MASK) < sizeof(statsNames)/sizeof(char*))
 	{
 		p = statsNames[state&OSEK_TASK_STATE_MASK];
+	}
+
+	if( (state&(PTHREAD_STATE_SLEEPING|PTHREAD_STATE_WAITING))
+			== (PTHREAD_STATE_SLEEPING|PTHREAD_STATE_WAITING) )
+	{
+		p = "TIMEDWAIT";
+	}
+	else if(state&PTHREAD_STATE_WAITING)
+	{
+		p = "WAITING";
+	}
+	else if(state&PTHREAD_STATE_SLEEPING)
+	{
+		p = "SLEEPING";
 	}
 
 	return p;
@@ -627,5 +641,20 @@ void statOsTask(void)
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 	}
+
+#if(OS_PTHREAD_NUM > 0)
+	for(id=0; id < OS_PTHREAD_NUM; id++)
+	{
+		pTaskVar   = &TaskVarArray[TASK_NUM+id];
+		pTaskConst = pTaskVar->pConst;
+		if(NULL != pTaskConst)
+		{
+			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X)\n",
+					id, taskStateToString(pTaskVar->state),
+					pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
+					pTaskConst->pStack, pTaskConst->stackSize, pused, used);
+		}
+	}
+#endif
 }
 #endif

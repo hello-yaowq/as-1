@@ -44,9 +44,9 @@
 				/>
 			</ApplicationModeList>
 		</Task>
-				
+		<!-- SchM_BswService Activation must be one if use LWIP_POSIX_ARCH -->
 		<Task Name="SchM_BswService"  
-	    		Activation="5" 
+	    		Activation="1" 
 				Autostart="False" 
 				Priority="8" 
 				Schedule="FULL" 
