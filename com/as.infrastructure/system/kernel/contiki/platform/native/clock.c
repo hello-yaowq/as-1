@@ -36,30 +36,20 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
+#include "Os.h"
 
-#include "sys/clock.h"
-#include <time.h>
-#include <sys/time.h>
-
+extern	TickType				OsTickCounter;
 /*---------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
 {
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  return OsTickCounter;
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
-  struct timeval tv;
-
-  gettimeofday(&tv, NULL);
-
-  return tv.tv_sec;
+  return OsTickCounter/OS_TICKS_PER_SECOND;
 }
 /*---------------------------------------------------------------------------*/
 void

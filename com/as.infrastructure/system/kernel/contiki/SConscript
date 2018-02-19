@@ -1,0 +1,30 @@
+import os
+from building import *
+Import('asenv')
+ASROOT = asenv['ASROOT']
+cwd = GetCurrentDir()
+
+protothread='%s/release/download/contiki'%(ASROOT)
+if(not os.path.exists(protothread)):
+    RunCommand('''cd %s/release/download && 
+        git clone https://github.com/contiki-os/contiki.git; &&
+        cd contiki;git checkout 3.x &&
+        sed -i "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, " process.h'''%(asenv['ASROOT']))
+
+MKSymlink('%s/release/download/contiki/core/sys'%(asenv['ASROOT']),'%s/core/sys'%(cwd))
+MKSymlink('%s/release/download/contiki/core/lib'%(asenv['ASROOT']),'%s/core/lib'%(cwd))
+
+
+asenv.Append(CPPPATH=['%s/core'%(protothread),'%s/include'%cwd,
+                      '%s/platform/native'%cwd])
+
+asenv.Append(CPPDEFINES=['USE_PROTOTHREAD'])
+
+objs= []
+
+for obj in ['core/sys/pro*.c','core/sys/*timer.c','core/sys/autostart.c',
+            'core/lib/list.c',
+            'platform/native/*.c','core/*.c']:
+    objs += Glob(obj)
+
+Return('objs')

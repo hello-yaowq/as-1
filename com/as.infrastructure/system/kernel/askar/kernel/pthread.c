@@ -65,6 +65,13 @@ static void pthread_entry_main(void)
 	pthread_exit(r);
 
 }
+
+static boolean pthread_CheckAccess(ResourceType ResID)
+{
+	(void) ResID;
+	/* not allowd to access any OSEK resource */
+	return FALSE;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
     void *(*start) (void *), void *arg)
@@ -131,6 +138,11 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		pthread->arg = arg;
 		pthread->start = start;
 		pTaskConst->entry = pthread_entry_main;
+		pTaskConst->CheckAccess = pthread_CheckAccess;
+		pTaskConst->name = "pthread";
+		#ifdef MULTIPLY_TASK_ACTIVATION
+		pTaskConst->maxActivation = 1;
+		#endif
 
 		pTaskVar->pConst = pTaskConst;
 		pTaskVar->priority = pTaskConst->initPriority;

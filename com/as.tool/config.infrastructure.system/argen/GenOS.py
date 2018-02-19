@@ -158,7 +158,7 @@ def GenH(gendir,os_list):
             seqShift=i
             break
     fp.write('#define PRIORITY_NUM (OS_PTHREAD_PRIORITY+%s)\n'%(maxPrio))
-    fp.write('#define ACTIVATION_SUM %s\n'%(sumAct+1))
+    fp.write('#define ACTIVATION_SUM (%s+OS_PTHREAD_NUM)\n'%(sumAct+1))
     if(multiPrio):
         fp.write('#define MULTIPLY_TASK_PER_PRIORITY\n')
         fp.write('#define SEQUENCE_MASK 0x%Xu\n'%(seqMask))

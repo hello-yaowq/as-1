@@ -18,17 +18,25 @@ As below picture shows, it was an virtual cluster based on AUTOSAR and can be si
 * System: EcuM SchM
 * Memory: Fls Fee Eep Ea NvM MemIf
 
-### 2. OS 
+### 2. OS [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) - [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html)
+This RTOS ASKAR is designed according to [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) by taking a reference of a lot of other open source RTOS, generally, the bwlow is the list:
+
 * [toppers_osek](https://www.toppers.jp/osek-os.html)
 * [FreeOSEK](http://opensek.sourceforge.net/)
 * [FreeRTOS](http://www.freertos.org/)
 * [ucos ii](https://www.micrium.com/)
 * [toppers-atk2](https://www.toppers.jp/atk2.html)
-* [small](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/small) : this OS is developed by me, OSEK BCC1 conformed
 * [contiki](http://contiki-os.org/)
 * [trampoline](https://github.com/TrampolineRTOS/trampoline)
 * [rtthread](https://github.com/RT-Thread/rt-thread)
-* [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) : [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html) designed by me, [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) confirmed and a light weight posix thread interface based on it.
+
+For the purpose that to able to run most of the common applications which are based on posix, a series of posix APIs have been implemented based on the ASKAR OSEK tiny core.
+
+* posix threads
+* posix semaphore
+* posix mutex and condition
+* posix message queue
+
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.

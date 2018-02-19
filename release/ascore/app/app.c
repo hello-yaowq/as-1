@@ -35,7 +35,6 @@
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-
 #ifdef USE_CPLUSPLUS
 extern void cppapp_start(void);
 #endif
@@ -239,6 +238,66 @@ ALARM(AlarmApp)
 	OsActivateTask(TaskApp);
 }
 
+//#define PROTOTHREAD_TEST
+#if defined(USE_PROTOTHREAD) && defined(PROTOTHREAD_TEST)
+PROCESS(protoDemoProductProc,"protoDemoProductProc");
+PROTO_AUTOSTART_PROCESS_EXPORT(protoDemoProductProc);
+/* each bit means a product */
+uint32_t buffer = 0;
+#define NUM_ITEMS 10000
+
+static struct pt_sem mutex, full, empty;
+
+PROCESS_THREAD(protoDemoProductProc, ev, data)
+{
+	static int produced;
+	struct etimer et;
+	PROCESS_BEGIN();
+	PROCESS_SEM_INIT(&mutex, 1);
+	PROCESS_SEM_INIT(&full, 0);
+	PROCESS_SEM_INIT(&empty, 32);
+	etimer_set(&et,OS_TICKS_PER_SECOND);
+	PROCESS_YIELD();
+	for(produced = 0; produced < NUM_ITEMS; ++produced) {
+
+		PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_TIMER);
+		PROCESS_SEM_WAIT(&empty);
+
+		PROCESS_SEM_WAIT(&mutex);
+		asAssert(0 == (buffer&(1<<(produced%32))));
+		buffer |= 1<<(produced%32);
+		printf("-->%d : %d\n", produced, produced%32);
+		PROCESS_SEM_SIGNAL(&mutex);
+
+		PROCESS_SEM_SIGNAL(&full);
+	}
+	PROCESS_END();
+}
+
+PROCESS(protoDemoConsumerProc,"protoDemoConsumerProc");
+PROTO_AUTOSTART_PROCESS_EXPORT(protoDemoConsumerProc);
+
+PROCESS_THREAD(protoDemoConsumerProc, ev, data)
+{
+	static int consumed;
+	PROCESS_BEGIN();
+	PROCESS_YIELD();
+	for(consumed = 0; consumed < NUM_ITEMS; ++consumed) {
+
+		PROCESS_SEM_WAIT(&full);
+
+		PROCESS_SEM_WAIT(&mutex);
+		asAssert(buffer&(1<<(consumed%32)));
+		buffer &= ~(1<<(consumed%32));
+		printf("<--%d : %d\n", consumed, consumed%32);
+		PROCESS_SEM_SIGNAL(&mutex);
+
+		PROCESS_SEM_SIGNAL(&empty);
+	}
+	PROCESS_END();
+}
+#endif
+
 void ErrorHook(StatusType ercd)
 {
 
@@ -332,6 +391,14 @@ void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
 void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
 void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
 void _read(void) { printf("%s\n",__func__); asAssert(0); }
+int __weak gettimeofday (struct timeval *tp, void *tzp)
+{
+	if(tp != NULL)
+	{
+		tp->tv_usec = 0;
+		tp->tv_sec =  0;
+	}
 
-void _gettimeofday(void) {  }
+	return 0;
+}
 #endif

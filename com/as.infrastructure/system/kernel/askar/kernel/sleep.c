@@ -17,6 +17,7 @@
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
 #include <unistd.h>
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef USECONDS_PER_TICK
 #define USECONDS_PER_TICK (10000000/OS_TICKS_PER_SECOND)
@@ -128,6 +129,7 @@ void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks)
 
 void Os_SleepRemove(TaskVarType* pTaskVar)
 {
+	pTaskVar->state &= ~PTHREAD_STATE_SLEEPING;
 	TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
 }
 
@@ -140,6 +142,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		if((abstime->tv_sec != 0) || (abstime->tv_nsec != 0))
 		{
 			/* do wait event of list with timeout */
+			asAssert(0u == (RunningVar->state&PTHREAD_STATE_WAITING));
 			RunningVar->state |= PTHREAD_STATE_WAITING;
 			TAILQ_INSERT_TAIL(list, RunningVar, entry);
 
@@ -153,6 +156,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 	else
 	{
 		/* do wait event of list forever*/
+		asAssert(0u == (RunningVar->state&PTHREAD_STATE_WAITING));
 		RunningVar->state |= PTHREAD_STATE_WAITING;
 		TAILQ_INSERT_TAIL(list, RunningVar, entry);
 	}
@@ -166,6 +170,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		{
 			if(RunningVar->state&PTHREAD_STATE_WAITING)
 			{	/* this is timeout */
+				RunningVar->state &= ~PTHREAD_STATE_WAITING;
 				TAILQ_REMOVE(list, RunningVar, entry);
 				ercd = -ETIMEDOUT;
 			}

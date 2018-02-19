@@ -18,6 +18,9 @@
 #include "Std_Types.h"
 #include "Os_Cfg.h"
 #include "ksm_cfg.h"
+#ifdef USE_PROTOTHREAD
+#include "contiki.h"
+#endif
 
 /* ============================ [ MACROS    ] ====================================================== */
 #if !defined(__FREERTOS__)

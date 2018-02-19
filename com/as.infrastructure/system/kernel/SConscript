@@ -23,4 +23,8 @@ elif('TOPPERS_OSEK' in MODULES):
     objs += SConscript('toppers_osek/SConscript')
 else:
     assert(0)
+
+if('PROTOTHREAD' in MODULES):
+    objs += SConscript('contiki/SConscript')
+
 Return('objs')

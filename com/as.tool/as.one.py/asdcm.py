@@ -411,7 +411,7 @@ class UIRoutineControl(QGroupBox):
 
         res = Dcm_TransmitMessage(data.toarray()) 
         if(res==None):return
-        if(res[0]!=0x71):
+        if(res.toarray()[0]!=0x71):
             QMessageBox(QMessageBox.Critical, 'Error', 'SRI Start Failed!  %s.'%(Dcm_GetLastError())).exec_();
         else:
             self.leResult.setText('Please Click Button \'Result\' to Read the Result.')

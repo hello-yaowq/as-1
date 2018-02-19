@@ -126,15 +126,19 @@ TimerType GetTimer(TimerType* timer)
 #ifndef __POSIX_OSAL__
 TASK(TaskIdle)
 {
-	OS_TASK_BEGIN();
-
-#if !defined(__SMALL_OS__) && !defined(__CONTIKI_OS__)
+#if !defined(__SMALL_OS__)
 	ASLOG(STDOUT,"TaskIdle is running\n");
+#ifdef USE_PROTOTHREAD
+	ASLOG(STDOUT,"Schedule Contiki in TaskIdle\n");
+	StartContiki();
+#endif
 	for(;;)
 	{
 #endif
 		KSM_EXECUTE();
-
+#ifdef USE_PROTOTHREAD
+		ScheduleContiki();
+#endif
 #if defined(__FREEOSEK__) \
 	|| defined(__UCOSII_OS__) \
 	|| defined(__RTTHREAD_OS__) \
@@ -142,11 +146,9 @@ TASK(TaskIdle)
 		(void)Schedule();
 #endif
 
-#if !defined(__SMALL_OS__) && !defined(__CONTIKI_OS__)
+#if !defined(__SMALL_OS__)
 	}
 #endif
-
-	OS_TASK_END();
 }
 #endif /* __POSIX_OSAL__ */
 

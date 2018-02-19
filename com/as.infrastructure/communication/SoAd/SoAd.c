@@ -20,7 +20,7 @@
 #include "PduR_SoAd.h"
 #include "TcpIp.h"
 #include "Bsd.h"
-//#include "SchM_SoAd.h"
+#include "SchM_cfg.h"
 #include "MemMap.h"
 
 #include "Det.h"
@@ -31,6 +31,11 @@
 #include "UdpNm.h"
 #endif
 #include "asdebug.h"
+
+#ifdef LWIP_POSIX_ARCH
+#include "pthread.h"
+#include <unistd.h>
+#endif
 
 #define AS_LOG_SOAD 0
 
@@ -632,6 +637,19 @@ void SoAd_MainFunction(void)
 	}
 }
 
+#ifdef LWIP_POSIX_ARCH
+void* SoAd_Thread(void* p)
+{
+	ASLOG(ON, "SoAd Posix Thread daemon is running!\n");
+	for(;;)
+	{
+		SoAd_MainFunction();
+		usleep(SCHM_MAIN_FUNCTION_PERIOD*SCHM_MAINFUNCTION_CYCLE_SOAD*1000);
+	}
+
+	return NULL;
+}
+#endif
 
 /** @req SOAD209 */
 void SoAd_Cbk_LocalIpAssignmentChg( uint8 Index, boolean Valid, SoAd_SockAddrType Address ) {
@@ -795,6 +813,9 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 void TcpIp_Init(void)
 {
     LwIP_Init();
+#ifdef LWIP_POSIX_ARCH
+    pthread_create(NULL, NULL, SoAd_Thread, NULL);
+#endif
 }
 
 

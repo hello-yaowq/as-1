@@ -12,7 +12,6 @@ if NOT EXIST "%ASPATH%\Console.bat" goto perror
 if NOT EXIST %MSYS2%\usr\bin goto install_msys2
 
 set PATH=C:\Anaconda3;C:\Python27;%MSYS2%\mingw64\bin;%MSYS2%\usr\bin;%MSYS2%\mingw32\bin;%PATH%
-set BOARD=posix
 
 if NOT EXIST "%ASPATH%\release\download" mkdir %ASPATH%\release\download
 

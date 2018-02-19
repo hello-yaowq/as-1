@@ -47,6 +47,10 @@ config TOPPERS_OSEK
 
 endchoice
 
+config PROTOTHREAD
+	bool "protothread(or named coroutine)"
+	default y
+
 if ASKAR
 source "$ASROOT/com/as.infrastructure/system/kernel/askar/Kconfig"
 endif
