@@ -484,7 +484,10 @@ class Qemu():
             cmd = '%s -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], candrvsrc, candrvtgt)
             MKObject(candrvsrc, candrvtgt, cmd)
             # try default install location of qemu
-            qemu = '%s/qemu-system-%s'%(Env['CONFIGS']['MSYS2_GCC_PATH'],self.arch)
+            try:
+                qemu = '%s/qemu-system-%s'%(Env['CONFIGS']['MSYS2_GCC_PATH'],self.arch)
+            except:
+                qemu = '%s/qemu-system-%s'%(Env['CC'][:-3],self.arch)
             if(not os.path.exists(qemu+'.exe')):
                 qemu = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
         else:
@@ -532,7 +535,10 @@ class Qemu():
         print('Create a New DiskImg "%s"!'%(file))
         if(os.name == 'nt'):
             # try default install location of qemu
-            qemuimg = '%s/qemu-img'%(Env['CONFIGS']['MSYS2_GCC_PATH'])
+            try:
+                qemuimg = '%s/qemu-img'%(Env['CONFIGS']['MSYS2_GCC_PATH'])
+            except:
+                qemuimg = '%s/qemu-img'%(Env['CC'][:-3])
             if(not os.path.exists(qemuimg+'.exe')):
                 qemuimg = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/qemu-img'%(ASROOT)
         else:

@@ -2,7 +2,7 @@
 
 <AUTOSAR>
 <OS>
-<General Comment="*" Conformance="ECC1" ErrorHook="ErrorHook" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" Status="ECC1" />
+<General Comment="*" Conformance="ECC1" ErrorHook="ErrorHook" PTHREAD="0" PTHREAD_PRIORITY="32" PostTaskHook="PostTaskHook" PreTaskHook="PreTaskHook" ProtectionHook="NULL" ShutdownHook="ShutdownHook" StartupHook="StartupHook" Status="EXTENDED" />
 <ApplicationModeList Max="TBD" />
 <ApplicationList Max="TBD" />
 <TaskList Max="TBD" />

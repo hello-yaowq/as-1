@@ -9,8 +9,10 @@
 		PreTaskHook="Text Default=PreTaskHook Comment=(if NULL,no PreTaskHook) PosGUI=4"
 		PostTaskHook="Text Default=PostTaskHook Comment=(if NULL,no PostTaskHook) PosGUI=5"
 		Conformance="Enum=(BCC1,BCC2,ECC1,ECC2) Default=ECC1 PosGUI=6"
-		Status="Enum=(STANDARD,EXTENDED) Default=ECC1 PosGUI=7"
-		Comment="TextArea Default=* PosGUI=8"
+		Status="Enum=(STANDARD,EXTENDED) Default=EXTENDED PosGUI=7"
+		PTHREAD="Integer Range=0~255 Default=0 Comment=(the maxmium pthreads can be created) PosGUI=8"
+		PTHREAD_PRIORITY="Integer Range=0~255 Comment=(the priority range for pthreads) Default=32 PosGUI=9"
+		Comment="TextArea Default=* PosGUI=10"
 	/>
 	<ApplicationModeList Max="32">
 		<ApplicationMode 
