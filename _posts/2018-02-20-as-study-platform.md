@@ -80,7 +80,7 @@ Generally it's better to remove the previous config by command "rm .config" when
 
 ## 3.3 do AUTOSAR config by command "scons studio"
 
-* Note: The OS panel is currently not supported, for the OS configuration, it's by xml, you can check the xml files under directory "/as/release/ascore/build/$BOARD/config" for how to add a Task/Alarm/Counter/Resource etc.
+* Note: The OS panel is an additional OS configuration to the *.xml OS configuration, you can check the xml files under directory "/as/release/ascore/build/$BOARD/config" for how to add a Task/Alarm/Counter/Resource etc by new a xml or use the OS panel to do OS configuration.
 
 Generally you can leave it as default.
 
