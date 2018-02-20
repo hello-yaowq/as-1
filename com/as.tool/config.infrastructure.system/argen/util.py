@@ -59,5 +59,4 @@ def ScanXML(gendir,tag):
                         else:
                             for ss in sub:
                                 OsAppend(a_list, ss)
-                        
     return a_list

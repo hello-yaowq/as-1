@@ -62,3 +62,9 @@ void LeaveISR(void)
 {
 	/* do nothing */
 }
+
+void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+{
+	void* sp = pTaskVar->context.sp;
+	/* TODO: how to modify the task saving context to install the handler */
+}

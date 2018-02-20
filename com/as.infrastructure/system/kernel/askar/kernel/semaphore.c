@@ -97,7 +97,6 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 {
 	int ercd = 0;
 	imask_t imask;
-	TaskVarType* pTaskVar;
 
 	Irq_Save(imask);
 
@@ -130,7 +129,6 @@ int sem_post(sem_t *sem)
 {
 	int ercd = 0;
 	imask_t imask;
-	TaskVarType* pTaskVar;
 
 	Irq_Save(imask);
 

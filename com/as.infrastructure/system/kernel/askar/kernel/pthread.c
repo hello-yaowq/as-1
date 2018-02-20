@@ -21,15 +21,6 @@
 #include <asdebug.h>
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
-struct pthread
-{
-	TaskConstType TaskConst;
-	TaskVarType* pTaskVar;
-	TaskListType joinList;
-	void *(*start) (void *);
-	void* arg;
-	void* ret;
-};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -153,6 +144,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		Os_PortInitContext(pTaskVar);
 
 		TAILQ_INIT(&pthread->joinList);
+		TAILQ_INIT(&pthread->signalList);
 
 		Irq_Save(imask);
 		if((NULL == attr) || (PTHREAD_CREATE_JOINABLE == attr->detachstate))
@@ -169,7 +161,6 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 void pthread_exit (void *value_ptr)
 {
 	pthread_t tid;
-	TaskVarType *pTaskVar;
 
 	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
 	asAssert((RunningVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
@@ -202,7 +193,6 @@ void pthread_exit (void *value_ptr)
 int pthread_detach(pthread_t tid)
 {
 	int ercd = 0;
-	TaskVarType *pTaskVar;
 	imask_t imask;
 
 	asAssert(tid);
@@ -230,7 +220,6 @@ int pthread_detach(pthread_t tid)
 int pthread_join(pthread_t tid, void ** thread_return)
 {
 	int ercd = 0;
-	TaskVarType *pTaskVar;
 	imask_t imask;
 
 	asAssert(tid);
@@ -301,7 +290,6 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
 	int ercd = 0;
 	imask_t imask;
-	TaskVarType* pTaskVar;
 
 	Irq_Save(imask);
 
@@ -362,8 +350,6 @@ int pthread_cond_destroy(pthread_cond_t *cond)
 
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
-	TaskVarType* pTaskVar;
-	TaskVarType *pNext;
 	imask_t imask;
 
 	Irq_Save(imask);
@@ -382,7 +368,6 @@ int pthread_cond_signal(pthread_cond_t *cond)
 {
 	int ercd = 0;
 	imask_t imask;
-	TaskVarType* pTaskVar;
 
 	Irq_Save(imask);
 
@@ -407,7 +392,6 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 {
 	int ercd = 0;
 	imask_t imask;
-	TaskVarType* pTaskVar;
 	TickType ticks;
 
 	asAssert(mutex->locked);

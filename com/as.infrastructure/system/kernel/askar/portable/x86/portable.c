@@ -220,3 +220,9 @@ int ffs(int v)
 
 	return r;
 }
+
+void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+{
+	/* TODO: not implemented */
+	asAssert(0);
+}

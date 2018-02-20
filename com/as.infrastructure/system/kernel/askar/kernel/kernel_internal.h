@@ -319,6 +319,18 @@ typedef struct
 	const uint8 max;
 	TaskType* pFIFO;
 } ReadyFIFOType;
+
+struct signal;
+struct pthread
+{
+	TaskConstType TaskConst;
+	TaskVarType* pTaskVar;
+	TaskListType joinList;
+	TAILQ_HEAD(signal_list, signal) signalList;
+	void *(*start) (void *);
+	void* arg;
+	void* ret;
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern TaskVarType* RunningVar;
@@ -355,7 +367,8 @@ extern void Os_SleepInit(void);
 extern void Os_SleepTick(void);
 extern void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks);
 extern void Os_SleepRemove(TaskVarType* pTaskVar);
-int Os_ListWait(TaskListType* list, const struct timespec *abstime);
-int Os_ListPost(TaskListType* list, boolean schedule);
+extern int Os_ListWait(TaskListType* list, const struct timespec *abstime);
+extern int Os_ListPost(TaskListType* list, boolean schedule);
+extern void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler);
 #endif
 #endif /* KERNEL_INTERNAL_H_ */
