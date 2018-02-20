@@ -216,7 +216,6 @@ enum {
 #define PTHREAD_JOINABLE_MASK        0x20
 #define PTHREAD_JOINED_MASK          0x40
 
-#define TIMESPEC_TO_TICKS(ts) ((uint32_t)(ts->tv_sec*1000000 + (uint32_t)ts->tv_nsec/1000 + USECONDS_PER_TICK-1)/USECONDS_PER_TICK)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 

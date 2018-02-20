@@ -20,7 +20,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef USECONDS_PER_TICK
-#define USECONDS_PER_TICK (10000000/OS_TICKS_PER_SECOND)
+#define USECONDS_PER_TICK (1000000/OS_TICKS_PER_SECOND)
 #endif
 
 #define AS_LOG_OS 1
@@ -28,10 +28,15 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static TAILQ_HEAD(sleep_list, TaskVar) OsSleepListHead;
+
+static struct timeval timeofday;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_SleepInit(void)
 {
+	/* TODO: should get timeofday from RTC*/
+	timeofday.tv_sec = 0;
+	timeofday.tv_usec = 0;
 	TAILQ_INIT(&OsSleepListHead);
 }
 void Os_Sleep(TickType tick)
@@ -69,6 +74,15 @@ void Os_SleepTick(void)
 	imask_t imask;
 
 	Irq_Save(imask);
+
+	timeofday.tv_usec += USECONDS_PER_TICK;
+
+	if(timeofday.tv_usec > 1000000)
+	{
+		timeofday.tv_usec -= 1000000;
+		timeofday.tv_sec += 1;
+	}
+
 	pTaskVar = TAILQ_FIRST(&OsSleepListHead);
 
 	while(NULL != pTaskVar)
@@ -136,20 +150,68 @@ void Os_SleepRemove(TaskVarType* pTaskVar)
 	TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
 }
 
+int gettimeofday (struct timeval *tp, void *tzp)
+{
+	if(tp != NULL)
+	{
+		*tp = timeofday;
+	}
+
+	return 0;
+}
+
+TickType GetTimespecLeftTicks(const struct timespec *abstime)
+{
+	TickType ticks;
+	struct timeval tp;
+	time_t sec;
+	long usec;
+
+	tp.tv_sec = abstime->tv_sec;
+	tp.tv_usec = (abstime->tv_nsec+999)/1000;
+
+	usec = tp.tv_usec - timeofday.tv_usec;
+
+	if(tp.tv_sec > timeofday.tv_sec)
+	{
+		sec = tp.tv_sec - timeofday.tv_sec;
+		if(usec < 0)
+		{
+			sec -= 1;
+			usec = 1000000 + usec;
+		}
+	}
+	else if((tp.tv_sec == timeofday.tv_sec) && (usec > 0))
+	{
+		sec = 0;
+	}
+	else
+	{
+		sec = 0;
+		usec = 0;
+	}
+
+	ticks = sec*OS_TICKS_PER_SECOND + (usec/USECONDS_PER_TICK);
+
+	return ticks;
+}
+
 int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 {
 	int ercd = 0;
+	TickType ticks;
 
 	if(NULL != abstime)
 	{
-		if((abstime->tv_sec != 0) || (abstime->tv_nsec != 0))
+		ticks = GetTimespecLeftTicks(abstime);
+		if(ticks > 0)
 		{
 			/* do wait event of list with timeout */
 			asAssert(0u == (RunningVar->state&PTHREAD_STATE_WAITING));
 			RunningVar->state |= PTHREAD_STATE_WAITING;
 			TAILQ_INSERT_TAIL(list, RunningVar, entry);
 
-			Os_SleepAdd(RunningVar, TIMESPEC_TO_TICKS(abstime));
+			Os_SleepAdd(RunningVar, ticks);
 		}
 		else
 		{
