@@ -86,50 +86,6 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 * [lwext4](https://github.com/gkostka/lwext4.git)
 * libelf: an OS independent ELF library for ELF loading&executing.
 
-## 8. Setup Environment
+## 8. Setup Environment and Run
 
-* check the [asenv repository](https://github.com/parai/asenv) for win32 development
-
-* for windows x64, follow below steps
-
-### 8.1 install [python27 64bit](https://www.python.org) as C:\Python27
-
-### 8.2 install [scons 3.0.0 zip](http://scons.org/pages/download.html) for python27
-
-```sh
-cd scons-3.0.0
-C:\Python27\python.exe setup.py install
-```
-
-### 8.3 install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
-
-### 8.4 install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
-
-### 8.5 then run below commands in cmd
-
-```sh
-set PATH=C:\Python27;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
-pacman -Sy
-pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
-pacman -S ncurses-devel gperf scons
-pacman -Syuu
-wget https://pypi.python.org/packages/1f/3b/ee6f354bcb1e28a7cd735be98f39ecf80554948284b41e9f7965951befa6/pyserial-3.2.1.tar.gz#md5=7142a421c8b35d2dac6c47c254db023d
-tar xf pyserial-3.2.1.tar.gz
-cd pyserial-3.2.1
-C:/Anaconda3/python setup.py install
-```
-
-## 9. Build
-
-* launch the [/as/Console.bat](https://github.com/parai/as/blob/master/Console.bat) as Administrator
-
-```sh
-# in the cmd of aslua
-make aslua
-# in the cmd of asboot or ascore
-scons # build, it will hint you the boards supported
-scons run
-scons -c # clean
-# in the cmd of as.one.py
-python main.py
-```
+Check the page [as-study-platform](http://parai.github.io/as/autosar/2018/02/20/as-study-platform.html)

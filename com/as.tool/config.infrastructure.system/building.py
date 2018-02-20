@@ -74,10 +74,10 @@ def PrepareBuilding(env):
         env['python3'] = env['CONFIGS']['PYTHON3_PATH'] + '/python'
         env['python2'] = env['CONFIGS']['PYTHON2_PATH'] + '/python'
         env['python']  = env['CONFIGS']['PYTHON2_PATH'] + '/python'
-        if('MINGW_GCC_PATH' in env['CONFIGS']):
+        if('PLATFORM_MINGW' in env['MODULES']):
             env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
             env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
-        elif('MSYS2_GCC_PATH' in env['CONFIGS']):
+        elif('PLATFORM_MSYS2' in env['MODULES']):
             env['msys2'] = True
             mpath = env['CONFIGS']['MSYS2_GCC_PATH']
             env['CC'] = mpath + '/gcc'
@@ -479,8 +479,12 @@ class Qemu():
     def LocateASQemu(self):
         ASROOT = Env['ASROOT']
         if(os.name == 'nt'):
+            candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
+            candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
+            cmd = '%s -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], candrvsrc, candrvtgt)
+            MKObject(candrvsrc, candrvtgt, cmd)
             # try default install location of qemu
-            qemu = 'C:/msys64/mingw64/bin/qemu-system-%s'%(self.arch)
+            qemu = '%s/qemu-system-%s'%(Env['CONFIGS']['MSYS2_GCC_PATH'],self.arch)
             if(not os.path.exists(qemu+'.exe')):
                 qemu = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
         else:
@@ -502,7 +506,7 @@ class Qemu():
         if(os.name == 'nt'):
             python = 'start ' + python
         if('asone' in COMMAND_LINE_TARGETS):
-            RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,Env['python3']))
+            RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
         if(os.name == 'nt'):
             if(self.isAsQemu):
                 RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
@@ -528,7 +532,7 @@ class Qemu():
         print('Create a New DiskImg "%s"!'%(file))
         if(os.name == 'nt'):
             # try default install location of qemu
-            qemuimg = 'C:/msys64/mingw64/bin/qemu-img'
+            qemuimg = '%s/qemu-img'%(Env['CONFIGS']['MSYS2_GCC_PATH'])
             if(not os.path.exists(qemuimg+'.exe')):
                 qemuimg = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/qemu-img'%(ASROOT)
         else:
@@ -557,7 +561,7 @@ class Qemu():
             RunCommand('%s/msys2_shell.cmd -mingw64 -where %s/com/as.tool/qemu'%(mpath,ASROOT))
             print('please mannuly invoke below comand in the poped up msys2 window:')
             print('\tMINGW_INSTALLS=mingw64 makepkg-mingw -sLf')
-            print('\tpacman -U mingw-w64-x86_64-qemu.pkg.tar.xz')
+            print('\tpacman -U mingw-w64-x86_64-qemu-2.10.0-1-any.pkg.tar.xz')
             print('and then do "scons run" again')
             exit(-1)
         else:
