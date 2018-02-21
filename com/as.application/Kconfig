@@ -1,1 +1,9 @@
 source "$ASROOT/com/as.application/board.$BOARD/Kconfig"
+
+config RTE
+	bool "Run Time Environment"
+	default y if ARCH_POSIX
+
+config RTE_SWC_TELLTALE
+	bool "demo telltale software component"
+	default y if ARCH_POSIX && DIO

@@ -38,7 +38,7 @@ config IPC
 
 config LCD
 	bool "LCD driver"
-	default n
+	default y
 
 choice
 	prompt "LCD simulated by"

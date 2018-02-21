@@ -40,7 +40,9 @@ def XCC(gendir, env=None):
                     fp.write('#ifndef %s\n#define %s "%s"\n#endif\n\n'%(m,m,v))
         fp.write('#endif /* _AS_MCONF_H_ */\n')
         fp.close()
-        return
+        cfgdone = '%s/config.done'%(gendir)
+        if(os.path.exists(cfgdone)):
+            return
     for g in __gen__:
         print('  %s ...'%(g.__name__))
         g(gendir)
