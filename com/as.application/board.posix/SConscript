@@ -57,6 +57,7 @@ MODULES += ['RTE','RTE_SWC_TELLTALE']
 if(cwd.find('travis') != -1):
     # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
     MODULES.remove('LCD')
+    MODULES.remove('FATFS')
 else:
     if(os.getenv('GUI') in ['GTK','OPENVG']):
         MODULES.append(os.getenv('GUI'))

@@ -17,8 +17,13 @@ before_script:
   - "sudo apt-get insatll -qq qemu scons || true"
 
 script:
-  - cd release/ascore && scons posix > /dev/null && scons versatilepb > /dev/null
-  - cd ../../release/asboot && scons posix > /dev/null && scons versatilepb > /dev/null
+  - cd release/ascore
+  - scons posix > /dev/null
+  - scons versatilepb > /dev/null
+  - scons x86 > /dev/null
+  - cd ../../release/asboot
+  - scons posix > /dev/null
+  - scons versatilepb > /dev/null
   - cd ../../release/aslua && make cleanaws && make 91 > /dev/null && make 93 > /dev/null
 #  - cd ../../release/astcpip/lwip && rm ../../download/lwip-contrib -fr && make aslwip > /dev/null && make all > /dev/null
 # - cd ../../../release/aslinux && mkdir build && cd build && ln -fs ../script/vexpress-ca9.mk Makefile && make askernel > /dev/null
