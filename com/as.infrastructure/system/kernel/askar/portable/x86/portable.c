@@ -20,6 +20,7 @@
 
 #define CMD_DISPATCH       0
 #define CMD_START_DISPATCH 1
+#define CMD_EXIT_SIGCALL   2
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -29,8 +30,8 @@ extern void init_descriptor(mmu_descriptor_t * p_desc, uint32_t base, uint32_t l
 extern uint32_t seg2phys(uint16_t seg);
 extern void init_clock(void);
 extern void restart(void);
-extern void dispatch(int cmd);
-static void sys_dispatch(int cmd);
+extern void dispatch(int cmd, void* param);
+static void sys_dispatch(int cmd, void* param);
 
 /* ============================ [ DATAS     ] ====================================================== */
 uint8_t             gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
@@ -48,7 +49,7 @@ void* sys_call_table[] = {
 
 static boolean knl_started = FALSE;
 /* ============================ [ LOCALS    ] ====================================================== */
-static void sys_dispatch(int cmd)
+static void sys_dispatch(int cmd, void* param)
 {
 	imask_t mask;
 
@@ -57,21 +58,30 @@ static void sys_dispatch(int cmd)
 	asAssert(RunningVar);
 	asAssert(ReadyVar);
 
-	if(CMD_START_DISPATCH == cmd)
+	if(CMD_EXIT_SIGCALL == cmd)
 	{
-		/* reinitialize the context as the context modified
-		 * by "save" which is the first action of sys_call */
-		Os_PortInitContext(RunningVar);
+		/* restore signal call */
+		memcpy(&RunningVar->context.regs, param, sizeof(cpu_context_t));
 	}
+	else
+	{
+		if(CMD_START_DISPATCH == cmd)
+		{
+			/* reinitialize the context as the context modified
+			 * by "save" which is the first action of sys_call */
+			Os_PortInitContext(RunningVar);
+		}
 
-	RunningVar = ReadyVar;
-	#ifdef MULTIPLY_TASK_ACTIVATION
-	asAssert(RunningVar->activation > 0);
-	#endif
+		RunningVar = ReadyVar;
+		#ifdef MULTIPLY_TASK_ACTIVATION
+		asAssert(RunningVar->activation > 0);
+		#endif
+	}
 	asAssert(0 == k_reenter);
 
 	Irq_Restore(mask);
 }
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
 {
@@ -134,8 +144,6 @@ void Os_PortInitContext(TaskVarType* pTaskVar)
 	pTaskVar->context.regs.eip	= (uint32_t)Os_PortActivate;
 	pTaskVar->context.regs.esp	= (uint32_t)(pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4);
 	pTaskVar->context.regs.eflags	= eflags;
-
-	pTaskVar->context.regs.eax = (uint32_t)pTaskVar;
 }
 
 void Os_PortSysTick(void)
@@ -158,14 +166,14 @@ void Os_PortStartDispatch(void)
 		restart();
 	}
 
-	dispatch(CMD_START_DISPATCH);
+	dispatch(CMD_START_DISPATCH, NULL);
 	/* should never return */
 	asAssert(0);
 }
 
 void Os_PortDispatch(void)
 {
-	dispatch(CMD_DISPATCH);
+	dispatch(CMD_DISPATCH,NULL);
 }
 void cstart(void)
 {
@@ -221,8 +229,42 @@ int ffs(int v)
 	return r;
 }
 
-void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+#ifdef USE_PTHREAD_SIGNAL
+void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
 {
-	/* TODO: not implemented */
+	asAssert(NULL != handler);
+
+	handler(sig);
+
+	/* restore its previous stack */
+	dispatch(CMD_EXIT_SIGCALL, sp);
+}
+
+void Os_PortExitSignalCall(void)
+{
 	asAssert(0);
 }
+
+void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+{
+	uint32_t* stk;
+	cpu_context_t *regs;
+
+	stk = (void*)pTaskVar->context.regs.esp;
+
+	/* saving previous task context to stack */
+	stk = ((void*)stk) - sizeof(cpu_context_t);
+	memcpy(stk, &pTaskVar->context.regs, sizeof(cpu_context_t));
+
+	*(stk-1) = (uint32_t)stk;
+	--stk;
+	*(--stk) = (uint32_t)handler;
+	*(--stk) = (uint32_t)sig;
+	*(--stk) = (uint32_t)Os_PortExitSignalCall;
+
+	pTaskVar->context.regs.eip = (uint32_t)Os_PortCallSignal;
+	pTaskVar->context.regs.esp = (uint32_t)stk;
+}
+
+#endif /* USE_PTHREAD_SIGNAL */
+

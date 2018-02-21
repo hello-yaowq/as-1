@@ -81,7 +81,7 @@ void Os_PortExitSignalCall(void)
 void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
 	void* sp;
-	uint32* stk;
+	uint32_t* stk;
 
 	sp = pTaskVar->context.sp;
 	stk = sp;
