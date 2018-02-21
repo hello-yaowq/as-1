@@ -49,7 +49,7 @@ endchoice
 
 config PROTOTHREAD
 	bool "protothread(or named coroutine)"
-	default y
+	default y if !ARCH_POSIX
 
 if ASKAR
 source "$ASROOT/com/as.infrastructure/system/kernel/askar/Kconfig"

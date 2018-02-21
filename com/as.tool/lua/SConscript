@@ -12,6 +12,5 @@ objs +=  SConscript('can/SConscript')
 
 if('AWS' in MODULES):
     objs +=  SConscript('device/websock/SConscript')
-    asenv.Append(CCFLAGS='-DUSE_AWS')
 
 Return('objs')

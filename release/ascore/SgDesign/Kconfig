@@ -1,6 +1,7 @@
 choice
 	prompt "SG demo application"
-	default SG_DEMO_WATCH
+	default SG_DEMO_CLUSTER if ARCH_POSIX
+	default SG_DEMO_WATCH if !ARCH_POSIX
 	depends on SG
 
 config SG_DEMO_CLUSTER

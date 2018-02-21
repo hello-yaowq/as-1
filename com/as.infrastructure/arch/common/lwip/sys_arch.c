@@ -548,7 +548,11 @@ tcpip_init_done(void *arg)
 void __weak Ethernet_Configuration(void) {}
 void __weak Set_MAC_Address(uint8_t *macaddress) {}
 void __weak EnableEthDMAIrq(void) {}
+#ifndef __WINDOWS__
 struct netif * __weak LwIP_Init(void)
+#else
+struct netif * LwIP_Init(void)
+#endif
 {
 #ifdef USE_LWIP
 	uint8_t macaddress[6] = ETH_MAC_ADDR;

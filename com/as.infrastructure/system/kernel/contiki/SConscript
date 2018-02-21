@@ -27,4 +27,6 @@ for obj in ['core/sys/pro*.c','core/sys/*timer.c','core/sys/autostart.c',
             'platform/native/*.c','core/*.c']:
     objs += Glob(obj)
 
+SrcRemove(objs, ['rtimer.c'])
+
 Return('objs')

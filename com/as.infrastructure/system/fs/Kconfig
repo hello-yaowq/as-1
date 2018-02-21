@@ -16,7 +16,7 @@ config VFS
 
 config LIBELF
 	bool "Library for manipulating ELF files"
-	depends on VFS
+	depends on VFS && !ARCH_POSIX
 	default y
 
 config LIBDL

@@ -328,10 +328,10 @@ def SrcRemove(src, remove):
 
     for item in src:
         if type(item) == type('str'):
-            if os.path.basename(item) in remove:
+            if(os.path.basename(item) in remove):
                 src.remove(str(item))
         else:
-            if os.path.basename(item.rstr()) in remove:
+            if(os.path.basename(item.rstr()) in remove):
                 src.remove(item)
 
 def RunCommand(cmd):

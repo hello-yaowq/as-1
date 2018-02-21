@@ -91,7 +91,7 @@ if('studio' in COMMAND_LINE_TARGETS):
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CPPPATH=['%s'%(cfgdir)])
 asenv.Append(ASFLAGS='-I%s'%(cfgdir))
-asenv.Append(CCFLAGS='--include %s/asmconfig.h'%(cfgdir))
+asenv.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)

@@ -20,7 +20,7 @@ script:
   - cd release/ascore
   - scons posix > /dev/null
   - scons versatilepb > /dev/null
-  - scons x86 > /dev/null
+#  - scons x86 > /dev/null
   - cd ../../release/asboot
   - scons posix > /dev/null
   - scons versatilepb > /dev/null

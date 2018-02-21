@@ -73,5 +73,9 @@ config LWIP_DRV
 	bool "LWIP driver"
 	default y
 
+config AWS
+	bool "AS remote websock device"
+	default y
+
 endmenu
 endif
