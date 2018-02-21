@@ -16,6 +16,7 @@
 #include "signal.h"
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
+#ifdef USE_PTHREAD_SIGNAL
 #include <stdlib.h>
 #include <stdarg.h>
 #include "asdebug.h"
@@ -45,6 +46,27 @@ static struct signal *lookup_signal(pthread_t tid, int signum)
 	return sig;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
+void Os_FreeSignalHandler(pthread_t tid)
+{
+	struct signal * sig;
+	struct signal * next;
+
+	sig = TAILQ_FIRST(&tid->signalList);
+	while(NULL != sig)
+	{
+		next = TAILQ_NEXT(sig, entry);
+		TAILQ_REMOVE(&tid->signalList, sig, entry);
+		free(sig);
+		sig = next;
+	}
+
+}
+
+void Os_SignalInit(void)
+{
+
+}
+
 int sigfillset (sigset_t *set)
 {
 	*set = (sigset_t)-1;
@@ -95,16 +117,19 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 int pthread_kill (pthread_t tid, int signum)
 {
 	int ercd = 0;
-	struct signal * sig;
+	struct signal * sig = NULL;
 	imask_t imask;
 
 	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
 	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
 	asAssert(tid->pTaskVar != RunningVar);
 
-	Irq_Save(imask);
-	sig = lookup_signal(tid, signum);
-	Irq_Restore(imask);
+	if(NULL != tid->pTaskVar->pConst)
+	{
+		Irq_Save(imask);
+		sig = lookup_signal(tid, signum);
+		Irq_Restore(imask);
+	}
 
 	if(NULL != sig)
 	{
@@ -119,4 +144,5 @@ int pthread_kill (pthread_t tid, int signum)
 
 	return ercd;
 }
+#endif /* USE_PTHREAD_SIGNAL */
 #endif /* OS_PTHREAD_NUM */

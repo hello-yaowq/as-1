@@ -26,4 +26,7 @@ elif('SCHED_LIST' in MODULES):
 elif(os.getenv('SCHED') != None):
     asenv.Append(CPPDEFINES='ENABLE_%s_SCHED'%(os.getenv('SCHED')))
 
+if('PTHREAD_SIGNAL' in MODULES):
+    asenv.Append(CPPDEFINES='USE_PTHREAD_SIGNAL')
+
 Return('objs')

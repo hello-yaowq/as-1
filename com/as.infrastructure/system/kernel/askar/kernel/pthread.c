@@ -169,6 +169,10 @@ void pthread_exit (void *value_ptr)
 
 	Irq_Disable();
 
+#ifdef USE_PTHREAD_SIGNAL
+	/* free signal handler */
+	Os_FreeSignalHandler(tid);
+#endif
 	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
 		tid->TaskConst.flag |= PTHREAD_JOINED_MASK;

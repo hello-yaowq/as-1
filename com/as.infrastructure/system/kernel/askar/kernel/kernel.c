@@ -56,6 +56,9 @@ static void Os_MiscInit(void)
 
 #if(OS_PTHREAD_NUM > 0)
 	Os_SleepInit();
+#ifdef USE_PTHREAD_SIGNAL
+	Os_SignalInit();
+#endif
 #endif
 
 	Sched_Init();

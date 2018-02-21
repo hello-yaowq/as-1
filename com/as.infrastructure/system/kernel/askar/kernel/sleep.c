@@ -39,6 +39,7 @@ void Os_SleepInit(void)
 	timeofday.tv_usec = 0;
 	TAILQ_INIT(&OsSleepListHead);
 }
+
 void Os_Sleep(TickType tick)
 {
 	imask_t imask;

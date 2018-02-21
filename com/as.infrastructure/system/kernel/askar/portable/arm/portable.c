@@ -62,9 +62,51 @@ void LeaveISR(void)
 {
 	/* do nothing */
 }
+#ifdef USE_PTHREAD_SIGNAL
+void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
+{
+	asAssert(NULL != handler);
+
+	handler(sig);
+
+	/* restore its previous stack */
+	RunningVar->context.sp = sp;
+}
+
+void Os_PortExitSignalCall(void)
+{
+	Os_PortStartDispatch();
+}
 
 void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
-	void* sp = pTaskVar->context.sp;
-	/* TODO: how to modify the task saving context to install the handler */
+	void* sp;
+	uint32* stk;
+
+	sp = pTaskVar->context.sp;
+	stk = sp;
+
+	*(--stk) = (uint32_t)Os_PortCallSignal;         /* entry point */
+	*(--stk) = (uint32_t)Os_PortExitSignalCall;     /* lr */
+	*(--stk) = 0xdeadbeef;                  /* r12 */
+	*(--stk) = 0xdeadbeef;                  /* r11 */
+	*(--stk) = 0xdeadbeef;                  /* r10 */
+	*(--stk) = 0xdeadbeef;                  /* r9 */
+	*(--stk) = 0xdeadbeef;                  /* r8 */
+	*(--stk) = 0xdeadbeef;                  /* r7 */
+	*(--stk) = 0xdeadbeef;                  /* r6 */
+	*(--stk) = 0xdeadbeef;                  /* r5 */
+	*(--stk) = 0xdeadbeef;                  /* r4 */
+	*(--stk) = 0xdeadbeef;                  /* r3 */
+	*(--stk) = (uint32_t)sp;                /* r2 */
+	*(--stk) = (uint32_t)handler;           /* r1 */
+	*(--stk) = (uint32_t)sig;               /* r0 : argument */
+	/* cpsr SYSMODE(0x1F) */
+	if ((uint32_t)Os_PortCallSignal & 0x01)
+		*(--stk) = 0x1F | 0x20;          /* thumb mode */
+	else
+		*(--stk) = 0x1F;                 /* arm mode   */
+
+	pTaskVar->context.sp = stk;
 }
+#endif

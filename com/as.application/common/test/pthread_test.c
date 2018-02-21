@@ -16,6 +16,7 @@
 #include "Os.h"
 #if(OS_PTHREAD_NUM > 0)
 #include "pthread.h"
+#include "signal.h"
 #include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define BUFFER_SIZE 16
@@ -74,10 +75,14 @@ static int get(struct prodcons * b)
 {
 	int data;
 	int r;
-	struct timespec abstime = { 1, 0 };
+	struct timespec abstime;
+	struct timeval tp;
 	pthread_mutex_lock(&b->lock);
 	/* Wait until buffer is not empty */
 	while (b->writepos == b->readpos) {
+		gettimeofday(&tp,NULL);
+		abstime.tv_nsec = tp.tv_usec*1000;
+		abstime.tv_sec = tp.tv_sec + 1;
 		r = pthread_cond_timedwait(&b->notempty, &b->lock, &abstime);
 		if(-ETIMEDOUT == r)
 		{
@@ -102,6 +107,9 @@ static void* consumer(void* arg)
 		if (d == OVER) break;
 		printf("---> %d\n", d);
 	}
+#ifdef USE_PTHREAD_SIGNAL
+	pthread_kill(threadP, SIGALRM);
+#endif
 	for(n=0;n<100;n++)
 	{
 		sleep(2);
@@ -109,10 +117,28 @@ static void* consumer(void* arg)
 	}
 	return NULL;
 }
-
+#ifdef USE_PTHREAD_SIGNAL
+static void producer_signal(int sig)
+{
+	printf("producer signal %d\n",sig);
+}
+#endif
 static void* producer(void* arg)
 {
 	int n;
+#ifdef USE_PTHREAD_SIGNAL
+	struct sigaction sigact;
+
+	sigact.sa_flags = 0;
+	sigact.sa_handler = producer_signal;
+	sigfillset( &sigact.sa_mask );
+
+	if ( 0 != sigaction( SIGALRM, &sigact, NULL ) )
+	{
+		printf( "Problem installing SIGALRM\n" );
+	}
+#endif
+
 	for (n = 0; n < 10000; n++) {
 		printf("%d --->\n", n);
 		put(&buffer, n);

@@ -16,3 +16,7 @@ endchoice
 config PTHREAD
 	bool "posix pthreads based on askar OSEK core"
 	default y
+
+config PTHREAD_SIGNAL
+	bool "posix pthreads signal"
+	default y
