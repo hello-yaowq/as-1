@@ -16,7 +16,7 @@ if('CAN' in MODULES):
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')
 
-if('FATFS' in MODULES):
+if(('FATFS' in MODULES) or ('LWEXT4' in MODULES)):
     objs += Glob('mcal/diskio.c')
 
 if('EEP' in MODULES):

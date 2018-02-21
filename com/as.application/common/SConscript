@@ -57,6 +57,6 @@ if(os.getenv('TESTER') == 'yes'):
     objs += Glob('test/*.c')
     objs += Glob('test/*.xml')
 
-asenv.Append(CCFLAGS='-I%s/config'%(cwd))
+asenv.Append(CPPPATH=['%s/config'%(cwd)])
 
 Return('objs')

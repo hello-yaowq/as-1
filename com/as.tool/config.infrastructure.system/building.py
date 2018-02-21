@@ -263,12 +263,9 @@ def menuconfig(env):
             GetConfig(fn,env)
             if('RTTHREAD' in env['MODULES']):
                 mk_rtconfig(fn)
-            bdir = 'build/%s'%(env['BOARD'])
-            cfgdir = '%s/config'%(bdir)
-            cfgdone = '%s/config.done'%(cfgdir)
+            cfgdir = 'build/%s/config'%(env['BOARD'])
             MKDir(cfgdir)
             xcc.XCC(cfgdir,env)
-            MKFile(cfgdone)
         exit(0)
     else:
         raise Exception("can't find out %s"%(kconfig))

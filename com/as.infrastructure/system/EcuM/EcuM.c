@@ -123,6 +123,7 @@ static FATFS FatFs;		/* FatFs work area needed for each volume */
 #endif
 DECLARE_WEAK void InitOS(void){}
 DECLARE_WEAK void Os_IsrInit(void){}
+DECLARE_WEAK void Rte_Start(void){};
 
 extern void SchM_RunMemory(void);
 /**

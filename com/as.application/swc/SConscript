@@ -14,6 +14,5 @@ if('RTE_SWC_TELLTALE' in MODULES):
         RunCommand('rm -fv %s/telltale/*.h'%(cwd))
     elif(not os.path.exists('%s/telltale/Rte_Telltale.h'%(cwd))):
         RunCommand('cd %s/.. && %s %s/telltale/swc.py'%(cwd, asenv['python3'],cwd))
-    
 
 Return('objs')

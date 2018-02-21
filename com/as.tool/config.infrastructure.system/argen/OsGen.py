@@ -75,6 +75,7 @@ def getOsRef(os_list):
     
 def OsGen(gendir):
     os_list = ScanXML(gendir,'Os')
+    if(len(ScanFrom(os_list,'General')) == 0):return
     os_ref = getOsRef(os_list)
     gen = __osgen__[os_ref]
     gen(gendir,os_list)
