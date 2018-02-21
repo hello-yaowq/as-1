@@ -267,7 +267,7 @@ def menuconfig(env):
             cfgdir = '%s/config'%(bdir)
             cfgdone = '%s/config.done'%(cfgdir)
             MKDir(cfgdir)
-            xcc.XCC(cfgdir,env['MODULES'])
+            xcc.XCC(cfgdir,env)
             MKFile(cfgdone)
         exit(0)
     else:

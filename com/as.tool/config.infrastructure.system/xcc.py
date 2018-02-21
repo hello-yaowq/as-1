@@ -13,7 +13,7 @@ __header = '''/**
  * for more details.
  */
 '''
-import os,sys
+import os,sys,re
 from argen.KsmGen import *
 from argen.OsGen import *
 from argen.ArGen import *
@@ -23,19 +23,26 @@ __gen__ = [KsmGen,OsGen]
 def SetDefaultRTOS(name):
     SetOS(name)
 
-def XCC(gendir, modules=None):
+def XCC(gendir, env=None):
     if(not os.path.exists(gendir)):os.mkdir(gendir)
     for g in __gen__:
         print('  %s ...'%(g.__name__))
         g(gendir)
-    if(modules is not None):
+    if(env is not None):
         fp = open('%s/asmconfig.h'%(gendir),'w')
         fp.write('#ifndef _AS_MCONF_H_\n\n')
-        for m in modules:
-            fp.write('#ifndef USE_%s\n#define USE_%s\n#endif\n\n'%(m,m))
+        if(env['MODULES'] is not None):
+            for m in env['MODULES']:
+                fp.write('#ifndef USE_%s\n#define USE_%s\n#endif\n\n'%(m,m))
+        if(env['CONFIGS'] is not None):
+            reD = re.compile(r'([0-9]+|0x[0-9A-Fa-f]+)')
+            for m,v in env['CONFIGS'].items():
+                if(reD.search(v)):
+                    fp.write('#ifndef %s\n#define %s %s\n#endif\n\n'%(m,m,v))
+                else:
+                    fp.write('#ifndef %s\n#define %s "%s"\n#endif\n\n'%(m,m,v))
         fp.write('#endif /* _AS_MCONF_H_ */\n')
         fp.close()
-            
     
 if(__name__ == '__main__'):
     gendir = os.path.abspath(sys.argv[1])

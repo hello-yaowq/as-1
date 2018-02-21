@@ -57,6 +57,8 @@ else:
        'DEM',
        'ASKAR'
        ]
+    if(cwd.find('travis') != -1):
+        MODULES.remove('FATFS')
 
 ARCH='versatilepb'
 arch='arm'
