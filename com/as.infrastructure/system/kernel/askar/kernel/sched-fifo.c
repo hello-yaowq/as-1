@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
-#ifdef ENABLE_FIFO_SCHED
+#ifdef USE_SCHED_FIFO
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define SCHED_FIFO_SIZE(fifo) ((fifo)->pFIFO)[0]
@@ -352,4 +352,4 @@ boolean Sched_Schedule(void)
 
 	return needSchedule;
 }
-#endif /* ENABLE_FIFO_SCHED */
+#endif /* USE_SCHED_FIFO */

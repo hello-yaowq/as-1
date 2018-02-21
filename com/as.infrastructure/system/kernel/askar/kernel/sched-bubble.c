@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
-#ifdef ENABLE_BUBBLE_SCHED
+#ifdef USE_SCHED_BUBBLE
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -192,4 +192,4 @@ boolean Sched_Schedule(void)
 	return needSchedule;
 }
 
-#endif /* ENABLE_BUBBLE_SCHED */
+#endif /* USE_SCHED_BUBBLE */

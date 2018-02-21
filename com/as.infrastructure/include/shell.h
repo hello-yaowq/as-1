@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <sys/queue.h>
+#include <stdio.h>
 
 typedef int (*ShellFuncT)(int argc, char *argv[]);
 

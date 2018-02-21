@@ -48,19 +48,16 @@ if('PCI' in MODULES):
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=64'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
 
 if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
-    asenv.Append(CPPDEFINES='USE_MCU')
 
 if('EEP' in MODULES):
     objs += Glob('../posix/mcal/Eep.c')
-    asenv.Append(CPPDEFINES='USE_EEP')
 
 if('FLS' in MODULES):
     objs += Glob('../posix/mcal/Fls.c')
-    asenv.Append(CPPDEFINES='USE_FLS')
 
 if('LWIP' in MODULES):
     if(os.name == 'nt'):

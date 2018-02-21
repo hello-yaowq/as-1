@@ -98,7 +98,7 @@ CFLAGS += -I${KERNEL}/include \
 
 
 ifeq ($(schedfifo),yes)
-CFLAGS += -DENABLE_FIFO_SCHED
+CFLAGS += -DUSE_SCHED_FIFO
 endif
 
 VPATH += ${KERNEL}/kernel

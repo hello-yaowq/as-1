@@ -36,14 +36,14 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_LWIP 1
 
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 /* This is the number of threads that can be started with sys_thread_new()
  * Cannot be modified at the moment. No need to support slip/ppp */
 #define SYS_THREAD_MAX 1
 #define SYS_SEM_MAX 22
 #endif /* LWIP_POSIX_ARCH */
 /* ============================ [ TYPES     ] ====================================================== */
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 struct semlist_t
 {
 	sys_sem_t val;
@@ -54,21 +54,21 @@ struct semlist_t
 };
 #endif /* LWIP_POSIX_ARCH */
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 err_t ethernetif_input(struct netif *netif, struct pbuf *p);
 err_t ethernetif_init(struct netif *netif);
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 extern void Eth_Isr(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct netif netif;
 static boolean tcpip_initialized = FALSE;
 static lwip_thread_fn tcpip_thread = NULL;
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 static u16_t nextthread = 0;
 static struct semlist_t semlist[SYS_SEM_MAX];
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 /* ============================ [ LOCALS    ] ====================================================== */
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 static void sys_sleep(TickType tick)
 {
 	TaskType tskid = -1;
@@ -83,7 +83,7 @@ static void sys_sleep(TickType tick)
 	WaitEvent(EVENT_MASK_SLEEP_TCPIP);
 	ClearEvent(EVENT_MASK_SLEEP_TCPIP);
 }
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 struct netif* sys_get_netif(void)
 {
@@ -93,7 +93,7 @@ void __weak Eth_Isr(void)
 {
 
 }
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short
@@ -484,13 +484,13 @@ void pre_sys_init(void)
 }
 #else
 void pre_sys_init(void){}
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 
 #ifdef USE_LWIP
 TASK(TaskLwip)
 {
 	OS_TASK_BEGIN();
-#ifndef LWIP_POSIX_ARCH	
+#ifndef USE_LWIP_POSIX_ARCH
 #ifdef USE_LWIP
 	for(;;) {
 		WaitEvent(EVENT_MASK_START_TCPIP);
@@ -502,7 +502,7 @@ TASK(TaskLwip)
 		}
 	}
 #endif
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 	OsTerminateTask(TaskLwip);
 
 	OS_TASK_END();
@@ -519,7 +519,7 @@ ALARM(Alarm_Lwip)
 #endif
 }
 #endif
-#ifndef LWIP_POSIX_ARCH
+#ifndef USE_LWIP_POSIX_ARCH
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 		void *arg, int stacksize, int prio)
 {
@@ -538,7 +538,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 
 	return TASK_ID_tcpip_task;
 }
-#endif /* LWIP_POSIX_ARCH */
+#endif /* USE_LWIP_POSIX_ARCH */
 
 static void
 tcpip_init_done(void *arg)
@@ -572,7 +572,7 @@ struct netif * __weak LwIP_Init(void)
 	uint32 lockcnt = 0;
 	while(tcpip_initialized == FALSE){
 		lockcnt++;
-#ifdef LWIP_POSIX_ARCH
+#ifdef USE_LWIP_POSIX_ARCH
 		usleep(1000);
 #endif
 	};
@@ -614,7 +614,7 @@ struct netif * __weak LwIP_Init(void)
 	EnableEthDMAIrq();
 	extern void netbios_init(void);
 	netbios_init();
-#ifdef LWIP_POSIX_ARCH
+#ifdef USE_LWIP_POSIX_ARCH
 	extern void http_server_netconn_init(void);
 	http_server_netconn_init();
 #endif
@@ -624,7 +624,7 @@ struct netif * __weak LwIP_Init(void)
 #ifdef USE_LWIP
 KSM(LwipIdle,Init)
 {
-#ifdef LWIP_POSIX_ARCH
+#ifdef USE_LWIP_POSIX_ARCH
 	printf("!!!LWIP run on pthreads!!!\n");
 #else
 	printf("!!!LWIP run on OSEK OS!!!\n");

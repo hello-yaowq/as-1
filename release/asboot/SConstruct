@@ -73,7 +73,7 @@ if(((not os.path.exists(cfgdone)) and (not asenv.GetOption('clean'))) or asenv.G
     for xml in xmls:
         MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
     MKSymlink(str(arxml),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
-    xcc.XCC(cfgdir)
+    xcc.XCC(cfgdir,asenv['MODULES'])
     argen.ArGen.ArGenMain(str(arxml),cfgdir)
     MKFile(cfgdone)
 
@@ -85,6 +85,7 @@ if('studio' in COMMAND_LINE_TARGETS):
 
 objs += Glob('%s/*.c'%(cfgdir))
 asenv.Append(CPPPATH=['%s'%(cfgdir)])
+asenv.Append(CCFLAGS='--include %s/asmconfig.h'%(cfgdir))
 
 if(asenv.GetOption('clean')):
     RMDir(cfgdir)

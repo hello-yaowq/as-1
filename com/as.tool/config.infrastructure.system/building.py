@@ -4,6 +4,8 @@ import shutil
 import string
 import re
 from SCons.Script import *
+import xcc
+import argen
 
 Env = None
 
@@ -261,6 +263,12 @@ def menuconfig(env):
             GetConfig(fn,env)
             if('RTTHREAD' in env['MODULES']):
                 mk_rtconfig(fn)
+            bdir = 'build/%s'%(env['BOARD'])
+            cfgdir = '%s/config'%(bdir)
+            cfgdone = '%s/config.done'%(cfgdir)
+            MKDir(cfgdir)
+            xcc.XCC(cfgdir,env['MODULES'])
+            MKFile(cfgdone)
         exit(0)
     else:
         raise Exception("can't find out %s"%(kconfig))

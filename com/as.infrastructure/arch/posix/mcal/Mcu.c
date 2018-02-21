@@ -36,7 +36,7 @@ extern void Can_putc(char ch);
 void __putchar(char ch)
 {
 	putchar(ch);
-#ifdef USE_STDIO_CAN
+#ifdef USE_CLIB_STDIO_CAN
 	Can_putc(ch);
 #endif
 }

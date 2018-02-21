@@ -23,11 +23,19 @@ __gen__ = [KsmGen,OsGen]
 def SetDefaultRTOS(name):
     SetOS(name)
 
-def XCC(gendir):
+def XCC(gendir, modules=None):
     if(not os.path.exists(gendir)):os.mkdir(gendir)
     for g in __gen__:
         print('  %s ...'%(g.__name__))
         g(gendir)
+    if(modules is not None):
+        fp = open('%s/asmconfig.h'%(gendir),'w')
+        fp.write('#ifndef _AS_MCONF_H_\n\n')
+        for m in modules:
+            fp.write('#ifndef USE_%s\n#define USE_%s\n#endif\n\n'%(m,m))
+        fp.write('#endif /* _AS_MCONF_H_ */\n')
+        fp.close()
+            
     
 if(__name__ == '__main__'):
     gendir = os.path.abspath(sys.argv[1])

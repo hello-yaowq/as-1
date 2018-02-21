@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
-#ifdef ENABLE_LIST_SCHED
+#ifdef USE_SCHED_LIST
 #include "asdebug.h"
 #include <string.h>
 /* ============================ [ MACROS    ] ====================================================== */
@@ -199,4 +199,4 @@ boolean Sched_Schedule(void)
 	return needSchedule;
 }
 
-#endif /* ENABLE_LIST_SCHED */
+#endif /* USE_SCHED_LIST */

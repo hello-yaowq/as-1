@@ -11,70 +11,56 @@ objs = []
 if('CANIF' in MODULES):
     objs += Glob('CanIf/*.c')
     objs += Glob('CanIf/*.xml')
-    asenv.Append(CPPDEFINES='USE_CANIF')
 
 if('CANNM' in MODULES):
     objs += Glob('CanNm/*.c')
-    asenv.Append(CPPDEFINES='USE_CANNM')
 
 if('CANSM' in MODULES):
     objs += Glob('CanSM/*.c')
     asenv.Append(CPPATH=['%s/CanSM'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_CANSM')
 
 if('CANTP' in MODULES):
     objs += Glob('CanTp/*.c')
     asenv.Append(CPPPATH=['%s/CanTp'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_CANTP')
 
 if('COM' in MODULES):
     objs += Glob('Com/*.c')
     asenv.Append(CPPPATH=['%s/Com'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_COM')
 
 if('COMM' in MODULES):
     objs += Glob('ComM/*.c')
     asenv.Append(CPPPATH=['%s/ComM'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_COMM')
 
 if('DOIP' in MODULES):
     objs += Glob('DoIP/*.c')
     asenv.Append(CPPPATH=['%s/DoIP'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_DOIP')
 
 if('NM' in MODULES):
     objs += Glob('Nm/*.c')
     asenv.Append(CPPPATH=['%s/Nm'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_NM')
 
 if('OSEKNM' in MODULES):
     objs += Glob('OsekNm/*.c')
     asenv.Append(CPPPATH=['%s/OsekNm'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_OSEKNM')
 
 if('PCI' in MODULES):
     objs += Glob('Pci/pci*.c')
     asenv.Append(CPPPATH=['%s/Pci'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_PCI')
 
 if('PDUR' in MODULES):
     objs += Glob('PduR/*.c')
     asenv.Append(CPPPATH=['%s/PduR'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_PDUR')
 
 if('RPMSG' in MODULES):
     objs += Glob('RPmsg/*.c')
     asenv.Append(CPPPATH=['%s/RPmsg'%(cwd)])
-    asenv.Append(CPPDEFINES='-DUSE_RPMSG')
 
 if('SOAD' in MODULES):
     objs += Glob('SoAd/*.c')
     asenv.Append(CPPPATH=['%s/SoAd'%(cwd)])
-    asenv.Append(CPPDEFINES='-DUSE_SOAD')
 
 if('XCP' in MODULES):
     objs += Glob('Xcp/*.c')
     asenv.Append(CPPPATH=['%s/Xcp'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_XCP')
 
 Return('objs')

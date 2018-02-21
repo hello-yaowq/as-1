@@ -36,7 +36,6 @@ objs += Glob('lwip/src/netif/ppp/*.c')
 
 asenv.Append(CPPPATH = ['%s/lwip/src/include'%(cwd)])
 asenv.Append(CPPPATH = ['%s/lwip/src/include/ipv4'%(cwd)])
-asenv.Append(CPPDEFINES = 'USE_LWIP')
 
 if('LWIP_POSIX_ARCH' in MODULES):
     asenv.Append(CPPPATH=[cwd])
@@ -44,7 +43,6 @@ if('LWIP_POSIX_ARCH' in MODULES):
     MKSymlink('%s/lwip-contrib/ports/unix/include/arch/sys_arch.h'%(cwd),
               '%s/lwip_sys_arch.h'%(cwd))
     objs += Glob('lwip-contrib/apps/httpserver/*.c')
-    asenv.Append(CPPDEFINES='LWIP_POSIX_ARCH')
 
 if(os.getenv('LWIP_DEBUG')=='yes'):
     asenv.Append(CPPDEFINES = '-DLWIP_DEBUG=1')

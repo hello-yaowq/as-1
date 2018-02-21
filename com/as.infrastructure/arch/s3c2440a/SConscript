@@ -12,15 +12,13 @@ objs = []
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
     objs += Glob('../common/mcal/SCan.c')
-    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=64'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
 
 if('LCD' in MODULES):
     objs += Glob('mcal/Lcd.c')
-    asenv.Append(CPPDEFINES='USE_LCD')
 
 if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
-    asenv.Append(CPPDEFINES='USE_MCU')
 
 asenv.Append(ASFLAGS=['-DTEXT_BASE=0x30000000'])
 

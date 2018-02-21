@@ -196,8 +196,8 @@ enum {
 #define OSPostTaskHook()
 #endif
 
-#if !defined(ENABLE_BUBBLE_SCHED) && !defined(ENABLE_FIFO_SCHED) && !defined(ENABLE_LIST_SCHED)
-#define ENABLE_BUBBLE_SCHED
+#if !defined(USE_SCHED_BUBBLE) && !defined(USE_SCHED_FIFO) && !defined(USE_SCHED_LIST)
+#define USE_SCHED_BUBBLE
 #endif
 
 #define OS_IS_ALARM_STARTED(pVar) (NULL != ((pVar)->entry.tqe_prev))

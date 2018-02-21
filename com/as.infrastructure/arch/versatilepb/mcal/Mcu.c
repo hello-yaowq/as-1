@@ -52,7 +52,7 @@ void __putchar(char ch)
 #else
 	rt_console_putc(ch);
 #endif
-#ifdef USE_STDIO_CAN
+#ifdef USE_CLIB_STDIO_CAN
 	Can_putc(ch);
 #endif
 }

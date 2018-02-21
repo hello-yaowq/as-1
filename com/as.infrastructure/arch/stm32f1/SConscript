@@ -11,19 +11,16 @@ objs = []
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=8'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=8'])
 
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')
-    asenv.Append(CPPDEFINES='USE_DIO')
 
 if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
-    asenv.Append(CPPDEFINES='USE_MCU')
 
 if('PORT' in MODULES):
     objs += Glob('mcal/Port.c')
-    asenv.Append(CPPDEFINES='USE_PORT')
 
 if('LWIP' in MODULES):
     objs += Glob('lwip/*.c')

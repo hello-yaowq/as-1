@@ -11,14 +11,11 @@ objs = []
 if('DCM' in MODULES):
     objs += Glob('Dcm/*.c')
     asenv.Append(CPPPATH=['%s/Dcm'%(cwd)])
-    asenv.Append(CPPDEFINES='USE_DCM')
 
 if('DEM' in MODULES):
     objs += Glob('Dem/*.c')
-    asenv.Append(CPPDEFINES='USE_DEM')
 
 if('DET' in MODULES):
     objs += Glob('Det/*.c')
-    asenv.Append(CPPDEFINES='USE_DET')
 
 Return('objs')

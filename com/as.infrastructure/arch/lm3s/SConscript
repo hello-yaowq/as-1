@@ -3,9 +3,6 @@ Import('asenv')
 
 cwd = GetCurrentDir()
 
-#by default, use CAN and MCU
-asenv.Append(CPPDEFINES=['USE_CAN','USE_MCU'])
-
 asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 

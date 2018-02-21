@@ -11,46 +11,37 @@ objs = []
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CPPDEFINES=['USE_CAN','CAN_LL_DL=64'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
 
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')
-    asenv.Append(CCFLAGS='-DUSE_DIO')
 
 if('FATFS' in MODULES):
     objs += Glob('mcal/diskio.c')
 
 if('EEP' in MODULES):
     objs += Glob('mcal/Eep.c')
-    asenv.Append(CCFLAGS='-DUSE_EEP')
 
 if('FLASH' in MODULES):
     objs += Glob('mcal/Flash.c')
-    asenv.Append(CCFLAGS='-DUSE_FLASH')
 
 if('FLS' in MODULES):
     objs += Glob('mcal/Fls.c')
-    asenv.Append(CCFLAGS='-DUSE_FLS')
 
 if('IPC' in MODULES):
     objs += Glob('mcal/Ipc.c')
-    asenv.Append(CCFLAGS='-DUSE_IPC')
 
 if('LCD' in MODULES):
     objs += Glob('mcal/Lcd.c')
-    asenv.Append(CCFLAGS='-DUSE_LCD')
 
 if('MCU' in MODULES):
     objs += Glob('mcal/Mcu.c')
-    asenv.Append(CCFLAGS='-DUSE_MCU')
 
 if('PORT' in MODULES):
     objs += Glob('mcal/Port.c')
-    asenv.Append(CCFLAGS='-DUSE_PORT')
 
 if('STMO' in MODULES):
     objs += Glob('mcal/Stmo.c')
-    asenv.Append(CCFLAGS='-DUSE_STMO')
 
 if('LWIP' in MODULES):
     download = '%s/release/download'%(ASROOT)
