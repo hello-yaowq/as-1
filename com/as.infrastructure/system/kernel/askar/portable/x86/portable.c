@@ -252,6 +252,13 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 
 	stk = (void*)pTaskVar->context.regs.esp;
 
+	if((sp - pTaskVar->pConst->pStack) < (sizeof(cpu_context_t)*4))
+	{
+		/* stack almost used out, ignore this signal call */
+		ASLOG(OS,"install signal %d failed\n", sig);
+		return;
+	}
+
 	/* saving previous task context to stack */
 	stk = ((void*)stk) - sizeof(cpu_context_t);
 	memcpy(stk, &pTaskVar->context.regs, sizeof(cpu_context_t));

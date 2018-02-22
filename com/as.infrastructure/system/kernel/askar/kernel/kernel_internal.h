@@ -275,6 +275,7 @@ typedef struct TaskVar
 	#if (OS_PTHREAD_NUM > 0) || defined(ENABLE_LIST_SCHED)
 	/* generic entry for ready list/event/timer/mutex/semaphore etc. */
 	TAILQ_ENTRY(TaskVar) entry;
+	TaskListType* list; /* the list that the task is waiting on*/
 	#endif
 	#if(OS_PTHREAD_NUM > 0)
 	/* for sleep purpose */
@@ -378,12 +379,15 @@ extern void OsTick(void);
 extern void Sched_PosixAddReady(TaskType TaskID);
 extern void Os_SleepInit(void);
 extern void Os_SleepTick(void);
+extern void Os_Sleep(TickType tick);
 extern void Os_SleepAdd(TaskVarType* pTaskVar, TickType ticks);
 extern void Os_SleepRemove(TaskVarType* pTaskVar);
 extern int Os_ListWait(TaskListType* list, const struct timespec *abstime);
 extern int Os_ListPost(TaskListType* list, boolean schedule);
+extern void Os_ListDetach(TaskVarType *pTaskVar);
 extern void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler);
 extern void Os_FreeSignalHandler(struct pthread* tid);
 extern void Os_SignalInit(void);
+extern void Os_SignalTick(void);
 #endif
 #endif /* KERNEL_INTERNAL_H_ */

@@ -31,6 +31,7 @@ struct cleanup
 	void* arg;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
+extern const pthread_attr_t pthread_default_attr;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TaskVarType* pthread_malloc_tcb(void)
@@ -106,7 +107,11 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		}
 		else
 		{
-			pthread = malloc(PTHREAD_DEFAULT_STACK_SIZE+sizeof(struct pthread));
+			if(NULL == attr)
+			{
+				attr = &pthread_default_attr;
+			}
+			pthread = malloc(attr->stack_size+sizeof(struct pthread));
 			if(NULL == pthread)
 			{
 				free(pthread);
@@ -117,9 +122,9 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 				pthread->pTaskVar = pTaskVar;
 				pTaskConst = &(pthread->TaskConst);
 				pTaskConst->pStack = ((void*)pthread)+sizeof(struct pthread);
-				pTaskConst->stackSize = PTHREAD_DEFAULT_STACK_SIZE;
-				pTaskConst->initPriority = PTHREAD_DEFAULT_PRIORITY;
-				pTaskConst->runPriority = PTHREAD_DEFAULT_PRIORITY;
+				pTaskConst->stackSize = attr->stack_size;
+				pTaskConst->initPriority = attr->priority;
+				pTaskConst->runPriority = attr->priority;
 				pTaskConst->flag = PTHREAD_DYNAMIC_CREATED_MASK;
 			}
 		}
@@ -341,6 +346,48 @@ pthread_t pthread_self(void)
 	return tid;
 }
 ELF_EXPORT(pthread_self);
+
+int pthread_cancel (pthread_t tid)
+{
+	int ercd = 0;
+	imask_t imask;
+
+	asAssert(tid);
+	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
+	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
+
+	if(tid == pthread_self())
+	{
+		ercd = -EINVAL;
+	}
+	else
+	{
+		Irq_Save(imask);
+		if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
+		{
+			ercd = -EPERM;
+		}
+		else
+		{
+			if(READY != tid->pTaskVar->state)
+			{
+				Os_ListDetach(tid->pTaskVar);
+			}
+
+			pthread_kill(tid, SIGKILL);
+		}
+		Irq_Restore(imask);
+	}
+
+	return ercd;
+}
+ELF_EXPORT(pthread_cancel);
+
+void pthread_testcancel(void)
+{
+
+}
+ELF_EXPORT(pthread_testcancel);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 {

@@ -230,6 +230,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 			/* do wait event of list with timeout */
 			asAssert(0u == (RunningVar->state&PTHREAD_STATE_WAITING));
 			RunningVar->state |= PTHREAD_STATE_WAITING;
+			RunningVar->list = list;
 			TAILQ_INSERT_TAIL(list, RunningVar, entry);
 
 			Os_SleepAdd(RunningVar, ticks);
@@ -245,6 +246,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		/* do wait event of list forever*/
 		asAssert(0u == (RunningVar->state&PTHREAD_STATE_WAITING));
 		RunningVar->state |= PTHREAD_STATE_WAITING;
+		RunningVar->list = list;
 		TAILQ_INSERT_TAIL(list, RunningVar, entry);
 	}
 
@@ -261,6 +263,7 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 		if(RunningVar->state&PTHREAD_STATE_WAITING)
 		{	/* this is timeout */
 			RunningVar->state &= ~PTHREAD_STATE_WAITING;
+			RunningVar->list = NULL;
 			TAILQ_REMOVE(list, RunningVar, entry);
 			/* no "-" for lwip ports/unix/sys_arch.c line 396 */
 			ercd = ETIMEDOUT;
@@ -280,6 +283,7 @@ int Os_ListPost(TaskListType* list, boolean schedule)
 		pTaskVar = TAILQ_FIRST(list);
 		TAILQ_REMOVE(list, pTaskVar, entry);
 		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
+		pTaskVar->list = NULL;
 		OS_TRACE_TASK_ACTIVATION(pTaskVar);
 		Sched_PosixAddReady(pTaskVar-TaskVarArray);
 		if(schedule)
@@ -293,5 +297,24 @@ int Os_ListPost(TaskListType* list, boolean schedule)
 	}
 
 	return ercd;
+}
+
+/* make the task ready again */
+void Os_ListDetach(TaskVarType *pTaskVar)
+{
+	if(NULL != pTaskVar->list)
+	{
+		asAssert(pTaskVar->state&PTHREAD_STATE_WAITING);
+		TAILQ_REMOVE(pTaskVar->list, pTaskVar, entry);
+	}
+
+	if(pTaskVar->state&PTHREAD_STATE_SLEEPING)
+	{
+		Os_SleepRemove(pTaskVar);
+	}
+
+	pTaskVar->state = READY;
+	OS_TRACE_TASK_ACTIVATION(pTaskVar);
+	Sched_PosixAddReady(pTaskVar-TaskVarArray);
 }
 #endif

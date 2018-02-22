@@ -18,7 +18,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_SHELL
-static int statOsFunc(int argc, char* argv[]);
+int statOsFunc(int argc, char* argv[]);
 extern void statOsTask(void);
 extern void statOsAlarm(void);
 extern void statOsCounter(void);
@@ -67,7 +67,7 @@ static void Os_MiscInit(void)
 #endif
 }
 #ifdef USE_SHELL
-static int statOsFunc(int argc, char* argv[])
+int statOsFunc(int argc, char* argv[])
 {
 	if((1 == argc) || (0 == strcmp(argv[1],"task")))
 	{

@@ -84,6 +84,14 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 	uint32_t* stk;
 
 	sp = pTaskVar->context.sp;
+
+	if((sp - pTaskVar->pConst->pStack) < 256)
+	{
+		/* stack almost used out, ignore this signal call */
+		ASLOG(OS,"install signal %d failed\n", sig);
+		return;
+	}
+
 	stk = sp;
 
 	*(--stk) = (uint32_t)Os_PortCallSignal;         /* entry point */

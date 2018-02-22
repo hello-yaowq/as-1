@@ -29,7 +29,13 @@ struct signal
 	TAILQ_ENTRY(signal) entry;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
+static void sig_default_hadler(int signum);
 /* ============================ [ DATAS     ] ====================================================== */
+static const struct signal sig_default =
+{
+	.action.sa_handler = sig_default_hadler,
+};
+static pthread_t threadSig = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
 static struct signal *lookup_signal(pthread_t tid, int signum)
 {
@@ -45,6 +51,86 @@ static struct signal *lookup_signal(pthread_t tid, int signum)
 
 	return sig;
 }
+
+static struct signal *lookup_signal2(pthread_t tid, int signum)
+{
+	struct signal * sig;
+
+	switch(signum)
+	{
+		case SIGKILL:
+			sig = (struct signal*)&sig_default;
+		break;
+		default:
+			sig = lookup_signal(tid, signum);
+		break;
+	}
+
+	return sig;
+}
+
+static void sig_default_hadler(int signum)
+{
+	switch(signum)
+	{
+		case SIGKILL:
+			pthread_exit(NULL);
+		break;
+		default:
+			asAssert(0);
+		break;
+	}
+}
+
+void* signal_thread(void* arg)
+{
+	TaskType id;
+	imask_t imask;
+	const TaskConstType* pTaskConst;
+	TaskVarType* pTaskVar;
+	ASLOG(ON,"Signal Daemon Thread is running!\n");
+	while(1)
+	{
+		/* yes, I know, this is a ugly implementation */
+		Irq_Save(imask);
+		for(id=0; id < OS_PTHREAD_NUM; id++)
+		{
+			pTaskVar   = &TaskVarArray[TASK_NUM+id];
+			pTaskConst = pTaskVar->pConst;
+			if((NULL != pTaskConst) && ((void*)1 != pTaskConst))
+			{
+				pthread_kill((pthread_t)pTaskConst, SIGALRM);
+			}
+		}
+		Irq_Restore(imask);
+		Os_Sleep(1);
+	}
+
+	return NULL;
+}
+
+static void signal_thread_autostart(int signum)
+{
+	pthread_attr_t attr;
+	struct sched_param param;
+
+	if(SIGALRM == signum)
+	{
+		if(NULL == threadSig)
+		{
+			pthread_attr_init(&attr);
+			param.sched_priority = OS_PTHREAD_PRIORITY-1; /* highest */
+
+			pthread_attr_setschedparam(&attr, &param);
+			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+			if(0 != pthread_create(&threadSig, &attr, signal_thread, NULL))
+			{
+				ASLOG(ERROR, "posix signal daemon thread create failed!\n");
+			}
+		}
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_FreeSignalHandler(pthread_t tid)
 {
@@ -59,12 +145,11 @@ void Os_FreeSignalHandler(pthread_t tid)
 		free(sig);
 		sig = next;
 	}
-
 }
 
 void Os_SignalInit(void)
 {
-
+	threadSig = NULL;
 }
 
 int sigaddset (sigset_t *set, const int signo)
@@ -171,6 +256,8 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 				Irq_Save(imask);
 				TAILQ_INSERT_TAIL(&tid->signalList, sig, entry);
 				Irq_Restore(imask);
+				/* call to start signal thread if necessary */
+				signal_thread_autostart(signum);
 			}
 			else
 			{
@@ -231,6 +318,7 @@ int sigwait(const sigset_t * set, int * sig)
 		tid->sigWait = *set;
 		(void)Os_ListWait(&tid->sigList, NULL);
 		*sig = tid->signo;
+		tid->sigWait = 0;
 		Irq_Restore(imask);
 	}
 	else
@@ -253,13 +341,14 @@ int pthread_kill (pthread_t tid, int signum)
 		return -EINVAL;
 	}
 
+	asAssert(TCL_ISR2 != CallLevel);
 	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
 	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
 
 	if(NULL != tid->pTaskVar->pConst)
 	{
 		Irq_Save(imask);
-		sig = lookup_signal(tid, signum);
+		sig = lookup_signal2(tid, signum);
 		Irq_Restore(imask);
 		if(NULL != sig)
 		{
@@ -298,6 +387,5 @@ int raise (int sig)
 	return pthread_kill(pthread_self(), sig);
 }
 ELF_EXPORT(raise);
-
 #endif /* USE_PTHREAD_SIGNAL */
 #endif /* OS_PTHREAD_NUM */

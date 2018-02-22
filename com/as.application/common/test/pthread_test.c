@@ -88,7 +88,7 @@ static int get(struct prodcons * b)
 		r = pthread_cond_timedwait(&b->notempty, &b->lock, &abstime);
 		if(0 != r)
 		{
-			printf("consumer get with error %d!\n", r);
+			printf("consumer get with error %d %s!\n", r, (ETIMEDOUT==r)?"timeout":"");
 		}
 	}
 	/* Read the data and advance read pointer */
@@ -132,7 +132,7 @@ static void* consumer(void* arg)
 static void producer_signal(int sig)
 {
 	printf("producer signal %d\n",sig);
-	sleep(1);
+	//sleep(1);
 	pthread_kill(threadC, sig);
 }
 #endif
@@ -169,7 +169,7 @@ static void* producer(void* arg)
 	pthread_cleanup_push(producer_cleanup2, (void*)2);
 #endif
 
-	for (n = 0; n < 10000; n++) {
+	for (n = 0; n < 1000; n++) {
 		printf("%d --->\n", n);
 		put(&buffer, n);
 		//usleep(1000);
@@ -179,6 +179,9 @@ static void* producer(void* arg)
 	{
 		sleep(1);
 		printf("producer is running %d\n",n);
+
+		if(5 == n)
+			pthread_cancel(threadC);
 	}
 
 	return NULL;
@@ -192,10 +195,11 @@ void pthread_test(void)
 	init(&buffer);
 
 	pthread_attr_init(&attr);
-	param.sched_priority = OS_PTHREAD_PRIORITY-1; /* highest */
+	param.sched_priority = OS_PTHREAD_PRIORITY/2; /* medium */
 
 	pthread_attr_setschedparam(&attr, &param);
 	pthread_attr_setstack(&attr, threadCStack, sizeof(threadCStack));
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	r = pthread_create(&threadC, &attr, consumer, NULL);
 

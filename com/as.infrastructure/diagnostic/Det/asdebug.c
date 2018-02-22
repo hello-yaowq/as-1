@@ -188,6 +188,12 @@ void asAssertErrorHook(void)
 	exit(-1);
 #else
 	Irq_Disable();
+#ifdef USE_ASKAR
+#ifdef USE_SHELL
+	extern int statOsFunc(int argc, char* argv[]);
+	statOsFunc(1, NULL);
+#endif
+#endif
 	while(1);
 #endif
 }
