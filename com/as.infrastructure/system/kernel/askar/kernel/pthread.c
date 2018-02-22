@@ -346,6 +346,7 @@ pthread_t pthread_self(void)
 }
 ELF_EXPORT(pthread_self);
 
+#ifdef USE_PTHREAD_SIGNAL
 int pthread_cancel (pthread_t tid)
 {
 	int ercd = 0;
@@ -381,6 +382,7 @@ int pthread_cancel (pthread_t tid)
 	return ercd;
 }
 ELF_EXPORT(pthread_cancel);
+#endif
 
 void pthread_testcancel(void)
 {

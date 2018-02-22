@@ -146,7 +146,7 @@ StatusType ActivateTask ( TaskType TaskID )
 			{
 				OS_TRACE_TASK_ACTIVATION(pTaskVar);
 				pTaskVar-> activation++;
-				#ifndef ENABLE_LIST_SCHED
+				#ifndef USE_SCHED_LIST
 				Sched_AddReady(TaskID);
 				#endif
 			}
@@ -241,7 +241,7 @@ StatusType TerminateTask( void )
 		if(RunningVar->activation > 0)
 		{
 			InitContext(RunningVar);
-			#ifdef ENABLE_LIST_SCHED
+			#ifdef USE_SCHED_LIST
 			Sched_AddReady(RunningVar - TaskVarArray);
 			#endif
 		}
@@ -360,7 +360,7 @@ StatusType ChainTask    ( TaskType TaskID )
 				if(pTaskVar->activation < pTaskVar->pConst->maxActivation)
 				{
 					pTaskVar-> activation++;
-					#ifndef ENABLE_LIST_SCHED
+					#ifndef USE_SCHED_LIST
 					Sched_AddReady(TaskID);
 					#endif
 				}
@@ -381,7 +381,7 @@ StatusType ChainTask    ( TaskType TaskID )
 				if(RunningVar->activation > 0)
 				{
 					InitContext(RunningVar);
-					#ifdef ENABLE_LIST_SCHED
+					#ifdef USE_SCHED_LIST
 					Sched_AddReady(RunningVar - TaskVarArray);
 					#endif
 				}

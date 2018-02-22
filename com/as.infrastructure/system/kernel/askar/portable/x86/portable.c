@@ -236,6 +236,7 @@ void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
 
 	handler(sig);
 
+	Sched_GetReady();
 	/* restore its previous stack */
 	dispatch(CMD_EXIT_SIGCALL, sp);
 }

@@ -356,6 +356,8 @@ int pthread_kill (pthread_t tid, int signum)
 			{
 				Irq_Save(imask);
 				Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler);
+				/* kick the signal call immediately by an extra activation */
+				Sched_PosixAddReady(tid->pTaskVar - TaskVarArray);
 				Irq_Restore(imask);
 			}
 			else

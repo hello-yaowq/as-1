@@ -272,12 +272,13 @@ typedef struct TaskVar
 	#ifdef USE_SHELL
 	uint32 actCnt;
 	#endif
-	#if (OS_PTHREAD_NUM > 0) || defined(ENABLE_LIST_SCHED)
-	/* generic entry for ready list/event/timer/mutex/semaphore etc. */
+	#if defined(USE_SCHED_LIST)
+	TAILQ_ENTRY(TaskVar) rentry;
+	#endif
+	#if (OS_PTHREAD_NUM > 0)
+	/* generic entry for event/timer/mutex/semaphore etc. */
 	TAILQ_ENTRY(TaskVar) entry;
 	TaskListType* list; /* the list that the task is waiting on*/
-	#endif
-	#if(OS_PTHREAD_NUM > 0)
 	/* for sleep purpose */
 	TickType sleep_tick;
 	TAILQ_ENTRY(TaskVar) sentry;

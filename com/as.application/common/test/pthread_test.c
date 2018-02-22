@@ -26,6 +26,8 @@
 #if BUFFER_SIZE < 2
 #error BUFFER_SIZE must bigger than 2
 #endif
+
+#define SIGTEST SIGUSR1
 /* ============================ [ TYPES     ] ====================================================== */
 /* Circular buffer of integers. */
 struct prodcons {
@@ -100,6 +102,12 @@ static int get(struct prodcons * b)
 	pthread_mutex_unlock(&b->lock);
 	return data;
 }
+#ifdef USE_PTHREAD_SIGNAL
+static void consumer_signal(int sig)
+{
+	printf("*");
+}
+#endif
 static void* consumer(void* arg)
 {
 	int d;
@@ -110,7 +118,7 @@ static void* consumer(void* arg)
 		printf("---> %d\n", d);
 	}
 #ifdef USE_PTHREAD_SIGNAL
-	pthread_kill(threadP, SIGALRM);
+	pthread_kill(threadP, SIGTEST);
 	{
 		sigset_t set;
 		int sig;
@@ -119,6 +127,19 @@ static void* consumer(void* arg)
 		sigwait(&set, &sig);
 
 		printf("consumer get signal %d\n", sig);
+	}
+#endif
+#ifdef USE_PTHREAD_SIGNAL
+	struct sigaction sigact;
+
+	sigact.sa_flags = 0;
+	sigact.sa_handler = consumer_signal;
+	sigfillset( &sigact.sa_mask );
+
+	if ( 0 != sigaction( SIGALRM, &sigact, NULL ) )
+	{
+		printf( "Problem installing SIGALRM\n" );
+		return NULL;
 	}
 #endif
 	for(n=0;n<100;n++)
@@ -132,7 +153,7 @@ static void* consumer(void* arg)
 static void producer_signal(int sig)
 {
 	printf("producer signal %d\n",sig);
-	//sleep(1);
+
 	pthread_kill(threadC, sig);
 }
 #endif
@@ -157,9 +178,9 @@ static void* producer(void* arg)
 	sigact.sa_handler = producer_signal;
 	sigfillset( &sigact.sa_mask );
 
-	if ( 0 != sigaction( SIGALRM, &sigact, NULL ) )
+	if ( 0 != sigaction( SIGTEST, &sigact, NULL ) )
 	{
-		printf( "Problem installing SIGALRM\n" );
+		printf( "Problem installing SIGTEST\n" );
 		return NULL;
 	}
 #endif
@@ -179,9 +200,10 @@ static void* producer(void* arg)
 	{
 		sleep(1);
 		printf("producer is running %d\n",n);
-
+#ifdef USE_PTHREAD_SIGNAL
 		if(5 == n)
 			pthread_cancel(threadC);
+#endif
 	}
 
 	return NULL;

@@ -75,6 +75,7 @@ void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
 
 void Os_PortExitSignalCall(void)
 {
+	Sched_GetReady();
 	Os_PortStartDispatch();
 }
 

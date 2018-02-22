@@ -88,7 +88,7 @@ static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
 {
 	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
 
-	TAILQ_INSERT_TAIL(&(ReadyList[priority]), pTaskVar, entry);
+	TAILQ_INSERT_TAIL(&(ReadyList[priority]), pTaskVar, rentry);
 
 	Sched_SetReadyBit(priority);
 
@@ -113,10 +113,9 @@ void Sched_Init(void)
 
 	ReadyGroup = 0;
 
-	for(prio=0; prio < sizeof(ReadyMapTable); prio++)
+	for(prio=0; prio < (sizeof(ReadyMapTable)/sizeof(ReadyMapTable[0])); prio++)
 	{
 		ReadyMapTable[prio] = 0;
-		TAILQ_INIT(&ReadyList[prio]);
 	}
 
 	for(prio=0; prio < (PRIORITY_NUM+1); prio++)
@@ -144,7 +143,7 @@ void Sched_Preempt(void)
 	OSPostTaskHook();
 	/* remove the ReadyVar from the queue */
 	priority = ReadyVar->priority;
-	TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, entry);
+	TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, rentry);
 	if(TAILQ_EMPTY(&(ReadyList[priority])))
 	{
 		Sched_ClearReadyBit(priority);
@@ -152,7 +151,7 @@ void Sched_Preempt(void)
 
 	/* put the RunningVar back to the head of queue */
 	priority = RunningVar->priority;
-	TAILQ_INSERT_HEAD(&(ReadyList[priority]), RunningVar, entry);
+	TAILQ_INSERT_HEAD(&(ReadyList[priority]), RunningVar, rentry);
 	Sched_SetReadyBit(priority);
 }
 
@@ -164,7 +163,7 @@ void Sched_GetReady(void)
 
 	if(NULL != ReadyVar)
 	{
-		TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, entry);
+		TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, rentry);
 		if(TAILQ_EMPTY(&(ReadyList[priority])))
 		{
 			Sched_ClearReadyBit(priority);
@@ -183,7 +182,7 @@ boolean Sched_Schedule(void)
 	if( (NULL != ReadyVar) && (ReadyVar->priority >  RunningVar->priority))
 	{
 		/* remove the ReadyVar from the queue */
-		TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, entry);
+		TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, rentry);
 		if(TAILQ_EMPTY(&(ReadyList[priority])))
 		{
 			Sched_ClearReadyBit(priority);
@@ -191,7 +190,7 @@ boolean Sched_Schedule(void)
 
 		/* put the RunningVar back to the head of queue */
 		priority = RunningVar->priority;
-		TAILQ_INSERT_HEAD(&(ReadyList[priority]), RunningVar, entry);
+		TAILQ_INSERT_HEAD(&(ReadyList[priority]), RunningVar, rentry);
 		Sched_SetReadyBit(priority);
 
 		needSchedule = TRUE;
