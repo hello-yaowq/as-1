@@ -4,3 +4,5 @@ env = GetELFEnv()
 
 for src in Glob('*.c'):
     env.SharedLibrary(src)
+
+SConscript('freertos/SConscript')

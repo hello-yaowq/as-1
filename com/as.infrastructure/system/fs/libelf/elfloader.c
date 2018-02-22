@@ -125,3 +125,22 @@ void* ELF_FindSymbol(const char* name)
 #endif
 	return addr;
 }
+
+/* export some standard API */
+#include <stdio.h>
+ELF_EXPORT(printf);
+ELF_EXPORT(sprintf);
+ELF_EXPORT(snprintf);
+ELF_EXPORT(puts);
+ELF_EXPORT(putchar);
+#include <stdlib.h>
+ELF_EXPORT(malloc);
+ELF_EXPORT(free);
+ELF_EXPORT(calloc);
+#include <string.h>
+ELF_EXPORT(memcpy);
+ELF_EXPORT(memset);
+ELF_EXPORT(strlen);
+ELF_EXPORT(strcpy);
+ELF_EXPORT(strcmp);
+ELF_EXPORT(strncmp);

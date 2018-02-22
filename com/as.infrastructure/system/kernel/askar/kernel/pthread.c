@@ -173,6 +173,8 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	return ercd;
 }
+ELF_EXPORT(pthread_create);
+
 #ifdef USE_PTHREAD_CLEANUP
 void pthread_cleanup_push(void (*routine)(void*), void *arg)
 {
@@ -196,6 +198,7 @@ void pthread_cleanup_push(void (*routine)(void*), void *arg)
 		asAssert(0);
 	}
 }
+ELF_EXPORT(pthread_cleanup_push);
 
 void pthread_cleanup_pop(int execute)
 {
@@ -222,6 +225,7 @@ void pthread_cleanup_pop(int execute)
 
 	Irq_Restore(imask);
 }
+ELF_EXPORT(pthread_cleanup_pop);
 #endif
 void pthread_exit (void *value_ptr)
 {
@@ -262,6 +266,7 @@ void pthread_exit (void *value_ptr)
 	Sched_GetReady();
 	Os_PortDispatch();
 }
+ELF_EXPORT(pthread_exit);
 
 int pthread_detach(pthread_t tid)
 {
@@ -289,6 +294,7 @@ int pthread_detach(pthread_t tid)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_detach);
 
 int pthread_join(pthread_t tid, void ** thread_return)
 {
@@ -321,6 +327,7 @@ int pthread_join(pthread_t tid, void ** thread_return)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_join);
 
 pthread_t pthread_self(void)
 {
@@ -333,6 +340,7 @@ pthread_t pthread_self(void)
 
 	return tid;
 }
+ELF_EXPORT(pthread_self);
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 {
@@ -344,12 +352,14 @@ int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 
 	return 0;
 }
+ELF_EXPORT(pthread_mutex_init);
 
 int pthread_mutex_destroy(pthread_mutex_t *mutex)
 {
 	(void)mutex;
 	return 0;
 }
+ELF_EXPORT(pthread_mutex_destroy);
 
 int pthread_mutex_lock(pthread_mutex_t *mutex)
 {
@@ -371,6 +381,8 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_mutex_lock);
+
 int pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
 	int ercd = 0;
@@ -394,6 +406,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_mutex_unlock);
 
 int pthread_mutex_trylock(pthread_mutex_t *mutex)
 {
@@ -415,6 +428,8 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_mutex_trylock);
+
 
 int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr)
 {
@@ -426,12 +441,14 @@ int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr)
 
 	return 0;
 }
+ELF_EXPORT(pthread_cond_init);
 
 int pthread_cond_destroy(pthread_cond_t *cond)
 {
 	(void)cond;
 	return 0;
 }
+ELF_EXPORT(pthread_cond_destroy);
 
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
@@ -448,6 +465,7 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 
 	return 0;
 }
+ELF_EXPORT(pthread_cond_broadcast);
 
 int pthread_cond_signal(pthread_cond_t *cond)
 {
@@ -465,12 +483,15 @@ int pthread_cond_signal(pthread_cond_t *cond)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_cond_signal);
 
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
 	return pthread_cond_timedwait(cond, mutex, NULL);
 
 }
+ELF_EXPORT(pthread_cond_wait);
+
 int pthread_cond_timedwait(pthread_cond_t        *cond,
                            pthread_mutex_t       *mutex,
                            const struct timespec *abstime)
@@ -503,9 +524,26 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 
 	return ercd;
 }
+ELF_EXPORT(pthread_cond_timedwait);
+
+int pthread_once (pthread_once_t *once, void (*init_routine)(void))
+{
+	asAssert((NULL != once) && (NULL != init_routine));
+
+	if(PTHREAD_ONCE_INIT == *once)
+	{
+		*once =  ~PTHREAD_ONCE_INIT;
+		init_routine();
+	}
+
+	return 0;
+}
+ELF_EXPORT(pthread_once);
 
 void sched_yield(void)
 {
 	Schedule();
 }
+ELF_EXPORT(sched_yield);
+
 #endif

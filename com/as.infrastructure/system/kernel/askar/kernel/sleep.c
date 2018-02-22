@@ -60,6 +60,7 @@ int usleep (useconds_t __useconds)
 	Os_Sleep((__useconds+USECONDS_PER_TICK-1)/USECONDS_PER_TICK);
 	return __useconds;
 }
+ELF_EXPORT(usleep);
 
 long int sysconf (int parameter)
 {
@@ -77,12 +78,14 @@ long int sysconf (int parameter)
 
 	return r;
 }
+ELF_EXPORT(sysconf);
 
 unsigned int sleep (unsigned int __seconds)
 {
 	Os_Sleep((__seconds*1000000+USECONDS_PER_TICK-1)/USECONDS_PER_TICK);
 	return 0;
 }
+ELF_EXPORT(sleep);
 
 void Os_SleepTick(void)
 {
@@ -176,6 +179,7 @@ int gettimeofday (struct timeval *tp, void *tzp)
 
 	return 0;
 }
+ELF_EXPORT(gettimeofday);
 
 TickType GetTimespecLeftTicks(const struct timespec *abstime)
 {

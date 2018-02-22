@@ -113,11 +113,11 @@ def GenH(gendir,os_list):
     except KeyError:
         fp.write('#define OS_USE_POSTTASK_HOOK\n')
     try:
-        fp.write('#define OS_PTHREAD_NUM %s\n'%(GAGet(general,'PTHREAD')))
-        fp.write('#define OS_PTHREAD_PRIORITY %s\n'%(GAGet(general,'PTHREAD_PRIORITY')))
+        fp.write('#ifndef OS_PTHREAD_NUM\n#define OS_PTHREAD_NUM %s\n#endif\n'%(GAGet(general,'PTHREAD')))
+        fp.write('#ifndef OS_PTHREAD_PRIORITY\n#define OS_PTHREAD_PRIORITY %s\n#endif\n'%(GAGet(general,'PTHREAD_PRIORITY')))
     except KeyError:
-        fp.write('#define OS_PTHREAD_NUM 0\n')
-        fp.write('#define OS_PTHREAD_PRIORITY 0\n')
+        fp.write('#ifndef OS_PTHREAD_NUM\n#define OS_PTHREAD_NUM 0\n#endif\n')
+        fp.write('#ifndef OS_PTHREAD_PRIORITY\n#define OS_PTHREAD_PRIORITY 0\n#endif\n')
     fp.write('#define OS_STATUS %s\n'%(GAGet(general,'Status')))
     fp.write('\n\n')
     task_list = ScanFrom(os_list,'Task')

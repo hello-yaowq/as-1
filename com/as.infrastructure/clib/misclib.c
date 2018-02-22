@@ -643,4 +643,3 @@ pinkie_sscanf_match:
 
     return args;
 }
-

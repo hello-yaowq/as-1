@@ -82,6 +82,7 @@ int sigaddset (sigset_t *set, const int signo)
 
 	return ercd;
 }
+ELF_EXPORT(sigaddset);
 
 int sigdelset (sigset_t *set, const int signo)
 {
@@ -98,18 +99,21 @@ int sigdelset (sigset_t *set, const int signo)
 
 	return ercd;
 }
+ELF_EXPORT(sigdelset);
 
 int sigemptyset (sigset_t *set)
 {
 	*set = (sigset_t)0;
 	return 0;
 }
+ELF_EXPORT(sigemptyset);
 
 int sigfillset (sigset_t *set)
 {
 	*set = (sigset_t)-1;
 	return 0;
 }
+ELF_EXPORT(sigfillset);
 
 int sigismember (const sigset_t *set, int signo)
 {
@@ -129,6 +133,7 @@ int sigismember (const sigset_t *set, int signo)
 
 	return r;
 }
+ELF_EXPORT(sigismember);
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 {
@@ -186,6 +191,7 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 
 	return ercd;
 }
+ELF_EXPORT(sigaction);
 
 sighandler_t signal (int signum, sighandler_t action)
 {
@@ -206,6 +212,7 @@ sighandler_t signal (int signum, sighandler_t action)
 
 	return r;
 }
+ELF_EXPORT(signal);
 
 int sigwait(const sigset_t * set, int * sig)
 {
@@ -233,6 +240,7 @@ int sigwait(const sigset_t * set, int * sig)
 
 	return ercd;
 }
+ELF_EXPORT(sigwait);
 
 int pthread_kill (pthread_t tid, int signum)
 {
@@ -283,10 +291,13 @@ int pthread_kill (pthread_t tid, int signum)
 
 	return ercd;
 }
+ELF_EXPORT(pthread_kill);
 
 int raise (int sig)
 {
 	return pthread_kill(pthread_self(), sig);
 }
+ELF_EXPORT(raise);
+
 #endif /* USE_PTHREAD_SIGNAL */
 #endif /* OS_PTHREAD_NUM */

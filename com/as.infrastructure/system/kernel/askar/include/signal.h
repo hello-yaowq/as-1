@@ -60,6 +60,11 @@
 #define SIG_SGE (_sig_func_ptr)3
 #define SIG_ACK (_sig_func_ptr)4
 #define SIG_ERR (_sig_func_ptr)-1
+
+#define SIG_SETMASK 0	/* set mask with sigprocmask() */
+#define SIG_BLOCK   1	/* set of signals to block */
+#define SIG_UNBLOCK 2	/* set of signals to, well, unblock */
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*_sig_func_ptr)(int);
 
@@ -76,7 +81,7 @@ struct sigaction
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int pthread_sigmask (int how, const sigset_t *set, sigset_t *oset);
-int pthread_kill (pthread_t thread, int sig);
+int pthread_kill (pthread_t tid, int sig);
 int raise (int sig);
 
 int sigemptyset (sigset_t *set);

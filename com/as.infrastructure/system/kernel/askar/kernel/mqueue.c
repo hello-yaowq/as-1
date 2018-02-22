@@ -120,6 +120,7 @@ mqd_t   mq_open(const char *name, int oflag, ...)
 
 	return mq;
 }
+ELF_EXPORT(mq_open);
 
 int     mq_close(mqd_t mq)
 {
@@ -144,6 +145,7 @@ int     mq_close(mqd_t mq)
 
 	return ercd;
 }
+ELF_EXPORT(mq_close);
 
 int     mq_unlink(const char *name)
 {
@@ -167,6 +169,7 @@ int     mq_unlink(const char *name)
 	return ercd;
 
 }
+ELF_EXPORT(mq_unlink);
 
 int     mq_timedsend(mqd_t                  mq,
                      const char            *msg_ptr,
@@ -220,10 +223,13 @@ int     mq_timedsend(mqd_t                  mq,
 
 	return ercd;
 }
+ELF_EXPORT(mq_timedsend);
+
 int     mq_send(mqd_t mq, const char *msg_ptr, size_t msg_len, unsigned msg_prio)
 {
 	return mq_timedsend(mq, msg_ptr, msg_len, msg_prio, NULL);
 }
+ELF_EXPORT(mq_send);
 
 ssize_t mq_timedreceive(mqd_t                  mq,
                         char                  *msg_ptr,
@@ -276,8 +282,12 @@ ssize_t mq_timedreceive(mqd_t                  mq,
 
 	return ercd;
 }
+ELF_EXPORT(mq_timedreceive);
+
 ssize_t mq_receive(mqd_t mq, char *msg_ptr, size_t msg_len, unsigned *msg_prio)
 {
 	return mq_timedreceive(mq, msg_ptr, msg_len, msg_prio, NULL);
 }
+ELF_EXPORT(mq_receive);
+
 #endif /* OS_PTHREAD_NUM */

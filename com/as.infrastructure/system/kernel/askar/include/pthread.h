@@ -31,6 +31,10 @@
 #define PTHREAD_COND_INITIALIZER    { {NULL, NULL}, FALSE }
 #define PTHREAD_MUTEX_INITIALIZER   { {NULL, NULL}, FALSE }
 
+#define PTHREAD_ONCE_INIT 0
+
+#define _POSIX_THREAD_THREADS_MAX OS_PTHREAD_NUM
+
 /* ============================ [ TYPES     ] ====================================================== */
 struct pthread;
 typedef struct pthread* pthread_t;
@@ -63,6 +67,8 @@ struct pthread_cond
 	unsigned int signals;
 };
 typedef struct pthread_cond pthread_cond_t;
+
+typedef int pthread_once_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -106,6 +112,8 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
                            pthread_mutex_t       *mutex,
                            const struct timespec *abstime);
 
+int pthread_once (pthread_once_t *once, void (*init_routine)(void));
+
 int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
     void *(*start) (void *), void *arg);
 void pthread_exit (void *value_ptr);
@@ -115,4 +123,7 @@ pthread_t pthread_self(void);
 
 void pthread_cleanup_push(void (*routine)(void*), void *arg);
 void pthread_cleanup_pop(int execute);
+
+int pthread_cancel (pthread_t tid);
+void pthread_testcancel(void);
 #endif /* _ASKAR_PTHREAD_H_ */

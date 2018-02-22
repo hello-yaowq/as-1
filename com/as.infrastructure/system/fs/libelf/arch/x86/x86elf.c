@@ -15,7 +15,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "elfinternal.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_X86ELF 1
+#define AS_LOG_X86ELF 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -46,7 +46,7 @@ int ELF32_Relocate(ELF32_ObjectType *elfObj, Elf32_Rel *rel, Elf32_Addr sym_val)
 				  (uint32_t)where, *where, sym_val);
 			break;
 		default:
-			ASLOG(ERROR, "X86ELF: invalid relocate TYPE\n");
+			ASLOG(ERROR, "X86ELF: invalid relocate TYPE %d\n", ELF32_R_TYPE(rel->r_info));
 			return -1;
 	}
 

@@ -191,6 +191,13 @@ void asAssertErrorHook(void)
 	while(1);
 #endif
 }
+ELF_EXPORT(asAssertErrorHook);
+
+void _assert (const char *_Message, const char *_File, unsigned _Line)
+{
+	printf("%s @ %s %u\n", _Message, _File, _Line);
+}
+ELF_EXPORT(_assert);
 
 #if defined(__LINUX__) || defined(__WINDOWS__)
 void asPerfSet(asperf_t *m)

@@ -5,17 +5,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-#include "Lcd.h"
-#include "Sg.h"
 
 void Task1( void * param)
 {
-	Lcd_Init(SG_LCD_WIGTH,SG_LCD_HEIGHT,1);
-	Sg_Init();
 	while(1)
 	{
-		Sg_ManagerTask();
-		vTaskDelay(5);
+		printf("Task1 is running!\n");
+		vTaskDelay(configTICK_RATE_HZ);
 	}
 }
 void Task2( void * param)
@@ -23,7 +19,7 @@ void Task2( void * param)
 	while(1)
 	{
 		printf("Task2 is running!\n");
-		vTaskDelay(1000);
+		vTaskDelay(configTICK_RATE_HZ);
 	}
 }
 int main( int argc, char* argv[] )

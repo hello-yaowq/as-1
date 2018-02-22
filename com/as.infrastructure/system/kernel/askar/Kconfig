@@ -17,6 +17,14 @@ config PTHREAD
 	bool "posix pthreads based on askar OSEK core"
 	default y
 
+config OS_PTHREAD_PRIORITY
+	int "the posix thread priority range"
+	default 32
+
+config OS_PTHREAD_NUM
+	int "the maxmium number of posix threads can be created"
+	default 32
+
 config PTHREAD_SIGNAL
 	bool "posix pthreads signal"
 	default y

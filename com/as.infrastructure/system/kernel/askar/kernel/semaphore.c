@@ -74,6 +74,7 @@ int sem_init(sem_t *sem, int pshared, unsigned int value)
 
 	return 0;
 }
+ELF_EXPORT(sem_init);
 
 int sem_getvalue(sem_t *sem, int *sval)
 {
@@ -85,6 +86,7 @@ int sem_getvalue(sem_t *sem, int *sval)
 
 	return 0;
 }
+ELF_EXPORT(sem_getvalue);
 
 int sem_destroy(sem_t *sem)
 {
@@ -92,6 +94,7 @@ int sem_destroy(sem_t *sem)
 
 	return 0;
 }
+ELF_EXPORT(sem_destroy);
 
 int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 {
@@ -113,17 +116,20 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
 
 	return ercd;
 }
+ELF_EXPORT(sem_timedwait);
 
 int sem_trywait(sem_t *sem)
 {
 	struct timespec tm = { 0, 0 };
 	return sem_timedwait(sem, &tm);
 }
+ELF_EXPORT(sem_trywait);
 
 int sem_wait(sem_t *sem)
 {
 	return sem_timedwait(sem, NULL);
 }
+ELF_EXPORT(sem_wait);
 
 int sem_post(sem_t *sem)
 {
@@ -141,6 +147,7 @@ int sem_post(sem_t *sem)
 
 	return ercd;
 }
+ELF_EXPORT(sem_post);
 
 sem_t *sem_open(const char *name, int oflag, ...)
 {
@@ -186,6 +193,7 @@ sem_t *sem_open(const char *name, int oflag, ...)
 
 	return &(sem->sem);
 }
+ELF_EXPORT(sem_open);
 
 int     sem_close(sem_t* sem2)
 {
@@ -212,6 +220,7 @@ int     sem_close(sem_t* sem2)
 
 	return ercd;
 }
+ELF_EXPORT(sem_close);
 
 int     sem_unlink(const char *name)
 {
@@ -235,6 +244,7 @@ int     sem_unlink(const char *name)
 	return ercd;
 
 }
+ELF_EXPORT(sem_unlink);
 
 #endif /* OS_PTHREAD_NUM > 0 */
 
