@@ -79,7 +79,7 @@ void Os_PortExitSignalCall(void)
 	Os_PortStartDispatch();
 }
 
-void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
 	void* sp;
 	uint32_t* stk;
@@ -90,7 +90,7 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 	{
 		/* stack 75% usage, ignore this signal call */
 		ASLOG(OS,"install signal %d failed\n", sig);
-		return;
+		return -1;
 	}
 
 	stk = sp;
@@ -117,5 +117,7 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 		*(--stk) = 0x1F;                 /* arm mode   */
 
 	pTaskVar->context.sp = stk;
+
+	return 0;
 }
 #endif

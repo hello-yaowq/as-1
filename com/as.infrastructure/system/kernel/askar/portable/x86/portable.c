@@ -246,7 +246,7 @@ void Os_PortExitSignalCall(void)
 	asAssert(0);
 }
 
-void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
 	uint32_t* stk;
 	cpu_context_t *regs;
@@ -257,7 +257,7 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 	{
 		/* stack 75% usage, ignore this signal call */
 		ASLOG(OS,"install signal %d failed\n", sig);
-		return;
+		return -1;
 	}
 
 	/* saving previous task context to stack */
@@ -272,6 +272,8 @@ void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 
 	pTaskVar->context.regs.eip = (uint32_t)Os_PortCallSignal;
 	pTaskVar->context.regs.esp = (uint32_t)stk;
+
+	return 0;
 }
 
 #endif /* USE_PTHREAD_SIGNAL */

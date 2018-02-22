@@ -38,8 +38,8 @@ static AppModeType appMode;
 static SHELL_CONST ShellCmdT statOsCmd  = {
 	statOsFunc,
 	0,0,
-	"stat",
-	"stat <task/alarm/counter>",
+	"ps",
+	"ps <task/alarm/counter>",
 	"Show the status of operationg system\n",
 	{NULL,NULL}
 };

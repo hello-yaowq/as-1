@@ -631,15 +631,17 @@ void statOsTask(void)
 				pTaskConst->pStack, pTaskConst->stackSize, pused, used);
 		if(NULL != pTaskConst->pEventVar)
 		{
-			SHELL_printf("%08X/%08X %-3d/%d\n",
+			SHELL_printf("%08X/%08X %-3d/%d ",
 					pTaskConst->pEventVar->set, pTaskConst->pEventVar->wait,
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 		else
 		{
-			SHELL_printf("null              %-3d/%d\n",
+			SHELL_printf("null              %-3d/%d ",
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
+
+		SHELL_printf("%s\n", (pTaskVar == RunningVar)?"\t<-RunningVar":"");
 	}
 
 #if(OS_PTHREAD_NUM > 0)
@@ -649,10 +651,12 @@ void statOsTask(void)
 		pTaskConst = pTaskVar->pConst;
 		if(NULL != pTaskConst)
 		{
-			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X)\n",
+			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) entry=0x%p",
 					id, taskStateToString(pTaskVar->state),
 					pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
-					pTaskConst->pStack, pTaskConst->stackSize, pused, used);
+					pTaskConst->pStack, pTaskConst->stackSize, pused, used,
+					((struct pthread*)pTaskConst)->start);
+			SHELL_printf("%s\n", (pTaskVar == RunningVar)?"\t<-RunningVar":"");
 		}
 	}
 #endif

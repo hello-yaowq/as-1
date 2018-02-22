@@ -386,7 +386,7 @@ extern void Os_SleepRemove(TaskVarType* pTaskVar);
 extern int Os_ListWait(TaskListType* list, const struct timespec *abstime);
 extern int Os_ListPost(TaskListType* list, boolean schedule);
 extern void Os_ListDetach(TaskVarType *pTaskVar);
-extern void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler);
+extern int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler);
 extern void Os_FreeSignalHandler(struct pthread* tid);
 extern void Os_SignalInit(void);
 extern void Os_SignalTick(void);

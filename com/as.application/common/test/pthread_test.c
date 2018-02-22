@@ -122,7 +122,8 @@ static void* consumer(void* arg)
 	{
 		sigset_t set;
 		int sig;
-		sigfillset(&set);
+		sigemptyset(&set);
+		sigaddset(&set, SIGTEST);
 
 		sigwait(&set, &sig);
 
@@ -153,8 +154,6 @@ static void* consumer(void* arg)
 static void producer_signal(int sig)
 {
 	printf("producer signal %d\n",sig);
-
-	pthread_kill(threadC, sig);
 }
 #endif
 
@@ -201,6 +200,9 @@ static void* producer(void* arg)
 		sleep(1);
 		printf("producer is running %d\n",n);
 #ifdef USE_PTHREAD_SIGNAL
+		if(1 == n)
+			pthread_kill(threadC, SIGTEST);
+
 		if(5 == n)
 			pthread_cancel(threadC);
 #endif

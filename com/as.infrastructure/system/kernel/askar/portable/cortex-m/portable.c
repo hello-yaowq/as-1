@@ -96,8 +96,10 @@ void knl_isr_handler(int intno)
 
 }
 
-void Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
+int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
 	/* TODO: not implemented */
 	asAssert(0);
+
+	return 0;
 }

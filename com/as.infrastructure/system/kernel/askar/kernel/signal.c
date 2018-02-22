@@ -355,9 +355,22 @@ int pthread_kill (pthread_t tid, int signum)
 			if(tid->pTaskVar != RunningVar)
 			{
 				Irq_Save(imask);
-				Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler);
-				/* kick the signal call immediately by an extra activation */
-				Sched_PosixAddReady(tid->pTaskVar - TaskVarArray);
+				if(0 == Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler))
+				{
+					#ifdef USE_SCHED_LIST
+					/* this is ugly signal call as treating signal call the highest priority */
+					Sched_PosixAddReady(RunningVar - TaskVarArray);
+					ReadyVar = tid->pTaskVar;
+					Os_PortDispatch();
+					#else
+					/* kick the signal call immediately by an extra activation */
+					Sched_PosixAddReady(tid->pTaskVar - TaskVarArray);
+					#endif
+				}
+				else
+				{
+					ercd = -ENOMEM;
+				}
 				Irq_Restore(imask);
 			}
 			else
