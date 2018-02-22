@@ -112,4 +112,7 @@ void pthread_exit (void *value_ptr);
 int pthread_detach(pthread_t tid);
 int pthread_join(pthread_t tid, void ** thread_return);
 pthread_t pthread_self(void);
+
+void pthread_cleanup_push(void (*routine)(void*), void *arg);
+void pthread_cleanup_pop(int execute);
 #endif /* _ASKAR_PTHREAD_H_ */

@@ -24,6 +24,12 @@
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+struct cleanup
+{
+	TAILQ_ENTRY(cleanup) entry;
+	void (*routine)(void*);
+	void* arg;
+};
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -147,6 +153,9 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		Os_PortInitContext(pTaskVar);
 
 		TAILQ_INIT(&pthread->joinList);
+#ifdef USE_PTHREAD_CLEANUP
+		TAILQ_INIT(&pthread->cleanupList);
+#endif
 #ifdef USE_PTHREAD_SIGNAL
 		TAILQ_INIT(&pthread->signalList);
 		TAILQ_INIT(&pthread->sigList);
@@ -164,7 +173,56 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	return ercd;
 }
+#ifdef USE_PTHREAD_CLEANUP
+void pthread_cleanup_push(void (*routine)(void*), void *arg)
+{
+	struct cleanup* cleanup;
+	pthread_t tid;
+	imask_t imask;
 
+	tid = pthread_self();
+
+	cleanup = malloc(sizeof(struct cleanup));
+	if(NULL != cleanup)
+	{
+		cleanup->routine = routine;
+		cleanup->arg = arg;
+		Irq_Save(imask);
+		TAILQ_INSERT_HEAD(&tid->cleanupList, cleanup, entry);
+		Irq_Restore(imask);
+	}
+	else
+	{
+		asAssert(0);
+	}
+}
+
+void pthread_cleanup_pop(int execute)
+{
+	struct cleanup* cleanup;
+	pthread_t tid;
+	imask_t imask;
+
+	tid = pthread_self();
+
+	Irq_Save(imask);
+
+	cleanup = TAILQ_FIRST(&tid->cleanupList);
+
+	if(NULL != cleanup)
+	{
+		TAILQ_REMOVE(&tid->cleanupList, cleanup, entry);
+		if(execute)
+		{
+			asAssert(cleanup->routine);
+			cleanup->routine(cleanup->arg);
+		}
+		free(cleanup);
+	}
+
+	Irq_Restore(imask);
+}
+#endif
 void pthread_exit (void *value_ptr)
 {
 	pthread_t tid;
@@ -172,6 +230,13 @@ void pthread_exit (void *value_ptr)
 	tid = pthread_self();
 
 	Irq_Disable();
+
+#ifdef USE_PTHREAD_CLEANUP
+	while(FALSE == TAILQ_EMPTY(&tid->cleanupList))
+	{
+		pthread_cleanup_pop(1);
+	}
+#endif
 
 #ifdef USE_PTHREAD_SIGNAL
 	/* free signal handler */

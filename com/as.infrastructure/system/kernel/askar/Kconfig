@@ -20,3 +20,7 @@ config PTHREAD
 config PTHREAD_SIGNAL
 	bool "posix pthreads signal"
 	default y
+
+config PTHREAD_CLEANUP
+	bool "posix pthreads cleanup feature"
+	default y

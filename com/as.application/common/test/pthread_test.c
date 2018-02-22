@@ -86,9 +86,9 @@ static int get(struct prodcons * b)
 		abstime.tv_nsec = tp.tv_usec*1000;
 		abstime.tv_sec = tp.tv_sec + 1;
 		r = pthread_cond_timedwait(&b->notempty, &b->lock, &abstime);
-		if(-ETIMEDOUT == r)
+		if(0 != r)
 		{
-			printf("consumer get timeout!\n");
+			printf("consumer get with error %d!\n", r);
 		}
 	}
 	/* Read the data and advance read pointer */
@@ -136,6 +136,17 @@ static void producer_signal(int sig)
 	pthread_kill(threadC, sig);
 }
 #endif
+
+#ifdef USE_PTHREAD_CLEANUP
+static void producer_cleanup1(void* arg)
+{
+	printf("producer cleanup1 %p\n", arg);
+}
+static void producer_cleanup2(void* arg)
+{
+	printf("producer cleanup2 %p\n", arg);
+}
+#endif
 static void* producer(void* arg)
 {
 	int n;
@@ -153,13 +164,18 @@ static void* producer(void* arg)
 	}
 #endif
 
+#ifdef USE_PTHREAD_CLEANUP
+	pthread_cleanup_push(producer_cleanup1, (void*)1);
+	pthread_cleanup_push(producer_cleanup2, (void*)2);
+#endif
+
 	for (n = 0; n < 10000; n++) {
 		printf("%d --->\n", n);
 		put(&buffer, n);
 		//usleep(1000);
 	}
 	put(&buffer, OVER);
-	for(n=0;n<100;n++)
+	for(n=0;n<10;n++)
 	{
 		sleep(1);
 		printf("producer is running %d\n",n);

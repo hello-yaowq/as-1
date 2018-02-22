@@ -320,12 +320,20 @@ typedef struct
 	TaskType* pFIFO;
 } ReadyFIFOType;
 
+#ifdef USE_PTHREAD_SIGNAL
 struct signal;
+#endif
+#ifdef USE_PTHREAD_CLEANUP
+struct cleanup;
+#endif
 struct pthread
 {
 	TaskConstType TaskConst;
 	TaskVarType* pTaskVar;
 	TaskListType joinList;
+#ifdef USE_PTHREAD_CLEANUP
+	TAILQ_HEAD(cleanup_list, cleanup) cleanupList;
+#endif
 #ifdef USE_PTHREAD_SIGNAL
 	TaskListType sigList;
 	int          signo;
