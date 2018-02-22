@@ -114,7 +114,6 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 			pthread = malloc(attr->stack_size+sizeof(struct pthread));
 			if(NULL == pthread)
 			{
-				free(pthread);
 				ercd = -ENOMEM;
 			}
 			else
