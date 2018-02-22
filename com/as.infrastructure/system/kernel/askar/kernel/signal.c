@@ -67,10 +67,67 @@ void Os_SignalInit(void)
 
 }
 
+int sigaddset (sigset_t *set, const int signo)
+{
+	int ercd = 0;
+
+	if(signo < NSIG)
+	{
+		*set |= (1<<signo);
+	}
+	else
+	{
+		ercd = -EINVAL;
+	}
+
+	return ercd;
+}
+
+int sigdelset (sigset_t *set, const int signo)
+{
+	int ercd = 0;
+
+	if(signo < NSIG)
+	{
+		*set &= ~(1<<signo);
+	}
+	else
+	{
+		ercd = -EINVAL;
+	}
+
+	return ercd;
+}
+
+int sigemptyset (sigset_t *set)
+{
+	*set = (sigset_t)0;
+	return 0;
+}
+
 int sigfillset (sigset_t *set)
 {
 	*set = (sigset_t)-1;
 	return 0;
+}
+
+int sigismember (const sigset_t *set, int signo)
+{
+	int r = 0;
+
+	if(signo < NSIG)
+	{
+		if(*set & (1<<signo))
+		{
+			r = 1;
+		}
+	}
+	else
+	{
+		r = -EINVAL;
+	}
+
+	return r;
 }
 
 int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
@@ -80,10 +137,12 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 	imask_t imask;
 	pthread_t tid;
 
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
-	asAssert((RunningVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
+	if(signum >= NSIG)
+	{
+		return -EINVAL;
+	}
 
-	tid = (pthread_t)(RunningVar->pConst);
+	tid = pthread_self();
 
 	Irq_Save(imask);
 	sig = lookup_signal(tid, signum);
@@ -93,22 +152,83 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 	{
 		if(oldact) *oldact = sig->action;
 	}
+
+	if(NULL == sig)
+	{
+		if(NULL != act)
+		{
+			asAssert(act->sa_handler);
+			sig = malloc(sizeof(struct signal));
+			if(NULL != sig)
+			{
+				sig->signum = signum;
+				sig->action = *act;
+				Irq_Save(imask);
+				TAILQ_INSERT_TAIL(&tid->signalList, sig, entry);
+				Irq_Restore(imask);
+			}
+			else
+			{
+				ercd = ENOMEM;
+			}
+		}
+	}
 	else
 	{
-		sig = malloc(sizeof(struct signal));
+		if(NULL != act)
+		{	/* replace old action */
+			asAssert(act->sa_handler);
+			Irq_Save(imask);
+			sig->action = *act;
+			Irq_Restore(imask);
+		}
 	}
 
-	if(NULL != sig)
+	return ercd;
+}
+
+sighandler_t signal (int signum, sighandler_t action)
+{
+	sighandler_t r = SIG_ERR;
+	int ercd;
+	struct sigaction act,oldact;
+
+	sigfillset(&act.sa_mask);
+	act.sa_flags = 0;
+	act.sa_handler = action;
+	oldact.sa_handler = SIG_IGN;
+
+	ercd = sigaction(signum, &act, &oldact);
+	if(0 == ercd)
 	{
-		sig->signum = signum;
-		sig->action = *act;
+		r = oldact.sa_handler;
+	}
+
+	return r;
+}
+
+int sigwait(const sigset_t * set, int * sig)
+{
+	int ercd = 0;
+
+	imask_t imask;
+	pthread_t tid;
+
+	asAssert((NULL != set) && (NULL != sig));
+
+	if(0 != *set)
+	{
+		tid = pthread_self();
+
 		Irq_Save(imask);
-		TAILQ_INSERT_TAIL(&tid->signalList, sig, entry);
+		tid->sigWait = *set;
+		(void)Os_ListWait(&tid->sigList, NULL);
+		*sig = tid->signo;
 		Irq_Restore(imask);
 	}
 	else
 	{
-		ercd = ENOMEM;
+		ercd = -EINVAL;
 	}
 
 	return ercd;
@@ -120,29 +240,53 @@ int pthread_kill (pthread_t tid, int signum)
 	struct signal * sig = NULL;
 	imask_t imask;
 
+	if(signum >= NSIG)
+	{
+		return -EINVAL;
+	}
+
 	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
 	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
-	asAssert(tid->pTaskVar != RunningVar);
 
 	if(NULL != tid->pTaskVar->pConst)
 	{
 		Irq_Save(imask);
 		sig = lookup_signal(tid, signum);
 		Irq_Restore(imask);
-	}
+		if(NULL != sig)
+		{
+			if(tid->pTaskVar != RunningVar)
+			{
+				Irq_Save(imask);
+				Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler);
+				Irq_Restore(imask);
+			}
+			else
+			{
+				sig->action.sa_handler(signum);
+			}
+		}
 
-	if(NULL != sig)
-	{
-		Irq_Save(imask);
-		Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler);
-		Irq_Restore(imask);
+		tid->signo = signum;
+
+		if(tid->sigWait & (1<<signum))
+		{
+			Irq_Save(imask);
+			Os_ListPost(&tid->sigList, TRUE);
+			Irq_Restore(imask);
+		}
 	}
 	else
-	{
+	{	/* not pthread type task */
 		ercd = -EACCES;
 	}
 
 	return ercd;
+}
+
+int raise (int sig)
+{
+	return pthread_kill(pthread_self(), sig);
 }
 #endif /* USE_PTHREAD_SIGNAL */
 #endif /* OS_PTHREAD_NUM */

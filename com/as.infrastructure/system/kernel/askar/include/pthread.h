@@ -111,4 +111,5 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 void pthread_exit (void *value_ptr);
 int pthread_detach(pthread_t tid);
 int pthread_join(pthread_t tid, void ** thread_return);
+pthread_t pthread_self(void);
 #endif /* _ASKAR_PTHREAD_H_ */

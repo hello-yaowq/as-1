@@ -36,6 +36,7 @@ For the purpose that to able to run most of the common applications which are ba
 * posix semaphore
 * posix mutex and condition
 * posix message queue
+* posix signals
 
 
 ## 3. BSW configuration tool

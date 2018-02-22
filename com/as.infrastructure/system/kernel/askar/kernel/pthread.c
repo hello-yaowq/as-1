@@ -19,6 +19,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <asdebug.h>
+#ifdef USE_PTHREAD_SIGNAL
+#include "signal.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -138,13 +141,17 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		#endif
 		pTaskVar->state = READY;
 		memset(pTaskConst->pStack, 0, pTaskConst->stackSize);
-
+		pTaskVar->currentResource = INVALID_RESOURCE;
 		pTaskVar->pConst = pTaskConst;
 		pTaskVar->priority = pTaskConst->initPriority;
 		Os_PortInitContext(pTaskVar);
 
 		TAILQ_INIT(&pthread->joinList);
+#ifdef USE_PTHREAD_SIGNAL
 		TAILQ_INIT(&pthread->signalList);
+		TAILQ_INIT(&pthread->sigList);
+		sigemptyset(&pthread->sigWait);
+#endif
 
 		Irq_Save(imask);
 		if((NULL == attr) || (PTHREAD_CREATE_JOINABLE == attr->detachstate))
@@ -162,10 +169,7 @@ void pthread_exit (void *value_ptr)
 {
 	pthread_t tid;
 
-	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
-	asAssert((RunningVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
-
-	tid = (pthread_t)(RunningVar->pConst);
+	tid = pthread_self();
 
 	Irq_Disable();
 
@@ -251,6 +255,18 @@ int pthread_join(pthread_t tid, void ** thread_return)
 	Irq_Restore(imask);
 
 	return ercd;
+}
+
+pthread_t pthread_self(void)
+{
+	pthread_t tid;
+
+	asAssert((RunningVar-TaskVarArray) >= TASK_NUM);
+	asAssert((RunningVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
+
+	tid = (pthread_t)(RunningVar->pConst);
+
+	return tid;
 }
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
@@ -421,5 +437,10 @@ int pthread_cond_timedwait(pthread_cond_t        *cond,
 	Irq_Restore(imask);
 
 	return ercd;
+}
+
+void sched_yield(void)
+{
+	Schedule();
 }
 #endif

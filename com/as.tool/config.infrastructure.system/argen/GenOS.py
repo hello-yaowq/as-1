@@ -417,7 +417,7 @@ def GenC(gendir,os_list):
         prio = Integer(GAGet(task,'Priority'))
         if(prio > maxPrio):
             maxPrio = prio
-    fp.write('#ifdef ENABLE_FIFO_SCHED\n')
+    fp.write('#ifdef USE_SCHED_FIFO\n')
     cstr = '\nconst ReadyFIFOType ReadyFIFO[OS_PTHREAD_PRIORITY+PRIORITY_NUM+1]=\n{\n'
     for prio in range(pthprio):
         sumact = pthnum

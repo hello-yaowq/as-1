@@ -16,7 +16,9 @@
 #include "Os.h"
 #if(OS_PTHREAD_NUM > 0)
 #include "pthread.h"
+#ifdef USE_PTHREAD_SIGNAL
 #include "signal.h"
+#endif
 #include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define BUFFER_SIZE 16
@@ -109,6 +111,15 @@ static void* consumer(void* arg)
 	}
 #ifdef USE_PTHREAD_SIGNAL
 	pthread_kill(threadP, SIGALRM);
+	{
+		sigset_t set;
+		int sig;
+		sigfillset(&set);
+
+		sigwait(&set, &sig);
+
+		printf("consumer get signal %d\n", sig);
+	}
 #endif
 	for(n=0;n<100;n++)
 	{
@@ -121,6 +132,8 @@ static void* consumer(void* arg)
 static void producer_signal(int sig)
 {
 	printf("producer signal %d\n",sig);
+	sleep(1);
+	pthread_kill(threadC, sig);
 }
 #endif
 static void* producer(void* arg)
@@ -136,6 +149,7 @@ static void* producer(void* arg)
 	if ( 0 != sigaction( SIGALRM, &sigact, NULL ) )
 	{
 		printf( "Problem installing SIGALRM\n" );
+		return NULL;
 	}
 #endif
 

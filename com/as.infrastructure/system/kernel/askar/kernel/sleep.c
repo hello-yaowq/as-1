@@ -61,6 +61,23 @@ int usleep (useconds_t __useconds)
 	return __useconds;
 }
 
+long int sysconf (int parameter)
+{
+	long int r;
+
+	switch(parameter)
+	{
+		case _SC_CLK_TCK:
+			r = OS_TICKS_PER_SECOND;
+			break;
+		default:
+			r = 0;
+			break;
+	}
+
+	return r;
+}
+
 unsigned int sleep (unsigned int __seconds)
 {
 	Os_Sleep((__seconds*1000000+USECONDS_PER_TICK-1)/USECONDS_PER_TICK);
@@ -96,10 +113,9 @@ void Os_SleepTick(void)
 		}
 		if(0u == pTaskVar->sleep_tick)
 		{
-			pTaskVar->state &= ~PTHREAD_STATE_SLEEPING;
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
 			Sched_PosixAddReady(pTaskVar-TaskVarArray);
-			TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
+			Os_SleepRemove(pTaskVar);
 		}
 
 		pTaskVar = pNext;

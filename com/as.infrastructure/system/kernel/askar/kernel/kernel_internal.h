@@ -326,7 +326,12 @@ struct pthread
 	TaskConstType TaskConst;
 	TaskVarType* pTaskVar;
 	TaskListType joinList;
+#ifdef USE_PTHREAD_SIGNAL
+	TaskListType sigList;
+	int          signo;
+	sigset_t     sigWait;
 	TAILQ_HEAD(signal_list, signal) signalList;
+#endif
 	void *(*start) (void *);
 	void* arg;
 	void* ret;
