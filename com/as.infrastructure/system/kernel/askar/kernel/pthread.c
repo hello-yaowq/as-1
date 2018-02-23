@@ -253,6 +253,7 @@ void pthread_exit (void *value_ptr)
 	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
 		tid->TaskConst.flag |= PTHREAD_JOINED_MASK;
+		tid->ret = value_ptr;
 		if(0 == Os_ListPost(&tid->joinList, FALSE))
 		{
 			asAssert(TAILQ_EMPTY(&tid->joinList));
@@ -318,6 +319,7 @@ int pthread_join(pthread_t tid, void ** thread_return)
 		}
 		asAssert(tid->TaskConst.flag & PTHREAD_JOINED_MASK);
 		tid->pTaskVar->pConst = NULL;
+		*thread_return = tid->ret;
 		if(tid->TaskConst.flag & PTHREAD_DYNAMIC_CREATED_MASK)
 		{
 			free(tid);
@@ -594,4 +596,9 @@ void sched_yield(void)
 }
 ELF_EXPORT(sched_yield);
 
+pid_t getpid(void)
+{
+	return (RunningVar-TaskVarArray);
+}
+ELF_EXPORT(getpid);
 #endif

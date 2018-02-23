@@ -328,6 +328,13 @@ int SHELL_RunCmd(const char *cmdArgs, int *cmdRv ) {
 		}
 	}
 
+#ifdef USE_LIBDL
+	if (NULL == runCmd) {
+		extern SHELL_CONST ShellCmdT dllCmd;
+		runCmd = &dllCmd;
+	}
+#endif
+
 	/* Check arg count and deliver them into argc and argv */
 	if (runCmd != NULL) {
 		/* Add the cmd */

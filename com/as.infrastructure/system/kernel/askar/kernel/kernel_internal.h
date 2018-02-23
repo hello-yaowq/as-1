@@ -357,6 +357,7 @@ extern CounterVarType CounterVarArray[COUNTER_NUM];
 extern const CounterConstType CounterConstArray[COUNTER_NUM];
 extern AlarmVarType AlarmVarArray[ALARM_NUM];
 extern const AlarmConstType AlarmConstArray[ALARM_NUM];
+extern TickType OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void Os_TaskInit(void);

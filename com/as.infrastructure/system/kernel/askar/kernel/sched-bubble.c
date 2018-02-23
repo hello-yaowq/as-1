@@ -165,8 +165,11 @@ boolean Sched_Schedule(void)
 	if(ReadyQueue.size > 0)
 	{
 		ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
-
+#if(OS_PTHREAD_NUM > 0)
+		if(ReadyVar->priority >= RunningVar->priority)
+#else
 		if(ReadyVar->priority > RunningVar->priority)
+#endif
 		{
 			ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
 			ReadyQueue.heap[0].priority = NEW_PRIOHIGHEST(RunningVar->priority);

@@ -115,4 +115,6 @@ int vfs_mkdir (const char *filename, uint32_t mode);
 int vfs_rmdir (const char *filename);
 int vfs_rename (const char *oldname, const char *newname);
 
+char* vfs_find(const char* file);
+
 #endif /* _VFS_H */

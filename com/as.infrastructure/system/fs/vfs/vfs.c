@@ -169,6 +169,59 @@ static SHELL_CONST ShellCmdT hexdumpVfsCmd  = {
 SHELL_CMD_EXPORT(hexdumpVfsCmd);
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
+static char* serach(char* const p, const char* file)
+{
+	VFS_DIR* dir;
+	struct vfs_dirent *dirent;
+	struct vfs_stat stat;
+	size_t len;
+	size_t lenp;
+	char* cs;
+
+	len = strlen(file);
+	lenp = strlen(p);
+	if('/' != p[lenp-1]) {
+		p[lenp] = '/';
+		p[lenp+1] = '\0';
+		lenp += 1;
+	}
+	cs = &p[lenp];
+
+	strcpy(cs,file);
+	if((0 == vfs_stat(p, &stat)) && VFS_ISREG(stat.st_mode))
+	{
+		return p;
+	}
+
+	cs[0] = '\0';
+	dir = vfs_opendir(p);
+	if(NULL != dir)
+	{
+		dirent = vfs_readdir(dir);
+		while(NULL != dirent)
+		{
+			strcpy(cs,dirent->d_name);
+			if((0 == vfs_stat(p, &stat)) && VFS_ISDIR(stat.st_mode))
+			{
+				if( (0 != strcmp(dirent->d_name,".")) &&
+					(0 != strcmp(dirent->d_name,"..")) )
+				{
+					char* r = serach(p, file);
+					if(r)
+					{
+						vfs_closedir(dir);
+						return r;
+					}
+				}
+			}
+			dirent = vfs_readdir(dir);
+		}
+	}
+	vfs_closedir(dir);
+
+	return NULL;
+}
+
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype)
 {
 	(void)filename;
@@ -235,12 +288,32 @@ static int lvfs_unlink (const char *filename)
 
 static int lvfs_stat (const char *filename, struct vfs_stat *buf)
 {
-	(void)filename;
+	int r = 0;
+	const struct vfs_filesystem_ops *ops, **o;
 
-	buf->st_mode = S_IFDIR;
-	buf->st_size = 0;
+	o = vfs_ops;
+	ops = NULL;
+	while(*o != NULL)
+	{
+		if(0 == strcmp((*o)->name, filename))
+		{
+			ops = *o;
+			break;
+		}
+		o++;
+	}
 
-	return 0;
+	if(NULL != ops)
+	{
+		buf->st_mode = S_IFDIR;
+		buf->st_size = 0;
+	}
+	else
+	{
+		r = ENOENT;
+	}
+
+	return r;
 }
 
 static VFS_DIR * lvfs_opendir (const char *dirname)
@@ -268,8 +341,8 @@ static struct vfs_dirent * lvfs_readdir (VFS_DIR *dirstream)
 
 	if((&lvfs_ops) != (*ops))
 	{
-		dirent.d_namlen = strlen((*ops)->name);
-		strcpy(dirent.d_name, (*ops)->name);
+		dirent.d_namlen = strlen((*ops)->name)-1;
+		strcpy(dirent.d_name, &(*ops)->name[1]);
 		dirstream->priv = ops+1;
 
 		return &dirent;
@@ -902,6 +975,26 @@ int vfs_rename (const char *oldname, const char *newname)
 	}
 
 	return rc;
+}
+
+char* vfs_find(const char* file)
+{
+	char* r = NULL;
+	char* p;
+	char* n;
+
+	p = malloc(FILENAME_MAX);
+	if(p != NULL)
+	{
+		strcpy(p, "/");
+		r = serach(p, file);
+		if(NULL == r)
+		{
+			free(p);
+		}
+	}
+
+	return r;
 }
 
 void vfs_init(void)

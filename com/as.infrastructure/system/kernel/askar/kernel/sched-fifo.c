@@ -307,8 +307,11 @@ boolean Sched_Schedule(void)
 		if(SCHED_FIFO_SIZE(fifo) > 0)
 		{
 			ReadyVar = &TaskVarArray[fifo->pFIFO[SCHED_FIFO_HEAD(fifo)]];
-
+#if(OS_PTHREAD_NUM > 0)
+			if(ReadyVar->priority >= RunningVar->priority)
+#else
 			if(ReadyVar->priority >  RunningVar->priority)
+#endif
 			{
 				/* remove the ReadyVar from the queue */
 				SCHED_FIFO_SIZE(fifo) --;

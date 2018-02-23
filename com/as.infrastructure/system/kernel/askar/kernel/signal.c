@@ -402,5 +402,12 @@ int raise (int sig)
 	return pthread_kill(pthread_self(), sig);
 }
 ELF_EXPORT(raise);
+
+int pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
+{
+	(void)how;(void)set;(void)oset;
+	return 0;
+}
+ELF_EXPORT(pthread_sigmask);
 #endif /* USE_PTHREAD_SIGNAL */
 #endif /* OS_PTHREAD_NUM */

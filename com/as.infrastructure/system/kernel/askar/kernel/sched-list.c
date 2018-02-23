@@ -173,7 +173,11 @@ boolean Sched_Schedule(void)
 
 	ReadyVar = TAILQ_FIRST(&(ReadyList[priority]));
 
+#if(OS_PTHREAD_NUM > 0)
+	if( (NULL != ReadyVar) && (ReadyVar->priority >= RunningVar->priority))
+#else
 	if( (NULL != ReadyVar) && (ReadyVar->priority >  RunningVar->priority))
+#endif
 	{
 		/* remove the ReadyVar from the queue */
 		TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, rentry);
