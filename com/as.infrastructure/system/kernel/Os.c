@@ -135,10 +135,6 @@ TASK(TaskIdle)
 	for(;;)
 	{
 #endif
-#if (OS_PTHREAD_NUM > 0)
-		extern void Os_PosixTimer(void);
-		Os_PosixTimer();
-#endif
 		KSM_EXECUTE();
 #ifdef USE_PROTOTHREAD
 		ScheduleContiki();

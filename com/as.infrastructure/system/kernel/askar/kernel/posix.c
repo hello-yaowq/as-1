@@ -1,7 +1,7 @@
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
- * Copyright (C) 2015  AS <parai@foxmail.com>
+ * Copyright (C) 2018  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -13,47 +13,43 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "Std_Types.h"
-#include "Os.h"
-#include "asdebug.h"
+#include "pthread.h"
+#include "kernel_internal.h"
+#if(OS_PTHREAD_NUM > 0)
+#include <errno.h>
+#include <stdlib.h>
+#include <asdebug.h>
+#ifdef USE_PTHREAD_SIGNAL
+#include "signal.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_KSM 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
-extern void tester_time_1000ms_runnable(void);
-extern void tester_nvm_1000ms_runnable(void);
-extern void pthread_test(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
-static TimerType timer;
 /* ============================ [ FUNCTIONS ] ====================================================== */
-KSM(Tester,Init)
+TASK(TaskPosix)
 {
-	KGS(Tester,RoundRobin);
-	StartTimer(&timer);
-#ifdef USE_PTHREAD_TEST
-	pthread_test();
-#endif
-}
+	EventMaskType event;
+	StatusType ercd;
 
-KSM(Tester,Start)
-{
-
-}
-
-KSM(Tester,Stop)
-{
-
-}
-
-
-KSM(Tester,RoundRobin)
-{
-	if(GetTimer(&timer) > MS2TICKS(1000))
+	while(1)
 	{
-		ASLOG(KSM,"Teter 1s runnable\n");
-		StartTimer(&timer);
-		tester_time_1000ms_runnable();
-		tester_nvm_1000ms_runnable();
+		/* -1: waiting all event */
+		ercd = WaitEvent((EventMaskType)-1);
+		if(E_OK == ercd)
+		{
+			(void)GetEvent(TASK_ID_TaskPosix, &event);
+			(void)ClearEvent(event);
+
+			#ifdef USE_PTHREAD_SIGNAL
+			if(EVENT_MASK_TaskPosix_EVENT_SIGALRM&event)
+			{
+				Os_SignalBroadCast(SIGALRM);
+			}
+			#endif
+		}
 	}
+	OsTerminateTask(TaskPosix);
 }
+#endif /* OS_PTHREAD_NUM */

@@ -118,6 +118,7 @@ void Os_SignalBroadCast(int signo)
 	imask_t imask;
 	TaskVarType *pTaskVar;
 	const TaskConstType *pTaskConst;
+	int flag = 0;
 
 	for(id=0; id < OS_PTHREAD_NUM; id++)
 	{
@@ -127,10 +128,18 @@ void Os_SignalBroadCast(int signo)
 		if((NULL != pTaskConst) && ((void*)1 != pTaskConst))
 		{
 			Irq_Restore(imask);
-			pthread_kill((pthread_t)pTaskConst, signo);
+			if(0 == pthread_kill((pthread_t)pTaskConst, signo))
+			{
+				flag = 1;
+			}
 			Irq_Save(imask);
 		}
 		Irq_Restore(imask);
+	}
+
+	if(0 == flag)
+	{	/* cancel it as no thread listening SIGALRM */
+		(void)CancelAlarm(ALARM_ID_Alarm_SIGALRM);
 	}
 }
 
@@ -387,6 +396,10 @@ int pthread_kill (pthread_t tid, int signum)
 				Irq_Save(imask);
 				Os_ListPost(&tid->sigList, TRUE);
 				Irq_Restore(imask);
+			}
+			else
+			{
+				ercd = -EEXIST;
 			}
 		}
 	}

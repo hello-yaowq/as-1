@@ -17,4 +17,9 @@ objs += Glob('kernel/*.c')
 objs += Glob('portable/%s/*.c'%(arch))
 objs += Glob('portable/%s/*.S'%(arch))
 
+if('PTHREAD_SIGNAL' not in MODULES):
+    SrcRemove(objs, ['posix.c'])
+else:
+    objs += Glob('kernel/posix.xml')
+
 Return('objs')

@@ -53,7 +53,7 @@ if('RTE' in MODULES):
     objs += Glob('rte/*.c')
     objs += Glob('rte/*.xml')
 
-if(os.getenv('TESTER') == 'yes'):
+if('TEST' in MODULES):
     objs += Glob('test/*.c')
     objs += Glob('test/*.xml')
 

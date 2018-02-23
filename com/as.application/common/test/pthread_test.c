@@ -131,7 +131,9 @@ static void* consumer(void* arg)
 	}
 #endif
 #ifdef USE_PTHREAD_SIGNAL
+	{
 	struct sigaction sigact;
+	struct itimerval itimer;
 
 	sigact.sa_flags = 0;
 	sigact.sa_handler = consumer_signal;
@@ -142,7 +144,15 @@ static void* consumer(void* arg)
 		printf( "Problem installing SIGALRM\n" );
 		return NULL;
 	}
-	setitimer (0, NULL, NULL);
+	/* Set the interval between timer events. */
+	itimer.it_interval.tv_sec = 0;
+	itimer.it_interval.tv_usec = 10000;
+
+	/* Set the current count-down. */
+	itimer.it_value.tv_sec = 0;
+	itimer.it_value.tv_usec = 10000;
+	setitimer (ITIMER_REAL, &itimer, NULL);
+	}
 #endif
 	for(n=0;n<100;n++)
 	{
@@ -240,4 +250,23 @@ void pthread_test(void)
 		printf("create pthread producer failed!(%d)\n", r);
 	}
 }
+
+#ifdef USE_SHELL
+#include "shell.h"
+static int pthreadtestFunc(int argc, char* argv[])
+{
+	pthread_test();
+
+	return 0;
+}
+static SHELL_CONST ShellCmdT pthreadtestFuncCmd  = {
+	pthreadtestFunc,
+	0,0,
+	"pthreadtest",
+	"pthreadtest",
+	"test of pthreads\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(pthreadtestFuncCmd);
+#endif
 #endif

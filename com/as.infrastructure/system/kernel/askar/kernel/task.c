@@ -62,7 +62,7 @@ static const char* taskStateToString(TaskStateType state)
 	}
 	else if(state&PTHREAD_STATE_WAITING)
 	{
-		p = "WAITING";
+		p = "WAITLIST";
 	}
 	else if(state&PTHREAD_STATE_SLEEPING)
 	{
@@ -651,10 +651,12 @@ void statOsTask(void)
 		pTaskConst = pTaskVar->pConst;
 		if(NULL != pTaskConst)
 		{
-			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) entry=0x%p",
+			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) list=0x%p   %-3d/%d entry=0x%p",
 					id, taskStateToString(pTaskVar->state),
 					pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
 					pTaskConst->pStack, pTaskConst->stackSize, pused, used,
+					pTaskVar->list,
+					pTaskVar->activation, pTaskVar->actCnt,
 					((struct pthread*)pTaskConst)->start);
 			SHELL_printf("%s\n", (pTaskVar == RunningVar)?"\t<-RunningVar":"");
 		}

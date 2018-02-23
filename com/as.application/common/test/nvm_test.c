@@ -30,18 +30,6 @@
 #endif
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#ifdef USE_FEE
-//#define ENABLE_FEE_TEST
-#endif
-#ifdef USE_NVM
-//#define ENABLE_NVM_TEST
-#endif
-#ifdef USE_EA
-//#define ENABLE_EA_TEST
-#endif
-#ifdef USE_DEM
-//#define ENABLE_DEM_TEST
-#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -65,7 +53,7 @@ static App_TimeType SystemTime =
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 
-#ifdef ENABLE_FEE_TEST
+#ifdef USE_FEE_TEST
 static void Fee_Test(void)
 {
 	static uint8 stage = 0;
@@ -112,7 +100,7 @@ static void Fee_Test(void)
 }
 #endif
 
-#ifdef ENABLE_NVM_TEST
+#ifdef USE_NVM_TEST
 static void NvM_Test(void)
 {
 //	NvM_ReadBlock(NVM_BLOCK_ID_Time,(uint8*)&NvM_BlockTime_DataGroup_RAM);
@@ -167,7 +155,7 @@ static void NvM_Test(void)
 	}
 }
 #endif
-#ifdef ENABLE_EA_TEST
+#ifdef USE_EA_TEST
 static void Ea_Test(void)
 {
 	static uint32 caller = 0;
@@ -205,7 +193,7 @@ static void Ea_Test(void)
 	}
 }
 #endif
-#ifdef ENABLE_DEM_TEST
+#ifdef USE_DEM_TEST
 static void Dem_Test(void)
 {
 	uint8 status = -1;
@@ -270,16 +258,16 @@ void tester_time_1000ms_runnable(void)
 }
 void tester_nvm_1000ms_runnable(void)
 {
-	#ifdef ENABLE_FEE_TEST
+	#ifdef USE_FEE_TEST
 	Fee_Test();
 	#endif
-	#ifdef ENABLE_EA_TEST
+	#ifdef USE_EA_TEST
 	Ea_Test();
 	#endif
-	#ifdef ENABLE_NVM_TEST
+	#ifdef USE_NVM_TEST
 	NvM_Test();
 	#endif
-	#ifdef ENABLE_DEM_TEST
+	#ifdef USE_DEM_TEST
 	Dem_Test();
 	#endif
 }
