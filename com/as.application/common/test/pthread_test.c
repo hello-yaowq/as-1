@@ -142,6 +142,7 @@ static void* consumer(void* arg)
 		printf( "Problem installing SIGALRM\n" );
 		return NULL;
 	}
+	setitimer (0, NULL, NULL);
 #endif
 	for(n=0;n<100;n++)
 	{

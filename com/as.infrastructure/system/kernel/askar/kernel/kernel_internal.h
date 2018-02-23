@@ -390,6 +390,6 @@ extern void Os_ListDetach(TaskVarType *pTaskVar);
 extern int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler);
 extern void Os_FreeSignalHandler(struct pthread* tid);
 extern void Os_SignalInit(void);
-extern void Os_SignalTick(void);
+extern void Os_SignalBroadCast(int signo);
 #endif
 #endif /* KERNEL_INTERNAL_H_ */

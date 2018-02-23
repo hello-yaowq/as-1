@@ -19,11 +19,15 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#ifdef USE_PTHREAD_SIGNAL
+#include "signal.h"
+#endif
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+TickType rtimer = 0;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int getitimer (int which, struct itimerval *old)
@@ -34,6 +38,7 @@ ELF_EXPORT(getitimer);
 
 int setitimer (int which, const struct itimerval *new, struct itimerval *old)
 {
+	StartTimer(&rtimer);
 	return 0;
 }
 ELF_EXPORT(setitimer);
@@ -48,4 +53,15 @@ clock_t times (struct tms *buffer)
 	return OsTickCounter;
 }
 ELF_EXPORT(times);
+
+void Os_PosixTimer(void)
+{
+#ifdef USE_PTHREAD_SIGNAL
+	if(GetTimer(&rtimer) > 0)
+	{
+		StartTimer(&rtimer);
+		Os_SignalBroadCast(SIGALRM);
+	}
+#endif
+}
 #endif /* OS_PTHREAD_NUM */

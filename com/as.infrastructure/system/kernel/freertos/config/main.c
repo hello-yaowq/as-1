@@ -11,7 +11,7 @@ void Task1( void * param)
 	while(1)
 	{
 		printf("Task1 is running!\n");
-		vTaskDelay(configTICK_RATE_HZ);
+		vTaskDelay(10);
 	}
 }
 void Task2( void * param)
@@ -19,7 +19,7 @@ void Task2( void * param)
 	while(1)
 	{
 		printf("Task2 is running!\n");
-		vTaskDelay(configTICK_RATE_HZ);
+		vTaskDelay(10);
 	}
 }
 int main( int argc, char* argv[] )

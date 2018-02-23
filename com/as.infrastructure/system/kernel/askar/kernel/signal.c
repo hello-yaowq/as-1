@@ -91,56 +91,6 @@ static void sig_default_hadler(int signum)
 	}
 }
 
-void* signal_thread(void* arg)
-{
-	TaskType id;
-	imask_t imask;
-	const TaskConstType* pTaskConst;
-	TaskVarType* pTaskVar;
-	ASLOG(SIGNAL,"Signal Daemon Thread is running!\n");
-	Os_Sleep(100);
-	while(1)
-	{
-		Os_Sleep(1);
-		/* yes, I know, this is a ugly implementation */
-		Irq_Save(imask);
-		for(id=0; id < OS_PTHREAD_NUM; id++)
-		{
-			pTaskVar   = &TaskVarArray[TASK_NUM+id];
-			pTaskConst = pTaskVar->pConst;
-			if((NULL != pTaskConst) && ((void*)1 != pTaskConst))
-			{
-				pthread_kill((pthread_t)pTaskConst, SIGALRM);
-			}
-		}
-		Irq_Restore(imask);
-	}
-
-	return NULL;
-}
-
-static void signal_thread_autostart(int signum)
-{
-	pthread_attr_t attr;
-	struct sched_param param;
-
-	if(SIGALRM == signum)
-	{
-		if(NULL == threadSig)
-		{
-			pthread_attr_init(&attr);
-			param.sched_priority = OS_PTHREAD_PRIORITY-1; /* highest */
-
-			pthread_attr_setschedparam(&attr, &param);
-			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-			if(0 != pthread_create(&threadSig, &attr, signal_thread, NULL))
-			{
-				ASLOG(ERROR, "posix signal daemon thread create failed!\n");
-			}
-		}
-	}
-}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_FreeSignalHandler(pthread_t tid)
 {
@@ -160,6 +110,28 @@ void Os_FreeSignalHandler(pthread_t tid)
 void Os_SignalInit(void)
 {
 	threadSig = NULL;
+}
+
+void Os_SignalBroadCast(int signo)
+{
+	TaskType id;
+	imask_t imask;
+	TaskVarType *pTaskVar;
+	const TaskConstType *pTaskConst;
+
+	for(id=0; id < OS_PTHREAD_NUM; id++)
+	{
+		Irq_Save(imask);
+		pTaskVar   = &TaskVarArray[TASK_NUM+id];
+		pTaskConst = pTaskVar->pConst;
+		if((NULL != pTaskConst) && ((void*)1 != pTaskConst))
+		{
+			Irq_Restore(imask);
+			pthread_kill((pthread_t)pTaskConst, signo);
+			Irq_Save(imask);
+		}
+		Irq_Restore(imask);
+	}
 }
 
 int sigaddset (sigset_t *set, const int signo)
@@ -266,8 +238,6 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 				Irq_Save(imask);
 				TAILQ_INSERT_TAIL(&tid->signalList, sig, entry);
 				Irq_Restore(imask);
-				/* call to start signal thread if necessary */
-				signal_thread_autostart(signum);
 			}
 			else
 			{
@@ -384,10 +354,15 @@ int pthread_kill (pthread_t tid, int signum)
 				Irq_Save(imask);
 				if(0 == Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler))
 				{
-					/* kick the signal call immediately by an extra activation */
-					Sched_AddReady(tid->pTaskVar - TaskVarArray);
+					#ifdef USE_SCHED_LIST
+					/* this is ugly signal call as treating signal call the highest priority */
+					Sched_AddReady(RunningVar - TaskVarArray);
 					ReadyVar = tid->pTaskVar;
 					Os_PortDispatch();
+					#else
+					/* kick the signal call immediately by an extra activation */
+					Sched_AddReady(tid->pTaskVar - TaskVarArray);
+					#endif
 				}
 				else
 				{
