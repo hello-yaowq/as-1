@@ -377,7 +377,6 @@ extern void Sched_Preempt(void);
 extern boolean Sched_Schedule(void);
 extern void OsTick(void);
 #if(OS_PTHREAD_NUM > 0)
-extern void Sched_PosixAddReady(TaskType TaskID);
 extern void Os_SleepInit(void);
 extern void Os_SleepTick(void);
 extern void Os_Sleep(TickType tick);

@@ -117,7 +117,7 @@ void Os_SleepTick(void)
 		if(0u == pTaskVar->sleep_tick)
 		{
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
-			Sched_PosixAddReady(pTaskVar-TaskVarArray);
+			Sched_AddReady(pTaskVar-TaskVarArray);
 			Os_SleepRemove(pTaskVar);
 		}
 
@@ -285,7 +285,7 @@ int Os_ListPost(TaskListType* list, boolean schedule)
 		pTaskVar->state &= ~PTHREAD_STATE_WAITING;
 		pTaskVar->list = NULL;
 		OS_TRACE_TASK_ACTIVATION(pTaskVar);
-		Sched_PosixAddReady(pTaskVar-TaskVarArray);
+		Sched_AddReady(pTaskVar-TaskVarArray);
 		if(schedule)
 		{
 			(void)Schedule();
@@ -315,6 +315,6 @@ void Os_ListDetach(TaskVarType *pTaskVar)
 
 	pTaskVar->state = READY;
 	OS_TRACE_TASK_ACTIVATION(pTaskVar);
-	Sched_PosixAddReady(pTaskVar-TaskVarArray);
+	Sched_AddReady(pTaskVar-TaskVarArray);
 }
 #endif

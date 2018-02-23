@@ -128,24 +128,11 @@ void Sched_AddReady(TaskType TaskID)
 	asAssert(ReadyQueue.size < ACTIVATION_SUM);
 
 	ReadyQueue.heap[ReadyQueue.size].taskID = TaskID;
-	ReadyQueue.heap[ReadyQueue.size].priority = NEW_PRIORITY(TaskConstArray[TaskID].initPriority);
+	ReadyQueue.heap[ReadyQueue.size].priority = NEW_PRIORITY(TaskVarArray[TaskID].pConst->initPriority);
 	Sched_BubbleUp(&ReadyQueue, ReadyQueue.size);
 	ReadyQueue.size++;
 	ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
 }
-
-#if(OS_PTHREAD_NUM > 0)
-void Sched_PosixAddReady(TaskType TaskID)
-{
-	asAssert(ReadyQueue.size < ACTIVATION_SUM);
-
-	ReadyQueue.heap[ReadyQueue.size].taskID = TaskID;
-	ReadyQueue.heap[ReadyQueue.size].priority = NEW_PRIORITY(TaskVarArray[TaskID].priority);
-	Sched_BubbleUp(&ReadyQueue, ReadyQueue.size);
-	ReadyQueue.size++;
-	ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
-}
-#endif
 
 void Sched_Preempt(void)
 {

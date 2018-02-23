@@ -84,28 +84,6 @@ static inline PriorityType Sched_GetReadyBit(void)
 
 	return priority;
 }
-static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
-{
-	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
-
-	TAILQ_INSERT_TAIL(&(ReadyList[priority]), pTaskVar, rentry);
-
-	Sched_SetReadyBit(priority);
-
-	if(priority > ReadyVar->priority)
-	{
-		ReadyVar = TAILQ_FIRST(&(ReadyList[priority]));
-	}
-	else if(ReadyVar == RunningVar)
-	{
-		priority = Sched_GetReadyBit();
-		ReadyVar = TAILQ_FIRST(&(ReadyList[priority]));
-	}
-	else
-	{
-		/* no update of ReadyVar */
-	}
-}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sched_Init(void)
 {
@@ -126,15 +104,31 @@ void Sched_Init(void)
 
 void Sched_AddReady(TaskType TaskID)
 {
-	Sched_AddReadyInternal(TaskID, TaskConstArray[TaskID].initPriority);
-}
+	PriorityType priority;
+	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
 
-#if(OS_PTHREAD_NUM > 0)
-void Sched_PosixAddReady(TaskType TaskID)
-{
-	Sched_AddReadyInternal(TaskID, TaskVarArray[TaskID].priority);
+	priority = pTaskVar->pConst->initPriority;
+
+	asAssert(priority <= PRIORITY_NUM);
+
+	TAILQ_INSERT_TAIL(&(ReadyList[priority]), pTaskVar, rentry);
+
+	Sched_SetReadyBit(priority);
+
+	if(priority > ReadyVar->priority)
+	{
+		ReadyVar = TAILQ_FIRST(&(ReadyList[priority]));
+	}
+	else if(ReadyVar == RunningVar)
+	{
+		priority = Sched_GetReadyBit();
+		ReadyVar = TAILQ_FIRST(&(ReadyList[priority]));
+	}
+	else
+	{
+		/* no update of ReadyVar */
+	}
 }
-#endif
 
 void Sched_Preempt(void)
 {

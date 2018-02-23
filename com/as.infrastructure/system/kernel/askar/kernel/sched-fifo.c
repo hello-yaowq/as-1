@@ -145,10 +145,44 @@ static inline PriorityType Sched_GetReadyBit(void)
 
 	return ((Z<<6) + (X<<3) + Y);
 }
-
-static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
+/* ============================ [ FUNCTIONS ] ====================================================== */
+void Sched_Init(void)
 {
+	PriorityType prio;
+
+	for(prio=0; prio <= PRIORITY_NUM; prio++)
+	{
+		if(ReadyFIFO[prio].pFIFO != NULL)
+		{
+			SCHED_FIFO_SIZE(&ReadyFIFO[prio]) = 0;
+			SCHED_FIFO_HEAD(&ReadyFIFO[prio]) = SCHED_FIFO_SLOT_OFFSET;
+			SCHED_FIFO_TAIL(&ReadyFIFO[prio]) = SCHED_FIFO_SLOT_OFFSET;
+		}
+	}
+
+#if (PRIORITY_NUM > 63)
+	ReadyGroup = 0;
+#endif
+
+#if (PRIORITY_NUM > 7)
+	for(prio=0; prio < sizeof(ReadyGroupTable); prio++)
+	{
+		ReadyGroupTable[prio] = 0;
+	}
+#endif
+
+	for(prio=0; prio < sizeof(ReadyMapTable); prio++)
+	{
+		ReadyMapTable[prio] = 0;
+	}
+}
+
+void Sched_AddReady(TaskType TaskID)
+{
+	PriorityType priority;
 	const ReadyFIFOType* fifo;
+
+	priority = TaskVarArray[TaskID].pConst->initPriority;
 
 	asAssert(priority <= PRIORITY_NUM);
 
@@ -184,49 +218,7 @@ static void Sched_AddReadyInternal(TaskType TaskID, PriorityType priority)
 		/* no update of ReadyVar */
 	}
 }
-/* ============================ [ FUNCTIONS ] ====================================================== */
-void Sched_Init(void)
-{
-	PriorityType prio;
 
-	for(prio=0; prio <= PRIORITY_NUM; prio++)
-	{
-		if(ReadyFIFO[prio].pFIFO != NULL)
-		{
-			SCHED_FIFO_SIZE(&ReadyFIFO[prio]) = 0;
-			SCHED_FIFO_HEAD(&ReadyFIFO[prio]) = SCHED_FIFO_SLOT_OFFSET;
-			SCHED_FIFO_TAIL(&ReadyFIFO[prio]) = SCHED_FIFO_SLOT_OFFSET;
-		}
-	}
-
-#if (PRIORITY_NUM > 63)
-	ReadyGroup = 0;
-#endif
-
-#if (PRIORITY_NUM > 7)
-	for(prio=0; prio < sizeof(ReadyGroupTable); prio++)
-	{
-		ReadyGroupTable[prio] = 0;
-	}
-#endif
-
-	for(prio=0; prio < sizeof(ReadyMapTable); prio++)
-	{
-		ReadyMapTable[prio] = 0;
-	}
-}
-
-void Sched_AddReady(TaskType TaskID)
-{
-	Sched_AddReadyInternal(TaskID, TaskConstArray[TaskID].initPriority);
-}
-
-#if(OS_PTHREAD_NUM > 0)
-void Sched_PosixAddReady(TaskType TaskID)
-{
-	Sched_AddReadyInternal(TaskID, TaskVarArray[TaskID].priority);
-}
-#endif
 void Sched_Preempt(void)
 {
 	PriorityType priority;

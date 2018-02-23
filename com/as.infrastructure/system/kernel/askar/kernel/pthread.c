@@ -171,7 +171,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		{
 			pTaskConst->flag |= PTHREAD_JOINABLE_MASK;
 		}
-		Sched_PosixAddReady(pTaskVar - TaskVarArray);
+		Sched_AddReady(pTaskVar - TaskVarArray);
 		Irq_Restore(imask);
 	}
 

@@ -359,12 +359,12 @@ int pthread_kill (pthread_t tid, int signum)
 				{
 					#ifdef USE_SCHED_LIST
 					/* this is ugly signal call as treating signal call the highest priority */
-					Sched_PosixAddReady(RunningVar - TaskVarArray);
+					Sched_AddReady(RunningVar - TaskVarArray);
 					ReadyVar = tid->pTaskVar;
 					Os_PortDispatch();
 					#else
 					/* kick the signal call immediately by an extra activation */
-					Sched_PosixAddReady(tid->pTaskVar - TaskVarArray);
+					Sched_AddReady(tid->pTaskVar - TaskVarArray);
 					#endif
 				}
 				else
