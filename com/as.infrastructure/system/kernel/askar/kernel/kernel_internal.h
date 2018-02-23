@@ -332,6 +332,7 @@ struct pthread
 {
 	TaskConstType TaskConst;
 	TaskVarType* pTaskVar;
+	TaskVarType* parent;
 	TaskListType joinList;
 #ifdef USE_PTHREAD_CLEANUP
 	TAILQ_HEAD(cleanup_list, cleanup) cleanupList;

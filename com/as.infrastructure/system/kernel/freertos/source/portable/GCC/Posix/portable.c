@@ -69,7 +69,6 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-#include "asdebug.h"
 /*-----------------------------------------------------------*/
 
 #define MAX_NUMBER_OF_TASKS 		( _POSIX_THREAD_THREADS_MAX )
@@ -176,7 +175,7 @@ xParams *pxThisThreadParams = pvPortMalloc( sizeof( xParams ) );
 
 		/* Wait until the task suspends. */
 		(void)pthread_mutex_unlock( &xSingleThreadMutex );
-		while ( xSentinel == 0 );
+		while ( xSentinel == 0 ) usleep(1000);
 		vPortExitCritical();
 	}
 

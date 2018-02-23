@@ -23,6 +23,7 @@
 #include "signal.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_PTHREAD 0
 /* ============================ [ TYPES     ] ====================================================== */
 struct cleanup
 {
@@ -140,6 +141,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(0 == ercd)
 	{
+		pthread->parent = RunningVar;
 		pthread->arg = arg;
 		pthread->start = start;
 		pTaskConst->entry = pthread_entry_main;
@@ -156,6 +158,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 		pTaskVar->priority = pTaskConst->initPriority;
 		Os_PortInitContext(pTaskVar);
 
+		ASLOG(PTHREAD, "pthread%d created\n", (pTaskVar-TaskVarArray-TASK_NUM));
 		TAILQ_INIT(&pthread->joinList);
 #ifdef USE_PTHREAD_CLEANUP
 		TAILQ_INIT(&pthread->cleanupList);
@@ -239,6 +242,8 @@ void pthread_exit (void *value_ptr)
 
 	Irq_Disable();
 
+	ASLOG(PTHREAD, "pthread%d exit\n", (RunningVar-TaskVarArray-TASK_NUM));
+
 #ifdef USE_PTHREAD_CLEANUP
 	while(FALSE == TAILQ_EMPTY(&tid->cleanupList))
 	{
@@ -320,6 +325,10 @@ int pthread_join(pthread_t tid, void ** thread_return)
 		asAssert(tid->TaskConst.flag & PTHREAD_JOINED_MASK);
 		tid->pTaskVar->pConst = NULL;
 		*thread_return = tid->ret;
+
+		ASLOG(PTHREAD, "pthread%d join %d\n",
+				(RunningVar-TaskVarArray-TASK_NUM),
+				(tid->pTaskVar-TaskVarArray-TASK_NUM));
 		if(tid->TaskConst.flag & PTHREAD_DYNAMIC_CREATED_MASK)
 		{
 			free(tid);
@@ -592,6 +601,7 @@ ELF_EXPORT(pthread_once);
 
 void sched_yield(void)
 {
+	ASLOG(PTHREAD, "pthread%d yield\n", (RunningVar-TaskVarArray-TASK_NUM));
 	Schedule();
 }
 ELF_EXPORT(sched_yield);

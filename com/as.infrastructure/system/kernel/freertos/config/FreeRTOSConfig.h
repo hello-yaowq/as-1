@@ -176,8 +176,15 @@ files. */
 
 	/* It is a good idea to define configASSERT() while developing.  configASSERT()
 	uses the same semantics as the standard C assert() macro. */
+#ifdef USE_FREERTOS
 	#include "asdebug.h"
 	#define configASSERT( x ) asAssert(x)
+#else
+	#include <stdio.h>
+	#include <assert.h>
+	#define PRINTF printf
+	#define configASSERT( x ) assert(x)
+#endif
 
 #endif
 

@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define AS_LOG_SIGNAL 0
 /* ============================ [ TYPES     ] ====================================================== */
 struct signal
 {
@@ -63,6 +64,14 @@ static struct signal *lookup_signal2(pthread_t tid, int signum)
 		break;
 		default:
 			sig = lookup_signal(tid, signum);
+			if( (signum != SIGALRM) &&
+				(NULL == sig) &&
+				((tid->parent-TaskVarArray) > TASK_NUM) &&
+				(NULL != tid->parent->pConst) &&
+				((void*)1 != tid->parent->pConst) )
+			{	/* lookup from its parent */
+				sig = lookup_signal((pthread_t)(tid->parent->pConst), signum);
+			}
 		break;
 	}
 
@@ -88,9 +97,11 @@ void* signal_thread(void* arg)
 	imask_t imask;
 	const TaskConstType* pTaskConst;
 	TaskVarType* pTaskVar;
-	ASLOG(ON,"Signal Daemon Thread is running!\n");
+	ASLOG(SIGNAL,"Signal Daemon Thread is running!\n");
+	Os_Sleep(100);
 	while(1)
 	{
+		Os_Sleep(1);
 		/* yes, I know, this is a ugly implementation */
 		Irq_Save(imask);
 		for(id=0; id < OS_PTHREAD_NUM; id++)
@@ -103,7 +114,6 @@ void* signal_thread(void* arg)
 			}
 		}
 		Irq_Restore(imask);
-		Os_Sleep(1);
 	}
 
 	return NULL;
@@ -314,11 +324,17 @@ int sigwait(const sigset_t * set, int * sig)
 	{
 		tid = pthread_self();
 
+		ASLOG(SIGNAL, "pthread%d sigwait 0x%x @%u\n",
+				(RunningVar-TaskVarArray-TASK_NUM),
+				*set, OsTickCounter);
 		Irq_Save(imask);
 		tid->sigWait = *set;
 		(void)Os_ListWait(&tid->sigList, NULL);
 		*sig = tid->signo;
 		tid->sigWait = 0;
+		ASLOG(SIGNAL, "pthread%d sigwait 0x%x get %d @%u\n",
+				(RunningVar-TaskVarArray-TASK_NUM),
+				*set, *sig, OsTickCounter);
 		Irq_Restore(imask);
 	}
 	else
@@ -350,25 +366,34 @@ int pthread_kill (pthread_t tid, int signum)
 		Irq_Save(imask);
 		sig = lookup_signal2(tid, signum);
 		Irq_Restore(imask);
+		ASLOG(SIGNAL, "kill to pthread%d %d\n",
+				(tid->pTaskVar-TaskVarArray-TASK_NUM),
+				signum);
 		if(NULL != sig)
 		{
+			tid->signo = signum;
+
+			if(tid->sigWait & (1<<signum))
+			{
+				Irq_Save(imask);
+				Os_ListPost(&tid->sigList, FALSE);
+				Irq_Restore(imask);
+			}
 			if(tid->pTaskVar != RunningVar)
 			{
 				Irq_Save(imask);
 				if(0 == Os_PortInstallSignal(tid->pTaskVar, signum, sig->action.sa_handler))
 				{
-					#ifdef USE_SCHED_LIST
-					/* this is ugly signal call as treating signal call the highest priority */
-					Sched_AddReady(RunningVar - TaskVarArray);
-					ReadyVar = tid->pTaskVar;
-					Os_PortDispatch();
-					#else
 					/* kick the signal call immediately by an extra activation */
 					Sched_AddReady(tid->pTaskVar - TaskVarArray);
-					#endif
+					ReadyVar = tid->pTaskVar;
+					Os_PortDispatch();
 				}
 				else
 				{
+					ASLOG(SIGNAL, "kill to pthread%d %d failed\n",
+							(tid->pTaskVar-TaskVarArray-TASK_NUM),
+							signum);
 					ercd = -ENOMEM;
 				}
 				Irq_Restore(imask);
@@ -378,14 +403,16 @@ int pthread_kill (pthread_t tid, int signum)
 				sig->action.sa_handler(signum);
 			}
 		}
-
-		tid->signo = signum;
-
-		if(tid->sigWait & (1<<signum))
+		else
 		{
-			Irq_Save(imask);
-			Os_ListPost(&tid->sigList, TRUE);
-			Irq_Restore(imask);
+			tid->signo = signum;
+
+			if(tid->sigWait & (1<<signum))
+			{
+				Irq_Save(imask);
+				Os_ListPost(&tid->sigList, TRUE);
+				Irq_Restore(imask);
+			}
 		}
 	}
 	else
