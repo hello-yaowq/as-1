@@ -257,6 +257,7 @@ void pthread_exit (void *value_ptr)
 #endif
 	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
+		ASLOG(PTHREAD, "pthread%d signal jion\n", (RunningVar-TaskVarArray-TASK_NUM));
 		tid->TaskConst.flag |= PTHREAD_JOINED_MASK;
 		tid->ret = value_ptr;
 		if(0 == Os_ListPost(&tid->joinList, FALSE))
@@ -324,7 +325,10 @@ int pthread_join(pthread_t tid, void ** thread_return)
 		}
 		asAssert(tid->TaskConst.flag & PTHREAD_JOINED_MASK);
 		tid->pTaskVar->pConst = NULL;
-		*thread_return = tid->ret;
+		if(NULL != thread_return)
+		{
+			*thread_return = tid->ret;
+		}
 
 		ASLOG(PTHREAD, "pthread%d join %d\n",
 				(RunningVar-TaskVarArray-TASK_NUM),
@@ -367,6 +371,7 @@ int pthread_cancel (pthread_t tid)
 	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
 	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
 
+	ASLOG(PTHREAD, "pthread%d cancel\n", (tid->pTaskVar-TaskVarArray-TASK_NUM));
 	if(tid == pthread_self())
 	{
 		ercd = -EINVAL;

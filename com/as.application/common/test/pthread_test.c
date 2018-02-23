@@ -249,6 +249,8 @@ void pthread_test(void)
 	{
 		printf("create pthread producer failed!(%d)\n", r);
 	}
+
+	pthread_join(threadP, NULL);
 }
 
 #ifdef USE_SHELL
