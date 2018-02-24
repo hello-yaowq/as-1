@@ -30,7 +30,7 @@ This RTOS ASKAR is designed according to [OSEK/VDX OS223](http://trampolinebin.r
 * [trampoline](https://github.com/TrampolineRTOS/trampoline)
 * [rtthread](https://github.com/RT-Thread/rt-thread)
 
-For the purpose that to able to run most of the common applications which are based on posix, a series of posix APIs have been implemented based on the ASKAR OSEK tiny core.
+For the purpose that to be able to run most of the common applications which are based on posix, a series of posix APIs have been implemented based on the ASKAR OSEK tiny core.
 
 * posix threads
 * posix semaphore

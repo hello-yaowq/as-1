@@ -157,12 +157,29 @@ static int dllFunc(int argc, char* argv[])
 			struct dllParam* param;
 			pthread_attr_t attr;
 			struct sched_param sparam;
+			int i;
+			size_t sz;
+			char* str;
 
-			param = malloc(sizeof(struct dllParam));
+			sz = 0;
+			for(i=0;i<argc;i++)
+			{
+				sz += strlen(argv[i])+1;
+			}
+
+			param = malloc(sizeof(struct dllParam)+sz+(sizeof(char*)*argc));
 			if(NULL != param)
 			{
 				param->argc = argc;
-				param->argv = argv;
+				param->argv = (char**)&param[1];
+				str = ((void*)param->argv)+(sizeof(char*)*argc);
+				for(i=0;i<argc;i++)
+				{
+					param->argv[i] = str;
+					strcpy(str, argv[i]);
+					str += strlen(argv[i])+1;
+				}
+
 				param->mentry = mentry;
 				param->dll = dll;
 				pthread_attr_init(&attr);
