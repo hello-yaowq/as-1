@@ -16,6 +16,7 @@
 #include "vfs.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "asdebug.h"
 #ifdef USE_SHELL
 #include "shell.h"
@@ -24,6 +25,9 @@
 #define AS_LOG_VFS 0
 #define in_range(c, lo, up)  ((uint8_t)c >= lo && (uint8_t)c <= up)
 #define isprint(c)           in_range(c, 0x20, 0x7f)
+#ifndef VFS_FPRINTF_BUFFER_SIZE
+#define VFS_FPRINTF_BUFFER_SIZE 512
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_FATFS
@@ -40,10 +44,10 @@ static int lvfs_fflush (VFS_FILE *stream);
 static int lvfs_fseek (VFS_FILE *stream, long int offset, int whence);
 static size_t lvfs_ftell (VFS_FILE *stream);
 static int lvfs_unlink (const char *filename);
-static int lvfs_stat (const char *filename, struct vfs_stat *buf);
+static int lvfs_stat (const char *filename, vfs_stat_t *buf);
 
 static VFS_DIR * lvfs_opendir (const char *dirname);
-static struct vfs_dirent * lvfs_readdir (VFS_DIR *dirstream);
+static vfs_dirent_t * lvfs_readdir (VFS_DIR *dirstream);
 static int lvfs_closedir (VFS_DIR *dirstream);
 
 static int lvfs_chdir (const char *filename);
@@ -172,8 +176,8 @@ SHELL_CMD_EXPORT(hexdumpVfsCmd);
 static char* serach(char* const p, const char* file)
 {
 	VFS_DIR* dir;
-	struct vfs_dirent *dirent;
-	struct vfs_stat stat;
+	vfs_dirent_t *dirent;
+	vfs_stat_t stat;
 	size_t len;
 	size_t lenp;
 	char* cs;
@@ -286,7 +290,7 @@ static int lvfs_unlink (const char *filename)
 	return EACCES;
 }
 
-static int lvfs_stat (const char *filename, struct vfs_stat *buf)
+static int lvfs_stat (const char *filename, vfs_stat_t *buf)
 {
 	int r = 0;
 	const struct vfs_filesystem_ops *ops, **o;
@@ -332,9 +336,9 @@ static VFS_DIR * lvfs_opendir (const char *dirname)
 
 }
 
-static struct vfs_dirent * lvfs_readdir (VFS_DIR *dirstream)
+static vfs_dirent_t * lvfs_readdir (VFS_DIR *dirstream)
 {
-	static struct vfs_dirent dirent;
+	static vfs_dirent_t dirent;
 	const struct vfs_filesystem_ops** ops;
 
 	ops = dirstream->priv;
@@ -514,8 +518,8 @@ static int lsFunc(int argc, char* argv[])
 	int r = 0;
 	const char* path;
 	VFS_DIR* dir;
-	struct vfs_dirent * dirent;
-	struct vfs_stat st;
+	vfs_dirent_t * dirent;
+	vfs_stat_t st;
 
 	if(1 == argc)
 	{
@@ -584,7 +588,7 @@ static int mkdirFunc(int argc, char* argv[])
 static int rmFunc(int argc, char* argv[])
 {
 	int r;
-	struct vfs_stat st;
+	vfs_stat_t st;
 
 	r = vfs_stat(argv[1], &st);
 
@@ -614,7 +618,7 @@ static int catFunc(int argc, char* argv[])
 	if(NULL != f)
 	{
 		do {
-			r = vfs_fread(buf, sizeof(buf)-1, 1, f);
+			r = vfs_fread(buf, 1, sizeof(buf)-1, f);
 
 			if(r > 0)
 			{
@@ -740,36 +744,43 @@ VFS_FILE* vfs_fopen (const char *filename, const char *opentype)
 
 	return file;
 }
+ELF_EXPORT_ALIAS(vfs_fopen,"fopen");
 
 int vfs_fclose (VFS_FILE* stream)
 {
 	return stream->fops->fclose(stream);
 }
+ELF_EXPORT_ALIAS(vfs_fclose,"fclose");
 
 int vfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream)
 {
 	return stream->fops->fread(data, size, count, stream);
 }
+ELF_EXPORT_ALIAS(vfs_fread,"fread");
 
 int vfs_fwrite (const void *data, size_t size, size_t count, VFS_FILE *stream)
 {
 	return stream->fops->fwrite(data, size, count, stream);
 }
+ELF_EXPORT_ALIAS(vfs_fwrite,"fwrite");
 
 int vfs_fflush (VFS_FILE *stream)
 {
 	return stream->fops->fflush(stream);
 }
+ELF_EXPORT_ALIAS(vfs_fflush,"fflush");
 
 int vfs_fseek (VFS_FILE *stream, long int offset, int whence)
 {
 	return stream->fops->fseek(stream, offset, whence);
 }
+ELF_EXPORT_ALIAS(vfs_fseek,"fseek");
 
 size_t vfs_ftell (VFS_FILE *stream)
 {
 	return stream->fops->ftell(stream);
 }
+ELF_EXPORT_ALIAS(vfs_ftell,"ftell");
 
 int vfs_unlink (const char *filename)
 {
@@ -793,8 +804,9 @@ int vfs_unlink (const char *filename)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_unlink,"unlink");
 
-int vfs_stat (const char *filename, struct vfs_stat *buf)
+int vfs_stat (const char *filename, vfs_stat_t *buf)
 {
 	char* abspath;
 	int rc = EACCES;
@@ -816,6 +828,7 @@ int vfs_stat (const char *filename, struct vfs_stat *buf)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_stat,"stat");
 
 VFS_DIR * vfs_opendir (const char *dirname)
 {
@@ -839,16 +852,19 @@ VFS_DIR * vfs_opendir (const char *dirname)
 
 	return dir;
 }
+ELF_EXPORT_ALIAS(vfs_opendir,"opendir");
 
-struct vfs_dirent * vfs_readdir (VFS_DIR *dirstream)
+vfs_dirent_t * vfs_readdir (VFS_DIR *dirstream)
 {
 	return dirstream->fops->readdir(dirstream);
 }
+ELF_EXPORT_ALIAS(vfs_readdir,"readdir");
 
 int vfs_closedir (VFS_DIR *dirstream)
 {
 	return dirstream->fops->closedir(dirstream);
 }
+ELF_EXPORT_ALIAS(vfs_closedir,"closedir");
 
 int vfs_chdir (const char *filename)
 {
@@ -876,6 +892,7 @@ int vfs_chdir (const char *filename)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_chdir,"chdir");
 
 char * vfs_getcwd  (char *buffer, size_t size)
 {
@@ -901,6 +918,7 @@ char * vfs_getcwd  (char *buffer, size_t size)
 
 	return buffer;
 }
+ELF_EXPORT_ALIAS(vfs_getcwd,"getcwd");
 
 int vfs_mkdir (const char *filename, uint32_t mode)
 {
@@ -924,6 +942,7 @@ int vfs_mkdir (const char *filename, uint32_t mode)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_mkdir,"mkdir");
 
 int  vfs_rmdir (const char *filename)
 {
@@ -947,6 +966,7 @@ int  vfs_rmdir (const char *filename)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_rmdir,"rmdir");
 
 int vfs_rename (const char *oldname, const char *newname)
 {
@@ -976,6 +996,7 @@ int vfs_rename (const char *oldname, const char *newname)
 
 	return rc;
 }
+ELF_EXPORT_ALIAS(vfs_rename,"rename");
 
 char* vfs_find(const char* file)
 {
@@ -996,6 +1017,38 @@ char* vfs_find(const char* file)
 
 	return r;
 }
+
+int vfs_fprintf (VFS_FILE* fp, const char* format, ...)
+{
+	int n;
+	char* buf;
+
+	va_list arg_ptr;
+
+	buf = malloc(VFS_FPRINTF_BUFFER_SIZE);
+	if(buf != NULL)
+	{
+		va_start(arg_ptr, format);
+		n = vsnprintf(buf, VFS_FPRINTF_BUFFER_SIZE, format, arg_ptr);
+		va_end(arg_ptr);
+		if(n >= VFS_FPRINTF_BUFFER_SIZE)
+		{
+			ASLOG(ERROR, "VFS_FPRINTF_BUFFER_SIZE=%d is too small, enlarge it please\n",
+					VFS_FPRINTF_BUFFER_SIZE);
+		}
+
+		n = vfs_fwrite(buf, 1, n, fp);
+
+		free(buf);
+	}
+	else
+	{
+		n = -ENOMEM;
+	}
+
+	return n;
+}
+ELF_EXPORT_ALIAS(vfs_fprintf,"fprintf");
 
 void vfs_init(void)
 {

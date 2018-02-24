@@ -39,6 +39,7 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef USE_LIBELF
 #define ELF_EXPORT(fnc)
+#define ELF_EXPORT_ALIAS(fnc, name)
 #endif
 #if !defined(HIGH_BYTE_FIRST)
 #define HIGH_BYTE_FIRST     0U

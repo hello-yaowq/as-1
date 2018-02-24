@@ -132,6 +132,10 @@ static int killOsFunc(int argc, char* argv[])
 		{
 			ercd = pthread_kill(tid, sig);
 		}
+		else
+		{
+			ercd = -EACCES;
+		}
 	}
 	else
 	{

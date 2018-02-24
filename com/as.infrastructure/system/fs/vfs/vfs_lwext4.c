@@ -135,7 +135,7 @@ static int lwext_unlink (const char *filename)
 	return r;
 }
 
-static int lwext_stat (const char *filename, struct vfs_stat *buf)
+static int lwext_stat (const char *filename, vfs_stat_t *buf)
 {
 	int r = ENOENT;
 
@@ -226,12 +226,12 @@ static VFS_DIR * lwext_opendir (const char *dirname)
 
 }
 
-static struct vfs_dirent * lwext_readdir (VFS_DIR *dirstream)
+static vfs_dirent_t * lwext_readdir (VFS_DIR *dirstream)
 {
 	const ext4_direntry * rentry;
-	struct vfs_dirent * rdirent;
+	vfs_dirent_t * rdirent;
 
-	static struct vfs_dirent dirent;
+	static vfs_dirent_t dirent;
 
 	rentry = ext4_dir_entry_next(dirstream->priv);
 

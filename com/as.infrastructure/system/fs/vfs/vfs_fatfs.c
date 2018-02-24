@@ -35,7 +35,7 @@ extern const struct vfs_filesystem_ops fatfs_ops;
 /* dirent that will be given to callers;
  * note: both APIs assume that only one dirent ever exists
  */
-static struct vfs_dirent dir_ent;
+static vfs_dirent_t dir_ent;
 /* ============================ [ LOCALS    ] ====================================================== */
 static VFS_FILE* fatfs_fopen (const char *filename, const char *opentype)
 {
@@ -195,7 +195,7 @@ static int fatfs_unlink (const char *filename)
 	return EOF;
 }
 
-static int fatfs_stat (const char *filename, struct vfs_stat *buf)
+static int fatfs_stat (const char *filename, vfs_stat_t *buf)
 {
 	FILINFO f;
 	FRESULT r;
@@ -280,7 +280,7 @@ static VFS_DIR * fatfs_opendir (const char *dirname)
 
 	return dir;
 }
-static struct vfs_dirent* fatfs_readdir(VFS_DIR* dir)
+static vfs_dirent_t* fatfs_readdir(VFS_DIR* dir)
 {
 	FILINFO fi;
 	FRESULT r;

@@ -25,8 +25,12 @@
 #ifdef USE_ELF_SYMTAB
 #define ELF_EXPORT(fnc) \
 	const ELF_SymbolType const __attribute__((section("ELFSymTab"))) fnc##Ref = { #fnc, fnc};
+#define ELF_EXPORT_ALIAS(fnc, name) \
+	const ELF_SymbolType const __attribute__((section("ELFSymTab"))) fnc##Ref = { name, fnc};
+
 #else
 #define ELF_EXPORT(fnc)
+#define ELF_EXPORT_ALIAS(fnc, name)
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct

@@ -332,7 +332,7 @@ static int sfifo_write(sfifo_t *f, const void *_buf, int len)
 struct ftpd_datastate {
 	int connected;
 	VFS_DIR *vfs_dir;
-	struct vfs_dirent *vfs_dirent;
+	vfs_dirent_t *vfs_dirent;
 	VFS_FILE *vfs_file;
 	sfifo_t fifo;
 	struct tcp_pcb *msgpcb;
@@ -476,7 +476,7 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 			sfifo_write(&fsd->fifo, buffer, len);
 			fsd->vfs_dirent = NULL;
 		} else {
-			struct vfs_stat st;
+			vfs_stat_t st;
 			#ifdef USE_FTPD_TIME
 			time_t current_time;
 			int current_year;
@@ -813,7 +813,7 @@ static void cmd_list(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 static void cmd_retr(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
 	VFS_FILE *vfs_file;
-	struct vfs_stat st;
+	vfs_stat_t st;
 
 	vfs_stat(arg, &st);
 	if (!VFS_ISREG(st.st_mode)) {
@@ -1042,7 +1042,7 @@ static void cmd_mkd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	struct vfs_stat st;
+	vfs_stat_t st;
 
 	if (arg == NULL) {
 		send_msg(pcb, fsm, msg501);
@@ -1069,7 +1069,7 @@ static void cmd_rmd(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *
 
 static void cmd_dele(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	struct vfs_stat st;
+	vfs_stat_t st;
 
 	if (arg == NULL) {
 		send_msg(pcb, fsm, msg501);

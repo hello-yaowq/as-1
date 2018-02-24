@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <sys/dirent.h>
 #include <time.h>
 #include <errno.h>
 /* ============================ [ MACROS    ] ====================================================== */
@@ -53,16 +54,21 @@ typedef struct
 	void* priv;
 } VFS_FILE;
 
-struct vfs_stat {
+#ifdef USE_LIBELF
+typedef struct stat vfs_stat_t;
+typedef struct dirent vfs_dirent_t;
+#else
+typedef struct {
 	uint32_t st_mode;     /* File mode */
 	size_t   st_size;     /* File size (regular files only) */
-};
+} vfs_stat_t;
 
-struct vfs_dirent
+typedef struct
 {
 	unsigned short	d_namlen;	/* Length of name in d_name. */
 	char		d_name[FILENAME_MAX]; /* [FILENAME_MAX] */ /* File name. */
-};
+} vfs_dirent_t;
+#endif
 
 /* File system operations */
 struct vfs_filesystem_ops
@@ -79,10 +85,10 @@ struct vfs_filesystem_ops
 	size_t (*ftell)  (VFS_FILE *stream);
 
     int (*unlink) (const char *filename);
-    int (*stat) (const char *filename, struct vfs_stat *buf);
+    int (*stat) (const char *filename, vfs_stat_t *buf);
 
     VFS_DIR * (*opendir) (const char *dirname);
-    struct vfs_dirent * (*readdir) (VFS_DIR *dirstream);
+    vfs_dirent_t * (*readdir) (VFS_DIR *dirstream);
     int (*closedir) (VFS_DIR *dirstream);
 
     int (*chdir) (const char *filename);
@@ -103,10 +109,10 @@ int vfs_fseek (VFS_FILE *stream, long int offset, int whence);
 size_t vfs_ftell (VFS_FILE *stream);
 
 int vfs_unlink (const char *filename);
-int vfs_stat (const char *filename, struct vfs_stat *buf);
+int vfs_stat (const char *filename, vfs_stat_t *buf);
 
 VFS_DIR * vfs_opendir (const char *dirname);
-struct vfs_dirent * vfs_readdir (VFS_DIR *dirstream);
+vfs_dirent_t * vfs_readdir (VFS_DIR *dirstream);
 int vfs_closedir (VFS_DIR *dirstream);
 
 int vfs_chdir (const char *filename);
@@ -117,4 +123,5 @@ int vfs_rename (const char *oldname, const char *newname);
 
 char* vfs_find(const char* file);
 
+int vfs_fprintf (VFS_FILE* fp, const char* fmt, ...);
 #endif /* _VFS_H */

@@ -24,11 +24,29 @@ void* child(void* arg)
 int main(int argc, char* argv[])
 {
 	int i;
+	FILE* fp;
+
+	fp = fopen("hello.txt","w+");
+
 	for(i=0; i<argc; i++)
 	{
-		printf("argv[%d] = %s\n", i, argv[i]);
+		if(fp != NULL)
+		{
+			fprintf(fp, "argv[%d] = %s\n", i, argv[i]);
+		}
+		else
+		{
+			printf("argv[%d] = %s\n", i, argv[i]);
+		}
 	}
+
+	if(fp != NULL)
+	{
+		fclose(fp);
+	}
+
 	printf("Hello World!\n");
+
 	pthread_create(NULL,NULL, child, (void*)1);
 	pthread_create(NULL,NULL, child, (void*)2);
 	sleep(5);

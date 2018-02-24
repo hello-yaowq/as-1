@@ -56,7 +56,7 @@ void* ELF_Open(const char* filename)
 	void* elf = NULL;
 	void* faddr = NULL;
 	VFS_FILE* fp;
-	struct vfs_stat st;
+	vfs_stat_t st;
 
 	if( (0==vfs_stat(filename, &st)) &&
 		(VFS_ISREG(st.st_mode)) )
