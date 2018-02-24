@@ -7,8 +7,8 @@ config LWIP
 if !RTTHREAD
 choice
 	prompt "LWIP arch"
-	default LWIP_POSIX_ARCH if PTHREAD || ARCH_POSIX
-	default LWIP_OSEK_ARCH  if !PTHREAD && !ARCH_POSIX
+	default LWIP_POSIX_ARCH if ARCH_POSIX
+	default LWIP_OSEK_ARCH  if !ARCH_POSIX
 
 config LWIP_POSIX_ARCH
 	bool "lwip standard porting based on pthread"

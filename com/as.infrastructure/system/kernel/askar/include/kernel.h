@@ -122,11 +122,6 @@
 #define OSError_CancelAlarm_AlarmID()			(_errorhook_par1.almid)
 #define OSError_IncrementCounter_CounterID()	(_errorhook_par1.cntid)
 
-#ifdef USE_SHELL
-#define OS_TRACE_TASK_ACTIVATION(pTaskVar) do { pTaskVar->actCnt++; } while(0)
-#else
-#define OS_TRACE_TASK_ACTIVATION(pTaskVar)
-#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					StatusType;
 typedef uint32					EventMaskType;

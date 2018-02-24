@@ -78,6 +78,7 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 		{
 			TaskConstArray[TaskID].pEventVar->wait = 0;
 			TaskVarArray[TaskID].state = READY;
+			OS_TRACE_TASK_ACTIVATION(&TaskVarArray[TaskID]);
 			Sched_AddReady(TaskID);
 			if( (TCL_TASK == CallLevel) &&
 				(ReadyVar->priority > RunningVar->priority) )

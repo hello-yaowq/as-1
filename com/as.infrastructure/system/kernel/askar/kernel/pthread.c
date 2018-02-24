@@ -74,6 +74,31 @@ static boolean pthread_CheckAccess(ResourceType ResID)
 	/* not allowd to access any OSEK resource */
 	return FALSE;
 }
+#if defined(USE_SHELL) && defined(USE_LIBDL)
+static TaskVarType* pthread_get_parent(TaskVarType *pTaskVar)
+{
+	TaskVarType* pParent;
+	pthread_t tid;
+	if(pTaskVar-TaskVarArray < TASK_NUM)
+	{
+		pParent = pTaskVar;
+	}
+	else
+	{
+		tid = (pthread_t)(pTaskVar->pConst);
+		if(NULL != tid->parent)
+		{
+			pParent = pthread_get_parent(tid->parent);
+		}
+		else
+		{
+			pParent = pTaskVar;
+		}
+	}
+
+	return pParent;
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
     void *(*start) (void *), void *arg)
@@ -141,7 +166,7 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(0 == ercd)
 	{
-		pthread->parent = RunningVar;
+		pthread->parent = pthread_get_parent(RunningVar);
 		pthread->arg = arg;
 		pthread->start = start;
 		pTaskConst->entry = pthread_entry_main;
@@ -254,7 +279,9 @@ void pthread_exit (void *value_ptr)
 #ifdef USE_PTHREAD_SIGNAL
 	/* free signal handler */
 	Os_FreeSignalHandler(tid);
+	Sched_RemoveReady(RunningVar-TaskVarArray);
 #endif
+
 	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
 		ASLOG(PTHREAD, "pthread%d signal jion\n", (RunningVar-TaskVarArray-TASK_NUM));
@@ -276,8 +303,46 @@ void pthread_exit (void *value_ptr)
 
 	Sched_GetReady();
 	Os_PortDispatch();
+
+	while(1) asAssert(0);
 }
 ELF_EXPORT(pthread_exit);
+
+#ifdef USE_PTHREAD_SIGNAL
+void exit (int code)
+{
+	pthread_t tid;
+	TaskType id;
+	TaskVarType *pParent;
+	TaskVarType *pTaskVar;
+	const TaskConstType *pTaskConst;
+
+	tid = pthread_self();
+	pParent = tid->parent;
+	Irq_Disable();
+
+	for(id=0; id < OS_PTHREAD_NUM; id++)
+	{
+		pTaskVar   = &TaskVarArray[TASK_NUM+id];
+		pTaskConst = pTaskVar->pConst;
+		if( (((pthread_t)pTaskConst) != tid) &&
+			(NULL != pTaskConst) && ((void*)1 != pTaskConst) &&
+			(pParent == (((pthread_t)pTaskConst)->parent)) )
+		{	/* force exit of its children */
+			(void)pthread_detach((pthread_t)pTaskConst);
+			if(0 == pthread_cancel((pthread_t)pTaskConst))
+			{	/* sleep 1 tick to make sure that child exit fully */
+				Os_Sleep(1);
+			}
+		}
+	}
+
+	pthread_exit((void*)code);
+
+	while(1) asAssert(0);
+}
+ELF_EXPORT(exit);
+#endif
 
 int pthread_detach(pthread_t tid)
 {
@@ -379,19 +444,14 @@ int pthread_cancel (pthread_t tid)
 	else
 	{
 		Irq_Save(imask);
-		if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
-		{
-			ercd = -EPERM;
-		}
-		else
-		{
-			if(READY != tid->pTaskVar->state)
-			{
-				Os_ListDetach(tid->pTaskVar);
-			}
 
-			pthread_kill(tid, SIGKILL);
+		if(READY != tid->pTaskVar->state)
+		{
+			Os_ListDetach(tid->pTaskVar);
 		}
+
+		ercd = pthread_kill(tid, SIGKILL);
+
 		Irq_Restore(imask);
 	}
 

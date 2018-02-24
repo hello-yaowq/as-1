@@ -134,6 +134,21 @@ void Sched_AddReady(TaskType TaskID)
 	ReadyVar = &TaskVarArray[ReadyQueue.heap[0].taskID];
 }
 
+void Sched_RemoveReady(TaskType TaskID)
+{
+	uint32 i;
+
+	for(i=0; i<ReadyQueue.size; i++)
+	{
+		while( (TaskID == ReadyQueue.heap[i].taskID) &&
+			   (ReadyQueue.size > 0) )
+		{
+			ReadyQueue.heap[i] = ReadyQueue.heap[--ReadyQueue.size];
+			Sched_BubbleDown(&ReadyQueue, i);
+		}
+	}
+}
+
 void Sched_Preempt(void)
 {
 	OSPostTaskHook();

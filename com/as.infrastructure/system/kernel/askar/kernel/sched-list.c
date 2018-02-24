@@ -108,7 +108,6 @@ void Sched_AddReady(TaskType TaskID)
 	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
 
 	priority = pTaskVar->pConst->initPriority;
-
 	asAssert(priority <= PRIORITY_NUM);
 
 	TAILQ_INSERT_TAIL(&(ReadyList[priority]), pTaskVar, rentry);
@@ -127,6 +126,45 @@ void Sched_AddReady(TaskType TaskID)
 	else
 	{
 		/* no update of ReadyVar */
+	}
+}
+
+void Sched_RemoveReady(TaskType TaskID)
+{
+	PriorityType priority;
+	TaskVarType* pVar;
+	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
+
+	priority = pTaskVar->pConst->initPriority;
+	asAssert(priority <= PRIORITY_NUM);
+
+	TAILQ_FOREACH(pVar, &(ReadyList[priority]), rentry)
+	{
+		if(pVar == pTaskVar)
+		{
+			TAILQ_REMOVE(&(ReadyList[priority]), pVar, rentry);
+			if(TAILQ_EMPTY(&(ReadyList[priority])))
+			{
+				Sched_ClearReadyBit(priority);
+			}
+			break;
+		}
+	}
+
+	priority = pTaskVar->priority;
+	asAssert(priority <= PRIORITY_NUM);
+
+	TAILQ_FOREACH(pVar, &(ReadyList[priority]), rentry)
+	{
+		if(pVar == pTaskVar)
+		{
+			TAILQ_REMOVE(&(ReadyList[priority]), pVar, rentry);
+			if(TAILQ_EMPTY(&(ReadyList[priority])))
+			{
+				Sched_ClearReadyBit(priority);
+			}
+			break;
+		}
 	}
 }
 

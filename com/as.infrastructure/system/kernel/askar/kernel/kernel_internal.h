@@ -216,6 +216,12 @@ enum {
 #define PTHREAD_JOINABLE_MASK        0x20
 #define PTHREAD_JOINED_MASK          0x40
 
+
+#ifdef USE_SHELL
+#define OS_TRACE_TASK_ACTIVATION(pTaskVar) do { (pTaskVar)->actCnt++; } while(0)
+#else
+#define OS_TRACE_TASK_ACTIVATION(pTaskVar)
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -374,6 +380,7 @@ extern void Os_PortDispatch(void);
 
 extern void Sched_Init(void);
 extern void Sched_AddReady(TaskType TaskID);
+extern void Sched_RemoveReady(TaskType TaskID);
 extern void Sched_GetReady(void);
 extern void Sched_Preempt(void);
 extern boolean Sched_Schedule(void);

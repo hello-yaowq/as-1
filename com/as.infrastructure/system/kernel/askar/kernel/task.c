@@ -618,7 +618,11 @@ void statOsTask(void)
 	int pused;
 	uint32_t used;
 	SHELL_printf("Name             State      Prio IPrio RPrio  StackBase  StackSize"
-			"   Used       Event(set/wait)   Act/ActSum\n");
+			"   Used       Event(set/wait)   Act/ActSum parent\n");
+#if(OS_PTHREAD_NUM > 0)
+	SHELL_printf("                                                                  "
+			"              list/entry\n");
+#endif
 
 	for(id=0; id < TASK_NUM; id++)
 	{
@@ -631,34 +635,44 @@ void statOsTask(void)
 				pTaskConst->pStack, pTaskConst->stackSize, pused, used);
 		if(NULL != pTaskConst->pEventVar)
 		{
-			SHELL_printf("%08X/%08X %-3d/%d ",
+			SHELL_printf("%08X/%08X %3d/%-6d ",
 					pTaskConst->pEventVar->set, pTaskConst->pEventVar->wait,
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 		else
 		{
-			SHELL_printf("null              %-3d/%d ",
+			SHELL_printf("null              %3d/%-6d ",
 					pTaskVar->activation, pTaskVar->actCnt);
 		}
 
-		SHELL_printf("%s\n", (pTaskVar == RunningVar)?"\t<-RunningVar":"");
+		SHELL_printf(" %s\n", (pTaskVar == RunningVar)?"<-RunningVar":"");
 	}
 
 #if(OS_PTHREAD_NUM > 0)
 	for(id=0; id < OS_PTHREAD_NUM; id++)
 	{
+		struct pthread* tid;
 		pTaskVar   = &TaskVarArray[TASK_NUM+id];
 		pTaskConst = pTaskVar->pConst;
-		if(NULL != pTaskConst)
+		tid = (struct pthread*)pTaskConst;
+		if(NULL != tid)
 		{
-			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) list=0x%p   %-3d/%d entry=0x%p",
+			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) %p/%p %3d/%-6d ",
 					id, taskStateToString(pTaskVar->state),
 					pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
 					pTaskConst->pStack, pTaskConst->stackSize, pused, used,
-					pTaskVar->list,
-					pTaskVar->activation, pTaskVar->actCnt,
-					((struct pthread*)pTaskConst)->start);
-			SHELL_printf("%s\n", (pTaskVar == RunningVar)?"\t<-RunningVar":"");
+					pTaskVar->list, tid->start,
+					pTaskVar->activation, pTaskVar->actCnt);
+			asAssert(tid->parent);
+			if((tid->parent-TaskVarArray) < TASK_NUM)
+			{
+				SHELL_printf(" %s", tid->parent->pConst->name);
+			}
+			else
+			{
+				SHELL_printf(" pthread%d", tid->parent -TaskVarArray);
+			}
+			SHELL_printf(" %s\n", (pTaskVar == RunningVar)?"<-RunningVar":"");
 		}
 	}
 #endif

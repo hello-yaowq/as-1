@@ -19,7 +19,7 @@ config TEST
 config PTHREAD_TEST
 	bool "askar pthread test case"
 	depends on ASKAR && PTHREAD && TEST
-	default y
+	default n
 
 
 config FEE_TEST

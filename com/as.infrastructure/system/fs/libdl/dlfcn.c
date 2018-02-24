@@ -50,19 +50,27 @@ struct dllParam
 	void* dll;
 	ShellFuncT mentry;
 };
+static void dllExit(void* arg)
+{
+	struct dllParam* param = arg;
+	dlclose(param->dll);
+	free(param);
 
-void* dllMain(void* arg)
+#ifdef USE_PTHREAD_SIGNAL
+	exit(0); /* in case of killed by others */
+#endif
+}
+static void* dllMain(void* arg)
 {
 	void* r;
 	struct dllParam* param = arg;
 
+	pthread_cleanup_push(dllExit, arg);
+
 	r = (void*)param->mentry(param->argc, param->argv);
-
-	/*TODO: need to kill all the pthreads created by main */
-
-	dlclose(param->dll);
-	free(param);
-
+#ifdef USE_PTHREAD_SIGNAL
+	exit((int)r);
+#endif
 	return r;
 }
 #endif

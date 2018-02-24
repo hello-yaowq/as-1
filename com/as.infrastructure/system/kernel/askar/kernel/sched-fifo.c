@@ -145,6 +145,44 @@ static inline PriorityType Sched_GetReadyBit(void)
 
 	return ((Z<<6) + (X<<3) + Y);
 }
+static void RemoveFromFifo(TaskType TaskID, PriorityType priority)
+{
+	uint32 i,j,pos,posI,posJ;
+	const ReadyFIFOType* fifo;
+
+	asAssert(priority <= PRIORITY_NUM);
+
+	fifo = &ReadyFIFO[priority];
+
+	for(i=0; i<SCHED_FIFO_SIZE(fifo); i++) {
+		pos = SCHED_FIFO_HEAD(fifo) + i;
+		if(pos >= fifo->max) {
+			pos = SCHED_FIFO_SLOT_OFFSET;
+		}
+		while( (TaskID == fifo->pFIFO[pos]) &&
+			   (SCHED_FIFO_SIZE(fifo) > 0) ) {
+			for(j=i+1,posI=pos;j<SCHED_FIFO_SIZE(fifo);j++) {
+				posJ=posI+1;
+				if(posJ >= fifo->max) {
+					posJ = SCHED_FIFO_SLOT_OFFSET;
+				}
+				fifo->pFIFO[posI] = fifo->pFIFO[posJ];
+				posI=posJ;
+			}
+			SCHED_FIFO_TAIL(fifo)--;
+			if(SCHED_FIFO_TAIL(fifo) < SCHED_FIFO_SLOT_OFFSET)
+			{
+				SCHED_FIFO_TAIL(fifo) = fifo->max-1;
+			}
+			SCHED_FIFO_SIZE(fifo) --;
+		}
+	}
+
+	if(0u == SCHED_FIFO_SIZE(fifo))
+	{
+		Sched_ClearReadyBit(priority);
+	}
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Sched_Init(void)
 {
@@ -292,6 +330,14 @@ void Sched_GetReady(void)
 	{
 		ReadyVar = NULL;
 	}
+}
+
+void Sched_RemoveReady(TaskType TaskID)
+{
+	TaskVarType* pTaskVar = &TaskVarArray[TaskID];
+
+	RemoveFromFifo(TaskID, pTaskVar->pConst->initPriority);
+	RemoveFromFifo(TaskID, pTaskVar->priority);
 }
 
 boolean Sched_Schedule(void)
