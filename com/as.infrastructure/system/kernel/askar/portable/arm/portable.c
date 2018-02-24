@@ -19,6 +19,7 @@
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+extern void Os_PortResume(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -63,7 +64,7 @@ void LeaveISR(void)
 	/* do nothing */
 }
 #ifdef USE_PTHREAD_SIGNAL
-void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
+void Os_PortCallSignal(int sig, void (*handler)(int), void* sp, void (*pc)(void))
 {
 	asAssert(NULL != handler);
 
@@ -71,6 +72,7 @@ void Os_PortCallSignal(int sig, void (*handler)(int), void* sp)
 
 	/* restore its previous stack */
 	RunningVar->context.sp = sp;
+	RunningVar->context.pc = pc;
 }
 
 void Os_PortExitSignalCall(void)
@@ -106,7 +108,7 @@ int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 	*(--stk) = 0xdeadbeef;                  /* r6 */
 	*(--stk) = 0xdeadbeef;                  /* r5 */
 	*(--stk) = 0xdeadbeef;                  /* r4 */
-	*(--stk) = 0xdeadbeef;                  /* r3 */
+	*(--stk) = (uint32_t)pTaskVar->context.pc; /* r3 */
 	*(--stk) = (uint32_t)sp;                /* r2 */
 	*(--stk) = (uint32_t)handler;           /* r1 */
 	*(--stk) = (uint32_t)sig;               /* r0 : argument */
@@ -117,6 +119,7 @@ int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 		*(--stk) = 0x1F;                 /* arm mode   */
 
 	pTaskVar->context.sp = stk;
+	pTaskVar->context.pc = Os_PortResume;
 
 	return 0;
 }

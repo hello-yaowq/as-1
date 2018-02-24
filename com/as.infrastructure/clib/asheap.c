@@ -94,6 +94,32 @@
 #define mtCOVERAGE_TEST_MARKER()
 
 #define AS_LOG_HEAP 0
+/* python code for memory balance check
+#! /bin/python
+import re
+reMalloc = re.compile(r'malloc\((\d+)\)=(\w+)')
+reFree = re.compile(r'free\((\w+),(\d+)\)')
+m = []
+f = []
+fp = open('heap.txt')
+for el in fp.readlines():
+  if(reMalloc.search(el)):
+    grp = reMalloc.search(el).groups()
+    m.append((grp[0],grp[1]))
+  if(reFree.search(el)):
+    grp = reFree.search(el).groups()
+    f.append((grp[1],grp[0]))
+
+fp.close()
+
+for ef in f:
+  for em in m:
+    if(ef[0]==em[0] and ef[1]==em[1]):
+      m.remove(em)
+      break
+
+print('not freed memory list', m)
+ */
 
 #define traceMALLOC( pvReturn, xWantedSize ) ASLOG(HEAP," malloc(%d)=%p\n",xWantedSize,pvReturn)
 #define traceFREE( pv, xBlockSize )  ASLOG(HEAP, " free(%p,%d)\n",pv, xBlockSize)
