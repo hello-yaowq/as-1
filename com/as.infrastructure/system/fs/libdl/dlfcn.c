@@ -21,9 +21,21 @@
 #endif
 #ifdef USE_PTHREAD
 #include "pthread.h"
+#include "semaphore.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+#ifdef USE_SHELL
+#ifdef USE_PTHREAD
+struct dllParam
+{
+	int argc;
+	char** argv;
+	void* dll;
+	ShellFuncT mentry;
+};
+#endif
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_SHELL
 static int dllFunc(int argc, char* argv[]);
@@ -39,17 +51,14 @@ SHELL_CONST ShellCmdT dllCmd  = {
 	{NULL,NULL}
 };
 SHELL_CMD_EXPORT(dllCmd);
+
+#ifdef USE_PTHREAD
+static sem_t dllSem;
+#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_SHELL
 #ifdef USE_PTHREAD
-struct dllParam
-{
-	int argc;
-	char** argv;
-	void* dll;
-	ShellFuncT mentry;
-};
 static void dllExit(void* arg)
 {
 	struct dllParam* param = arg;
@@ -67,6 +76,7 @@ static void* dllMain(void* arg)
 
 	pthread_cleanup_push(dllExit, arg);
 
+	(void)sem_post(&dllSem);
 	r = (void*)param->mentry(param->argc, param->argv);
 
 	pthread_cleanup_pop(1);
@@ -163,9 +173,13 @@ static int dllFunc(int argc, char* argv[])
 				{
 					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 				}
+
+				(void)sem_init(&dllSem, 0, 0);
 			}
 			if((NULL != param) && (0 == pthread_create(&thread, &attr, dllMain, param)))
 			{
+				/* make sure the dll thread started and the cleanup install */
+				(void)sem_wait(&dllSem);
 				if(!detachflag)
 				{
 					pthread_join(thread,&ret);
