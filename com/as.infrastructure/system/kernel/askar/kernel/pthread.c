@@ -282,6 +282,8 @@ void pthread_exit (void *value_ptr)
 	Sched_RemoveReady(RunningVar-TaskVarArray);
 #endif
 
+	Os_ListDetach(tid->pTaskVar, FALSE);
+
 	if(tid->TaskConst.flag & PTHREAD_JOINABLE_MASK)
 	{
 		ASLOG(PTHREAD, "pthread%d signal jion\n", (RunningVar-TaskVarArray-TASK_NUM));
@@ -321,12 +323,14 @@ void exit (int code)
 	pParent = tid->parent;
 	Irq_Disable();
 
+	Os_ListDetach(tid->pTaskVar, FALSE);
+
 	for(id=0; id < OS_PTHREAD_NUM; id++)
 	{
 		pTaskVar   = &TaskVarArray[TASK_NUM+id];
 		pTaskConst = pTaskVar->pConst;
 		if( (((pthread_t)pTaskConst) != tid) &&
-			(NULL != pTaskConst) && ((void*)1 != pTaskConst) &&
+			(pTaskConst > (TaskConstType *)1) &&
 			(pParent == (((pthread_t)pTaskConst)->parent)) )
 		{	/* force exit of its children */
 			(void)pthread_detach((pthread_t)pTaskConst);
@@ -445,12 +449,19 @@ int pthread_cancel (pthread_t tid)
 	{
 		Irq_Save(imask);
 
-		if(READY != tid->pTaskVar->state)
+		if(tid->pTaskVar->pConst > (TaskConstType*)1)
 		{
-			Os_ListDetach(tid->pTaskVar);
-		}
+			if(READY != tid->pTaskVar->state)
+			{
+				Os_ListDetach(tid->pTaskVar, TRUE);
+			}
 
-		ercd = pthread_kill(tid, SIGKILL);
+			ercd = pthread_kill(tid, SIGKILL);
+		}
+		else
+		{
+			/* the tid is already dead */
+		}
 
 		Irq_Restore(imask);
 	}

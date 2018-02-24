@@ -295,8 +295,8 @@ int Os_ListPost(TaskListType* list, boolean schedule)
 	return ercd;
 }
 
-/* make the task ready again */
-void Os_ListDetach(TaskVarType *pTaskVar)
+/* make the task ready again if AddReady, else suspend it */
+void Os_ListDetach(TaskVarType *pTaskVar, boolean AddReady)
 {
 	if(NULL != pTaskVar->list)
 	{
@@ -309,8 +309,15 @@ void Os_ListDetach(TaskVarType *pTaskVar)
 		Os_SleepRemove(pTaskVar);
 	}
 
-	pTaskVar->state = READY;
-	OS_TRACE_TASK_ACTIVATION(pTaskVar);
-	Sched_AddReady(pTaskVar-TaskVarArray);
+	if(AddReady)
+	{
+		pTaskVar->state = READY;
+		OS_TRACE_TASK_ACTIVATION(pTaskVar);
+		Sched_AddReady(pTaskVar-TaskVarArray);
+	}
+	else
+	{
+		pTaskVar->state = SUSPENDED;
+	}
 }
 #endif

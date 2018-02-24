@@ -655,7 +655,7 @@ void statOsTask(void)
 		pTaskVar   = &TaskVarArray[TASK_NUM+id];
 		pTaskConst = pTaskVar->pConst;
 		tid = (struct pthread*)pTaskConst;
-		if(NULL != tid)
+		if(tid > (struct pthread*)1)
 		{
 			SHELL_printf("pthread%-9d %-9s %3d  %3d   %3d     0x%08X 0x%08X %2d%%(0x%04X) %p/%p %3d/%-6d ",
 					id, taskStateToString(pTaskVar->state),

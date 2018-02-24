@@ -14,11 +14,20 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "kernel_internal.h"
+#ifdef USE_SHELL
+#ifdef USE_PTHREAD_SIGNAL
+#include "pthread.h"
+#include "signal.h"
+#endif
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_SHELL
 int statOsFunc(int argc, char* argv[]);
+#ifdef USE_PTHREAD_SIGNAL
+static int killOsFunc(int argc, char* argv[]);
+#endif
 extern void statOsTask(void);
 extern void statOsAlarm(void);
 extern void statOsCounter(void);
@@ -44,6 +53,18 @@ static SHELL_CONST ShellCmdT statOsCmd  = {
 	{NULL,NULL}
 };
 SHELL_CMD_EXPORT(statOsCmd);
+#ifdef USE_PTHREAD_SIGNAL
+static SHELL_CONST ShellCmdT killOsCmd  = {
+	killOsFunc,
+	1,2,
+	"kill",
+	"kill pid [sig]",
+	"kill signal sign to the posix thread by pid,\n"
+	"if sig is not specified, will kill SIGKILL(9) by default\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(killOsCmd);
+#endif
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 static void Os_MiscInit(void)
@@ -64,6 +85,9 @@ static void Os_MiscInit(void)
 	Sched_Init();
 #if defined(USE_SHELL) && !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&statOsCmd);
+#ifdef USE_PTHREAD_SIGNAL
+	SHELL_AddCmd(&killOsCmd);
+#endif
 #endif
 }
 #ifdef USE_SHELL
@@ -86,6 +110,37 @@ int statOsFunc(int argc, char* argv[])
 
 	return 0;
 }
+#ifdef USE_PTHREAD_SIGNAL
+static int killOsFunc(int argc, char* argv[])
+{
+	int ercd;
+	int pid;
+	int sig = SIGKILL;
+	pthread_t tid;
+
+	pid = strtoul(argv[1], NULL, 10);
+
+	if(3 == argc)
+	{
+		sig = strtoul(argv[2], NULL, 10);
+	}
+
+	if(pid < OS_PTHREAD_NUM)
+	{
+		tid = (pthread_t)TaskVarArray[TASK_NUM+pid].pConst;
+		if(tid > (pthread_t)1)
+		{
+			ercd = pthread_kill(tid, sig);
+		}
+	}
+	else
+	{
+		ercd = -ENOENT;
+	}
+
+	return ercd;
+}
+#endif
 #endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /* |------------------+------------------------------------------------------| */

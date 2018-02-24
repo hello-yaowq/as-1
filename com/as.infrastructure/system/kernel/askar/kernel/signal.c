@@ -125,7 +125,7 @@ void Os_SignalBroadCast(int signo)
 		Irq_Save(imask);
 		pTaskVar   = &TaskVarArray[TASK_NUM+id];
 		pTaskConst = pTaskVar->pConst;
-		if((NULL != pTaskConst) && ((void*)1 != pTaskConst))
+		if(pTaskConst > (TaskConstType*)1)
 		{
 			Irq_Restore(imask);
 			if(0 == pthread_kill((pthread_t)pTaskConst, signo))
@@ -340,7 +340,7 @@ int pthread_kill (pthread_t tid, int signum)
 	asAssert((tid->pTaskVar-TaskVarArray) >= TASK_NUM);
 	asAssert((tid->pTaskVar-TaskVarArray) < (TASK_NUM+OS_PTHREAD_NUM));
 
-	if(NULL != tid->pTaskVar->pConst)
+	if(tid->pTaskVar->pConst > (TaskConstType*)1)
 	{
 		Irq_Save(imask);
 		sig = lookup_signal2(tid, signum);
