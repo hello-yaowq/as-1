@@ -237,6 +237,7 @@ void pthread_cleanup_pop(int execute)
 	struct cleanup* cleanup;
 	pthread_t tid;
 	imask_t imask;
+	struct cleanup cls;
 
 	tid = pthread_self();
 
@@ -250,9 +251,10 @@ void pthread_cleanup_pop(int execute)
 		if(execute)
 		{
 			asAssert(cleanup->routine);
-			cleanup->routine(cleanup->arg);
+			cls = *cleanup;
+			free(cleanup); /* free immediately in case that the routine call 'exit' */
+			cls.routine(cls.arg);
 		}
-		free(cleanup);
 	}
 
 	Irq_Restore(imask);

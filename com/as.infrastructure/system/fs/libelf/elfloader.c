@@ -144,3 +144,4 @@ ELF_EXPORT(strlen);
 ELF_EXPORT(strcpy);
 ELF_EXPORT(strcmp);
 ELF_EXPORT(strncmp);
+ELF_EXPORT(strtoul);

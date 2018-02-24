@@ -68,6 +68,8 @@ static void* dllMain(void* arg)
 	pthread_cleanup_push(dllExit, arg);
 
 	r = (void*)param->mentry(param->argc, param->argv);
+
+	pthread_cleanup_pop(1);
 #ifdef USE_PTHREAD_SIGNAL
 	exit((int)r);
 #endif
@@ -173,6 +175,10 @@ static int dllFunc(int argc, char* argv[])
 			}
 			else
 			{
+				if(NULL != param)
+				{
+					free(param);
+				}
 				dlclose(dll);
 				r = -ENOMEM;
 			}
