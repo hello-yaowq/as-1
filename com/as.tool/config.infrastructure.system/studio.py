@@ -86,12 +86,188 @@ class easySARGui(QMainWindow):
             module = ArgModule(Arxml(desc),self)
             self.modules.append(module)
             self.docks.append(None)
-        
+        # some plugins, uncommon stuff of studio
+        tMenu=self.menuBar().addMenu(self.tr('Plugin'))
+        sItem=QAction(self.tr('Import Vector CAN DBC Sinals'),self) 
+        sItem.setStatusTip('Import Vector CAN DBC Sinals.')
+        sItem.triggered.connect(self.mImportVectorCANDBCSignals)
+        tMenu.addAction(sItem)
+
+    def parseCANDBC(self, dbc):
+        pydbc = os.path.abspath('../py.can.database.access/ascc')
+        assert(os.path.exists(pydbc))
+        sys.path.append(pydbc)
+        import cc.ascp as ascp
+        return ascp.parse(dbc)
+
+    def removeXml(self, L, R):
+        rl = []
+        for r in L:
+            if(r.attrib['Name'] in R):
+                rl.append(r)
+        for r in rl:
+            L.remove(r)
+
+    def modifyEcuCbyCANDBC(self, dbc):
+        self.onAction('EcuC')
+        ecuc = self.getModule('EcuC')
+        arxml = ecuc.toArxml()
+        R = []
+        for msg in dbc['boList']:
+            R.append(msg['bo']['name'])
+        PduList = arxml.find('PduList')
+        self.removeXml(PduList, R)
+        for msg in dbc['boList']:
+            pdu = ET.Element('Pdu')
+            pdu.attrib['Name'] = msg['bo']['name']
+            pdu.attrib['Size'] = str(msg['bo']['length']*8)
+            PduList.append(pdu)
+        ecuc.reloadArxml(Arxml(self.systemDescriptor.find('EcuC'),arxml))
+
+    def modifyCanIfbyCANDBC(self, dbc, bus):
+        self.onAction('CanIf')
+        for s in [' ','-']:
+            bus = bus.replace(s,'')
+        canif = self.getModule('CanIf')
+        arxml = canif.toArxml()
+        chlList = arxml.find('ChannelList')
+        chl = None
+        for c in chlList:
+            if(c.attrib['Name'] == bus):
+                chl = c
+                break
+        if(chl is None):
+            chl = ET.Element('Channel')
+            chl.attrib['Name']=bus
+            chl.append(ET.Element('HthList'))
+            chl.append(ET.Element('HrhList'))
+            chlList.append(chl)
+        rxList = []
+        rR = []
+        txList = []
+        tR = []
+        for msg in dbc['boList']:
+            msg = msg['bo']
+            if(msg['node'] == self.CAN_SELF_DBC_NODE):
+                txList.append(msg)
+                tR.append(msg['name'])
+            else:
+                rxList.append(msg)
+                rR.append(msg['name'])
+        HthList = chl.find('HthList')
+        HrhList = chl.find('HrhList')
+        self.removeXml(HthList, tR)
+        self.removeXml(HrhList, rR)
+        def appendHOHList(HohList, xList, name):
+            for msg in xList:
+                hoh = ET.Element(name)
+                hoh.attrib['Name'] = msg['name']
+                pduList = ET.Element('PduList')
+                hoh.append(pduList)
+                pdu = ET.Element('Pdu')
+                pdu.attrib['Name'] = msg['name']
+                pdu.attrib['EcuCPduRef'] = msg['name']
+                pdu.attrib['DataLengthCode'] = str(msg['length'])
+                pdu.attrib['Identifier'] = str(msg['id'])
+                pduList.append(pdu)
+                HohList.append(hoh)
+        appendHOHList(HthList, txList, 'Hth')
+        appendHOHList(HrhList, rxList, 'Hrh')
+        canif.reloadArxml(Arxml(self.systemDescriptor.find('CanIf'),arxml))
+
+    def modifyPduRbyCANDBC(self, dbc):
+        self.onAction('PduR')
+        pdur = self.getModule('PduR')
+        arxml = pdur.toArxml()
+        R = []
+        for msg in dbc['boList']:
+            R.append(msg['bo']['name'])
+        RoutineList = arxml.find('RoutineList')
+        self.removeXml(RoutineList, R)
+        for msg in dbc['boList']:
+            msg = msg['bo']
+            src = ET.Element('Source')
+            src.attrib['Name'] = msg['name']
+            src.attrib['PduRef'] = msg['name']
+            if(msg['node'] == self.CAN_SELF_DBC_NODE):
+                src.attrib['Module'] = 'Com'
+            else:
+                src.attrib['Module'] = 'CanIf'
+            dlist = ET.Element('DestinationList')
+            dst = ET.Element('Destination')
+            dst.attrib['Name'] = msg['name']
+            dst.attrib['PduRef'] = msg['name']
+            if(msg['node'] == self.CAN_SELF_DBC_NODE):
+                dst.attrib['Module'] = 'CanIf'
+            else:
+                dst.attrib['Module'] = 'Com'
+            dlist.append(dst)
+            src.append(dlist)
+            RoutineList.append(src)
+            pdur.reloadArxml(Arxml(self.systemDescriptor.find('PduR'),arxml))
+
+    def modifyCombyCANDBC(self, dbc):
+        self.onAction('Com')
+        com = self.getModule('Com')
+        arxml = com.toArxml()
+        R = []
+        for msg in dbc['boList']:
+            R.append(msg['bo']['name'])
+        IPduList = arxml.find('IPduList')
+        self.removeXml(IPduList, R)
+        for msg in dbc['boList']:
+            msg = msg['bo']
+            ipdu = ET.Element('IPdu')
+            ipdu.attrib['Name'] = msg['name']
+            ipdu.attrib['PduRef'] = msg['name']
+            if(msg['node'] == self.CAN_SELF_DBC_NODE):
+                ipdu.attrib['Direction'] = 'SEND'
+            else:
+                ipdu.attrib['Direction'] = 'RECEIVE'
+            slist = ET.Element('SignalList')
+            for sg in msg['sgList']:
+                sg = sg['sg']
+                sig = ET.Element('Signal')
+                sig.attrib['Name'] = sg['name']
+                sig.attrib['Endianess'] = 'BIG_ENDIAN'
+                sig.attrib['StartBit'] = str(sg['start'])
+                sig.attrib['Size'] = str(sg['size'])
+                try: 
+                    sig.attrib['InitialValue'] = str(sg['init']) 
+                except KeyError:
+                    pass
+                slist.append(sig)
+            ipdu.append(slist)
+            IPduList.append(ipdu)
+        com.reloadArxml(Arxml(self.systemDescriptor.find('Com'),arxml))
+
+    def mImportVectorCANDBCSignals(self):
+        self.CAN_SELF_DBC_NODE = 'AS'
+        if(os.getenv('CAN_SELF_DBC_NODE') is not None):
+            self.CAN_SELF_DBC_NODE = os.getenv('CAN_SELF_DBC_NODE')
+        dbc,_ = QFileDialog.getOpenFileName(None,'Open Vector CAN DBC',
+                                '', '*.dbc','*.dbc',
+                                QFileDialog.DontResolveSymlinks)
+        if(os.path.exists(dbc)):
+            bus = os.path.basename(dbc)[:-4]
+            dbc = self.parseCANDBC(dbc)
+            self.modifyEcuCbyCANDBC(dbc)
+            self.modifyCanIfbyCANDBC(dbc,bus)
+            self.modifyPduRbyCANDBC(dbc)
+            self.modifyCombyCANDBC(dbc)
+
+    def getModule(self, name):
+        for module in self.modules:
+            if(name == module.tag):
+                return module
+        return None
+
     def getURL(self,ref):
         ar = ET.Element('AUTOSAR')
         for module in self.modules:
             ar.append(module.toArxml())
         return ArxmlGetURL(ar,ref)
+
     def mOpen(self,default=None):
         if(default == None):
             self.pdir = QFileDialog.getExistingDirectory(None,'Open OpenSAR Config',gDefault_GEN,QFileDialog.DontResolveSymlinks)

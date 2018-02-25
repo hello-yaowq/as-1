@@ -307,9 +307,9 @@ def p_error(p):
             print("SYNTAX ERROR AT LINE(%s) %s"%(int(p),p))
     #sys.exit()
     while 1:
-        tok = yacc.token()             # Get the next token
+        tok = bparser.token()             # Get the next token
         if not tok or tok.type == 'EOL': break
-    yacc.errok()
+    bparser.errok()
 
     return tok  
 
