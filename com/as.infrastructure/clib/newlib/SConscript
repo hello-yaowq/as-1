@@ -21,9 +21,6 @@ MKSymlink(newlib,'%s/newlib'%(cwd))
 asenv.Append(CPPPATH=['%s/newlib/newlib/libc/include'%(cwd)])
 asenv.Append(CPPDEFINES=['USE_NEWLIB'])
 
-# define this as not want to use newlib pthread
-asenv.Append(CPPDEFINES=['_SYS__PTHREADTYPES_H_'])
-
 objs = []
 
 

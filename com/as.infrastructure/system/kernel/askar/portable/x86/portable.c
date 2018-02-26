@@ -253,7 +253,7 @@ int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 
 	stk = (void*)pTaskVar->context.regs.esp;
 
-	if((sp - pTaskVar->pConst->pStack) < (pTaskVar->pConst->stackSize*3/4))
+	if((((void*)stk) - pTaskVar->pConst->pStack) < (pTaskVar->pConst->stackSize*3/4))
 	{
 		/* stack 75% usage, ignore this signal call */
 		ASLOG(OS,"install signal %d failed\n", sig);
