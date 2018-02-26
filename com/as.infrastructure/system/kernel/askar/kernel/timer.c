@@ -89,9 +89,11 @@ int setitimer (int which, const struct itimerval *new, struct itimerval *old)
 
 	switch(which)
 	{
+#ifdef USE_PTHREAD_SIGNAL
 		case ITIMER_REAL:
 			ercd = start_itimer(ALARM_ID_Alarm_SIGALRM, new, old);
 			break;
+#endif
 		default:
 			ercd = -EINVAL;
 			break;
