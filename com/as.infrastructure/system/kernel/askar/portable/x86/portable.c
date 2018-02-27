@@ -71,12 +71,12 @@ static void sys_dispatch(int cmd, void* param)
 			 * by "save" which is the first action of sys_call */
 			Os_PortInitContext(RunningVar);
 		}
-
-		RunningVar = ReadyVar;
-		#ifdef MULTIPLY_TASK_ACTIVATION
-		asAssert(RunningVar->activation > 0);
-		#endif
 	}
+
+	RunningVar = ReadyVar;
+	#ifdef MULTIPLY_TASK_ACTIVATION
+	asAssert(RunningVar->activation > 0);
+	#endif
 	asAssert(0 == k_reenter);
 
 	Irq_Restore(mask);

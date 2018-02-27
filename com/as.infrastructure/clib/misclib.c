@@ -280,9 +280,27 @@ void *__weak memcpy (void* __to, const void* __from, size_t __size)
 	return __to;
 }
 
-void *__weak memmove (void *__dest, const void *__src, size_t __n)
+void* __weak memmove (void *dest, const void *src, size_t len)
 {
-	return memcpy(__dest,__src,__n);
+	char *d = dest;
+	const char *s = src;
+
+	if (d < s)
+	{
+		while (len--)
+		{
+			*d++ = *s++;
+		}
+	}
+	else
+	{
+		const char *lasts = s + (len-1);
+		char *lastd = d + (len-1);
+		while (len--)
+		*lastd-- = *lasts--;
+	}
+
+	return dest;
 }
 
 char* __weak strcpy (char* __to, const char* __from)

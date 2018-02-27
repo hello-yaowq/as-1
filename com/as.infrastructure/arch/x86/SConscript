@@ -68,17 +68,11 @@ asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
-CC = asenv['CC']
-if(os.name == 'nt'):
-    LD = CC
-else:
-    LD = CC[:-3]+'ld'
-asenv['CC'] = CC+' -std=gnu99 -m32 -fno-stack-protector'
-asenv['AS'] = CC+' -m32'
-asenv['CXX'] = CC+' -m32 -fno-stack-protector'
-asenv['LINK'] = LD+' -m32 -melf_i386'
+
 
 asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
 asenv.Append(LINKFLAGS='--gc-sections')
+
+SelectCompilerX86()
 
 Return('objs')

@@ -293,6 +293,13 @@ def RMFile(p):
         print('removing %s'%(os.path.abspath(p)))
         os.remove(os.path.abspath(p))
 
+def WGET(url, tgt):
+    if(not os.path.isfile(tgt)):
+        wget = 'wget'
+        if(os.name == 'nt'):
+            wget = 'C:/MinGW/bin/wget.exe'
+        RunCommand('%s %s -O %s'%(wget, url, tgt))
+
 def MKObject(src, tgt, cmd):
     if(Env.GetOption('clean')):
         RMFile(tgt)
@@ -436,7 +443,7 @@ def GetELFEnv(so=True):
   .rel.plt : { *(.rel.*) }
 }\n\n%s\n'''%(cstr), 'w')
     env = Environment(CC=Env['CC'],
-                      LINK=Env['CC'],
+                      LINK=Env['LINK'],
                       CPPPATH=Env['CPPPATH'],
                       CCFLAGS=Env['CCFLAGS']+['-fPIC'],
                       LINKFLAGS=['-e','main','-fPIC','-s','-nostdlib','-T','%s/aself.lds'%(cwd)],
@@ -628,6 +635,25 @@ def SelectCompilerArmNoneEabi():
         assert(os.path.exists(libgcc))
         Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
+def SelectCompilerX86():
+    global Env
+    if(os.name == 'nt'):
+        ASROOT = Env['ASROOT']
+        gccx86='i686-elf-tools-windows'
+        gccsrc= 'https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/i686-elf-tools-windows.zip'
+        cpl = '%s/release/download/%s'%(ASROOT,gccx86)
+        if(not os.path.exists(cpl)):
+            RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccx86,gccx86,gccx86))
+        Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
+        Env['AS']   = '%s/bin/i686-elf-gcc -m32'%(cpl)
+        Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
+        Env['LINK'] = '%s/bin/i686-elf-ld -m32 -melf_i386'%(cpl)
+        Env.Append(CPPPATH=['%s/lib/gcc/i686-elf/7.1.0/include'%(cpl)])
+    else:
+        Env['CC']   = 'gcc -m32 -std=gnu99 -fno-stack-protector'
+        Env['AS']   = 'gcc -m32'
+        Env['CXX']  = 'gcc -m32 -fno-stack-protector'
+        Env['LINK'] = 'ld -m32 -melf_i386'
 def BuildOFS(ofs):
     for of in ofs:
         src = str(of)

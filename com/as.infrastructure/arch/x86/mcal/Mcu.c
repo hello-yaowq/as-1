@@ -143,16 +143,6 @@ void Irq_Disable(void)
 	disable_int();
 }
 
-int64_t __divdi3(int64_t a, int64_t b)
-{
-	return (int32_t)a/(int32_t)b;
-}
-
-int64_t __moddi3(int64_t a, int64_t b)
-{
-	return (int32_t)a%(int32_t)b;
-}
-
 #ifdef __RTTHREAD_OS__
 extern unsigned char __bss_start[];
 extern unsigned char __bss_end[];
