@@ -98,6 +98,7 @@ def PrepareBuilding(env):
             env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
             env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
     if(os.name == 'nt'):
+        env.AppendENVPath('PATH', os.getenv('PATH'))
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
     if(0 != os.system('%s --version'%(env['python3']))):
@@ -294,11 +295,18 @@ def RMFile(p):
         os.remove(os.path.abspath(p))
 
 def WGET(url, tgt):
+    def __install_wget():
+        ASROOT = Env['ASROOT']
+        url = 'https://pypi.python.org/packages/47/6a/62e288da7bcda82b935ff0c6cfe542970f04e29c756b0e147251b2fb251f/wget-3.2.zip'
+        wget = '%s/release/download/wget-3.2'%(ASROOT)
+        if(not os.path.exists('%s/wget.py'%(wget))):
+            RunCommand('cd %s/release/download && wget %s && unzip wget-3.2.zip'%(ASROOT, url))
+        if(wget not in sys.path):
+            sys.path.append(wget)
+    __install_wget()
     if(not os.path.isfile(tgt)):
-        wget = 'wget'
-        if(os.name == 'nt'):
-            wget = 'C:/MinGW/bin/wget.exe'
-        RunCommand('%s %s -O %s'%(wget, url, tgt))
+        import wget
+        wget.download(url, tgt)
 
 def MKObject(src, tgt, cmd):
     if(Env.GetOption('clean')):

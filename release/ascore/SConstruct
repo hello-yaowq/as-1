@@ -115,6 +115,10 @@ except KeyError:
     pass
 
 if(asenv['POSTACTION'] != ''):
-    asenv.AddPostAction(target, asenv['POSTACTION'])
+    if(os.name != 'nt'):
+        asenv.AddPostAction(target, asenv['POSTACTION'])
+    else:
+        MKFile('postaction.bat', asenv['POSTACTION'].replace('&&','\n'))
+        asenv.AddPostAction(target, 'postaction.bat')
 
 SConscript('elf/SConscript')

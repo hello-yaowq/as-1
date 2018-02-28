@@ -28,4 +28,20 @@ objs += Glob('fatfs/source/*.c')
 
 asenv.Append(CPPPATH = ['%s/fatfs/source'%(cwd)])
 
+# FATFS NATIVE TOOS
+srcs = Glob('%s/com/as.infrastructure/arch/posix/mcal/diskio.c'%(ASROOT))
+srcs += Glob('%s/com/as.infrastructure/diagnostic/Det/asdebug.c'%(ASROOT))
+srcs += Glob('fatfs/source/*.c')
+if(os.name == 'nt'):
+    cmd = '%s/gcc -D__WINDOWS__'%(asenv['CONFIGS']['MSYS2_GCC_PATH'])
+else:
+    cmd ='gcc -D__LINUX__'
+for src in srcs:
+    cmd += ' %s'%(src)
+cmd += ' -I%s/fatfs/source'%(cwd)
+cmd += ' -I%s/com/as.infrastructure/include'%(ASROOT)
+cmd += ' -DUSE_DET -DUSE_FATFS -DFATFS_NATIVE_TOOL'
+cmd += ' -std=gnu99 -o %s/fatfs.exe'%(cwd)
+MKObject(str(srcs[0]),'%s/fatfs.exe'%(cwd),cmd)
+
 Return('objs')

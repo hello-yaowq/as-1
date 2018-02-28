@@ -37,11 +37,11 @@
 #define DEV_MMC		0	/* Example: Map MMC/SD card to physical drive 0 : default */
 #define DEV_RAM		1	/* Example: Map Ramdisk to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
-#define FATFS_IMG	"FatFs.img"
 #define EXTFS_IMG	"ExtFs.img"
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+const char* FATFS_IMG = "FatFs.img";
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifdef USE_FATFS
@@ -90,11 +90,11 @@ DSTATUS disk_initialize (
 				fwrite(&data,1,1,fp);
 			}
 			fclose(fp);
-			ASLOG(FATFS,"simulation on new created 32Mb " FATFS_IMG "\n");
+			ASLOG(FATFS,"simulation on new created 32Mb %s\n", FATFS_IMG);
 		}
 		else
 		{
-			ASLOG(FATFS,"simulation on old " FATFS_IMG "\n");
+			ASLOG(FATFS,"simulation on old %s\n", FATFS_IMG);
 			fclose(fp);
 		}
 		stat = 0;
@@ -310,3 +310,72 @@ off_t __weak ftello (FILE *stream)
 	return ftello(stream);
 }
 #endif /* USE_LWEXT4 */
+
+#ifdef FATFS_NATIVE_TOOL
+#include "ff.h"
+int main(int argc, char* argv[])
+{
+	int rc,len;
+	UINT bw;
+	FILE* fp;
+	FIL fil;
+	FATFS FatFs;
+	char buf[512];
+	if( (3==argc) &&
+		(0==strcmp(argv[1],"mkfs")) )
+	{
+		FATFS_IMG = argv[2];
+		rc = f_mkfs("", FM_ANY, 0, FatFs.win, sizeof(FatFs.win));
+		if(FR_OK != rc)
+		{
+			printf("FatFS mkfs failed with error code %d\n", rc);
+			return -1;
+		}
+		printf("mkfs.fatfs %s\n",FATFS_IMG);
+	}
+	else if( (5==argc) &&
+			 (0==strcmp(argv[1],"cp")) )
+	{
+		FATFS_IMG = argv[4];
+		rc = f_mount(&FatFs, "", 1);
+		if(FR_OK != rc)
+		{
+			printf("FatFS mount failed with error code %d\n", rc);
+			return -1;
+		}
+		fp = fopen(argv[2],"rb");
+		if(NULL == fp)
+		{
+			printf("open %s failed!\n",argv[2]);
+			return -1;
+		}
+		rc = f_open(&fil, argv[3], FA_WRITE|FA_CREATE_ALWAYS);
+		if(FR_OK != rc)
+		{
+			printf("open %s failed with error code %d!\n",argv[3],rc);
+			return -1;
+		}
+		do {
+			len = fread(buf, 1, sizeof(buf), fp);
+			if(len > 0)
+			{
+				rc = f_write(&fil, buf, len, &bw);
+				if(FR_OK != rc)
+				{
+					printf("write %s failed with error code %d!\n",argv[3],rc);
+					return -1;
+				}
+			}
+		}while(len > 0);
+		fclose(fp);
+		f_close(&fil);
+		printf("cp %s to %s:%s\n", argv[2], FATFS_IMG, argv[3]);
+	}
+	else
+	{
+		printf("%s: invalid args\n", argv[0]);
+	}
+
+	return 0;
+}
+#endif

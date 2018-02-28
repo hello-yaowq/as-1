@@ -9,7 +9,7 @@ if(not os.path.exists(protothread)):
     RunCommand('''cd %s/release/download && 
         git clone https://github.com/contiki-os/contiki.git &&
         cd contiki;git checkout 3.x &&
-        sed -i "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, " core/sys/process.h'''%(asenv['ASROOT']))
+        sed -i "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, \\\\\\\\" core/sys/process.h'''%(asenv['ASROOT']))
 
 MKSymlink('%s/release/download/contiki/core/sys'%(asenv['ASROOT']),'%s/core/sys'%(cwd))
 MKSymlink('%s/release/download/contiki/core/lib'%(asenv['ASROOT']),'%s/core/lib'%(cwd))
