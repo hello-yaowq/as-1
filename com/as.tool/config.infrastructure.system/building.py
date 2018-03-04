@@ -643,6 +643,22 @@ def SelectCompilerArmNoneEabi():
         assert(os.path.exists(libgcc))
         Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
+def SelectCompilerArm64():
+    global Env
+    ASROOT = Env['ASROOT']
+    if(os.name == 'nt'):
+        gccarm = 'gcc-linaro-7.2.1-2017.11-i686-mingw32_aarch64-elf'
+    else:
+        gccarm = 'gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf'
+    gccsrc = 'https://releases.linaro.org/components/toolchain/binaries/latest/aarch64-elf/%s.tar.xz'%(gccarm)
+    cpl = '%s/release/download/%s'%(ASROOT,gccarm)
+    if(not os.path.exists(cpl)):
+        RunCommand('cd %s/release/download && wget %s && tar xf %s.tar.xz'%(ASROOT,gccsrc,gccarm))
+    Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99'%(cpl)
+    Env['CXX']='%s/bin/aarch64-elf-g++'%(cpl)
+    Env['AS']='%s/bin/aarch64-elf-gcc -c'%(cpl)
+    Env['LINK']='%s/bin/aarch64-elf-ld'%(cpl)
+
 def SelectCompilerX86():
     global Env
     if(os.name == 'nt'):
@@ -662,6 +678,7 @@ def SelectCompilerX86():
         Env['AS']   = 'gcc -m32'
         Env['CXX']  = 'gcc -m32 -fno-stack-protector'
         Env['LINK'] = 'ld -m32 -melf_i386'
+
 def BuildOFS(ofs):
     for of in ofs:
         src = str(of)
