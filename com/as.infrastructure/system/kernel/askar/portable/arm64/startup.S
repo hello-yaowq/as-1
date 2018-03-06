@@ -32,21 +32,21 @@ reset:
     .type   Irq_Restore, %function
 /* void Irq_Restore( imask_t intsts ); */
 Irq_Restore:
-
+	ret
 
     .global __Irq_Save
     .type   __Irq_Save, %function
 /* imask_t __Irq_Save( void ); */
 __Irq_Save:
-
+	ret
 
 /* void Irq_Disable(void)   */
     .global Irq_Disable
     .type   Irq_Disable, %function
 Irq_Disable:
-
+	ret
 /* void Irq_Enable(void) */
     .global Irq_Enable
     .type   Irq_Enable, %function
 Irq_Enable:
-	b .
+	ret
