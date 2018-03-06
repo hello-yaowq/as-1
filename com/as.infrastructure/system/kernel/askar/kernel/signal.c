@@ -64,6 +64,7 @@ static struct signal *lookup_signal2(pthread_t tid, int signum)
 		break;
 		default:
 			sig = lookup_signal(tid, signum);
+#ifdef USE_PTHREAD_PARENT
 			if( (signum != SIGALRM) &&
 				(NULL == sig) &&
 				((tid->parent-TaskVarArray) > TASK_NUM) &&
@@ -72,6 +73,7 @@ static struct signal *lookup_signal2(pthread_t tid, int signum)
 			{	/* lookup from its parent */
 				sig = lookup_signal((pthread_t)(tid->parent->pConst), signum);
 			}
+#endif
 		break;
 	}
 

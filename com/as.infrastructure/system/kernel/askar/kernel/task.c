@@ -637,12 +637,22 @@ void statOsTask(void)
 		{
 			SHELL_printf("%08X/%08X %3d/%-6d ",
 					pTaskConst->pEventVar->set, pTaskConst->pEventVar->wait,
-					pTaskVar->activation, pTaskVar->actCnt);
+#ifdef MULTIPLY_TASK_ACTIVATION
+					pTaskVar->activation,
+#else
+					1,
+#endif
+					pTaskVar->actCnt);
 		}
 		else
 		{
 			SHELL_printf("null              %3d/%-6d ",
-					pTaskVar->activation, pTaskVar->actCnt);
+#ifdef MULTIPLY_TASK_ACTIVATION
+					pTaskVar->activation,
+#else
+					1,
+#endif
+					pTaskVar->actCnt);
 		}
 
 		SHELL_printf(" %s\n", (pTaskVar == RunningVar)?"<-RunningVar":"");
@@ -662,7 +672,13 @@ void statOsTask(void)
 					pTaskVar->priority, pTaskConst->initPriority, pTaskConst->runPriority,
 					pTaskConst->pStack, pTaskConst->stackSize, pused, used,
 					pTaskVar->list, tid->start,
-					pTaskVar->activation, pTaskVar->actCnt);
+#ifdef MULTIPLY_TASK_ACTIVATION
+					pTaskVar->activation,
+#else
+					1,
+#endif				 
+					pTaskVar->actCnt);
+#ifdef USE_PTHREAD_PARENT
 			asAssert(tid->parent);
 			if((tid->parent-TaskVarArray) < TASK_NUM)
 			{
@@ -672,6 +688,7 @@ void statOsTask(void)
 			{
 				SHELL_printf(" pthread%d", tid->parent -TaskVarArray);
 			}
+#endif
 			SHELL_printf(" %s\n", (pTaskVar == RunningVar)?"<-RunningVar":"");
 		}
 	}

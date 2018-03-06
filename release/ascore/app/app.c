@@ -31,7 +31,6 @@
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
-#include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
@@ -392,18 +391,5 @@ void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
 void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
 void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
 void _read(void) { printf("%s\n",__func__); asAssert(0); }
-#ifdef __LINUX__
-int __weak gettimeofday (struct timeval *tp, struct timezone *tzp)
-#else
-int __weak gettimeofday (struct timeval *tp, void *tzp)
-#endif
-{
-	if(tp != NULL)
-	{
-		tp->tv_usec = 0;
-		tp->tv_sec =  0;
-	}
-
-	return 0;
-}
+int __weak gettimeofday (void *tp, void *tzp) { return -1; }
 #endif

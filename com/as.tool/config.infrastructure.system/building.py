@@ -654,7 +654,7 @@ def SelectCompilerArm64():
     cpl = '%s/release/download/%s'%(ASROOT,gccarm)
     if(not os.path.exists(cpl)):
         RunCommand('cd %s/release/download && wget %s && tar xf %s.tar.xz'%(ASROOT,gccsrc,gccarm))
-    Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99'%(cpl)
+    Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99 -fno-stack-protector'%(cpl)
     Env['CXX']='%s/bin/aarch64-elf-g++'%(cpl)
     Env['AS']='%s/bin/aarch64-elf-gcc -c'%(cpl)
     Env['LINK']='%s/bin/aarch64-elf-ld'%(cpl)

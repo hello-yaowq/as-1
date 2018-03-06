@@ -222,6 +222,11 @@ enum {
 #else
 #define OS_TRACE_TASK_ACTIVATION(pTaskVar)
 #endif
+
+#if defined(USE_SHELL) && defined(USE_LIBDL)
+#define USE_PTHREAD_PARENT
+#endif
+
 /* ============================ [ TYPES     ] ====================================================== */
 typedef uint8					PriorityType;
 
@@ -338,7 +343,9 @@ struct pthread
 {
 	TaskConstType TaskConst;
 	TaskVarType* pTaskVar;
+#ifdef USE_PTHREAD_PARENT
 	TaskVarType* parent;
+#endif
 	TaskListType joinList;
 #ifdef USE_PTHREAD_CLEANUP
 	TAILQ_HEAD(cleanup_list, cleanup) cleanupList;

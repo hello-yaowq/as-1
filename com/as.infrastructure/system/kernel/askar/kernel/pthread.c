@@ -74,7 +74,7 @@ static boolean pthread_CheckAccess(ResourceType ResID)
 	/* not allowd to access any OSEK resource */
 	return FALSE;
 }
-#if defined(USE_SHELL) && defined(USE_LIBDL)
+#ifdef USE_PTHREAD_PARENT
 static TaskVarType* pthread_get_parent(TaskVarType *pTaskVar)
 {
 	TaskVarType* pParent;
@@ -166,7 +166,9 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr,
 
 	if(0 == ercd)
 	{
+#ifdef USE_PTHREAD_PARENT
 		pthread->parent = pthread_get_parent(RunningVar);
+#endif
 		pthread->arg = arg;
 		pthread->start = start;
 		pTaskConst->entry = pthread_entry_main;
@@ -316,17 +318,20 @@ ELF_EXPORT(pthread_exit);
 void exit (int code)
 {
 	pthread_t tid;
+#ifdef USE_PTHREAD_PARENT
 	TaskType id;
 	TaskVarType *pParent;
 	TaskVarType *pTaskVar;
 	const TaskConstType *pTaskConst;
+#endif
 
 	tid = pthread_self();
-	pParent = tid->parent;
 	Irq_Disable();
 
 	Os_ListDetach(tid->pTaskVar, FALSE);
 
+#ifdef USE_PTHREAD_PARENT
+	pParent = tid->parent;
 	for(id=0; id < OS_PTHREAD_NUM; id++)
 	{
 		pTaskVar   = &TaskVarArray[TASK_NUM+id];
@@ -342,7 +347,7 @@ void exit (int code)
 			}
 		}
 	}
-
+#endif
 	pthread_exit((void*)code);
 
 	while(1) asAssert(0);

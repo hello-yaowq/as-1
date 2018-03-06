@@ -315,3 +315,5 @@ com/as.infrastructure/system/net/lwip/lwip-contrib
 com/as.infrastructure/system/net/lwip/lwip_sys_arch.h
 x86
 aself.lds
+com/as.infrastructure/clib/newlib/libgcc
+release/ascore/virt

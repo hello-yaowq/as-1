@@ -32,3 +32,12 @@ config PTHREAD_SIGNAL
 config PTHREAD_CLEANUP
 	bool "posix pthreads cleanup feature"
 	default y
+
+# diable pthread related types defined by compiler library
+config __sigset_t_defined
+	int
+	default 1
+
+config _BITS_PTHREADTYPES_H
+	int
+	default 1

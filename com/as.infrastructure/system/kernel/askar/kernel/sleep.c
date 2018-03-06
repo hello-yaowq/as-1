@@ -165,8 +165,11 @@ void Os_SleepRemove(TaskVarType* pTaskVar)
 	pTaskVar->state &= ~PTHREAD_STATE_SLEEPING;
 	TAILQ_REMOVE(&OsSleepListHead, pTaskVar, sentry);
 }
-
+#if defined(__USE_BSD)
+int gettimeofday (struct timeval *tp, struct timezone *tzp)
+#else
 int gettimeofday (struct timeval *tp, void *tzp)
+#endif
 {
 	if(tp != NULL)
 	{
