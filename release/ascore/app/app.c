@@ -380,7 +380,7 @@ void __error__(char *pcFilename, unsigned long ulLine)
 	printf(" error @ %d of %s\n",(int)ulLine,pcFilename);
 }
 
-#if 1
+#if 0
 #ifndef USE_STDRT
 void abort(void) { printf("%s\n",__func__); asAssert(0); while(1); }
 #endif
@@ -391,5 +391,4 @@ void _fstat(void) { printf("%s\n",__func__); asAssert(0); }
 void _isatty(void) { printf("%s\n",__func__); asAssert(0); }
 void _lseek(void) { printf("%s\n",__func__); asAssert(0); }
 void _read(void) { printf("%s\n",__func__); asAssert(0); }
-int __weak gettimeofday (void *tp, void *tzp) { return -1; }
 #endif
