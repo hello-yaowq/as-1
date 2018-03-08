@@ -64,6 +64,7 @@
 									<listOptionValue builtIn="false" value="USE_SCHED_FIFO"/>
 									<listOptionValue builtIn="false" value="USE_PTHREAD"/>
 									<listOptionValue builtIn="false" value="USE_LIBDL"/>
+									<listOptionValue builtIn="false" value="USE_XCP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.567764495" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
@@ -107,6 +108,7 @@
 									<listOptionValue builtIn="false" value="USE_SCHED_FIFO"/>
 									<listOptionValue builtIn="false" value="USE_PTHREAD"/>
 									<listOptionValue builtIn="false" value="USE_LIBDL"/>
+									<listOptionValue builtIn="false" value="USE_XCP"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1824387882" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
 							</tool>

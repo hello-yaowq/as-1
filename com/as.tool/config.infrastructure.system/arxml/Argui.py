@@ -496,12 +496,16 @@ class ArgModule(QMainWindow):
     
     def toArxml(self):
         return self.arobjTree.toArxml()
-    
+
     def showConfig(self,arobj):
+        class UIGroup(QScrollArea):
+            def __init__(self, wd, parent=None):
+                super(QScrollArea, self).__init__(parent)
+                self.setWidget(wd)
         assert(isinstance(arobj, ArgObject))
         if(IsArxmlList(arobj.arxml)==False):
             self.frame = QFrame()
-            self.frame.setMinimumWidth(self.width()*3/4)
+            self.frame.setMinimumWidth(self.width()*3/5)
             self.grid = QGridLayout()
             self.frame.setLayout(self.grid)
             for Column in range(0,len(arobj.arxml.descriptor.items())):
@@ -513,7 +517,7 @@ class ArgModule(QMainWindow):
                         V = ArgWidget(key,arobj,self)
                         self.grid.addWidget(K,Column,0)
                         self.grid.addWidget(V,Column,1)
-            self.wConfig.setCentralWidget(self.frame)
+            self.wConfig.setCentralWidget(UIGroup(self.frame))
         else:
             self.table = QTableWidget()
             headers = []
