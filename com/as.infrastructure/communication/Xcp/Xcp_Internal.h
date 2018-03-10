@@ -260,8 +260,27 @@ typedef struct Xcp_MtaType {
     void          (*flush)(struct Xcp_MtaType* mta);
 } Xcp_MtaType;
 
+typedef struct
+{
+	const Xcp_ConfigType* config;
+	const Xcp_DaqListType *XcpDaqList;
+
+	Xcp_ProtectType XcpProtect; /**< Bitfield with currently locked features (Xcp_ProtectType) */
+
+	uint16 XcpMaxDaq; /* 0 .. 65535, XCP_MAX_DAQ */
+
+	/** Daq      counter which shows the dynamically allocated number of Daqs */
+	uint16            cntrDynamicDaq;
+
+	/** Odt      counter which shows the dynamically allocated number of Odts */
+	uint8             cntrDynamicOdt;
+
+	/** OdtEntry counter which shows the dynamically allocated number of OdtEntries */
+	uint8             cntrDynamicOdtEntry;
+} Xcp_ContextType;
+
 /* INTERNAL GLOBAL VARIABLES */
-extern       Xcp_ConfigType    Xcp_Config;
+extern       Xcp_ContextType    Xcp_Context;
 extern       Xcp_FifoType    Xcp_FifoRx;
 extern       Xcp_FifoType    Xcp_FifoTx;
 extern       Xcp_MtaType       Xcp_Mta;

@@ -315,7 +315,6 @@ typedef struct {
 
 	const Xcp_InfoType XcpInfo;
 
-	uint16 XcpMaxDaq; /* 0 .. 65535, XCP_MAX_DAQ */
 	const uint16 XcpMaxEventChannel; /* 0 .. 65535, XCP_MAX_EVENT_CHANNEL */
 	const uint16 XcpMinDaq; /* 0 .. 255  , XCP_MIN_DAQ */
 
@@ -360,15 +359,6 @@ typedef struct {
 
 	/** OdtEntry references for dynamic Daq allocation */
 	Xcp_OdtEntryType* ptrDynamicOdtEntry;
-
-	/** Daq      counter which shows the dynamically allocated number of Daqs */
-	uint16            cntrDynamicDaq;
-
-	/** Odt      counter which shows the dynamically allocated number of Odts */
-	uint8             cntrDynamicOdt;
-
-	/** OdtEntry counter which shows the dynamically allocated number of OdtEntries */
-	uint8             cntrDynamicOdtEntry;
 
 #endif /*XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC*/
 

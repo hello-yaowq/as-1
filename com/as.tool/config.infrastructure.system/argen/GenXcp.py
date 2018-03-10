@@ -68,7 +68,8 @@ def GenH():
         fp.write('#define XCP_EVCHL_%-32s %s\n'%(GAGet(evchl,'Name'),id))
     fp.write('\n')
     for id,daq in enumerate(GLGet('XcpStaticDaqList')):
-        fp.write('#define    XCP_STATIC_DAQ_ID_%-32s %s\n'%(GAGet(daq,'Name'),id))
+        fp.write('#define XCP_STATIC_DAQ_ID_%-32s %s\n'%(GAGet(daq,'Name'),id))
+    fp.write('#define XCP_STATIC_DAQ_COUNT %s\n'%(len(GLGet('XcpStaticDaqList'))))
 
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -116,6 +117,7 @@ def GenC():
             XCP_ODT_COUNT += 1
             for entry in GLGet(odt,'XcpOdtEntryList'):
                  XCP_ODT_ENTRIES_COUNT += 1
+    fp.write('#if XCP_STATIC_DAQ_COUNT > 0\n')
     fp.write('static Xcp_OdtEntryType xcpOdtEntry[%s] = \n{\n'%(XCP_ODT_ENTRIES_COUNT))
     for daq in GLGet('XcpStaticDaqList'):
         for odt in GLGet(daq,'XcpOdtList'):
@@ -147,11 +149,12 @@ def GenC():
         fp.write('        .XcpParams=&xcpStaticDaqParams[%d]\n'%(id))
         fp.write('    },\n')
     fp.write('};\n')
+    fp.write('#endif\n')
     fp.write('#if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)\n')
-    fp.write('static Xcp_DaqListParams xcpDaqParamsDYN[%s];\n'%(GAGet(General,'XcpDaqCount')))
-    fp.write('static Xcp_DaqListType xcpDaqListDYN[%s];\n'%(GAGet(General,'XcpDaqCount')))
-    fp.write('static Xcp_OdtType xcpOdtDYN[%s];\n'%(GAGet(General,'XcpOdtCount')))
-    fp.write('static Xcp_OdtEntryType xcpOdtEntryDYN[%s];\n'%(GAGet(General,'XcpOdtEntriesCount')))
+    fp.write('static Xcp_DaqListParams xcpDaqParamsDYN[XCP_DAQ_COUNT];\n')
+    fp.write('static Xcp_DaqListType xcpDaqListDYN[XCP_DAQ_COUNT];\n')
+    fp.write('static Xcp_OdtType xcpOdtDYN[XCP_DAQ_COUNT * XCP_ODT_COUNT];\n')
+    fp.write('static Xcp_OdtEntryType xcpOdtEntryDYN[XCP_DAQ_COUNT * XCP_ODT_COUNT * XCP_ODT_ENTRIES_COUNT];\n')
     fp.write('#endif\n')
     fp.write('#if XCP_EVENT_CHL_NUM>0\n')
     for evchl in GLGet('XcpEventChannelList'):
@@ -219,9 +222,12 @@ const Xcp_ConfigType XcpConfig =
     .XcpEventChannel = NULL,
 #endif
     .XcpMaxEventChannel = %s,
+#if XCP_STATIC_DAQ_COUNT > 0
     .XcpDaqList = xcpDaqList,
-    .XcpMaxDaq = %s,
-    .XcpMinDaq = %s,
+#else
+    .XcpDaqList = NULL,
+#endif
+    .XcpMinDaq = XCP_STATIC_DAQ_COUNT,
 #if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
     .ptrDynamicDaqParams = xcpDaqParamsDYN,
     .ptrDynamicDaq = xcpDaqListDYN,
@@ -232,9 +238,7 @@ const Xcp_ConfigType XcpConfig =
     .XcpUnlockFn = Xcp_UnlockFn,
     .XcpUserFn = Xcp_UserFn,
 };
-'''%(len(GLGet('XcpEventChannelList')),
-     len(GLGet('XcpStaticDaqList')),
-     len(GLGet('XcpStaticDaqList'))))
+'''%(len(GLGet('XcpEventChannelList'))))
 
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
