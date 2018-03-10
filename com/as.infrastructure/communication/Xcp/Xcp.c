@@ -2086,10 +2086,16 @@ void Xcp_MainFunction(void) {
 		Xcp_Recieve_Main();
 	}
 	Xcp_Transmit_Main();
-
-	for(i=0; i< Xcp_Context.config->XcpMaxEventChannel; i++)
+#if 1
+{ /* TODO: This Event Channel test */
+	static int counter = 0;
+	counter ++;
+	for(i=0; (i< Xcp_Context.config->XcpMaxEventChannel) && (counter>100); i++)
 	{
 		Xcp_MainFunction_Channel(i);
+		counter = 0;
 	}
+}
+#endif
 }
 #endif /* USE_XCP */

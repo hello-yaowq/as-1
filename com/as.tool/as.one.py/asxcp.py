@@ -36,13 +36,7 @@ xcp_instance = xcp(0, 0x554, 0x555)
 
 def Xcp_PollDAQMessage():
     data= xcp_instance.poll()
-    if(data is not None):
-        ss = "  >> xcp DAQ response = ["
-        length = len(data)
-        for i in range(length):
-            ss += '%02X,'%(data[i])
-        ss+=']'
-        print(ss)
+    return data
 
 def Xcp_TransmitMessage(req):
      return xcp_instance.transmit(req)
@@ -188,6 +182,7 @@ class UICommand(QGroupBox):
     def __init__(self,xml,parent=None):
         super(QGroupBox, self).__init__('%s %s'%(xml.attrib['name'],xml.attrib['ID']),parent)
         self.xml = xml
+        self.UI = parent
         grid = QGridLayout()
         
         self.leDataRequest = []
@@ -251,6 +246,12 @@ class UICommand(QGroupBox):
                 print('XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian))
             for leData in self.leDataResponse:
                 start = leData.setValue(res,start)
+            # if is StartStopDAQList command
+            if(pid==0xDE):
+                if(data.toarray()[1]==0x01):
+                    self.UI.startDAQPoll()
+                else:
+                    self.UI.stopDAQPoll()
 
 class UIMTA(QGroupBox):
     def __init__(self,xml,parent=None):
@@ -377,9 +378,9 @@ class UIGroup(QScrollArea):
         vBox = QVBoxLayout()
         for service in xml:
             if(service.tag=='Command'):
-                vBox.addWidget(UICommand(service))
+                vBox.addWidget(UICommand(service,parent))
             elif(service.tag=='MTA'):
-                vBox.addWidget(UIMTA(service))
+                vBox.addWidget(UIMTA(service,parent))
         wd.setLayout(vBox)
         self.setWidget(wd)
 
@@ -405,17 +406,34 @@ class UIXcp(QWidget):
         self.loadCml(default_cml)
 
         self.btnOpenCml.clicked.connect(self.on_btnOpenCml_clicked)
-        
-        self.startTimer(1)
-    
+        self.timer = None
+
+    def startDAQPoll(self):
+        self.timer = self.startTimer(100)
+        self.pretime = time.time()
+
+    def stopDAQPoll(self):
+        if(self.timer == None): return
+        self.killTimer(self.timer)
+        self.timer = None
+
     def timerEvent(self,e):
-        Xcp_PollDAQMessage()
+        while(True):
+            data = Xcp_PollDAQMessage()
+            if(data is not None):
+                ss = ' >> DAQ: ['
+                for d in data:
+                    ss += '%02X,'%(d)
+                ss+='] @ %.2fs'%(time.time()-self.pretime)
+                print(ss)
+            else:
+                break
     
     def loadCml(self,cml):
         self.tabWidget.clear()
         root = ET.parse(cml).getroot()
         for mm in root:
-            self.tabWidget.addTab(UIGroup(mm), mm.tag)
+            self.tabWidget.addTab(UIGroup(mm,self), mm.tag)
         
     def on_btnOpenCml_clicked(self):
         rv = QFileDialog.getOpenFileName(None,'XCP calibration description file', '','XCP calibration description file (*.cml)')
