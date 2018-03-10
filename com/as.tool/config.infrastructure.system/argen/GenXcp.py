@@ -43,7 +43,7 @@ def GenH():
     fp.write('#define XCP_DEV_ERROR_DETECT STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
     fp.write('#define XCP_VERSION_INFO_API STD_%s\n'%(GAGet(General,'VersionInfoApi')))
     fp.write('#define XCP_FEATURE_GET_SLAVE_ID STD_ON\n')
-    fp.write('\n#define DAQ_DYNAMIC 0\n#define DAT_STATIC\n')
+    fp.write('\n#define DAQ_DYNAMIC 0\n#define DAT_STATIC 1\n')
     fp.write('#define XCP_DAQ_CONFIG_TYPE %s\n'%(GAGet(General,'XcpDaqConfigType')))
     fp.write('#define XCP_IDENTIFICATION XCP_IDENTIFICATION_%s\n'%(GAGet(General,'XcpIdentificationFieldType')))
     fp.write('#define XCP_DAQ_COUNT  %s\n'%(GAGet(General,'XcpDaqCount')))
@@ -75,6 +75,8 @@ def GenH():
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('extern const Xcp_ConfigType XcpConfig;\n')
     fp.write('extern uint8_t xcpSimMTAMemory[];\n')
+    fp.write('extern uint32_t g_PBLAddress;\n')
+    fp.write('extern uint32_t g_PBLSize;\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('#endif\n')
@@ -102,15 +104,12 @@ def GenC():
     fp.write('#include "Xcp.h"\n')
     fp.write('#include "Xcp_Internal.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
+    fp.write('#define XCP_EVENT_CHL_NUM %s\n'%(len(GLGet('XcpEventChannelList'))))
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     General=GLGet('General')
     XCP_DAQ_COUNT = XCP_ODT_COUNT = XCP_ODT_ENTRIES_COUNT = 0;
-    if(GAGet(General,'XcpDaqConfigType')=='DAQ_DYNAMIC'):
-        XCP_DAQ_COUNT= int(GAGet(General,'XcpDaqCount'))
-        XCP_ODT_COUNT= int(GAGet(General,'XcpOdtCount'))
-        XCP_ODT_ENTRIES_COUNT= int(GAGet(General,'XcpOdtEntriesCount'))
     for daq in GLGet('XcpStaticDaqList'):
         XCP_DAQ_COUNT += 1
         for odt in GLGet(daq,'XcpOdtList'):
@@ -138,17 +137,25 @@ def GenC():
             fp.write('    },\n')
             odt_entry_pos += len(GLGet(odt,'XcpOdtEntryList'))
         fp.write('};\n')
-    fp.write('static Xcp_DaqListType xcpDaqList[%s] = \n{\n'%(XCP_DAQ_COUNT))
+    fp.write('static Xcp_DaqListParams xcpStaticDaqParams[%s];\n'%(len(GLGet('XcpStaticDaqList'))))
+    fp.write('static const Xcp_DaqListType xcpDaqList[%s] = \n{\n'%(len(GLGet('XcpStaticDaqList'))))
     for id,daq in enumerate(GLGet('XcpStaticDaqList')):
         fp.write('    {/* %s */\n'%(GAGet(daq,'Name')))
         fp.write('        .XcpOdtCount = %s,\n'%(len(GLGet(daq,'XcpOdtList'))))
         fp.write('        .XcpMaxOdt = %s,\n'%(len(GLGet(daq,'XcpOdtList'))))
         fp.write('        .XcpOdt = &xcpOdt[%d],\n'%(id))
-        fp.write('        .XcpParams.Prescaler = 1,\n')
+        fp.write('        .XcpParams=&xcpStaticDaqParams[%d]\n'%(id))
         fp.write('    },\n')
     fp.write('};\n')
+    fp.write('#if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)\n')
+    fp.write('static Xcp_DaqListParams xcpDaqParamsDYN[%s];\n'%(GAGet(General,'XcpDaqCount')))
+    fp.write('static Xcp_DaqListType xcpDaqListDYN[%s];\n'%(GAGet(General,'XcpDaqCount')))
+    fp.write('static Xcp_OdtType xcpOdtDYN[%s];\n'%(GAGet(General,'XcpOdtCount')))
+    fp.write('static Xcp_OdtEntryType xcpOdtEntryDYN[%s];\n'%(GAGet(General,'XcpOdtEntriesCount')))
+    fp.write('#endif\n')
+    fp.write('#if XCP_EVENT_CHL_NUM>0\n')
     for evchl in GLGet('XcpEventChannelList'):
-        fp.write('static Xcp_DaqListType* XcpEventChannelTriggeredDaqListRef_%s[%s]'%(
+        fp.write('static const Xcp_DaqListType* XcpEventChannelTriggeredDaqListRef_%s[%s]'%(
                                                         GAGet(evchl,'Name'),
                                                         GAGet(evchl,'DAQListRefSize')))
         if(len(GLGet(evchl,'XcpStaticDaqList'))>0):
@@ -171,7 +178,7 @@ def GenC():
         fp.write('        .XcpEventChannelTriggeredDaqListRef=XcpEventChannelTriggeredDaqListRef_%s,\n'%(GAGet(evchl,'Name')))
         fp.write('        .XcpEventChannelDaqCount=%s,\n'%(XcpEventChannelDaqCount))
         fp.write('    },\n')
-    fp.write('};\n\n')
+    fp.write('};\n#endif\n')
     fp.write('''
 Std_ReturnType __weak Xcp_UnlockFn(Xcp_ProtectType res, const uint8* seed,
             uint8 seed_len, const uint8* key, uint8 key_len)
@@ -206,15 +213,20 @@ Std_ReturnType __weak Xcp_UserFn(void* data, int len)
 }
 const Xcp_ConfigType XcpConfig =
 {
+#if XCP_EVENT_CHL_NUM>0
     .XcpEventChannel = xcpEventChannel,
+#else
+    .XcpEventChannel = NULL,
+#endif
     .XcpMaxEventChannel = %s,
     .XcpDaqList = xcpDaqList,
     .XcpMaxDaq = %s,
     .XcpMinDaq = %s,
 #if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
-    .ptrDynamicDaq = &xcpDaqList[%s],
-    .ptrDynamicOdt = &xcpOdt[%s],
-    .ptrDynamicOdtEntry = &xcpOdtEntry[%s],
+    .ptrDynamicDaqParams = xcpDaqParamsDYN,
+    .ptrDynamicDaq = xcpDaqListDYN,
+    .ptrDynamicOdt = xcpOdtDYN,
+    .ptrDynamicOdtEntry = xcpOdtEntryDYN,
 #endif
     .XcpSeedFn = Xcp_SeedFn,
     .XcpUnlockFn = Xcp_UnlockFn,
@@ -222,10 +234,7 @@ const Xcp_ConfigType XcpConfig =
 };
 '''%(len(GLGet('XcpEventChannelList')),
      len(GLGet('XcpStaticDaqList')),
-     len(GLGet('XcpStaticDaqList')),
-     XCP_DAQ_COUNT-int(GAGet(General,'XcpDaqCount')),
-     XCP_ODT_COUNT-int(GAGet(General,'XcpOdtCount')),
-     XCP_ODT_ENTRIES_COUNT-int(GAGet(General,'XcpOdtEntriesCount'))))
+     len(GLGet('XcpStaticDaqList'))))
 
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')

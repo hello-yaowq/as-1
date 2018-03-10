@@ -68,7 +68,7 @@ if(asenv['RELEASE']=='asboot'):
     asenv.Append(CPPDEFINES='FL_ERASE_PER_CYCLE=2048')
     MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
-               'DCM',
+               'DCM','XCP',
                'FLASH',
                'PCI',
                'CLIB_ASHEAP','CLIB_MISCLIB',

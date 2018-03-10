@@ -8,8 +8,8 @@ MEMORY
 {
 	RESERVED	(r)		: ORIGIN = 0x00000000, LENGTH = 32K
 	INIT_RAM	(rwx)	: ORIGIN = 0x00008000, LENGTH = 32K
-	RAM			(rwx)	: ORIGIN = 0x00010000, LENGTH = 128K
-	APPRAM	    (rwx)	: ORIGIN = 0x00040000, LENGTH = 128M
+	RAM			(rwx)	: ORIGIN = 0x00010000, LENGTH = 256K
+	APPRAM	    (rwx)	: ORIGIN = 0x00060000, LENGTH = 128M
 	/* This PCIIO PCINP PCIP is for versatilepb */
 	PCIIO		(rw)	: ORIGIN = 0x43000000, LENGTH = 16M
 	PCINP		(rw)	: ORIGIN = 0x50000000, LENGTH = 256M
@@ -19,11 +19,11 @@ MEMORY
 ENTRY(_start)
 
 /* application address */
-application_main = 0x00040040;
+application_main = 0x00060040;
 
-FlashHeader = 0x00030000;
+FlashHeader = 0x00050000;
 
-FlashDriverRam = 0x00030000;
+FlashDriverRam = 0x00050000;
 
 SECTIONS {
     /*

@@ -28,56 +28,15 @@ import traceback
 import re
 
 from pyas.can import *
-
-from bitarray import bitarray
+from pyas.xcp import *
 
 __all__ = ['UIXcp']
 
-__canbus__   = 0
-__tx_canid__ = 0x554
-__rx_canid__ = 0x555
-
-# 0 = little endian; 1 = big endian
-xcp_cpu_endian = 1
-
-
-__last_response = None
-
-__error_code = {
-    0x00:'XCP_ERR_CMD_SYNCH',           0x10:'XCP_ERR_CMD_BUSY',
-    0x11:'XCP_ERR_DAQ_ACTIVE',          0x12:'XCP_ERR_PGM_ACTIVE',
-
-    0x20:'XCP_ERR_CMD_UNKNOWN',         0x21:'XCP_ERR_CMD_SYNTAX',
-    0x22:'XCP_ERR_OUT_OF_RANGE',        0x23:'XCP_ERR_WRITE_PROTECTED',
-    0x24:'XCP_ERR_ACCESS_DENIED',       0x25:'XCP_ERR_ACCESS_LOCKED',
-    0x26:'XCP_ERR_PAGE_NOT_VALID',      0x27:'XCP_ERR_MODE_NOT_VALID',
-    0x28:'XCP_ERR_SEGMENT_NOT_VALID',   0x29:'XCP_ERR_SEQUENCE',
-    0x2A:'XCP_ERR_DAQ_CONFIG',
-
-    0x30:'XCP_ERR_MEMORY_OVERFLOW',     0x31:'XCP_ERR_GENERIC',
-    0x32:'XCP_ERR_VERIFY'
-}
-
-def __show_request__(req):
-    ss = "  >> xcp request = ["
-    length = len(req)
-    for i in range(length):
-        ss += '%02X,'%(req[i])
-    ss+=']'
-    print(ss)
-
-def __show_response__(res):
-    ss = "  >> xcp response = ["
-    length = len(res)
-    for i in range(length):
-        ss += '%02X,'%(res[i])
-    ss+=']'
-    print(ss)
+xcp_instance = xcp(0, 0x554, 0x555)
 
 def Xcp_PollDAQMessage():
-    if(__last_response==None):return
-    result,canid,data= can_read(__canbus__,__rx_canid__)
-    if((True == result) and (__rx_canid__ == canid)):
+    data= xcp_instance.poll()
+    if(data is not None):
         ss = "  >> xcp DAQ response = ["
         length = len(data)
         for i in range(length):
@@ -86,47 +45,13 @@ def Xcp_PollDAQMessage():
         print(ss)
 
 def Xcp_TransmitMessage(req):
-    global __last_response
-    __show_request__(req)
-    can_write(__canbus__,__tx_canid__,req)
-    ercd = False
-    data=None
-    pre = time.time()
-    while ( ((time.time() - pre) < 1) and (ercd == False)): # 1s timeout
-        result,canid,data= can_read(__canbus__,__rx_canid__)
-        if((True == result) and (__rx_canid__ == canid)):
-            ercd = True
-            break
-        else:
-            time.sleep(0.001) # sleep 1 ms
-    
-    if (False == ercd):
-        print("XCP timeout when receiving a frame! elapsed time = %s ms"%(time.time() -pre))
-        return None
-  
-    __last_response = xcpbits()
-    for d in data:
-        __last_response.append(d, 8)
-    __show_response__(__last_response.toarray())
-    return __last_response
+     return xcp_instance.transmit(req)
 
 def Xcp_GetLastError():
-    ercd = __last_response.toarray()[1]
-    ss = Xcp_GetResponse()
-    try:
-        ss += ' %s'%(__error_code[ercd])
-    except KeyError:
-        ss += ' unknown error code %s'%(ercd)
-    return ss
+    return xcp_instance.get_response()
 
 def Xcp_GetResponse():
-    data = __last_response.toarray()
-    ss = "["
-    length = len(data)
-    for i in range(length):
-        ss += '%02X,'%(data[i])
-    ss+=']'
-    return ss
+    return xcp_instance.get_response()
 
 def str2int(sstr):
     if(sstr[:2].lower() == '0x'):
@@ -135,51 +60,6 @@ def str2int(sstr):
         return int(sstr,2)
     else:
         return int(sstr,10)
-
-class xcpbits():
-    global xcp_cpu_endian
-    def __init__(self):
-        self.bits = bitarray()
-
-    def append(self,d, num=8):
-        assert(num%8 == 0)
-        if(xcp_cpu_endian == 1):  # big endian
-            for i in range(num):
-                if((d&(1<<(num-1-i))) != 0):
-                    self.bits.append(True)
-                else:
-                    self.bits.append(False)
-        else:       # little endian
-            bitmap = [ 7, 6, 5, 4, 3, 2, 1, 0,
-                      15,14,13,12,11,10, 9, 8,
-                      23,22,21,20,19,18,17,16,
-                      31,30,29,28,27,26,25,24]
-            for i in range(num):
-                if((d&(1<<(bitmap[i]))) != 0):
-                    self.bits.append(True)
-                else:
-                    self.bits.append(False)
-
-    def toint(self,pos,num):
-        bits = self.bits[pos:pos+num]
-        bytes = int((num+4)/8)
-        left = bytes*8 - num
-        v = 0
-        for b in bits.tobytes():
-            v = (v<<8) + b
-        v =v >> left
-        if(xcp_cpu_endian == 0):  # little endian
-            bytes = []
-            while(v > 0):
-                bytes.append(v&0xFF)
-                v = v>>8
-            for b in bytes:
-                 v = (v<<8) + b
-        return v
-        
-    def toarray(self):
-        return self.bits.tobytes()
-
 
 class wDataUS(QComboBox):
     '''Data UxxSelect, 0<xx<=32'''
@@ -351,7 +231,6 @@ class UICommand(QGroupBox):
         self.setLayout(grid)
 
     def on_btnExecute_clicked(self):
-        global xcp_cpu_endian
         data = xcpbits()
         pid = str2int(self.xml.attrib['ID'])
         data.append(pid,8)
@@ -366,7 +245,8 @@ class UICommand(QGroupBox):
             QMessageBox(QMessageBox.Critical, 'Error', 'Command execute Failed!  %s.'%(Xcp_GetLastError())).exec_();
         else:
             if(pid == 0xFF):
-                xcp_cpu_endian = res.toarray()[2]&0x01;
+                xcp_cpu_endian = res.toarray()[2]&0x01
+                xcp_instance.set_cpu_endian(xcp_cpu_endian)
                 #QMessageBox(QMessageBox.Information, 'XCP', 'XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian)).exec_()
                 print('XCP slave is online with CPU endian is %s(0=little,1=big)!'%(xcp_cpu_endian))
             for leData in self.leDataResponse:

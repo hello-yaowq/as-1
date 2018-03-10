@@ -45,10 +45,13 @@ class AsFlashloader(QThread):
         self.dcm = dcm(0,0x732,0x731)
         self.app = None
         self.flsdrv = None
-
+        self.protocol = 'UDS'
     def set_ll_dl(self,v):
         self.dcm.set_ll_dl(v)
-
+    
+    def set_protocol(self,p):
+        self.protocol = p
+        print(p)
     def is_check_application_enabled(self):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
@@ -258,8 +261,7 @@ class AsFlashloader(QThread):
     def launch_application(self):
         return self.transmit([0x31,0x01,0xFF,0x03], [0x71,0x01,0xFF,0x03])
 
-    def run(self):
-        self.infor.emit("starting ... ")
+    def run_uds(self):
         def ssz(ss):
             sz = 0
             for s in ss.getData(True):
@@ -287,6 +289,16 @@ class AsFlashloader(QThread):
                     return
         self.progress.emit(100)
 
+    def run_xcp(self):
+        pass
+
+    def run(self):
+        self.infor.emit('starting with protocol "%s"... '%(self.protocol))
+        if(self.protocol == 'UDS'):
+            self.run_uds()
+        else:
+            self.run_xcp()
+
 class AsStepEnable(QCheckBox):
     enableChanged=QtCore.pyqtSignal(str,bool)
     def __init__(self,text,parent=None):
@@ -302,7 +314,7 @@ class UIFlashloader(QWidget):
         self.loader = AsFlashloader()
         self.loader.infor.connect(self.on_loader_infor)
         self.loader.progress.connect(self.on_loader_progress)
-        
+
         vbox = QVBoxLayout()
         
         grid = QGridLayout()
@@ -324,9 +336,11 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.pgbProgress,2,1)
         self.cbxCANFDMode = QCheckBox("CANFD mode")
         grid.addWidget(self.cbxCANFDMode,2,2)
+        self.cmbxProtocol = QComboBox()
+        self.cmbxProtocol.addItems(['UDS','XCP'])
+        grid.addWidget(self.cmbxProtocol,2,3)
         self.btnStart=QPushButton('Start')
-        grid.addWidget(self.btnStart,2,3)
-        
+        grid.addWidget(self.btnStart,2,4)
         grid.addWidget(QLabel('aslua bootloader:'),3,0)
         self.cmbxCanDevice = QComboBox()
         self.cmbxCanDevice.addItems(['socket','serial','vxl','peak','tcp'])
@@ -362,6 +376,7 @@ class UIFlashloader(QWidget):
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
         self.cbxCANFDMode.stateChanged.connect(self.on_cbxCANFDMode_stateChanged)
+        self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
         release = os.path.abspath('%s/../../../release'%(os.curdir))
         default_app=''
         default_flsdrv=''
@@ -376,6 +391,9 @@ class UIFlashloader(QWidget):
             self.leApplication.setText(default_app)
         if(os.path.exists(default_flsdrv)):
             self.leFlsDrv.setText(default_flsdrv)
+
+    def on_cmbxProtocol_currentIndexChanged(self,index):
+        self.loader.set_protocol(str(self.cmbxProtocol.currentText()))
 
     def on_cbxCANFDMode_stateChanged(self,state):
         if(state):

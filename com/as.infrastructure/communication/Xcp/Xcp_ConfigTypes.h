@@ -112,15 +112,18 @@ typedef enum {
 	XCP_DAQLIST_PROPERTY_STIM = 1 << 3
 } Xcp_DaqListPropertyEnum;
 
+struct Xcp_DaqListType;
 typedef struct {
 	Xcp_DaqListModeEnum Mode; /**< bitfield for the current mode of the DAQ list */
 	uint16 EventChannel; /*TODO: Fixed channel vs current */
 	uint8 Prescaler; /* */
 	uint8 Priority; /* */
 	Xcp_DaqListPropertyEnum Properties; /**< bitfield for the properties of the DAQ list */
-} Xcp_DaqListParams;
-
-typedef struct Xcp_DaqListType {
+	/**
+	 * Pointer to next allocated DAQ list
+	 *   [INTERNAL]
+	 */
+	const struct Xcp_DaqListType *XcpNextDaq;
 	/**
 	 * Index number of DAQ list
 	 *   [INTERNAL]
@@ -128,7 +131,9 @@ typedef struct Xcp_DaqListType {
 	 * 0 .. 65534
 	 */
 	uint16 XcpDaqListNumber; /* 0 .. 65534 */
+} Xcp_DaqListParams;
 
+typedef struct Xcp_DaqListType {
 	/**
 	 * Maximum number of ODT's in XcpOdt array
 	 *   [USER]    : When static DAQ configuration
@@ -157,13 +162,7 @@ typedef struct Xcp_DaqListType {
 	 *   [INTERNAL/USER]
 	 *   TODO: Move the parameters into the DAQ list structure instead
 	 */
-	Xcp_DaqListParams XcpParams;
-
-	/**
-	 * Pointer to next allocated DAQ list
-	 *   [INTERNAL]
-	 */
-	struct Xcp_DaqListType *XcpNextDaq;
+	Xcp_DaqListParams *XcpParams;
 } Xcp_DaqListType;
 
 typedef enum {
@@ -200,7 +199,7 @@ typedef struct {
 	 * Pointer to an array of pointers to daqlists
 	 *   [USER]
 	 */
-	Xcp_DaqListType** XcpEventChannelTriggeredDaqListRef;
+	const Xcp_DaqListType** XcpEventChannelTriggeredDaqListRef;
 
 	/**
 	 * Set to the name of the eventchannel or NULL
@@ -305,7 +304,7 @@ typedef struct {
 
 /** @req XCP845 *//*Xcp_ConfigType definition - can not be tested with conventional module tests*/
 typedef struct {
-	Xcp_DaqListType *XcpDaqList;
+	const Xcp_DaqListType *XcpDaqList;
 	Xcp_EventChannelType *XcpEventChannel;
 	const Xcp_PduType *XcpPdu;
 
@@ -352,6 +351,7 @@ typedef struct {
 
 #if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
 
+	Xcp_DaqListParams* ptrDynamicDaqParams;
 	/** Daq      references for dynamic Daq allocation */
 	Xcp_DaqListType*  ptrDynamicDaq;
 

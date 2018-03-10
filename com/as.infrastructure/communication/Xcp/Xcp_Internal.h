@@ -210,7 +210,7 @@ typedef enum {
 typedef struct {
     Xcp_OdtEntryType*   ptr;
     Xcp_OdtType*        odt;
-    Xcp_DaqListType*    daq;
+    const Xcp_DaqListType*    daq;
     Xcp_DaqListConfigStateEnum dyn;
 } Xcp_DaqPtrStateType;
 
@@ -219,15 +219,18 @@ typedef struct {
     int         rem; /**< Remaining upload size */
 } Xcp_TransferType;
 
+#ifndef XCP_SEEDKEY_LENGTH
+#define XCP_SEEDKEY_LENGTH (XCP_MAX_CTO-2)
+#endif
 
 typedef struct {
     Xcp_ProtectType res;
 
-    uint8           seed[255];
+    uint8           seed[XCP_SEEDKEY_LENGTH];
     uint8           seed_len;
     uint8           seed_rem;
 
-    uint8           key[255];
+    uint8           key[XCP_SEEDKEY_LENGTH];
     uint8           key_len;
     uint8           key_rem;
 } Xcp_UnlockType;

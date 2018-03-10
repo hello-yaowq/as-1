@@ -17,8 +17,13 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "Dcm.h"
+#ifdef USE_XCP
+#include "Xcp.h"
+#endif
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_BL 1
+#define AS_LOG_PBL 1
 
 #define BL_SECURITY_LEVEL_EXTDS 1
 #define BL_SECURITY_LEVEL_PRGS  2
