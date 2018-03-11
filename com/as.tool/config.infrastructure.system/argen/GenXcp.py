@@ -43,7 +43,7 @@ def GenH():
     fp.write('#define XCP_DEV_ERROR_DETECT STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
     fp.write('#define XCP_VERSION_INFO_API STD_%s\n'%(GAGet(General,'VersionInfoApi')))
     fp.write('#define XCP_FEATURE_GET_SLAVE_ID STD_ON\n')
-    fp.write('\n#define DAQ_DYNAMIC 0\n#define DAT_STATIC 1\n')
+    fp.write('\n#define DAQ_DYNAMIC 0\n#define DAQ_STATIC 1\n')
     fp.write('#define XCP_DAQ_CONFIG_TYPE %s\n'%(GAGet(General,'XcpDaqConfigType')))
     fp.write('#define XCP_IDENTIFICATION XCP_IDENTIFICATION_%s\n'%(GAGet(General,'XcpIdentificationFieldType')))
     fp.write('#define XCP_DAQ_COUNT  %s\n'%(GAGet(General,'XcpDaqCount')))
