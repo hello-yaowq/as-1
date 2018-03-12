@@ -1335,7 +1335,7 @@ static Std_ReturnType Xcp_CmdGetDaqProcessorInfo(uint8 pid, void* data, int len)
 #if (XCP_DAQ_CONFIG_TYPE == DAQ_STATIC)
 		FIFO_ADD_U16(e, Xcp_Context.XcpMaxDaq);
 #elif (XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
-		FIFO_ADD_U16(e, XCP_MIN_DAQ + XCP_DAQ_COUNT);
+		FIFO_ADD_U16(e, Xcp_Context.config->XcpMinDaq + XCP_DAQ_COUNT);
 #else
 #error "Invalid XCP_DAQ_CONFIG_TYPE parameter"
 #endif
