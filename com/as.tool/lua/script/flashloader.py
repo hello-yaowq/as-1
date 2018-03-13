@@ -17,6 +17,7 @@ __lic__ = '''
  
 from .dcm import *
 from .s19 import *
+from .xcp import *
 
 
 from PyQt5 import QtCore, QtGui
@@ -39,19 +40,70 @@ class AsFlashloader(QThread):
                   (self.download_flash_driver,True),(self.check_flash_driver,False),
                   (self.routine_erase_flash,True), (self.download_application,True),
                   (self.check_application,False), (self.launch_application,True) ]
+        self.stepsXcp = [ (self.dummy,True), (self.dummy,True),
+                  (self.enter_program_session_xcp,True),(self.security_prgs_access_xcp,True),
+                  (self.download_flash_driver_xcp,True),(self.check_flash_driver_xcp,False),
+                  (self.routine_erase_flash_xcp,True), (self.download_application_xcp,True),
+                  (self.check_application_xcp,False), (self.launch_application_xcp,True) ]
         self.enable = []
         for s in self.steps:
             self.enable.append(s[1])
         self.dcm = dcm(0,0x732,0x731)
+        self.xcp = xcp(0, 0x554, 0x555)
         self.app = None
         self.flsdrv = None
         self.protocol = 'UDS'
+
+    def dummy(self):
+        return False,None
+
+    def transmit_xcp(self, req):
+        res = self.xcp.transmit(req.toarray())
+        if((res != None) and (res.toarray()[0] == 0xFF)):
+            ercd = True
+            self.txSz += len(req)-1
+            self.infor.emit('  success')
+            self.step_progress((self.txSz*100)/self.sumSz)
+        else:
+            ercd = False
+            self.infor.emit('  failed')
+        return ercd,res
+
+    def enter_program_session_xcp(self):
+        req = xcpbits()
+        req.append(0xFF,8)
+        req.append(0x00,8) # normal mode
+        ercd,res = self.transmit_xcp(req)
+
+        return ercd,res
+
+    def security_prgs_access_xcp(self):
+        return False,None
+
+    def download_flash_driver_xcp(self):
+        return False,None
+
+    def check_flash_driver_xcp(self):
+        return False,None
+
+    def routine_erase_flash_xcp(self):
+        return False,None
+
+    def download_application_xcp(self):
+        return False,None
+
+    def check_application_xcp(self):
+        return False,None
+
+    def launch_application_xcp(self):
+        return False,None
+
     def set_ll_dl(self,v):
         self.dcm.set_ll_dl(v)
     
     def set_protocol(self,p):
         self.protocol = p
-        print(p)
+
     def is_check_application_enabled(self):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
@@ -73,7 +125,7 @@ class AsFlashloader(QThread):
 
     def step_progress(self,v):
         self.progress.emit(v)
-        
+
     def transmit(self,req,exp):
         ercd,res = self.dcm.transmit(req)
         if(ercd == True):
@@ -91,6 +143,7 @@ class AsFlashloader(QThread):
         else:
             self.infor.emit('  failed')
         return ercd,res
+
     def enter_extend_session(self):
         return self.transmit([0x10,0x03], [0x50,0x03])
     def security_extds_access(self):
@@ -261,7 +314,7 @@ class AsFlashloader(QThread):
     def launch_application(self):
         return self.transmit([0x31,0x01,0xFF,0x03], [0x71,0x01,0xFF,0x03])
 
-    def run_uds(self):
+    def run_common(self, steps):
         def ssz(ss):
             sz = 0
             for s in ss.getData(True):
@@ -280,8 +333,8 @@ class AsFlashloader(QThread):
         self.txSz = 0
         self.infor.emit('summary transfer size is %s bytes(app %s, flsdrv %s)!'%(
                         self.sumSz,ssz(self.apps),ssz(self.flsdrvs)))
-        for id,s in enumerate(self.steps):
-            if(self.enable[id] == True):
+        for id,s in enumerate(steps):
+            if((self.enable[id] == True) and (s[0].__name__ != 'dummy')):
                 self.infor.emit('>> '+s[0].__name__.replace('_',' '))
                 ercd,res = s[0]()
                 if(ercd == False):
@@ -289,8 +342,11 @@ class AsFlashloader(QThread):
                     return
         self.progress.emit(100)
 
+    def run_uds(self):
+        self.run_common(self.steps)
+
     def run_xcp(self):
-        pass
+        self.run_common(self.stepsXcp)
 
     def run(self):
         self.infor.emit('starting with protocol "%s"... '%(self.protocol))
