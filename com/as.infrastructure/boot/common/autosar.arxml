@@ -38,15 +38,15 @@
 <Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
 <PduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" Identifier="0x555" Name="XCPTX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
 </PduList>
 </Hth>
 </HthList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
 <PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0xFFF" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_RX" FilterMask="0xFFF" Identifier="0x554" Name="XCPRX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
 </PduList>
 </Hrh>
 </HrhList>
@@ -330,23 +330,8 @@
 <BlockList Max="TBD" />
 </NvM>
 <Xcp>
-<General Comment="*" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_STATIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="0" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="56" XcpOdtEntriesCount="112" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
-<XcpStaticDaqList Max="TBD">
-<XcpDaq Comment="*" Name="Program" XcpMaxOdt="8" XcpOdtCount="8">
-<XcpOdtList Max="TBD">
-<XcpOdt Comment="*" Name="XcpOdtPBLAddress">
-<XcpOdtEntryList Max="TBD">
-<XcpEntry Address="&amp;g_PBLAddress" Comment="*" Extension="MEMORY" Length="4" Name="Address" />
-</XcpOdtEntryList>
-</XcpOdt>
-<XcpOdt Comment="*" Name="XcpOdtPBLSize">
-<XcpOdtEntryList Max="TBD">
-<XcpEntry Address="&amp;g_PBLSize" Comment="*" Extension="MEMORY" Length="4" Name="Size" />
-</XcpOdtEntryList>
-</XcpOdt>
-</XcpOdtList>
-</XcpDaq>
-</XcpStaticDaqList>
+<General Comment="*" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" XcpCounterRef="TBD" XcpDaqConfigType="DAQ_STATIC" XcpDaqCount="8" XcpFlashProgrammingEnabled="True" XcpIdentificationFieldType="ABSOLUTE" XcpMainFunctionPeriod="10" XcpMaxCto="8" XcpMaxDto="8" XcpMaxEventChannel="8" XcpMaxRxTxQueue="32" XcpMinDaq="0" XcpNvRamBlockIdRef="TBD" XcpOdtCount="56" XcpOdtEntriesCount="112" XcpOdtEntrySizeDaq="0" XcpOdtEntrySizeStim="0" XcpPrescalerSupported="True" XcpProtocal="CAN" XcpSuppressTxSupport="True" XcpTimestampTicks="1" XcpTimestampType="FOUR_BYTE" XcpTimestampUnit="1ms" />
+<XcpStaticDaqList Max="TBD" />
 <XcpEventChannelList Max="TBD" />
 </Xcp>
 <Rte>

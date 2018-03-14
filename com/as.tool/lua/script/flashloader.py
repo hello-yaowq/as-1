@@ -78,10 +78,49 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def security_prgs_access_xcp(self):
-        return False,None
+        req = xcpbits()
+        req.append(0xF8,8)
+        req.append(0x00,8) # normal mode
+        req.append(0x10,8) # PGM
+        self.infor.emit(' request seed')
+        ercd,res = self.transmit_xcp(req)
+
+        if(ercd == True):
+            res = res.toarray()
+            if((res[1] != 4) or (len(res) < 6)):
+                self.infor.emit('  invalid seed size')
+                return False,None
+            seed = (res[2]<<24)+(res[3]<<16)+(res[4]<<8)+(res[5]<<0)
+            key = seed
+            req = xcpbits()
+            req.append(0xF7,8)
+            req.append(4,8)
+            req.append((key>>24)&0xFF,8)
+            req.append((key>>16)&0xFF,8)
+            req.append((key>>8)&0xFF,8)
+            req.append((key>>0)&0xFF,8)
+            self.infor.emit(' send key')
+            ercd,res = self.transmit_xcp(req)
+
+        return ercd,res
+
+    def download_one_section_xcp(self,address,size,data,identifier):
+        req = xcpbits()
+        req.append(0xF6,8)
+        req.append(0x00,16)      # reserved
+        req.append(identifier,8) # extensition
+        req.append(address,32)   # address
+        self.infor.emit(' set MTA address %s, type %s'%(hex(address), identifier))
+        ercd,res = self.transmit_xcp(req)
+        return ercd,res
 
     def download_flash_driver_xcp(self):
-        return False,None
+        flsdrv = self.flsdrvs
+        ary = flsdrv.getData()
+        for ss in ary:
+            ercd,res = self.download_one_section_xcp(ss['address'],ss['size'],ss['data'],0x00)
+            if(ercd == False):return ercd,res
+        return ercd,res
 
     def check_flash_driver_xcp(self):
         return False,None
