@@ -163,6 +163,9 @@ class xcp():
         self.txid  = txid
         self.last_response = None
 
+    def get_max_cto(self):
+        return 8
+
     def get_response(self, res=None):
         if(res is None):
             res = self.last_response.toarray()

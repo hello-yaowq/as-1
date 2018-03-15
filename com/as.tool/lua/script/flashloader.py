@@ -57,12 +57,12 @@ class AsFlashloader(QThread):
     def dummy(self):
         return False,None
 
-    def transmit_xcp(self, req):
+    def transmit_xcp(self, req, ignore=False):
         res = self.xcp.transmit(req.toarray())
         if((res != None) and (res.toarray()[0] == 0xFF)):
             ercd = True
             self.txSz += len(req)-1
-            self.infor.emit('  success')
+            if(not ignore): self.infor.emit('  success')
             self.step_progress((self.txSz*100)/self.sumSz)
         else:
             ercd = False
@@ -112,7 +112,57 @@ class AsFlashloader(QThread):
         req.append(address,32)   # address
         self.infor.emit(' set MTA address %s, type %s'%(hex(address), identifier))
         ercd,res = self.transmit_xcp(req)
+
+        self.infor.emit(' downloading data...')
+        ability = self.xcp.get_max_cto()-2
+        left = size
+        rPos = 0
+        while((left > 0) and (ercd == True)):
+            doSz = left
+            if(doSz > ability):
+                doSz = ability
+            req = xcpbits()
+            req.append(0xF0,8)
+            req.append(doSz,8)
+            for i in range(doSz):
+                req.append(data[rPos+i],8)
+            rPos += doSz
+            left -= doSz
+            ercd,res = self.transmit_xcp(req,True)
+        if(ercd == True): self.infor.emit('  success')
         return ercd,res
+
+    def upload_one_section_xcp(self,address,size,identifier):
+        req = xcpbits()
+        req.append(0xF6,8)
+        req.append(0x00,16)      # reserved
+        req.append(identifier,8) # extensition
+        req.append(address,32)   # address
+        self.infor.emit(' set MTA address %s, type %s'%(hex(address), identifier))
+        ercd,res = self.transmit_xcp(req)
+        
+        data = []
+        left = size
+        ability = self.xcp.get_max_cto()-2
+
+        self.infor.emit(' uploading data...')
+        ability = self.xcp.get_max_cto()-1
+        left = size
+        while((left > 0) and (ercd == True)):
+            doSz = left
+            if(doSz > ability):
+                doSz = ability
+            req = xcpbits()
+            req.append(0xF5,8)
+            req.append(doSz,8)
+            left -= doSz
+            ercd,res = self.transmit_xcp(req,True)
+            if(ercd == True):
+                res = res.toarray()
+                for i in range(doSz):
+                    data.append(res[1+i])
+        if(ercd == True): self.infor.emit('  success')
+        return ercd,res,data
 
     def download_flash_driver_xcp(self):
         flsdrv = self.flsdrvs
@@ -123,7 +173,20 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def check_flash_driver_xcp(self):
-        return False,None
+        flsdrv = self.flsdrvs
+        ary = flsdrv.getData()
+        flsdrvr = s19()
+        for ss in ary:
+            ercd,res,up = self.upload_one_section_xcp(ss['address'],ss['size'],0x00)
+            flsdrvr.append(ss['address'],up)
+            if(ercd and self.compare(ss['data'], up)):
+                self.infor.emit('  check flash driver pass!')
+            else:
+                self.infor.emit('  check flash driver failed!')
+                flsdrvr.dump('read_%s'%(os.path.basename(self.flsdrv)))
+                return False,res
+        flsdrvr.dump('read_%s'%(os.path.basename(self.flsdrv)))
+        return ercd,res
 
     def routine_erase_flash_xcp(self):
         return False,None

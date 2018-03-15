@@ -34,6 +34,10 @@
 #include "Xcp_ByteStream.h"
 #include <string.h>
 #include <stdlib.h>
+#include "asdebug.h"
+
+
+#define AS_LOG_XCP 0
 
 Xcp_BufferType Xcp_Buffers[XCP_MAX_RXTX_QUEUE];
 Xcp_FifoType Xcp_FifoFree;
@@ -179,7 +183,7 @@ void Xcp_Init(const Xcp_ConfigType* Xcp_ConfigPtr) {
  */
 void Xcp_RxIndication(const void* data, int len) {
 	if (len > XCP_MAX_DTO) {
-		DEBUG(DEBUG_HIGH, "Xcp_RxIndication - length %d too long\n", len);
+		ASLOG(XCP, "Xcp_RxIndication - length %d too long\n", len);
 		return;
 	}
 
@@ -424,7 +428,7 @@ static Std_ReturnType Xcp_CmdConnect(uint8 pid, void* data, int len) {
 	uint8 mode = GET_UINT8(data, 0);
 	uint32_t endian_mask = 0xdeadbeef;
 
-	DEBUG(DEBUG_HIGH, "Received connect mode %x\n", mode);
+	ASLOG(XCP, "Received connect mode %x\n", mode);
 
 	if (mode != 0) {
 		RETURN_ERROR(XCP_ERR_CMD_UNKNOWN, "Xcp_CmdConnect\n");
@@ -491,7 +495,7 @@ static Std_ReturnType Xcp_CmdConnect(uint8 pid, void* data, int len) {
 
 static Std_ReturnType Xcp_CmdGetStatus(uint8 pid, void* data, int len) {
 
-	DEBUG(DEBUG_HIGH, "Received get_status\n");
+	ASLOG(XCP, "Received get_status\n");
 
 	/* find if any lists are running */
 	int running = 0;
@@ -531,7 +535,7 @@ static Std_ReturnType Xcp_CmdGetCommModeInfo(uint8 pid, void* data, int len) {
 #endif
 			| 0 << 1; /* INTERLEAVED_MODE  */
 
-	DEBUG(DEBUG_HIGH, "Received get_comm_mode_info\n");
+	ASLOG(XCP, "Received get_comm_mode_info\n");
 	FIFO_GET_WRITE(Xcp_FifoTx, e)
 	{
 		FIFO_ADD_U8(e, XCP_PID_RES);
@@ -549,7 +553,7 @@ static Std_ReturnType Xcp_CmdGetCommModeInfo(uint8 pid, void* data, int len) {
 
 static Std_ReturnType Xcp_CmdGetId(uint8 pid, void* data, int len) {
 	uint8 idType = GET_UINT8(data, 0);
-	DEBUG(DEBUG_HIGH, "Received get_id %d\n", idType);
+	ASLOG(XCP, "Received get_id %d\n", idType);
 
 	const char* text = NULL;
 
@@ -602,9 +606,9 @@ static Std_ReturnType Xcp_CmdGetId(uint8 pid, void* data, int len) {
 
 static Std_ReturnType Xcp_CmdDisconnect(uint8 pid, void* data, int len) {
 	if (Xcp_Connected) {
-		DEBUG(DEBUG_HIGH, "Received disconnect\n");
+		ASLOG(XCP, "Received disconnect\n");
 	} else {
-		DEBUG(DEBUG_HIGH, "Invalid disconnect without connect\n");
+		ASLOG(XCP, "Invalid disconnect without connect\n");
 	}
 	Xcp_Connected = 0;
 
@@ -662,7 +666,7 @@ static void Xcp_CmdUpload_Worker(void) {
 }
 
 static Std_ReturnType Xcp_CmdUpload(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received upload\n");
+	ASLOG(XCP, "Received upload\n");
 
 	Xcp_Upload.len = GET_UINT8(data, 0) * XCP_ELEMENT_SIZE;
 	Xcp_Upload.rem = Xcp_Upload.len;
@@ -679,7 +683,7 @@ static Std_ReturnType Xcp_CmdUpload(uint8 pid, void* data, int len) {
 }
 
 static Std_ReturnType Xcp_CmdShortUpload(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received short upload\n");
+	ASLOG(XCP, "Received short upload\n");
 
 	uint8 count = GET_UINT8(data, 0);
 	uint8 ext = GET_UINT8(data, 2);
@@ -711,7 +715,7 @@ static Std_ReturnType Xcp_CmdShortUpload(uint8 pid, void* data, int len) {
 static Std_ReturnType Xcp_CmdSetMTA(uint8 pid, void* data, int len) {
 	int ext = GET_UINT8(data, 2);
 	int ptr = GET_UINT32(data, 3);
-	DEBUG(DEBUG_HIGH, "Received set_mta 0x%x, %d\n", ptr, ext);
+	ASLOG(XCP, "Received set_mta 0x%x, %d\n", ptr, ext);
 
 
 	Xcp_MtaInit(&Xcp_Mta, ptr, ext);
@@ -721,7 +725,7 @@ static Std_ReturnType Xcp_CmdSetMTA(uint8 pid, void* data, int len) {
 static Std_ReturnType Xcp_CmdDownload(uint8 pid, void* data, int len) {
 	uint32 rem = GET_UINT8(data, 0) * XCP_ELEMENT_SIZE;
 	uint32 off = XCP_ELEMENT_OFFSET(2) + 1;
-	DEBUG(DEBUG_HIGH, "Received download %d, %d\n", pid, len);
+	ASLOG(XCP, "Received download %d, %d\n", pid, len);
 
 	if (!Xcp_Mta.write) {
 		RETURN_ERROR(XCP_ERR_WRITE_PROTECTED, "Xcp_Download - Mta not inited\n");
@@ -740,7 +744,7 @@ static Std_ReturnType Xcp_CmdDownload(uint8 pid, void* data, int len) {
 
 	/* check for sequence error */
 	if (Xcp_Download.rem != rem) {
-		DEBUG(DEBUG_HIGH, "Xcp_Download - Invalid next state (%u, %u)\n", rem,
+		ASLOG(XCP, "Xcp_Download - Invalid next state (%u, %u)\n", rem,
 				Xcp_Download.rem);
 		FIFO_GET_WRITE(Xcp_FifoTx, e)
 		{
@@ -777,7 +781,7 @@ static uint32 Xcp_CmdBuildChecksum_Add11(uint32 block) {
 static Std_ReturnType Xcp_CmdBuildChecksum(uint8 pid, void* data, int len) {
 	uint32 block = GET_UINT32(data, 3);
 
-	DEBUG(DEBUG_HIGH, "Received build_checksum %ul\n", (uint32) block);
+	ASLOG(XCP, "Received build_checksum %ul\n", (uint32) block);
 
 	if (!Xcp_Mta.get) {
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Xcp_CmdBuildChecksum - Mta not inited\n");
@@ -823,7 +827,7 @@ static Std_ReturnType Xcp_CmdSetCalPage(uint8 pid, void* data, int len)
 	uint32 mode = GET_UINT8(data, 0);
 	uint32 segm = GET_UINT8(data, 1);
 	uint32 page = GET_UINT8(data, 2);
-	DEBUG(DEBUG_HIGH, "Received SetCalPage(0x%x, %u, %u)\n", mode, segm, page);
+	ASLOG(XCP, "Received SetCalPage(0x%x, %u, %u)\n", mode, segm, page);
 
 	Xcp_SegmentType* begin = NULL, *end = NULL;
 	if(mode & 0x80) {
@@ -858,7 +862,7 @@ static Std_ReturnType Xcp_CmdGetCalPage(uint8 pid, void* data, int len)
 	uint32 mode = GET_UINT8(data, 0);
 	uint32 segm = GET_UINT8(data, 1);
 	uint32 page = 0;
-	DEBUG(DEBUG_HIGH, "Received GetCalPage(0x%x, %u)\n", mode, segm);
+	ASLOG(XCP, "Received GetCalPage(0x%x, %u)\n", mode, segm);
 
 	if(segm >= Xcp_Context.config->XcpMaxSegment) {
 		RETURN_ERROR(XCP_ERR_SEGMENT_NOT_VALID, "Xcp_CmdGetCalPage(0x%x, %u, %u) - invalid segment\n", mode, segm, page);
@@ -883,7 +887,7 @@ static Std_ReturnType Xcp_CmdGetCalPage(uint8 pid, void* data, int len)
 
 static Std_ReturnType Xcp_CmdGetPagProcessorInfo(uint8 pid, void* data, int len)
 {
-	DEBUG(DEBUG_HIGH, "Received GetPagProcessorInfo\n");
+	ASLOG(XCP, "Received GetPagProcessorInfo\n");
 	FIFO_GET_WRITE(Xcp_FifoTx, e) {
 		FIFO_ADD_U8 (e, XCP_PID_RES);
 		FIFO_ADD_U8 (e, Xcp_Context.config->XcpMaxSegment);
@@ -898,7 +902,7 @@ static Std_ReturnType Xcp_CmdGetSegmentInfo(uint8 pid, void* data, int len)
 	uint32 segm = GET_UINT8(data, 1);
 	uint32 info = GET_UINT8(data, 2);
 	uint32 mapi = GET_UINT8(data, 3);
-	DEBUG(DEBUG_HIGH, "Received GetSegmentInfo(%u, %u, %u, %u)\n", mode, segm, info, mapi);
+	ASLOG(XCP, "Received GetSegmentInfo(%u, %u, %u, %u)\n", mode, segm, info, mapi);
 
 	if(segm >= Xcp_Context.config->XcpMaxSegment) {
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Invalid segment requested");
@@ -1012,7 +1016,7 @@ static Std_ReturnType Xcp_CmdSetDaqPtr(uint8 pid, void* data, int len) {
 	uint16 daqListNumber = GET_UINT16(data, 1);
 	uint8 odtNumber = GET_UINT8(data, 3);
 	uint8 odtEntryNumber = GET_UINT8(data, 4);
-	DEBUG(DEBUG_HIGH, "Received SetDaqPtr %u, %u, %u\n", daqListNumber,odtNumber, odtEntryNumber);
+	ASLOG(XCP, "Received SetDaqPtr %u, %u, %u\n", daqListNumber,odtNumber, odtEntryNumber);
 
 
 	if (daqListNumber >= Xcp_Context.XcpMaxDaq)
@@ -1050,7 +1054,7 @@ static Std_ReturnType Xcp_CmdSetDaqPtr(uint8 pid, void* data, int len) {
 }
 
 static Std_ReturnType Xcp_CmdWriteDaq(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received WriteDaq\n");
+	ASLOG(XCP, "Received WriteDaq\n");
 
 	if (Xcp_DaqState.ptr == NULL)
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Error: No more ODT entries in this ODT\n");
@@ -1134,7 +1138,7 @@ static void Xcp_CmdSetDaqListMode_EventChannel(const Xcp_DaqListType* daq, uint1
 }
 
 static Std_ReturnType Xcp_CmdSetDaqListMode(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received SetDaqListMode\n");
+	ASLOG(XCP, "Received SetDaqListMode\n");
 	uint16 list = GET_UINT16(data, 1);
 	if (list >= Xcp_Context.XcpMaxDaq)
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Error: daq list number out of range\n");
@@ -1186,7 +1190,7 @@ static Std_ReturnType Xcp_CmdSetDaqListMode(uint8 pid, void* data, int len) {
 }
 
 static Std_ReturnType Xcp_CmdGetDaqListMode(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received GetDaqListMode\n");
+	ASLOG(XCP, "Received GetDaqListMode\n");
 	uint16 daqListNumber = GET_UINT16(data, 1);
 	if (daqListNumber >= Xcp_Context.XcpMaxDaq) {
 		RETURN_ERROR(XCP_ERR_OUT_OF_RANGE, "Error: DAQ list number out of range\n");
@@ -1242,7 +1246,7 @@ static Std_ReturnType Xcp_CmdStartStopDaqList(uint8 pid, void* data, int len) {
 
 static Std_ReturnType Xcp_CmdStartStopSynch(uint8 pid, void* data, int len) {
 	uint8 mode = GET_UINT8(data, 0);
-	DEBUG(DEBUG_HIGH, "Received StartStopSynch %u\n", mode);
+	ASLOG(XCP, "Received StartStopSynch %u\n", mode);
 	const Xcp_DaqListType* daq = Xcp_Context.XcpDaqList;
 
 	if (mode == 0) {
@@ -1277,7 +1281,7 @@ static Std_ReturnType Xcp_CmdStartStopSynch(uint8 pid, void* data, int len) {
 }
 
 static Std_ReturnType Xcp_CmdGetDaqClock(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received GetDaqClock\n");
+	ASLOG(XCP, "Received GetDaqClock\n");
 
 	FIFO_GET_WRITE(Xcp_FifoTx, e)
 	{
@@ -1327,7 +1331,7 @@ static Std_ReturnType Xcp_CmdGetDaqProcessorInfo(uint8 pid, void* data, int len)
 			| 0 << 6 /* OVERLOAD_MSB        */
 			| 0 << 7 /* OVERLOAD_EVENT      */;
 
-	DEBUG(DEBUG_HIGH, "Received GetDaqProcessorInfo\n");
+	ASLOG(XCP, "Received GetDaqProcessorInfo\n");
 	FIFO_GET_WRITE(Xcp_FifoTx, e)
 	{
 		FIFO_ADD_U8(e, XCP_PID_RES);
@@ -1354,7 +1358,7 @@ static Std_ReturnType Xcp_CmdGetDaqProcessorInfo(uint8 pid, void* data, int len)
 
 static Std_ReturnType Xcp_CmdGetDaqResolutionInfo(uint8 pid, void* data,
 		int len) {
-	DEBUG(DEBUG_HIGH, "Received GetDaqResolutionInfo\n");
+	ASLOG(XCP, "Received GetDaqResolutionInfo\n");
 	FIFO_GET_WRITE(Xcp_FifoTx, e)
 	{
 		SET_UINT8(e->data, 0, XCP_PID_RES);
@@ -1378,7 +1382,7 @@ static Std_ReturnType Xcp_CmdGetDaqResolutionInfo(uint8 pid, void* data,
 }
 
 static Std_ReturnType Xcp_CmdGetDaqListInfo(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received GetDaqListInfo\n");
+	ASLOG(XCP, "Received GetDaqListInfo\n");
 	uint16 daqListNumber = GET_UINT16(data, 1);
 	/*temporary variable to calculate the maximum OdtEntry value of a given Daq*/
 	uint8 maxMaxOdtEntry = 0U;
@@ -1412,7 +1416,7 @@ static Std_ReturnType Xcp_CmdGetDaqListInfo(uint8 pid, void* data, int len) {
 }
 
 static Std_ReturnType Xcp_CmdGetDaqEventInfo(uint8 pid, void* data, int len) {
-	DEBUG(DEBUG_HIGH, "Received GetDaqEventInfo\n");
+	ASLOG(XCP, "Received GetDaqEventInfo\n");
 	uint16 eventChannelNumber = GET_UINT16(data, 1);
 
 	if (eventChannelNumber >= Xcp_Context.config->XcpMaxEventChannel) {
@@ -1755,7 +1759,7 @@ static Std_ReturnType Xcp_Recieve_Stim(uint8 pid, Xcp_BufferType* it) {
 	Xcp_OdtType* odt;
 	Xcp_GetOdt(daqNr, pid, &daq, &odt);
 	if (!daq || !odt) {
-		DEBUG(DEBUG_HIGH, "Unable to find daq: %u, odt:%u", daqNr, pid);
+		ASLOG(XCP, "Unable to find daq: %u, odt:%u", daqNr, pid);
 		return E_NOT_OK ;
 	}
 
@@ -1765,7 +1769,7 @@ static Std_ReturnType Xcp_Recieve_Stim(uint8 pid, Xcp_BufferType* it) {
 		return E_OK ;
 	}
 
-	DEBUG(DEBUG_HIGH, "daq: %u is not a STIM list", daqNr);
+	ASLOG(XCP, "daq: %u is not a STIM list", daqNr);
 	return E_NOT_OK ;
 }
 
@@ -1780,7 +1784,7 @@ static Std_ReturnType Xcp_CmdGetSeed(uint8 pid, void* data, int len)
 {
 	uint8 mode = GET_UINT8(data, 0);
 	uint8 res = GET_UINT8(data, 1);
-	DEBUG(DEBUG_HIGH, "Received GetSeed(%u, %u)\n", mode, res);
+	ASLOG(XCP, "Received GetSeed(%u, %u)\n", mode, res);
 
 	if(mode == 0) {
 		if(res != XCP_PROTECT_CALPAG
@@ -1827,7 +1831,7 @@ static Std_ReturnType Xcp_CmdGetSeed(uint8 pid, void* data, int len)
 static Std_ReturnType Xcp_CmdUnlock(uint8 pid, void* data, int len)
 {
 	uint8 rem = GET_UINT8(data, 0);
-	DEBUG(DEBUG_HIGH, "Received Unlock(%u)\n", rem);
+	ASLOG(XCP, "Received Unlock(%u)\n", rem);
 
 	if(Xcp_Unlock.res == XCP_PROTECT_NONE) {
 		RETURN_ERROR(XCP_ERR_SEQUENCE, "Requested unlock without requesting a seed");
@@ -2001,7 +2005,7 @@ void Xcp_Recieve_Main(void) {
 #endif
 
 			if (cmd->len && it->len < cmd->len) {
-				DEBUG(DEBUG_HIGH, "Xcp_RxIndication_Main - Len %d to short for %u\n", it->len, pid);
+				ASLOG(XCP, "Xcp_RxIndication_Main - Len %d to short for %u\n", it->len, pid);
 				return;
 			}
 			(void) cmd->fun(pid, it->data + 1, it->len - 1);
@@ -2042,7 +2046,7 @@ void Xcp_Transmit_Main(void) {
 		retVal = Xcp_Transmit(it->data, it->len);
 
 		if (E_OK != retVal) {
-			DEBUG(DEBUG_LOW, "Xcp_Transmit_Main - failed to transmit\n");
+			ASLOG(OFF, "Xcp_Transmit_Main - failed to transmit\n");
 		} else {
 			txConfirmed = FALSE;
 		}
