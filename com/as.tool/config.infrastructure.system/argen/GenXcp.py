@@ -76,8 +76,6 @@ def GenH():
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('extern const Xcp_ConfigType XcpConfig;\n')
     fp.write('extern uint8_t xcpSimMTAMemory[];\n')
-    fp.write('extern uint32_t g_PBLAddress;\n')
-    fp.write('extern uint32_t g_PBLSize;\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     fp.write('#endif\n')
@@ -228,6 +226,7 @@ const Xcp_ConfigType XcpConfig =
     .XcpDaqList = NULL,
 #endif
     .XcpMinDaq = XCP_STATIC_DAQ_COUNT,
+    .XcpProtect = (Xcp_ProtectType)0xFFFFFFFFUL,
 #if(XCP_DAQ_CONFIG_TYPE == DAQ_DYNAMIC)
     .ptrDynamicDaqParams = xcpDaqParamsDYN,
     .ptrDynamicDaq = xcpDaqListDYN,

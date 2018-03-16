@@ -78,6 +78,7 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def security_prgs_access_xcp(self):
+        self.infor.emit(' == unlock PGM ==')
         req = xcpbits()
         req.append(0xF8,8)
         req.append(0x00,8) # normal mode
@@ -100,6 +101,38 @@ class AsFlashloader(QThread):
             req.append((key>>8)&0xFF,8)
             req.append((key>>0)&0xFF,8)
             self.infor.emit(' send key')
+            ercd,res = self.transmit_xcp(req)
+
+        if(ercd == True):
+            self.infor.emit(' == unlock CALPAG ==')
+            req = xcpbits()
+            req.append(0xF8,8)
+            req.append(0x00,8) # normal mode
+            req.append(0x01,8) # CALPAG
+            self.infor.emit(' request seed')
+            ercd,res = self.transmit_xcp(req)
+
+        if(ercd == True):
+            res = res.toarray()
+            if((res[1] != 4) or (len(res) < 6)):
+                self.infor.emit('  invalid seed size')
+                return False,None
+            seed = (res[2]<<24)+(res[3]<<16)+(res[4]<<8)+(res[5]<<0)
+            key = seed
+            req = xcpbits()
+            req.append(0xF7,8)
+            req.append(4,8)
+            req.append((key>>24)&0xFF,8)
+            req.append((key>>16)&0xFF,8)
+            req.append((key>>8)&0xFF,8)
+            req.append((key>>0)&0xFF,8)
+            self.infor.emit(' send key')
+            ercd,res = self.transmit_xcp(req)
+
+        if(ercd == True):
+            req = xcpbits()
+            req.append(0xD2,8)
+            self.infor.emit(' program start')
             ercd,res = self.transmit_xcp(req)
 
         return ercd,res
@@ -189,16 +222,67 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def routine_erase_flash_xcp(self):
-        return False,None
+        app = self.apps
+        ary = app.getData(True)
+        saddr = ary[0]['address']
+        eaddr = ary[0]['address'] + ary[0]['size']
+        for ss in ary:
+            if(ss['address']< saddr):
+                saddr = ss['address']
+            if(ss['address']+ss['size'] > eaddr):
+                eaddr = ss['address']+ss['size']
+        eaddr = int((eaddr+511)/512)*512
+
+        req = xcpbits()
+        req.append(0xF6,8)
+        req.append(0x00,16)      # reserved
+        req.append(0x01,8)       # extensition FLASH
+        req.append(saddr,32)     # address
+        ercd,res = self.transmit_xcp(req, True)
+
+        if(ercd == True):
+            self.infor.emit(' erase @ address %s, length %s'%(hex(saddr),hex(eaddr-saddr)))
+            req = xcpbits()
+            req.append(0xD1,8)
+            req.append(0x00,8)       # absolute access mode
+            req.append(0x00,16)      # reserved
+            req.append(eaddr-saddr,32)     # length
+            ercd,res = self.transmit_xcp(req)
+
+        return ercd,res
+
+    def program_one_section_xcp(self,address,size,data,identifier):
+        # TODO: should use command program instead of download
+        return self.download_one_section_xcp(address,size,data,0x00)
 
     def download_application_xcp(self):
-        return False,None
+        app = self.apps
+        ary = app.getData(True)
+        for ss in ary:
+            ercd,res = self.program_one_section_xcp(ss['address'],ss['size'],ss['data'],0x01)
+            if(ercd == False):return ercd,res
+        return ercd,res
 
     def check_application_xcp(self):
-        return False,None
+        app = self.apps
+        ary = app.getData(True)
+        appr = s19()
+        for ss in ary:
+            ercd,res,up = self.upload_one_section_xcp(ss['address'],ss['size'],0x01)
+            appr.append(ss['address'],up)
+            if(ercd and self.compare(ss['data'], up)):
+                self.infor.emit('  check application pass!')
+            else:
+                self.infor.emit('  check application failed!')
+                appr.dump('read_%s'%(os.path.basename(self.app)))
+                return False,res
+        appr.dump('read_%s'%(os.path.basename(self.app)))
+        return ercd,res
 
     def launch_application_xcp(self):
-        return False,None
+        req = xcpbits()
+        req.append(0xCF,8)
+        return self.transmit_xcp(req, True)
 
     def set_ll_dl(self,v):
         self.dcm.set_ll_dl(v)

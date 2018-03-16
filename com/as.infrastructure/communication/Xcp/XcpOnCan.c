@@ -28,6 +28,7 @@
 #include "ComStack_Types.h"
 #include "CanIf.h"
 
+#define AS_LOG_XCP 0
 
 typedef enum {
 	XCP_CAN_CMD_SET_DAQ_ID   = 0xFD,

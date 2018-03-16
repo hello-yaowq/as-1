@@ -29,12 +29,7 @@
 #include "Os.h"
 #include "ComStack_Types.h"
 
-#ifdef USE_DET
-#define USE_DEBUG_PRINTF
-#endif
 #include "asdebug.h"
-#undef  DEBUG_LVL
-#define DEBUG_LVL DEBUG_HIGH
 
 #if !defined(HIGH_BYTE_FIRST)
 #	define HIGH_BYTE_FIRST     0U
@@ -320,7 +315,7 @@ extern void Xcp_TxSuccess();
 
 /* HELPER DEFINES */
 #define RETURN_ERROR(code, ...) do {      \
-        DEBUG(DEBUG_HIGH,## __VA_ARGS__ );\
+        ASLOG(XCP,## __VA_ARGS__ );\
         Xcp_TxError(code);                \
         return E_NOT_OK;                  \
     } while(0)
