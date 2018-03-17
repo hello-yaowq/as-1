@@ -42,7 +42,7 @@ For the purpose that to be able to run most of the common applications which are
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
 
-![as configure tool](http://parai.github.io/as/images/config.infrastructure.system.png)
+![as configure tool](http://parai.github.io/as/images/config.infrastructure.system.gif)
 
 ## 4. AUTOSAR & LINUX communication
 * [virtio](http://docs.oasis-open.org/virtio/virtio/v1.0/csprd01/virtio-v1.0-csprd01.pdf)
