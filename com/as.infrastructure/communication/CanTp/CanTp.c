@@ -57,7 +57,8 @@
 #include <string.h>
 
 
-#define AS_LOG_CANTP    0
+#define AS_LOG_CANTP     0
+#define AS_LOG_CANTPE    1
 #include "asdebug.h"
 
 #if  ( CANTP_DEV_ERROR_DETECT == STD_ON ) /** @req CANTP006 *//** @req CANTP134 */
@@ -1237,7 +1238,7 @@ static boolean checkNasNarTimeout(CanTp_ChannelPrivateType *runtimeData) {
 	if (runtimeData->iso15765.NasNarPending) {
 		TIMER_DECREMENT(runtimeData->iso15765.NasNarTimeoutCount);
 		if (runtimeData->iso15765.NasNarTimeoutCount == 0) {
-			ASLOG(CANTP, "NAS timed out.\n" );
+			ASLOG(CANTPE, "NAS timed out.\n" );
 			runtimeData->iso15765.state = IDLE;
 			runtimeData->iso15765.NasNarPending = FALSE;
 			ret = TRUE;
@@ -1289,7 +1290,7 @@ void CanTp_MainFunction(void)
 					// check N_Cs timeout
 					TIMER_DECREMENT(txRuntimeListItem->iso15765.stateTimeoutCount);
 					if (txRuntimeListItem->iso15765.stateTimeoutCount == 0) {
-						ASLOG(CANTP, "ERROR: N_Cs timeout when sending consecutive frame!\n");
+						ASLOG(CANTPE, "ERROR: N_Cs timeout when sending consecutive frame!\n");
 						txRuntimeListItem->iso15765.state = IDLE;
 						txRuntimeListItem->mode = CANTP_TX_WAIT;
 						PduR_CanTpTxConfirmation(txConfigListItem->PduR_PduId, NTFRSLT_E_NOT_OK); /** @req CANTP204 */
@@ -1297,7 +1298,7 @@ void CanTp_MainFunction(void)
 						ASLOG(CANTP, "Waiting for STmin timer to expire!\n");
 					}
 				} else {
-					ASLOG(CANTP, "ERROR: Consecutive frame could not be sent!\n");
+					ASLOG(CANTPE, "ERROR: Consecutive frame could not be sent!\n");
 					txRuntimeListItem->iso15765.state = IDLE;
 					txRuntimeListItem->mode = CANTP_TX_WAIT;
 					PduR_CanTpTxConfirmation(txConfigListItem->PduR_PduId, NTFRSLT_E_NOT_OK); /** @req CANTP204 */
@@ -1308,7 +1309,7 @@ void CanTp_MainFunction(void)
 				//ASLOG(CANTP, "Waiting for flow control!\n");
 				TIMER_DECREMENT(txRuntimeListItem->iso15765.stateTimeoutCount);
 				if (txRuntimeListItem->iso15765.stateTimeoutCount == 0) {
-					ASLOG(CANTP, "State TX_WAIT_FLOW_CONTROL timed out!\n");
+					ASLOG(CANTPE, "State TX_WAIT_FLOW_CONTROL timed out!\n");
 					txRuntimeListItem->iso15765.state = IDLE;
 					txRuntimeListItem->mode = CANTP_TX_WAIT;
 					PduR_CanTpTxConfirmation(txConfigListItem->PduR_PduId, NTFRSLT_E_NOT_OK); /** @req CANTP204 */ /** @req CANTP185 */
@@ -1332,7 +1333,7 @@ void CanTp_MainFunction(void)
 			case RX_WAIT_CONSECUTIVE_FRAME: {
 				TIMER_DECREMENT (rxRuntimeListItem->iso15765.stateTimeoutCount);
 				if (rxRuntimeListItem->iso15765.stateTimeoutCount == 0) {
-					ASLOG(CANTP,"CANTP TIMEOUT!\n");
+					ASLOG(CANTPE,"CANTP TIMEOUT!\n");
 					PduR_CanTpRxIndication(rxConfigListItem->PduR_PduId, NTFRSLT_E_NOT_OK);
 					rxRuntimeListItem->iso15765.state = IDLE;
 					rxRuntimeListItem->mode = CANTP_RX_WAIT;

@@ -54,6 +54,10 @@ class AsFlashloader(QThread):
         self.flsdrv = None
         self.protocol = 'UDS'
 
+    def add_progress(self,sz):
+        self.txSz += sz
+        self.step_progress((self.txSz*100)/self.sumSz)
+
     def dummy(self):
         return False,None
 
@@ -61,9 +65,7 @@ class AsFlashloader(QThread):
         res = self.xcp.transmit(req.toarray())
         if((res != None) and (res.toarray()[0] == 0xFF)):
             ercd = True
-            self.txSz += len(req)-1
             if(not ignore): self.infor.emit('  success')
-            self.step_progress((self.txSz*100)/self.sumSz)
         else:
             ercd = False
             self.infor.emit('  failed')
@@ -162,6 +164,7 @@ class AsFlashloader(QThread):
             rPos += doSz
             left -= doSz
             ercd,res = self.transmit_xcp(req,True)
+            self.add_progress(doSz)
         if(ercd == True): self.infor.emit('  success')
         return ercd,res
 
@@ -194,6 +197,7 @@ class AsFlashloader(QThread):
                 res = res.toarray()
                 for i in range(doSz):
                     data.append(res[1+i])
+                self.add_progress(doSz)
         if(ercd == True): self.infor.emit('  success')
         return ercd,res,data
 
@@ -323,9 +327,7 @@ class AsFlashloader(QThread):
             else:
                 ercd = False
         if(ercd == True):
-            self.txSz += len(req)
             self.infor.emit('  success')
-            self.step_progress((self.txSz*100)/self.sumSz)
         else:
             self.infor.emit('  failed')
         return ercd,res
@@ -393,6 +395,7 @@ class AsFlashloader(QThread):
                     req.append(0xFF)
             self.infor.emit(' transfer block %s'%(blockSequenceCounter))
             ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
+            self.add_progress(sz)
             if(ercd == False):return ercd,res
             blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
             pos += sz
@@ -417,6 +420,7 @@ class AsFlashloader(QThread):
             if(ercd == False):return ercd,res,None
             blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
             sz = len(res)-2
+            self.add_progress(sz)
             if (left_size > sz):
                 left_size = left_size - sz
             else:
@@ -447,7 +451,8 @@ class AsFlashloader(QThread):
         flsdrvr = s19()
         for ss in ary:
             ercd,res,up = self.upload_one_section(ss['address']-ary[0]['address'],ss['size'],0xFD)
-            flsdrvr.append(ss['address'],up)
+            if(ercd == True):
+                flsdrvr.append(ss['address'],up)
             if(ercd and self.compare(ss['data'], up)):
                 self.infor.emit('  check flash driver pass!')
             else:
@@ -487,7 +492,8 @@ class AsFlashloader(QThread):
         appr = s19()
         for ss in ary:
             ercd,res,up = self.upload_one_section(ss['address'],ss['size'],0xFF)
-            appr.append(ss['address'],up)
+            if(ercd == True):
+                appr.append(ss['address'],up)
             if(ercd and self.compare(ss['data'], up)):
                 self.infor.emit('  check application pass!')
             else:

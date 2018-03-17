@@ -44,7 +44,18 @@ CANTP_ST_WAIT_CF = 4
 CANTP_ST_SEND_CF = 5
 CANTP_ST_SEND_FC = 6
 
+
 class cantp():
+    __state_name = {
+        0:'Idle',
+        1:'start to send',
+        2:'sending',
+        3:'wait flow control',
+        4:'wait consecutive frame',
+        5:'sending consecutive frame',
+        6:'sending flow control'
+    }
+
     def __init__(self,canbus,rxid,txid,cfgSTmin=10,cfgBS=8,padding=0x55):
         self.canbus  = canbus
         self.rxid = rxid
@@ -217,7 +228,7 @@ class cantp():
                     if(self.STmin == 0):
                       ercd = self.__sendCF__(request)
                 else:
-                    print("cantp: transmit unknown state ",self.state)
+                    print("cantp: transmit unknown state ", self.__state_name[self.state])
                     ercd = False
                 if(ercd == False):
                     break
@@ -247,7 +258,8 @@ class cantp():
         
         if (False == ercd):
             print("cantp timeout when receiving a frame! elapsed time = %s ms"%(time.time() -pre))
-  
+            print("state is %s"%(self.__state_name[self.state]))
+
         return ercd,data
    
     def __waitSForFF__(self,response):
@@ -256,13 +268,21 @@ class cantp():
         if (True == ercd):
             if ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_SF):
                 lsize = data[0]&ISO15765_TPCI_DL
+                rPos = 1
+                if(lsize == 0):
+                    lsize == data[1]
+                    rPos = 2
                 for i in range(lsize):
-                    response.append(data[1+i])
+                    response.append(data[rPos+i])
                 ercd = True
                 finished = True
             elif ((data[0]&ISO15765_TPCI_MASK) == ISO15765_TPCI_FF):
                 self.t_size = ((data[0]&0x0F)<<8) + data[1]
-                for d in data[2:]:
+                rPos = 2
+                if(self.t_size == 0):
+                    self.t_size = (data[2]<<24) + (data[3]<<16) + (data[4]<<8) + (data[5]<<0)
+                    rPos = 6
+                for d in data[rPos:]:
                     response.append(d)
                 self.state = CANTP_ST_SEND_FC
                 self.SN = 0
@@ -289,11 +309,11 @@ class cantp():
        
                 SN = data[0]&0x0F
                 if (SN == self.SN):
-                    l_size = t_size -sz  # left size 
-                    if (l_size > 7):
-                        l_size = 7
-                    for d in data[1:]:
-                        response.append(d)
+                    l_size = t_size - sz  # left size
+                    if (l_size > (self.ll_dl-1)):
+                        l_size = self.ll_dl-1
+                    for i in range(l_size):
+                        response.append(data[i+1])
          
                     if ((sz+l_size) == t_size):
                         finished = True
@@ -348,6 +368,7 @@ class cantp():
             else:
                 print("cantp: receive unknown state ",self.state)
                 ercd = False
+
         return ercd,response
 
 if(__name__ == '__main__'):

@@ -41,9 +41,9 @@ def GenH():
     fp.write(GHeader('CanTp'))
     General=GLGet('General')
     fp.write('#ifndef CANTP_CFG_H_\n#define CANTP_CFG_H_\n\n')
+    fp.write('#include "SchM_cfg.h"\n')
     fp.write('#include "CanTp_Types.h"\n\n')
-    fp.write('#define CANTP_MAIN_FUNCTION_PERIOD_TIME_MS    10  /* ms TODO */\n')
-    fp.write('#define CANTP_CONVERT_MS_TO_MAIN_CYCLES(x)     (x)/CANTP_MAIN_FUNCTION_PERIOD_TIME_MS\n\n')
+    fp.write('#define CANTP_CONVERT_MS_TO_MAIN_CYCLES(x)     MIAN_FUNCTION_MS2TICKS(CANTP,x)\n\n')
     fp.write('#define CANTP_NSDU_CONFIG_LIST_SIZE %s\n'
              %(len(GLGet('RxSduList'))+len(GLGet('TxSduList'))))
     fp.write('#define CANTP_NSDU_RUNTIME_LIST_SIZE %s\n'

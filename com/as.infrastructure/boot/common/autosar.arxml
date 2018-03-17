@@ -59,7 +59,7 @@
 <Sdu BS="8" Comment="*" CommunicationType="PHYSICAL" MaxBusyTransmission="10" Name="SduP2P" Nar="25" Nbr="25" Ncr="150" Padding="ON" RxPduRef="RxDiagP2P" STmin="1" TxFcPduRef="TxDiagP2P" ll_dl="64" />
 </RxSduList>
 <TxSduList Max="TBD">
-<Sdu Comment="*" CommunicationType="PHYSICAL" Name="SduP2P" Nas="25" Nbs="75" Ncs="25" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" ll_dl="64" />
+<Sdu Comment="Generally for Nbs, it's 75ms, here as the qemu CAN simulation is not real time, so set it to a bigger value ." CommunicationType="PHYSICAL" Name="SduP2P" Nas="25" Nbs="250" Ncs="25" Padding="ON" RxFcPduRef="RxDiagP2P" TxPduRef="TxDiagP2P" ll_dl="64" />
 </TxSduList>
 </CanTp>
 <PduR>
