@@ -164,11 +164,7 @@ For the purpose that to be able to run most of the common applications which are
 ### 3. BSW configuration tool config.infrastructure.system
 > This GUI tool is the one copied from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
 
-```sh
-parai@UX303LB:~/workspace/as/release/asboot$ make studio board=posix compiler=posix-gcc
-```
-
-![config.infrastructure.system](/as/images/config.infrastructure.system.png)
+![config.infrastructure.system](/as/images/config.infrastructure.system.gif)
 
 ### 4. AUTOSAR & LINUX communication
 > mostly for the purpose to study linux virtio/rpmsg system
