@@ -75,6 +75,9 @@ class cantp():
     def set_ll_dl(self,v):
         if(v in [8,64]):
             self.ll_dl = v
+        else:
+            print('unsupported ll_dl=%s'%(v))
+            assert(0)
 
     def __sendSF_clasic(self,request):
         length = len(request)
@@ -259,6 +262,10 @@ class cantp():
         if (False == ercd):
             print("cantp timeout when receiving a frame! elapsed time = %s ms"%(time.time() -pre))
             print("state is %s"%(self.__state_name[self.state]))
+        else:
+            if((len(data) == 64) and (self.ll_dl != 64)):
+                self.ll_dl = 64
+                print('switch CANTP to CANFD mode!')
 
         return ercd,data
    
@@ -334,7 +341,8 @@ class cantp():
                 print("invalid PCI mask %02X when wait CF"%(data[0]))
                 ercd = False
                 finished = True
-   
+        else:
+            print('response size = %s, %s'%(len(response),response))
         return ercd,finished
 
     def __sendFC__(self):
