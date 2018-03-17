@@ -72,7 +72,7 @@ This is very easy!
 
 ![scons-set-board.png](/as/images/rewoa/scons-set-board.png)
 
-## 3.3 do menuconfig by command "scons --menuconfig"
+## 3.3 do menuconfig by command "```scons --menuconfig```"
 
 Generally it's better to remove the previous config by command "rm .config" when switch the BOARD, and it's okay to leave all conifig as default.
 
