@@ -57,7 +57,7 @@
 #include <string.h>
 
 
-#define AS_LOG_CANTP    1
+#define AS_LOG_CANTP    0
 #include "asdebug.h"
 
 #if  ( CANTP_DEV_ERROR_DETECT == STD_ON ) /** @req CANTP006 *//** @req CANTP134 */
@@ -835,7 +835,7 @@ static void handleFirstFrame(const CanTp_RxNSduType *rxConfig,
 	}
 	else
 	{
-		data = &data[1];
+		data = &data[2];
 	}
 	rxRuntime->transferTotal = pduLength;
 

@@ -124,6 +124,10 @@ TimerType GetTimer(TimerType* timer)
 }
 
 #ifndef __POSIX_OSAL__
+void __weak TaskIdleHook(void)
+{
+
+}
 TASK(TaskIdle)
 {
 #if !defined(__SMALL_OS__)
@@ -145,6 +149,8 @@ TASK(TaskIdle)
 	|| defined(__ASKAR_OS__)
 		(void)Schedule();
 #endif
+
+		TaskIdleHook();
 
 #if !defined(__SMALL_OS__)
 	}

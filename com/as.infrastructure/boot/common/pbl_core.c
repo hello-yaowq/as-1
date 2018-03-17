@@ -110,4 +110,9 @@ Std_ReturnType Xcp_ProgramReset(void* data, int len)
 	}
 	return E_OK;
 }
+
+void TaskIdleHook(void)
+{
+	Xcp_MainFunction();
+}
 #endif /* USE_XCP */
