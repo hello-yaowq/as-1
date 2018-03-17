@@ -141,6 +141,8 @@ class easySARGui(QMainWindow):
             chl.attrib['Name']=bus
             chl.append(ET.Element('HthList'))
             chl.append(ET.Element('HrhList'))
+            chl.append(ET.Element('TxPduList'))
+            chl.append(ET.Element('RxPduList'))
             chlList.append(chl)
         rxList = []
         rR = []
@@ -154,25 +156,20 @@ class easySARGui(QMainWindow):
             else:
                 rxList.append(msg)
                 rR.append(msg['name'])
-        HthList = chl.find('HthList')
-        HrhList = chl.find('HrhList')
-        self.removeXml(HthList, tR)
-        self.removeXml(HrhList, rR)
-        def appendHOHList(HohList, xList, name):
+        TxPduList = chl.find('TxPduList')
+        RxPduList = chl.find('RxPduList')
+        self.removeXml(TxPduList, tR)
+        self.removeXml(RxPduList, rR)
+        def appendPduList(pduList, xList):
             for msg in xList:
-                hoh = ET.Element(name)
-                hoh.attrib['Name'] = msg['name']
-                pduList = ET.Element('PduList')
-                hoh.append(pduList)
                 pdu = ET.Element('Pdu')
                 pdu.attrib['Name'] = msg['name']
                 pdu.attrib['EcuCPduRef'] = msg['name']
                 pdu.attrib['DataLengthCode'] = str(msg['length'])
                 pdu.attrib['Identifier'] = str(msg['id'])
                 pduList.append(pdu)
-                HohList.append(hoh)
-        appendHOHList(HthList, txList, 'Hth')
-        appendHOHList(HrhList, rxList, 'Hrh')
+        appendPduList(TxPduList, txList)
+        appendPduList(RxPduList, rxList)
         canif.reloadArxml(Arxml(self.systemDescriptor.find('CanIf'),arxml))
 
     def modifyPduRbyCANDBC(self, dbc):

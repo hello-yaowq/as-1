@@ -51,6 +51,7 @@ def IsEnabled(key,arobj):
     reSelf   = re.compile(r'Self\.([^\s\(\)]+)(==|!=)(\w+)')
     reUrl    = re.compile(r'([^\s]+)(==|!=)(\w+)')
     reUrlSelf= re.compile(r'Self\.([^\s\(\)]+)')
+    reSubSelf= re.compile(r'\(Self\.([^\s\(\)]+)\)')
     descriptor = arxml.getKeyDescriptor(key)
     Enabled = True
     if(reEnabled.search(descriptor)):
@@ -81,16 +82,30 @@ def IsEnabled(key,arobj):
                     else:
                         isEnabled = False
                 elif(reUrlSelf.search(cond)):
-                    keyL = reUrlSelf.search(cond).groups()[0] 
-                    tarobj = arobj
-                    for key1 in keyL.split('.'):
-                        if(key1=='Parent'):
-                            tarobj = tarobj.parent()
-                        else:
-                            break
-                    selfV = tarobj.arxml.attrib(key1)
-                    url=reUrl.search(cond).groups()[0]
-                    url=url.replace('(Self.%s)'%(keyL),selfV)
+                    if(reSubSelf.search(cond)):
+                        for em in reSubSelf.search(cond).groups():
+                            keyL = em
+                            tarobj = arobj
+                            for key1 in keyL.split('.'):
+                                if(key1=='Parent'):
+                                    tarobj = tarobj.parent()
+                                else:
+                                    break
+                            selfV = tarobj.arxml.attrib(key1)
+                            cond=cond.replace('(Self.%s)'%(keyL),selfV)
+                    if(reUrlSelf.search(cond)):
+                        keyL = reUrlSelf.search(cond).groups()[0]
+                        tarobj = arobj
+                        for key1 in keyL.split('.'):
+                            if(key1=='Parent'):
+                                tarobj = tarobj.parent()
+                            else:
+                                break
+                        selfV = tarobj.arxml.attrib(key1)
+                        url=reUrl.search(cond).groups()[0]
+                        url=url.replace('(Self.%s)'%(keyL),selfV)
+                    else:
+                        url=reUrl.search(cond).groups()[0]
                     operater = reUrl.search(cond).groups()[1]
                     value = reUrl.search(cond).groups()[2]
                     if(value=='None'):
@@ -156,11 +171,10 @@ class ArgInput(QLineEdit):
         if(IsEnabled(key, arobj)==False):
             # if disabled set it to default
             reDeafult = re.compile(r'\s+Default=([^\s=\(\)]+)')
-            var = 'TBD'
             descriptor = self.arobj.arxml.getKeyDescriptor(self.key)
             if(reDeafult.search(descriptor)):
                 var = reDeafult.search(descriptor).groups()[0]
-            self.arobj.arxml.attrib(self.key,var) 
+                self.arobj.arxml.attrib(self.key,var)
         self.setToolTip(self.arobj.arxml.getKeyDescriptor(self.key).replace('\\n','\n'))
         #self.textChanged.connect(self.onTextChanged)
         self.startTimer(100)   # TODO : this is a patch code  

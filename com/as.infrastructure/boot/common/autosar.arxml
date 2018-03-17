@@ -35,21 +35,19 @@
 <ChannelList Max="TBD">
 <Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
-<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth">
-<PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
-</PduList>
-</Hth>
+<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth" />
 </HthList>
+<TxPduList Max="TBD">
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" HthRef="LS_Hth" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" HthRef="LS_Hth" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
+</TxPduList>
 <HrhList Max="TBD">
-<Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True">
-<PduList Max="TBD">
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
-</PduList>
-</Hrh>
+<Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
 </HrhList>
+<RxPduList Max="TBD">
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
+</RxPduList>
 </Channel>
 </ChannelList>
 </CanIf>

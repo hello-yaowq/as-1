@@ -78,17 +78,15 @@ def GenH():
     for chl in GLGet('ChannelList'):
         cstr1+='\t%s_CONFIG_0,\n'%(GAGet(chl,'Name'))
         cstr2+='\t%-32s,/* %-32s */\n'%(GAGet(chl,'Name'),GAGet(chl,'ControllerRef'))
-        for hrh in GLGet(chl,'HrhList'):
-            for pdu in GLGet(hrh,'PduList'):
-                fp.write('#define CANIF_ID_%-32s %s\n'%(GAGet(pdu,'EcuCPduRef'),startId))
-                startId += 1
+        for pdu in GLGet(chl,'RxPduList'):
+            fp.write('#define CANIF_ID_%-32s %s\n'%(GAGet(pdu,'EcuCPduRef'),startId))
+            startId += 1
     startId = 0 
     fp.write("/*CanIf Transmit */\n")    
     for chl in GLGet('ChannelList'):
-        for hrh in GLGet(chl,'HthList'):
-            for pdu in GLGet(hrh,'PduList'):
-                fp.write('#define CANIF_ID_%-32s %s\n'%(GAGet(pdu,'EcuCPduRef'),startId))
-                startId += 1
+        for pdu in GLGet(chl,'TxPduList'):
+            fp.write('#define CANIF_ID_%-32s %s\n'%(GAGet(pdu,'EcuCPduRef'),startId))
+            startId += 1
     fp.write("""
 /* ============================ [ TYPES     ] ====================================================== */
 /* Identifiers for the elements in CanIfControllerConfig[]
@@ -164,14 +162,12 @@ extern const Can_ConfigSetType Can_ConfigSetData;
         fp.write('extern void %s(uint8,Can_Arc_ErrorType);\n'%(GAGet(GLGet('General'),'ErrorNotification')))
 
     for chl in GLGet('ChannelList'):
-        for hrh in GLGet(chl,'HrhList'):
-            for pdu in GLGet(hrh,'PduList'):
-                if(GAGet(pdu,'ReceivedNotifier')=='User'):
-                    fp.write('extern void %sRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId);\n'%(GAGet(pdu,'UserNotification')))
-        for hth in GLGet(chl,'HthList'):
-            for pdu in GLGet(hth,'PduList'):
-                if(GAGet(pdu,'TransmitNotifier')=='User'):
-                    fp.write('extern void %sTxConfirmation(PduIdType);\n'%(GAGet(pdu,'UserNotification')))
+        for pdu in GLGet(chl,'RxPduList'):
+            if(GAGet(pdu,'ReceivedNotifier')=='User'):
+                fp.write('extern void %sRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr, uint8 dlc, Can_IdType canId);\n'%(GAGet(pdu,'UserNotification')))
+        for pdu in GLGet(chl,'TxPduList'):
+            if(GAGet(pdu,'TransmitNotifier')=='User'):
+                fp.write('extern void %sTxConfirmation(PduIdType);\n'%(GAGet(pdu,'UserNotification')))
 
     fp.write("""
 /* ============================ [ DATAS     ] ====================================================== */
@@ -258,55 +254,59 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
     },\n"""%(GAGet(chl,'Name'),GAGet(chl,'Name'),isEol)
     cstr+='};\n\n'
     fp.write(cstr)
+    def GetHohIndex(hohList,name):
+        index = -1
+        for i,hoh in enumerate(hohList):
+            if(GAGet(hoh,'Name') == name):
+                index = i
+        return index
     ## Tx PDU ID
     cstr =''
     for chl in GLGet('ChannelList'):
-        Index=-1
-        for hth in GLGet(chl,'HthList'):
-            Index+=1
-            for pdu in GLGet(hth,'PduList'):
-                if(GAGet(pdu,'TransmitNotifier')=='CanTp'):
-                    IdPrfix='CANTP_ID'
-                elif(GAGet(pdu,'TransmitNotifier')=='CanNm'):
-                    IdPrfix='CANNM_ID'
+        for pdu in GLGet(chl,'TxPduList'):
+            Index = GetHohIndex(GLGet(chl,'HthList'),GAGet(pdu,'HthRef'))
+            if(GAGet(pdu,'TransmitNotifier')=='CanTp'):
+                IdPrfix='CANTP_ID'
+            elif(GAGet(pdu,'TransmitNotifier')=='CanNm'):
+                IdPrfix='CANNM_ID'
+            elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
+                IdPrfix='XCP_ID'
+            else:
+                IdPrfix='PDUR_ID2'
+            if(GAGet(pdu,'TransmitNotifier')=='Nobody'):
+                notifier='NULL'
+            elif(GAGet(pdu,'TransmitNotifier')!='User'):
+                if(GAGet(pdu,'TransmitNotifier')=='PduR'):
+                    notifier='PduR_CanIfTxConfirmation'
                 elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
-                    IdPrfix='XCP_ID'
+                    notifier='Xcp_CanIfTxConfirmation'
                 else:
-                    IdPrfix='PDUR_ID2'
-                if(GAGet(pdu,'TransmitNotifier')=='Nobody'):
-                    notifier='NULL'
-                elif(GAGet(pdu,'TransmitNotifier')!='User'):
-                    if(GAGet(pdu,'TransmitNotifier')=='PduR'):
-                        notifier='PduR_CanIfTxConfirmation'
-                    elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
-                        notifier='Xcp_CanIfTxConfirmation'
-                    else:
-                        notifier='%s_TxConfirmation'%(GAGet(pdu,'TransmitNotifier'))
-                else:
-                    notifier='%sTxConfirmation'%(GAGet(pdu,'UserNotification'))
-                if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):
-                    IdType='CANIF_CAN_ID_TYPE_29'
-                else:
-                    IdType='CANIF_CAN_ID_TYPE_11'
-                cstr += """
+                    notifier='%s_TxConfirmation'%(GAGet(pdu,'TransmitNotifier'))
+            else:
+                notifier='%sTxConfirmation'%(GAGet(pdu,'UserNotification'))
+            if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):
+                IdType='CANIF_CAN_ID_TYPE_29'
+            else:
+                IdType='CANIF_CAN_ID_TYPE_11'
+            cstr += """
     {
         .CanIfTxPduId = %s_%s,
         .CanIfCanTxPduIdCanId = %s, 
         .CanIfCanTxPduIdDlc = %s,
         .CanIfCanTxPduType = CANIF_PDU_TYPE_STATIC,
-#if ( CANIF_READTXPDU_NOTIFY_STATUS_API == STD_ON )
+    #if ( CANIF_READTXPDU_NOTIFY_STATUS_API == STD_ON )
         .CanIfReadTxPduNotifyStatus = TRUE,
-#endif
+    #endif
         .CanIfTxPduIdCanIdType = %s,
         .CanIfUserTxConfirmation = %s,
         .CanIfCanTxPduHthRef = &CanIfHthConfigData_%s[%s],
         .PduIdRef = NULL
     },\n"""%(IdPrfix,GAGet(pdu,'EcuCPduRef'),
-             GAGet(pdu,'Identifier'),
-             GAGet(pdu,'DataLengthCode'),
-             IdType,
-             notifier,
-             GAGet(chl,'Name'),Index)
+         GAGet(pdu,'Identifier'),
+         GAGet(pdu,'DataLengthCode'),
+         IdType,
+         notifier,
+         GAGet(chl,'Name'),Index)
     fp.write("""
 #if defined(__WINDOWS__) || defined(__LINUX__)
 #else
@@ -320,38 +320,36 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
     ## Rx Pdu
     cstr =''
     for chl in GLGet('ChannelList'):
-        Index=-1
-        for hrh in GLGet(chl,'HrhList'):
-            Index+=1
-            for pdu in GLGet(hrh,'PduList'):
-                if(GAGet(pdu,'ReceivedNotifier')=='CanTp'):
-                    IdPrfix='CANTP'
-                elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
-                    IdPrfix='XCP'
-                else:
-                    IdPrfix='PDUR'
-                if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and
-                   (GAGet(pdu,'ReceivedNotifier')!='User')):
-                    notifier='NULL'
-                else:
-                    notifier='%sRxIndication'%(GAGet(pdu,'UserNotification'))
-                if(GAGet(pdu,'ReceivedNotifier')=='PduR'):
-                    notifierT='CANIF_USER_TYPE_CAN_PDUR'
-                elif(GAGet(pdu,'ReceivedNotifier')=='CanTp'):
-                    notifierT='CANIF_USER_TYPE_CAN_TP'
-                elif(GAGet(pdu,'ReceivedNotifier')=='CanNm'):
-                    notifierT='CANIF_USER_TYPE_CAN_NM'
-                elif(GAGet(pdu,'ReceivedNotifier')=='J1939Tp'):
-                    notifierT='CANIF_USER_TYPE_J1939TP'
-                elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
-                    notifierT='CANIF_USER_TYPE_XCP'
-                else:
-                    notifierT='CANIF_USER_TYPE_CAN_SPECIAL'
-                if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):
-                    IdType='CANIF_CAN_ID_TYPE_29'
-                else:
-                    IdType='CANIF_CAN_ID_TYPE_11'
-                cstr += """
+        for pdu in GLGet(chl,'RxPduList'):
+            Index = GetHohIndex(GLGet(chl,'HrhList'),GAGet(pdu,'HrhRef'))
+            if(GAGet(pdu,'ReceivedNotifier')=='CanTp'):
+                IdPrfix='CANTP'
+            elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
+                IdPrfix='XCP'
+            else:
+                IdPrfix='PDUR'
+            if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and
+               (GAGet(pdu,'ReceivedNotifier')!='User')):
+                notifier='NULL'
+            else:
+                notifier='%sRxIndication'%(GAGet(pdu,'UserNotification'))
+            if(GAGet(pdu,'ReceivedNotifier')=='PduR'):
+                notifierT='CANIF_USER_TYPE_CAN_PDUR'
+            elif(GAGet(pdu,'ReceivedNotifier')=='CanTp'):
+                notifierT='CANIF_USER_TYPE_CAN_TP'
+            elif(GAGet(pdu,'ReceivedNotifier')=='CanNm'):
+                notifierT='CANIF_USER_TYPE_CAN_NM'
+            elif(GAGet(pdu,'ReceivedNotifier')=='J1939Tp'):
+                notifierT='CANIF_USER_TYPE_J1939TP'
+            elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
+                notifierT='CANIF_USER_TYPE_XCP'
+            else:
+                notifierT='CANIF_USER_TYPE_CAN_SPECIAL'
+            if(Integer(GAGet(pdu,'Identifier')) > 0x7FF):
+                IdType='CANIF_CAN_ID_TYPE_29'
+            else:
+                IdType='CANIF_CAN_ID_TYPE_11'
+            cstr += """
     {
         .CanIfCanRxPduId = %s_ID_%s,
         .CanIfCanRxPduCanId = %s,

@@ -187,20 +187,21 @@
 				HthRef="EnumRef=Can.ControllerList.(Self.Parent.Parent.ControllerRef).HohList Filter=(ObjectType==TRANSMIT) PosGUI=1"
 				Comment="TextArea Default=* PosGUI=2"
 				>
-				<PduList Max="65535">
-					<Pdu
-						Name="Text Comment=(Name must be unique) PosGUI=0"
-						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
-						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
-						TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=3"
-						UserNotification="Text Default=CanIf_User PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
-						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
-						Comment="TextArea Default=* PosGUI=6"
-						>
-					</Pdu>
-				</PduList>
 			</Hth>
 		</HthList>
+		<TxPduList Max="65535">
+			<Pdu
+				Name="Text Comment=(Name must be unique) PosGUI=0"
+				EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
+				Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
+				TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=3"
+				UserNotification="Text Default=CanIf_User PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
+				DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
+				HthRef="EnumRef=CanIf.ChannelList.(Self.Parent.Parent.Name).HthList PosGUI=6"
+				Comment="TextArea Default=* PosGUI=7"
+				>
+			</Pdu>
+		</TxPduList>
 		<HrhList Max="65535">
 			<Hrh
 				Name="Text Comment=(Name must be unique) PosGUI=0"
@@ -208,21 +209,22 @@
 				SoftwareFilterUsed="Boolean Default=True PosGUI=2"
 				Comment="TextArea Default=* PosGUI=3"
 				>
-				<PduList Max="65535">
-					<Pdu
-						Name="Text Comment=(Name must be unique) PosGUI=0"
-						EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
-						Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
-						FilterMask="Integer Range=0~0x1FFFFFFFF PosGUI=3 \n Enabled=(Self.Parent.Parent.SoftwareFilterUsed==True) \n Comment=(If $FilterMask and `Identifier==$Identifier, then valid)"
-						ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=4"
-						UserNotification="Text Default=CanIf_UserRxIndication PosGUI=5 Enabled=(Self.ReceivedNotifier==User)"
-						DataLengthCode="Integer Range=1~8 Default=8 PosGUI=6"
-						Comment="TextArea Default=* PosGUI=7"
-						>
-					</Pdu>
-				</PduList>
 			</Hrh>
-		</HrhList>		
+		</HrhList>
+		<RxPduList Max="65535">
+			<Pdu
+				Name="Text Comment=(Name must be unique) PosGUI=0"
+				EcuCPduRef="EnumRef=EcuC.PduList PosGUI=1"
+				Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
+				FilterMask="Integer Range=0~0x1FFFFFFFF Default=0x7FF PosGUI=3 \n Enabled=(CanIf.ChannelList.(Self.Parent.Parent.Name).HrhList.(Self.HrhRef).SoftwareFilterUsed==True) \n Comment=(If $FilterMask and `Identifier==$Identifier, then valid)"
+				ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=4"
+				UserNotification="Text Default=CanIf_UserRxIndication PosGUI=5 Enabled=(Self.ReceivedNotifier==User)"
+				DataLengthCode="Integer Range=1~8 Default=8 PosGUI=6"
+				HrhRef="EnumRef=CanIf.ChannelList.(Self.Parent.Parent.Name).HrhList PosGUI=7"
+				Comment="TextArea Default=* PosGUI=8"
+				>
+			</Pdu>
+		</RxPduList>
 		</Channel>
 	</ChannelList>
 </CanIf>

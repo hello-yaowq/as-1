@@ -118,13 +118,15 @@ class Arxml():
                 pass # General Info, no sub, no name attribute
             elif(IsArxmlList(self)==False):
                 print('Arxml: Error (key,value)=(%s,%s) for %s'%(key,value,self.descriptor.tag))
+                if(key in ['D','S']):
+                    assert(0)
             if(value==None):
                 return ''
     
     def __str__(self):
         wfxml = 'tracelog.arxml'
         ROOT = ET.Element('ROOT')
-        
+
         ROOT.append(self.configuration)
         tree = ET.ElementTree(ROOT)
         tree.write(wfxml, encoding="utf-8", xml_declaration=True);
