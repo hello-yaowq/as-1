@@ -46,6 +46,21 @@ uint8_t xcpSimMTAMemory[1024];
 uint8_t xcpSimMTAMemory[32];
 #endif
 #endif
+
+#if defined(USE_PROTOTHREAD) && (defined(__LINUX__) || defined(__WINDOWS__))
+//#define PROTOTHREAD_TEST
+#if defined(PROTOTHREAD_TEST)
+extern struct process protoDemoProductProc;
+extern struct process protoDemoConsumerProc;
+#endif
+struct process * const autostart_processes[] = {
+#if defined(PROTOTHREAD_TEST)
+	&protoDemoProductProc,
+	&protoDemoConsumerProc,
+#endif
+	NULL
+};
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_STMO
 static void sample_pointer(void)
@@ -238,7 +253,6 @@ ALARM(AlarmApp)
 	OsActivateTask(TaskApp);
 }
 
-//#define PROTOTHREAD_TEST
 #if defined(USE_PROTOTHREAD) && defined(PROTOTHREAD_TEST)
 PROCESS(protoDemoProductProc,"protoDemoProductProc");
 PROTO_AUTOSTART_PROCESS_EXPORT(protoDemoProductProc);
@@ -251,7 +265,7 @@ static struct pt_sem mutex, full, empty;
 PROCESS_THREAD(protoDemoProductProc, ev, data)
 {
 	static int produced;
-	struct etimer et;
+	static struct etimer et;
 	PROCESS_BEGIN();
 	PROCESS_SEM_INIT(&mutex, 1);
 	PROCESS_SEM_INIT(&full, 0);

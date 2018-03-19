@@ -37,6 +37,7 @@ void StartContiki(void)
 	ctimer_init();
 
 	autostart_start(autostart_processes);
+
 }
 
 void ScheduleContiki(void)

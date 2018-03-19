@@ -133,10 +133,24 @@ KSM(Simulator,Running)
 
 #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 	clock_t now = clock();
-	if( (0u == (now%(CLOCKS_PER_SEC/1000))) &&  (now != previous) )
+	if( now != previous )
 	{
-		previous = clock();
-		OsTick();
+		clock_t n;
+		if(now > previous)
+		{
+			n = now - previous;
+		}
+		else
+		{
+			n = ((clock_t)-1) - previous + 1 + now;
+		}
+
+		while(n>0)
+		{
+			OsTick();
+			n--;
+		}
+		previous = now;
 	}
 #endif
 }

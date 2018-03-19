@@ -73,6 +73,11 @@ config LWIP_DRV
 	bool "LWIP driver"
 	default y
 
+config UIP_DRV
+	bool "micro IP from contiki"
+	depends on (!LWIP_DRV && PROTOTHREAD)
+	default n
+
 config AWS
 	bool "AS remote websock device"
 	default y
