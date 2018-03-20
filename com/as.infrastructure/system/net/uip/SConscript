@@ -1,0 +1,28 @@
+import os
+from building import *
+Import('asenv')
+
+cwd = GetCurrentDir()
+ASROOT = asenv['ASROOT']
+cwd = GetCurrentDir()
+
+uip='%s/release/download/contiki'%(ASROOT)
+
+MKDir('%s/core'%(cwd))
+
+
+MKSymlink('%s/core/net'%(uip),'%s/core/net'%(cwd))
+
+asenv.Append(CPPPATH=['%s/include'%(cwd)])
+
+objs = []
+
+objs += Glob('%s/core/lib/memb.c'%(uip))
+objs += Glob('%s/core/lib/random.c'%(uip))
+objs += Glob('core/net/*.c')
+objs += Glob('core/net/rime/*.c')
+objs += Glob('core/net/rpl/*.c')
+SrcRemove(objs, ['rime-udp.c','dhcpc.c','slipdev.c','uip-ds6-nbr.c'])
+
+Return('objs')
+

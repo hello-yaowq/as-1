@@ -4,6 +4,11 @@ config LWIP
 	depends on LWIP_DRV
 	default y
 
+config UIP
+	bool "UIP"
+	depends on UIP_DRV
+	default y
+
 if !RTTHREAD
 choice
 	prompt "LWIP arch"

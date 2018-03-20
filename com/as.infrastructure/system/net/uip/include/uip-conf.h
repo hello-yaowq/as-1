@@ -13,37 +13,14 @@
  * for more details.
  */
 
-#ifndef _CONTIKI_CONF_H_
-#define _CONTIKI_CONF_H_
+#ifndef _UIP_CONF_H_
+#define _UIP_CONF_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <stdint.h>
-#include "sys/pt-sem.h"
-#ifdef USE_UIP
-#include "uip-conf.h"
-#endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define CCIF
-#define CLIF
-
-#define PROCESS_SEM_INIT(s, c) PT_SEM_INIT(s, c)
-#define PROCESS_SEM_WAIT(s)    PT_SEM_WAIT(process_pt, s)
-#define PROCESS_SEM_SIGNAL(s)  PT_SEM_SIGNAL(process_pt, s)
-
-#if defined(__GNUC__)
-#define PROTO_AUTOSTART_PROCESS_EXPORT(proc) \
-	struct process * const __attribute__((section("ProtoSymTab"))) autostart_##proc = &proc
-#define PROTO_AUTOSTART_PROCESS_END() \
-	struct process * const __attribute__((section("ProtoSymTabEnd"))) autostart_end = NULL
-#else
-#define PROTO_AUTOSTART_PROCESS_EXPORT(proc)
-#define PROTO_AUTOSTART_PROCESS_END()
-#endif
 /* ============================ [ TYPES     ] ====================================================== */
-typedef unsigned long clock_time_t;
+typedef unsigned short uip_stats_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void StartContiki(void);
-void ScheduleContiki(void);
-#endif /* _CONTIKI_CONF_H_ */
+#endif /* _UIP_CONF_H_ */

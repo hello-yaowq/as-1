@@ -47,8 +47,8 @@ uint8_t xcpSimMTAMemory[32];
 #endif
 #endif
 
-#if defined(USE_PROTOTHREAD) && (defined(__LINUX__) || defined(__WINDOWS__))
 //#define PROTOTHREAD_TEST
+#if defined(USE_PROTOTHREAD) && (defined(__LINUX__) || defined(__WINDOWS__))
 #if defined(PROTOTHREAD_TEST)
 extern struct process protoDemoProductProc;
 extern struct process protoDemoConsumerProc;

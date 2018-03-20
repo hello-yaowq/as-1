@@ -15,5 +15,7 @@ if(('LWIP' in MODULES) and ('FTP' in MODULES) and ('RTTHREAD' not in MODULES)):
     asenv.Append(CPPDEFINES = 'FTPD_DEBUG')
     asenv.Append(CPPPATH = ['%s/ftp'%(cwd)])
 
+if('UIP' in MODULES):
+    objs += SConscript('uip/SConscript')
 
 Return('objs')
