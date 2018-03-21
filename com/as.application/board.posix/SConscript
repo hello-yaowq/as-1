@@ -66,6 +66,9 @@ MODULES += ['FATFS','LWEXT4','VFS','FTP']
 
 if(os.name == 'nt'):
     MODULES += ['CLIB_STRTOK_R']
+    asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000')
+else:
+    asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000000')
 
 MODULES += ['CLIB_MBOX']
 MODULES += ['CLIB_MISCLIB']
