@@ -13,16 +13,15 @@ MKDir('%s/core'%(cwd))
 
 MKSymlink('%s/core/net'%(uip),'%s/core/net'%(cwd))
 
-asenv.Append(CPPPATH=['%s/include'%(cwd)])
+asenv.Append(CPPPATH=['%s/include'%(cwd),cwd])
 
 objs = []
 
 objs += Glob('%s/core/lib/memb.c'%(uip))
 objs += Glob('%s/core/lib/random.c'%(uip))
-objs += Glob('core/net/*.c')
-objs += Glob('core/net/rime/*.c')
-objs += Glob('core/net/rpl/*.c')
-SrcRemove(objs, ['rime-udp.c','dhcpc.c','slipdev.c','uip-ds6-nbr.c'])
+objs += Glob('core/net/ipv4/*.c')
+objs += Glob('core/net/ip/*.c')
 
+SrcRemove(objs, ['uip-over-mesh.c','slipdev.c','dhcpc.c'])
 Return('objs')
 
