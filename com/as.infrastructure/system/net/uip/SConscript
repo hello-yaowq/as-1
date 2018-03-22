@@ -1,8 +1,7 @@
 import os
 from building import *
 Import('asenv')
-
-cwd = GetCurrentDir()
+MODULES = asenv['MODULES']
 ASROOT = asenv['ASROOT']
 cwd = GetCurrentDir()
 
@@ -21,7 +20,9 @@ objs += Glob('%s/core/lib/memb.c'%(uip))
 objs += Glob('%s/core/lib/random.c'%(uip))
 objs += Glob('core/net/ipv4/*.c')
 objs += Glob('core/net/ip/*.c')
+objs += Glob('core/*.c')
 
 SrcRemove(objs, ['uip-over-mesh.c','slipdev.c','dhcpc.c'])
+
 Return('objs')
 

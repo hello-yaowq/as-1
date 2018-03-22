@@ -12,21 +12,54 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-
-#ifndef _UIP_CONF_H_
-#define _UIP_CONF_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include "Os.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip_arp.h"
+#include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define UIP_CONF_IPV6_RPL 0
-
-#ifndef UIP_CONF_LLH_LEN
-#define UIP_CONF_LLH_LEN 14
+#if defined(__LINUX__)
+#define ethernet_process tapdev_process
+#elif defined(__WINDOWS__)
+#define ethernet_process wpcap_process
 #endif
-#define WPCAP_INTERFACE_ADDRESS "172.18.0.100"
+
+#define AS_LOG_UIP 1
 /* ============================ [ TYPES     ] ====================================================== */
-typedef unsigned short uip_stats_t;
 /* ============================ [ DECLARES  ] ====================================================== */
+#if defined(__LINUX__)
+extern struct process tapdev_process;
+#elif defined(__WINDOWS__)
+extern struct process wpcap_process;
+#else
+extern struct process ethernet_process;
+#endif
+extern struct process tcpip_process;
 /* ============================ [ DATAS     ] ====================================================== */
+PROCESS(protoUIPMain,"protoUIPMain");
+PROTO_AUTOSTART_PROCESS_EXPORT(protoUIPMain);
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#endif /* _UIP_CONF_H_ */
+PROCESS_THREAD(protoUIPMain, ev, data)
+{
+	uip_ipaddr_t ipaddr;
+
+	PROCESS_BEGIN();
+
+	ASLOG(UIP, "startup uip!\n");
+
+	process_start(&tcpip_process, NULL);
+	uip_ipaddr(&ipaddr, 172, 18, 0, 200);
+	uip_sethostaddr(&ipaddr);
+	uip_ipaddr(&ipaddr, 255, 255, 255, 0);
+	uip_setnetmask(&ipaddr);
+	uip_ipaddr(&ipaddr, 172, 18, 0, 1);
+	uip_setdraddr(&ipaddr);
+
+	process_start(&ethernet_process, NULL);
+
+	for(;;) {
+		PROCESS_YIELD();
+	}
+	PROCESS_END();
+}

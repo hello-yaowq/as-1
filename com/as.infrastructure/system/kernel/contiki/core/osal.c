@@ -42,12 +42,6 @@ void StartContiki(void)
 
 void ScheduleContiki(void)
 {
-	struct process *p;
-
-	for(p = process_list; p != NULL; p = p->next) {
-		process_poll(p);
-	}
-
 	process_run();
 }
 

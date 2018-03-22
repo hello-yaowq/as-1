@@ -53,10 +53,16 @@ uint8_t xcpSimMTAMemory[32];
 extern struct process protoDemoProductProc;
 extern struct process protoDemoConsumerProc;
 #endif
+#if defined(USE_UIP)
+extern struct process protoUIPMain;
+#endif
 struct process * const autostart_processes[] = {
 #if defined(PROTOTHREAD_TEST)
 	&protoDemoProductProc,
 	&protoDemoConsumerProc,
+#endif
+#if defined(USE_UIP)
+	&protoUIPMain,
 #endif
 	NULL
 };
@@ -266,6 +272,7 @@ PROCESS_THREAD(protoDemoProductProc, ev, data)
 {
 	static int produced;
 	static struct etimer et;
+	process_poll(&protoDemoProductProc);
 	PROCESS_BEGIN();
 	PROCESS_SEM_INIT(&mutex, 1);
 	PROCESS_SEM_INIT(&full, 0);
@@ -294,6 +301,7 @@ PROTO_AUTOSTART_PROCESS_EXPORT(protoDemoConsumerProc);
 PROCESS_THREAD(protoDemoConsumerProc, ev, data)
 {
 	static int consumed;
+	process_poll(&protoDemoConsumerProc);
 	PROCESS_BEGIN();
 	PROCESS_YIELD();
 	for(consumed = 0; consumed < NUM_ITEMS; ++consumed) {
