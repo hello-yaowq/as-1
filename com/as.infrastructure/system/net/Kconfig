@@ -27,7 +27,7 @@ endif
 
 config FTP
 	bool "File Transfer Protocol Daemon"
-	depends on LWIP && (VFS || RT_USING_DFS)
+	depends on (LWIP || UIP) && (VFS || RT_USING_DFS)
 	default y
 
 endmenu

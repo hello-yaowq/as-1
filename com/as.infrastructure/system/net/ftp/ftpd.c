@@ -33,6 +33,9 @@
  */
 
 #include "vfs.h"
+#if defined(USE_UIP)
+#include "contiki-net.h"
+#elif defined(USE_LWIP)
 #include "lwip/debug.h"
 #include "lwip/stats.h"
 #include "ipv4/lwip/inet.h"
@@ -40,6 +43,7 @@
 #include "lwip/tcp.h"
 #include "lwip/sockets.h"
 #include "lwip/init.h"
+#endif
 #include "ftpd.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -47,6 +51,60 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+
+#include "asdebug.h"
+
+#ifdef USE_UIP
+#define tcp_pcb tcp_socket
+#define ERR_OK 0
+#define ERR_MEM ENOMEM
+#define ERR_CLSD ENOENT
+#define ERR_USE EEXIST
+
+#define IP_SET_TYPE_VAL(ipaddr, iptype)
+#define IPADDR_TYPE_V4 0
+#define ip_2_ip4(ipaddr)                        (ipaddr)
+#define ip4_addr_copy(dest, src) do { dest = src; } while(0)
+/** Set an IP address given by the four byte-parts */
+#define IP4_ADDR(ipaddr, a,b,c,d) uip_ipaddr(ipaddr, a,b,c,d)
+
+#define lwip_strerr(err) ""
+#define tcp_sent(pcb, cbk)
+#define tcp_recv(pcb, cbk)
+#define tcp_err(pcb, cbk)
+#define tcp_poll(pcb, cbk, interval)
+#define tcp_accept(pcb, cbk)
+#define tcp_arg(pcb, parg) do { (pcb)->ptr = parg; } while(0)
+#define tcp_close(pcb) tcp_socket_close(pcb)
+#define tcp_recved(pcb, len)
+#define tcp_abort(pcb)
+#define tcp_connect(pcb, ipaddr, port, connected) tcp_socket_connect(pcb, ipaddr, port)
+#define tcp_bind(pcb, ipaddr, port) ERR_OK
+#define tcp_listen(pcb) NULL
+#define tcp_bind(pcb, ipaddr, port) ERR_OK
+#define tcp_sndbuf(pcb) tcp_socket_max_sendlen(pcb)
+
+#define pbuf_free(p)
+typedef uip_ipaddr_t ip_addr_t;
+typedef int err_t;
+struct pbuf {
+	struct pbuf *next; /* keep it always null */
+	const void *payload;
+
+	uint16_t tot_len;
+	uint16_t len;
+};
+
+static struct tcp_socket socketMsg;
+static struct tcp_socket socketData;
+static uint8_t inputbufMsg[1500];
+static uint8_t outputbufMsg[1500];
+static uint8_t inputbufData[1500];
+static uint8_t outputbufData[1500];
+
+static err_t tcp_write(struct tcp_pcb *pcb, const void *dataptr, uint16_t len, uint8_t apiflags);
+static struct tcp_pcb * tcp_new     (void);
+#endif
 
 #if (LWIP_VERSION_MAJOR == 1U)
 #define IP_SET_TYPE_VAL(ipaddr, iptype)
@@ -342,8 +400,8 @@ struct ftpd_datastate {
 struct ftpd_msgstate {
 	enum ftpd_state_e state;
 	sfifo_t fifo;
-	struct ip_addr dataip;
-	u16_t dataport;
+	ip_addr_t dataip;
+	uint16_t dataport;
 	struct tcp_pcb *datapcb;
 	struct ftpd_datastate *datafs;
 	int passive;
@@ -379,7 +437,7 @@ static void ftpd_dataclose(struct tcp_pcb *pcb, struct ftpd_datastate *fsd)
 static void send_data(struct tcp_pcb *pcb, struct ftpd_datastate *fsd)
 {
 	err_t err;
-	u16_t len;
+	uint16_t len;
 
 	if (sfifo_used(&fsd->fifo) > 0) {
 		int i;
@@ -389,12 +447,12 @@ static void send_data(struct tcp_pcb *pcb, struct ftpd_datastate *fsd)
 		if (tcp_sndbuf(pcb) < sfifo_used(&fsd->fifo)) {
 			len = tcp_sndbuf(pcb);
 		} else {
-			len = (u16_t) sfifo_used(&fsd->fifo);
+			len = (uint16_t) sfifo_used(&fsd->fifo);
 		}
 
 		i = fsd->fifo.readpos;
 		if ((i + len) > fsd->fifo.size) {
-			err = tcp_write(pcb, fsd->fifo.buffer + i, (u16_t)(fsd->fifo.size - i), 1);
+			err = tcp_write(pcb, fsd->fifo.buffer + i, (uint16_t)(fsd->fifo.size - i), 1);
 			if (err != ERR_OK) {
 				dbg_printf("send_data: error writing!\n");
 				return;
@@ -536,7 +594,7 @@ static void send_next_directory(struct ftpd_datastate *fsd, struct tcp_pcb *pcb,
 	}
 }
 
-static err_t ftpd_datasent(void *arg, struct tcp_pcb *pcb, u16_t len)
+static err_t ftpd_datasent(void *arg, struct tcp_pcb *pcb, uint16_t len)
 {
 	struct ftpd_datastate *fsd = arg;
 
@@ -563,7 +621,7 @@ static err_t ftpd_datarecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 
 	if (err == ERR_OK && p != NULL) {
 		struct pbuf *q;
-		u16_t tot_len = 0;
+		uint16_t tot_len = 0;
 
 		for (q = p; q != NULL; q = q->next) {
 			int len;
@@ -579,6 +637,7 @@ static err_t ftpd_datarecv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t
 
 		pbuf_free(p);
 	}
+
 	if (err == ERR_OK && p == NULL) {
 		struct ftpd_msgstate *fsm;
 		struct tcp_pcb *msgpcb;
@@ -692,7 +751,6 @@ static int open_dataconnection(struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 	IP_SET_TYPE_VAL(dataip, IPADDR_TYPE_V4);
 	ip4_addr_copy(*ip_2_ip4(&dataip), fsm->dataip);
 	tcp_connect(fsm->datapcb, &dataip, fsm->dataport, ftpd_dataconnected);
-
 	return 0;
 }
 
@@ -728,8 +786,8 @@ static void cmd_port(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 	if (nr != 6) {
 		send_msg(pcb, fsm, msg501);
 	} else {
-		IP4_ADDR(&fsm->dataip, (u8_t) ip[0], (u8_t) ip[1], (u8_t) ip[2], (u8_t) ip[3]);
-		fsm->dataport = ((u16_t) pHi << 8) | (u16_t) pLo;
+		IP4_ADDR(&fsm->dataip, (uint8_t) ip[0], (uint8_t) ip[1], (uint8_t) ip[2], (uint8_t) ip[3]);
+		fsm->dataport = ((uint16_t) pHi << 8) | (uint16_t) pLo;
 		send_msg(pcb, fsm, msg200);
 	}
 }
@@ -875,8 +933,8 @@ static void cmd_syst(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 
 static void cmd_pasv(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
-	static u16_t port = 4096;
-	static u16_t start_port = 4096;
+	static uint16_t port = 4096;
+	static uint16_t start_port = 4096;
 	struct tcp_pcb *temppcb;
 
 	/* Allocate memory for the structure that holds the state of the
@@ -942,7 +1000,9 @@ static void cmd_pasv(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate 
 	tcp_arg(fsm->datapcb, fsm->datafs);
 
 	tcp_accept(fsm->datapcb, ftpd_dataaccept);
+#ifdef USE_LWIP
 	send_msg(pcb, fsm, msg227, ip4_addr1(ip_2_ip4(&pcb->local_ip)), ip4_addr2(ip_2_ip4(&pcb->local_ip)), ip4_addr3(ip_2_ip4(&pcb->local_ip)), ip4_addr4(ip_2_ip4(&pcb->local_ip)), (fsm->dataport >> 8) & 0xff, (fsm->dataport) & 0xff);
+#endif
 }
 
 static void cmd_abrt(const char *arg, struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
@@ -1131,7 +1191,7 @@ static struct ftpd_command ftpd_commands[] = {
 static void send_msgdata(struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 {
 	err_t err;
-	u16_t len;
+	uint16_t len;
 
 	if (sfifo_used(&fsm->fifo) > 0) {
 		int i;
@@ -1141,12 +1201,12 @@ static void send_msgdata(struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 		if (tcp_sndbuf(pcb) < sfifo_used(&fsm->fifo)) {
 			len = tcp_sndbuf(pcb);
 		} else {
-			len = (u16_t) sfifo_used(&fsm->fifo);
+			len = (uint16_t) sfifo_used(&fsm->fifo);
 		}
 
 		i = fsm->fifo.readpos;
 		if ((i + len) > fsm->fifo.size) {
-			err = tcp_write(pcb, fsm->fifo.buffer + i, (u16_t)(fsm->fifo.size - i), 1);
+			err = tcp_write(pcb, fsm->fifo.buffer + i, (uint16_t)(fsm->fifo.size - i), 1);
 			if (err != ERR_OK) {
 				dbg_printf("send_msgdata: error writing!\n");
 				return;
@@ -1215,7 +1275,7 @@ static void ftpd_msgclose(struct tcp_pcb *pcb, struct ftpd_msgstate *fsm)
 	tcp_close(pcb);
 }
 
-static err_t ftpd_msgsent(void *arg, struct tcp_pcb *pcb, u16_t len)
+static err_t ftpd_msgsent(void *arg, struct tcp_pcb *pcb, uint16_t len)
 {
 	struct ftpd_msgstate *fsm = arg;
 
@@ -1224,7 +1284,11 @@ static err_t ftpd_msgsent(void *arg, struct tcp_pcb *pcb, u16_t len)
 		return ERR_OK;
 	}
 	
+#ifdef USE_LWIP
 	if (pcb->state <= ESTABLISHED) send_msgdata(pcb, fsm);
+#else
+	send_msgdata(pcb, fsm);
+#endif
 	return ERR_OK;
 }
 
@@ -1359,7 +1423,7 @@ static err_t ftpd_msgaccept(void *arg, struct tcp_pcb *pcb, err_t err)
 
 	return ERR_OK;
 }
-
+#if defined(USE_LWIP)
 int ftpd_init(void)
 {
 	int r = 0;
@@ -1379,3 +1443,124 @@ int ftpd_init(void)
 
 	return r;
 }
+#endif /* USE_LWIP */
+
+#if defined(USE_UIP)
+static err_t tcp_write(struct tcp_pcb *pcb, const void *dataptr, uint16_t len, uint8_t apiflags)
+{
+	if(len == tcp_socket_send(pcb, dataptr, len))
+	{
+		return ERR_OK;
+	}
+
+	return ERR_USE;
+}
+
+static int inputData(struct tcp_socket *s, void *ptr,
+      const uint8_t *inputptr, int inputdatalen)
+{
+	struct pbuf p;
+
+	if(inputdatalen > 0)
+	{
+		p.next = NULL;
+		p.payload = inputptr;
+		p.tot_len = inputdatalen;
+		p.len = inputdatalen;
+		ftpd_datarecv(ptr, s, &p, ERR_OK);
+	}
+
+	return inputdatalen;
+}
+/*---------------------------------------------------------------------------*/
+static void eventData(struct tcp_socket *s, void *ptr,
+		tcp_socket_event_t ev)
+{
+	switch(ev) {
+	case TCP_SOCKET_CONNECTED:
+		if(ERR_OK != ftpd_dataconnected(ptr, s, ERR_OK)) {
+			tcp_socket_send_str(s, msg553);
+		}
+		break;
+	case TCP_SOCKET_CLOSED:
+		dbg_printf("ftpd data closed!\n");
+		break;
+	case TCP_SOCKET_TIMEDOUT:
+		ftpd_dataerr(ptr, ETIMEDOUT);
+		break;
+	case TCP_SOCKET_ABORTED:
+		ftpd_dataerr(ptr, ECANCELED);
+		break;
+	case TCP_SOCKET_DATA_SENT:
+		ftpd_datasent(ptr, s, ERR_OK);
+		break;
+	default:
+		break;
+	}
+}
+
+static struct tcp_pcb * tcp_new     (void)
+{
+	tcp_socket_register(&socketData, NULL,
+		inputbufData, sizeof(inputbufData),
+		outputbufData, sizeof(outputbufData),
+		inputData, eventData);
+
+	return &socketData;
+}
+/*---------------------------------------------------------------------------*/
+static int inputMsg(struct tcp_socket *s, void *ptr,
+      const uint8_t *inputptr, int inputdatalen)
+{
+	struct pbuf p;
+
+	if(inputdatalen > 0)
+	{
+		p.next = NULL;
+		p.payload = inputptr;
+		p.tot_len = inputdatalen;
+		p.len = inputdatalen;
+		ftpd_msgrecv(ptr, s, &p, ERR_OK);
+	}
+
+	return inputdatalen;
+}
+/*---------------------------------------------------------------------------*/
+static void eventMsg(struct tcp_socket *s, void *ptr,
+		tcp_socket_event_t ev)
+{
+	switch(ev) {
+	case TCP_SOCKET_CONNECTED:
+		if(ERR_OK != ftpd_msgaccept(ptr, s, ERR_OK)) {
+			tcp_socket_send_str(s, msg553);
+		}
+		break;
+	case TCP_SOCKET_CLOSED:
+		dbg_printf("ftpd message closed!\n");
+		break;
+	case TCP_SOCKET_TIMEDOUT:
+		ftpd_msgerr(ptr, ETIMEDOUT);
+		break;
+	case TCP_SOCKET_ABORTED:
+		ftpd_msgerr(ptr, ECANCELED);
+		break;
+	case TCP_SOCKET_DATA_SENT:
+		ftpd_msgsent(ptr, s, ERR_OK);
+		break;
+	default:
+		break;
+	}
+}
+
+int ftpd_init(void)
+{
+	tcp_socket_register(&socketMsg, NULL,
+		inputbufMsg, sizeof(inputbufMsg),
+		outputbufMsg, sizeof(outputbufMsg),
+		inputMsg, eventMsg);
+	tcp_socket_listen(&socketMsg, 21);
+
+	return 0;
+}
+#endif /* USE_UIP */
+

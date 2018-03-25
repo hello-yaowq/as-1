@@ -132,23 +132,8 @@ TASK(TaskIdle)
 {
 #if !defined(__SMALL_OS__)
 	ASLOG(STDOUT,"TaskIdle is running\n");
-#ifdef USE_PROTOTHREAD
-	ASLOG(STDOUT,"Schedule Contiki in TaskIdle\n");
-	StartContiki();
-#endif
 	for(;;)
 	{
-#else
-#ifdef USE_PROTOTHREAD
-	/* Yes, ugly, but I don't care */
-	static uint32 flag = 0;
-	if(0u == (flag&0x01))
-	{
-		ASLOG(STDOUT,"Schedule Contiki in TaskIdle\n");
-		StartContiki();
-		flag |= 0x01;
-	}
-#endif
 #endif
 		KSM_EXECUTE();
 #ifdef USE_PROTOTHREAD

@@ -35,6 +35,7 @@ extern struct process wpcap_process;
 extern struct process ethernet_process;
 #endif
 extern struct process tcpip_process;
+extern struct process tcp_socket_process;
 /* ============================ [ DATAS     ] ====================================================== */
 PROCESS(protoUIPMain,"protoUIPMain");
 PROTO_AUTOSTART_PROCESS_EXPORT(protoUIPMain);
@@ -57,6 +58,8 @@ PROCESS_THREAD(protoUIPMain, ev, data)
 	uip_setdraddr(&ipaddr);
 
 	process_start(&ethernet_process, NULL);
+
+	process_start(&tcp_socket_process, NULL);
 
 	for(;;) {
 		PROCESS_YIELD();
