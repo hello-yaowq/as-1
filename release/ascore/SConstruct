@@ -99,7 +99,7 @@ if(asenv.GetOption('clean')):
 
 BuildOFS(ofs)
 
-asenv.Program(BOARD,objs)
+Building(BOARD,objs)
 
 try:
     target = BOARD

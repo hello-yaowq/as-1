@@ -123,11 +123,16 @@ def PrepareBuilding(env):
             action='store_true',
             default=False,
             help='force rebuild of all')
-    AddOption('--menuconfig', 
+    AddOption('--menuconfig',
             dest = 'menuconfig',
             action = 'store_true',
             default = False,
             help = 'make menuconfig for Automotive Software AS')
+    AddOption('--splint',
+            dest = 'splint',
+            action = 'store_true',
+            default = False,
+            help = 'enanle splint for Automotive Software AS')
 
     if(not GetOption('verbose')):
     # override the default verbose command string
@@ -139,7 +144,6 @@ def PrepareBuilding(env):
           CXXCOMSTR = 'CXX $SOURCE',
           LINKCOMSTR = 'LINK $TARGET'
         )
-
     if(GetOption('menuconfig')):
         menuconfig(env)
 
@@ -593,6 +597,40 @@ class Qemu():
         else:
             RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
 
+# accroding to http://benno.id.au/blog/2006/08/27/filtergensplint
+class splint():
+    global Env
+    def __init__(self, objs, env):
+        self.update(env)
+
+    def update(self,env):
+        p = self.getit()
+        for m in Env['MODULES']:
+            env.Append(CPPDEFINES=['USE_%s'%(m)])
+        env.Append(CPPDEFINES=['__GNUC__'])
+        if(os.name == 'nt'):
+            RunCommand('set LARCH_PATH=%s/lib'%(p))
+        os.environ['LARCH_PATH'] ='%s/lib'%(p)
+        env['CC'] = '%s/bin/splint'%(p)
+        env.Append(CFLAGS=['-badflag','-likelybool'])
+        env['CCCOM'] = '$CC $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES'
+
+    def getit(self):
+        ASROOT = Env['ASROOT']
+        if(os.name == 'nt'):
+            pkg = 'https://github.com/downloads/maoserr/splint_win32/splint-3.1.2.zip'
+            lintdir = 'splint-3.1.2'
+        else:
+            pkg = 'http://www.splint.org/downloads/splint-3.1.2.src.tgz'
+            lintdir = 'splint-3.1.2'
+        if(not os.path.exists('%s/release/download/%s'%(ASROOT,lintdir))):
+            RunCommand('cd %s/release/download && wget %s'%(ASROOT,pkg))
+            if(os.name == 'nt'):
+                RunCommand('cd %s/release/download && unzip %s'%(ASROOT,os.path.basename(pkg)))
+            else:
+                RunCommand('cd %s/release/download && tar xf %s && cd %s && ./configure && make'%(ASROOT,os.path.basename(pkg),lintdir))
+        return '%s/release/download/%s'%(ASROOT,lintdir)
+
 def SelectCompilerARMICC(iarPath=None):
     import glob
     iar = iarPath
@@ -691,3 +729,10 @@ def BuildOFS(ofs):
         cmd = 'cp %s .tmp.c && %s -S .tmp.c -o .tmp.S %s'%(src, Env['CC'], cflags)
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
         MKObject(src, tgt, cmd)
+
+def Building(target, objs, env=None):
+    if(env is None):
+        env = Env
+    if(GetOption('splint')):
+        splint(objs, env)
+    env.Program(target,objs)

@@ -91,7 +91,7 @@ if(asenv.GetOption('clean')):
     RMDir(cfgdir)
     RunCommand('rm -fv *.s19')
 
-asenv.Program(BOARD,objs)
+Building(BOARD,objs)
 
 try:
     flsdrv = asenv['flsdrv']
