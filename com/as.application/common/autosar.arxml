@@ -96,7 +96,7 @@
 </TxSduList>
 </CanTp>
 <PduR>
-<General CanIfUsed="True" CanTpUsed="True" ComUsed="True" Comment="*" DcmUsed="True" DevelopmentErrorDetection="ON" J1939TpUsed="False" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="OFF" ZeroCostTp="CanTp" />
+<General CanIfUsed="True" CanTpUsed="True" ComUsed="True" Comment="*" DcmUsed="True" DevelopmentErrorDetection="ON" J1939TpUsed="True" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="OFF" ZeroCostTp="CanTp" />
 <RoutineList Max="TBD">
 <Source Comment="*" Module="Dcm" Name="DcmP2P" PduRef="TxDiagP2P">
 <DestinationList Max="TBD">
@@ -511,4 +511,10 @@
 </EventParameter>
 </EventParameterList>
 </Dem>
+<J1939Tp>
+<General Comment="*" DevelopmentErrorDetection="OFF" VersionInfoApi="OFF" />
+<ChannelList Max="TBD">
+<Channel Comment="*" Name="Channel1" />
+</ChannelList>
+</J1939Tp>
 </AUTOSAR>

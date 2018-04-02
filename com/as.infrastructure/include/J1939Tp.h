@@ -41,8 +41,6 @@
 
 #include "J1939Tp_Cfg.h"
 
-typedef int TPParameterType;
-
 #if (J1939TP_VERSION_INFO_API == STD_ON)
 #define J1939TP_GetVersionInfo(_vi) STD_GET_VERSION_INFO(_vi,J1939TP)
 #endif

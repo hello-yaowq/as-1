@@ -65,4 +65,9 @@ config XCP
 	depends on PDUR
 	default y
 
+config J1939TP
+	bool "J1939 Transport Layer"
+	depends on PDUR
+	default y
+
 endmenu

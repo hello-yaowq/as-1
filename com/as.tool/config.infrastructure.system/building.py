@@ -598,6 +598,7 @@ class Qemu():
             RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
 
 # accroding to http://benno.id.au/blog/2006/08/27/filtergensplint
+# scons --splint -i  >  splint.log 2>&1
 class splint():
     global Env
     def __init__(self, objs, env):
@@ -612,7 +613,7 @@ class splint():
             RunCommand('set LARCH_PATH=%s/lib'%(p))
         os.environ['LARCH_PATH'] ='%s/lib'%(p)
         env['CC'] = '%s/bin/splint'%(p)
-        env.Append(CFLAGS=['-badflag','-likelybool'])
+        env.Append(CFLAGS=['-badflag','-likelybool','-nestcomment','-preproc'])
         env['CCCOM'] = '$CC $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES'
 
     def getit(self):

@@ -1073,4 +1073,18 @@
 		</EventParameter>
 	</EventParameterList>
 </Dem>
+<J1939Tp>
+	<General
+		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
+		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
+		Comment="TextArea Default=* PosGUI=2"
+		>
+	</General>
+	<ChannelList Max="65535">
+		<Channel
+			Name="Text PosGUI=0"
+			Comment="TextArea Default=* PosGUI=1">
+		</Channel>
+	</ChannelList>
+</J1939Tp>
 </AUTOSAR>

@@ -63,4 +63,8 @@ if('XCP' in MODULES):
     objs += Glob('Xcp/*.c')
     asenv.Append(CPPPATH=['%s/Xcp'%(cwd)])
 
+if('J1939TP' in MODULES):
+    objs += Glob('J1939Tp/*.c')
+    asenv.Append(CPPPATH=['%s/J1939Tp'%(cwd)])
+
 Return('objs')

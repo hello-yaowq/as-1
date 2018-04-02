@@ -37,6 +37,7 @@ from argen.GenNvM import GenNvM
 from argen.GenXcp import GenXcp
 from argen.GenDem  import GenDem
 from argen.GenRte import GenRte
+from argen.GenJ1939Tp import GenJ1939Tp
 
 def dummy(arxml,dir):
     pass
@@ -48,7 +49,8 @@ __gen_engine =  {
     'Rte':GenRte,
     'Xcp':GenXcp,
     'Dem':GenDem,
-    'EcuC':dummy
+    'EcuC':dummy,
+    'J1939Tp':GenJ1939Tp
 }
 
 def ArGen(arxml,dir, skipos=True):

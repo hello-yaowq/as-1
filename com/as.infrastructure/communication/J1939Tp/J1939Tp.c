@@ -14,7 +14,8 @@
 #include "Det.h"
 #endif
 
-//#define J1939_ASSERT( _exp )   if( !(_exp) ) { while (1) {}; }
+#include "asdebug.h"
+
 #define J1939_ASSERT( _exp )   asAssert(_exp)
 
 
