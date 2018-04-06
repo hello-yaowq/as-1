@@ -1077,7 +1077,9 @@
 	<General
 		DevelopmentErrorDetection="Enum=(ON,OFF) Default=OFF PosGUI=0"
 		VersionInfoApi="Enum=(ON,OFF) Default=OFF PosGUI=1"
-		Comment="TextArea Default=* PosGUI=2"
+		TX_CONF_TIMEOUT="Integer Default=1000 PosGUI=2"
+		PACKETS_PER_BLOCK="Integer Default=8 PosGUI=3"
+		Comment="TextArea Default=* PosGUI=4"
 		>
 	</General>
 	<ChannelList Max="65535">
@@ -1098,7 +1100,8 @@
 			DirectNPdu="EnumRef=EcuC.PduList Enabled=(Self.DynLength==True) PosGUI=2"
 			NSdu="EnumRef=EcuC.PduList PosGUI=3"
 			Channel="EnumRef=J1939Tp.ChannelList PosGUI=4"
-			Comment="TextArea Default=* PosGUI=5">
+			PgnType="Integer PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6">
 		</ParameterGroup>
 	</ParameterGroupList>
 	<PduInfoList  Max="65535">
