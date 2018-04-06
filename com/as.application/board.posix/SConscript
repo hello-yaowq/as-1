@@ -55,6 +55,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'EA','FEE','MEMIF','NVM',
            'AWS','LCD',
            'SMALLOS',
+           'J1939TP',
            ]
 
 ARCH='posix'

@@ -50,15 +50,16 @@ static J1939Tp_Internal_PgInfoType pgInfos[J1939TP_PG_COUNT];
 
 /** @req J1939TP0087 */
 void J1939Tp_Init(const J1939Tp_ConfigType* ConfigPtr) {
+	int rxCount = 0;
+	int txCount = 0;
+	int i;
 	#if (J1939TP_DEV_ERROR_DETECT == STD_ON)
 	if (globalState.State == J1939TP_ON) {
 		/** @req J1939TP0026 */
 		J1939Tp_Internal_ReportError(J1939TP_INIT_ID, J1939TP_E_REINIT);
 	}
 	#endif
-	int rxCount = 0;
-	int txCount = 0;
-	for (int i = 0; i < J1939TP_CHANNEL_COUNT; i++) {
+	for (i = 0; i < J1939TP_CHANNEL_COUNT; i++) {
 		if (ConfigPtr->Channels[i].Direction == J1939TP_TX) {
 			channelInfos[i].ChannelConfPtr = &(ConfigPtr->Channels[i]);
 			channelInfos[i].TxState = &(txChannelInfos[txCount]);
@@ -76,9 +77,10 @@ void J1939Tp_Init(const J1939Tp_ConfigType* ConfigPtr) {
 			return; // unexpected
 		}
 	}
-	for (int i = 0; i < J1939TP_PG_COUNT; i++) {
+	for (i = 0; i < J1939TP_PG_COUNT; i++) {
+		uint8 channelIndex;
 		pgInfos[i].PgConfPtr = &(ConfigPtr->Pgs[i]);
-		uint8 channelIndex = ConfigPtr->Pgs[i].Channel - ConfigPtr->Channels;
+		channelIndex = ConfigPtr->Pgs[i].Channel - ConfigPtr->Channels;
 		pgInfos[i].ChannelInfoPtr = &(channelInfos[channelIndex]);
 		pgInfos[i].TxState = J1939TP_PG_TX_IDLE;
 	}
@@ -91,11 +93,14 @@ void J1939Tp_RxIndication(PduIdType RxPduId, PduInfoType* PduInfoPtr) {
 	if (globalState.State == J1939TP_ON) {
 		const J1939Tp_RxPduInfoRelationsType* RxPduRelationsInfo = 0;
 		if (J1939Tp_Internal_GetRxPduRelationsInfo(RxPduId, &RxPduRelationsInfo) == E_OK) {
-			for (PduIdType i = 0; i < RxPduRelationsInfo->RxPduCount; i++) {
+			PduIdType i;
+			for (i = 0; i < RxPduRelationsInfo->RxPduCount; i++) {
 				imask_t state;
+				const J1939Tp_RxPduInfoType* RxPduInfo;
+				J1939Tp_Internal_ChannelInfoType* ChannelInfoPtr;
 				Irq_Save(state);
-				const J1939Tp_RxPduInfoType* RxPduInfo = RxPduRelationsInfo->RxPdus[i];
-				J1939Tp_Internal_ChannelInfoType* ChannelInfoPtr = J1939Tp_Internal_GetChannelState(RxPduInfo);
+				RxPduInfo = RxPduRelationsInfo->RxPdus[i];
+				ChannelInfoPtr = J1939Tp_Internal_GetChannelState(RxPduInfo);
 				switch (RxPduInfo->PacketType ) {
 					case J1939TP_REVERSE_CM:
 						J1939Tp_Internal_RxIndication_ReverseCm(PduInfoPtr,ChannelInfoPtr);
@@ -174,6 +179,7 @@ void J1939Tp_MainFunction(void) {
 					case J1939TP_RX_RECEIVING_DT:
 					case J1939TP_RX_WAIT_ENDOFMSGACK_CANIF_CONFIRM:
 						timer = J1939Tp_Internal_IncAndCheckTimer(&(ChannelInfoPtr->RxState->TimerInfo));
+						break;
 					default:
 						break;
 				}

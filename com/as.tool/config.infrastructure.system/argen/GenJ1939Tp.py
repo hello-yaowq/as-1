@@ -41,13 +41,23 @@ def GenH():
     fp.write('#define J1939TP_VERSION_INFO_API        STD_%s\n'%(GAGet(General,'VersionInfoApi')))
     fp.write('#define J1939TP_DEV_ERROR_DETECT        STD_%s\n'%(GAGet(General,'DevelopmentErrorDetection')))
     fp.write('#define J1939TP_MAIN_FUNCTION_PERIOD MAIN_FUNCTION_PERIOD(J1939TP)\n')
-    fp.write('#define J1939TP_TX_CHANNEL_COUNT 1\n')
-    fp.write('#define J1939TP_RX_CHANNEL_COUNT 1\n')
+    ChannelList = GLGet('ChannelList')
+    rxList = []
+    txList = []
+    for chl in ChannelList:
+        if(GAGet(chl,'Direction') == 'RX'):
+            rxList.append((chl))
+        else:
+            txList.append((chl))
+    fp.write('#define J1939TP_TX_CHANNEL_COUNT %s\n'%(len(txList)))
+    fp.write('#define J1939TP_RX_CHANNEL_COUNT %s\n'%(len(rxList)))
     fp.write('#define J1939TP_TX_CONF_TIMEOUT 1\n')
     fp.write('#define J1939TP_RX_PDU_COUNT 1\n')
     fp.write('#define J1939TP_PACKETS_PER_BLOCK 1\n')
     fp.write('#define J1939TP_PG_COUNT 1\n')
     fp.write('#define J1939TP_CHANNEL_COUNT (J1939TP_TX_CHANNEL_COUNT+J1939TP_RX_CHANNEL_COUNT)\n')
+    fp.write('#define J1939TP_ID_J1939TP_RX 0\n')
+    fp.write('#define J1939TP_ID_J1939TP_TX 0\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')

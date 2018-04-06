@@ -1083,8 +1083,32 @@
 	<ChannelList Max="65535">
 		<Channel
 			Name="Text PosGUI=0"
-			Comment="TextArea Default=* PosGUI=1">
+			Protocol="Enum=(BAM,CMDT) Default=CMDT PosGUI=1"
+			DtNPdu="EnumRef=EcuC.PduList PosGUI=2"
+			CmNPdu="EnumRef=EcuC.PduList PosGUI=3"
+			FcNPdu="EnumRef=EcuC.PduList Enabled=(Self.Protocol==CMDT) PosGUI=4"
+			Direction="Enum=(RX,TX) PosGUI=5"
+			Comment="TextArea Default=* PosGUI=6">
 		</Channel>
 	</ChannelList>
+	<ParameterGroupList Max="65535">
+		<ParameterGroup
+			Name="Text PosGUI=0"
+			DynLength="Boolean Default=False PosGUI=1"
+			DirectNPdu="EnumRef=EcuC.PduList Enabled=(Self.DynLength==True) PosGUI=2"
+			NSdu="EnumRef=EcuC.PduList PosGUI=3"
+			Channel="EnumRef=J1939Tp.ChannelList PosGUI=4"
+			Comment="TextArea Default=* PosGUI=5">
+		</ParameterGroup>
+	</ParameterGroupList>
+	<PduInfoList  Max="65535">
+		<PduInfo
+			Name="EnumRef=EcuC.PduList PosGUI=0"
+			PacketType="Enum=(REVERSE_CM,CM,DT,DIRECT) Enabled=(J1939Tp.ChannelList.(Self.Channel).Direction==RX) PosGUI=1"
+			Channel="EnumRef=J1939Tp.ChannelList PosGUI=2"
+			ParameterGroup="EnumRef=J1939Tp.ParameterGroupList PosGUI=3"
+			Comment="TextArea Default=* PosGUI=4"
+			/>
+	</PduInfoList>
 </J1939Tp>
 </AUTOSAR>

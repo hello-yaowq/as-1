@@ -271,6 +271,8 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                 IdPrfix='CANNM_ID'
             elif(GAGet(pdu,'TransmitNotifier')=='Xcp'):
                 IdPrfix='XCP_ID'
+            elif(GAGet(pdu,'TransmitNotifier')=='J1939Tp'):
+                IdPrfix='J1939TP_ID'
             else:
                 IdPrfix='PDUR_ID2'
             if(GAGet(pdu,'TransmitNotifier')=='Nobody'):
@@ -326,6 +328,8 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
                 IdPrfix='CANTP'
             elif(GAGet(pdu,'ReceivedNotifier')=='Xcp'):
                 IdPrfix='XCP'
+            elif(GAGet(pdu,'ReceivedNotifier')=='J1939Tp'):
+                IdPrfix='J1939TP'
             else:
                 IdPrfix='PDUR'
             if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and

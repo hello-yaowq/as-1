@@ -74,6 +74,7 @@ if(asenv['RELEASE']=='asboot'):
                'CLIB_ASHEAP','CLIB_MISCLIB',
                'CLIB_STDIO_PRINTF',
                'SMALLOS',
+               'J1939TP',
                ]
     lds = '%s/com/as.application/board.bcm2835/script/linker-flsdrv.lds'%(ASROOT)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
