@@ -149,7 +149,7 @@ Std_ReturnType PduR_ARC_RouteTriggerTransmit(const PduRRoutingPath_type *route, 
 }
 
 BufReq_ReturnType PduR_ARC_RouteProvideRxBuffer(const PduRDestPdu_type * destination, PduLengthType TpSduLength, PduInfoType** PduInfoPtr) {
-	BufReq_ReturnType retVal;
+	BufReq_ReturnType retVal = BUFREQ_NOT_OK;
 	switch (destination->DestModule) {
 	case ARC_PDUR_DCM:
 #if PDUR_DCM_SUPPORT == STD_ON
@@ -157,7 +157,6 @@ BufReq_ReturnType PduR_ARC_RouteProvideRxBuffer(const PduRDestPdu_type * destina
 #endif
 		break;
 	default:
-		retVal = BUFREQ_NOT_OK;
 		break;
 	}
 	// TODO error reporting here.

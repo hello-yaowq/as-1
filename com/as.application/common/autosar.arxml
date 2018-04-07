@@ -80,9 +80,9 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" HthRef="LS_Hth" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="STDOUT" HthRef="LS_Hth" Identifier="0x702" Name="STDOUT" TransmitNotifier="User" UserNotification="CanIf_Stdio" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_CmNPdu" HthRef="LS_Hth" Identifier="0x761" Name="TX_J1939TP_CmNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DtNPdu" HthRef="TBD" Identifier="0x762" Name="TX_J1939TP_DtNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_FcNPdu" HthRef="TBD" Identifier="0x763" Name="TX_J1939TP_FcNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DirectNPdu" HthRef="TBD" Identifier="0x764" Name="TX_J1939TP_DirectNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DtNPdu" HthRef="LS_Hth" Identifier="0x762" Name="TX_J1939TP_DtNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_FcNPdu" HthRef="LS_Hth" Identifier="0x763" Name="TX_J1939TP_FcNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DirectNPdu" HthRef="LS_Hth" Identifier="0x764" Name="TX_J1939TP_DirectNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 </TxPduList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
@@ -95,9 +95,9 @@
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="STDIN" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x701" Name="STDIN" ReceivedNotifier="User" UserNotification="CanIf_Stdio" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_REVERSE_CM" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x751" Name="RX_J1939TP_REVERSE_CM" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_DT" FilterMask="0x7FF" HrhRef="TBD" Identifier="0x752" Name="RX_J1939TP_DT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_CM" FilterMask="0x7FF" HrhRef="TBD" Identifier="0x753" Name="RX_J1939TP_CM" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_DIRECT" FilterMask="0x7FF" HrhRef="TBD" Identifier="0x754" Name="RX_J1939TP_DIRECT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_DT" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x752" Name="RX_J1939TP_DT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_CM" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x753" Name="RX_J1939TP_CM" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RX_J1939TP_DIRECT" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x754" Name="RX_J1939TP_DIRECT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
 </RxPduList>
 </Channel>
 </ChannelList>
