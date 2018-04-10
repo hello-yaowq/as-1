@@ -1107,7 +1107,7 @@
 	<PduInfoList  Max="65535">
 		<PduInfo
 			Name="EnumRef=EcuC.PduList PosGUI=0"
-			PacketType="Enum=(REVERSE_CM,CM,DT,DIRECT) Enabled=(J1939Tp.ChannelList.(Self.Channel).Direction==RX) PosGUI=1"
+			PacketType="Enum=(REVERSE_CM,CM,DT,DIRECT) PosGUI=1"
 			Channel="EnumRef=J1939Tp.ChannelList PosGUI=2"
 			ParameterGroup="EnumRef=J1939Tp.ParameterGroupList PosGUI=3"
 			Comment="TextArea Default=* PosGUI=4"

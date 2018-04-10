@@ -626,10 +626,10 @@ void DslMain(void) {
 				}
 				break;
 			case DCM_TRANSMIT_SIGNALED:
-				ASLOG( DCM, "state DSD_PENDING_RESPONSE_SIGNALED!\n");
+				ASLOG( DCM, "state DCM_TRANSMIT_SIGNALED!\n");
 				break;
 			case PROVIDED_TO_PDUR: // The valid data is being transmitted by TP-layer.
-				ASLOG( DCM, "state DSD_PENDING_RESPONSE_SIGNALED!\n");
+				ASLOG( DCM, "state PROVIDED_TO_PDUR!\n");
 				break;
 			case PREEMPT_TRANSMIT_NRC: /* preemption has happened,send NRC 0x21 to OBD tester */
 //				ASLOG( DCM, "state PREEMPT_TRANSMIT_NRC!\n");

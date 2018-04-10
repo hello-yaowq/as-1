@@ -73,12 +73,30 @@ def str2int(sstr):
 
 __dcm__ = dcm(0,0x732,0x731)
 
-def switch_to_doip(state):
+def switch_to_protocol(protocol):
     global __dcm__
 
-    if(state):
+    if(protocol == 'DOIP'):
         __dcm__ = dcm('172.18.0.200',8989)
         print("switch to UDS on DoIP mode")
+    elif(protocol == 'J1939TP'):
+        config = {'busid':0,
+                  'TxFcNPdu':0x751,
+                  'TXDtNPdu':0x752,
+                  'TXCmNPdu':0x753,
+                  'TXDirectNPdu':0x754,
+                  'RXCmNPdu':0x761,
+                  'RXDtNPdu':0x762,
+                  'RXFcNPdu':0x763,
+                  'RXDirectNPdu':0x764,
+                  'STmin':10, # 10ms delay
+                  }
+        __dcm__ = dcm(config)
+        print("switch to UDS on J1939TP mode")
+    elif(protocol == 'CANFD'):
+        __dcm__ = dcm(0,0x732,0x731)
+        __dcm__.set_ll_dl(64)
+        print("switch to UDS on CANFD mode")
     else:
         __dcm__ = dcm(0,0x732,0x731)
         print("switch to UDS on CAN mode")
@@ -704,11 +722,13 @@ class UIDcm(QWidget):
         self.btnOpenDml = QPushButton('...')
         grid.addWidget(self.btnOpenDml,0,2)
 
-        self.cbxDoIpMode = QCheckBox("DoIp mode")
-        grid.addWidget(self.cbxDoIpMode,1,0)
+        grid.addWidget(QLabel("Protocol"),1,0)
+        self.cmbxProtocol = QComboBox()
+        self.cmbxProtocol.addItems(['CAN','CANFD','J1939TP','DOIP'])
+        grid.addWidget(self.cmbxProtocol,1,1)
 
         self.cbxTesterPresent = QCheckBox("Tester Present")
-        grid.addWidget(self.cbxTesterPresent,1,1)
+        grid.addWidget(self.cbxTesterPresent,1,3)
 
         self.vbox.addLayout(grid)
         self.tabWidget = QTabWidget(self)
@@ -721,11 +741,12 @@ class UIDcm(QWidget):
         self.loadDml(default_dml)
 
         self.btnOpenDml.clicked.connect(self.on_btnOpenDml_clicked)
-        self.cbxDoIpMode.stateChanged.connect(self.on_cbxDoIpMode_stateChanged)
+        self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
         self.cbxTesterPresent.stateChanged.connect(self.on_cbxTesterPresent_stateChanged)
 
-    def on_cbxDoIpMode_stateChanged(self,state):
-        switch_to_doip(state)
+    def on_cmbxProtocol_currentIndexChanged(self,index):
+        protocol = str(self.cmbxProtocol.currentText())
+        switch_to_protocol(protocol)
 
     def on_cbxTesterPresent_stateChanged(self,state):
         if(state):

@@ -108,7 +108,7 @@ void PduR_J1939TpTxConfirmation(PduIdType J1939TpTxId, NotifResultType Result) {
 	const PduRRoutingPath_type *route = PduRConfig->RoutingPaths[J1939TpTxId];
 
 	// Limitation, Just sends to the first destination
-	switch(route->PduRDestPdus[0]->DestModule)
+	switch(route->SrcModule)
 	{
 	#if (PDUR_COM_SUPPORT == STD_ON)
 	case ARC_PDUR_COM:
@@ -139,7 +139,7 @@ BufReq_ReturnType PduR_J1939TpCopyTxData(PduIdType id, PduInfoType* info, RetryI
 	const PduRRoutingPath_type *route = PduRConfig->RoutingPaths[id];
 
 	// Limitation, Just sends to the first destination
-	switch(route->PduRDestPdus[0]->DestModule)
+	switch(route->SrcModule)
 	{
 	#if (PDUR_COM_SUPPORT == STD_ON)
 	case ARC_PDUR_COM:
@@ -156,7 +156,7 @@ BufReq_ReturnType PduR_J1939TpCopyTxData(PduIdType id, PduInfoType* info, RetryI
 			pDBC = J1939Tp_MallocDBC();
 			if(NULL != pDBC)
 			{
-				ercd = Dcm_ProvideTxBuffer(route->PduRDestPdus[0]->DestPduId, &(pDBC->pduInfoPtr), 0);
+				ercd = Dcm_ProvideTxBuffer(route->SrcPduId, &(pDBC->pduInfoPtr), 0);
 				if(BUFREQ_OK != ercd)
 				{
 					J1939Tp_FreeDBC(pDBC);
@@ -176,8 +176,8 @@ BufReq_ReturnType PduR_J1939TpCopyTxData(PduIdType id, PduInfoType* info, RetryI
 				((pDBC->pos+info->SduLength) <= pDBC->pduInfoPtr->SduLength) )
 			{
 				memcpy(info->SduDataPtr, &pDBC->pduInfoPtr->SduDataPtr[pDBC->pos], info->SduLength);
-				*availableDataPtr = pDBC->pduInfoPtr->SduLength - pDBC->pos;
 				pDBC->pos += info->SduLength;
+				*availableDataPtr = pDBC->pduInfoPtr->SduLength - pDBC->pos;
 				ercd = BUFREQ_OK;
 			}
 		}
@@ -213,8 +213,8 @@ BufReq_ReturnType PduR_J1939TpCopyRxData(PduIdType id, PduInfoType* info, PduLen
 				((pDBC->pos+info->SduLength) <= pDBC->pduInfoPtr->SduLength) )
 			{
 				memcpy(&pDBC->pduInfoPtr->SduDataPtr[pDBC->pos], info->SduDataPtr, info->SduLength);
-				*bufferSizePtr = pDBC->pduInfoPtr->SduLength - pDBC->pos;
 				pDBC->pos += info->SduLength;
+				*bufferSizePtr = pDBC->pduInfoPtr->SduLength - pDBC->pos;
 				ercd = BUFREQ_OK;
 			}
 		}

@@ -18,9 +18,11 @@ __lic__ = '''
 try:
     from .cantp import *
     from .doip import *
+    from .J1939Tp import *
 except:
     from cantp import *
     from doip import *
+    from J1939Tp import *
 
 __all__ = ['dcm']
 
@@ -50,8 +52,11 @@ class dcm():
                 0x7F:"service not supported in active session"}
     # service list which support sub function
     __sbr__ = [0x3E]
-    def __init__(self,busid_or_uri,rxid_or_port,txid=None,cfgSTmin=10,cfgBS=8,padding=0x55):
-        if(txid != None):
+    def __init__(self,busid_or_uri,rxid_or_port=None,txid=None,cfgSTmin=10,cfgBS=8,padding=0x55):
+        # Okay, I know, this is ugly but for the compatiability
+        if(rxid_or_port == None):
+            self.cantp = J1939Tp(busid_or_uri)
+        elif(txid != None):
             self.cantp = cantp(busid_or_uri,rxid_or_port,txid,cfgSTmin,cfgBS,padding)
         else:
             self.cantp = doip(busid_or_uri,rxid_or_port)
