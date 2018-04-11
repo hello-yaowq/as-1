@@ -10,7 +10,7 @@ print('native run command:scons run')
 if('run' in COMMAND_LINE_TARGETS):
     build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
     python = asenv['python3']
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         python = 'start ' + python
         if(not asenv['msys2']):
             RunCommand('%s -O2 -shared -Wall -o %s/backtrace.dll %s/com/as.infrastructure/diagnostic/Det/backtrace.c -lbfd -lintl -liberty -limagehlp -D__ASDEBUG_BACKTRACE__'
@@ -31,7 +31,7 @@ if('run' in COMMAND_LINE_TARGETS):
         RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
 
     target = '%s/release/%s/posix'%(ASROOT,asenv['RELEASE'])
-    if(os.name != 'nt'):
+    if(not IsPlatformWindows()):
         target = 'sudo ' + target
     else:
         import glob
@@ -65,7 +65,7 @@ MODULES += ['SOAD','DOIP','LWIP','LWIP_POSIX_ARCH']
 
 MODULES += ['FATFS','LWEXT4','VFS','FTP']
 
-if(os.name == 'nt'):
+if(IsPlatformWindows()):
     MODULES += ['CLIB_STRTOK_R']
     asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000')
 else:

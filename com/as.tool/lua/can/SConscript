@@ -11,7 +11,7 @@ objs = []
 
 asenv.Append(CCFLAGS='-I%s'%(cwd))
 asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
-if(os.name == 'nt'):
+if(IsPlatformWindows()):
     asenv.Append(CCFLAGS='-I%s/peak-can'%(cwd))
     MKSymlink('%s/../../cancasexl.access/vxlapi.h'%(cwd),'%s/vxlapi.h'%(cwd))
     MKSymlink('%s/../../cancasexl.access/xlLoadlib.cpp'%(cwd),'%s/xlLoadlib.c'%(cwd))
@@ -33,7 +33,7 @@ if(os.name == 'nt'):
 objs +=  Glob('*.c')
 objs +=  Glob('rs232/*.c')
 
-if(os.name == 'nt'):
+if(IsPlatformWindows()):
     if(asenv['msys2']):
         objs += Glob('%s/release/download/pcan-basic/x64/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
         objs += Glob('%s/release/download/CAN_lib/64bit/ControlCAN.lib'%(asenv['ASROOT']))

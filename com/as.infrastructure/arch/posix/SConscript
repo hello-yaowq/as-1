@@ -46,7 +46,7 @@ if('STMO' in MODULES):
 if('LWIP' in MODULES):
     download = '%s/release/download'%(ASROOT)
     lwip='%s/lwip-contrib'%(download)
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         asenv.Append(CPPPATH='%s/ports/win32'%(lwip))
         objs += ['%s/ports/win32/pcapif.c'%(lwip)]
         #objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
@@ -57,7 +57,7 @@ if('LWIP' in MODULES):
     else:
         objs += Glob('lwip/tapif.c')
 
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         pcap='%s/WpdPack'%(download)
         if(not os.path.exists(pcap)):
             RunCommand('''cd %s && wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
@@ -76,7 +76,7 @@ if('UIP' in MODULES):
     uip='%s/release/download/contiki'%(ASROOT)
     asenv.Append(CPPPATH=['%s/cpu/native'%(uip)])
     asenv.Append(LIBS=['iphlpapi'])
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         objs += Glob('%s/cpu/native/net/wpcap*.c'%(uip))
     else:
         objs += Glob('%s/cpu/native/net/tapdev.c'%(uip))
@@ -110,7 +110,7 @@ elif('OPENVG' in MODULES):
 
 asenv.Append(LIBS=['pthread','stdc++','m'])
 
-if(os.name == 'nt'):
+if(IsPlatformWindows()):
     asenv.Append(LIBS=['wsock32'])
     asenv.Append(CPPDEFINES='__WINDOWS__')
     if(asenv['msys2']):

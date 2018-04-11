@@ -38,7 +38,7 @@ if(BOARD is None):
 
 if(BOARD is None):
     print('Error: no BOARD specified!')
-    if(os.name=='nt'):
+    if(IsPlatformWindows()):
         print('use DOS "set" command to set BOARD\n\tfor example: set BOARD=posix')
     help()
     exit(-1)
@@ -103,7 +103,7 @@ Building(BOARD,objs)
 
 try:
     target = BOARD
-    if(os.name == 'nt'):target += '.exe'
+    if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)
     asenv.AddPostAction(target,action)
     pys19 = '%s %s/com/as.tool/lua/script/s19.py'%(asenv['python'],ASROOT)
@@ -115,7 +115,7 @@ except KeyError:
     pass
 
 if(asenv['POSTACTION'] != ''):
-    if(os.name != 'nt'):
+    if(IsPlatformWindows()):
         asenv.AddPostAction(target, asenv['POSTACTION'])
     else:
         MKFile('postaction.bat', asenv['POSTACTION'].replace('&&','\n'))

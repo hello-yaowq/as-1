@@ -58,6 +58,14 @@ def PrepareRTTHREAD(opt):
     global BuildOptions
     BuildOptions = opt
 
+def IsPlatformWindows():
+    bYes = False
+    if(os.name == 'nt'):
+        bYes = True
+    if(sys.platform == 'msys'):
+        bYes = True
+    return bYes
+
 def PrepareBuilding(env):
     global Env
     Env = env
@@ -68,11 +76,7 @@ def PrepareBuilding(env):
     env['pkgconfig'] = 'pkg-config'
     env['msys2'] = False
     env['POSTACTION'] = ''
-    if(sys.platform=='msys'):
-        # force os name to 'nt'
-        os.name = 'nt'
-        raise Exception('Native scons of msys is not supported yet!')
-    if((os.name == 'nt') and (env['CONFIGS'] != None)):
+    if(IsPlatformWindows() and (env['CONFIGS'] != None)):
         env['python3'] = env['CONFIGS']['PYTHON3_PATH'] + '/python'
         env['python2'] = env['CONFIGS']['PYTHON2_PATH'] + '/python'
         env['python']  = env['CONFIGS']['PYTHON2_PATH'] + '/python'
@@ -85,7 +89,7 @@ def PrepareBuilding(env):
             env['CC'] = mpath + '/gcc'
             env['pkgconfig'] = mpath + '/pkg-config'
             env['EXTRAPATH'] = '%s;%s'%(mpath, os.path.abspath(mpath+'/../usr/bin'))
-    elif(os.name == 'nt'):
+    elif(IsPlatformWindows()):
         env['python3'] = 'c:/Anaconda3/python.exe'
         env['python2'] = 'c:/Python27/python.exe'
         env['python'] =  'c:/Python27/python.exe'
@@ -97,7 +101,7 @@ def PrepareBuilding(env):
             env['CC'] = 'c:/msys64/mingw64/bin/gcc'
             env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
             env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         env.AppendENVPath('PATH', os.getenv('PATH'))
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
@@ -233,7 +237,7 @@ def menuconfig(env):
     import time
     kconfig = '%s/com/as.tool/kconfig-frontends/kconfig-mconf'%(env['ASROOT'])
     cmd = ''
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         kconfig += '.exe'
         cmd += 'set BOARD=%s && set ASROOT=%s && start cmd /C '%(env['BOARD'],env['ASROOT'])
     else:
@@ -251,7 +255,7 @@ def menuconfig(env):
             mtime = -1
         RunCommand(cmd)
         print('press Ctrl+C to exit!')
-        if(os.name == 'nt'): 
+        if(IsPlatformWindows()):
             while(True): 
                 time.sleep(1)
                 if(os.path.isfile(fn)):
@@ -333,7 +337,7 @@ def MKSymlink(src,dst):
     asrc = os.path.abspath(src)
     adst = os.path.abspath(dst)
     if(not os.path.exists(dst)):
-        if(os.name=='nt'):
+        if(IsPlatformWindows()):
             if(os.path.isdir(asrc)):
                 RunCommand('mklink /D %s %s'%(adst,asrc))
             else:
@@ -355,7 +359,7 @@ def SrcRemove(src, remove):
 
 def RunCommand(cmd):
     print(' >> RunCommand "%s"'%(cmd))
-    if(os.name=='nt'):
+    if(os.name == 'nt'):
         cmds = cmd.split('&&')
         fp = open('.scons.bat','w')
         fp.write('@echo off\n')
@@ -475,7 +479,7 @@ def GetELFEnv(so=True):
           SHCXXCOMSTR = 'SHCXX $SOURCE',
           SHLINKCOMSTR = 'SHLINK $TARGET'
         )
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         env['SHLINKCOM'] = '$SHLINK $SHLINKFLAGS $SOURCES -o $TARGET'
     return env
 
@@ -502,7 +506,7 @@ class Qemu():
 
     def LocateASQemu(self):
         ASROOT = Env['ASROOT']
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
             candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
             cmd = '%s -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], candrvsrc, candrvtgt)
@@ -516,7 +520,7 @@ class Qemu():
                 qemu = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
         else:
             qemu = '%s/release/download/qemu/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             qemu += '.exe'
         if(not os.path.exists(qemu)):
             print('%s is not exits, try build it out locally!'%(qemu))
@@ -530,11 +534,11 @@ class Qemu():
         if(where is None):
             where = build
         python = Env['python3']
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             python = 'start ' + python
         if('asone' in COMMAND_LINE_TARGETS):
             RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             if(self.isAsQemu):
                 RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
                 RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
@@ -557,7 +561,7 @@ class Qemu():
             print('DiskImg "%s" already exist!'%(file))
             return
         print('Create a New DiskImg "%s"!'%(file))
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             # try default install location of qemu
             try:
                 qemuimg = '%s/qemu-img'%(Env['CONFIGS']['MSYS2_GCC_PATH'])
@@ -573,20 +577,20 @@ class Qemu():
         RunCommand('%s create -f raw %s %s'%(qemuimg, file, size))
 
         if(type.startswith('ext')):
-            if(os.name == 'nt'):
+            if(IsPlatformWindows()):
                 lwext4mkfs = '%s/release/download/lwext4/build_generic/fs_test/lwext4-mkfs.exe'%(ASROOT)
                 RunCommand('%s -i %s -b 4096 -e %s'%(lwext4mkfs,file,type[3]))
             else:
                 RunCommand('sudo mkfs.%s -b 4096 %s'%(type,file))
         elif(type.startswith('vfat')):
-            if(os.name == 'nt'):
+            if(IsPlatformWindows()):
                 pass # TODO
             else:
                 RunCommand('sudo mkfs.fat %s'%(file))
 
     def BuildASQemu(self):
         ASROOT = Env['ASROOT']
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             mpath = os.path.abspath(Env['CONFIGS']['MSYS2_GCC_PATH']+"/../..")
             RunCommand('%s/msys2_shell.cmd -mingw64 -where %s/com/as.tool/qemu'%(mpath,ASROOT))
             print('please mannuly invoke below comand in the poped up msys2 window:')
@@ -609,7 +613,7 @@ class splint():
         for m in Env['MODULES']:
             env.Append(CPPDEFINES=['USE_%s'%(m)])
         env.Append(CPPDEFINES=['__GNUC__'])
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             RunCommand('set LARCH_PATH=%s/lib'%(p))
         os.environ['LARCH_PATH'] ='%s/lib'%(p)
         env['CC'] = '%s/bin/splint'%(p)
@@ -618,7 +622,7 @@ class splint():
 
     def getit(self):
         ASROOT = Env['ASROOT']
-        if(os.name == 'nt'):
+        if(IsPlatformWindows()):
             pkg = 'https://github.com/downloads/maoserr/splint_win32/splint-3.1.2.zip'
             lintdir = 'splint-3.1.2'
         else:
@@ -626,7 +630,7 @@ class splint():
             lintdir = 'splint-3.1.2'
         if(not os.path.exists('%s/release/download/%s'%(ASROOT,lintdir))):
             RunCommand('cd %s/release/download && wget %s'%(ASROOT,pkg))
-            if(os.name == 'nt'):
+            if(IsPlatformWindows()):
                 RunCommand('cd %s/release/download && unzip %s'%(ASROOT,os.path.basename(pkg)))
             else:
                 RunCommand('cd %s/release/download && tar xf %s && cd %s && ./configure && make'%(ASROOT,os.path.basename(pkg),lintdir))
@@ -663,7 +667,7 @@ def SelectCompilerArmNoneEabi():
     Env['AS']='arm-none-eabi-as'
     Env['LINK']='arm-none-eabi-ld'
     Env['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         gccarm = 'gcc-arm-none-eabi-5_4-2016q3-20160926-win32'
         gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
         cpl = '%s/release/download/%s'%(ASROOT,gccarm)
@@ -685,7 +689,7 @@ def SelectCompilerArmNoneEabi():
 def SelectCompilerArm64():
     global Env
     ASROOT = Env['ASROOT']
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         gccarm = 'gcc-linaro-7.2.1-2017.11-i686-mingw32_aarch64-elf'
     else:
         gccarm = 'gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf'
@@ -700,7 +704,7 @@ def SelectCompilerArm64():
 
 def SelectCompilerX86():
     global Env
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         ASROOT = Env['ASROOT']
         gccx86='i686-elf-tools-windows'
         gccsrc= 'https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/i686-elf-tools-windows.zip'

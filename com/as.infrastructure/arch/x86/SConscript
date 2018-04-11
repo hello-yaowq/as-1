@@ -62,7 +62,7 @@ if('FLS' in MODULES):
     objs += Glob('../posix/mcal/Fls.c')
 
 if('LWIP' in MODULES):
-    if(os.name == 'nt'):
+    if(IsPlatformWindows()):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 
 asenv.Append(CCFLAGS=['-O0','-g'])

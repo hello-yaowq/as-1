@@ -36,7 +36,7 @@ if('run' in COMMAND_LINE_TARGETS):
     qemu = Qemu()
     qemu = Qemu(qemu.qemu)
     target = '%s/release/%s/lm3s6965evb'%(ASROOT,asenv['RELEASE'])
-    if(os.name == 'nt'): target = target + '.exe'
+    if(IsPlatformWindows()): target = target + '.exe'
     qemu.Run('-cpu cortex-m3 -nographic -monitor null -semihosting -machine lm3s6965evb -kernel %s'%(target))
 
 objs += Glob('common/*.c')

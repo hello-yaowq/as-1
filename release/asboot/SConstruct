@@ -38,7 +38,7 @@ if(BOARD is None):
 
 if(BOARD is None):
     print('Error: no BOARD specified!')
-    if(os.name=='nt'):
+    if(IsPlatformWindows()):
         print('use DOS "set" command to set BOARD\n\tfor example: set BOARD=posix')
     help()
     exit(-1)
@@ -111,7 +111,7 @@ try:
         )
     flsenv.Program(BOARD+'-flsdrv',flsobjs)
     target=BOARD+'-flsdrv'
-    if(os.name == 'nt'):target += '.exe'
+    if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s-flsdrv.s19'%(asenv['S19'],target,BOARD)
     asenv.AddPostAction(target,action)
 except KeyError:
@@ -119,7 +119,7 @@ except KeyError:
 
 try:
     target = BOARD
-    if(os.name == 'nt'):target += '.exe'
+    if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)
     asenv.AddPostAction(target,action)
 except KeyError:
