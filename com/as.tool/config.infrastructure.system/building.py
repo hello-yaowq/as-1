@@ -66,6 +66,47 @@ def IsPlatformWindows():
         bYes = True
     return bYes
 
+def PrepareEnv(release):
+    ASROOT=os.path.abspath('%s/../..'%(os.curdir))
+    BOARD=None
+
+    asenv=Environment()
+    asenv['ASROOT'] = ASROOT
+    asenv['RELEASE'] = release
+    board_list = []
+    for dir in os.listdir('%s/com/as.application'%(ASROOT)):
+        if(dir[:6]=='board.' and 
+           os.path.exists('%s/com/as.application/%s/SConscript'%(ASROOT,dir))):
+            board_list.append(dir[6:])
+
+    def help():
+        print('Usage:scons board [studio]\n\tboard:%s'%(board_list))
+        print('  studio: optional for launch studio GUI tool')
+
+    if('help' in COMMAND_LINE_TARGETS):
+        help()
+        exit(0)
+    else:
+        for b in COMMAND_LINE_TARGETS:
+            if(b in board_list):
+                BOARD = b
+
+    if(BOARD is None):
+        if(os.getenv('BOARD') in board_list):
+            BOARD = os.getenv('BOARD')
+
+    if(BOARD is None):
+        print('Error: no BOARD specified!')
+        if(IsPlatformWindows()):
+            print('use DOS "set" command to set BOARD\n\tfor example: set BOARD=posix')
+        help()
+        exit(-1)
+
+    asenv['BOARD'] = BOARD
+    Export('asenv')
+    PrepareBuilding(asenv)
+    return asenv
+
 def PrepareBuilding(env):
     global Env
     Env = env
@@ -735,9 +776,60 @@ def BuildOFS(ofs):
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
         MKObject(src, tgt, cmd)
 
-def Building(target, objs, env=None):
+def Building(target, sobjs, env=None):
     if(env is None):
         env = Env
     if(GetOption('splint')):
         splint(objs, env)
+    bdir = 'build/%s'%(target)
+    objs = []
+    xmls = []
+    ofs = []
+    arxml= None
+
+    for obj in sobjs:
+        if(str(obj)[-6:]=='.arxml'):
+            if(arxml is None):
+                arxml = obj
+            else:
+                raise Exception('too much arxml specified! [%s %s]'%(arxml,obj))
+        elif(str(obj)[-4:]=='.xml'):
+            xmls.append(obj)
+        elif(str(obj)[-3:]=='.of'):
+            ofs.append(obj)
+        else:
+            objs.append(obj)
+    cfgdir = '%s/config'%(bdir)
+    cfgdone = '%s/config.done'%(cfgdir)
+    if(((not os.path.exists(cfgdone)) and (not env.GetOption('clean'))) or env.GetOption('force')):
+        MKDir(cfgdir)
+        for xml in xmls:
+            MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
+        MKSymlink(str(arxml),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
+        xcc.XCC(cfgdir,env)
+        argen.ArGen.ArGenMain(str(arxml),cfgdir)
+        MKFile(cfgdone)
+    if('studio' in COMMAND_LINE_TARGETS):
+        studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
+        assert(arxml)
+        pd = os.path.abspath(cfgdir)
+        RunCommand('cd %s && %s studio.py %s'%(studio,env['python3'],pd))
+        exit(0)
+
+    objs += Glob('%s/*.c'%(cfgdir))
+    env.Append(CPPPATH=['%s'%(cfgdir)])
+    env.Append(ASFLAGS='-I%s'%(cfgdir))
+    env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
+    
+    if(env.GetOption('clean')):
+        RMDir(cfgdir)
+        RunCommand('rm -fv *.s19')
+
+    BuildOFS(ofs)
     env.Program(target,objs)
+    if(env['POSTACTION'] != ''):
+        if(not IsPlatformWindows()):
+            env.AddPostAction(target, env['POSTACTION'])
+        else:
+            MKFile('postaction.bat', env['POSTACTION'].replace('&&','\n'))
+            env.AddPostAction(target, 'postaction.bat')
