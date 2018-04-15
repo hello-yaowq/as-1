@@ -11,7 +11,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'CAN','CANIF','PDUR','COM','COMM','CANTP','J1939TP',
            'CANNM','CANSM','NM','OSEKNM','XCP',
            'DCM',
-           'PORT','DIO',
+           'PORT','DIO','DEMO_LED_APP',
            'ASKAR',
            ]
 
@@ -32,8 +32,6 @@ if(asenv['RELEASE']=='asboot'):
                'CLIB_MISCLIB',
                'SMALLOS',
                ]
-    if( (asenv['MODULES']!=None) and ('SCAN' in asenv['MODULES']) ):
-        MODULES.append('SCAN')
     lds = '%s/script/linker-flsdrv.lds'%(cwd)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
                                   'FLASH_WRITE_SIZE=2',

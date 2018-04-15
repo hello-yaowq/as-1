@@ -135,6 +135,7 @@ void knl_isr_handler(int intno)
 void knl_system_tick_handler(void)
 {
 	if(knl_dispatch_started) {
+		OsTick();
 		SignalCounter(0);
 	}
 #if defined(CHIP_AT91SAM3S)
