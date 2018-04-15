@@ -6,7 +6,6 @@ cwd = GetCurrentDir()
 Import('asenv')
 ASROOT = asenv['ASROOT']
 
-print('native run command:scons run')
 if('run' in COMMAND_LINE_TARGETS):
     build = '%s/release/%s'%(ASROOT,asenv['RELEASE'])
     python = asenv['python3']

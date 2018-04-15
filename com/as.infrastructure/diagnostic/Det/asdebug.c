@@ -198,7 +198,7 @@ void asAssertErrorHook(void)
 #endif
 }
 ELF_EXPORT(asAssertErrorHook);
-
+#ifdef USE_LIBELF
 void _assert (const char *_Message, const char *_File, unsigned _Line)
 {
 	printf("assert(%s) failed @ %s %u\n", _Message, _File, _Line);
@@ -212,7 +212,7 @@ void __assert_func (const char * file, int line, const char * func, const char *
 	while(1);
 }
 ELF_EXPORT(__assert_func);
-
+#endif
 #if defined(__LINUX__) || defined(__WINDOWS__)
 void asPerfSet(asperf_t *m)
 {

@@ -379,7 +379,10 @@ def MKSymlink(src,dst):
     adst = os.path.abspath(dst)
     if(not os.path.exists(dst)):
         if(IsPlatformWindows()):
-            if(os.path.isdir(asrc)):
+            if((sys.platform == 'msys') and
+               (os.getenv('MSYS') == 'winsymlinks:nativestrict')):
+                RunCommand('ln -fs %s %s'%(asrc,adst))
+            elif(os.path.isdir(asrc)):
                 RunCommand('mklink /D %s %s'%(adst,asrc))
             else:
                 RunCommand('mklink %s %s'%(adst,asrc))
@@ -803,6 +806,7 @@ def Building(target, sobjs, env=None):
     cfgdone = '%s/config.done'%(cfgdir)
     if(((not os.path.exists(cfgdone)) and (not env.GetOption('clean'))) or env.GetOption('force')):
         MKDir(cfgdir)
+        RMFile(cfgdone)
         for xml in xmls:
             MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
         MKSymlink(str(arxml),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))

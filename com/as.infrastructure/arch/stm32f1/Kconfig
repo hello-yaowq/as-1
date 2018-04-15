@@ -5,6 +5,10 @@ config CAN
 	bool "MCAL CAN driver"
 	default y
 
+config SCAN
+	bool "MCAL CAN driver on UART"
+	default n
+
 config DIO
 	bool "MCAL DIO driver"
 	default y

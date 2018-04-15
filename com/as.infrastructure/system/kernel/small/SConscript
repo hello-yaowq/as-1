@@ -12,7 +12,7 @@ arch = asenv['arch']
 asenv.Append(CPPPATH=['%s'%(cwd)])
 if(arch=='arm'):
     asenv.Append(CPPPATH=['%s/portable/posix'%(cwd)])
-elif(arch=='cortex-m3'):
+elif(arch=='cortex-m'):
     asenv.Append(CPPPATH=['%s/portable/armv7_m'%(cwd)])
 else:
     asenv.Append(CPPPATH=['%s/portable/%s'%(cwd,arch)])

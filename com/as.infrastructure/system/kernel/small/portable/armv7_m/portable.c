@@ -56,7 +56,7 @@ void StartOsTick(void)
 
 void knl_isr_handler(uint32_t intno)
 {
-#if defined(STM32F10X_CL) && defined(__AS_BOOTLOADER__) && defined(USE_SIMUL_CAN)
+#if defined(STM32F10X_CL)
 	if(54 == intno)
 	{
 		extern void knl_isr_usart2_process(void);

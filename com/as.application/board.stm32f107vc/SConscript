@@ -8,18 +8,18 @@ ASROOT = asenv['ASROOT']
 
 MODULES = ['ECUM','SCHM','MCU',
            'DET','SHELL',
-           'CAN','CANIF','PDUR','COM','COMM','CANTP',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP','J1939TP',
            'CANNM','CANSM','NM','OSEKNM','XCP',
            'DCM',
            'PORT','DIO',
-           'TOPPERS_OSEK',
+           'ASKAR',
            ]
 
 ARCH='stm32f1'
-arch='cortex-m3'
+arch='cortex-m'
 
 MODULES += ['CLIB_MBOX']
-MODULES += ['CLIB_MISCLIB']
+MODULES += ['CLIB_MISCLIB','CLIB_STRTOK_R']
 MODULES += ['CLIB_STDIO_PRINTF']
 MODULES += ['CLIB_STDIO_CAN']
 
@@ -27,10 +27,13 @@ MODULES += ['CLIB_STDIO_CAN']
 if(asenv['RELEASE']=='asboot'):
     MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
-               'DCM',
+               'DCM','XCP',
                'CLIB_STDIO_PRINTF',
+               'CLIB_MISCLIB',
                'SMALLOS',
                ]
+    if( (asenv['MODULES']!=None) and ('SCAN' in asenv['MODULES']) ):
+        MODULES.append('SCAN')
     lds = '%s/script/linker-flsdrv.lds'%(cwd)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
                                   'FLASH_WRITE_SIZE=2',
@@ -81,6 +84,7 @@ if('DEMO_LED_APP' in MODULES):
     objs += Glob('leds/*.c')
 
 asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
+asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])
 
 
 Return('objs')

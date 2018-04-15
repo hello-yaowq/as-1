@@ -135,6 +135,7 @@ TASK(TaskIdle)
 	for(;;)
 	{
 #endif
+		Irq_Enable(); /* for robustness */
 		KSM_EXECUTE();
 #ifdef USE_PROTOTHREAD
 		ScheduleContiki();

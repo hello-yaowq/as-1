@@ -232,6 +232,7 @@ typedef uint8					PriorityType;
 
 typedef void	(*TaskMainEntryType)(void);
 typedef void	(*AlarmMainEntryType)(void);
+typedef void	(*FP)(void);
 
 typedef struct
 {

@@ -62,25 +62,31 @@ knl_activate:
 
 	.global  knl_resume
 	.type   knl_resume, %function
+	.global  knl_resume_pre_hook
+	.type   knl_resume_pre_hook, %function
 knl_resume_pre_hook:
 	#ifdef OS_USE_PRETASK_HOOK
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
 	mov     r2, #8   /* CallLevel = TCL_PREPOST */
 	str     r2,[r1]
-	push    {r0-r3}
+	push    {r0-r3,lr}
 	bl      PreTaskHook
-	pop     {r0-r3}
+	pop     {r0-r3,lr}
 	str     r3,[r1]  /* restore CallLevel */
 	#endif
 knl_resume:
 	/* start to restore task's context */
 	pop     {r4-r11}
+    cpsie   i
+    dsb
+    isb
 	bx      lr
 
 	.global knl_start_dispatch
 	.type   knl_start_dispatch, %function
 knl_start_dispatch:
+	ldr lr, =0xFFFFFFF9 /* force it to process mode and use MSP */
 	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
@@ -129,6 +135,9 @@ EnterISR:
 
 	ldr     r12, =knl_resume
 	str     r12, [r0, #0x04]
+
+    /* and then load isr system stack */
+    ldr     sp, =knl_system_stack_top  /* Set system stack */
 
 l_nosave:
 	push    {r3} /* lr */

@@ -54,10 +54,6 @@
 #define VALIDATE_W_RV(_exp,_api,_err,_rv )
 #endif
 
-#define CORE_CPUID_CORTEX_M3   	0x411FC231UL
-#define CORE_QEMU_ARM_CORTEX_M3    0x410fc231UL
-
-
 
 typedef struct {
 	uint32 lossOfLockCnt;
@@ -91,96 +87,7 @@ Mcu_GlobalType Mcu_Global =
 
 //-------------------------------------------------------------------
 
-typedef struct {
-  char *name;
-  uint32 pvr;
-} core_info_t;
-
-typedef struct {
-  char *name;
-  uint32 pvr;
-} cpu_info_t;
-
-
 void Mcu_ConfigureFlash(void);
-
-
-
-/* Haven't found any ID accessable from memory.
- * There is the DBGMCU_IDCODE (0xe0042000) found in RM0041 but it
- * you can't read from that address..
- */
-#if 0
-cpu_info_t cpu_info_list[] = {
-    {
-    .name = "????",
-    .pvr = 0,
-    },
-};
-#endif
-
-/* The supported cores
- */
-core_info_t core_info_list[] = {
-    {
-    .name = "CORE_ARM_CORTEX_M3",
-    .pvr = CORE_CPUID_CORTEX_M3,
-    },
-    {
-    	.name = "CORE_QEMU_ARM_CORTEX_M3",
-    	.pvr = CORE_QEMU_ARM_CORTEX_M3
-    }
-};
-
-#if 0
-static cpu_info_t *Mcu_IdentifyCpu(uint32 pvr)
-{
-  int i;
-  for (i = 0; i < ARRAY_SIZE(cpu_info_list); i++) {
-    if (cpu_info_list[i].pvr == pvr) {
-      return &cpu_info_list[i];
-    }
-  }
-
-  return NULL;
-}
-#endif
-
-
-static core_info_t *Mcu_IdentifyCore(uint32 pvr)
-{
-  int i;
-  for (i = 0; i < ARRAY_SIZE(core_info_list); i++) {
-    if (core_info_list[i].pvr == pvr) {
-      return &core_info_list[i];
-    }
-  }
-
-  return NULL;
-}
-
-/**
- * Identify the core, just to check that we have support for it.
- *
- * @return
- */
-static uint32 Mcu_CheckCpu( void ) {
-
-  uint32 pvr = SCB->CPUID;
-  //uint32 pir;
-  //cpu_info_t *cpuType;
-  core_info_t *coreType;
-
-  //cpuType = Mcu_IdentifyCpu(pvr);
-  coreType = Mcu_IdentifyCore(pvr);
-
-  if( (coreType == NULL) ) {
-    // Just hang
-    while(1) ;
-  }
-
-  return 0;
-}
 
 static uint32_t GetPllValueFromMult(uint8_t pll)
 {
@@ -351,10 +258,6 @@ void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
   VALIDATE( ( NULL != configPtr ), MCU_INIT_SERVICE_ID, MCU_E_PARAM_CONFIG );
 
-#if !defined(USE_SIMULATOR)
-  Mcu_CheckCpu();
-#endif
-
   memset(&Mcu_Global.stats,0,sizeof(Mcu_Global.stats));
 
   Irq_Enable();
@@ -424,7 +327,7 @@ int putchar( int ch )	/* for printf */
 }
 #endif
 
-#ifndef USE_SIMUL_CAN
+#ifndef USE_SCAN
 void knl_isr_usart2_process(void)
 {
 
@@ -479,7 +382,10 @@ static void Usart_Init(void)
 
     /* USART configuration */
     USART_Init(USART2, &USART_InitStructure);
-
+	#ifndef USE_SCAN
+	USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
+	NVIC_EnableIRQ(USART2_IRQn);
+	#endif
     /* Enable USART */
     USART_Cmd(USART2, ENABLE);
 }

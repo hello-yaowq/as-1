@@ -18,6 +18,7 @@ asenv.Append(CPPDEFINES='SYSTEM_REGION_END=0x101f4000')
 asenv.Append(CPPDEFINES='PAGE_SIZE=0x1000')
 asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=100')
 asenv.Append(CPPDEFINES='USECONDS_PER_TICK=10000')
+asenv.Append(CPPDEFINES='OS_STK_SIZE_SCALER=4')
 
 if(asenv['RELEASE']=='asboot'):
     lds = '%s/../board.bcm2835/script/linker-boot.lds'%(cwd)

@@ -205,6 +205,12 @@ def GenH(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
+    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -246,8 +252,12 @@ def GenC(gendir,os_list):
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "kernel_internal.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
+    fp.write('#ifndef OS_STK_SIZE_SCALER\n#define OS_STK_SIZE_SCALER 1\n#endif\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    isr_list = ScanFrom(os_list,'ISR')
+    for isr in isr_list:
+        fp.write('extern void %s (void);\n'%(isr.attrib['Name']))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     general = ScanFrom(os_list,'General')[0]
     try:
@@ -258,7 +268,7 @@ def GenC(gendir,os_list):
         pthprio = 0
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('static uint32_t %s_Stack[(%s*4+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('static uint32_t %s_Stack[(%s*(OS_STK_SIZE_SCALER)+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
         if(len(GLGet(task,'EventList')) > 0):
             fp.write('static EventVarType %s_EventVar;\n'%(GAGet(task,'Name')))
     fp.write('#if (OS_STATUS == EXTENDED)\n')
@@ -439,6 +449,20 @@ def GenC(gendir,os_list):
     cstr += '};\n\n'
     fp.write(cstr)
     fp.write('#endif\n')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
+    if(isr_num > 0):
+        fp.write('const FP tisr_pc[ %s ] = {\n'%(isr_num))
+        for iid in range(isr_num):
+            iname = 'NULL'
+            for isr in isr_list:
+                if(iid == int(isr.attrib['Vector'])):
+                    iname = isr.attrib['Name']
+                    break
+            fp.write('\t%s, /* %s */\n'%(iname,iid))
+        fp.write('};\n\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
     

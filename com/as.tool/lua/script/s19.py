@@ -165,7 +165,7 @@ class s19:
             address = ss['address']
             fp.write('\t.app._%X 0x%X : {\n'%(address,address))
             fp.write('\t\tKEEP(*(.app._%X))\n'%(address))
-            fp.write('\t} > APPRAM\n')
+            fp.write('\t} > APPCODE\n')
         fp.close()
 
 def merge(s1,s2,so):

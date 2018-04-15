@@ -20,8 +20,8 @@ SECTIONS
 {
 	.text :
 	{
-	   *(.startup*)
         KEEP(*(.isr_vector))
+		*(.startup*)
         *(.text*)
         /* section information for shell */
         . = ALIGN(4);

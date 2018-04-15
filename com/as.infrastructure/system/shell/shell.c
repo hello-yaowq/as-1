@@ -85,7 +85,7 @@ static SHELL_CONST ShellCmdT helpInfo  = {
 SHELL_CMD_EXPORT(helpInfo);
 
 static char cmdBuf[CMDLINE_MAX];
-
+static char cmdLine[CMDLINE_MAX];
 #if defined(__LINUX__) || defined(__WINDOWS__)
 static sem_t semInput;
 void* ProcessStdio(void* arg)
@@ -377,7 +377,6 @@ static void doPrompt( void ) {
 
 int SHELL_Mainloop( void ) {
 	char c;
-	static char cmdLine[CMDLINE_MAX];
 	int lineIndex = 0;
 	int cmdRv;
 #if defined(__LINUX__) || defined(__WINDOWS__)
@@ -399,19 +398,15 @@ int SHELL_Mainloop( void ) {
 			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
 			#endif
-		} else if( c == '\r')
-		{
+		} else if( (c == '\n') || (c == '\r') ) {
 			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
 			#endif
-		}
-		else if( c == '\n' ) {
-			#ifdef ENABLE_SHELL_ECHO_BACK
-			SHELL_putc(c);
-			#endif
-			cmdLine[lineIndex] = '\0';
-			SHELL_RunCmd(cmdLine,&cmdRv);
-			lineIndex = 0;
+			if(lineIndex > 0) {
+				cmdLine[lineIndex] = '\0';
+				lineIndex = 0;
+				SHELL_RunCmd(cmdLine,&cmdRv);
+			}
 			doPrompt();
 		} else {
 			cmdLine[lineIndex++] = c;

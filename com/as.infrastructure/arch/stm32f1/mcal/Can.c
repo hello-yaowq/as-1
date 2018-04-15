@@ -27,7 +27,7 @@
 #include <string.h>
 #include "Os.h"
 #include "asdebug.h"
-#ifndef USE_SIMUL_CAN
+#ifndef USE_SCAN
 #include "stm32f10x.h"
 #include "stm32f10x_can.h"
 
@@ -835,7 +835,7 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
   *stats = canUnit->stats;
 }
 
-#else /* USE_SIMUL_CAN */
+#else /* USE_SCAN */
 #include "stm32f10x.h"
 #include "stm32f10x_usart.h"
 
@@ -872,7 +872,7 @@ int Can_GetChar(char* chr)
 
 	return 0;
 }
-
+extern void Can_MainFunction_Read_InISR( void );
 void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 16 = 54 */
 {
 	Can_MainFunction_Read_InISR();

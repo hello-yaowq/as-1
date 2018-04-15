@@ -16,12 +16,11 @@ asenv.Append(CPPPATH=['%s/kernel'%(cwd)])
 objs = []
 
 objs += Glob('kernel/*.c')
-
-if(arch == 'cortex-m3'):
+if(arch == 'cortex-m'):
     asenv.Append(CPPPATH=['%s/portable/armv7_m'%(cwd)])
     asenv.Append(ASFLAGS=['-I%s/portable/armv7_m'%(cwd)])
     objs += Glob('portable/armv7_m/*.c')
-    if(asenv['CC'][-3:]=='gcc' or asenv['CC'][-7:]=='gcc.exe'):
+    if('gcc' in asenv['CC']):
         objs += Glob('portable/armv7_m/gcc/*.s')
     elif(asenv['CC'][-10:]=='iccarm.exe'):
         objs += Glob('portable/armv7_m/icc/*.S')

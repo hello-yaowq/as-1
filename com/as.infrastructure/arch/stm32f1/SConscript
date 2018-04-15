@@ -13,6 +13,9 @@ if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
     asenv.Append(CPPDEFINES=['CAN_LL_DL=8'])
 
+if('SCAN' in MODULES):
+    objs += Glob('../common/mcal/SCan.c')
+
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')
 

@@ -8,17 +8,18 @@
 MEMORY
 {
     FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K
+    APPCODE (rx) : ORIGIN = 0x00010000, LENGTH = 192K
     RAM (rwx)  : ORIGIN = 0x20001000, LENGTH = 60K
 }
 
 /* application address */
-application_main = 0x00010001;
+application_main = 0x00010401;
 
 FlashHeader = 0x20000000;
 
 FlashDriverRam = 0x20000000;
 
-knl_system_stack_size = 1024;
+knl_system_stack_size = 4096;
 
 ENTRY(reset_handler)
 
@@ -58,4 +59,6 @@ SECTIONS
 	   . = . + knl_system_stack_size; 	
 	   knl_system_stack_top = .;
 	} > RAM
+	
+	INCLUDE .app_s19.c.lds
 }
