@@ -21,30 +21,43 @@ CASE ?= Mixed-preemptive-2
 
 schedfifo ?= no
 
-obj-dir = $(CURDIR)/objs/$(TARGET)/$(CASE)
-out-dir = $(CURDIR)/out/$(TARGET)/$(CASE)
-src-dir = $(CURDIR)/src/$(TARGET)/$(CASE)
+to_winpath = $(shell echo "$(1)" | sed -e 's,/\([a-zA-Z]\),\1:,')
 
-COM = $(CURDIR)/../../com
+ifeq ($(shell uname), Linux)
+CWD = $(CURDIR)
+else
+CWD = $(call to_winpath,$(CURDIR))
+endif
+
+obj-dir = $(CWD)/objs/$(TARGET)/$(CASE)
+out-dir = $(CWD)/out/$(TARGET)/$(CASE)
+src-dir = $(CWD)/src/$(TARGET)/$(CASE)
+
+COM = $(CWD)/../../com
 KERNEL = ${COM}/as.infrastructure/system/kernel/askar
 CTEST  = ${COM}/as.infrastructure/system/kernel/freeosek/tst/ctest
-MTEST  = $(CURDIR)/Testsuite
+MTEST  = $(CWD)/Testsuite
 
 ifeq ($(shell uname), Linux)
 PY27 = python2
 PY34 = python3
 else
-PY27 = C:Python27/python
-PY34 = C:Python34/python
+PY27 = C:/Python27/python
+PY34 = C:/Anaconda3/python
 endif
 
-LNFS  = $(PY27) $(CURDIR)/../../release/make/lnfs.py
+LNFS  = $(PY27) $(CWD)/../../release/make/lnfs.py
 XCC   = $(PY34) ${COM}/as.tool/config.infrastructure.system/xcc.py
 REOIL = $(PY34) ${COM}/as.tool/config.infrastructure.system/aroil/reoil.py
 
 # default compilers
 ifeq (${ARCH}, versatilepb)
+ifeq ($(shell uname), Linux)
 export CROSS_COMPILE ?= arm-none-eabi-
+else
+export COMPILER_DIR ?= ${COM}/../release/download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32
+export CROSS_COMPILE ?= ${COMPILER_DIR}/bin/arm-none-eabi-
+endif
 AS = ${CROSS_COMPILE}as
 CC = ${CROSS_COMPILE}gcc
 LD = ${CROSS_COMPILE}ld
@@ -69,7 +82,11 @@ LDFLAGS += --gc-sections
 ifeq (${ARCH}, versatilepb)
 ASFLAGS += -mcpu=arm926ej-s -marm -fpic
 CFLAGS  += -mcpu=arm926ej-s -marm -fpic
+ifeq ($(shell uname), Linux)
 LDFLAGS += -lc -lgcc -L/usr/lib/arm-none-eabi/newlib -L/usr/lib/gcc/arm-none-eabi/4.8.2
+else
+LDFLAGS += -lc -lgcc -L${COMPILER_DIR}/arm-none-eabi/lib -L${COMPILER_DIR}/lib/gcc/arm-none-eabi/5.4.1
+endif
 LDFLAGS += -T ${COM}/as.infrastructure/arch/bcm2835/bsp/linker.lds
 LDFLAGS += -Map ${out-dir}/${TARGET}.map
 # 128MB
@@ -113,7 +130,7 @@ obj-y += ${obj-dir}/alarm.o \
 
 
 VPATH += ${src-dir} \
-		 $(CURDIR)/util \
+		 $(CWD)/util \
 	     ${COM}/as.infrastructure/clib \
 
 ASFLAGS += -I${src-dir}
@@ -170,7 +187,9 @@ dep-os: $(src-dir)
 ifeq ($(TARGET), test)
 	@echo "#include \"Os.h\"" > $(src-dir)/osek.h
 else
+ifeq ($(shell uname), Linux)
 	@echo "#include \"Os.h\"" > $(src-dir)/os.h
+endif
 	@echo "#include \"Std_Types.h\"" > $(src-dir)/Types.h
 endif
 	@echo " >> pre-process for $(TARGET) $(CASE) done"
@@ -185,7 +204,11 @@ test:
 	@echo "telnet 127.0.0.1 1103" >> .check.sh
 	@echo "qemu-system-arm -m 128 -M versatilepb -nographic -kernel $(out-dir)/$(TARGET) -serial tcp:127.0.0.1:1103,server $(qemuparams) & sh .check.sh" > .qemu.sh
 	@chmod +x .qemu.sh
-	@gnome-terminal -x $(CURDIR)/.qemu.sh
+ifeq ($(shell uname), Linux)
+	@gnome-terminal -x $(CWD)/.qemu.sh
+else
+	@sh $(CWD)/.qemu.sh
+endif
 	@echo "Test for $(TARGET) $(CASE)"
 
 clean:

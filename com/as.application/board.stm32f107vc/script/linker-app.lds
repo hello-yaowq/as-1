@@ -33,6 +33,10 @@ SECTIONS
         __elfsymtab_start = .;
         KEEP(*(ELFSymTab))
         __elfsymtab_end = .;
+        . = ALIGN(4);
+        autostart_processes = .;
+        KEEP(*(ProtoSymTab))
+        KEEP(*(ProtoSymTabEnd))
         *(.rodata*)
 	} > FLASH
 

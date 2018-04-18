@@ -112,40 +112,6 @@ def genCTEST_CFGH(xml, path):
     fp.write('#endif\n\n')
     fp.close()
 
-def send_email(result):
-    import smtplib
-    from email.mime.text import MIMEText
-    from email.header import Header
-    import traceback
-
-    mail_host="smtp.yeah.net"
-    mail_user="askardev@yeah.net"
-    mail_pass="askardev123"
-
-    sender = 'askardev@yeah.net'
-    receivers = ['parai@foxmail.com']
-
-    mail_msg = '''<p>Hi parai:</p>
-<p><a href="https://github.com/parai/as">conformance test report of askar</a></p>
-<p>%s</p>
-<p>ASKARDEV</p>
-<p>Best Regards!</p>\n'''%(result)
-    message = MIMEText(mail_msg, 'html', 'utf-8')
-    message['From'] = Header("askardev<askardev@yeah.net>", 'utf-8')
-    message['To'] =  Header("parai<parai@foxmail.com>", 'utf-8')
-    subject = 'OSEK Conformance Test Report of ASKAR'
-    message['Subject'] = Header(subject, 'utf-8')
-
-    try:
-        smtpObj = smtplib.SMTP() 
-        smtpObj.connect(mail_host, 25)
-        smtpObj.login(mail_user,mail_pass)  
-        smtpObj.sendmail(sender, receivers, message.as_string())
-        print("Email send okay")
-    except smtplib.SMTPException:
-        print(traceback.format_exc())
-        print("Error: send failed")
-
 def telnet(uri, port):
     import socket,time
     time.sleep(0.5) # make sure qemu already on line
@@ -166,43 +132,53 @@ def telnet(uri, port):
     sock.close()
     return string
 
+def RunCommand(cmd):
+    print(' >> RunCommand "%s"'%(cmd))
+    if(os.name != 'nt'):
+        cmd += ' > /dev/null'
+    if(0 != os.system(cmd)):
+        print('FAIL of RunCommand "%s"'%(cmd))
+        return -1
+    return 0
+
 def check(target,case):
     schedfifo = os.getenv('schedfifo')
     print('>> Starting test for %s %s schedfifo="%s" ...'%(target,case,schedfifo))
-    if(target=='test'):
-        cmd='make test TARGET=%s CASE=%s qemuparams= > /dev/null'%(target, case)
-        os.system(cmd)
-        c = input('More <Enter> Exit <q>')
-        if(c == 'q'): exit(0)
-        return
-    if(0==os.system('qemu-system-arm -machine help > /dev/null')):
+    if(0==RunCommand('qemu-system-arm -machine help')):
         qemu = 'qemu-system-arm'
     else:
         qemu = './qemu-system-arm'
         if(not os.path.exists(qemu)):
-            os.system('wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz && tar xf qemu-system-arm-rpi_UART1.tar.gz')
-    pid = os.fork()
+            RunCommand('wget https://github.com/idrawone/qemu-rpi/raw/master/tools/qemu-system-arm-rpi_UART1.tar.gz && tar xf qemu-system-arm-rpi_UART1.tar.gz')
+    cmd='%s -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server'%(qemu,target,case,target)
+
+    if(os.name == 'nt'):
+        cmd = 'start '+cmd
+        RunCommand(cmd)
+        pid = 1
+    else:
+        pid = os.fork()
     if(pid == 0):
-        os.system('pgrep qemu-system-arm | xargs -i kill -9 {}')
-        cmd='%s -m 128 -M versatilepb -nographic -kernel out/%s/%s/%s -serial tcp:127.0.0.1:1103,server > /dev/null'%(qemu,target,case,target)
-        os.system(cmd)
+        RunCommand('pgrep qemu-system-arm | xargs -i kill -9 {}')
+        RunCommand(cmd)
         exit(0)
     else:
         result=telnet('127.0.0.1', 1103)
-        os.kill(pid,9)
-        os.system('pgrep qemu-system-arm | xargs -i kill -9 {}')
+        if(os.name == 'nt'):
+            RunCommand('taskkill /IM qemu-system-arm.exe')
+        else:
+            os.kill(pid,9)
+            RunCommand('pgrep qemu-system-arm | xargs -i kill -9 {}')
         if((result.find('FAIL')!=-1) or (result.find('>> END <<')==-1)):
             print('>> Test for %s %s FAIL'%(target,case))
             print(result)
             erp = '>> Test for %s %s FAIL\n'%(target,case)
             erp += result
-            send_email(erp) # send if failed
             exit(-1)
         print('>> Test for %s %s PASS'%(target,case))
 
 def test(target,case,vv):
-    cmd = 'mkdir -pv src/%s/%s'%(target, case)
-    os.system(cmd)
+    os.makedirs('src/%s/%s'%(target, case),exist_ok=True)
     if(target == 'test'):
         xml = reoil.to_xml('%s/%s.oil'%(case,target))
         fixXml(xml,vv,True)
@@ -211,12 +187,8 @@ def test(target,case,vv):
         fixXml(xml,vv)
         genCTEST_CFGH(xml,'src/%s/%s'%(target, case))
     saveXml(xml, 'src/%s/%s/test.xml'%(target, case))
-    cmd='make dep-os TARGET=%s CASE=%s > /dev/null'%(target, case)
-    os.system(cmd)
-    cmd='make all TARGET=%s CASE=%s > /dev/null'%(target, case)
-    if(0!=os.system(cmd)):
-        # build error
-        exit(-1)
+    RunCommand('make dep-os TARGET=%s CASE=%s'%(target, case))
+    RunCommand(cmd='make all TARGET=%s CASE=%s'%(target, case))
     check(target,case)
 
 if(__name__ == '__main__'):
