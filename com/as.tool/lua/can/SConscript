@@ -43,7 +43,7 @@ if(IsPlatformWindows()):
     if(asenv.GetOption('clean')):
         RMFile('%s/socketwin_can_driver.exe'%(cwd))
     elif(not os.path.exists('%s/socketwin_can_driver.exe'%(cwd))):
-        cmd = 'gcc %s/socketwin_can_driver.c -D__SOCKET_WIN_CAN_DRIVER__ -o %s/socketwin_can_driver.exe -lwsock32'%(cwd,cwd)
+        cmd = 'gcc %s/socketwin_can_driver.c -D__SOCKET_WIN_CAN_DRIVER__ -I%s/com/as.infrastructure/include -o %s/socketwin_can_driver.exe -lwsock32'%(cwd,asenv['ASROOT'],cwd)
         RunCommand(cmd)
 
 Return('objs')

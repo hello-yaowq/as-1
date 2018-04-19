@@ -178,7 +178,10 @@ def check(target,case):
         print('>> Test for %s %s PASS'%(target,case))
 
 def test(target,case,vv):
-    os.makedirs('src/%s/%s'%(target, case),exist_ok=True)
+    if(os.name == 'nt'):
+        os.makedirs('src/%s/%s'%(target, case),exist_ok=True)
+    else:
+        RunCommand('mkdir -p src/%s/%s'%(target, case))
     if(target == 'test'):
         xml = reoil.to_xml('%s/%s.oil'%(case,target))
         fixXml(xml,vv,True)

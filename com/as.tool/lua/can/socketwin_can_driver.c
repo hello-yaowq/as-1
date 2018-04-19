@@ -15,6 +15,10 @@
  */
 
 /* ============================ [ INCLUDES  ] ====================================================== */
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -24,10 +28,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
-
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <windows.h>
 
 /* Link with ws2_32.lib */
 #ifndef __GNUC__
