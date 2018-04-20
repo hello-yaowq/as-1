@@ -328,11 +328,11 @@ def GetCurrentDir():
 
 def MKDir(p):
     ap = os.path.abspath(p)
-    pap = os.path.abspath('%s/..'%(p))
-    if(not os.path.exists(pap)):
-        MKDir(pap)
-    if(not os.path.exists(ap)):
-        os.mkdir(ap)
+    try:
+        os.makedirs(ap)
+    except:
+        if(not os.path.exists(ap)):
+            raise Exception('Fatal Error: can\'t create directory <%s>'%(ap))
 
 def RMDir(p):
     if(os.path.exists(p)):
@@ -358,10 +358,16 @@ def WGET(url, tgt):
         wget.download(url, tgt)
 
 def MKObject(src, tgt, cmd):
-    if(Env.GetOption('clean')):
+    if(GetOption('clean')):
         RMFile(tgt)
         return
-    mtime = os.path.getmtime(src)
+    mtime = 0
+    for s in src:
+        s = str(s)
+        if(os.path.isfile(s)):
+            tm = os.path.getmtime(s)
+            if(tm > mtime):
+                mtime = tm
     if(os.path.isfile(tgt)):
         mtime2 = os.path.getmtime(tgt)
     else:
@@ -402,7 +408,8 @@ def SrcRemove(src, remove):
                 src.remove(item)
 
 def RunCommand(cmd):
-    print(' >> RunCommand "%s"'%(cmd))
+    if(GetOption('verbose')):
+        print(' >> RunCommand "%s"'%(cmd))
     if(os.name == 'nt'):
         cmds = cmd.split('&&')
         fp = open('.scons.bat','w')
