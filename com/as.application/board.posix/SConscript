@@ -19,10 +19,7 @@ if('run' in COMMAND_LINE_TARGETS):
             lwext4mkfs = '%s/release/download/lwext4/build_generic/fs_test/lwext4-mkfs.exe'%(ASROOT)
             RunCommand('echo "0" > %s && truncate -s 33554432 %s'%(extfs,extfs))
             RunCommand('%s -i %s -b 4096 -e 4'%(lwext4mkfs,extfs))
-        candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
         candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
-        cmd = '%s -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], candrvsrc, candrvtgt)
-        MKObject(candrvsrc, candrvtgt, cmd)
         RunCommand('start %s 0'%(candrvtgt))
         RunCommand('start %s 1'%(candrvtgt))
     
