@@ -84,5 +84,14 @@ if('DEMO_LED_APP' in MODULES):
 asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
 asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])
 
+if('run' in COMMAND_LINE_TARGETS):
+    SelectCompilerArmNoneEabi()
+    if(asenv['RELEASE']!='asboot'):
+        cmd = 'cd %s/release/asboot && scons'%(ASROOT)
+        RunCommand(cmd)
+    gdb = asenv['CC'].split(' ')[0][:-3]+'gdb'
+    cmd = 'cd %s/release/asboot && %s -x %s/script/rom.gdbinit'%(ASROOT,gdb, cwd)
+    RunCommand(cmd)
+    exit()
 
 Return('objs')

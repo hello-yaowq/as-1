@@ -22,7 +22,7 @@ objs = []
 objs += Glob('*.c')
 if(arch=='arm'):
     objs += Glob('../askar/portable/arm/startup.S')
-elif(arch=='cortex-m3'):
+elif(arch=='cortex-m'):
     objs += Glob('%s/portable/armv7_m/*.c'%(cwd))
     objs += Glob('%s/portable/armv7_m/gcc/*.s'%(cwd))
 else:

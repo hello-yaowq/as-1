@@ -560,7 +560,7 @@ class Qemu():
         if(IsPlatformWindows()):
             candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
             candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
-            cmd = '%s -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], candrvsrc, candrvtgt)
+            cmd = '%s -I%s/com/as.infrastructure/include -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], ASROOT, candrvsrc, candrvtgt)
             MKObject(candrvsrc, candrvtgt, cmd)
             # try default install location of qemu
             try:
