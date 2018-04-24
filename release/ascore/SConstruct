@@ -13,19 +13,19 @@ bdir = 'build/%s'%(BOARD)
 objs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
 objs += SConscript('app/SConscript',variant_dir=bdir+'/app', duplicate=0)
 
-Building(BOARD,objs)
-
 try:
     target = BOARD
     if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)
-    asenv.AddPostAction(target,action)
+    asenv['POSTACTION'].append(action)
     pys19 = '%s %s/com/as.tool/lua/script/s19.py'%(asenv['python'],ASROOT)
     s19dir = '%s/release/asboot/build/%s/config'%(ASROOT,BOARD)
     MKDir(s19dir)
     action = '%s -c %s.s19 -o %s/app_s19.c'%(pys19,BOARD,s19dir)
-    asenv.AddPostAction(target,action)
+    asenv['POSTACTION'].append(action)
 except KeyError:
     pass
+
+Building(BOARD,objs)
 
 SConscript('elf/SConscript')

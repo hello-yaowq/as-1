@@ -116,7 +116,7 @@ def PrepareBuilding(env):
     env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     env['msys2'] = False
-    env['POSTACTION'] = ''
+    env['POSTACTION'] = []
     if(IsPlatformWindows() and (env['CONFIGS'] != None)):
         env['python3'] = env['CONFIGS']['PYTHON3_PATH'] + '/python'
         env['python2'] = env['CONFIGS']['PYTHON2_PATH'] + '/python'
@@ -838,9 +838,8 @@ def Building(target, sobjs, env=None):
 
     BuildOFS(ofs)
     env.Program(target,objs)
-    if(env['POSTACTION'] != ''):
-        if(not IsPlatformWindows()):
-            env.AddPostAction(target, env['POSTACTION'])
-        else:
-            MKFile('postaction.bat', env['POSTACTION'].replace('&&','\n'))
-            env.AddPostAction(target, 'postaction.bat')
+
+    if(IsPlatformWindows()):target += '.exe'
+    env['POSTACTION'].append('readelf -l %s'%(target))
+    for action in env['POSTACTION']:
+        env.AddPostAction(target, action)

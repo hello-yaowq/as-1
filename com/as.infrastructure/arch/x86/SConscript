@@ -27,19 +27,16 @@ else:
         MKObject(str(src), str(src)[:-4]+'.bin', 
                  'cd %s/boot && nasm -o %s.bin %s'%(cwd,asm[:-4],asm))
 
-    if(asenv['POSTACTION'] != ''):
-        asenv['POSTACTION'] += ' && '
     target = 'x86'
     if(os.name == 'nt'):
-        asenv['POSTACTION'] += '@echo off &&'
         target += '.exe'
     fatfs = '%s/com/as.infrastructure/system/fs/fatfs/fatfs.exe'%(ASROOT)
-    asenv['POSTACTION'] += ' dd if=/dev/zero of=TINIX.IMG bs=512 count=2880'
-    asenv['POSTACTION'] += ' && %s mkfs TINIX.IMG'%(fatfs)
-    asenv['POSTACTION'] += ' && dd conv=notrunc if=%s of=TINIX.IMG bs=512 count=1'%(str(Glob('boot/boot.bin')[0]))
-    asenv['POSTACTION'] += ' && %s cp %s /loader.bin TINIX.IMG'%(fatfs,str(Glob('boot/loader.bin')[0]))
-    asenv['POSTACTION'] += ' && objcopy -S %s kernel.bin'%(target)
-    asenv['POSTACTION'] += ' && %s cp kernel.bin /kernel.bin TINIX.IMG'%(fatfs)
+    asenv['POSTACTION'].append('dd if=/dev/zero of=TINIX.IMG bs=512 count=2880')
+    asenv['POSTACTION'].append('%s mkfs TINIX.IMG'%(fatfs))
+    asenv['POSTACTION'].append('dd conv=notrunc if=%s of=TINIX.IMG bs=512 count=1'%(str(Glob('boot/boot.bin')[0])))
+    asenv['POSTACTION'].append('%s cp %s /loader.bin TINIX.IMG'%(fatfs,str(Glob('boot/loader.bin')[0])))
+    asenv['POSTACTION'].append('objcopy -S %s kernel.bin'%(target))
+    asenv['POSTACTION'].append('%s cp kernel.bin /kernel.bin TINIX.IMG'%(fatfs))
 
 objs += Glob('bsp/*.asm.obj')
 

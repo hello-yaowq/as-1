@@ -12,8 +12,6 @@ ASROOT = asenv['ASROOT']
 bdir = 'build/%s'%(BOARD)
 objs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
 
-Building(BOARD,objs)
-
 try:
     flsdrv = asenv['flsdrv']
     flsobjs = flsdrv['objs']
@@ -34,7 +32,7 @@ try:
     target=BOARD+'-flsdrv'
     if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s-flsdrv.s19'%(asenv['S19'],target,BOARD)
-    asenv.AddPostAction(target,action)
+    asenv['POSTACTION'].append(action)
 except KeyError:
     print('there is no flash-drv!')
 
@@ -42,6 +40,8 @@ try:
     target = BOARD
     if(IsPlatformWindows()):target += '.exe'
     action = '%s %s %s.s19'%(asenv['S19'],target,BOARD)
-    asenv.AddPostAction(target,action)
+    asenv['POSTACTION'].append(action)
 except KeyError:
     pass
+
+Building(BOARD,objs)

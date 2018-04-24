@@ -21,7 +21,7 @@ if(not IsPlatformWindows()):
 
 MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
-           'CLIB_STDIO_PRINTF',
+           'CLIB_STDIO_PRINTF','CLIB_NEWLIB',
            'ASKAR',
            ]
 
