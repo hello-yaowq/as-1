@@ -6,6 +6,7 @@ config CLIB_ASHEAP
 
 config CLIB_MBOX
 	bool "Message Box"
+	select CLIB_ASHEAP
 	default y
 
 config CLIB_MISCLIB

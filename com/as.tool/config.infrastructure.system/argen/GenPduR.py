@@ -61,8 +61,16 @@ def GenH():
 #define PDUR_CFG_H_
 
 // Module support
+#ifdef USE_CANIF
 #define PDUR_CANIF_SUPPORT STD_%s
+#else
+#define PDUR_CANIF_SUPPORT STD_OFF
+#endif
+#ifdef USE_CANTP
 #define PDUR_CANTP_SUPPORT STD_%s
+#else
+#define PDUR_CANTP_SUPPORT STD_OFF
+#endif
 #define PDUR_FRIF_SUPPORT STD_OFF  /* Not supported */
 #define PDUR_FRTP_SUPPORT STD_OFF  /* Not supported */
 #define PDUR_LINIF_SUPPORT STD_%s
@@ -70,7 +78,11 @@ def GenH():
 #define PDUR_COM_SUPPORT STD_%s
 #define PDUR_DCM_SUPPORT STD_%s
 #define PDUR_IPDUM_SUPPORT STD_OFF  /* Not supported */
+#ifdef USE_J1939TP
 #define PDUR_J1939TP_SUPPORT STD_%s
+#else
+#define PDUR_J1939TP_SUPPORT STD_OFF
+#endif
 #ifdef USE_SOAD
 #define PDUR_SOAD_SUPPORT STD_ON
 #else
@@ -235,6 +247,15 @@ def GenC():
     global __dir
     fp = open('%s/PduR_PbCfg.c'%(__dir),'w')
     fp.write(GHeader('PduR'))
+    ucstr = ''
+    for path in GLGet('RoutineList'):
+        ucstr += '#ifndef USE_%s\n'%(GAGet(path,'Module').upper())
+        ucstr += '#define %s_ID_%s -1\n'%(GAGet(path,'Module').upper(), GAGet(path,'PduRef'))
+        ucstr += '#endif\n'
+        for dest in GLGet(path,'DestinationList'):
+            ucstr += '#ifndef USE_%s\n'%(GAGet(dest,'Module').upper())
+            ucstr += '#define %s_ID_%s -1\n'%(GAGet(dest,'Module').upper(), GAGet(dest,'PduRef'))
+            ucstr += '#endif\n'
     cstr = ''
     for path in GLGet('RoutineList'):
         for dest in GLGet(path,'DestinationList'):
@@ -270,15 +291,14 @@ def GenC():
 #endif
 #ifdef USE_SOAD
 #include "SoAd.h"
-#else
-#define SOADTP_ID_SOAD_RX 0
-#define SOADTP_ID_SOAD_TX 0
 #endif
+/* helper macros if that module is disabled */
+%s
 #if(PDUR_ZERO_COST_OPERATION == STD_OFF)
 const PduRDestPdu_type PduR_PduRDestination[] = {
 %s
 };
-    """%(cstr))
+    """%(ucstr, cstr))
     cstr = ''
     Index = -1
     for path in GLGet('RoutineList'):

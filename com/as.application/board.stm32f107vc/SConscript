@@ -65,6 +65,9 @@ if('CAN' in MODULES):
     objs += Glob('common/isr_can.xml')
     asenv.Append(CPPDEFINES=['NOT_PYGEN_CAN'])
 
+if('SHELL' in MODULES):
+    objs += Glob('common/isr_usart2.xml')
+
 if('DIO' in MODULES):
     objs += Glob('common/Dio*.c')
 

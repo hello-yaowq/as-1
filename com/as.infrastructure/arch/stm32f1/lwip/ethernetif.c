@@ -62,6 +62,9 @@
 
 
 #include "Os.h"
+#include "asdebug.h"
+
+#define AS_LOG_LWIP 1
 
 
 /* TCP and ARP timeouts */
@@ -202,6 +205,7 @@ void Ethernet_Configuration(void)
 {
   ETH_InitTypeDef ETH_InitStructure;
 
+  ASLOG(LWIP, "Ethernet Configuration\n");
   /* MII/RMII Media interface selection ------------------------------------------*/
 #ifdef MII_MODE /* Mode MII with STM3210C-EVAL  */
   GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_MII);
@@ -272,6 +276,7 @@ void Ethernet_Configuration(void)
 
   /* Configure Ethernet */
   ETH_Init(&ETH_InitStructure, PHY_ADDRESS);
+  ASLOG(LWIP, "Ethernet Configuration Successfully\n");
 }
 
 void EnableEthDMAIrq()

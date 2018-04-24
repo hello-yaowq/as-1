@@ -146,14 +146,14 @@
 <Destination Comment="*" Module="Com" Name="ComMsgAbs" PduRef="RxMsgAbsInfo" />
 </DestinationList>
 </Source>
-<Source Comment="*" Module="SoAdTp" Name="SOAD_RX" PduRef="SOAD_RX">
+<Source Comment="*" Module="SoAd" Name="SOAD_RX" PduRef="SOAD_RX">
 <DestinationList Max="TBD">
 <Destination Comment="*" Module="Dcm" Name="DCM_SOAD_RX" PduRef="SOAD_RX" />
 </DestinationList>
 </Source>
 <Source Comment="*" Module="Dcm" Name="SOAD_TX" PduRef="SOAD_TX">
 <DestinationList Max="TBD">
-<Destination Comment="*" Module="SoAdTp" Name="DCM_SOAD_TX" PduRef="SOAD_TX" />
+<Destination Comment="*" Module="SoAd" Name="DCM_SOAD_TX" PduRef="SOAD_TX" />
 </DestinationList>
 </Source>
 <Source Comment="*" Module="Dcm" Name="DcmTxOnJ1939" PduRef="J1939TP_TX">

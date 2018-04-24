@@ -41,7 +41,7 @@ static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[DOIP_TARGET_C
 {
 	{
 		.addressValue=0xfeed,  /* this 16 bit ta */
-		.txPdu=SOADTP_ID_SOAD_TX,
+		.txPdu=SOAD_ID_SOAD_TX,
 		.rxPdu=PDUR_ID_SOAD_RX
 	},
 };

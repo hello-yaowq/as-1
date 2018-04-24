@@ -375,7 +375,11 @@ void BL_MainFunction(void)
 				application_main,
 				*(uint32_t*)application_main,
 				FLASH_DRIVER_STARTADDRESS);
-		if((*(uint32_t*)application_main) != 0)
+		if( ((*(uint32_t*)application_main) != 0)
+#ifdef STM32F10X_CL
+			&& ((*(uint32_t*)application_main) == 0xBD02CF8)
+#endif
+		 )
 		{
 			application_main();
 		}
