@@ -16,25 +16,13 @@ __hh__ = '''
  '''
  
 import sys,os
-try:
-    from PyQt5 import QtCore, QtGui
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
-    from PyQt5.QtWidgets import *
-    __qt_support=True
-except ModuleNotFoundError:
-    __qt_support=False
-
+from PIL import Image
 import xml.etree.ElementTree as ET
 import re
 import glob
 
 reSgBMP = re.compile(r'SgBMP\{(\d+)\}')
 reSgTXT = re.compile(r'SgTXT\{(\d+)\}')
-try:
-    qtApp = QApplication(sys.argv)
-except NameError:
-    pass
 
 __SGL_MAX = 0
 
@@ -46,6 +34,20 @@ class Sg():
     def __init__(self,file,option=None):
         self.file = file
         self.option = option
+
+    def getPixel(self, IM, x, y):
+        rgb = IM.getpixel((x,y))
+        if(type(rgb) == int):
+            pass
+        elif(len(rgb) == 4):
+            rgb = (rgb[0]<<16) + (rgb[1]<<8) + rgb[2] + (rgb[3]<<24)
+        elif(len(rgb) == 3):
+            rgb = (rgb[0]<<16) + (rgb[1]<<8) + rgb[2]
+        else:
+            print('rgb is', rgb)
+            assert(0)
+        return rgb
+
     def toU8Dot(self,fp,X=0,Y=0):
 
         name = os.path.basename(self.file)
@@ -55,16 +57,16 @@ class Sg():
         fp.write('static const uint8 sgf_dot_%s[] = \n{'%(code))
 
         try:
-            IM = QImage(self.file)
+            IM = Image.open(self.file)
         except NameError:
             fp.write('\t0\n};\n')
             return
-        fp.write('\n\t%s,%s,/* size(w,h) */'%(IM.size().width(),IM.size().height()))
-        for y in range(0,IM.size().height()):
+        fp.write('\n\t%s,%s,/* size(w,h) */'%(IM.size[0],IM.size[1]))
+        for y in range(0,IM.size[1]):
             fp.write('\n\t')
             DOT = B = 0
-            for x in range(0,IM.size().width()):
-                rgb = IM.pixel(x,y)
+            for x in range(0,IM.size[0]):
+                rgb = self.getPixel(IM,x,y)
                 if(rgb != 0):
                     DOT = DOT|(1<<B);    
                 B += 1;
@@ -92,11 +94,11 @@ class Sg():
         aname = os.path.abspath(self.file)
         fp.write('#include "Sg.h"\n')
         fp.write('static const uint32 %s_bmp[] = \n{'%(name))
-        IM = QImage(self.file)
-        for y in range(0,IM.size().height()):
+        IM = Image.open(self.file)
+        for y in range(0,IM.size[1]): # height
             fp.write('\n\t')
-            for x in range(0,IM.size().width()):
-                rgb = IM.pixel(x,y)
+            for x in range(0,IM.size[0]): # width
+                rgb = self.getPixel(IM,x,y)
                 if(name[:3]=='tt_'):
                     rgb = self.filterForTelltale(rgb)
                 fp.write('0x%-8X,'%(rgb))
@@ -105,14 +107,11 @@ class Sg():
         fp.write('{  /* %s */\n'%(aname))
         fp.write('\t/*x=*/%s,\n'%(X))
         fp.write('\t/*y=*/%s,\n'%(Y))
-        fp.write('\t/*w=*/%s,\n'%(IM.size().width()))
-        fp.write('\t/*h=*/%s,\n'%(IM.size().height()))
+        fp.write('\t/*w=*/%s,\n'%(IM.size[0])) # width
+        fp.write('\t/*h=*/%s,\n'%(IM.size[1])) # height
         fp.write('\t/*p=*/%s_bmp\n};\n'%(name))
 
 def GetSgImage(IML=[],fp=None):
-    if(__qt_support==False):
-        fp.write('#include "Sg.h"\n')
-        return
     for image in IML:
         if(fp != None):
             Sg(image[0]).toU8Pixel(fp,image[1],image[2])
@@ -137,10 +136,7 @@ def GenearteSgBMP(widget,fph,fpc):
     fp.write('static const SgBMP* %s_BMPS[%s] = \n{\n'%(widget.attrib['name'],size))
     for i,(file,x,y) in enumerate(IML):
         name = CName(os.path.basename(file))
-        if(__qt_support==False):
-            fp.write('\tNULL,\n')
-        else:
-            fp.write('\t&%s_BMP,\n'%(name))
+        fp.write('\t&%s_BMP,\n'%(name))
         fph.write("#define SGR_%-32s %s\n"%(name.upper(),i))
     fp.write('};\n\n')
     
