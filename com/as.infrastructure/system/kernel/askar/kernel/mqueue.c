@@ -13,9 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "mqueue.h"
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
+#include "mqueue.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include "asdebug.h"

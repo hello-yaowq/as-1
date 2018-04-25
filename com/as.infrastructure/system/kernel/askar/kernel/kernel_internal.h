@@ -21,8 +21,14 @@
 #ifdef USE_SHELL
 #include "shell.h"
 #endif
+#ifdef USE_PTHREAD
 #include "sched.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
+#ifndef USE_PTHREAD
+#undef OS_PTHREAD_NUM
+#define OS_PTHREAD_NUM 0
+#endif
 /*
  * BCC1 (only basic tasks, limited to one activation request per task and one task per
  * priority, while all tasks have different priorities)
@@ -334,6 +340,7 @@ typedef struct
 	TaskType* pFIFO;
 } ReadyFIFOType;
 
+#if(OS_PTHREAD_NUM > 0)
 #ifdef USE_PTHREAD_SIGNAL
 struct signal;
 #endif
@@ -361,6 +368,7 @@ struct pthread
 	void* arg;
 	void* ret;
 };
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 extern TaskVarType* RunningVar;

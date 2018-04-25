@@ -13,9 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <pthread.h>
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
+#include <pthread.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/times.h>

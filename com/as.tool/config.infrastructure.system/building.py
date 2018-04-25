@@ -408,16 +408,11 @@ def SrcRemove(src, remove):
                 src.remove(item)
 
 def RunCommand(cmd):
+    import subprocess
     if(GetOption('verbose')):
         print(' >> RunCommand "%s"'%(cmd))
     if(os.name == 'nt'):
-        cmds = cmd.split('&&')
-        fp = open('.scons.bat','w')
-        fp.write('@echo off\n')
-        for c in cmds:
-            fp.write('%s\n'%(c.strip()))
-        fp.close()
-        cmd = '.scons.bat'
+        cmd = cmd.replace('&&', '&')
     if(0 != os.system(cmd)):
         raise Exception('FAIL of RunCommand "%s"'%(cmd))
 
@@ -840,6 +835,6 @@ def Building(target, sobjs, env=None):
     env.Program(target,objs)
 
     if(IsPlatformWindows()):target += '.exe'
-    env['POSTACTION'].append('readelf -l %s'%(target))
+    #env['POSTACTION'].append('readelf -l %s'%(target))
     for action in env['POSTACTION']:
         env.AddPostAction(target, action)

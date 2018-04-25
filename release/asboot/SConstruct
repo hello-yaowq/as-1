@@ -28,11 +28,11 @@ try:
           CXXCOMSTR = 'CXX $SOURCE',
           LINKCOMSTR = 'LINK $TARGET'
         )
-    flsenv.Program(BOARD+'-flsdrv',flsobjs)
     target=BOARD+'-flsdrv'
     if(IsPlatformWindows()):target += '.exe'
+    flsenv.Program(target,flsobjs)
     action = '%s %s %s-flsdrv.s19'%(asenv['S19'],target,BOARD)
-    asenv['POSTACTION'].append(action)
+    flsenv.AddPostAction(target,action)
 except KeyError:
     print('there is no flash-drv!')
 

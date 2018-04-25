@@ -30,11 +30,11 @@ config CLIB_STRTOK_R
 	bool "string related"
 	default y
 
-config CLIB_NWELIB
+config CLIB_NEWLIB
 	bool "Newlib: a C library intended for use on embedded systems"
 	default n
 
-if CLIB_NWELIB
+if CLIB_NEWLIB
 config _SYS__PTHREADTYPES_H_
 	int
 	default 1

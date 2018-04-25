@@ -13,9 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include "signal.h"
 #include "kernel_internal.h"
 #if(OS_PTHREAD_NUM > 0)
+#include "signal.h"
 #ifdef USE_PTHREAD_SIGNAL
 #include <stdlib.h>
 #include <stdarg.h>
