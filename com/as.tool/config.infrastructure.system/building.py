@@ -284,7 +284,8 @@ def menuconfig(env):
     else:
         cmd += 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
     if(not os.path.exists(kconfig)):
-        RunCommand('cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT']))
+        cmd = 'cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT'])
+        RunCommand(cmd)
     if(os.path.exists(kconfig)):
         assert(os.path.exists('Kconfig'))
         cmd += kconfig + ' Kconfig'
@@ -294,6 +295,10 @@ def menuconfig(env):
             mtime = os.path.getmtime(fn)
         else:
             mtime = -1
+        if(IsPlatformWindows()):
+            cmd = '@echo off\n'+cmd.replace(' && ','\n')
+            MKFile('menuconfig.bat', cmd)
+            cmd = 'menuconfig.bat'
         RunCommand(cmd)
         print('press Ctrl+C to exit!')
         if(IsPlatformWindows()):
