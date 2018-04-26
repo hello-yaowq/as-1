@@ -29,34 +29,26 @@ I didn't get the dispatch(asm "svc 0") works now as it may hardfaut, so it can o
 
 # 2. Set up environment on windows
 
-## 2.1 install [python27 64bit](https://www.python.org) as C:\Python27
+## 2.1 install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
 
-## 2.2 install [scons 3.0.0 zip](http://scons.org/pages/download.html) for python27
+## 2.2 install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
 
-```sh
-cd scons-3.0.0
-C:\Python27\python.exe setup.py install
-```
-
-* Note: as now the scons doesn't support msys2, so if want to get the scons for gcc compiler works on windows, the mingw should be installed from www.mingw.org.
-
-## 2.3 install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
-
-## 2.4 install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
-
-## 2.5 then run below commands in cmd
+## 2.3 then run below commands in cmd
 
 ```sh
-set PATH=C:\Python27;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
+set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
 pacman -Sy
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
-pacman -S ncurses-devel gperf scons
+pacman -S ncurses-devel gperf
 pacman -Syuu
 wget https://pypi.python.org/packages/1f/3b/ee6f354bcb1e28a7cd735be98f39ecf80554948284b41e9f7965951befa6/pyserial-3.2.1.tar.gz#md5=7142a421c8b35d2dac6c47c254db023d
 tar xf pyserial-3.2.1.tar.gz
 cd pyserial-3.2.1
-C:/Anaconda3/python setup.py install
+python setup.py install
+conda install scons
 ```
+
+* Note: as now the scons doesn't support msys2, so if want to get the scons for gcc compiler works on windows, the mingw should be installed from www.mingw.org.
 
 # 3. How to build ascore and run
 
