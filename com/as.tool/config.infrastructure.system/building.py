@@ -26,7 +26,7 @@ class Win32Spawn:
 
         import subprocess
 
-        newargs = string.join(args[1:], ' ')
+        newargs = ' '.join(args[1:])
         cmdline = cmd + " " + newargs
 
         # Make sure the env is constructed by strings
@@ -135,7 +135,7 @@ def PrepareBuilding(env):
         env['python2'] = 'c:/Python27/python.exe'
         env['python'] =  'c:/Python27/python.exe'
         uname = RunSysCmd('uname')
-        if(uname.startswith('MSYS_NT')):
+        if('MSYS_NT' in str(uname)):
             print('build on %s, default assume 64 bit machine'%(uname.strip()))
             env['msys2'] = True
             env['pkgconfig'] = 'c:/msys64/mingw64/bin/pkg-config'
@@ -375,7 +375,7 @@ def MKObject(src, tgt, cmd):
     if(mtime2 < mtime):
         RunCommand(cmd)
 
-def MKFile(p,c='',m='wb'):
+def MKFile(p,c='',m='w'):
     f = open(p,m)
     f.write(c)
     f.close()

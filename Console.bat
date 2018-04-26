@@ -11,7 +11,7 @@ cd %ASPATH%
 if NOT EXIST "%ASPATH%\Console.bat" goto perror
 if NOT EXIST %MSYS2%\usr\bin goto install_msys2
 
-set PATH=C:\Anaconda3;C:\Python27;%MSYS2%\mingw64\bin;%MSYS2%\usr\bin;%MSYS2%\mingw32\bin;%PATH%
+set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;%MSYS2%\mingw64\bin;%MSYS2%\usr\bin;%MSYS2%\mingw32\bin;%PATH%
 
 if NOT EXIST "%ASPATH%\release\download" mkdir %ASPATH%\release\download
 
@@ -30,6 +30,7 @@ if EXIST "%ASPATH%\scons.bat" goto launchCZ
 REM pacman -Syuu
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
 pacman -S ncurses-devel gperf scons
+conda install scons
 echo @echo off > scons.bat
 echo @echo !!!SCONS on MSYS2!!! >> scons.bat
 echo %MSYS2%\usr\bin\python2.exe %MSYS2%\usr\bin\scons %%* >> scons.bat
