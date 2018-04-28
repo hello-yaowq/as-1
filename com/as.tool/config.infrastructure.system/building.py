@@ -70,7 +70,7 @@ def PrepareEnv(release):
     ASROOT=os.path.abspath('%s/../..'%(os.curdir))
     BOARD=None
 
-    asenv=Environment()
+    asenv=Environment(TOOLS=['as','gcc','g++','gnulink'])
     asenv['ASROOT'] = ASROOT
     asenv['RELEASE'] = release
     board_list = []
@@ -202,7 +202,7 @@ def mk_rtconfig(filename):
     if(not os.path.exists(rtcfg)):
         print('%s is not exits!'%(rtcfg))
     rtconfig = file(rtcfg, 'w')
-    rtconfig.write('#ifndef RT_CONFIG_H__\n')
+    rtconfig.write('#if !defined(RT_CONFIG_H__)\n')
     rtconfig.write('#define RT_CONFIG_H__\n\n')
 
     empty_line = 1
@@ -295,6 +295,10 @@ def menuconfig(env):
             mtime = os.path.getmtime(fn)
         else:
             mtime = -1
+        rtt = '%s/com/as.infrastructure/system/kernel/rtthread/rt-thread'%(env['ASROOT'])
+        if(not os.path.exists(rtt)):
+            MKDir(rtt)
+            MKFile(rtt+'/Kconfig', '')
         if(IsPlatformWindows()):
             cmd = '@echo off\n'+cmd.replace(' && ','\n')
             MKFile('menuconfig.bat', cmd)
@@ -362,8 +366,8 @@ def WGET(url, tgt):
         import wget
         wget.download(url, tgt)
 
-def MKObject(src, tgt, cmd):
-    if(GetOption('clean')):
+def MKObject(src, tgt, cmd, rm=True):
+    if(GetOption('clean') and rm):
         RMFile(tgt)
         return
     mtime = 0
@@ -432,13 +436,13 @@ def DefineGroup(name, src, depend, **parameters):
     global Env
     if not GetDepend(depend):
         return []
-    if parameters.has_key('CCFLAGS'):
+    if('CCFLAGS' in parameters):
         Env.AppendUnique(CCFLAGS = parameters['CCFLAGS'])
-    if parameters.has_key('CPPPATH'):
+    if('CPPPATH' in parameters):
         Env.AppendUnique(CPPPATH = parameters['CPPPATH'])
-    if parameters.has_key('CPPDEFINES'):
+    if('CPPDEFINES' in parameters):
         Env.AppendUnique(CPPDEFINES = parameters['CPPDEFINES'])
-    if parameters.has_key('LINKFLAGS'):
+    if('LINKFLAGS' in parameters):
         Env.AppendUnique(LINKFLAGS = parameters['LINKFLAGS'])
     objs = []    
     for obj in src:
@@ -450,24 +454,24 @@ def AddDepend(option):
 
 def GetDepend(depend):
     building = True
-    if type(depend) == type('str'):
-        if not BuildOptions.has_key(depend) or BuildOptions[depend] == 0:
+    if(type(depend) == type('str')):
+        if((not (depend in BuildOptions)) or (BuildOptions[depend] == 0)):
             building = False
-        elif BuildOptions[depend] != '':
+        elif(BuildOptions[depend] != ''):
             return BuildOptions[depend]
 
         return building
 
     # for list type depend
     for item in depend:
-        if item != '':
-            if not BuildOptions.has_key(item) or BuildOptions[item] == 0:
+        if(item != ''):
+            if((not (item in BuildOptions)) or (BuildOptions[item] == 0)):
                 building = False
 
     return building
 
 def GetConfigValue(name):
-    assert type(name) == str, 'GetConfigValue: only string parameter is valid'
+    assert(type(name) == str, 'GetConfigValue: only string parameter is valid')
     try:
         return BuildOptions[name]
     except:
@@ -515,7 +519,8 @@ def GetELFEnv(so=True):
                       CCFLAGS=Env['CCFLAGS']+['-fPIC'],
                       LINKFLAGS=['-e','main','-fPIC','-s','-nostdlib','-T','%s/aself.lds'%(cwd)],
                       SHLINKFLAGS=['-fPIC','-shared','-s','-nostdlib',
-                                   '-T','%s/aself.lds'%(cwd)])
+                                   '-T','%s/aself.lds'%(cwd)],
+                      TOOLS = Env['TOOLS'])
     for flg in ['-ffunction-sections','-fdata-sections','-g']:
         if(flg in env['CCFLAGS']):
             env['CCFLAGS'].remove(flg)

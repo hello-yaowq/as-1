@@ -15,7 +15,7 @@ objs = SConscript('%s/com/SConscript'%(ASROOT),variant_dir=bdir, duplicate=0)
 try:
     flsdrv = asenv['flsdrv']
     flsobjs = flsdrv['objs']
-    flsenv = Environment(CC=asenv['CC'], LINK=asenv['LINK'],
+    flsenv = Environment(CC=asenv['CC'], LINK=asenv['LINK'], TOOLS=asenv['TOOLS'],
                          CPPDEFINES=flsdrv['CPPDEFINES'],CPPPATH=flsdrv['CPPPATH'],
                          CCFLAGS=flsdrv['CCFLAGS'], LINKFLAGS=flsdrv['LINKFLAGS'])
     if(not GetOption('verbose')):

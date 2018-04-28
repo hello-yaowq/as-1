@@ -23,7 +23,7 @@ if((IsPlatformWindows()) and asenv['msys2']):
     src = Glob('%s/src/*.c'%(lwext4))
     tgt = '%s/build_generic/fs_test/lwext4-mkfs.exe'%(lwext4)
     cmd = 'cd %s && make && cd build_generic && make'%(lwext4)
-    MKObject(src, tgt, cmd)
+    MKObject(src, tgt, cmd, False)
 
 objs = []
 

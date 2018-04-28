@@ -53,7 +53,7 @@ class RTCONFIG():
         PatchedPreProcessor.stop_handling_includes = stop_handling_includes
         # parse rtconfig.h to get used component
         PreProcessor = PatchedPreProcessor()
-        f = file('%s/menuconfig/rtconfig.h'%(cwd), 'r')
+        f = open('%s/menuconfig/rtconfig.h'%(cwd), 'r')
         contents = f.read()
         f.close()
         PreProcessor.process_contents(contents)
@@ -72,8 +72,9 @@ Export('remove_components')
 Export('RTT_ROOT')
 Export('rtconfig')
 
-if(not os.path.exists(rtroot)):
+if(not os.path.exists('%s/release/download/rt-thread'%(asenv['ASROOT']))):
     RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
+    RMDir(rtroot)
 
 MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
 
