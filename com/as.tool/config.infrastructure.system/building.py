@@ -284,8 +284,7 @@ def menuconfig(env):
     else:
         cmd += 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
     if(not os.path.exists(kconfig)):
-        cmd = 'cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT'])
-        RunCommand(cmd)
+        RunCommand('cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT']))
     if(os.path.exists(kconfig)):
         assert(os.path.exists('Kconfig'))
         cmd += kconfig + ' Kconfig'
