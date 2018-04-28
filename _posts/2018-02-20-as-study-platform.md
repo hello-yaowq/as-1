@@ -48,8 +48,6 @@ python setup.py install
 conda install scons
 ```
 
-* Note: as now the scons doesn't support msys2, so if want to get the scons for gcc compiler works on windows, the mingw should be installed from www.mingw.org.
-
 # 3. How to build ascore and run
 
 This is very easy!
