@@ -321,7 +321,7 @@ endif
 	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))	
 	@echo "  >> pysip build done "
 
-dep-pyas:
+dep-pyas: aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/pyas TRUE)

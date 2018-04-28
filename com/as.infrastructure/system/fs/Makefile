@@ -34,6 +34,8 @@ $(download)/ff13.zip:
 
 $(download)/ff13:$(download)/ff13.zip
 	@(cd $(download);mkdir ff13;cd ff13;unzip $(download)/ff13.zip; rm source/diskio.c)
+	@(cd $(download)/ff13/source; sed -i "138c #define FF_FS_RPATH        2" ffconf.h; \
+		sed -i "41c #define FF_USE_MKFS        1" ffconf.h)
 
 $(download)/ffsample.zip:
 	@(cd $(download);wget http://elm-chan.org/fsw/ff/ffsample.zip)
