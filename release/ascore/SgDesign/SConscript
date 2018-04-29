@@ -18,7 +18,7 @@ doneFlag = '%s/SgRes/%s.done'%(cwd,sgapp)
 if((not os.path.exists(doneFlag)) and (not asenv.GetOption('clean'))):
     RMDir('%s/SgRes'%(cwd))
     MKDir('%s/SgRes'%(cwd))
-    RunCommand('cd %s && %s %s/com/as.tool/config.infrastructure.gui/Sg.py %s/%s/Sg.xml'%(cwd,asenv['python3'],asenv['ASROOT'],cwd,sgapp))
+    RunCommand('cd %s && %s %s/com/as.tool/config.infrastructure.gui/Sg.py %s/%s/Sg.xml'%(cwd,env['python3'],asenv['ASROOT'],cwd,sgapp))
     MKFile(doneFlag)
 
 if(asenv.GetOption('clean')):

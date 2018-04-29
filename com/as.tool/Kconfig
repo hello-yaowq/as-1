@@ -25,15 +25,5 @@ config MSYS2_GCC_PATH
 	default "c:/msys64/mingw64/bin"
 	depends on (PLATFORM_MINGW || PLATFORM_MSYS2)
 
-config PYTHON2_PATH
-	string "directory path of python version 2.x"
-	default "c:/Python27"
-	depends on (PLATFORM_MINGW || PLATFORM_MSYS2)
-
-config PYTHON3_PATH
-	string "directory path of python version 3.x"
-	default "c:/Anaconda3"
-	depends on (PLATFORM_MINGW || PLATFORM_MSYS2)
-
 endmenu
 

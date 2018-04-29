@@ -111,16 +111,10 @@ def PrepareBuilding(env):
     global Env
     Env = env
     GetConfig('.config',env)
-    env['python3'] = 'python3'
-    env['python2'] = 'python2'
-    env['python'] = 'python'
     env['pkgconfig'] = 'pkg-config'
     env['msys2'] = False
     env['POSTACTION'] = []
     if(IsPlatformWindows() and (env['CONFIGS'] != None)):
-        env['python3'] = env['CONFIGS']['PYTHON3_PATH'] + '/python'
-        env['python2'] = env['CONFIGS']['PYTHON2_PATH'] + '/python'
-        env['python']  = env['CONFIGS']['PYTHON2_PATH'] + '/python'
         if('PLATFORM_MINGW' in env['MODULES']):
             env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
             env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
@@ -131,9 +125,6 @@ def PrepareBuilding(env):
             env['pkgconfig'] = mpath + '/pkg-config'
             env['EXTRAPATH'] = '%s;%s'%(mpath, os.path.abspath(mpath+'/../usr/bin'))
     elif(IsPlatformWindows()):
-        env['python3'] = 'c:/Anaconda3/python.exe'
-        env['python2'] = 'c:/Python27/python.exe'
-        env['python'] =  'c:/Python27/python.exe'
         uname = RunSysCmd('uname')
         if('MSYS_NT' in str(uname)):
             print('build on %s, default assume 64 bit machine'%(uname.strip()))
@@ -142,16 +133,12 @@ def PrepareBuilding(env):
             env['CC'] = 'c:/msys64/mingw64/bin/gcc'
             env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
             env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
+    env['python3'] = 'python3'
     if(IsPlatformWindows()):
+        env['python3'] = 'python'
         env.AppendENVPath('PATH', os.getenv('PATH'))
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
-    if(0 != os.system('%s --version'%(env['python3']))):
-        raise Exception('no python3 installed, fix the path maybe!')
-    if(0 != os.system('%s --version'%(env['python2']))):
-        raise Exception('no python2 installed, fix the path maybe!')
-    if(0 != os.system('%s --version'%(env['python']))):
-        raise Exception('no python installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['pkgconfig']))):
         raise Exception('no pkg-config installed, fix the path maybe!')
     if(0 != os.system('%s --version'%(env['CC']))):
@@ -277,12 +264,24 @@ def GetConfig(cfg,env):
 def menuconfig(env):
     import time
     kconfig = '%s/com/as.tool/kconfig-frontends/kconfig-mconf'%(env['ASROOT'])
-    cmd = ''
     if(IsPlatformWindows()):
         kconfig += '.exe'
-        cmd += 'set BOARD=%s && set ASROOT=%s && start cmd /C '%(env['BOARD'],env['ASROOT'])
+        cmd2  = 'cd %s/com/as.tool/kconfig-frontends'%(env['ASROOT'])
+        cmd2 += ' && wget http://distortos.org/files/kconfig-frontends-3.12.0-windows.7z'
+        for disk in ['C:/','D:/','E:/','F:/']:
+            for prg in ['Program Files (x86)','Program Files','ProgramData']:
+                _7z = os.path.join(disk, prg, '7-Zip/7z.exe')
+                if(os.path.exists(_7z)): break
+            if(os.path.exists(_7z)): break
+        if(not os.path.exists(_7z)):
+            raise Exception('Please Install 7z(https://www.7-zip.org/download.html)')
+        cmd2 += ' && "%s" e kconfig-frontends-3.12.0-windows.7z'%(_7z)
+        cmd2 += ' && "%s" e kconfig-frontends-3.12.0-windows'%(_7z)
+        if(not os.path.exists(kconfig)):
+            RunCommand(cmd2)
+        cmd = 'set BOARD=%s && set ASROOT=%s && start cmd /C '%(env['BOARD'],env['ASROOT'])
     else:
-        cmd += 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
+        cmd = 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
     if(not os.path.exists(kconfig)):
         RunCommand('cd %s/com/as.tool/kconfig-frontends && make'%(env['ASROOT']))
     if(os.path.exists(kconfig)):
@@ -353,13 +352,10 @@ def RMFile(p):
 
 def WGET(url, tgt):
     def __install_wget():
-        ASROOT = Env['ASROOT']
-        url = 'https://pypi.python.org/packages/47/6a/62e288da7bcda82b935ff0c6cfe542970f04e29c756b0e147251b2fb251f/wget-3.2.zip'
-        wget = '%s/release/download/wget-3.2'%(ASROOT)
-        if(not os.path.exists('%s/wget.py'%(wget))):
-            RunCommand('cd %s/release/download && wget %s && unzip wget-3.2.zip'%(ASROOT, url))
-        if(wget not in sys.path):
-            sys.path.append(wget)
+        try:
+            import wget
+        except:
+            RunCommand('pip install wget')
     __install_wget()
     if(not os.path.isfile(tgt)):
         import wget
@@ -470,7 +466,6 @@ def GetDepend(depend):
     return building
 
 def GetConfigValue(name):
-    assert(type(name) == str, 'GetConfigValue: only string parameter is valid')
     try:
         return BuildOptions[name]
     except:
