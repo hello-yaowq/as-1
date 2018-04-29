@@ -12,7 +12,7 @@ newlib='%s/newlib-3.0.0'%(download)
 
 if(not os.path.exists(newlib)):
     MKDir(download)
-    cmd = 'cd %s && wget ftp://sourceware.org/pub/newlib/newlib-3.0.0.tar.gz'%(download)
+    cmd = 'cd %s && curl -O ftp://sourceware.org/pub/newlib/newlib-3.0.0.tar.gz'%(download)
     cmd += ' && tar xf newlib-3.0.0.tar.gz'
     RunCommand(cmd)
 
@@ -20,9 +20,9 @@ MKSymlink(newlib,'%s/newlib'%(cwd))
 
 libgcc2 = 'https://raw.githubusercontent.com/gcc-mirror/gcc/master'
 MKDir('%s/libgcc'%(cwd))
-WGET('%s/libgcc/libgcc2.c'%(libgcc2),'%s/libgcc/libgcc2.c'%(cwd))
-WGET('%s/libgcc/libgcc2.h'%(libgcc2),'%s/libgcc/libgcc2.h'%(cwd))
-WGET('%s/include/longlong.h'%(libgcc2),'%s/libgcc/longlong.h'%(cwd))
+CURL('%s/libgcc/libgcc2.c'%(libgcc2),'%s/libgcc/libgcc2.c'%(cwd))
+CURL('%s/libgcc/libgcc2.h'%(libgcc2),'%s/libgcc/libgcc2.h'%(cwd))
+CURL('%s/include/longlong.h'%(libgcc2),'%s/libgcc/longlong.h'%(cwd))
 
 RMFile('%s/newlib/libc/include/signal.h'%(newlib))
 RMFile('%s/newlib/libc/include/sched.h'%(newlib))

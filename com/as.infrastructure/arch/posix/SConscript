@@ -60,7 +60,7 @@ if('LWIP' in MODULES):
     if(IsPlatformWindows()):
         pcap='%s/WpdPack'%(download)
         if(not os.path.exists(pcap)):
-            RunCommand('''cd %s && wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
+            RunCommand('''cd %s && curl -O https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
                 unzip WpdPack_4_1_2.zip'''%(download))
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
         asenv.Append(CPPPATH=['%s/WpdPack/Include'%(cwd)])

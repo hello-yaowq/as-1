@@ -14,7 +14,7 @@ objs = []
 if(not os.path.exists(fatfs)):
     MKDir(download)
     cmd = 'cd %s'%(download)
-    cmd += ' && wget http://elm-chan.org/fsw/ff/arc/ff13.zip'
+    cmd += ' && curl -O http://elm-chan.org/fsw/ff/arc/ff13.zip'
     cmd += ' && mkdir ff13 && cd ff13 && unzip ../ff13.zip && rm source/diskio.c'
     cmd += ' && cd source'
     cmd += ' && sed -i "138c #define FF_FS_RPATH        2" ffconf.h'

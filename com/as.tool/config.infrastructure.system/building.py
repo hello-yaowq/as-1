@@ -268,7 +268,7 @@ def menuconfig(env):
         kconfig += '.exe'
         cmd2  = 'cd %s/com/as.tool/kconfig-frontends'%(env['ASROOT'])
         kurl = 'http://distortos.org/files/kconfig-frontends-3.12.0-windows.7z'
-        cmd2 += ' && wget %s'%(kurl)
+        cmd2 += ' && curl -O %s'%(kurl)
         for disk in ['C:/','D:/','E:/','F:/']:
             for prg in ['Program Files (x86)','Program Files','ProgramData']:
                 _7z = os.path.join(disk, prg, '7-Zip/7z.exe')
@@ -277,7 +277,6 @@ def menuconfig(env):
         if(not os.path.exists(_7z)):
             raise Exception('Please Install 7z(https://www.7-zip.org/download.html)')
         cmd2 += ' && "%s" e kconfig-frontends-3.12.0-windows.7z'%(_7z)
-        cmd2 += ' && "%s" e kconfig-frontends-3.12.0-windows'%(_7z)
         if(not os.path.exists(kconfig)):
             RunCommand(cmd2)
         if(not os.path.exists(kconfig)):
@@ -343,16 +342,12 @@ def RMFile(p):
         print('removing %s'%(os.path.abspath(p)))
         os.remove(os.path.abspath(p))
 
-def WGET(url, tgt):
-    def __install_wget():
-        try:
-            import wget
-        except:
-            RunCommand('pip install wget')
-    __install_wget()
-    if(not os.path.isfile(tgt)):
-        import wget
-        wget.download(url, tgt)
+def CURL(url, tgt=None):
+    # curl is better than wget on msys2
+    if(tgt != None):
+        RunCommand('curl %s -o %s'%(url,tgt))
+    else:
+        RunCommand('curl -O %s'%(url))
 
 def MKObject(src, tgt, cmd, rm=True):
     if(GetOption('clean') and rm):
@@ -672,7 +667,7 @@ class splint():
             pkg = 'http://www.splint.org/downloads/splint-3.1.2.src.tgz'
             lintdir = 'splint-3.1.2'
         if(not os.path.exists('%s/release/download/%s'%(ASROOT,lintdir))):
-            RunCommand('cd %s/release/download && wget %s'%(ASROOT,pkg))
+            RunCommand('cd %s/release/download && curl -O %s'%(ASROOT,pkg))
             if(IsPlatformWindows()):
                 RunCommand('cd %s/release/download && unzip %s'%(ASROOT,os.path.basename(pkg)))
             else:
@@ -715,7 +710,7 @@ def SelectCompilerArmNoneEabi():
         gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
         cpl = '%s/release/download/%s'%(ASROOT,gccarm)
         if(not os.path.exists(cpl)):
-            RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
+            RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
         Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
         Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
         Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
@@ -739,7 +734,7 @@ def SelectCompilerArm64():
     gccsrc = 'https://releases.linaro.org/components/toolchain/binaries/latest/aarch64-elf/%s.tar.xz'%(gccarm)
     cpl = '%s/release/download/%s'%(ASROOT,gccarm)
     if(not os.path.exists(cpl)):
-        RunCommand('cd %s/release/download && wget %s && tar xf %s.tar.xz'%(ASROOT,gccsrc,gccarm))
+        RunCommand('cd %s/release/download && curl -O %s && tar xf %s.tar.xz'%(ASROOT,gccsrc,gccarm))
     Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99 -fno-stack-protector'%(cpl)
     Env['CXX']='%s/bin/aarch64-elf-g++'%(cpl)
     Env['AS']='%s/bin/aarch64-elf-gcc -c'%(cpl)
@@ -753,7 +748,7 @@ def SelectCompilerX86():
         gccsrc= 'https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/i686-elf-tools-windows.zip'
         cpl = '%s/release/download/%s'%(ASROOT,gccx86)
         if(not os.path.exists(cpl)):
-            RunCommand('cd %s/release/download && wget %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccx86,gccx86,gccx86))
+            RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccx86,gccx86,gccx86))
         Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
         Env['AS']   = '%s/bin/i686-elf-gcc -m32'%(cpl)
         Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
