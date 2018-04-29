@@ -13,6 +13,23 @@ okay, no need to talk much about it as it was a famous open source artificial in
 
 It's really not good as in china we have been limited by the party so we can't access some resources outside the big firewall, yes we can use VPN, so follow the [install guide](http://wiki.jikexueyuan.com/project/tensorflow-zh/get_started/os_setup.html), and the way to install through [Anaconda](https://www.anaconda.com/) is the best way, luckily Anaconda was accessable even without VPN.
 
+### setup on [windows 10](http://blog.nitishmutha.com/tensorflow/2017/01/22/TensorFlow-with-gpu-for-windows.html)
+
+```sh
+conda create -n tensorflow
+activate tensorflow
+pip install tensorflow-gpu
+git clone https://github.com/tensorflow/models.git
+```
+
+### setup on [Ubuntu 16.04](https://www.linkedin.com/pulse/installing-nvidia-cuda-80-ubuntu-1604-linux-gpu-new-victor)
+```sh
+sudo service lightdm stop
+echo -e "blacklist nouveau\nblacklist lbm-nouveau\noptions nouveau modeset=0\nalias nouveau off\nalias lbm-nouveau off\n" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf
+echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf
+sudo update-initramfs -u
+```
+
 ## tensorflow - an example do object detection
 
 This [object detection model](https://github.com/tensorflow/models/tree/master/research/object_detection) is really a good start point to have a try of tensorflow to see what it can do, it's very good. Also there are many other models that could do really a lot of things, I am planing to try them one by one if possible.
