@@ -267,7 +267,8 @@ def menuconfig(env):
     if(IsPlatformWindows()):
         kconfig += '.exe'
         cmd2  = 'cd %s/com/as.tool/kconfig-frontends'%(env['ASROOT'])
-        cmd2 += ' && wget http://distortos.org/files/kconfig-frontends-3.12.0-windows.7z'
+        kurl = 'http://distortos.org/files/kconfig-frontends-3.12.0-windows.7z'
+        cmd2 += ' && wget %s'%(kurl)
         for disk in ['C:/','D:/','E:/','F:/']:
             for prg in ['Program Files (x86)','Program Files','ProgramData']:
                 _7z = os.path.join(disk, prg, '7-Zip/7z.exe')
@@ -279,7 +280,9 @@ def menuconfig(env):
         cmd2 += ' && "%s" e kconfig-frontends-3.12.0-windows'%(_7z)
         if(not os.path.exists(kconfig)):
             RunCommand(cmd2)
-        cmd = 'set BOARD=%s && set ASROOT=%s && start cmd /C '%(env['BOARD'],env['ASROOT'])
+        if(not os.path.exists(kconfig)):
+            raise Exception('please download %s and extract it as %s'%(kurl, kconfig))
+        cmd = 'set BOARD=%s && set ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
     else:
         cmd = 'export BOARD=%s && export ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
     if(not os.path.exists(kconfig)):
@@ -302,16 +305,6 @@ def menuconfig(env):
             MKFile('menuconfig.bat', cmd)
             cmd = 'menuconfig.bat'
         RunCommand(cmd)
-        print('press Ctrl+C to exit!')
-        if(IsPlatformWindows()):
-            while(True): 
-                time.sleep(1)
-                if(os.path.isfile(fn)):
-                    mtime2 = os.path.getmtime(fn)
-                else:
-                    mtime2 = -1
-                if(mtime != mtime2):
-                    break
         if(os.path.isfile(fn)):
             mtime2 = os.path.getmtime(fn)
         else:
