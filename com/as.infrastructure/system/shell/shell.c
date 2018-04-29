@@ -109,6 +109,9 @@ static char     ibuffer[IBUFFER_MAX];
 void SHELL_input(char c)
 {
 	imask_t imask;
+	if(c == '\r')
+		return;
+
 	if(isize < IBUFFER_MAX)
 	{
 		ibuffer[wpos] = c;
@@ -398,7 +401,7 @@ int SHELL_Mainloop( void ) {
 			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
 			#endif
-		} else if( (c == '\n') || (c == '\r') ) {
+		} else if( c == '\n' ) {
 			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);
 			#endif
