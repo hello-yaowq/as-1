@@ -2,8 +2,12 @@
 
 # according to https://www.tensorflow.org/get_started/mnist/beginners
 # pip install --ignore-installed --upgrade tensorflow
+
+# http://deeplearning.net/tutorial/gettingstarted.html
+
 import os
 import sys
+from PIL import Image
 
 # download of MNIST data
 if(not os.path.exists('train-images-idx3-ubyte.gz')):
@@ -15,13 +19,14 @@ if(not os.path.exists('train-images-idx3-ubyte.gz')):
 # hack of the MNIST data 
 def extract_mnist_image(image, label, p, limit=1000):
     if(not os.path.exists(p)): os.mkdir(p)
+    def U32(b):
+        return (b[0]<<24)+(b[1]<<16)+(b[2]<<8)+(b[3]<<0)
+
+    def RGB(b):
+        if(0 == b[0]):
+            return (0xFF,0xFF,0xFF)
+        return (b[0],0,0)
     with gzip.open(image,'rb') as f:
-        def U32(b):
-            return (b[0]<<24)+(b[1]<<16)+(b[2]<<8)+(b[3]<<0)
-        def RGB(b):
-            if(0 == b[0]):
-                return 0xFFFFFFFF
-            return b[0]
         f2 = gzip.open(label,'rb')
         magic = U32(f.read(4))
         print('magic', magic)
@@ -37,11 +42,11 @@ def extract_mnist_image(image, label, p, limit=1000):
         print('number of labels', number2)
         assert(number == number2)
         for i in range(number):
-            img = QImage(raws,cols,QImage.Format_RGB32)
+            img = Image.new('RGB',(raws,cols),(255,255,255))
+            pixels = img.load()
             for w in range(raws):
                 for h in range(cols):
-                    rgb = RGB(f.read(1))
-                    img.setPixel(w,h,rgb)
+                    pixels[w,h] = RGB(f.read(1))
             iname = '%s/img%d_%d.png'%(p,i,f2.read(1)[0])
             img.save(iname,'PNG')
             if(i > limit):
@@ -52,9 +57,6 @@ def extract_mnist_image(image, label, p, limit=1000):
 
 if(not os.path.exists('tmp')):
     import gzip
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtGui import QImage
-    app = QApplication(sys.argv)
     os.mkdir('tmp')
     extract_mnist_image('train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 'tmp/train')
     extract_mnist_image('t10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz', 'tmp/test')
@@ -83,23 +85,19 @@ print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}
 
 index = 10
 while(index >= 0):
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtGui import QImage
-    app = QApplication(sys.argv)
     index = input('index of test image of MNIST:')
     index = int(index)
     if(index < 0): break
     # save the test image to png file for check
-    img = QImage(28,28,QImage.Format_RGB32)
+    img = Image.new('RGB',(28,28),(255,255,255))
+    pixels = img.load()
+    def RGB(b):
+        if(0 == b):
+            return (0xFF,0xFF,0xFF)
+        return (int((b*255))&0xFF,0,0)
     for i,b in enumerate(mnist.test.images[index]):
-        def RGB(b):
-            if(0 == b):
-                return 0xFFFFFFFF
-            return int((b*255))&0xFF
-        rgb = RGB(b)
-        img.setPixel(int(i/28),i%28,rgb)
-        iname = 'test.png'
-        img.save(iname,'PNG')
+        pixels[int(i/28),i%28] = RGB(b)
+    img.save('test.png','PNG')
 
     a = sess.run(y, feed_dict={x: mnist.test.images[index:index+1]})
     for i,p in enumerate(a[0]):
@@ -108,3 +106,4 @@ while(index >= 0):
         else:
             fix = 'N'
         print('[%d](./test.png) is %02d%% percent to be %s %s'%(index,int(p*100),i,fix))
+
