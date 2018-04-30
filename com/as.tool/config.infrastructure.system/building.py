@@ -344,10 +344,9 @@ def RMFile(p):
 
 def CURL(url, tgt=None):
     # curl is better than wget on msys2
-    if(tgt != None):
-        RunCommand('curl %s -o %s'%(url,tgt))
-    else:
-        RunCommand('curl -O %s'%(url))
+    if(tgt == None):
+        tgt = url.split('/')[-1]
+    RunCommand('curl %s -o %s'%(url,tgt))
 
 def MKObject(src, tgt, cmd, rm=True):
     if(GetOption('clean') and rm):
