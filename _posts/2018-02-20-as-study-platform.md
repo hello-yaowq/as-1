@@ -120,7 +120,7 @@ For the purpose to use it, it must compiles the aslua firstly to build out the n
 Run command "make clean && make aslua" in the panel of aslua of the Console, but as the issue of msys2, you will encounter below error maybe.
 
 ```sh
-D:\repository\as\release\ascore>make aslua
+D:\repository\as\release\aslua>make aslua
 ....
 D:/repository/as/release/aslua/out/libaws.a(random_seed.o): In function `GetCurrentFiber':
 C:/msys64/mingw64/x86_64-w64-mingw32/include/winnt.h:8604: multiple definition of `GetCurrentFiber'
