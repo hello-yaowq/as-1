@@ -16,10 +16,24 @@ It's really not good as in china we have been limited by the party so we can't a
 ### setup on [windows 10](http://blog.nitishmutha.com/tensorflow/2017/01/22/TensorFlow-with-gpu-for-windows.html)
 
 ```sh
-conda create -n tensorflow
-activate tensorflow
+conda create -n tensorflow-gpu python=3.6.4
+activate tensorflow-gpu
 pip install tensorflow-gpu
 git clone https://github.com/tensorflow/models.git
+```
+
+### build on [windows 10](https://medium.com/@vina.wt.chang/build-tensorflow-from-source-with-cmake-on-windows-c47ffb8e1bf7) [README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/cmake/README.md)
+
+```sh
+cd tensorflow\contrib\cmake
+mkdir build
+cd build
+set PATH=C:\opt\cmake-3.11.1-win64-x64\bin;%PATH%
+set CMAKE_C_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.13.26128\bin\Hostx64\x64\cl.exe
+set CMAKE_CXX_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.13.26128\bin\Hostx64\x64\cl.exe
+cmake .. -A x64 -DCMAKE_BUILD_TYPE=Release -DSWIG_EXECUTABLE=C:\opt\swigwin-3.0.12\swig.exe -DPYTHON_EXECUTABLE=C:/Anaconda3/envs/tensorflow-gpu/python.exe -DPYTHON_LIBRARIES=C:/Anaconda3/envs/tensorflow-gpu/libs/python36.lib -DPYTHON_INCLUDE_DIRS=C:/Anaconda3/envs/tensorflow-gpu/include -Dtensorflow_WIN_CPU_SIMD_OPTIONS=/arch:AVX2 -Dtensorflow_ENABLE_GPU=ON -DCUDNN_HOME="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.1"
+set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin;%PATH%
+MSBuild /p:Configuration=Release tf_python_build_pip_package.vcxproj
 ```
 
 ### setup on [Ubuntu 16.04](https://www.linkedin.com/pulse/installing-nvidia-cuda-80-ubuntu-1604-linux-gpu-new-victor)
