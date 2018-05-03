@@ -317,3 +317,9 @@ x86
 aself.lds
 com/as.infrastructure/clib/newlib/libgcc
 release/ascore/virt
+*.gz
+*.png
+*.bat
+*.s19
+*.out
+*.7z

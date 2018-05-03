@@ -346,7 +346,8 @@ def CURL(url, tgt=None):
     # curl is better than wget on msys2
     if(tgt == None):
         tgt = url.split('/')[-1]
-    RunCommand('curl %s -o %s'%(url,tgt))
+    if(not os.path.exists(tgt)):
+        RunCommand('curl %s -o %s'%(url,tgt))
 
 def MKObject(src, tgt, cmd, rm=True):
     if(GetOption('clean') and rm):
