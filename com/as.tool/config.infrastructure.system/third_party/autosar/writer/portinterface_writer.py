@@ -1,18 +1,58 @@
-from autosar.writer.writer_base import WriterBase
+from autosar.writer.writer_base import ElementWriter
 import autosar.portinterface
 
-class PortInterfaceWriter(WriterBase):
-   def __init__(self,version):
-      super().__init__(version)
+class XMLPortInterfaceWriter(ElementWriter):
+   def __init__(self,version, patch):
+      super().__init__(version, patch)
+      
+      if self.version >= 3.0 and self.version < 4.0:
+         self.switcher = {
+                          'SoftwareAddressMethod': self.writeSoftwareAddressMethodXML,
+                          'ModeDeclarationGroup': self.writeModeDeclarationGroupXML,
+                          'SenderReceiverInterface': self.writeSenderReceiverInterfaceXML,
+                          'ParameterInterface': self.writeCalPrmInterfaceXML,
+                          'ClientServerInterface': self.writeClientServerInterfaceXML,
+
+         }
+      elif self.version >= 4.0:
+         self.switcher = {
+                           'ModeDeclarationGroup': self.writeModeDeclarationGroupXML,
+                           'ClientServerInterface': self.writeClientServerInterfaceXML,
+                           'ModeSwitchInterface': self.writeModeSwitchInterfaceXML,
+                           'SenderReceiverInterface': self.writeSenderReceiverInterfaceXML,
+                           'ParameterInterface': self.writeParameterInterfaceXML,
+                           'SoftwareAddressMethod': self.writeSoftwareAddressMethodXML,
+         }
+      else:
+         switch.keys = {}
+
+   def getSupportedXML(self):
+      return self.switcher.keys()
+
+   def getSupportedCode(self):
+      return []
+
+   def writeElementXML(self, elem):
+      xmlWriteFunc = self.switcher.get(type(elem).__name__)
+      if xmlWriteFunc is not None:
+         return xmlWriteFunc(elem)
+      else:
+         return None
    
-   def writeSenderReceiverInterfaceXML(self, portInterface,package):      
+   def writeElementCode(self, elem, localvars):
+      raise NotImplementedError('writeElementCode')
+   
+   def writeSenderReceiverInterfaceXML(self, portInterface):      
       assert(isinstance(portInterface,autosar.portinterface.SenderReceiverInterface))
+      ws = portInterface.rootWS()
       lines=[]      
       lines.append('<SENDER-RECEIVER-INTERFACE>')
       lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%portInterface.name,1))
       if portInterface.adminData is not None:
          lines.extend(self.indent(self.writeAdminDataXML(portInterface.adminData),1))
       lines.append(self.indent('<IS-SERVICE>%s</IS-SERVICE>'%self.toBoolean(portInterface.isService),1))
+      if (self.version >= 4.0) and (portInterface.serviceKind is not None):
+         lines.append(self.indent('<SERVICE-KIND>%s</SERVICE-KIND>'%portInterface.serviceKind,1))
       if len(portInterface.dataElements)>0:
          lines.append(self.indent('<DATA-ELEMENTS>',1))
          for elem in portInterface.dataElements:
@@ -23,35 +63,25 @@ class PortInterfaceWriter(WriterBase):
       if portInterface.modeGroups is not None:
          lines.append(self.indent('<MODE-GROUPS>',1))
          for group in portInterface.modeGroups:
-            lines.extend(self.indent(self.writeModeGroupsXML(group),2))   
+            lines.extend(self.indent(self.writeModeGroupXML(group),2))   
          lines.append(self.indent('</MODE-GROUPS>',1))         
+      if len(portInterface.invalidationPolicies)>0:
+         lines.append(self.indent('<INVALIDATION-POLICYS>',1))
+         for invalidationPolicy in portInterface.invalidationPolicies:
+            lines.extend(self.indent(self.writeInvalidationPolicyXML(ws, invalidationPolicy),2))
+         lines.append(self.indent('</INVALIDATION-POLICYS>',1))
       lines.append('</SENDER-RECEIVER-INTERFACE>')      
       return lines
 
-   def writeDataElementXML(self,elem):
-      assert(isinstance(elem,autosar.portinterface.DataElement))
-      lines=[]
-      lines.append('<DATA-ELEMENT-PROTOTYPE>')
-      lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%elem.name,1))
-      ws = elem.rootWS()
-      typeElem = ws.find(elem.typeRef, role="DataType")
-      if (typeElem is None):
-         raise ValueError("invalid type reference: '%s'"%elem.typeRef)
-      else:
-         lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),1))
-      lines.append(self.indent('<IS-QUEUED>%s</IS-QUEUED>'%self.toBoolean(elem.isQueued),1))
-      lines.append('</DATA-ELEMENT-PROTOTYPE>')
-      return lines
-
-   def writeParameterInterfaceXML(self, portInterface,package):
+   def writeCalPrmInterfaceXML(self, portInterface):
       assert(isinstance(portInterface,autosar.portinterface.ParameterInterface))
       lines=[]
       lines.append('<CALPRM-INTERFACE>')
       lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%portInterface.name,1))
       lines.append(self.indent('<IS-SERVICE>%s</IS-SERVICE>'%self.toBoolean(portInterface.isService),1))
-      if len(portInterface.dataElements)>0:
+      if len(portInterface.elements)>0:
          lines.append(self.indent('<CALPRM-ELEMENTS>',1))
-         for elem in portInterface.dataElements:
+         for elem in portInterface.elements:
             lines.extend(self.indent(self.writeCalParamElementXML(elem),2))
          lines.append(self.indent('</CALPRM-ELEMENTS>',1))
       else:
@@ -60,7 +90,7 @@ class PortInterfaceWriter(WriterBase):
       return lines
    
    def writeCalParamElementXML(self,elem):
-      assert(isinstance(elem,autosar.portinterface.DataElement))
+      assert(isinstance(elem,autosar.portinterface.Parameter))
       lines=[]
       lines.append('<CALPRM-ELEMENT-PROTOTYPE>')
       lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%elem.name,1))
@@ -68,24 +98,63 @@ class PortInterfaceWriter(WriterBase):
       
       if elem.adminData is not None:
          lines.extend(self.indent(self.writeAdminDataXML(elem.adminData),1))
-      if len(elem.swAddrMethodRefList)>0:
+      if elem.swAddressMethodRef is not None:
          lines.append(self.indent('<SW-DATA-DEF-PROPS>',1))
-         for ref in elem.swAddrMethodRefList:
-            swAddrMethodElem=ws.find(ref)
-            if (swAddrMethodElem is None):
-               raise ValueError("invalid reference: '%s'"%swAddrMethodRef.typeRef)
-            else:
-               lines.append(self.indent('<SW-ADDR-METHOD-REF DEST="%s">%s</SW-ADDR-METHOD-REF>'%(swAddrMethodElem.tag(self.version),ref),2))
+         swAddrMethod = ws.find(elem.swAddressMethodRef)
+         if (swAddrMethod is None):
+            raise ValueError("invalid reference: '%s'"%ref)
+         else:
+             lines.append(self.indent('<SW-ADDR-METHOD-REF DEST="%s">%s</SW-ADDR-METHOD-REF>'%(swAddrMethod.tag(self.version),swAddrMethod.ref),2))
          lines.append(self.indent('</SW-DATA-DEF-PROPS>',1))
       typeElem = ws.find(elem.typeRef, role="DataType")					
       if (typeElem is None):
          raise ValueError("invalid type reference: '%s'"%elem.typeRef)
       else:
-         lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),1))      
+         lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),1))
       lines.append('</CALPRM-ELEMENT-PROTOTYPE>')
       return lines
+
+   def writeParameterInterfaceXML(self, portInterface):
+      assert(isinstance(portInterface,autosar.portinterface.ParameterInterface))
+      lines=[]
+      ws = portInterface.rootWS()
+      assert(ws is not None)
+      lines.append('<%s>'%portInterface.tag(self.version))
+      lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%portInterface.name,1))
+      if portInterface.adminData is not None:
+         lines.extend(self.indent(self.writeAdminDataXML(portInterface.adminData),1))
+      if len(portInterface.elements)>0:
+         lines.append(self.indent('<PARAMETERS>',1))
+         for elem in portInterface.elements:
+            lines.extend(self.indent(self._writeParameterElement(elem, ws),2))
+         lines.append(self.indent('</PARAMETERS>',1))
+      else:
+         lines.append(self.indent('<PARAMETERS/>',1))
+      lines.append('</%s>'%portInterface.tag(self.version))
+      return lines
    
-   def writeClientServerInterfaceXML(self, portInterface,package):
+   def _writeParameterElement(self, parameter, ws):
+      lines=[]
+      lines.append('<%s>'%parameter.tag(self.version))
+      lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%parameter.name,1))
+      
+      lines.append(self.indent('<SW-DATA-DEF-PROPS>',1))
+      if parameter.swCalibrationAccess is None:
+         access = 'NOT-ACCESSIBLE'
+      else:
+         access = parameter.swCalibrationAccess
+      variants = [autosar.base.SwDataDefPropsConditional(swAddressMethodRef=parameter.swAddressMethodRef, swCalibrationAccess=access)]
+      lines.extend(self.indent(self.writeSwDataDefPropsVariantsXML(ws, variants),2))
+      lines.append(self.indent('</SW-DATA-DEF-PROPS>',1))
+      typeElem = ws.find(parameter.typeRef, role="DataType")
+      if (typeElem is None):
+         raise ValueError("invalid type reference: '%s'"%parameter.typeRef)
+      else:
+         lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),1))
+      lines.append('</%s>'%parameter.tag(self.version))
+      return lines
+   
+   def writeClientServerInterfaceXML(self, portInterface):
       assert(isinstance(portInterface,autosar.portinterface.ClientServerInterface))
       lines=[]
       lines.append('<CLIENT-SERVER-INTERFACE>')
@@ -93,6 +162,8 @@ class PortInterfaceWriter(WriterBase):
       if portInterface.adminData is not None:
          lines.extend(self.indent(self.writeAdminDataXML(portInterface.adminData),1))
       lines.append(self.indent('<IS-SERVICE>%s</IS-SERVICE>'%self.toBoolean(portInterface.isService),1))
+      if (portInterface.serviceKind is not None) and (self.version >= 4.0):
+         lines.append(self.indent('<SERVICE-KIND>%s</SERVICE-KIND>'%portInterface.serviceKind,1))
       if len(portInterface.operations)>0:
          lines.append(self.indent('<OPERATIONS>',1))
          for operation in portInterface.operations:
@@ -122,15 +193,7 @@ class PortInterfaceWriter(WriterBase):
       if len(operation.arguments)>0:
          lines.append(self.indent('<ARGUMENTS>',1))
          for argument in operation.arguments:
-            lines.append(self.indent('<%s>'%argument.tag(),2))
-            lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%argument.name,3))
-            typeElem = ws.find(argument.typeRef, role="DataType")					
-            if (typeElem is None):
-               raise ValueError("invalid type reference: '%s'"%argument.typeRef)
-            else:
-               lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),3))      
-            lines.append(self.indent('<DIRECTION>%s</DIRECTION>'%argument.direction,3))
-            lines.append(self.indent('</%s>'%argument.tag(),2))
+            lines.extend(self.indent(self.writeArgumentXML(ws, argument),2))
          lines.append(self.indent('</ARGUMENTS>',1))
       if len(operation.errorRefs)>0:
          lines.append(self.indent('<POSSIBLE-ERROR-REFS>',1))
@@ -141,11 +204,37 @@ class PortInterfaceWriter(WriterBase):
             else:
                lines.append(self.indent('<POSSIBLE-ERROR-REF DEST="%s">%s</POSSIBLE-ERROR-REF>'%(errorElem.tag(self.version),errorElem.ref),2))
          lines.append(self.indent('</POSSIBLE-ERROR-REFS>',1))         
-      lines.append('</%s>'%operation.tag())
+      lines.append('</%s>'%operation.tag(self.version))
       return lines
    
+   def writeArgumentXML(self, ws, argument):
+      assert(isinstance(argument, autosar.portinterface.Argument))
+      lines=[]
+      lines.append('<%s>'%argument.tag(self.version))
+      lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%argument.name,1))
+      if self.version >= 4.0:
+         lines.append(self.indent('<SW-DATA-DEF-PROPS>',1))
+         if argument.swCalibrationAccess is None:
+            tmp = 'NOT-ACCESSIBLE'
+         else:
+            tmp = argument.swCalibrationAccess
+         variants = [autosar.base.SwDataDefPropsConditional(swCalibrationAccess=tmp)]
+         lines.extend(self.indent(self.writeSwDataDefPropsVariantsXML(ws, variants),2))
+         lines.append(self.indent('</SW-DATA-DEF-PROPS>',1))
+      typeElem = ws.find(argument.typeRef, role="DataType")					
+      if (typeElem is None):
+         raise ValueError("invalid type reference: '%s'"%argument.typeRef)
+      else:
+         lines.append(self.indent('<TYPE-TREF DEST="%s">%s</TYPE-TREF>'%(typeElem.tag(self.version),typeElem.ref),1))
+      lines.append(self.indent('<DIRECTION>%s</DIRECTION>'%argument.direction,1))
+      if self.version >= 4.0:
+         lines.append(self.indent('<SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>',1))
+      lines.append('</%s>'%argument.tag(self.version))
+      return lines
+
+   
    def writeApplicationErrorXML(self,applicationError):
-      assert(isinstance(applicationError,autosar.portinterface.ApplicationError))
+      assert(isinstance(applicationError, autosar.portinterface.ApplicationError))
       lines=[]
       lines.append('<%s>'%applicationError.tag(self.version))
       lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%applicationError.name,1))
@@ -153,7 +242,7 @@ class PortInterfaceWriter(WriterBase):
       lines.append('</%s>'%applicationError.tag(self.version))
       return lines
    
-   def writeModeGroupsXML(self,modeGroup):
+   def writeModeGroupXML(self,modeGroup):
       assert(isinstance(modeGroup,autosar.portinterface.ModeGroup))
       lines=[]
       ws = modeGroup.rootWS()
@@ -168,7 +257,7 @@ class PortInterfaceWriter(WriterBase):
       lines.append('</%s>'%modeGroup.tag(self.version))
       return lines
    
-   def writeSoftwareAddressMethodXML(self, addressMethod,package):
+   def writeSoftwareAddressMethodXML(self, addressMethod):
       assert(isinstance(addressMethod,autosar.portinterface.SoftwareAddressMethod))
       lines=[]
       lines.append('<%s>'%addressMethod.tag(self.version))
@@ -176,7 +265,7 @@ class PortInterfaceWriter(WriterBase):
       lines.append('</%s>'%addressMethod.tag(self.version))
       return lines
    
-   def writeModeDeclarationGroupXML(self, modeDeclGroup,package):
+   def writeModeDeclarationGroupXML(self, modeDeclGroup):
       assert(isinstance(modeDeclGroup,autosar.portinterface.ModeDeclarationGroup))
       lines=[]
       ws = modeDeclGroup.rootWS()
@@ -184,6 +273,8 @@ class PortInterfaceWriter(WriterBase):
 
       lines.append('<%s>'%modeDeclGroup.tag(self.version))
       lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%modeDeclGroup.name,1))
+      if modeDeclGroup.category is not None:
+         lines.append(self.indent('<CATEGORY>%s</CATEGORY>'%modeDeclGroup.category,1))      
       if modeDeclGroup.adminData is not None:
          lines.extend(self.indent(self.writeAdminDataXML(modeDeclGroup.adminData),1))
       if modeDeclGroup.initialModeRef is not None:
@@ -201,8 +292,66 @@ class PortInterfaceWriter(WriterBase):
          lines.append(self.indent('</MODE-DECLARATIONS>',1))
       lines.append('</%s>'%modeDeclGroup.tag(self.version))
       return lines
+   
+   def writeModeSwitchInterfaceXML(self, portInterface):
+      assert(isinstance(portInterface, autosar.portinterface.ModeSwitchInterface))
+      lines=[]
+      lines.append('<%s>'%portInterface.tag(self.version))
+      lines.append(self.indent('<SHORT-NAME>%s</SHORT-NAME>'%portInterface.name,1))
+      if portInterface.adminData is not None:
+         lines.extend(self.indent(self.writeAdminDataXML(portInterface.adminData),1))
+      lines.append(self.indent('<IS-SERVICE>%s</IS-SERVICE>'%self.toBoolean(portInterface.isService),1))
+      lines.extend(self.indent(self.writeModeGroupXML(portInterface.modeGroup),1))
+      lines.append('</%s>'%portInterface.tag(self.version))
+      return lines
+   
+   def writeInvalidationPolicyXML(self, ws, invalidationPolicy):
+      assert(isinstance(invalidationPolicy, autosar.portinterface.InvalidationPolicy))
+      lines=[]
+      lines.append('<%s>'%invalidationPolicy.tag(self.version))
+      dataElement = ws.find(invalidationPolicy.dataElementRef, role="PortInterface")
+      if (dataElement is None):
+         raise ValueError("invalid type reference: '%s'"%invalidationPolicy.dataElementRef)
+      else:
+         lines.append(self.indent('<DATA-ELEMENT-REF DEST="%s">%s</DATA-ELEMENT-REF>'%(dataElement.tag(self.version), dataElement.ref),1))
+         lines.append(self.indent('<HANDLE-INVALID>%s</HANDLE-INVALID>'%invalidationPolicy.handleInvalid,1))
+      lines.append('</%s>'%invalidationPolicy.tag(self.version))
+      return lines
+      
 
-#### CODE GENERATOTS ####
+class CodePortInterfaceWriter(ElementWriter):
+   def __init__(self,version, patch):
+      super().__init__(version, patch)
+      
+      if self.version >= 3.0 and self.version < 4.0:
+         self.switcher = {
+                          'SoftwareAddressMethod': self.writeSoftwareAddressMethodCode,
+                          'ModeDeclarationGroup': self.writeModeDeclarationGroupCode,
+                          'SenderReceiverInterface': self.writeSenderReceiverInterfaceCode,
+                          'ParameterInterface': self.writeParameterInterfaceCode,
+                          'ClientServerInterface': self.writeClientServerInterfaceCode,
+         }
+      elif self.version >= 4.0:
+         self.switcher = {
+         }
+      else:
+         switch.keys = {}
+
+   def getSupportedXML(self):
+      return []
+
+   def getSupportedCode(self):
+      return self.switcher.keys()
+
+   def writeElementXML(self, elem):
+      raise NotImplementedError('writeElementXML')
+   
+   def writeElementCode(self, elem, localvars):
+      codeWriteFunc = self.switcher.get(type(elem).__name__)
+      if codeWriteFunc is not None:
+         return codeWriteFunc(elem, localvars)
+      else:
+         return None
 
    def writeSenderReceiverInterfaceCode(self, portInterface, localvars):
       assert(isinstance(portInterface,autosar.portinterface.SenderReceiverInterface))
@@ -243,10 +392,8 @@ class PortInterfaceWriter(WriterBase):
          params.append(repr(dataType.ref)) #use full reference
       if elem.isQueued:
          params.append('True')
-      if len(elem.swAddrMethodRefList)>1:
-         raise NotImplementedError("data elements with more than one SoftwareAddressMethod reference not supported")
-      if len(elem.swAddrMethodRefList)==1:
-         params.append('softwareAddressMethodRef="%s"'%elem.swAddrMethodRefList[0])
+      if elem.swAddressMethodRef is not None:
+         params.append('softwareAddressMethodRef="%s"'%elem.swAddressMethodRef)
       if elem.adminData is not None:
          param = self.writeAdminDataCode(elem.adminData, localvars)
          assert(len(param)>0)
@@ -366,4 +513,3 @@ class PortInterfaceWriter(WriterBase):
          
       lines.append('package.createModeDeclarationGroup(%s)'%(', '.join(params)))
       return lines
-   

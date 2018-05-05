@@ -1,4 +1,4 @@
-from autosar.element import Element
+from autosar.element import (Element, DataElement)
 import collections
 import autosar.base
 
@@ -15,13 +15,34 @@ class PortInterface(Element):
          raise ValueError('expected string')
       
 class SenderReceiverInterface(PortInterface):
-   def __init__(self, name, isService=False, parent=None, adminData=None):
+
+   def tag(self,version=None):
+      return 'SENDER-RECEIVER-INTERFACE'
+   
+   def __init__(self, name, isService=False, serviceKind = None, parent=None, adminData=None):
       super().__init__(name, isService, parent, adminData)
       self.dataElements=[]
       self.modeGroups=None
+      self.invalidationPolicies=[]
+      self.serviceKind = serviceKind
    
    def __iter__(self):
       return iter(self.dataElements)
+   
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name and self.isService == other.isService and \
+         self.adminData == other.adminData and len(self.dataElements) == len(other.dataElements):
+            if (self.modeGroups is not None) and (other.modeGroups is not None) and len(self.modeGroups) == len(other.modeGroups):
+               for i,elem in enumerate(self.modeGroups):
+                  if elem != other.modeGroups[i]: return False
+            return True
+            for i,elem in enumerate(self.dataElements):
+               if elem != other.dataElements[i]: return False
+      return False
+   
+   def __ne__(self, other):
+      return not (self == other)   
    
    def dir(self):
       return [x.name for x in self.dataElements]         
@@ -45,8 +66,7 @@ class SenderReceiverInterface(PortInterface):
       if self.modeGroups is not None:
          for elem in self.modeGroups:
             if elem.name==name:
-               return elem
-         
+               return elem         
       return None
 
    def append(self,elem):
@@ -60,32 +80,28 @@ class SenderReceiverInterface(PortInterface):
          self.modeGroups.append(elem)
       else:
          raise ValueError("expected elem variable to be of type DataElement")
-      
       elem.parent=self
    
-   def tag(self,version=None):
-      return 'SENDER-RECEIVER-INTERFACE'
-
+   def addInvalidationPolicy(self, invalidationPolicy):
+      self.invalidationPolicies.append(invalidationPolicy)
+         
    
 
 class ParameterInterface(PortInterface):
    def tag(self,version=None):
-      return 'CALPRM-INTERFACE'
-
+      if version>=4.0:
+         return 'PARAMETER-INTERFACE'
+      else:
+         return 'CALPRM-INTERFACE'
+      
    def __init__(self, name, isService=False, parent=None, adminData=None):
       super().__init__(name, isService, parent, adminData)
-      self.dataElements=[]
-
-   def asdict(self):
-      retval = {'type': self.__class__.__name__, 'name': self.name, 'isService': self.isService, 'dataElements':[]}
-      for elem in self.dataElements:
-         retval['dataElements'].append(elem.asdict())
-      return retval
+      self.elements=[]
 
    def find(self,ref):
       ref = ref.partition('/')
       name = ref[0]
-      for elem in self.dataElements:
+      for elem in self.elements:
          if elem.name==name:
             return elem
 
@@ -93,21 +109,50 @@ class ParameterInterface(PortInterface):
       """
       adds elem to the self.dataElements list and sets elem.parent to self (the port interface)
       """
-      if not isinstance(elem,DataElement):
-         raise ValueError("expected elem variable to be of type DataElement")
-      self.dataElements.append(elem)
-      elem.parent=self      
-   
+      if not isinstance(elem,Parameter):
+         raise ValueError("expected elem variable to be of type Parameter")
+      self.elements.append(elem)
+      elem.parent=self
+
+class Parameter(Element):
+   """
+   Represents a <PARAMETER> element in AUTOSAR 4 or <CALPRM-ELEMENT-PROTOTYPE> in AUTOSAR 3
+   """
+   def tag(self, version):
+         return "PARAMETER-DATA-PROTOTYPE" if version >=4.0 else "CALPRM-ELEMENT-PROTOTYPE"
+
+   def __init__(self, name, typeRef = None, swAddressMethodRef=None, swCalibrationAccess=None, parent=None, adminData=None):
+      super().__init__(name, parent, adminData)
+      self.typeRef = typeRef
+      self.swAddressMethodRef = swAddressMethodRef
+      self.swCalibrationAccess = swCalibrationAccess
 
 class ClientServerInterface(PortInterface):
    def __init__(self, name, isService=False, parent=None, adminData=None):
       super().__init__(name, isService, parent, adminData)
       self.operations=[]
       self.applicationErrors=[]
+      self.serviceKind = None
       
 
    def tag(self,version=None):
       return 'CLIENT-SERVER-INTERFACE'
+
+
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name and self.adminData == other.adminData and len(self.operations) == len(other.operations) and \
+         len(self.applicationErrors) == len(other.applicationErrors):
+            for i,operation in enumerate(self.operations):
+               if operation != other.operations[i]: return False
+            for i,applicationError in enumerate(self.applicationErrors):
+               if applicationError != other.applicationErrors[i]: return False            
+            return True
+      return False
+   
+   def __ne__(self, other):
+      return not (self == other)   
+
 
    def asdict(self):
       retval = {'type': self.__class__.__name__, 'name': self.name, 'isService': self.isService, 'operations':[]}
@@ -144,50 +189,77 @@ class ClientServerInterface(PortInterface):
          raise ValueError("invalid type: %s"%(str(type(elem))))  
       elem.parent=self      
 
-
-
-class DataElement(Element):
-   def __init__(self,name, typeRef, isQueued=False, softwareAddressMethodRef=None, parent=None, adminData=None):
-      super().__init__(name,parent,adminData)
-      if isinstance(typeRef,str):
-         self.typeRef=typeRef
-      elif hasattr(typeRef,'ref'):
-         assert(isinstance(typeRef.ref,str))
-         self.typeRef=typeRef.ref
-      else:
-         raise ValueError("unsupported type for argument: typeRef")
-      assert(isinstance(isQueued,bool))
-      self.isQueued=isQueued
-      self.swAddrMethodRefList=[]
-      if softwareAddressMethodRef is not None:
-         self.swAddrMethodRefList.append(str(softwareAddressMethodRef))
-   def tag(self,version=None): return "DATA-ELEMENT-PROTOTYPE"
+class ModeSwitchInterface(PortInterface):
+   def tag(self, version): return 'MODE-SWITCH-INTERFACE'
+   
+   def __init__(self, name, isService=None, parent=None, adminData=None):
+      super().__init__(name,isService, parent,adminData)
+      self._modeGroup=None
       
-   def asdict(self):
-      data = {'type': self.__class__.__name__, 'name': self.name, 'isQueued': self.isQueued, 'typeRef': self.typeRef}
-      data['adminData']=self.adminData.asdict() if self.adminData is not None else None
-      if len(self.swAddrMethodRefList)>0:
-         data['swAddrMethodRef']=self.swAddrMethodRefList[:]
-      return data
+   @property
+   def modeGroup(self):
+      return self._modeGroup
+      
+   @modeGroup.setter
+   def modeGroup(self, value):
+      if not isinstance(value, ModeGroup):
+         raise ValueError('value must of ModeGroup type')
+      self._modeGroup=value
+      
+   def find(self,ref):
+      ref = ref.partition('/')
+      name = ref[0]
+      modeGroup = self.modeGroup
+      if modeGroup is not None and modeGroup.name == name:
+         return modeGroup
+      return None
+
 
 class ModeGroup(Element):
    def __init__(self, name, typeRef, parent=None, adminData=None):
       super().__init__(name, parent, adminData)
       self.typeRef=typeRef
    
-   def tag(self,version=None): return "MODE-DECLARATION-GROUP-PROTOTYPE"
+   def tag(self,version=None):
+      if version>=4.0:
+         return "MODE-GROUP"
+      else:
+         return "MODE-DECLARATION-GROUP-PROTOTYPE"
    
    def asdict(self):
       return {'type': self.__class__.__name__, 'name':self.name, 'typeRef':self.typeRef}
 
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name and self.adminData == other.adminData and self.typeRef == other.typeRef: return True
+      return False
+   
+   def __ne__(self, other):
+      return not (self == other)  
+
 class Operation(Element):
+   def tag(self,version=None):
+      return 'CLIENT-SERVER-OPERATION' if version >=4.0 else 'OPERATION-PROTOTYPE'
+
    def __init__(self,name,parent=None):
       super().__init__(name,parent)      
       self.arguments=[]
       self.errorRefs=[]
    
-   def tag(self,version=None):
-      return 'OPERATION-PROTOTYPE'
+
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name and self.adminData == other.adminData and len(self.arguments) == len(other.arguments) and \
+         (len(self.errorRefs) == len(other.errorRefs)):
+            for i,argument in enumerate(self.arguments):
+               if argument != other.arguments[i]: return False
+            for i,errorRef in enumerate(self.errorRefs):
+               if errorRef != other.errorRefs[i]: return False
+            return True
+      return False
+   
+   def __ne__(self, other):
+      return not (self == other)  
 
    def asdict(self):
       data = {'type': self.__class__.__name__, 'name':self.name, 'arguments':[]}
@@ -267,17 +339,27 @@ class Operation(Element):
          raise ValueError("input argument must be string or iterrable")
    
 
-class Argument(object):
-   def __init__(self,name,typeRef,direction):
-      self.name=name
-      self.typeRef=typeRef
-      if (direction != 'IN') and (direction != 'OUT') and (direction != 'INOUT'):
-         raise ValueError('invalid value :%s'%direction)
-      self.direction=direction
-   
+class Argument(Element):
    def tag(self,version=None):
-      return 'ARGUMENT-PROTOTYPE'      
+      return 'ARGUMENT-DATA-PROTOTYPE' if version>=4.0 else 'ARGUMENT-PROTOTYPE'
+
+   def __init__(self, name, typeRef, direction, parent=None, adminData=None):
+      super().__init__(name, parent, adminData)
+      self.typeRef=typeRef
+      self.direction = direction
+      self.swCalibrationAccess = None
+      self.serverArgumentImplPolicy = None
    
+   @property
+   def direction(self):
+      return self._direction
+   
+   @direction.setter
+   def direction(self, value):
+      if (value != 'IN') and (value != 'OUT') and (value != 'INOUT'):
+         raise ValueError('invalid value :%s'%value)
+      self._direction=value      
+      
    def asdict(self):
       return {'type': self.__class__.__name__, 'name':self.name, 'typeRef':self.typeRef, 'direction': self.direction}
 
@@ -302,15 +384,16 @@ class SoftwareAddressMethod(Element):
       return 'SW-ADDR-METHOD'
 
 class ModeDeclarationGroup(Element):
+   def tag(self, version=None): return "MODE-DECLARATION-GROUP"
+   
    def __init__(self, name, initialModeRef=None, modeDeclarations=None, parent=None, adminData=None):
       super().__init__(name, parent, adminData)
-      self.initialModeRef = initialModeRef
+      self.initialModeRef = initialModeRef      
       if modeDeclarations is None:
          self.modeDeclarations = []
       else:
-         self.modeDeclarations = list(modeDeclarations)   
-   
-   def tag(self, version=None): return "MODE-DECLARATION-GROUP"
+         self.modeDeclarations = list(modeDeclarations)
+      self.category=None
 
    def find(self,ref):
       ref = ref.partition('/')
@@ -319,9 +402,49 @@ class ModeDeclarationGroup(Element):
          if elem.name==name:
             return elem      
       return None
+   
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name and self.initialModeRef == other.initialModeRef and \
+         len(self.modeDeclarations) == len(other.modeDeclarations) and self.adminData == other.adminData:
+            for i,left in enumerate(self.modeDeclarations):
+               right = other.modeDeclarations[i]
+               if left != right:
+                  return False
+            return True
+      return False
+   
+   def __ne__(self, other):
+      return not (self == other)
 
 class ModeDeclaration(Element):
    def __init__(self,name,parent=None):
       super().__init__(name,parent)
+   def __eq__(self, other):
+      if isinstance(other, self.__class__):
+         if self.name == other.name: return True
+      return False
+   
+   def __ne__(self, other): return not (self == other)
    
    def tag(self,version=None): return "MODE-DECLARATION"
+
+class InvalidationPolicy:
+   valid_values = ['DONT-INVALIDATE', 'EXTERNAL-REPLACEMENT', 'KEEP', 'REPLACE']
+   
+   def tag(self, version): return 'INVALIDATION-POLICY'
+   
+   def __init__(self, dataElementRef, handleInvalid):
+      self.dataElementRef = dataElementRef
+      self.handleInvalid = handleInvalid
+   
+   @property
+   def handleInvalid(self):
+      return self._handleInvalid
+   
+   @handleInvalid.setter
+   def handleInvalid(self, value):
+      if value not in InvalidationPolicy.valid_values:
+         raise ValueError('invalid value: %s'%value)
+      self._handleInvalid = value
+      

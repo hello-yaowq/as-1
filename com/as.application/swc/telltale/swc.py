@@ -52,8 +52,14 @@ def main():
         portAccessList.append('Telltale%sStatusPort'%(tt))
     swc.behavior.createRunnable('Telltale_run', portAccess=portAccessList)
     swc.behavior.createTimingEvent('Telltale_run', period=20)
-    rtegen = autosar.RteGenerator()
-    rtegen.writeComponentHeaders(swc, 'swc/telltale')
+    partition = autosar.rte.Partition()
+    partition.addComponent(swc)
+    rtegen = autosar.rte.TypeGenerator(partition)
+    rtegen.generate('swc/telltale')
+#    rtegen = autosar.rte.MockRteGenerator(partition)
+#    rtegen.generate('swc/telltale')
+    rtegen = autosar.rte.ComponentHeaderGenerator(partition)
+    rtegen.generate('swc/telltale')
 
 if(__name__ == '__main__'):
     main()

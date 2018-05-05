@@ -2,25 +2,32 @@ import copy
 import autosar.component
 import autosar.portinterface
 import autosar.base
-from autosar.element import Element
+from autosar.element import Element,DataElement
 import collections
 
+###################################### Events ###########################################
 class Event(Element):
    def __init__(self,name,startOnEventRef=None, parent=None):
       super().__init__(name,parent)
       self.startOnEventRef = startOnEventRef
-      self.modeDependency=None
+      self.modeDependency=None #for AUTOSAR3
+      self.disabledInModes=None #for AUTOSAR4
 
 class ModeSwitchEvent(Event):
-   def __init__(self,name,startOnEventRef=None, activationType='ENTRY', parent=None):
+   def __init__(self,name,startOnEventRef=None, activationType='ENTRY', parent=None, version=3.0):
       super().__init__(name, startOnEventRef, parent)
-      self.modeInstRef=None      
-      if (activationType!='ENTRY') and (activationType != 'EXIT'):
-         raise ValueError('activationType argument must be either "ENTRY" or "EXIT"')
+      self.modeInstRef=None
+      if version < 4.0:
+         if (activationType!='ENTRY') and (activationType != 'EXIT'):
+            raise ValueError('activationType argument must be either "ENTRY" or "EXIT"')
+      elif version >= 4.0:
+         if (activationType=='ENTRY'): activationType='ON-ENTRY'
+         if (activationType=='EXIT'): activationType='ON-EXIT'
+         if (activationType!='ON-ENTRY') and (activationType != 'ON-EXIT'):
+            raise ValueError('activationType argument must be either "ON-ENTRY" or "ON-EXIT"')
       self.activationType = activationType
       
-   def tag(self,version=None):
-      return 'MODE-SWITCH-EVENT'
+   def tag(self,version): return 'SWC-MODE-SWITCH-EVENT' if version >= 4.0 else 'MODE-SWITCH-EVENT'
 
 class TimingEvent(Event):
    def __init__(self,name,startOnEventRef=None, period=0, parent=None):
@@ -48,8 +55,16 @@ class OperationInvokedEvent(Event):
       
    def tag(self, version=None):
       return "OPERATION-INVOKED-EVENT"
+
+class InitEvent(Event):
+   def __init__(self,name,startOnEventRef=None, parent=None):
+      super().__init__(name, startOnEventRef, parent)      
    
+   def tag(self, version=None):
+      return 'INIT-EVENT'
+
    
+####################################################################################################   
 
 class ModeDependency(object):
    def __init__(self):      
@@ -94,7 +109,30 @@ class ModeDependencyRef(object):
    def tag(self,version=None):
       return 'DEPENDENT-ON-MODE-IREF'
 
+class DisabledModeInstanceRef(object):
+   def __init__(self,modeDeclarationRef,modeDeclarationGroupPrototypeRef=None,requirePortPrototypeRef=None):      
+      self.modeDeclarationRef=modeDeclarationRef #MODE-DECLARATION-REF
+      self.modeDeclarationGroupPrototypeRef=modeDeclarationGroupPrototypeRef #MODE-DECLARATION-GROUP-PROTOTYPE-REF
+      self.requirePortPrototypeRef=requirePortPrototypeRef #R-PORT-PROTOTYPE-REF
+   def asdict(self):
+      data={'type': self.__class__.__name__}
+      for key, value in self.__dict__.items():
+         data[key]=value
+      return data
+   
+   def tag(self,version=None):
+      return 'DISABLED-MODE-IREF'
 
+class ModeGroupInstanceRef:
+   def __init__(self, requirePortRef, modeGroupRef):
+      self.requirePortRef = requirePortRef
+      self.modeGroupRef = modeGroupRef
+   
+   def tag(self, version):
+      if version >= 4.0:
+         return 'R-MODE-GROUP-IN-ATOMIC-SWC-INSTANCE-REF'
+      else:
+         raise RuntimeError('not supported in v%.1f'%version)
 
 class PortAPIOption():
    def __init__(self,portRef,takeAddress=False,indirectAPI=False):
@@ -114,7 +152,7 @@ class DataReceivePoint:
       self.name=name
       self.parent=parent
    
-   def tag(self,version=None): return "DATA-RECEIVE-POINT"
+   def tag(self,version): return "VARIABLE-ACCESS" if version >= 4.0 else "DATA-RECEIVE-POINT"
 
 class DataSendPoint:
    def __init__(self,portRef,dataElemRef=None,name=None,parent=None):
@@ -123,12 +161,13 @@ class DataSendPoint:
       self.name=name
       self.parent=parent
    
-   def tag(self,version=None): return "DATA-SEND-POINT"
+   def tag(self,version): return "VARIABLE-ACCESS" if version >= 4.0 else "DATA-SEND-POINT"
       
 class RunnableEntity(Element):
    def __init__(self, name, invokeConcurrently=False, symbol=None, parent=None, adminData=None):
       super().__init__(name,parent,adminData)
       self.invokeConcurrently = invokeConcurrently
+      self.minStartInterval = 0
       if symbol is None:
          self.symbol=name
       else:
@@ -137,6 +176,8 @@ class RunnableEntity(Element):
       self.dataSendPoints=[]
       self.serverCallPoints=[]
       self.exclusiveAreaRefs=[]
+      self.modeAccessPoints=[] #AUTOSAR4 only
+      self.parameterAccessPoints = [] #AUTOSAR4 only
    
    def tag(self,version=None):
       return 'RUNNABLE-ENTITY'
@@ -305,6 +346,9 @@ class PerInstanceMemory(Element):
    
 
 class SwcNvBlockNeeds(object):
+   """
+   AUTOSAR 3 representation of SWC-NV-BLOCK-NEEDS
+   """
    def __init__(self,name,numberOfDataSets,readOnly,reliability,resistantToChangedSW,
                 restoreAtStart,writeOnlyOnce,writingFrequency,writingPriority,
                 defaultBlockRef,mirrorBlockRef):
@@ -336,7 +380,22 @@ class SwcNvBlockNeeds(object):
    
    def tag(self, version=None):
       return 'SWC-NV-BLOCK-NEEDS'
+
+class NvBlockNeeds(Element):
+   """   
+   AUTOSAR 4 representation of NV-BLOCK-NEEDS
+   """
+   def __init__(self, name, numberOfDataSets, ramBlockStatusControl, reliability, restoreAtStart, storeAtShutdown, parent=None, adminData=None):
+      super().__init__(name, parent, adminData)
+      self.numberOfDataSets=numberOfDataSets
+      self.ramBlockStatusControl = ramBlockStatusControl
+      self.reliability = reliability
+      assert(isinstance(restoreAtStart,bool))
+      self.restoreAtStart = restoreAtStart
+      assert(isinstance(storeAtShutdown,bool))
+      self.storeAtShutdown = storeAtShutdown
    
+   def tag(self, version): return 'NV-BLOCK-NEEDS'
 
 class RoleBasedRPortAssignment(object):
    def __init__(self,portRef,role):
@@ -370,7 +429,7 @@ class CalPrmElemPrototype(Element):
    
    def tag(self, version=None):
       return 'CALPRM-ELEMENT-PROTOTYPE'
-   
+  
 
 class ExclusiveArea(Element):
    def __init__(self, name, parent=None, adminData=None):
@@ -399,81 +458,58 @@ class SyncServerCallPoint(object):
       data['operationInstanceRefs'] = [x.asdict() for x in self.operationInstanceRefs]
       if len(data['operationInstanceRefs'])==0: del data['operationInstanceRefs']
       return data
-   
-class InternalBehavior(Element):
-   """ InternalBehavior class """
-   def __init__(self,name,componentRef,multipleInstance=False,parent=None):
-      super().__init__(name,parent)
+
+class InternalBehaviorCommon(Element):
+   """
+   Base class for InternalBehavior (AUTOSAR 3) and SwcInternalBehavior (AUTOSAR 4)
+   """
+   def __init__(self, name, componentRef, multipleInstance=False, parent=None, adminData=None):
+      super().__init__(name, parent, adminData)
       if not isinstance(componentRef,str): #this is a helper, in case the user called the function with obj instead of obj.ref
          if hasattr(componentRef,'ref'):
             componentRef=componentRef.ref
       if (componentRef is None) or (not isinstance(componentRef,str)):
          raise ValueError('componentRef: invalid reference')
       self.componentRef=str(componentRef)
-      self.parent=parent
       self.multipleInstance = bool(multipleInstance)
       self.events = []
       self.portAPIOptions = []
       self.runnables = []
-      self.perInstanceMemories = []
-      self.swcNvBlockNeeds = []
-      self.sharedCalParams=[]
       self.exclusiveAreas=[]
+      self.perInstanceMemories = []
       self.swc = None
-   def asdict(self):
-      data={'type': self.__class__.__name__,'name':self.name, 'multipleInstance':self.multipleInstance,
-            'componentRef':self.componentRef, 'events':[],'portAPIOptions':[],'runnables':[],'perInstanceMemories':[],
-            'swcNvBlockNeeds':[],'sharedCalPrms':[],'exclusiveAreas':[]}
-      for event in self.events:
-         data['events'].append(event.asdict())
-      for portAPIOption in self.portAPIOptions:
-         data['portAPIOptions'].append(portAPIOption.asdict())
-      for runnable in self.runnables:
-         data['runnables'].append(runnable.asdict())
-      for perInstanceMemory in self.perInstanceMemories:
-         data['perInstanceMemories'].append(perInstanceMemory.asdict())
-      for swcNvBlockNeed in self.swcNvBlockNeeds:
-         data['swcNvBlockNeeds'].append(swcNvBlockNeed.asdict())
-      for sharedCalPrm in self.sharedCalPrms:
-         data['sharedCalPrms'].append(sharedCalPrm.asdict())
-      for exclusiveArea in self.exclusiveAreas:
-         data['exclusiveAreas'].append(exclusiveArea.asdict())
-      if len(data['events'])==0: del data['events']
-      if len(data['portAPIOptions'])==0: del data['portAPIOptions']
-      if len(data['runnables'])==0: del data['runnables']
-      if len(data['perInstanceMemories'])==0: del data['perInstanceMemories']
-      if len(data['swcNvBlockNeeds'])==0: del data['swcNvBlockNeeds']
-      if len(data['sharedCalPrms'])==0: del data['sharedCalPrms']
-      if len(data['exclusiveAreas'])==0: del data['exclusiveAreas']
-      return data
-   
-   
-   def tag(self,version=None): return "INTERNAL-BEHAVIOR"
 
-   def append(self,elem):
-      if isinstance(elem,RunnableEntity):
-         self.runnables.append(elem)
-         elem.parent=self
-      else:
-         raise NotImplementedError(str(type(elem)))
+   
+   def createPortAPIOptionDefaults(self):
+      self.portAPIOptions = []
+      self._initSWC()
+      ws = self.rootWS()
+      tmp = self.swc.providePorts+self.swc.requirePorts
+      for port in sorted(tmp,key=lambda x: x.name.lower()):
+         self.portAPIOptions.append(PortAPIOption(port.ref))               
 
-   def find(self,ref):      
+   def _initSWC(self):
+      """
+      sets up self.swc if not already setup
+      """
+      if self.swc is None:
+         ws = self.rootWS()
+         assert(ws is not None)
+         self.swc = ws.find(self.componentRef)
+      assert(self.swc is not None)
+
+   def find(self,ref):
       if ref is None: return None
       if ref[0]=='/': ref=ref[1:] #removes initial '/' if it exists
       ref=ref.partition('/')
       name=ref[0]
       for elem in self.runnables:
          if elem.name == name: return elem      
-      for elem in self.sharedCalParams:
-         if elem.name == name: return elem         
       for elem in self.perInstanceMemories:
          if elem.name == name: return elem
       for elem in self.exclusiveAreas:
          if elem.name == name: return elem
       return None
-   
-   def __getitem__(self,key):
-      return self.find(key)
    
    def createRunnable(self, name, portAccess=None, symbol=None, concurrent=False, exclusiveAreas=None, adminData=None):
       runnable = RunnableEntity(name, concurrent, symbol, self, adminData)
@@ -540,18 +576,7 @@ class InternalBehavior(Element):
          else:
             raise ValueError('exclusiveAreas must be either string or list')
       return runnable
-
-
-   def createPortAPIOptionDefaults(self):
-      self.portAPIOptions = []
-      self._initSWC()
-      ws = self.rootWS()
-      tmp = self.swc.providePorts+self.swc.requirePorts
-      for port in sorted(tmp,key=lambda x: x.name.lower()):
-         self.portAPIOptions.append(PortAPIOption(port.ref))
-      
-         
-
+   
    def _createSendReceivePoint(self,port,dataElement,runnable):
       """
       internal function that create a DataReceivePoint of the the port is a require port or
@@ -577,8 +602,6 @@ class InternalBehavior(Element):
          runnable.serverCallPoints.append(callPoint)
       else:
          raise ValueError('unexpected type: '+str(type(port)))
-   
-   
    def calcModeInstanceComponents(self, portName, modeValue):
       self._initSWC()
       ws = self.rootWS()
@@ -640,7 +663,7 @@ class InternalBehavior(Element):
       self.events.append(event)
       return event
 
-   def createTimingEvent(self, runnableName, period, modeDependency=None, name=None ):
+   def createTimerEvent(self, runnableName, period, modeDependency=None, name=None ):
       self._initSWC()
       ws = self.rootWS()
 
@@ -660,6 +683,12 @@ class InternalBehavior(Element):
          self._processModeDependency(event, modeDependency)
       self.events.append(event)
       return event
+   
+   def createTimingEvent(self, runnableName, period, modeDependency=None, name=None):
+      """
+      alias for createTimerEvent
+      """
+      self.createTimerEvent(runnableName, period, modeDependency, name)
    
    def createOperationInvokedEvent(self, runnableName, operationRef, modeDependency=None, name=None ):
       """
@@ -806,6 +835,76 @@ class InternalBehavior(Element):
       exclusiveArea = ExclusiveArea(str(name), self)
       self.exclusiveAreas.append(exclusiveArea)
       return exclusiveArea
+
+
+class InternalBehavior(InternalBehaviorCommon):
+   """ InternalBehavior class (AUTOSAR 3)"""
+   def __init__(self,name, componentRef, multipleInstance=False,parent=None):
+      super().__init__(name, componentRef,multipleInstance, parent)
+      
+      self.swcNvBlockNeeds = []
+      self.sharedCalParams=[]
+      
+      
+   # def asdict(self):
+   #    data={'type': self.__class__.__name__,'name':self.name, 'multipleInstance':self.multipleInstance,
+   #          'componentRef':self.componentRef, 'events':[],'portAPIOptions':[],'runnables':[],'perInstanceMemories':[],
+   #          'swcNvBlockNeeds':[],'sharedCalPrms':[],'exclusiveAreas':[]}
+   #    for event in self.events:
+   #       data['events'].append(event.asdict())
+   #    for portAPIOption in self.portAPIOptions:
+   #       data['portAPIOptions'].append(portAPIOption.asdict())
+   #    for runnable in self.runnables:
+   #       data['runnables'].append(runnable.asdict())
+   #    for perInstanceMemory in self.perInstanceMemories:
+   #       data['perInstanceMemories'].append(perInstanceMemory.asdict())
+   #    for swcNvBlockNeed in self.swcNvBlockNeeds:
+   #       data['swcNvBlockNeeds'].append(swcNvBlockNeed.asdict())
+   #    for sharedCalPrm in self.sharedCalPrms:
+   #       data['sharedCalPrms'].append(sharedCalPrm.asdict())
+   #    for exclusiveArea in self.exclusiveAreas:
+   #       data['exclusiveAreas'].append(exclusiveArea.asdict())
+   #    if len(data['events'])==0: del data['events']
+   #    if len(data['portAPIOptions'])==0: del data['portAPIOptions']
+   #    if len(data['runnables'])==0: del data['runnables']
+   #    if len(data['perInstanceMemories'])==0: del data['perInstanceMemories']
+   #    if len(data['swcNvBlockNeeds'])==0: del data['swcNvBlockNeeds']
+   #    if len(data['sharedCalPrms'])==0: del data['sharedCalPrms']
+   #    if len(data['exclusiveAreas'])==0: del data['exclusiveAreas']
+   #    return data
+   
+         
+   def tag(self, version): return 'INTERNAL-BEHAVIOR'
+
+   def append(self,elem):
+      if isinstance(elem,RunnableEntity):
+         self.runnables.append(elem)
+         elem.parent=self
+      else:
+         raise NotImplementedError(str(type(elem)))
+
+   def find(self, ref):
+      if ref is None: return None
+      result = super().find(ref)
+      if result is None:
+         if ref[0]=='/': ref=ref[1:] #removes initial '/' if it exists
+         ref=ref.partition('/')
+         name=ref[0]
+         for elem in self.sharedCalParams:
+            if elem.name == name: return elem
+      else:
+         return result
+      return None
+            
+
+   
+   def __getitem__(self,key):
+      return self.find(key)
+   
+
+
+   
+   
    
    def createPerInstanceMemory(self, name, typeRef):
       """
@@ -822,14 +921,14 @@ class InternalBehavior(Element):
       self.perInstanceMemories.append(perInstanceMemory)
       return perInstanceMemory
    
-   def createSharedCalParam(self, name, typeRef, SWAddrMethodRef, adminData=None):
+   def createSharedCalParam(self, name, typeRef, SwAddrMethodRef, adminData=None):
       self._initSWC()
       ws = self.rootWS()
       dataType = ws.find(typeRef, role='DataType')
       if dataType is None:
          raise ValueError('invalid reference: '+typeRef)      
       elem = CalPrmElemPrototype(name, dataType.ref, self, adminData)
-      elem.swDataDefsProps.append(SWAddrMethodRef)
+      elem.swDataDefsProps.append(SwAddrMethodRef)
       self.sharedCalParams.append(elem)
       return elem
    
@@ -897,15 +996,129 @@ class InternalBehavior(Element):
       return elem
 
    
-   def _initSWC(self, ):
-      """
-      sets up self.swc if not already setup
-      """
-      if self.swc is None:
-         ws = self.rootWS()
-         assert(ws is not None)
-         self.swc = ws.find(self.componentRef)
-      assert(self.swc is not None)
-      
 
+class SwcInternalBehavior(InternalBehaviorCommon):
+   def __init__(self,name, componentRef, multipleInstance=False,parent=None):
+      super().__init__(name, componentRef, multipleInstance, parent)
+      self.serviceDependencies = [] #list of SwcServiceDependency objects
+      self.parameterDataPrototype = [] #list of ParameterDataPrototye objects
+      self.dataTypeMappingRefs = [] #list of strings
+      
+      
+   def tag(self, version): return "SWC-INTERNAL-BEHAVIOR"
    
+   def find(self, ref):
+      if ref is None: return None
+      result = super().find(ref)
+      if result is None:
+         if ref[0]=='/': ref=ref[1:] #removes initial '/' if it exists
+         ref=ref.partition('/')
+         name=ref[0]
+         for elem in self.parameterDataPrototype:
+            if elem.name == name: return elem
+      else:
+         return result
+      return None 
+
+class VariableAccess(Element):
+   def __init__(self, name, portPrototypeRef, targetDataPrototypeRef, parent=None):
+      super().__init__(name, parent)
+      self.portPrototypeRef=portPrototypeRef
+      self.targetDataPrototypeRef = targetDataPrototypeRef
+   
+   def tag(self, version=None):
+      return 'VARIABLE-ACCESS'
+
+class ServiceNeeds(Element):
+   """
+   Represents <SERVICE-NEEDS> (AUTODSAR 4)
+   """
+   def tag(self, version): return 'SERVICE-NEEDS'
+   
+   def __init__(self, name = None, nvBlockNeeds = None, parent=None, adminData = None):
+      super().__init__(name, parent, adminData)
+      self.nvBlockNeeds = nvBlockNeeds
+
+class SwcServiceDependency(Element):
+   """
+   Represents <SWC-SERVICE-DEPENDENCY> (AUTODSAR 4)
+   """
+   def tag(self, version): return 'SWC-SERVICE-DEPENDENCY'
+   
+   def __init__(self, name=None, parent=None, adminData = None):
+      super().__init__(name, parent, adminData)
+      self._serviceNeeds = None
+      self.roleBasedDataAssignments = []
+      self.roleBasedPortAssignments = []
+      
+   @property
+   def serviceNeeds(self):
+      return self._serviceNeeds
+   
+   @serviceNeeds.setter
+   def serviceNeeds(self, elem):
+      elem.parent = self
+      self._serviceNeeds = elem
+
+class RoleBasedDataAssignment:
+   """
+   Represents <ROLE-BASED-DATA-ASSIGNMENT> (AUTOSAR 4)
+   """
+   def __init__(self, role, localVariableRef=None, localParameterRef=None):
+      self.role = role
+      self.localVariableRef = localVariableRef
+      self.localParameterRef = localParameterRef
+   
+   def tag(self, version): return 'ROLE-BASED-DATA-ASSIGNMENT'
+
+class RoleBasedPortAssignment:
+   """
+   Represents <ROLE-BASED-PORT-ASSIGNMENT> (AUTOSAR 4)
+   """
+   def __init__(self, portRef):
+      self.portRef = portRef
+   
+   def tag(self, version): return 'ROLE-BASED-PORT-ASSIGNMENT'
+
+class ParameterDataPrototype(Element):
+   """
+   Represents <PARAMETER-DATA-PROTOTYPE> (AUTOSAR 4)
+   """
+   
+   def __init__(self, name, typeRef, swAddressMethodRef=None, swCalibrationAccess=None, parent=None, adminData=None):
+      super().__init__(name, parent, adminData)
+      self.typeRef = typeRef      
+      self.swAddressMethodRef = swAddressMethodRef
+      self.swCalibrationAccess = swCalibrationAccess
+   
+   def tag(self, version): return 'PARAMETER-DATA-PROTOTYPE'
+
+class ParameterInstanceRef:
+   """
+   Represents <AUTOSAR-PARAMETER-IREF> (AUTOSAR 4)
+   """
+   def __init__(self, portRef, parameterDataRef):
+      self.portRef = portRef
+      self.parameterDataRef = parameterDataRef
+   
+   def tag(self, version): return 'AUTOSAR-PARAMETER-IREF'
+
+class LocalParameterRef:
+   """
+   Represents <LOCAL-PARAMETER-REF> (AUTOSAR 4)
+   """
+   def __init__(self, parameterDataRef):
+      self.parameterDataRef = parameterDataRef
+   
+   def tag(self, version): return 'LOCAL-PARAMETER-REF'
+
+class ParameterAccessPoint(Element):
+   """
+   Represents <PARAMETER-ACCESS> (AUTOSAR 4)
+   """
+   
+   def __init__(self, name, accessedParameter = None, parent = None, adminData = None):
+      super().__init__(name, parent, adminData)
+      self.accessedParameter = accessedParameter #this can be NoneType or LocalParameterRef or ParameterInstanceRef
+   
+   def tag(self, version): return 'PARAMETER-ACCESS'

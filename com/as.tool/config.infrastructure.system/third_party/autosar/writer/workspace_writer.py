@@ -1,28 +1,58 @@
-from autosar.writer.writer_base import WriterBase
+from autosar.writer.writer_base import BaseWriter
 from autosar.writer.package_writer import PackageWriter
+from autosar.base import applyFilter
 import collections
 
-class WorkspaceWriter(WriterBase):
-   def __init__(self,version=3):
-      super().__init__(version)
-      self.packageWriter=PackageWriter(self.version)
+class WorkspaceWriter(BaseWriter):
+   def __init__(self, version, patch, schema, packageWriter):
+      super().__init__(version, patch)
+      assert(isinstance(packageWriter, PackageWriter))
+      self.schema = schema
+      self.packageWriter=packageWriter
+      
+   def beginFile(self):
+      lines=[]      
+      if (self.version >= 3.0) and (self.version < 4.0):
+         lines.append('<?xml version="1.0" encoding="UTF-8"?>')
+         versionString = "%d.%d.%d"%(self.major, self.minor, self.patch)
+         if self.schema is None:
+            schema = 'autosar_'+versionString+'.xsd'
+         else:
+            schema = self.schema
+         lines.append('<AUTOSAR xsi:schemaLocation="http://autosar.org/%s %s" xmlns="http://autosar.org/%s" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'%(versionString, schema, versionString))
+         lines.append(self.indentChar+'<TOP-LEVEL-PACKAGES>')
+      elif self.version >= 4.0:         
+         lines.append('<?xml version="1.0" encoding="utf-8"?>')
+         lines.append('<AUTOSAR xsi:schemaLocation="http://autosar.org/schema/r4.0 AUTOSAR_{0}-{1}-{2}.xsd" xmlns="http://autosar.org/schema/r4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'.format(self.major, self.minor, self.patch))
+         lines.append(self.indentChar+'<AR-PACKAGES>')
+      return lines
    
-   def saveXML(self, ws, fp, packages, ignore):
-      fp.write(self.toXML(ws,packages, ignore))
+   def endFile(self):
+      lines=[]
+      if (self.version >= 3.0) and (self.version<4.0):
+         lines.append(self.indentChar+'</TOP-LEVEL-PACKAGES>')
+      else:
+         lines.append(self.indentChar+'</AR-PACKAGES>')
+      lines.append('</AUTOSAR>')
+      return lines
 
-   def toXML(self, ws, packages, ignore):
+   
+   def saveXML(self, ws, fp, filters, ignore):
+      fp.write(self.toXML(ws, filters, ignore))
+
+   def toXML(self, ws, filters, ignore):
       lines=self.beginFile()
       result='\n'.join(lines)+'\n'
       for package in ws.packages:
-         if (packages is None) or (package.name in packages):
-            lines=self.packageWriter.toXML(package,ignore)
+         if applyFilter(package.ref, filters):
+            lines=self.packageWriter.toXML(package, filters, ignore)
             if len(lines)>0:
                lines=self.indent(lines,2)
                result+='\n'.join(lines)+'\n'
       lines=self.endFile()
       return result+'\n'.join(lines)+'\n'
    
-   def toCode(self, ws, packages=None, ignore=None, head=None, tail=None, module=False, indent=3):
+   def toCode(self, ws, filters=None, ignore=None, head=None, tail=None, module=False, indent=3):
       localvars = collections.OrderedDict()
       localvars['ws']=ws
       indentStr=indent*' '
@@ -40,8 +70,8 @@ class WorkspaceWriter(WriterBase):
          
          #body
          for package in ws.packages:
-            if (isinstance(packages, collections.Iterable) and package.name in packages) or (isinstance(packages, str) and package.name==packages) or (packages is None):
-               lines=self.packageWriter.toCode(package, ignore, localvars)
+            if applyFilter(package.ref, filters):
+               lines=self.packageWriter.toCode(package, filters, ignore, localvars)
                if len(lines)>0:
                   result+='\n'.join(lines)+'\n'
          #tail
@@ -68,8 +98,8 @@ class WorkspaceWriter(WriterBase):
          #body
          result+='def apply(ws):\n'
          for package in ws.packages:
-            if (isinstance(packages, collections.Iterable) and package.name in packages) or (isinstance(packages, str) and package.name==packages) or (packages is None):
-               lines=self.packageWriter.toCode(package, ignore, localvars)
+            if applyFilter(package.ref, filters):
+               lines=self.packageWriter.toCode(package, filters, ignore, localvars)
                if len(lines)>0:
                   lines=[indentStr+x for x in lines]
                   result+='\n'.join(lines)+'\n'
@@ -96,5 +126,5 @@ class WorkspaceWriter(WriterBase):
       
 
       
-   def saveCode(self, ws, fp, packages=None, ignore=None, head=None, tail=None, module=False):
-      fp.write(self.toCode(ws, packages, ignore, head, tail, module))
+   def saveCode(self, ws, fp, filters=None, ignore=None, head=None, tail=None, module=False):
+      fp.write(self.toCode(ws, filters, ignore, head, tail, module))

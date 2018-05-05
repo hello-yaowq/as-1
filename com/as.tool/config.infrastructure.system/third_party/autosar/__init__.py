@@ -7,7 +7,11 @@ import autosar.constant
 import autosar.signal
 import autosar.package
 import autosar.rte
+from abc import (ABC,abstractmethod)
 from autosar.base import splitRef
+import autosar.bsw.com
+import autosar.bsw.os
+
 import ntpath
 import os
 import xml.etree.ElementTree as ElementTree
@@ -43,8 +47,10 @@ class DcfParser:
       return dcf
 
 
-def workspace():
-   return autosar.Workspace()
+def workspace(version=3.0, patch = 2, schema=None, EcuName=None, packages=None):
+   if schema is None and version == 3.0 and patch == 2:
+      schema = 'autosar_302_ext.xsd'
+   return autosar.Workspace(version, patch, schema, EcuName, packages)
 
 def dcfImport(filename):
    parser = DcfParser()
@@ -76,7 +82,7 @@ def splitRef(ref):
    return autosar.base.splitRef(ref)
 
 def DataElement(name, typeRef, isQueued=False, softwareAddressMethodRef=None, parent=None, adminData=None):
-   return autosar.portinterface.DataElement(name, typeRef, isQueued, softwareAddressMethodRef, parent, adminData)
+   return autosar.portinterface.DataElement(name, typeRef, isQueued, softwareAddressMethodRef, None, None, parent, adminData)
 
 def ApplicationError(name, errorCode, parent=None, adminData=None):
    return autosar.portinterface.ApplicationError(name, errorCode, parent, adminData)
@@ -87,5 +93,12 @@ def ModeGroup(name, typeRef, parent=None, adminData=None):
 def CompuMethodConst(name, elements, parent=None, adminData=None):
    return autosar.datatype.CompuMethodConst(name, elements, parent, adminData)
 
-def RteGenerator():
-   return autosar.rte.RteGenerator()
+
+#template support
+class Template(ABC):
+   @classmethod
+   @abstractmethod
+   def apply(cls, ws):
+      """
+      Applies this class template to the workspace ws
+      """

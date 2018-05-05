@@ -1,22 +1,66 @@
 import autosar.package
 import autosar.parser.package_parser
 import autosar.writer
-from autosar.base import parseXMLFile,getXMLNamespace,removeNamespace
+from autosar.base import parseXMLFile,getXMLNamespace,removeNamespace,parseAutosarVersionAndSchema,prepareFilter
 import json
 import os
 import ntpath
 import collections
+import re
+from autosar.parser.datatype_parser import (DataTypeParser, DataTypeSemanticsParser, DataTypeUnitsParser)
+from autosar.parser.portinterface_parser import (PortInterfacePackageParser,SoftwareAddressMethodParser,ModeDeclarationGroupPackageParser)
+#default parsers
+from autosar.parser.constant_parser import ConstantParser
+from autosar.parser.behavior_parser import BehaviorParser
+from autosar.parser.component_parser import ComponentTypeParser
+from autosar.parser.system_parser import SystemParser
+from autosar.parser.signal_parser import SignalParser
+#default writers
+from autosar.writer.datatype_writer import XMLDataTypeWriter, CodeDataTypeWriter
+from autosar.writer.constant_writer import XMLConstantWriter, CodeConstantWriter
+from autosar.writer.portinterface_writer import XMLPortInterfaceWriter, CodePortInterfaceWriter
+from autosar.writer.component_writer import XMLComponentTypeWriter, CodeComponentTypeWriter
+from autosar.writer.behavior_writer import XMLBehaviorWriter, CodeBehaviorWriter
+from autosar.writer.signal_writer import SignalWriter
 
-_validWSRoles = ['DataType', 'Constant', 'PortInterface', 'ComponentType', 'ModeDclrGroup', 'CompuMethod', 'Unit']
+_validWSRoles = ['DataType', 'Constant', 'PortInterface', 'ComponentType', 'ModeDclrGroup', 'CompuMethod', 'Unit',
+                 'BaseType', 'DataConstraint']
 
 class Workspace(object):
-   def __init__(self,version=3.0):
+   def __init__(self, version, patch, schema, EcuName = None, packages=None):
       self.packages = []
       self.version=version
+      self.patch=patch
+      self.schema=schema
       self.packageParser=None
+      self.packageWriter=None
       self.xmlroot = None
-      self.roles = {'DataType': None, 'Constant': None, 'PortInterface': None, 'ModeDclrGroup': None,
-                    'ComponentType': None, 'CompuMethod': None, 'Unit': None} #stores references to the actor (i.e. package) that acts the role
+      self.EcuName = EcuName
+      self.roles = {'DataType': None,
+                    'Constant': None,
+                    'PortInterface': None,
+                    'ModeDclrGroup': None,
+                    'ComponentType': None,
+                    'CompuMethod': None,
+                    'Unit': None,
+                    'BaseType': None,        #AUTOSAR 4 only
+                    'DataConstraint': None }  #AUTOSAR 4 only
+      
+      self.defaultPackages = {'DataType': 'DataType',
+                              'Constant': 'Constant',
+                              'PortInterface': 'PortInterface',
+                              'ModeDclrGroup': 'ModeDclrGroup',
+                              'ComponentType': 'ComponentType',
+                              'CompuMethod': 'DataTypeSemantics',
+                              'Unit': 'DataTypeUnits'}
+      self.errorHandlingOpt = False
+      if packages is not None:
+         for key,value in packages.items():
+            if key in self.defaultPackages:
+               self.defaultPackages[key]=value
+            else:
+               raise ValueError("Unknown role name '%s'"%key)
+            
 
    def __getitem__(self,key):
       if isinstance(key,str):
@@ -43,19 +87,22 @@ class Workspace(object):
       package.role=role
       self.roles[role]=package.ref
 
-   def openXML(self,filename):
-      version = None
-      xmlroot = parseXMLFile(filename)  #'http://autosar.org/3.0.2'
+   def openXML(self,filename):      
+      xmlroot = parseXMLFile(filename)
       namespace = getXMLNamespace(xmlroot)
 
       assert (namespace is not None)
-      if namespace == 'http://autosar.org/3.0.2': version = 3.0
-      if version is None:
-         raise NotImplementedError('unsupported autosar vesion: %s'%namespace)
+      (major, minor, patch, schema) = parseAutosarVersionAndSchema(xmlroot)
       removeNamespace(xmlroot,namespace)
-      self.packageParser = autosar.parser.package_parser.PackageParser(version,self)
-      self.version=version
+      self.version=float('%s.%s'%(major,minor))
+      self.major=major
+      self.minor=minor
+      self.patch=patch
+      self.schema=schema
       self.xmlroot = xmlroot
+      if self.packageParser is None:
+         self.packageParser = autosar.parser.package_parser.PackageParser(self.version)      
+      self._registerDefaultElementParsers(self.packageParser)
 
    def loadXML(self, filename, roles=None):
       global _validWSRoles
@@ -75,50 +122,51 @@ class Workspace(object):
       if self.version >= 3.0 and self.version < 4.0:
          if self.xmlroot.find('TOP-LEVEL-PACKAGES'):
             for xmlPackage in self.xmlroot.findall('./TOP-LEVEL-PACKAGES/AR-PACKAGE'):
-               name = xmlPackage.find("./SHORT-NAME").text
-               if packagename=='*' or packagename==name:
-                  found=True
-                  package = self.find(name)
-                  if package is None:
-                     package = autosar.package.Package(name, parent=self)
-                     self.packages.append(package)
-                     result.append(package)
-                  self.packageParser.loadXML(package,xmlPackage)
-                  if (packagename==name) and (role is not None):
-                     self.setRole(package.ref, role)
+               if self._loadPackageInternal(result, xmlPackage, packagename, role):
+                  found = True
+               
+               
       elif self.version>=4.0:
          if self.xmlroot.find('AR-PACKAGES'):
             for xmlPackage in self.xmlroot.findall('.AR-PACKAGES/AR-PACKAGE'):
-               name = xmlPackage.find("./SHORT-NAME").text
-               if packagename=='*' or packagename==name :
-                  found=True
-                  package = Package(name)
-                  self.packageParser.loadXML(package,xmlPackage)
-                  self.packages.append(package)
-                  result.append(package)
-                  if (packagename==name) and (role is not None):
-                     self.setRole(package.ref, role)
+               if self._loadPackageInternal(result, xmlPackage, packagename, role):
+                  found = True
 
       else:
          raise NotImplementedError('Version %s of ARXML not supported'%version)
       if found==False:
          raise KeyError('package not found: '+packagename)
       return result
+   
+   def _loadPackageInternal(self, result, xmlPackage, packagename, role):
+      name = xmlPackage.find("./SHORT-NAME").text
+      found = False
+      if packagename=='*' or packagename==name:
+         found=True
+         package = self.find(name)
+         if package is None:
+            package = autosar.package.Package(name, parent=self)
+            self.packages.append(package)
+            result.append(package)
+         self.packageParser.loadXML(package,xmlPackage)
+         if (packagename==name) and (role is not None):
+            self.setRole(package.ref, role)
+      return found
 
-   def loadJSON(self, filename):      
-      with open(filename) as fp:
-         basedir = ntpath.dirname(filename)
-         data = json.load(fp)         
-         if data is not None:
-            for item in data:
-               if item['type']=='fileRef':
-                  adjustedPath = self._adjustFileRef(item, basedir)
-                  if adjustedPath.endswith('.arxml'):
-                     self.loadXML(adjustedPath)
-                  else:
-                     raise NotImplementedError(adjustedPath)
-               else:
-                  raise ValueError('Unknown type: %s'%item['type'])
+   # def loadJSON(self, filename):      
+   #    with open(filename) as fp:
+   #       basedir = ntpath.dirname(filename)
+   #       data = json.load(fp)
+   #       if data is not None:
+   #          for item in data:
+   #             if item['type']=='fileRef':
+   #                adjustedPath = self._adjustFileRef(item, basedir)
+   #                if adjustedPath.endswith('.arxml'):
+   #                   self.loadXML(adjustedPath)
+   #                else:
+   #                   raise NotImplementedError(adjustedPath)
+   #             else:
+   #                raise ValueError('Unknown type: %s'%item['type'])
    
 
    def find(self, ref, role=None):
@@ -209,21 +257,61 @@ class Workspace(object):
    def findWS(self):
       return self
    
-   def root(self):
+   def rootWS(self):
       return self
    
-   def saveXML(self,filename,packages=None,ignore=None):
-      writer=autosar.writer.WorkspaceWriter()
+   def saveXML(self, filename, filters=None, packages=None, ignore=None, version=None, patch=None, schema=None):
+      if version is None:
+         version = self.version
+      if patch is None:
+         patch = self.patch
+      if schema is None:
+         schema = self.schema
+      if self.packageWriter is None:
+         self.packageWriter = autosar.writer.package_writer.PackageWriter(version, patch)
+         self._registerDefaultElementWriters(self.packageWriter)
+      writer=autosar.writer.WorkspaceWriter(version, patch, schema, self.packageWriter)
       with open(filename, 'w', encoding="utf-8") as fp:
+         if isinstance(filters,str): filters=[filters]
          if isinstance(packages,str): packages=[packages]
-         if isinstance(ignore,str): ignore=[ignore]
-         writer.saveXML(self, fp, packages, ignore)
+         if isinstance(ignore,str): filters=[ignore]
+         if packages is not None:
+            if filters is None:
+               filters = []
+            for package in packages:
+               if package[-1]=='/':
+                  filters.append(package+'*')
+               else:
+                  filters.append(package+'/*')
+         if filters is not None:
+            filters = [prepareFilter(x) for x in filters]         
+         writer.saveXML(self, fp, filters, ignore)
 
-   def toXML(self, packages=None, ignore=None):
-      writer=autosar.writer.WorkspaceWriter()
+   def toXML(self, filters=None, packages=None, ignore=None, version=None, patch=None, schema=None):      
+      if version is None:
+         version = self.version
+      if patch is None:
+         patch = self.patch
+      if schema is None:
+         schema = self.schema
+      if self.packageWriter is None:
+         self.packageWriter = autosar.writer.package_writer.PackageWriter(version, patch)
+         self._registerDefaultElementWriters(self.packageWriter)
+      writer=autosar.writer.WorkspaceWriter(version, patch, schema, self.packageWriter)
+      if isinstance(filters,str): filters=[filters]
       if isinstance(packages,str): packages=[packages]
-      if isinstance(ignore,str): ignore=[ignore]
-      return writer.toXML(self, packages, ignore)
+      if isinstance(ignore,str): filters=[ignore]
+      if packages is not None:
+         if filters is None:
+            filters = []
+         for package in packages:
+            if package[-1]=='/':
+               filters.append(package+'*')
+            else:
+               filters.append(package+'/*')
+      if filters is not None:
+         filters = [prepareFilter(x) for x in filters]
+      return writer.toXML(self, filters, ignore)
 
    def append(self,elem):
       if isinstance(elem,autosar.package.Package):
@@ -232,34 +320,69 @@ class Workspace(object):
       else:
          raise ValueError(type(elem))
    
-   def toJSON(self,packages=None,indent=3):
-      data=ws.asdict(packages)
-      return json.dumps(data,indent=indent)
-      
-   def saveJSON(self,filename,packages=None,indent=3):
-      data=self.asdict(packages)
-      with open(filename,'w') as fp:
-         json.dump(data,fp,indent=indent)
+   # def toJSON(self,packages=None,indent=3):
+   #    data=ws.asdict(packages)
+   #    return json.dumps(data,indent=indent)
+   #    
+   # def saveJSON(self,filename,packages=None,indent=3):
+   #    data=self.asdict(packages)
+   #    with open(filename,'w') as fp:
+   #       json.dump(data,fp,indent=indent)
          
-   def toCode(self, packages=None, header=None):
-      writer=autosar.writer.WorkspaceWriter()
+   def toCode(self, filters=None, packages=None, header=None, version=None, patch=None):
+      if version is None:
+         version = self.version
+      if patch is None:
+         patch = self.patch
+      writer=autosar.writer.WorkspaceWriter(version, patch, None, self.packageWriter)
+      if isinstance(filters,str): filters=[filters]
       if isinstance(packages,str): packages=[packages]
-      return writer.toCode(self,list(packages),str(header))
+      if packages is not None:
+         if filters is None:
+            filters = []
+         for package in packages:
+            if package[-1]=='/':
+               filters.append(package+'*')
+            else:
+               filters.append(package+'/*')
+      if filters is not None:
+         filters = [prepareFilter(x) for x in filters]
+      return writer.toCode(self, filters ,str(header))
          
-   def saveCode(self, filename, packages=None, ignore=None, head=None, tail=None, module=False):
+   def saveCode(self, filename, filters=None, packages=None, ignore=None, head=None, tail=None, module=False, version=None, patch=None):
       """
       saves the workspace as python code so it can be recreated later
       """
-      writer=autosar.writer.WorkspaceWriter()
+      if version is None:
+         version = self.version
+      if patch is None:
+         patch = self.patch
+      if self.packageWriter is None:
+         self.packageWriter = autosar.writer.package_writer.PackageWriter(version, patch)
+         self._registerDefaultElementWriters(self.packageWriter)
+      writer=autosar.writer.WorkspaceWriter(version, patch, None, self.packageWriter)
       if isinstance(packages,str): packages=[packages]
+      if isinstance(filters,str): filters=[filters]
+      if isinstance(ignore,str): ignore=[ignore]
+      if packages is not None:
+         if filters is None:
+            filters = []
+         for package in packages:
+            if package[-1]=='/':
+               filters.append(package+'*')
+            else:
+               filters.append(package+'/*')
+      if filters is not None:
+         filters = [prepareFilter(x) for x in filters]
+
       with open(filename,'w', encoding="utf-8") as fp:
-         writer.saveCode(self, fp, packages, ignore, head, tail, module)
+         writer.saveCode(self, fp, filters, ignore, head, tail, module)
 
    @property
    def ref(self):
       return ''
 
-   def listXMLPackages(self):
+   def listPackages(self):
       """returns a list of strings containg the package names of the opened XML file"""
       packageList=[]
       if self.xmlroot is None:
@@ -291,14 +414,129 @@ class Workspace(object):
    def createAdminData(self, data):
       return autosar.base.createAdminData(data)
    
-   def fromDict(self, data):
-      for item in data:
-         if item['type'] == 'FileRef':
-            if os.path.isfile(item['path']):
-               roles = item.get('roles',None)
-               self.loadXML(item['path'],roles=roles)
-            else:
-               raise ValueError('invalid file path "%s"'%item['path'])
-            
-if __name__ == '__main__':
-   print("done")
+   # def fromDict(self, data):
+   #    for item in data:
+   #       if item['type'] == 'FileRef':
+   #          if os.path.isfile(item['path']):
+   #             roles = item.get('roles',None)
+   #             self.loadXML(item['path'],roles=roles)
+   #          else:
+   #             raise ValueError('invalid file path "%s"'%item['path'])
+
+   def apply(self, template):
+      """
+      Applies template to this workspace
+      """
+      template.apply(self)
+
+   #---DEPRECATED CODE, TO BE REMOVED ---#
+   @classmethod
+   def _createDefaultDataTypes(cls, package):
+      package.createBooleanDataType('Boolean')
+      package.createIntegerDataType('SInt8', -128, 127)
+      package.createIntegerDataType('SInt16', -32768, 32767)
+      package.createIntegerDataType('SInt32', -2147483648, 2147483647)
+      package.createIntegerDataType('UInt8', 0, 255)
+      package.createIntegerDataType('UInt16', 0, 65535)
+      package.createIntegerDataType('UInt32', 0, 4294967295)   
+      package.createRealDataType('Float', None, None, minValType='INFINITE', maxValType='INFINITE')
+      package.createRealDataType('Double', None, None, minValType='INFINITE', maxValType='INFINITE', hasNaN=True, encoding='DOUBLE')
+   
+   def getDataTypePackage(self):
+      """
+      Returns the current data type package from the workspace. If the workspace doesn't yet have such package a default package will be created and returned.
+      """
+      package = self.find(self.defaultPackages["DataType"])
+      if package is None:
+         package=self.createPackage(self.defaultPackages["DataType"], role="DataType")
+         package.createSubPackage(self.defaultPackages["CompuMethod"], role="CompuMethod")   
+         package.createSubPackage(self.defaultPackages["Unit"], role="Unit")
+         Workspace._createDefaultDataTypes(package)
+      return package
+      
+   def getPortInterfacePackage(self):
+      """
+      Returns the current port interface package from the workspace. If the workspace doesn't yet have such package a default package will be created and returned.
+      """
+      package = self.find(self.defaultPackages["PortInterface"])
+      if package is None:
+         package=self.createPackage(self.defaultPackages["PortInterface"], role="PortInterface")
+      return package
+      
+   def getConstantPackage(self):
+      """
+      Returns the current constant package from the workspace. If the workspace doesn't yet have such package, a default package will be created and returned.
+      """
+      package = self.find(self.defaultPackages["Constant"])
+      if package is None:
+         package=self.createPackage(self.defaultPackages["Constant"], role="Constant")
+      return package
+      
+   def getModeDclrGroupPackage(self):
+      """
+      Returns the current mode declaration group package from the workspace. If the workspace doesn't yet have such package, a default package will be created and returned.
+      """
+      package = self.find(self.defaultPackages["ModeDclrGroup"])
+      if package is None:
+         package=self.createPackage(self.defaultPackages["ModeDclrGroup"], role="ModeDclrGroup")
+      return package
+      
+   def getComponentTypePackage(self):
+      """
+      Returns the current component type package from the workspace. If the workspace doesn't yet have such package, a default package will be created and returned.
+      """      
+      if self.roles["ComponentType"] is not None:
+         packageName = self.roles["ComponentType"]
+      else:
+         packageName = self.defaultPackages["ComponentType"]
+      package = self.find(packageName)
+      if package is None:
+         package=self.createPackage(packageName, role="ComponentType")
+      return package
+   
+   #--- END DEPCRECATED CODE ---#
+   
+   def registerElementParser(self, elementParser):
+      """
+      Registers a custom element parser object
+      """
+      if self.packageParser is None:
+         self.packageParser = autosar.parser.package_parser.PackageParser(self.version)
+         self._registerDefaultElementParsers(self.packageParser)
+      self.packageParser.registerElementParser(elementParser)
+
+   def registerElementWriter(self, elementWriter):
+      """
+      Registers a custom element parser object
+      """
+      if self.packageWriter is None:
+         self.packageWriter = autosar.writer.package_writer.PackageWriter(self.version, self.patch)
+         self._registerDefaultElementWriters(self.packageWriter)
+      self.packageWriter.registerElementWriter(elementWriter)
+   
+   def _registerDefaultElementParsers(self, parser):
+      parser.registerElementParser(DataTypeParser(self.version))
+      parser.registerElementParser(DataTypeSemanticsParser(self.version))
+      parser.registerElementParser(DataTypeUnitsParser(self.version))
+      parser.registerElementParser(PortInterfacePackageParser(self.version))
+      parser.registerElementParser(SoftwareAddressMethodParser(self.version))
+      parser.registerElementParser(ModeDeclarationGroupPackageParser(self.version))
+      parser.registerElementParser(ConstantParser(self.version))
+      parser.registerElementParser(ComponentTypeParser(self.version))
+      parser.registerElementParser(BehaviorParser(self.version))
+      parser.registerElementParser(SystemParser(self.version))
+      parser.registerElementParser(SignalParser(self.version))
+
+   def _registerDefaultElementWriters(self, writer):
+      writer.registerElementWriter(XMLDataTypeWriter(self.version, self.patch))      
+      writer.registerElementWriter(CodeDataTypeWriter(self.version, self.patch))
+      writer.registerElementWriter(XMLConstantWriter(self.version, self.patch))
+      writer.registerElementWriter(CodeConstantWriter(self.version, self.patch))
+      writer.registerElementWriter(XMLPortInterfaceWriter(self.version, self.patch))
+      writer.registerElementWriter(CodePortInterfaceWriter(self.version, self.patch))
+      writer.registerElementWriter(XMLComponentTypeWriter(self.version, self.patch))
+      writer.registerElementWriter(CodeComponentTypeWriter(self.version, self.patch))
+      writer.registerElementWriter(XMLBehaviorWriter(self.version, self.patch))
+      writer.registerElementWriter(CodeBehaviorWriter(self.version, self.patch))
+      writer.registerElementWriter(SignalWriter(self.version, self.patch))
+      

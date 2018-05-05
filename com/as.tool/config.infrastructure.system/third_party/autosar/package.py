@@ -19,6 +19,13 @@ class Package(object):
       self.parent=parent
       self.role=role
       self.map={'elements':{}}
+   
+   def __getitem__(self,key):
+      if isinstance(key,str):
+         return self.find(key)
+      else:
+         raise ValueError('expected string')
+   
    @property
    def ref(self):
       if self.parent is not None:
@@ -43,15 +50,7 @@ class Package(object):
          else:
             return elem
       return None
-         
-      # for elem in self.elements:
-      #    if elem.name == name:
-      #       if len(ref[2])>0:
-      #          return elem.find(ref[2])
-      #       else:
-      #          return elem
-      # return None
-   
+            
    def findall(self,ref):
       """
       experimental find-method that has some rudimentary support for globs.      
@@ -156,10 +155,12 @@ class Package(object):
             raise ValueError("dataElements: expected autosar.portinterface.DataElement instance or list")         
       self.append(portInterface)
 
-   def createParameterInterface(self,name,dataElements=None,modeDeclarationGroups=None, isService=False, adminData=None):
+   def createParameterInterface(self,name,parameters=None,modeDeclarationGroups=None, isService=False, adminData=None):
       """
-      creates a new parameter port interface. dataElements can either be a single instance of DataElement or a list of DataElements.
-      The same applies to modeDeclarationGroups. isService must be boolean
+      Creates a new parameter port interface. parameter can either be a single instance of Parameter or a list of Parameters.
+      The same applies to modeDeclarationGroups. isService must be boolean.
+      In a previous version of this function the class DataElement was used instead of Parameter.
+      In order to be backward compatible with old code, this method converts from old to new datatype internally
       """
       ws = self.rootWS()
       assert(ws is not None)
@@ -171,19 +172,35 @@ class Package(object):
       if (adminDataObj is not None) and not isinstance(adminDataObj, autosar.base.AdminData):
          raise ValueError("adminData must be of type dict or AdminData")
       portInterface = autosar.portinterface.ParameterInterface(str(name), adminData=adminDataObj)
-      if isinstance(dataElements,collections.Iterable):
-         for elem in dataElements:
+      if isinstance(parameters,collections.Iterable):
+         for elem in parameters:
             dataType=ws.find(elem.typeRef, role='DataType')
+            #normalize reference to data element
             if dataType is None:
                raise ValueError('invalid type reference: '+elem.typeRef)            
-            elem.typeRef=dataType.ref #normalize reference to data element
-            portInterface.append(elem)
-      elif isinstance(dataElements,autosar.portinterface.DataElement):         
-         dataType=ws.find(dataElements.typeRef, role='DataType')
+            elem.typeRef=dataType.ref
+            if isinstance(autosar.portinterface.DataElement):
+               #convert into Parameter
+               parameter = autosar.portinterface.Parameter(elem.name, elem.typeRef, elem.swAddressMethodRef, adminData=elem.adminData)
+            else:
+               parameter = elem
+            portInterface.append(parameter)
+      elif isinstance(parameters, autosar.portinterface.DataElement): 
+         dataType=ws.find(parameters.typeRef, role='DataType')
+         #normalize reference to data element
          if dataType is None:
-            raise ValueError('invalid type reference: '+dataElements.typeRef)
-         dataElements.typeRef=dataType.ref #normalize reference to data element
-         portInterface.append(dataElements)
+            raise ValueError('invalid type reference: '+parameters.typeRef)
+         parameters.typeRef=dataType.ref
+         parameter = autosar.portinterface.Parameter(parameters.name, parameters.typeRef,
+                                                     parameters.swAddressMethodRef, adminData=parameters.adminData)
+         portInterface.append(parameter)
+      elif isinstance(parameters, autosar.portinterface.Parameter):
+         dataType=ws.find(parameters.typeRef, role='DataType')
+         #normalize reference to data element
+         if dataType is None:
+            raise ValueError('invalid type reference: '+parameters.typeRef)
+         parameters.typeRef=dataType.ref 
+         portInterface.append(parameters)         
       else:
          raise ValueError("dataElements: expected autosar.DataElement instance or list")
       self.append(portInterface)
@@ -196,27 +213,35 @@ class Package(object):
          ws = self.rootWS()
          assert(ws is not None)         
          ws.setRole(pkg.ref, role)
-      
-   
-   
+      return pkg
          
    def rootWS(self):
       if self.parent is None:
          return None
       else:
-         return self.parent.root()
+         return self.parent.rootWS()
       
    def append(self,elem):
       """appends elem to the self.elements list"""
-      if isinstance(elem,autosar.element.Element):         
-         self.elements.append(elem)
-         elem.parent=self
-         self.map['elements'][elem.name]=elem
-      elif isinstance(elem,Package):
-        self.subPackages.append(elem)
-        elem.parent=self
-      else:
-         raise ValueError('unexpected value type %s'%str(type(elem)))
+      isNewElement = True
+      if elem.name in self.map['elements']:
+         isNewElement = False
+         existingElem = self.map['elements'][elem.name]
+         if type(elem) != type(existingElem):
+            raise TypeError('Error: element %s %s already exists in package %s with different type from new element %s'%(str(type(existingElem)), existingElem.name, self.name, str(type(elem))))
+         else:            
+            if elem != existingElem:
+              raise ValueError('Error: element %s %s already exist in package %s using different definition'%(existingElem.name, str(type(existingElem)), self.name))
+      if isNewElement:
+         if isinstance(elem,autosar.element.Element):         
+            self.elements.append(elem)
+            elem.parent=self
+            self.map['elements'][elem.name]=elem
+         elif isinstance(elem,Package):
+           self.subPackages.append(elem)
+           elem.parent=self
+         else:
+            raise ValueError('unexpected value type %s'%str(type(elem)))
 
    def update(self,other):
       """copies/clones each element from other into self.elements"""
@@ -256,7 +281,37 @@ class Package(object):
          behaviorName = str(swcName)+'_InternalBehavior'
       if implementationName is None:
          implementationName = str(swcName)+'_Implementation'
-      swc = autosar.component.ApplicationSoftwareComponent(swcName,self)      
+      swc = autosar.component.ApplicationSoftwareComponent(swcName,self)
+      ws = self.rootWS()
+      assert(ws is not None)
+      if ws.version < 4.0:
+         # In AUTOSAR 3.x the internal behavior is a sub-element of the package.
+         internalBehavior = autosar.behavior.InternalBehavior(behaviorName,swc.ref,multipleInstance,self)
+      else:
+         # In AUTOSAR 4.x the internal behavior is a sub-element of the swc.
+         internalBehavior = autosar.behavior.SwcInternalBehavior(behaviorName,swc.ref,multipleInstance, swc)
+      implementation=autosar.component.SwcImplementation(implementationName,internalBehavior.ref,parent=self)
+      swc.behavior=internalBehavior
+      swc.implementation=implementation
+      self.append(swc)
+      if ws.version < 4.0:
+         # In AUTOSAR 3.x the internal behavior is a sub-element of the package.
+         self.append(internalBehavior)
+      self.append(implementation)
+      return swc
+
+   def createServiceComponent(self,swcName,behaviorName=None,implementationName=None,multipleInstance=False):
+      """
+      Creates a new ApplicationSoftwareComponent object and adds it to the package.
+      It also creates an InternalBehavior object as well as an SwcImplementation object.
+      
+      """
+      
+      if behaviorName is None:
+         behaviorName = str(swcName)+'_InternalBehavior'
+      if implementationName is None:
+         implementationName = str(swcName)+'_Implementation'
+      swc = autosar.component.ServiceComponent(swcName,self)      
       internalBehavior = autosar.behavior.InternalBehavior(behaviorName,swc.ref,multipleInstance,self)
       implementation=autosar.component.SwcImplementation(implementationName,internalBehavior.ref,parent=self)
       swc.behavior=internalBehavior
@@ -265,7 +320,6 @@ class Package(object):
       self.append(internalBehavior)
       self.append(implementation)
       return swc
-      
 
    def createModeDeclarationGroup(self, name, modeDeclarations, initialMode, adminData=None):
       """
@@ -332,10 +386,11 @@ class Package(object):
       self.append(dataType)
       return dataType
 
-   def createIntegerDataType(self,name,min=None,max=None,valueTable=None,offset=None, scaling=None, unit=None, adminData=None, forceFloatScaling=False):
+   def createIntegerDataType(self,name,min=None,max=None,valueTable=None,offset=None, scaling=None, unit=None, baseTypeRef=None, adminData=None, forceFloatScaling=False):
       """
       Helper method for creating integer datatypes in a package.
-      In order to use this function you must have a subpackage present with role='CompuMethod'
+      In order to use this function you must have a subpackage present with role='CompuMethod'.
+      
       """
       semanticsPackage=None
       unitPackage=None
@@ -355,7 +410,10 @@ class Package(object):
          compuMethod=autosar.CompuMethodConst(str(name),list(valueTable))
          if (semanticsPackage is not None):
             semanticsPackage.append(compuMethod)
-            newType=autosar.datatype.IntegerDataType(name,min,max,compuMethodRef=compuMethod.ref, adminData=adminData)            
+            if ws.version >= 4.0:
+               pass
+            else:            
+               newType=autosar.datatype.IntegerDataType(name,min,max,compuMethodRef=compuMethod.ref, adminData=adminData)            
          else:
             raise RuntimeError("no package found with role='CompuMethod'")
       elif (valueTable is not None) and (min is None) and (max is None):
@@ -363,7 +421,18 @@ class Package(object):
          compuMethod=autosar.CompuMethodConst(str(name),list(valueTable))
          if (semanticsPackage is not None):
             semanticsPackage.append(compuMethod)
-            newType=autosar.datatype.IntegerDataType(name,0,len(valueTable)-1,compuMethodRef=compuMethod.ref, adminData=adminData)            
+            if ws.version >= 4.0:
+               if baseTypeRef is None:
+                  raise ValueError('baseTypeRef argument must be given to this method')
+               dataConstraint = self.createInternalDataConstraint(name+'_DataConstr', 0, len(valueTable)-1)
+               newType = autosar.datatype.ImplementationDataType(name, 'VALUE')
+               props = autosar.base.SwDataDefPropsConditional(baseTypeRef=baseTypeRef,
+                                                              swCalibrationAccess='NOT-ACCESSIBLE',
+                                                              compuMethodRef=compuMethod.ref,
+                                                              dataConstraintRef=dataConstraint.ref)
+               newType.variants = [props]
+            else:
+               newType=autosar.datatype.IntegerDataType(name,0,len(valueTable)-1,compuMethodRef=compuMethod.ref, adminData=adminData)            
          else:
             raise RuntimeError("no package found with role='CompuMethod'")
       elif (min is not None) and (max is not None) and (offset is not None) and (scaling is not None):
@@ -592,7 +661,20 @@ class Package(object):
       else:
          raise NotImplementedError(type(initValue))
       return value
-   
+
+   def createTextValueConstant(self, name, value):
+      constant = autosar.constant.Constant(name, None, self)      
+      constant.value = autosar.constant.TextValue(name, value, constant)
+      self.append(constant)
+      return constant
+      
+   def createNumericalValueConstant(self, name, value):
+      constant = autosar.constant.Constant(name, None, self)      
+      constant.value = autosar.constant.NumericalValue(name, value, constant)
+      self.append(constant)
+      return constant
+      
+
    def createComplexDeviceDriverComponent(self,swcName,behaviorName=None,implementationName=None,multipleInstance=False):
       if behaviorName is None:
          behaviorName = str(swcName)+'_InternalBehavior'
@@ -612,4 +694,39 @@ class Package(object):
       component = autosar.component.CompositionComponent(str(componentName), self)
       self.append(component)
       return component
-      
+   
+   def createInternalDataConstraint(self, name, lowerLimit, upperLimit, lowerLimitType="CLOSED", upperLimitType="CLOSED"):
+      ws = self.rootWS()
+      assert(ws is not None)
+      dataConstraintPackage = None
+      if ws.roles['DataConstraint'] is not None:
+         dataConstraintPackage=ws.find(ws.roles['DataConstraint'])
+         if dataConstraintPackage is None:
+            raise RuntimeError("no package found with role='DataConstraint'")      
+      rules=[]
+      try:
+         lowerLimit = int(lowerLimit)
+      except ValueError:
+         lowerLimit = str(lowerLimit)
+      try:
+         upperLimit = int(upperLimit)
+      except ValueError:
+         upperLimit = str(upperLimit)
+      rules.append({'type': 'internalConstraint', 'lowerLimit':lowerLimit, 'upperLimit':upperLimit, 'lowerLimitType':lowerLimitType, 'upperLimitType':upperLimitType})
+      constraint = autosar.datatype.DataConstraint(name, rules, self)
+      dataConstraintPackage.append(constraint)
+      return constraint
+   
+   def createSwBaseType(self, name, size, encoding=None, nativeDeclaration=None, adminData=None):
+      ws=self.rootWS()
+      assert(ws is not None)
+
+      if isinstance(adminData, dict):
+         adminDataObj=ws.createAdminData(adminData)
+      else:
+         adminDataObj = adminData
+      if (adminDataObj is not None) and not isinstance(adminDataObj, autosar.base.AdminData):
+         raise ValueError("adminData must be of type dict or AdminData")      
+      baseType = autosar.datatype.SwBaseType(name, size, encoding, nativeDeclaration, 'FIXED_LENGTH', self, adminData)
+      self.append(baseType)
+      return baseType

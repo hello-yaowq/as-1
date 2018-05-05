@@ -1,4 +1,5 @@
 import os
+import copy
 
 indentChar=' ' #globally set to space or tab
 #preprocessor
@@ -29,12 +30,18 @@ class include:
          return '#include "%s"'%self.filename
 
 class define:
-   def __init__(self,left,right=None):
+   def __init__(self,left,right=None, align=None):
       self.left=left
       self.right=right
+      self.align=align
    def __str__(self):
       if self.right is not None:
-         return "#define %s %s"%(self.left,self.right)
+         if self.align is None:
+            return "#define %s %s"%(self.left,self.right)
+         else:
+            assert(isinstance(self.align, int))
+            fmt = "#define {0:<%s} {1}"%(str(self.align))
+            return fmt.format(self.left,self.right)            
       else:
          return "#define %s"%(self.left)
 
@@ -85,7 +92,8 @@ class blank:
 
 class sequence():
    def __init__(self):
-      self.elements=[]
+      self.elements=[]      
+   
    def __str__(self):
       result = []
       for elem in self.elements:
@@ -98,13 +106,20 @@ class sequence():
          if not isinstance(elem,blank):            
             result.append('\n')
       return ''.join(result)
+   
+   def __len__(self):
+      return len(self.elements)
+   
    def append(self,elem):
       self.elements.append(elem)
+      return self
+   
    def extend(self,seq):
       if isinstance(seq, sequence):
          self.elements.extend(seq.elements)
       else:
          self.elements.extend(seq)
+      return self
    
    def lines(self):
       lines=[]
@@ -138,7 +153,7 @@ class block():
          lines=[]
          for item in self.code.elements:
             if hasattr(item, 'indent') and item.indent is None:               
-               item.indent = self.innerIndent
+               item.indent = self.indent+self.innerIndent
             lines.append(str(item))
          text+='\n'.join(lines)+'\n'         
          text+=indentStr+'}'
@@ -159,8 +174,11 @@ class block():
       tail=' '+str(self.tail) if self.tail is not None else ''         
       lines.append('%s{'%(head))
       for item in self.code.elements:
+         indent=0
+         if (self.indent is not None) and (self.indent > 0):
+            indent=self.indent
          if hasattr(item, 'indent') and item.indent is None:               
-            item.indent = self.innerIndent
+            item.indent = indent+self.innerIndent
             lines.append(str(item))
          else:
             lines.append(str(item))
@@ -169,7 +187,7 @@ class block():
    
 
 class variable():
-   def __init__(self,name,typename='int',static=0,const=0, pointer=0,alias=0,extern=0, array=None):
+   def __init__(self,name,typename='int',static=0, const=0, pointer=0,alias=0,extern=0, array=None):
       self.name=name
       self.typename=typename      
       self.array=array
@@ -235,39 +253,70 @@ class function:
    """
    Creates a function
    """
-   def __init__(self,name,typename='int',const=0,pointer=0,classname="", args=None):
+   def __init__(self, name, typename='int', static=0, const=0, pointer=0, classname="", args=None):
       self.name=name
       self.typename=typename
       self.classname=classname
-      self.arguments=[] if args is None else list(args)
+      self.args=[] if args is None else list(args)
       if isinstance(pointer,int):
          self.pointer=pointer
       elif isinstance(pointer,bool):
          self.pointer=1 if pointer==True else 0
       else:
-         raise ValueError()    
+         raise ValueError('invalid pointer argument')    
       if isinstance(const,int):
          self.const=const
       elif isinstance(const,bool):
          self.const=1 if const==True else 0
       else:
-         raise ValueError()
+         raise ValueError('invalid const argument')
+      if isinstance(static,int):
+         self.static=static
+      elif isinstance(const,bool):
+         self.static=1 if static==True else 0
+      else:
+         raise ValueError('invalid static argument')
    def add_arg(self,arg):
-      if not isinstance(arg,variable):
-         raise ValueError('expected variable object')
-      self.arguments.append(arg)
+      if not isinstance(arg,(variable,fptr)):
+         raise ValueError('expected variable or fptr object')
+      self.args.append(arg)
       return self
    def __str__(self):
+      static1='static ' if self.static else ''
       const1='const ' if self.const & 1 else ''
       pointer1='*'*self.pointer+' ' if self.pointer>0 else ''
       classname='%s::'%self.classname if len(self.classname)>0 else ""
-      if len (self.arguments)>0:
-         s='%s%s %s%s%s(%s)'%(const1,self.typename,pointer1,classname,self.name,', '.join([str(x) for x in self.arguments]))
+      if len (self.args)>0:
+         s='%s%s%s %s%s%s(%s)'%(static1, const1,self.typename,pointer1,classname,self.name,', '.join([str(x) for x in self.args]))
       else:
-         s='%s%s %s%s%s(%s)'%(const1,self.typename,pointer1,classname,self.name,'void')
+         s='%s%s%s %s%s%s(%s)'%(static1, const1,self.typename,pointer1,classname,self.name,'void')
       return s
    def set_class(self, classname):
       self.classname=classname
+
+class fptr(function):
+   def __init__(self, name, typename='int', static=0, const=0, pointer=0, classname="", args=None):
+      super().__init__(name, typename, static, const, pointer, classname, args)
+   
+   @classmethod
+   def from_func(cls, other, name=None):
+      if name is None:
+         name = other.name
+      func = cls(name, other.typename, other.static, other.const, other.pointer)
+      for arg in other.args:
+         func.add_arg(copy.deepcopy(arg))
+      return func
+         
+   def __str__(self):
+      const1='const ' if self.const & 1 else ''
+      pointer1='*'*self.pointer+' ' if self.pointer>0 else ''
+      
+      if len (self.args)>0:
+         s='%s%s (%s%s)(%s)'%(const1,self.typename,pointer1,self.name,', '.join([str(x) for x in self.args]))
+      else:
+         s='%s%s (%s%s*)(%s)'%(const1,self.typename,pointer1,self.name,'void')
+      return s
+   
 
 class fcall(object):
    """
@@ -275,14 +324,14 @@ class fcall(object):
    """
    def __init__(self,name, params=None):
       self.name=name
-      self.parameters=[] if params is None else list(params)
+      self.params=[] if params is None else list(params)
    def add_param(self,arg):
       if not isinstance(arg,str):
          raise ValueError('expected string object')
-      self.parameters.append(arg)
+      self.params.append(arg)
       return self
    def __str__(self):
-      s='%s(%s)'%(self.name,', '.join([str(x) for x in self.parameters]))
+      s='%s(%s)'%(self.name,', '.join([str(x) for x in self.params]))
       return s
 
 class _file(object):
@@ -304,6 +353,9 @@ class cfile(_file):
          if newLine == True:
             text+='\n'      
       return text
+   
+   def lines(self):
+      return self.code.lines()
       
             
 class hfile(_file):
@@ -327,6 +379,15 @@ class hfile(_file):
             text+='\n'      
       text+="\n%s %s\n"%(str(endif()),str(linecomment(self.guard)))
       return text
+   
+   def lines(self):
+      lines=[]
+      lines.append(str(ifndef(self.guard)))
+      lines.append(str(define(self.guard)))
+      lines.append('')
+      lines.extend(self.code.lines())
+      lines.append("\n%s %s\n"%(str(endif()),str(linecomment(self.guard))))
+      return lines
 
 class initializer:
    def __init__(self,typeref,expression):
@@ -339,12 +400,12 @@ class initializer:
          return str(self.expression)
 
 class typedef:
-   def __init__(self, typeinfo, name):
-      self.typeinfo=typeinfo
+   def __init__(self, basetype, name):
+      self.basetype=basetype
       self.name=str(name)
    
    def __str__(self):
-      return 'typedef %s %s'%(str(self.typeinfo),self.name)
+      return 'typedef %s %s'%(str(self.basetype),self.name)
    
 class struct:
    def __init__(self, name=None, block=None, typedef=None):
@@ -371,5 +432,4 @@ class struct:
       return '\n'.join(self.lines())
 
 if __name__ == '__main__':
-   test = cfile('test.c')
-   
+    test = cfile('test.c')

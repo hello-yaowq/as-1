@@ -97,7 +97,22 @@ class ComponentType(Element):
          raise NotImplementedError(type(portInterface))
       port = RequirePort(name,portInterface.ref,comspec,parent=self)
       self.requirePorts.append(port)
-
+   
+   def apply(self, template):
+      template.apply(self)
+   
+   def copyPort(self, otherPort):
+      """
+      Adds a copy of a port (from another component)
+      """
+      self.append(otherPort.copy())
+   
+   def mirrorPort(self, otherPort):
+      """
+      Adds a mirrored copy of a port (from another component)
+      """
+      self.append(otherPort.mirror())
+      
 class AtomicSoftwareComponent(ComponentType):
    """
    base class for ApplicationSoftwareComponent and ComplexDeviceDriverComponent
@@ -106,10 +121,28 @@ class AtomicSoftwareComponent(ComponentType):
       super().__init__(name,parent)      
       self.behavior=None
       self.implementation=None
+   
+   def find(self,ref):
+      ws = self.rootWS()
+      ref=ref.partition('/')      
+      for port in self.requirePorts:
+         if port.name == ref[0]:
+            return port
+      for port in self.providePorts:
+         if port.name == ref[0]:
+            return port
+      if (ws is not None) and (ws.version >= 4.0) and (self.behavior is not None):
+         if self.behavior.name == ref[0]:
+            if len(ref[2])>0:
+               return self.behavior.find(ref[2])
+            else:         
+               return self.behavior
+      return None
+
 
 class ApplicationSoftwareComponent(AtomicSoftwareComponent):
    
-   def tag(self,version=None): return "APPLICATION-SOFTWARE-COMPONENT-TYPE"
+   def tag(self,version=None): return 'APPLICATION-SW-COMPONENT-TYPE' if version>=4.0 else 'APPLICATION-SOFTWARE-COMPONENT-TYPE'
    
    def __init__(self,name,parent=None):
       super().__init__(name,parent)
@@ -119,6 +152,30 @@ class ComplexDeviceDriverComponent(AtomicSoftwareComponent):
    
    def __init__(self,name,parent=None):
       super().__init__(name,parent)
+
+
+class ServiceComponent(AtomicSoftwareComponent):
+   def tag(self,version=None): return "SERVICE-COMPONENT-TYPE"
+   
+   def __init__(self,name,parent=None):
+      super().__init__(name,parent)
+
+class ServiceComponent(AtomicSoftwareComponent):
+   def tag(self,version=None): return "SERVICE-COMPONENT-TYPE"
+   
+   def __init__(self,name,parent=None):
+      super().__init__(name,parent)
+
+class ParameterComponent(AtomicSoftwareComponent):
+   def tag(self,version=None):
+      if version < 4.0: 
+         return "CALPRM-COMPONENT-TYPE"
+      else:
+         return "PARAMETER-SW-COMPONENT-TYPE"
+   
+   def __init__(self,name,parent=None):
+      super().__init__(name,parent)
+
 
 class CompositionComponent(ComponentType):
    """
@@ -130,8 +187,7 @@ class CompositionComponent(ComponentType):
       self.assemblyConnectors=[]
       self.delegationConnectors=[]
    
-   def tag(self,version=None):
-      return "COMPOSITION-TYPE"
+   def tag(self,version): return 'COMPOSITION-SW-COMPONENT-TYPE' if version >= 4.0 else 'COMPOSITION-TYPE'
    
    def asdict(self):
       data={'type': self.__class__.__name__,'name':self.name,'requirePorts':[],'providePorts':[],'components':[],
@@ -243,6 +299,8 @@ class CompositionComponent(ComponentType):
                if component.name == parts[0]:
                   port = component.find(parts[1])
                   component = innerComponent
+                  if port is None:
+                     raise ValueError('component %s does not have port with name %s'%(component.name,parts[1]))                  
                   break
          else:
             #assume portRef1 is a full reference
@@ -332,9 +390,12 @@ class Port(object):
                raise ValueError("invalid reference: "+str(initValueRef))
             if isinstance(initValue,autosar.constant.Constant):
                #this is a convenience implementation for the user. Actually initValueRef needs to point to the value inside the Constant
-               if dataElement.typeRef != initValue.value.typeRef:
-                  raise ValueError("constant value has different type from data element, expected '%s', found '%s'"%(dataElement.typeRef,initValue.value.typeRef))
-               initValueRef=initValue.value.ref #correct the reference to the actual value
+               if not isinstance(initValue.value, (autosar.constant.TextValue, autosar.constant.NumericalValue)):
+                  if dataElement.typeRef != initValue.value.typeRef:
+                     raise ValueError("constant value has different type from data element, expected '%s', found '%s'"%(dataElement.typeRef,initValue.value.typeRef))
+                  initValueRef=initValue.value.ref #correct the reference to the actual value
+               else:
+                  initValueRef=initValue.ref
             elif isinstance(initValue,autosar.constant.Value):
                initValueRef=initValue.ref
             else:               
@@ -349,9 +410,12 @@ class Port(object):
          if operation is not None:
             return OperationComSpec(operation,queueLength)
       return None
+   
+      
             
       
 class RequirePort(Port):      
+   def tag(self,version=None): return "R-PORT-PROTOTYPE"
    def __init__(self,name,portInterfaceRef=None,comspec=None,parent=None):      
       if isinstance(name,str):
          #normal constructor
@@ -361,12 +425,29 @@ class RequirePort(Port):
          #copy constructor
          super().__init__(other.name, other.portInterfaceRef, parent)
          self.comspec=copy.deepcopy(other.comspec)
+      elif isinstance(name,ProvidePort):
+         other=name #alias
+         #copy constructor
+         super().__init__(other.name, other.portInterfaceRef, parent)
+         self.comspec=copy.deepcopy(other.comspec)
       else:
-         raise NotImplementedError(type(name))
+         raise NotImplementedError(type(name))   
+      
+   def copy(self):
+      """
+      returns a copy of itself
+      """
+      return RequirePort(self)
 
-   def tag(self,version=None): return "R-PORT-PROTOTYPE"
+   def mirror(self):
+      """
+      returns a mirrored copy of itself
+      """
+      return ProvidePort(self)
+
 
 class ProvidePort(Port):         
+   def tag(self,version=None): return "P-PORT-PROTOTYPE"
    def __init__(self,name,portInterfaceRef=None,comspec=None,parent=None):
       if isinstance(name,str):
       #normal constructor      
@@ -376,10 +457,26 @@ class ProvidePort(Port):
          #copy constructor
          super().__init__(other.name,other.portInterfaceRef,None)
          self.comspec=copy.deepcopy(other.comspec)
+      elif isinstance(name,RequirePort):
+         other=name #alias
+         #copy constructor
+         super().__init__(other.name, other.portInterfaceRef, parent)
+         self.comspec=copy.deepcopy(other.comspec)
       else:
          raise NotImplementedError(type(name))
       
-   def tag(self,version=None): return "P-PORT-PROTOTYPE"      
+   def copy(self):
+      """
+      returns a copy of itself
+      """
+      return ProvidePort(self)
+   
+   def mirror(self):
+      """
+      returns a mirrored copy of itself
+      """
+      return RequirePort(self)
+
 
 class OperationComSpec(object):
    def __init__(self,name=None,queueLength=1):
@@ -391,12 +488,13 @@ class OperationComSpec(object):
          data['queueLength']=self.queueLength
 
 class DataElementComSpec(object):
-   def __init__(self,name=None,initValueRef=None,aliveTimeout=None,queueLength=None,canInvalidate=None):
+   def __init__(self, name=None, initValueRef=None, aliveTimeout=None, queueLength=None, canInvalidate=None, initValue=None):
       self.name = name
       self.initValueRef = str(initValueRef) if initValueRef is not None else None
       self._aliveTimeout = int(aliveTimeout) if aliveTimeout is not None else None
       self._queueLength = int(queueLength) if queueLength is not None else None
       self.canInvalidate = bool(canInvalidate) if canInvalidate is not None else None
+      self.initValue = initValue
 
    @property
    def aliveTimeout(self):
@@ -423,11 +521,20 @@ class DataElementComSpec(object):
       if self.canInvalidate is not None: data['canInvalidate']=self.canInvalidate
       return data
 
+class ModeSwitchComSpec:
+   def __init__(self, enhancedMode=False, supportAsync=False):
+      self.enhancedMode = enhancedMode
+      self.supportAsync = supportAsync
+
+class ParameterComSpec:
+   def __init__(self, name, initValue=None):
+      self.name = name
+      self.initValue = initValue
+
 class SwcImplementation(Element):
    def __init__(self,name,behaviorRef,parent=None):
       super().__init__(name,parent)
       self.behaviorRef=behaviorRef
-
 
 class ComponentPrototype(Element):
    def __init__(self,name,typeRef,parent=None):
@@ -436,11 +543,7 @@ class ComponentPrototype(Element):
    def asdict(self):
       return {'type': self.__class__.__name__,'name':self.name,'typeRef':self.typeRef}
    
-   def tag(self, version=None):
-      return 'COMPONENT-PROTOTYPE'
-
-
-
+   def tag(self, version=None): return 'SW-COMPONENT-PROTOTYPE' if version >= 4.0 else'COMPONENT-PROTOTYPE'
 
 class ProviderInstanceRef:
    """
@@ -506,8 +609,8 @@ class AssemblyConnector(Element):
    def asdict(self):
       return {'type': self.__class__.__name__,'providerInstanceRef':self.providerInstanceRef.asdict(),'requesterInstanceRef':self.requesterInstanceRef.asdict()}
    
-   def tag(self, version=None):
-      return 'ASSEMBLY-CONNECTOR-PROTOTYPE'
+   def tag(self, version):
+      return 'ASSEMBLY-SW-CONNECTOR' if version >= 4.0 else 'ASSEMBLY-CONNECTOR-PROTOTYPE'
    
 
 class DelegationConnector(Element):
@@ -524,6 +627,5 @@ class DelegationConnector(Element):
    def asdict(self):
       return {'type': self.__class__.__name__,'innerPortInstanceRef':self.innerPortInstanceRef.asdict()}
    
-   def tag(self, version=None):
-      return 'DELEGATION-CONNECTOR-PROTOTYPE'
-   
+   def tag(self, version): return 'DELEGATION-SW-CONNECTOR' if version >= 4.0 else 'DELEGATION-CONNECTOR-PROTOTYPE'
+

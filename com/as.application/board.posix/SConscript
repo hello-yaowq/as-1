@@ -34,7 +34,7 @@ if('run' in COMMAND_LINE_TARGETS):
         bin = asenv['CC'][:-3]
         src = target+'.exe'
         tgt = bin+'posix.exe'
-        MKObject(src, tgt, 'cp -f %s %s'%(src, tgt))
+        RunCommand('cp -f %s %s'%(src, tgt))
         for dll in Glob('%s/*.dll'%(build)):
             src = str(dll)
             tgt = bin+os.path.basename(src)
