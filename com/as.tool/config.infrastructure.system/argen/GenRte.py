@@ -21,81 +21,92 @@
 """
 import sys,os
 from .GCF import *
+if(os.path.exists('../../com/as.tool/config.infrastructure.system/third_party')):
+    sys.path.append(os.path.abspath('../../com/as.tool/config.infrastructure.system/third_party'))
+elif(os.path.exists('third_party')):
+    sys.path.append(os.path.abspath('third_party'))
+else:
+    raise Exception("can't locate config.infrastructure.system")
+
+import autosar
 
 __all__ = ['GenRte']
 
 __dir = '.'
+
+
+def handleDataTypeInteger(dataTypes, data):
+    if(GAGet(data,'Minimum') != 'TBD'):
+        Minimum = Integer(GAGet(data,'Minimum'))
+    else:
+        Minimum = None
+    if(GAGet(data,'Maximum') != 'TBD'):
+        Maximum = Integer(GAGet(data,'Maximum'))
+    else:
+        Maximum = None
+    if(GAGet(data,'ValueTable') != 'TBD'):
+        ValueTable = []
+        for v in GAGet(data,'ValueTable').split(','):
+            v = v.strip()
+            if(v != ''):
+                ValueTable.append(v)
+    else:
+        ValueTable = None
+    dataTypes.createIntegerDataType(GAGet(data,'Name'),
+                    min = Minimum,
+                    max = Maximum,
+                    valueTable=ValueTable)
+
+def handleSWC(swc, ws, componentType, portInterface):
+    swcpkg = componentType.createApplicationSoftwareComponent(GAGet(swc,'Name'))
+    portAccessList = []
+    for port in GLGet(swc,'PortList'):
+        portAccessList.append('%sPort'%(GAGet(port,'Name')))
+        portInterface.createSenderReceiverInterface('%s_I'%(GAGet(port,'Name')),
+                        autosar.DataElement('%s'%(GAGet(port,'Name')),
+                        '/DataType/'+GAGet(port,'DataTypeRef')))
+        if(GAGet(port,'Type') == 'Require'):
+            swcpkg.createRequirePort('%sPort'%(GAGet(port,'Name')),
+                                     '%s_I'%(GAGet(port,'Name')),
+                                     initValueRef=GAGet(port,'InitValueRef'))
+        else:
+            swcpkg.createProvidePort('%sPort'%(GAGet(port,'Name')),
+                                     '%s_I'%(GAGet(port,'Name')),
+                                     initValueRef=GAGet(port,'InitValueRef'))
+    swcpkg.behavior.createRunnable(GAGet(swc,'Runnable'), portAccess=portAccessList)
+    partition = autosar.rte.Partition()
+    partition.addComponent(swcpkg)
+    rtegen = autosar.rte.TypeGenerator(partition)
+    dirp = __dir + '/' + GAGet(swc,'Name')
+    MKDir(dirp)
+    rtegen.generate(dirp)
+#    rtegen = autosar.rte.MockRteGenerator(partition)
+#    rtegen.generate(dirp)
+    rtegen = autosar.rte.ComponentHeaderGenerator(partition)
+    rtegen.generate(dirp)
+#    rtegen = autosar.rte.RteGenerator(partition)
+#    rtegen.generate(dirp)
+
 
 def GenRte(root,dir):
     global __dir
     GLInit(root)
     __dir = '%s'%(dir)
     if(len(GLGet('SwcList')) == 0):return
-    GenH()
-    GenC()
+    ws=autosar.workspace()
+    dataTypes=ws.createPackage('DataType')
+    dataTypes.createSubPackage('DataTypeSemantics', role='CompuMethod')
+    dataTypes.createSubPackage('DataTypeUnits', role='Unit')
+    for data in GLGet('DataTypeList'):
+        if(GAGet(data,'Type') == 'Integer'):
+            handleDataTypeInteger(dataTypes, data)
+    constpkg=ws.createPackage('Constant', role='Constant')
+    for const in GLGet('ConstantList'):
+        constpkg.createConstant(GAGet(const,'Name'),
+                               '/DataType/'+GAGet(const,'Type'),
+                               Integer(GAGet(const,'Value')))
+    portInterface = ws.createPackage('PortInterface', role='PortInterface')
+    componentType=ws.createPackage('ComponentType', role='ComponentType')
+    for swc in GLGet('SwcList'):
+        handleSWC(swc, ws, componentType, portInterface)
     print('    >>> Gen Rte DONE <<<')
-    
-
-def struct(s):
-    s = s.strip()
-    s = s.replace('{','{\n\t')
-    s = s.replace(';',';\n\t') 
-    s = s[:-2]+'}'
-    return s
-    
-
-def GenRteTypesH():
-    global __dir
-    fp = open('%s/Rte_Types.h'%(__dir),'w')
-    fp.write(GHeader('Rte_Types'))
-    fp.write('#ifndef RTE_TYPES_H_\n#define RTE_TYPES_H_\n\n')
-    fp.write('#include "Std_Types.h"\n\n')
-    swcList = GLGet('SwcList')
-    for swc in swcList:
-        internalBehaviorList = GLGet(swc,'InternalBehaviorList')
-        pimList = GLGet(internalBehaviorList,'PimList')
-        for pim in pimList:
-            fp.write('typedef %s Rte_PimType_%s_%s;\n\n'%(struct(GAGet(pim,'TypeDefinion')),GAGet(swc,'Name'),GAGet(pim,'TypeName')))
-    
-    fp.write('\n#endif\n\n');
-    fp.close()
-    
-
-def GenSwcH(swc):
-    global __dir
-    fp = open('%s/Rte_%s.h'%(__dir,GAGet(swc,'Name')),'w')
-    fp.write(GHeader('Rte_%s'%(GAGet(swc,'Name'))))
-    fp.write('#ifndef RTE_%s_H_\n#define RTE_%s_H_\n\n'%(GAGet(swc,'Name'),GAGet(swc,'Name')))
-    fp.write('#include "Rte_Types.h"\n\n')
-    internalBehaviorList = GLGet(swc,'InternalBehaviorList')
-    pimList = GLGet(internalBehaviorList,'PimList')
-    for pim in pimList:
-        fp.write('typedef Rte_PimType_%s_%s %s;\n\n'%(GAGet(swc,'Name'),GAGet(pim,'TypeName'),GAGet(pim,'TypeName')))
-    
-    fp.write('\n#endif\n\n');
-    fp.close()
-
-def GenH():
-    global __dir
-    GenRteTypesH()
-    
-    swcList = GLGet('SwcList')
-    for swc in swcList:
-        GenSwcH(swc)
-    
-
-def GenC():
-    global __dir
-    global __dir
-    fp = open('%s/Rte.c'%(__dir),'w')
-    fp.write(GHeader('Rte'))
-    fp.write('#include "Rte_Types.h"\n\n')
-    swcList = GLGet('SwcList')
-    for swc in swcList:
-        internalBehaviorList = GLGet(swc,'InternalBehaviorList')
-        pimList = GLGet(internalBehaviorList,'PimList')
-        for pim in pimList:
-            fp.write('Rte_PimType_%s_%s %s;\n\n'%(GAGet(swc,'Name'),GAGet(pim,'TypeName'),GAGet(pim,'Name')))
-    
-    fp.close()
-      

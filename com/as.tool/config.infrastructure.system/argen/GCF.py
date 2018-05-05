@@ -19,10 +19,19 @@
  * Source Open At: https://github.com/parai/OpenSAR/
  */
 """
+import os
 
-__all__=['Integer','GLInit','GAGet','GASet','GLGet','GHeader']
+__all__=['Integer','GLInit','GAGet','GASet','GLGet','GHeader','MKDir']
 
 __root=None
+
+def MKDir(p):
+    ap = os.path.abspath(p)
+    try:
+        os.makedirs(ap)
+    except:
+        if(not os.path.exists(ap)):
+            raise Exception('Fatal Error: can\'t create directory <%s>'%(ap))
 
 def Integer(strnum):
     if(strnum.find('0x')!=-1 or strnum.find('0X')!=-1):

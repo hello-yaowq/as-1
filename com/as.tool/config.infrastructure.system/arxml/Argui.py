@@ -150,6 +150,7 @@ class ArgInfoInput(QTextEdit):
         self.arobj = arobj
         super(QTextEdit,self).__init__(self.arobj.arxml.attrib(self.key))
         self.setToolTip(self.arobj.arxml.getKeyDescriptor(self.key).replace('\\n','\n'))
+        self.setEnabled(IsEnabled(key, arobj))
         #self.textChanged.conenct(self.onTextChanged)
         self.startTimer(100)   # TODO : this is a patch code  
     
@@ -290,8 +291,8 @@ class ArgSelect(QComboBox):
 
 def ArgWidget(key,arobj,root,IsNotInTableWidget=True):
     reInfo  = re.compile(r'^TextArea')
-    reInput = re.compile(r'^Text|Integer')
-    reSelect = re.compile(r'^EnumRef|Enum|Boolean')
+    reInput = re.compile(r'^(Text|Integer)')
+    reSelect = re.compile(r'^(EnumRef|Enum|Boolean)')
     descriptor = arobj.arxml.getKeyDescriptor(key)
     if(reInfo.search(descriptor)):
         return ArgInfoInput(key,arobj,root,IsNotInTableWidget)

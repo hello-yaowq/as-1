@@ -952,21 +952,38 @@
 	</XcpEventChannelList>
 </Xcp>
 <Rte>
-	<!-- according to RTE Example 5.4 -->
+	<DataTypeList Max="65535">
+		<DataType
+			Name="Text PosGUI=0"
+			Type="Enum=(Integer,Array,Real,Record,Bool,String) Default=Integer PosGUI=1"
+			Minimum="Integer Enabled=(Self.Type==Integer) leave TBD if not used PosGUI=2"
+			Maximum="Integer Enabled=(Self.Type==Integer) leave TBD if not used PosGUI=3"
+			ValueTable="TextArea Default=TBD Enabled=(Self.Type==Integer) leave TBD if not used PosGUI=4"
+			Comment="TextArea Default=* PosGUI=5"
+			/>
+	</DataTypeList>
+	<ConstantList Max="65535">
+		<Constant
+			Name="Text PosGUI=0"
+			Type="EnumRef=Rte.DataTypeList PosGUI=1"
+			Value="Integer PosGUI=2"
+			Comment="TextArea Default=* PosGUI=3"
+			/>
+	</ConstantList>
 	<SwcList Max="65535">
 		<Swc
 			Name="Text PosGUI=0"
-			Comment="TextArea Default=* PosGUI=1" >
-		<InternalBehaviorList Max="65535">
-			<PimList Max="65535">
-				<Pim
+			Runnable="Text PosGUI=1"
+			Comment="TextArea Default=* PosGUI=2" >
+			<PortList Max="65535">
+				<Port
 					Name="Text PosGUI=0"
-					TypeName="Text PosGUI=1"
-					TypeDefinion="TextArea PosGUI=2"
-					Comment="TextArea Default=* PosGUI=3"
+					Type="Enum=(Provide,Require) PosGUI=1"
+					DataTypeRef="EnumRef=Rte.DataTypeList PosGUI=2"
+					InitValueRef="EnumRef=Rte.ConstantList PosGUI=3"
+					Comment="TextArea Default=* PosGUI=4"
 					/>
-			</PimList>
-		</InternalBehaviorList>
+			</PortList>
 		</Swc>
 	</SwcList>
 </Rte>

@@ -60,6 +60,8 @@ def main():
 #    rtegen.generate('swc/telltale')
     rtegen = autosar.rte.ComponentHeaderGenerator(partition)
     rtegen.generate('swc/telltale')
+#    rtegen = autosar.rte.RteGenerator(partition)
+#    rtegen.generate('swc/telltale')
 
 if(__name__ == '__main__'):
     main()

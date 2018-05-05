@@ -497,13 +497,20 @@
 </XcpEventChannelList>
 </Xcp>
 <Rte>
+<DataTypeList Max="TBD">
+<DataType Comment="*" Maximum="TBD" Minimum="TBD" Name="InactiveActive_T" Type="Integer" ValueTable="InactiveActive_Inactive, InactiveActive_Active, InactiveActive_Error, InactiveActive_NotAvailable" />
+<DataType Comment="*" Maximum="TBD" Minimum="TBD" Name="OnOff_T" Type="Integer" ValueTable="OnOff_Off, OnOff_On, OnOff_1Hz, OnOff_2Hz, OnOff_3Hz" />
+</DataTypeList>
+<ConstantList Max="TBD">
+<Constant Comment="*" Name="C_TELLTALE_OFF_IV" Type="OnOff_T" Value="0" />
+</ConstantList>
 <SwcList Max="TBD">
-<Swc Comment="*" Name="Swc1">
-<InternalBehaviorList Max="TBD">
-<PimList Max="TBD">
-<Pim Comment="*" Name="MyPIM" TypeDefinion="struct {uint16 val1;uint8 * val2;}" TypeName="MyMemType" />
-</PimList>
-</InternalBehaviorList>
+<Swc Comment="*" Name="Telltale" Runnable="Telltale_run">
+<PortList Max="TBD">
+<Port Comment="*" DataTypeRef="OnOff_T" InitValueRef="C_TELLTALE_OFF_IV" Name="TelltaleTPMSStatus" Type="Provide" />
+<Port Comment="*" DataTypeRef="OnOff_T" InitValueRef="C_TELLTALE_OFF_IV" Name="TelltaleAutoCruiseStatus" Type="Provide" />
+<Port Comment="*" DataTypeRef="OnOff_T" InitValueRef="C_TELLTALE_OFF_IV" Name="TelltaleHighBeamStatus" Type="Provide" />
+</PortList>
 </Swc>
 </SwcList>
 </Rte>
