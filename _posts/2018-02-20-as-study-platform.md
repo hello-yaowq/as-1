@@ -76,6 +76,47 @@ Generally you can leave it as default.
 
 ![scons-studio](/as/images/rewoa/scons-studio.png)
 
+* Note: please modify the macro `PACKET_LIB_ADAPTER_NR` of `as/com/release/download/lwip-contrib/ports/win32/lwipcfg_msvc.h` and `as/com/as.infrastructure/communication/Pci/pci_asnet.c` to the right index of ethernet adapter used. Here as the command ipconfig shows, the VirtualBox Host-Only Network #2 was used and its index is 0, and please make sure to use a virtual network with ip addr="172.18.0.100", net mask="255.255.255.0", and the gate way="172.18.0.1".
+
+```c
+#define PACKET_LIB_ADAPTER_NR         0
+```
+
+```sh
+D:\repository\as\release\ascore>ipconfig
+
+Windows IP 配置
+
+
+以太网适配器 VirtualBox Host-Only Network #2:
+
+   连接特定的 DNS 后缀 . . . . . . . :
+   本地链接 IPv6 地址. . . . . . . . : fe80::586:98c5:8a30:4e4c%21
+   IPv4 地址 . . . . . . . . . . . . : 172.18.0.100
+   子网掩码  . . . . . . . . . . . . : 255.255.255.0
+   默认网关. . . . . . . . . . . . . : 172.18.0.1
+
+无线局域网适配器 本地连接* 1:
+
+   媒体状态  . . . . . . . . . . . . : 媒体已断开连接
+   连接特定的 DNS 后缀 . . . . . . . :
+
+无线局域网适配器 本地连接* 4:
+
+   媒体状态  . . . . . . . . . . . . : 媒体已断开连接
+   连接特定的 DNS 后缀 . . . . . . . :
+
+无线局域网适配器 WLAN:
+
+   连接特定的 DNS 后缀 . . . . . . . :
+   本地链接 IPv6 地址. . . . . . . . : fe80::1577:a1b2:1881:460b%27
+   IPv4 地址 . . . . . . . . . . . . : 192.168.1.103
+   子网掩码  . . . . . . . . . . . . : 255.255.255.0
+   默认网关. . . . . . . . . . . . . : 192.168.1.1
+
+D:\repository\as\release\ascore>
+```
+
 ## 3.4 do build by command "scons" and do clean by command "scons -c"
 
 ## 3.5 after build sucessfully, we can run it now by command "scons run".
@@ -145,3 +186,18 @@ Adter fix all those kind of issues, the aslua can be built sucesfully by "make c
 Then in the panel of "ascore", run the command "scons run asone" to run with the tool as.one.py also started or just in the panel of "as.one.py", run command "python main.py".
 
 That's all! Have Fun with AS.
+
+
+# 5. Others Envs
+
+## 5.1 WSL ubuntu 16.04
+
+### 5.1.1 install [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) and [X server](https://www.ctrl.blog/entry/how-to-x-on-wsl)
+
+### 5.2.2 better to use [putty to ssh to WSL](https://superuser.com/questions/1111591/how-can-i-ssh-into-bash-on-ubuntu-on-windows-10/1114162#1114162)
+
+### 5.3.3 execute below commands to setup build env
+
+```sh
+sudo apt install scons gtk+-3.0 autoconf libtool-bin
+```

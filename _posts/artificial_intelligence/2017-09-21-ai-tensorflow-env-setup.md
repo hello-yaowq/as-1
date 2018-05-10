@@ -106,4 +106,6 @@ Here is a [CSDN](http://m.blog.csdn.net/xiaoxiao123jun/article/details/76605928)
 
 [deep learning book](http://www.deeplearningbook.org/)
 [octave](https://www.gnu.org/software/octave/)
+[CNN](https://www.cnblogs.com/alexcai/p/5506806.html)
+
 
