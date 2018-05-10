@@ -23,21 +23,21 @@ import os
 import traceback
 
 __all__=['ArGen','ArGenMain']
-from argen.GenOS import GenOS
-from argen.GenCan import GenCan
-from argen.GenCanIf import GenCanIf
-from argen.GenPduR import GenPduR
-from argen.GenCanTp import GenCanTp
-from argen.GenCom import GenCom
-from argen.GenDcm import GenDcm
-from argen.GenFls import GenFls
-from argen.GenFee import GenFee
-from argen.GenEa import GenEa
-from argen.GenNvM import GenNvM
-from argen.GenXcp import GenXcp
-from argen.GenDem  import GenDem
-from argen.GenRte import GenRte
-from argen.GenJ1939Tp import GenJ1939Tp
+from .GenOS import GenOS
+from .GenCan import GenCan
+from .GenCanIf import GenCanIf
+from .GenPduR import GenPduR
+from .GenCanTp import GenCanTp
+from .GenCom import GenCom
+from .GenDcm import GenDcm
+from .GenFls import GenFls
+from .GenFee import GenFee
+from .GenEa import GenEa
+from .GenNvM import GenNvM
+from .GenXcp import GenXcp
+from .GenDem  import GenDem
+from .GenRte import GenRte
+from .GenJ1939Tp import GenJ1939Tp
 
 def dummy(arxml,dir):
     pass
