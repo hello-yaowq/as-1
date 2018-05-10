@@ -85,36 +85,21 @@ Generally you can leave it as default.
 ```sh
 D:\repository\as\release\ascore>ipconfig
 
-Windows IP 配置
+Windows IP 
 
+VirtualBox Host-Only Network #2:
 
-以太网适配器 VirtualBox Host-Only Network #2:
+   MAC                               : fe80::586:98c5:8a30:4e4c%21
+   IPv4 Address                      : 172.18.0.100
+   Net Mask                          : 255.255.255.0
+   Gateway                           : 172.18.0.1
 
-   连接特定的 DNS 后缀 . . . . . . . :
-   本地链接 IPv6 地址. . . . . . . . : fe80::586:98c5:8a30:4e4c%21
-   IPv4 地址 . . . . . . . . . . . . : 172.18.0.100
-   子网掩码  . . . . . . . . . . . . : 255.255.255.0
-   默认网关. . . . . . . . . . . . . : 172.18.0.1
+WIFI WLAN:
 
-无线局域网适配器 本地连接* 1:
-
-   媒体状态  . . . . . . . . . . . . : 媒体已断开连接
-   连接特定的 DNS 后缀 . . . . . . . :
-
-无线局域网适配器 本地连接* 4:
-
-   媒体状态  . . . . . . . . . . . . : 媒体已断开连接
-   连接特定的 DNS 后缀 . . . . . . . :
-
-无线局域网适配器 WLAN:
-
-   连接特定的 DNS 后缀 . . . . . . . :
-   本地链接 IPv6 地址. . . . . . . . : fe80::1577:a1b2:1881:460b%27
-   IPv4 地址 . . . . . . . . . . . . : 192.168.1.103
-   子网掩码  . . . . . . . . . . . . : 255.255.255.0
-   默认网关. . . . . . . . . . . . . : 192.168.1.1
-
-D:\repository\as\release\ascore>
+   MAC                               : fe80::1577:a1b2:1881:460b%27
+   IPv4 Address                      : 192.168.1.103
+   Net Mask                          : 255.255.255.0
+   Gateway                           : 192.168.1.1
 ```
 
 ## 3.4 do build by command "scons" and do clean by command "scons -c"
