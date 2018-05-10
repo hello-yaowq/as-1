@@ -28,7 +28,8 @@ elif(os.path.exists('third_party')):
 else:
     raise Exception("can't locate config.infrastructure.system")
 
-import autosar
+if(sys.version_info > (3,0)):
+    import autosar
 
 __all__ = ['GenRte']
 
@@ -90,6 +91,9 @@ def handleSWC(swc, ws, componentType, portInterface):
 
 def GenRte(root,dir):
     global __dir
+    if(sys.version_info < (3,0)):
+        print('python3 is required for RTE generator')
+        return
     GLInit(root)
     __dir = '%s'%(dir)
     if(len(GLGet('SwcList')) == 0):return
