@@ -129,8 +129,9 @@ KSM(Simulator,Stop)
 }
 KSM(Simulator,Running)
 {
+#ifdef USE_CAN
 	Can_SimulatorRunning();
-
+#endif
 #if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
 	clock_t now = clock();
 	if( now != previous )

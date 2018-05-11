@@ -50,8 +50,10 @@ extern const Can_DeviceOpsType can_serial_ops;
 extern const Can_DeviceOpsType can_vxl_ops;
 extern const Can_DeviceOpsType can_peak_ops;
 extern const Can_DeviceOpsType can_zlg_ops;
-#endif
+#else
 extern const Can_DeviceOpsType can_socket_ops;
+#endif
+extern const Can_DeviceOpsType can_socketwin_ops;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */

@@ -12,13 +12,17 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-#ifdef __WINDOWS__
 /* ============================ [ INCLUDES  ] ====================================================== */
 /* most of the code copy from https://github.com/linux-can/can-utils */
+#ifdef __WINDOWS__
 #include <winsock2.h>
 #include <windows.h>
 #include <Ws2tcpip.h>
-
+#else
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,6 +72,7 @@
 #define mCANDLC(frame) ( frame->can_dlc )
 #define mSetCANDLC(frame,dlc) do { frame.can_dlc = dlc; } while(0)
 #endif
+
 /* ============================ [ TYPES     ] ====================================================== */
 /**
  * struct can_frame - basic CAN frame structure
@@ -108,15 +113,25 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 static void socket_close(uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
-const Can_DeviceOpsType can_socket_ops =
+const Can_DeviceOpsType can_socketwin_ops =
 {
+#ifdef __LINUX__
+	.name = "socketwin",
+#else
 	.name = "socket",
+#endif
 	.probe = socket_probe,
 	.close = socket_close,
 	.write = socket_write,
 };
 static struct Can_SocketHandleList_s* socketH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef __WINDOWS__
+#else
+static int WSAGetLastError(void) { perror(""); return errno; }
+static int closesocket(int s) { return close(s); }
+#endif
+
 static struct Can_SocketHandle_s* getHandle(uint32_t port)
 {
 	struct Can_SocketHandle_s *handle,*h;
@@ -146,9 +161,10 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		STAILQ_INIT(&socketH->head);
 
 		socketH->terminated = TRUE;
-
+#ifdef __WINDOWS__
 		WSADATA wsaData;
 		WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
 	}
 
 	handle = getHandle(port);
@@ -166,7 +182,7 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 		addr.sin_port = htons(CAN_PORT_MIN+port);
 		/* open socket */
-		if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+		if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			ASWARNING("CAN Socket port=%d open failed!\n",port);
 			rv = FALSE;
 		}
@@ -174,11 +190,11 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		if( rv )
 		{
 			/* Connect to server. */
-			int ercd = connect(s, (SOCKADDR *) & addr, sizeof (SOCKADDR));
-			if (ercd == SOCKET_ERROR) {
+			int ercd = connect(s, (struct sockaddr *) & addr, sizeof (struct sockaddr));
+			if (ercd < 0) {
 				ASWARNING("connect function failed with error: %d\n", WSAGetLastError());
 				ercd = closesocket(s);
-				if (ercd == SOCKET_ERROR){
+				if (ercd < 0){
 					ASWARNING("closesocket function failed with error: %d\n", WSAGetLastError());
 				}
 				rv = FALSE;
@@ -296,5 +312,4 @@ static void * rx_daemon(void * param)
 }
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#endif /* __WINDOWS__ */
 

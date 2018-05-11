@@ -44,7 +44,7 @@
 #define IFNAME0 't'
 #define IFNAME1 'p'
 
-#define PACKET_LIB_ADAPTER_NR 1
+#define PACKET_LIB_ADAPTER_NR 0
 
 enum {
 	FLG_RX = 0x01,

@@ -18,7 +18,6 @@
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <windows.h>
-
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -29,11 +28,13 @@
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef __WINDOWS__
 /* Link with ws2_32.lib */
 #ifndef __GNUC__
 #pragma comment(lib, "Ws2_32.lib")
 #else
 /* -lwsock32 */
+#endif
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_MAX_DLEN 64 /* 64 for CANFD */
@@ -129,7 +130,7 @@ static int init_socket(int port)
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	s = socket(AF_INET, SOCK_STREAM, 0);
 	if ((SOCKET)s == INVALID_SOCKET) {
 		wprintf(L"socket function failed with error: %u\n", WSAGetLastError());
 		WSACleanup();
