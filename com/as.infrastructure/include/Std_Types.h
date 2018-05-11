@@ -127,7 +127,11 @@
 #define USECONDS_PER_TICK (1000000/OS_TICKS_PER_SECOND)
 #endif
 
+#ifdef __LINUX__
+#define MS2TICKS(m) (m)
+#else
 #define MS2TICKS(m) ((m+(1000/OS_TICKS_PER_SECOND -1))/(1000/OS_TICKS_PER_SECOND))
+#endif
 
 #ifndef ENOTSUP
 #define ENOTSUP         129
