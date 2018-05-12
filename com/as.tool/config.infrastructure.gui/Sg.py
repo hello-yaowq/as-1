@@ -78,14 +78,16 @@ class Sg():
         fp.write('\n};\n')
     def filterForTelltale(self,rgb):
         # as I don't want to use GIMP to create each valid TT PNG, so just
-        # use this API to filter out the black color 
+        # use this API to filter out the black color
         alpha = (rgb>>24) & 0xFF;
-        if(alpha == 0): # this is empty color
-            return 0
+        #if(alpha == 0): # this is empty color
+        #    return 0
         r = (rgb>>16) & 0xFF;
         g = (rgb>>8) & 0xFF;
         b = (rgb>>0) & 0xFF;
-        if(r < 80 and g < 80 and b < 80):
+        if(r < 80 and g < 80 and b < 80): # black
+            return 0
+        if(r > 0xE0 and g > 0xE0 and b > 0xE0): # white
             return 0
         return rgb
 
