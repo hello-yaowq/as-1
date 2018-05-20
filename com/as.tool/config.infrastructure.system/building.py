@@ -731,6 +731,8 @@ def SelectCompilerArmNoneEabi():
     else:
         # FIXME to the right path
         libgcc = '/usr/lib/gcc/arm-none-eabi/4.8.2'
+        if(not os.path.exists(libgcc)):
+            libgcc = '/usr/lib/gcc/arm-none-eabi/4.9.3'
         assert(os.path.exists(libgcc))
         Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
