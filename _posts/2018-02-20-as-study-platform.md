@@ -177,6 +177,8 @@ That's all! Have Fun with AS.
 
 ## 5.1 WSL ubuntu 16.04
 
+* Note: the lwip is not supported on WSL as WSL ubuntu has no support of TAP device.
+
 ### 5.1.1 install [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) and [X server](https://www.ctrl.blog/entry/how-to-x-on-wsl)
 
 ### 5.2.2 better to use [putty to ssh to WSL](https://superuser.com/questions/1111591/how-can-i-ssh-into-bash-on-ubuntu-on-windows-10/1114162#1114162)
@@ -184,5 +186,7 @@ That's all! Have Fun with AS.
 ### 5.3.3 execute below commands to setup build env
 
 ```sh
-sudo apt install scons gtk+-3.0 autoconf libtool-bin
+sudo apt install scons gtk+-3.0 autoconf libtool-bin python3-sip python3-sip-dev sip-dev python3-pip flex bison gperf
+sudo apt install libncurses-dev nasm gnome-terminal gcc-arm-none-eabi
+sudo pip3 install pillow
 ```
