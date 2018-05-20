@@ -62,7 +62,12 @@ int ask_create(int is_server,const char * uri,int port)
 #ifdef __WINDOWS__
 	{
 		WSADATA wsaData;
-		WSAStartup(MAKEWORD(2, 2), &wsaData);
+		static int startup_flag = 0;
+		if(0 == startup_flag)
+		{
+			WSAStartup(MAKEWORD(2, 2), &wsaData);
+			startup_flag = 1;
+		}
 	}
 #endif
 

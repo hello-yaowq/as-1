@@ -12,6 +12,8 @@ objs = []
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
     asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
+    if(IsPlatformWSL()):
+        asenv.Append(CPPDEFINES='CAN_DEV_NAME=\'"socketwin"\'')
 
 if('DIO' in MODULES):
     objs += Glob('mcal/Dio.c')

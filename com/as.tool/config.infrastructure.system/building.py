@@ -58,6 +58,12 @@ def PrepareRTTHREAD(opt):
     global BuildOptions
     BuildOptions = opt
 
+def IsPlatformWSL():
+    infor = RunSysCmd('uname -a')
+    if('Microsoft' in str(infor)):
+        return True
+    return False
+
 def IsPlatformWindows():
     bYes = False
     if(os.name == 'nt'):
@@ -544,11 +550,15 @@ class Qemu():
 
     def LocateASQemu(self):
         ASROOT = Env['ASROOT']
+        candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
+        candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
+        cmd = '%s -I%s/com/as.infrastructure/include -D__SOCKET_WIN_CAN_DRIVER__ %s -o %s'%(Env['CC'], ASROOT, candrvsrc, candrvtgt)
         if(IsPlatformWindows()):
-            candrvsrc = '%s/com/as.tool/lua/can/socketwin_can_driver.c'%(ASROOT)
-            candrvtgt = '%s/com/as.tool/lua/script/socketwin_can_driver.exe'%(ASROOT)
-            cmd = '%s -I%s/com/as.infrastructure/include -D__SOCKET_WIN_CAN_DRIVER__ %s -lwsock32 -o %s'%(Env['CC'], ASROOT, candrvsrc, candrvtgt)
-            MKObject(candrvsrc, candrvtgt, cmd)
+            cmd += ' -D__WINDOWS__ -lwsock32'
+        else:
+            cmd += ' -D__LINUX__'
+        MKObject(candrvsrc, candrvtgt, cmd)
+        if(IsPlatformWindows()):
             # try default install location of qemu
             try:
                 qemu = '%s/qemu-system-%s'%(Env['CONFIGS']['MSYS2_GCC_PATH'],self.arch)

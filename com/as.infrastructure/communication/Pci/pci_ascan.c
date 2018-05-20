@@ -26,6 +26,11 @@
 #define AS_LOG_CAN 0
 #define AS_LOG_CANRX 0
 #define AS_LOG_CANTX 0
+
+#ifndef CAN_DEV_NAME
+#define CAN_DEV_NAME "socket"
+#endif
+
 #define GET_CONTROLLER_CONFIG(_controller)	\
 		&Can_Global.config->CanConfigSet->CanController[(_controller)]
 
@@ -288,7 +293,7 @@ void Can_Init( const Can_ConfigType *config )
 			Irq_Save(irq_state);
 			writel(__iobase+REG_CMD, 0); /* CMD init, reset bus name */
 
-			for(p="socket"; *p != '\0'; p++)
+			for(p=CAN_DEV_NAME; *p != '\0'; p++)
 			{
 				writel(__iobase+REG_BUS_NAME, *p);
 			}

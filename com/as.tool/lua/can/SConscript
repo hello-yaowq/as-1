@@ -40,9 +40,13 @@ if(IsPlatformWindows()):
     else:
         objs += Glob('%s/release/download/pcan-basic/Win32/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
         objs += Glob('%s/release/download/CAN_lib/32bit/ControlCAN.lib'%(asenv['ASROOT']))
-    src = '%s/socketwin_can_driver.c'%(cwd)
-    tgt = '%s/../script/socketwin_can_driver.exe'%(cwd)
-    cmd = 'gcc %s -D__SOCKET_WIN_CAN_DRIVER__ -I%s/com/as.infrastructure/include -o %s -lwsock32'%(src,asenv['ASROOT'],tgt)
-    MKObject([src], tgt, cmd)
+src = '%s/socketwin_can_driver.c'%(cwd)
+tgt = '%s/../script/socketwin_can_driver.exe'%(cwd)
+cmd = 'gcc %s -D__SOCKET_WIN_CAN_DRIVER__ -I%s/com/as.infrastructure/include -o %s'%(src,asenv['ASROOT'],tgt)
+if(IsPlatformWindows()):
+    cmd += ' -D__WINDOWS__ -lwsock32'
+else:
+    cmd += ' -D__LINUX__'
+MKObject([src], tgt, cmd)
 
 Return('objs')

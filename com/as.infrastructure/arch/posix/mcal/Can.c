@@ -39,6 +39,10 @@
 #define USE_CAN_STATISTICS      STD_ON
 #define AS_LOG_CAN 0
 
+#ifndef CAN_DEV_NAME
+#define CAN_DEV_NAME "socket"
+#endif
+
 /* CONFIGURATION NOTES
  * ------------------------------------------------------------------
  * - CanHandleType must be CAN_ARC_HANDLE_TYPE_BASIC
@@ -289,13 +293,10 @@ void Can_Init( const Can_ConfigType *config ) {
 	STAILQ_INIT(&canUnit->rQ.pduHead);
 	(void)pthread_mutex_unlock(&canUnit->rQ.w_lock);
 	#else
-	if(FALSE == can_open(configId,"socket",ctlrId,canHwConfig->CanControllerBaudRate*1000))
+	if(FALSE == can_open(configId,CAN_DEV_NAME,ctlrId,canHwConfig->CanControllerBaudRate*1000))
 	{
-#ifdef __LINUX__
-		ASLOG(STDOUT,"please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can%d type vcan\n\tsudo ip link set up can%d\n", ctlrId, ctlrId);
-#else
-		ASLOG(STDOUT,"please start the windows socket can bus driver /com/as.tool/lua/script/ascan_socket_server.exe %d\n", ctlrId);
-#endif
+		ASLOG(STDOUT,"for device <socket> please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can%d type vcan\n\tsudo ip link set up can%d\n", ctlrId, ctlrId);
+		ASLOG(STDOUT,"for device <socketwin> please start the windows socket can bus driver /com/as.tool/lua/script/socketwin_can_driver.exe %d\n", ctlrId);
 		asAssert(0);
 	}
 	#endif

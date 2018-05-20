@@ -15,9 +15,16 @@
  */
 
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef __WINDOWS__
 #include <winsock2.h>
-#include <Ws2tcpip.h>
 #include <windows.h>
+#include <Ws2tcpip.h>
+#else
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#endif
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -27,7 +34,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
-
+#include <errno.h>
 #ifdef __WINDOWS__
 /* Link with ws2_32.lib */
 #ifndef __GNUC__
@@ -66,6 +73,14 @@
 #endif
 #define in_range(c, lo, up)  ((uint8_t)c >= lo && (uint8_t)c <= up)
 #define isprint(c)           in_range(c, 0x20, 0x7f)
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 //#define USE_RX_DAEMON
 /* ============================ [ TYPES     ] ====================================================== */
 /**
@@ -120,40 +135,47 @@ static pthread_mutex_t socketLock = PTHREAD_MUTEX_INITIALIZER;
 static struct timeval m0;
 static struct Can_FilterList_s* canFilterH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef __WINDOWS__
+#else
+static int WSAGetLastError(void) { perror(""); return errno; }
+static int closesocket(int s) { return close(s); }
+#endif
 static int init_socket(int port)
 {
 	int ercd;
 	int s;
-	WSADATA wsaData;
 	struct sockaddr_in service;
 	/* struct timeval tv; */
 
+#ifdef __WINDOWS__
+	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
 
 	s = socket(AF_INET, SOCK_STREAM, 0);
-	if ((SOCKET)s == INVALID_SOCKET) {
-		wprintf(L"socket function failed with error: %u\n", WSAGetLastError());
-		WSACleanup();
+	if (s < 0) {
+		printf("socket function failed with error: %d\n", WSAGetLastError());
 		return FALSE;;
 	}
 
 	service.sin_family = AF_INET;
 	service.sin_addr.s_addr = inet_addr("127.0.0.1");
 	service.sin_port = (u_short)htons(CAN_PORT_MIN+port);
-	ercd = bind(s, (SOCKADDR *) &(service), sizeof (SOCKADDR));
-	if (ercd == SOCKET_ERROR) {
-		wprintf(L"bind to port %d failed with error: %ld\n", port, WSAGetLastError());
+	ercd = bind(s, (struct sockaddr *) &(service), sizeof (struct sockaddr));
+	if (ercd < 0) {
+		printf("bind to port %d failed with error: %d\n", port, WSAGetLastError());
 		closesocket(s);
 		return FALSE;
 	}
 
-	if (listen(s, CAN_BUS_NODE_MAX) == SOCKET_ERROR) {
-		wprintf(L"listen failed with error: %ld\n", WSAGetLastError());
+	if (listen(s, CAN_BUS_NODE_MAX) < 0) {
+		printf("listen failed with error: %d\n", WSAGetLastError());
 		closesocket(s);
 		return FALSE;
 	}
 
-    /* Set Timeout for recv call */
+	#ifdef __WINDOWS__
+	/* Set Timeout for recv call */
 	/*
 	tv.tv_sec  = 0;
 	tv.tv_usec = 0;
@@ -167,6 +189,10 @@ static int init_socket(int port)
 	/* set to non blocking mode */
 	u_long iMode = 1;
 	ioctlsocket(s, FIONBIO, &iMode);
+	#else
+	int iMode = 1;
+	ioctl(s, FIONBIO, (char *)&iMode);
+	#endif
 
 	printf("can(%d) socket driver on-line!\n",port);
 
@@ -183,14 +209,15 @@ static void try_accept(void)
 	/* struct timeval tv; */
 	int s = accept(socketH->s, NULL, NULL);
 
-	if((SOCKET)s != INVALID_SOCKET)
+	if(s >= 0)
 	{
 		/* tv.tv_sec  = 0;
 		tv.tv_usec = 0; */
 		handle = malloc(sizeof(struct Can_SocketHandle_s));
 		assert(handle);
 		handle->s = s;
-	    /* Set Timeout for recv call */
+		#ifdef __WINDOWS__
+		/* Set Timeout for recv call */
 		/*
 		if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval)) == SOCKET_ERROR)
 		{
@@ -202,6 +229,10 @@ static void try_accept(void)
 		/* set to non blocking mode */
 		u_long iMode = 1;
 		ioctlsocket(s, FIONBIO, &iMode);
+		#else
+		int iMode = 1;
+		ioctl(s, FIONBIO, (char *)&iMode);
+		#endif
 		#ifdef USE_RX_DAEMON
 		pthread_mutex_lock(&socketLock);
 		#endif
@@ -236,7 +267,7 @@ static void remove_socket(struct Can_SocketHandle_s* h)
 }
 static void log_msg(struct can_frame* frame,float rtim)
 {
-	boolean bOut = FALSE;
+	int bOut = FALSE;
 
 	struct Can_Filter_s* filter;
 
@@ -322,7 +353,7 @@ static void try_recv_forward(void)
 				if(h != h2)
 				{
 					if (send(h2->s, (const char*)&frame, CAN_MTU,0) != CAN_MTU) {
-						wprintf(L"send failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h2->s);
+						printf("send failed with error: %d, remove this node %X!\n", WSAGetLastError(),h2->s);
 						remove_socket(h2);
 						break;
 					}
@@ -331,9 +362,13 @@ static void try_recv_forward(void)
 		}
 		else if(-1 == len)
 		{
+#ifdef __WINDOWS__
 			if(10035!= WSAGetLastError())
+#else
+			if(EAGAIN != errno)
+#endif
 			{
-				wprintf(L"recv failed with error: %ld, remove this node %X!\n", WSAGetLastError(),h->s);
+				printf("recv failed with error: %d, remove this node %X!\n", WSAGetLastError(),h->s);
 				remove_socket(h);
 				break;
 			}
@@ -344,6 +379,10 @@ static void try_recv_forward(void)
 		}
 		else
 		{
+			#ifdef __LINUX__
+			printf("recv failed with error: %d, remove this node %X!\n", WSAGetLastError(),h->s);
+			remove_socket(h);
+			#endif
 			printf("timeout recv... len=%d\n",len);
 		}
 	}
@@ -395,7 +434,6 @@ int main(int argc,char* argv[])
 	gettimeofday(&m0,NULL);
 	if(FALSE==init_socket(atoi(argv[1])))
 	{
-		WSACleanup();
 		return -1;
 	}
 
