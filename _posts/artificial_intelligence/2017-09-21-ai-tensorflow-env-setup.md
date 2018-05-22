@@ -25,15 +25,23 @@ git clone https://github.com/tensorflow/models.git
 ### build on [windows 10](https://medium.com/@vina.wt.chang/build-tensorflow-from-source-with-cmake-on-windows-c47ffb8e1bf7) [README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/cmake/README.md)
 
 ```sh
+# run from C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2017\Visual Studio Tools\VC x86_64 cmd
 cd tensorflow\contrib\cmake
 mkdir build
 cd build
 set PATH=C:\opt\cmake-3.11.1-win64-x64\bin;%PATH%
-set CMAKE_C_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.13.26128\bin\Hostx64\x64\cl.exe
-set CMAKE_CXX_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.13.26128\bin\Hostx64\x64\cl.exe
-cmake .. -A x64 -DCMAKE_BUILD_TYPE=Release -DSWIG_EXECUTABLE=C:\opt\swigwin-3.0.12\swig.exe -DPYTHON_EXECUTABLE=C:/Anaconda3/envs/tensorflow-gpu/python.exe -DPYTHON_LIBRARIES=C:/Anaconda3/envs/tensorflow-gpu/libs/python36.lib -DPYTHON_INCLUDE_DIRS=C:/Anaconda3/envs/tensorflow-gpu/include -Dtensorflow_WIN_CPU_SIMD_OPTIONS=/arch:AVX2 -Dtensorflow_ENABLE_GPU=ON -DCUDNN_HOME="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.1"
-set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin;%PATH%
+cmake .. -A x64 -DCMAKE_BUILD_TYPE=Release ^
+  -DSWIG_EXECUTABLE=C:\opt\swigwin-3.0.12\swig.exe ^
+  -DPYTHON_EXECUTABLE=C:/Anaconda3/envs/tensorflow-gpu/python.exe ^
+  -DPYTHON_LIBRARIES=C:/Anaconda3/envs/tensorflow-gpu/libs/python36.lib ^
+  -DPYTHON_INCLUDE_DIRS=C:/Anaconda3/envs/tensorflow-gpu/include ^
+  -Dtensorflow_WIN_CPU_SIMD_OPTIONS=/arch:AVX2 ^
+  -Dtensorflow_BUILD_SHARED_LIB=ON ^
+  -DCUDA_HOST_COMPILER=cl.exe ^
+  -Dtensorflow_ENABLE_GPU=ON ^
+  -DCUDNN_HOME="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0"
 MSBuild /p:Configuration=Release tf_python_build_pip_package.vcxproj
+MSBuild /p:Configuration=Release ALL_BUILD.vcxproj
 ```
 
 ### setup on [Ubuntu 16.04](https://www.linkedin.com/pulse/installing-nvidia-cuda-80-ubuntu-1604-linux-gpu-new-victor)
@@ -107,5 +115,6 @@ Here is a [CSDN](http://m.blog.csdn.net/xiaoxiao123jun/article/details/76605928)
 [deep learning book](http://www.deeplearningbook.org/)
 [octave](https://www.gnu.org/software/octave/)
 [CNN](https://www.cnblogs.com/alexcai/p/5506806.html)
+[Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/)
 
 
