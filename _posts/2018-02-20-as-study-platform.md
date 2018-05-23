@@ -186,7 +186,7 @@ That's all! Have Fun with AS.
 ### 5.3.3 execute below commands to setup build env
 
 ```sh
-sudo apt install scons gtk+-3.0 autoconf libtool-bin python3-sip python3-sip-dev sip-dev python3-pip flex bison gperf
-sudo apt install libncurses-dev nasm gnome-terminal gcc-arm-none-eabi
-sudo pip3 install pillow
+sudo apt install scons gtk+-3.0 autoconf libtool-bin python3-sip python3-sip-dev sip-dev python3-pip flex bison gperf \
+  libncurses-dev nasm gnome-terminal gcc-arm-none-eabi libreadline-dev python3-pyqt5
+sudo pip3 install pillow pyserial bitarray
 ```
