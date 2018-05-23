@@ -38,10 +38,9 @@ CFLAGS += -I$(src-dir)/libs
 CFLAGS += -I$(src-dir)/libs/parser
 LDFLAGS += -O3
 LIBS += -lncurses
-ifeq ($(host), Linux)
-CFLAGS += -DGPERF_LEN_TYPE=unsigned\ int
-else
 CFLAGS += -DGPERF_LEN_TYPE=size_t
+ifeq ($(host), Linux)
+else
 LIBS += -lregex
 CFLAGS += -D__WINDOWS__
 ifeq ($(msys2), yes)
