@@ -46,7 +46,7 @@ typedef uint16   u16_t;
 typedef sint16   s16_t;
 typedef uint32    u32_t;
 typedef sint32    s32_t;
-typedef u32_t mem_ptr_t;
+typedef size_t mem_ptr_t;
 typedef u32_t sys_prot_t;
 
 #define PACK_STRUCT_BEGIN

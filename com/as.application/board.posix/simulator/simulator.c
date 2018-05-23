@@ -146,12 +146,12 @@ KSM(Simulator,Running)
 			n = ((clock_t)-1) - previous + 1 + now;
 		}
 
-		while(n>0)
+		while(n >= (CLOCKS_PER_SEC/1000))
 		{
 			OsTick();
-			n--;
+			n = n - (CLOCKS_PER_SEC/1000);
 		}
-		previous = now;
+		previous = now - n;
 	}
 #endif
 }

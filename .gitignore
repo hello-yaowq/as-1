@@ -281,7 +281,7 @@ release/askar/.qemu.sh
 release/askar/.test.sh
 release/askar/Testsuite
 release/aslauncher/aslauncher
-release/aslauncher/source/build-aslauncher-Desktop_Qt_5_5_1_GCC_64bit-Debug/
+*-Debug
 release/aslinux/kernel/aspatch/aspatch
 release/aslinux/kernel/drivers/input/
 release/aslinux/kernel/drivers/remoteproc/asphystovirt.c
