@@ -44,57 +44,20 @@ MSBuild /p:Configuration=Release tf_python_build_pip_package.vcxproj
 MSBuild /p:Configuration=Release ALL_BUILD.vcxproj
 ```
 
-### setup on [Ubuntu 16.04](https://www.linkedin.com/pulse/installing-nvidia-cuda-80-ubuntu-1604-linux-gpu-new-victor)
+### setup on Ubuntu 18.04
 
-below step is get from the [doc](file:///C:/Program%20Files/NVIDIA%20GPU%20Computing%20Toolkit/CUDA/v9.1/doc/html/cuda-quick-start-guide/index.html#ubuntu-x86_64) after I install cuda 9.1 on windows.
-
-* Disable the Nouveau drivers:
-
-Create a file at /etc/modprobe.d/blacklist-nouveau.conf with the following contents:
-
-```c 
-blacklist nouveau
-options nouveau modeset=0
-```
-
-* Regenerate the kernel initramfs:
+* Run below commands to install Nvida GPU driver
 
 ```sh
-sudo update-initramfs -u
+ubuntu-drivers  devices
+sudo ubuntu-drivers autoinstall
 ```
 
-* Reboot into runlevel 3 by temporarily adding the number "3" and the word "nomodeset" to the end of the system's kernel boot parameters.
-
-* Run the installer silently to install with the default selections (implies acceptance of the EULA):
-
-```sh
-sudo sh cuda_<version>_linux.run --silent
-```
-
-* Create an xorg.conf file to use the NVIDIA GPU for display:
-
-```sh
-sudo nvidia-xconfig
-```
+This is the simplest way
 
 * Reboot the system to load the graphical interface.
 
-* Set up the development environment by modifying the PATH and LD_LIBRARY_PATH variables:
-
-```sh
-export PATH=/usr/local/cuda-9.1/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-9.1/lib64\
-                         ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-```
-
-* Install a writable copy of the samples then build and run the nbody sample:
-
-```sh
-cuda-install-samples-9.1.sh ~
-cd ~/NVIDIA_CUDA-9.1_Samples/5_Simulations/nbody
-make
-./nbody
-```
+* Install the cuda toolkit without the provide Nvida GPU driver, just install the cuda toolkit and samples
 
 ## tensorflow - an example do object detection
 
