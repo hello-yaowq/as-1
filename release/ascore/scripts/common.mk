@@ -72,7 +72,7 @@ $(download)/qemu: $(download)/qemu/hw/char/libpyas.a $(dep-wincap)
 		cat Makefile >> Makefile.objs)
 
 asqemu:$(download)/qemu
-	@(cd $(download)/qemu; ./configure; make)
+	@(cd $(download)/qemu; ./configure; make LDFLAGS="-L/usr/lib/x86_64-linux-gnu")
 
 $(src-dir)/pci.download.done:
 ifeq ($(usepci),yes)
@@ -112,4 +112,4 @@ else
 endif
 
 aslibfatfs:$(INFRASTRUCTURE)/system/fs/out/libff13-$(board).a $(INFRASTRUCTURE)/system/fs/out/liblwext4-$(board).a
-	
+

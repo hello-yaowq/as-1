@@ -729,11 +729,14 @@ def SelectCompilerArmNoneEabi():
         Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
         Env['S19'] = '%s/bin/%s'%(cpl,Env['S19'])
     else:
+        for major in range(10):
+            for minor in range(10):
+                for patch in range(10):
+                    libgcc2 = '/usr/lib/gcc/arm-none-eabi/%s.%s.%s'%(major, minor, patch)
+                    if(os.path.exists(libgcc2)):
+                        libgcc = libgcc2 # use the latest found version
+                        break
         # FIXME to the right path
-        libgcc = '/usr/lib/gcc/arm-none-eabi/4.8.2'
-        if(not os.path.exists(libgcc)):
-            libgcc = '/usr/lib/gcc/arm-none-eabi/4.9.3'
-        assert(os.path.exists(libgcc))
         Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
 
 def SelectCompilerArm64():
