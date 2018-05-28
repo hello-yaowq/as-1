@@ -59,6 +59,15 @@ This is the simplest way
 
 * Install the cuda toolkit without the provide Nvida GPU driver, just install the cuda toolkit and samples
 
+### build on Ubuntu 18.04
+
+Yes, I want to build out a C or C++ library so that I could build applicaiton could run on desktop computer or any other platform, I want to reseach about how to load a pb model and feed the input and then get the output.
+
+```sh
+bazel build --config=opt //tensorflow:libtensorflow.so
+bazel build --config=opt //tensorflow:libtensorflow_cc.so
+```
+
 ## tensorflow - an example do object detection
 
 This [object detection model](https://github.com/tensorflow/models/tree/master/research/object_detection) is really a good start point to have a try of tensorflow to see what it can do, it's very good. Also there are many other models that could do really a lot of things, I am planing to try them one by one if possible.
@@ -79,5 +88,5 @@ Here is a [CSDN](http://m.blog.csdn.net/xiaoxiao123jun/article/details/76605928)
 [octave](https://www.gnu.org/software/octave/)
 [CNN](https://www.cnblogs.com/alexcai/p/5506806.html)
 [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/)
-
+[tensorflow operations](http://web.stanford.edu/class/cs20si/lectures/slides_02.pdf)
 
