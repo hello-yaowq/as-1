@@ -24,47 +24,20 @@ cd tensorflow/contrib/makefile
 chmod +x *.sh
 ./build_all_linux.sh
 
-# bwlow file is the base tensorflow library for C++ applicaiton
+# below file is the base tensorflow library for C++ applicaiton
 parai@UX303LB:~/workspace/tensorflow/tensorflow/bazel-bin/tensorflow$ ls -l libtensorflow*.so
 -r-xr-xr-x 1 parai parai 123880984 5月  27 19:20 libtensorflow_cc.so
+
 ```
 
 ## 1.2 verify that C++ library
 
-### 1.2.1 create a C++ source file main.cpp
-
-```cpp
-#include <tensorflow/core/platform/env.h>
-#include <tensorflow/core/public/session.h>
-
-#include <iostream>
-
-using namespace std;
-using namespace tensorflow;
-
-int main()
-{
-    Session* session;
-    Status status = NewSession(SessionOptions(), &session);
-    if (!status.ok()) {
-        cout << status.ToString() << "\n";
-        return 1;
-    }
-    cout << "Session successfully created.\n";
-}
-```
-
-### 1.2.2 build the sample
-
-
+### 1.2.1 build the cc example and run
 
 ```sh
-export TFDIR=~/workspace/tensorflow/tensorflow
-gcc main.cpp  -I${TFDIR} -I${TFDIR}/bazel-genfiles \
-  -I`readlink -f ${TFDIR}/bazel-genfiles`/../../../external/protobuf_archive/src \
-  -I${TFDIR}/third_party/eigen3
+# build the demo tensorflow/cc/tutorials/example_trainer
+bazel build --config=opt //tensorflow/cc:tutorials_example_trainer
 ```
-
 
 # Reference
 
