@@ -31,7 +31,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-char *_strtok_r( char *s, const char *delim, char **lasts, int skip_leading_delim )
+
+#if !defined(__weak) && defined(__GNUC__)
+#define __weak __attribute__((weak))
+#else
+#define __weak
+#endif
+
+char * __weak _strtok_r( char *s, const char *delim, char **lasts, int skip_leading_delim )
 {
 	register char *spanp;
 	register int c, sc;
@@ -86,7 +93,7 @@ cont:
 	/* NOTREACHED */
 }
 
-char *strtok_r (char *s, const char *delim, char **lasts)
+char * __weak strtok_r (char *s, const char *delim, char **lasts)
 {
 	return _strtok_r (s, delim, lasts, 1);
 }

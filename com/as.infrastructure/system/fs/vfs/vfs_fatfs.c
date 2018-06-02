@@ -21,6 +21,13 @@
 #ifdef __WINDOWS__
 #define _WIN32
 #endif
+#ifdef USE_STDRT
+#define HAVE_DIR_STRUCTURE
+#if _FS_RPATH == 0
+#error macro _FS_RPATH is 0, please modify it to 1 or 2 in file "rt-thread/components/dfs/filesystems/elmfat/ffconf.h"
+#endif
+#define f_rmdir f_unlink
+#endif
 #include "vfs.h"
 #include <string.h>
 #include <stdlib.h>

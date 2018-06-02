@@ -32,9 +32,9 @@
 #include <pthread.h>
 #endif
 #endif
-/* ============================ [ MACROS    ] ====================================================== */
+/* ============================ [ MACROS	] ====================================================== */
 
-/* ============================ [ TYPES     ] ====================================================== */
+/* ============================ [ TYPES	 ] ====================================================== */
 
 /* ============================ [ DECLARES  ] ====================================================== */
 #ifdef USE_STDRT
@@ -48,13 +48,13 @@ extern void netbios_init(void);
 extern void rt_hw_asblk_init_all(void);
 extern void ftpd_start();
 #endif
-/* ============================ [ DATAS     ] ====================================================== */
+/* ============================ [ DATAS	 ] ====================================================== */
 #ifdef USE_STDRT
 #ifdef RT_USING_HEAP
 static rt_uint8_t ucHeap[RT_HEAP_SIZE];
 #endif
 #endif
-/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ LOCALS	] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int main(int argc,char* argv[])
 {
@@ -74,31 +74,37 @@ void rt_init_thread(void* parameter)
 #ifdef RT_USING_DFS
 	rt_hw_asblk_init_all();
 
-    /* initialize the device file system */
-    dfs_init();
+	/* initialize the device file system */
+	dfs_init();
 
 #ifdef RT_USING_DFS_ELMFAT
-    /* initialize the elm chan FatFS file system*/
-    elm_init();
+	/* initialize the elm chan FatFS file system*/
+	elm_init();
 #endif
 
-    dfs_ext_init();
+	dfs_ext_init();
 
 #ifdef RT_USING_MODULE
-    rt_system_module_init();
+	rt_system_module_init();
 #endif
 
-#if 0
-    if (dfs_mount("asblk0", "/", "elm", 0, 0) == 0)
-    {
-        rt_kprintf("File System FATFS initialized!\n");
-    }
-    else
+#ifdef USE_FATFS
+	if (dfs_mount("asblk0", "/", "elm", 0, 0) == 0)
 	{
-        rt_kprintf("File System FATFS initialzation failed!\n");
+		rt_kprintf("File System FATFS initialized!\n");
 	}
+	else
+	{
+		rt_kprintf("File System FATFS initialzation failed!\n");
+	}
+#endif
+#if defined(USE_LWEXT4)
+#ifdef USE_FATFS
+	mkdir("/ext", -1);
+	if (dfs_mount("asblk1", "/ext", "ext", 0, 0) == 0)
 #else
 	if (dfs_mount("asblk1", "/", "ext", 0, 0) == 0)
+#endif
 	{
 		rt_kprintf("File System EXTFS initialized!\n");
 	}
@@ -108,7 +114,13 @@ void rt_init_thread(void* parameter)
 	}
 #endif
 #endif  /* RT_USING_DFS */
-	ftpd_start();
+	EcuM_Init();
+
+#ifdef RT_USING_FINSH
+	extern void finsh_set_echo(rt_uint32_t echo);
+	rt_thread_delay(RT_TICK_PER_SECOND*2);
+	finsh_set_echo(0);
+#endif
 }
 void rt_hw_board_init(void)
 {
@@ -116,75 +128,71 @@ void rt_hw_board_init(void)
 }
 void rt_application_init(void)
 {
-    rt_thread_t tid;
+	rt_thread_t tid;
 
 #ifdef RT_USING_HEAP
 	/* init memory system */
 	rt_system_heap_init((void *)ucHeap, (void *)&ucHeap[RT_HEAP_SIZE]);
 #endif
 
-    /* init the console */
-    rt_hw_console_init();
-    rt_console_set_device("console");
+	/* init the console */
+	rt_hw_console_init();
+	rt_console_set_device("console");
 
 #ifdef RT_USING_FINSH
-    /* init finsh */
-    finsh_system_init();
+	/* init finsh */
+	finsh_system_init();
 #ifndef RT_USING_POSIX
-    finsh_set_device("console");
+	finsh_set_device("console");
 #endif
 #endif
 
-    tid = rt_thread_create("init",
-		                  (void(*)(void*))EcuM_Init, RT_NULL,
-                           2048, 0, 20);
-
-    if (tid != RT_NULL)
-        rt_thread_startup(tid);
+	if (tid != RT_NULL)
+		rt_thread_startup(tid);
 
 	tid = rt_thread_create("rtinit",
-		                  (void(*)(void*))rt_init_thread, RT_NULL,
-                           2048, 32, 20);
+						  (void(*)(void*))rt_init_thread, RT_NULL,
+						   2048, 0, 20);
 
-    if (tid != RT_NULL)
-        rt_thread_startup(tid);
+	if (tid != RT_NULL)
+		rt_thread_startup(tid);
 
-    rt_hw_timer_init();
+	rt_hw_timer_init();
 }
 void rtthread_startup(void)
 {
-    rt_hw_interrupt_disable();
+	rt_hw_interrupt_disable();
 
-    /* board level initalization
-     * NOTE: please initialize heap inside board initialization.
-     */
-    rt_hw_board_init();
+	/* board level initalization
+	 * NOTE: please initialize heap inside board initialization.
+	 */
+	rt_hw_board_init();
 
-    /* show RT-Thread version */
-    rt_show_version();
+	/* show RT-Thread version */
+	rt_show_version();
 
-    /* timer system initialization */
-    rt_system_timer_init();
+	/* timer system initialization */
+	rt_system_timer_init();
 
-    /* scheduler system initialization */
-    rt_system_scheduler_init();
+	/* scheduler system initialization */
+	rt_system_scheduler_init();
 
 #ifdef RT_USING_SIGNALS
-    /* signal system initialization */
-    rt_system_signal_init();
+	/* signal system initialization */
+	rt_system_signal_init();
 #endif
 
-    /* create init_thread */
-    rt_application_init();
+	/* create init_thread */
+	rt_application_init();
 
-    /* timer thread initialization */
-    rt_system_timer_thread_init();
+	/* timer thread initialization */
+	rt_system_timer_thread_init();
 
-    /* idle thread initialization */
-    rt_thread_idle_init();
+	/* idle thread initialization */
+	rt_thread_idle_init();
 
-    /* start scheduler */
-    rt_system_scheduler_start();
+	/* start scheduler */
+	rt_system_scheduler_start();
 
 }
 #ifdef USE_LWIP

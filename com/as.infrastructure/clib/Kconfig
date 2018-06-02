@@ -27,7 +27,7 @@ config CLIB_STDIO_CAN
 	default y
 
 config CLIB_STRTOK_R
-	bool "string related"
+	bool "string strtok_r related"
 	default y
 
 config CLIB_NEWLIB

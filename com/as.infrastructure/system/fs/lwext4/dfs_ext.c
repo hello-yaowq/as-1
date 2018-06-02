@@ -128,7 +128,7 @@ static int dfs_ext_mount(struct dfs_filesystem* fs, unsigned long rwflag, const 
 	{
 		disk[index] = fs->dev_id;
 
-		rc = ext4_mount(img, mp, false);
+		rc = ext4_mount(img, "/", false);
 
 		if(EOK != rc)
 		{
@@ -165,18 +165,37 @@ static int dfs_ext_mkfs(rt_device_t devid)
 		.block_size = 4096,
 		.journal = true,
 	};
+	char* img = devid->parent.name;
 
 	if (devid == RT_NULL)
 	{
 		return -EINVAL;
 	}
 
-	/* find the device index and then umount it */
+	/* find the device index, already mount */
 	index = get_disk(devid);
-	if (index == -1) /* not found */
-		return -ENOENT;
+	if (index != -1)
+		return -EBUSY;
 
-	rc = ext4_mkfs(&fs, ext4_blkdev_list[index], &info, F_SET_EXT4);
+	index = get_disk(RT_NULL);
+	if (index == -1) /* not found */
+		return -ENOSPC;
+
+	rc = ext4_device_register(ext4_blkdev_list[index], img);
+	if(EOK == rc)
+	{
+		disk[index] = devid;
+
+		/* try to open device */
+		rt_device_open(devid, RT_DEVICE_OFLAG_RDWR);
+		rc = ext4_mkfs(&fs, ext4_blkdev_list[index], &info, F_SET_EXT4);
+
+		/* no matter what, unregister */
+		disk[index] = NULL;
+		ext4_device_unregister(img);
+		/* close device */
+		rt_device_close(devid);
+	}
 
 	rc = -rc;
 

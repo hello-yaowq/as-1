@@ -234,6 +234,7 @@ void EcuM_StartupTwo(void)
 	}
 #endif
 
+#ifndef USE_STDRT
 #ifdef USE_FATFS
 	{
 		FRESULT rc;
@@ -260,6 +261,7 @@ void EcuM_StartupTwo(void)
 #ifdef USE_LWEXT4
 	ext_mount();
 #endif
+#endif /* USE_STDRT */
 #ifdef USE_VFS
 	vfs_init();
 #endif

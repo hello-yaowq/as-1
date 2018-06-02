@@ -10,7 +10,9 @@
 #define LWIP_TIMEVAL_PRIVATE 0
 #endif
 
+#ifndef USE_STDRT
 #include "LwIp_Cfg.h"
+#endif
 
 #ifndef RECV_BUFSIZE_DEFAULT
 #define RECV_BUFSIZE_DEFAULT            8192

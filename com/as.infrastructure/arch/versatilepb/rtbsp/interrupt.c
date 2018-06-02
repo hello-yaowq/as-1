@@ -185,6 +185,12 @@ void Irq_Restore(imask_t mask)
 	rt_hw_interrupt_enable(mask);
 }
 
+void Irq_Enable(void)
+{
+	asm("mrs r0, cpsr");
+	asm("bic r0, r0, #0xc0");
+	asm("msr cpsr_c, r0");
+}
 void Irq_Disable(void)
 {
 	(void)rt_hw_interrupt_disable();

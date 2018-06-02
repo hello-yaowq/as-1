@@ -1,7 +1,11 @@
 config RTT_DIR
     string
     option env="RTT_ROOT"
-    default "../../com/as.infrastructure/system/kernel/rtthread/rt-thread"
+    default "../rt-thread"
 
+config ASROOT
+    string
+    option env="ASROOT"
+    default "../../../../../.."
 source "$ASROOT/com/as.infrastructure/system/kernel/rtthread/rt-thread/Kconfig"
 source "$ASROOT/com/as.infrastructure/system/kernel/rtthread/menuconfig/aspkgs/Kconfig"

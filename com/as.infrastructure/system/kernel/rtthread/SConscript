@@ -74,7 +74,6 @@ Export('rtconfig')
 
 if(not os.path.exists('%s/release/download/rt-thread'%(asenv['ASROOT']))):
     RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
-    RMDir(rtroot)
 
 MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
 

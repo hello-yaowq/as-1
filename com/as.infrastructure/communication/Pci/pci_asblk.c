@@ -23,7 +23,7 @@
 #ifdef USE_STDRT
 #include "rtthread.h"
 #include "rthw.h"
-#else
+#endif
 
 #ifdef USE_LWEXT4
 #include <ext4.h>
@@ -31,7 +31,6 @@
 #include <ext4_config.h>
 #include <ext4_blockdev.h>
 #include <ext4_errno.h>
-#endif
 #endif
 
 /* ============================ [ MACROS    ] ====================================================== */
@@ -333,7 +332,7 @@ int PciBlk_Size(uint32_t blkid, uint32_t *size)
 
 	return 0;
 }
-
+#ifndef USE_STDRT
 #ifdef USE_FATFS
 DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
@@ -512,6 +511,7 @@ DWORD get_fattime (void)
 }
 
 #endif /* USE_FATFS */
+#endif /* USE_STDRT */
 
 #ifdef USE_LWEXT4
 void ext_mount(void)

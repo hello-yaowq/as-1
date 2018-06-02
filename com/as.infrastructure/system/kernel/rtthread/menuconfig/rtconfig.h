@@ -2,76 +2,11 @@
 #define RT_CONFIG_H__
 
 /* Automatically generated file; DO NOT EDIT. */
-/* Automotive Software AS Configuration */
-
-/* automotive software toolchain */
-
-/* PLATFORM_MINGW is not set */
-#define PLATFORM_MSYS2
-/* PLATFORM_LINUX is not set */
-#define ARCH_VERSATILEPB
-#define ARCH "versatilepb"
-
-/* AUTOSAR MCAL&CDD for arch versatilepb */
-
-#define PCI
-#define CAN
-/* FATFS_DRV is not set */
-#define LWEXT4_DRV
-/* EEP is not set */
-/* FLS is not set */
-/* LCD is not set */
-#define MCU
-#define LWIP_DRV
-
-/* AUTOSAR Communication Stack */
-
-#define CANIF
-#define CANNM
-#define CANSM
-#define CANTP
-#define COM
-#define COMM
-#define DOIP
-#define NM
-#define OSEKNM
-#define PDUR
-#define SOAD
-#define XCP
-
-/* AUTOSAR Diagnostic Stack */
-
-#define DCM
-#define DET
-
-/* AUTOSAR Memory Stack */
-
-/* System */
-
-#define CRC
-#define ECUM
-#define SCHM
-/* SHELL is not set */
-/* CPLUSPLUS is not set */
-
-/* File System */
-
-#define LWEXT4
-/* VFS is not set */
-
-/* Operating System */
-
-#define DEFAULT_ASKAR
-/* ASKAR is not set */
-/* SMALLOS is not set */
-#define RTTHREAD
-/* ATK2_SC4 is not set */
-/* TRAMPOLINE is not set */
-/* TOPPERS_OSEK is not set */
+/* RootMenu */
 
 /* RT-Thread Kernel */
 
-#define RT_NAME_MAX 32
+#define RT_NAME_MAX 16
 #define RT_ALIGN_SIZE 4
 /* RT_THREAD_PRIORITY_8 is not set */
 /* RT_THREAD_PRIORITY_32 is not set */
@@ -84,9 +19,7 @@
 #define RT_DEBUG_THREAD 0
 #define RT_USING_HOOK
 #define IDLE_THREAD_STACK_SIZE 4096
-#define RT_USING_TIMER_SOFT
-#define RT_TIMER_THREAD_PRIO 4
-#define RT_TIMER_THREAD_STACK_SIZE 4096
+/* RT_USING_TIMER_SOFT is not set */
 
 /* Inter-Thread communication */
 
@@ -100,11 +33,10 @@
 /* Memory Management */
 
 #define RT_USING_MEMPOOL
-#define RT_USING_MEMHEAP
+/* RT_USING_MEMHEAP is not set */
 /* RT_USING_NOHEAP is not set */
 #define RT_USING_SMALL_MEM
 /* RT_USING_SLAB is not set */
-/* RT_USING_MEMHEAP_AS_HEAP is not set */
 /* RT_USING_MEMTRACE is not set */
 #define RT_USING_HEAP
 
@@ -113,9 +45,9 @@
 #define RT_USING_DEVICE
 /* RT_USING_INTERRUPT_INFO is not set */
 #define RT_USING_CONSOLE
-#define RT_CONSOLEBUF_SIZE 1024
+#define RT_CONSOLEBUF_SIZE 128
 #define RT_CONSOLE_DEVICE_NAME "console"
-#define RT_USING_MODULE
+/* RT_USING_MODULE is not set */
 
 /* RT-Thread Components */
 
@@ -139,7 +71,7 @@
 /* FINSH_USING_AUTH is not set */
 #define FINSH_USING_MSH
 #define FINSH_USING_MSH_DEFAULT
-#define FINSH_USING_MSH_ONLY
+/* FINSH_USING_MSH_ONLY is not set */
 
 /* Device virtual file system */
 
@@ -165,7 +97,9 @@
 /* RT_DFS_ELM_USE_ERASE is not set */
 #define RT_DFS_ELM_REENTRANT
 #define RT_USING_DFS_DEVFS
-/* RT_USING_DFS_NET is not set */
+#define RT_USING_DFS_NET
+#define HAVE_SYS_SELECT_H
+/* HAVE_SYS_SOCKET_H is not set */
 /* RT_USING_DFS_ROMFS is not set */
 /* RT_USING_DFS_RAMFS is not set */
 /* RT_USING_DFS_UFFS is not set */
@@ -197,8 +131,11 @@
 /* POSIX layer and C standard library */
 
 #define RT_USING_LIBC
-#define RT_USING_PTHREADS
-/* RT_USING_POSIX is not set */
+/* RT_USING_PTHREADS is not set */
+#define RT_USING_POSIX
+/* RT_USING_POSIX_MMAP is not set */
+/* RT_USING_POSIX_TERMIOS is not set */
+/* RT_USING_POSIX_AIO is not set */
 
 /* Network stack */
 
@@ -210,7 +147,7 @@
 #define RT_LWIP_IGMP
 #define RT_LWIP_ICMP
 /* RT_LWIP_SNMP is not set */
-/* RT_LWIP_DNS is not set */
+#define RT_LWIP_DNS
 /* RT_LWIP_DHCP is not set */
 
 /* Static IPv4 Address */
@@ -222,11 +159,11 @@
 #define RT_LWIP_TCP
 /* RT_LWIP_RAW is not set */
 /* RT_LWIP_PPP is not set */
-#define RT_MEMP_NUM_NETCONN 32
-#define RT_LWIP_PBUF_NUM 256
-#define RT_LWIP_RAW_PCB_NUM 32
+#define RT_MEMP_NUM_NETCONN 8
+#define RT_LWIP_PBUF_NUM 16
+#define RT_LWIP_RAW_PCB_NUM 4
 #define RT_LWIP_UDP_PCB_NUM 4
-#define RT_LWIP_TCP_PCB_NUM 32
+#define RT_LWIP_TCP_PCB_NUM 4
 #define RT_LWIP_TCP_SEG_NUM 40
 #define RT_LWIP_TCP_SND_BUF 8196
 #define RT_LWIP_TCP_WND 8196
@@ -265,21 +202,5 @@
 /* as packages config */
 
 #define RT_USING_LWEXT4
-
-/* Internet Protocol */
-
-#define LWIP
-#define FTP
-
-/* C Library */
-
-#define CLIB_ASHEAP
-#define CLIB_MBOX
-/* CLIB_MISCLIB is not set */
-/* CLIB_QSORT is not set */
-#define CLIB_STDIO_PRINTF
-/* CLIB_STDIO_CAN is not set */
-/* CLIB_STRTOK_R is not set */
-/* CLIB_NWELIB is not set */
 
 #endif

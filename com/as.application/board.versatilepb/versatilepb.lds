@@ -57,6 +57,10 @@ SECTIONS
         __rtmsymtab_start = .;
         KEEP(*(RTMSymTab))
         __rtmsymtab_end = .;
+        . = ALIGN(4);
+        autostart_processes = .;
+        KEEP(*(ProtoSymTab))
+        KEEP(*(ProtoSymTabEnd))
     } > RAM
 
     . = ALIGN(4);
@@ -86,18 +90,17 @@ SECTIONS
         *(.data.*)
         *(.gnu.linkonce.d*)
     } > RAM
-
-    . = ALIGN(4);
-    .nobss : { *(.nobss) } > RAM
     
     . = ALIGN(4);
-    
     .bss : { 
         __bss_start__ = .;
         *(.bss)
         *(.bss.*)
          __bss_end__ = .;
     } > RAM
+    /* nobss should be placed at the end */
+    . = ALIGN(4);
+    .nobss : { KEEP(*(.nobss)) } > RAM
 
     /* stabs debugging sections. */
     .stab 0 : { *(.stab) } > RAM

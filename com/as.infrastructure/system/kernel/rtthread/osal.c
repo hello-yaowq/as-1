@@ -35,7 +35,6 @@ static rt_uint8_t heap[RT_HEAP_SIZE];
 static struct rt_thread taskId[TASK_NUM];
 static struct rt_event  taskEvent[TASK_NUM];
 static struct rt_timer  osTmr[ALARM_NUM];
-static int              osTmrStatus[ALARM_NUM]; /* 0: stop; 1: start*/
 
 static void _TaskProcess(void *p_arg)
 {
@@ -236,7 +235,7 @@ FUNC(void,MEM_OsTick) OsTick ( void )
 FUNC(StatusType,MEM_GetAlarmBase) GetAlarmBase ( AlarmType AlarmId, AlarmBaseRefType Info )
 {
 
-	Info[0].maxallowedvalue = TICK_MAX;
+	Info[0].maxallowedvalue = RT_TICK_MAX/2;
 	Info[0].ticksperbase     = 1u;
 	Info[0].mincycle        = 1u;
 
@@ -245,7 +244,7 @@ FUNC(StatusType,MEM_GetAlarmBase) GetAlarmBase ( AlarmType AlarmId, AlarmBaseRef
 
 FUNC(StatusType,MEM_GetAlarm) GetAlarm(AlarmType AlarmId, TickRefType Tick)
 {
-	return E_OK;
+	return E_OS_NOFUNC;
 }
 
 FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Increment, TickType Cycle )
@@ -254,26 +253,29 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 
 	if(AlarmId < ALARM_NUM)
 	{
-		if(0 != osTmrStatus[AlarmId])
-		{  /* fix for when porting LWIP stack, need to re-start alarm if already started */
-			ercd = CancelAlarm(AlarmId);
+		if(osTmr[AlarmId].parent.flag & RT_TIMER_FLAG_ACTIVATED)
+		{
+			ercd = E_OS_STATE;
 		}
-
-		if(E_OK == ercd)
+		else
 		{
 			rt_err_t err;
-			rt_timer_init(&osTmr[AlarmId],AlarmList[AlarmId].name, _AlarmProcess, (void*)(long)AlarmId,
-						  Cycle?Cycle:Increment,
-						  Cycle?RT_TIMER_FLAG_PERIODIC:RT_TIMER_FLAG_ONE_SHOT);
+
+			if(Cycle > 0)
+			{
+				rt_timer_control(&osTmr[AlarmId], RT_TIMER_CTRL_SET_TIME, &Cycle);
+				rt_timer_control(&osTmr[AlarmId], RT_TIMER_CTRL_SET_PERIODIC, NULL);
+			}
+			else
+			{
+				rt_timer_control(&osTmr[AlarmId], RT_TIMER_CTRL_SET_TIME, &Increment);
+				rt_timer_control(&osTmr[AlarmId], RT_TIMER_CTRL_SET_ONESHOT, NULL);
+			}
 
 			err = rt_timer_start(&osTmr[AlarmId]);
 			if(RT_EOK != err)
 			{
 				ercd = E_OS_ACCESS;
-			}
-			else
-			{
-				osTmrStatus[AlarmId] = 1;
 			}
 		}
 	}
@@ -286,7 +288,7 @@ FUNC(StatusType,MEM_SetRelAlarm) SetRelAlarm ( AlarmType AlarmId, TickType Incre
 
 FUNC(StatusType,MEM_SetAbsAlarm) SetAbsAlarm ( AlarmType AlarmId, TickType Start, TickType Cycle )
 {
-	return SetRelAlarm(AlarmId,Start,Cycle);
+	return SetRelAlarm(AlarmId,Start-rt_tick_get(),Cycle);
 }
 
 FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
@@ -294,25 +296,8 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 	StatusType ercd = E_OK;
 	if(AlarmId < ALARM_NUM)
 	{
-		if(0 != osTmrStatus[AlarmId])
-		{
-			rt_err_t err;
-			/* timer maybe already stopped, so no check of the error code */
-			(void)rt_timer_stop(&osTmr[AlarmId]);
-			err = rt_timer_detach(&osTmr[AlarmId]);
-			if(RT_EOK != err)
-			{
-				ercd = E_OS_ACCESS;
-			}
-			else
-			{
-				osTmrStatus[AlarmId] = 0;
-			}
-		}
-		else
-		{
-			ercd = E_OS_STATE;
-		}
+		/* timer maybe already stopped, so no check of the error code */
+		(void)rt_timer_stop(&osTmr[AlarmId]);
 	}
 	else
 	{
@@ -350,20 +335,7 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 	uint32 i;
 	rt_err_t  ercd;
 	const task_declare_t* td;
-#ifndef USE_STDRT
-	(void)rt_hw_interrupt_disable();
 
-	rt_system_tick_init();
-	rt_system_object_init();
-	rt_system_scheduler_init();
-	rt_system_timer_init();
-
-#ifdef RT_USING_HEAP
-	/* init memory system */
-	rt_system_heap_init((void *)heap, (void *)(((uint32)heap)+ RT_HEAP_SIZE));
-#endif
-#endif
-	memset(osTmrStatus,0,sizeof(osTmrStatus));
 	for(i=0;i<TASK_NUM;i++)
 	{
 		td = &TaskList[i];
@@ -379,16 +351,14 @@ FUNC(void,MEM_StartOS)              StartOS       ( AppModeType Mode )
 		}
 	}
 
-	StartupHook();
-#ifndef USE_STDRT
-	rt_system_timer_thread_init();
-	rt_thread_idle_init();
+	for(i=0;i<ALARM_NUM;i++)
+	{
+		rt_timer_init(&osTmr[i],AlarmList[i].name, _AlarmProcess, (void*)(long)i,
+					  0,
+					  RT_TIMER_FLAG_ONE_SHOT);
+	}
 
-	rt_system_scheduler_start();
-#else
-	extern void rt_thread_exit(void);
-	rt_thread_exit();
-#endif
+	StartupHook();
 }
 
 FUNC(void,MEM_ShutdownOS)  ShutdownOS ( StatusType ercd )

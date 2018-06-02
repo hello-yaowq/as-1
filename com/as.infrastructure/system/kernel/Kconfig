@@ -55,8 +55,4 @@ if ASKAR
 source "$ASROOT/com/as.infrastructure/system/kernel/askar/Kconfig"
 endif
 
-if RTTHREAD
-source "$ASROOT/com/as.infrastructure/system/kernel/rtthread/menuconfig/Kconfig"
-endif
-
 endmenu

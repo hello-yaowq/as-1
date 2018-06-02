@@ -187,14 +187,14 @@ def PrepareBuilding(env):
 
 def mk_rtconfig(filename):
     try:
-        config = file(filename)
+        config = open(filename)
     except:
-        print('open .config failed')
+        print('open %s failed'%(filename))
         return
     rtcfg = os.path.abspath('../../com/as.infrastructure/system/kernel/rtthread/menuconfig/rtconfig.h')
     if(not os.path.exists(rtcfg)):
         print('%s is not exits!'%(rtcfg))
-    rtconfig = file(rtcfg, 'w')
+    rtconfig = open(rtcfg, 'w')
     rtconfig.write('#if !defined(RT_CONFIG_H__)\n')
     rtconfig.write('#define RT_CONFIG_H__\n\n')
 
@@ -301,10 +301,6 @@ def menuconfig(env):
             mtime = os.path.getmtime(fn)
         else:
             mtime = -1
-        rtt = '%s/com/as.infrastructure/system/kernel/rtthread/rt-thread'%(env['ASROOT'])
-        if(not os.path.exists(rtt)):
-            MKDir(rtt)
-            MKFile(rtt+'/Kconfig', '')
         if(IsPlatformWindows()):
             cmd = '@echo off\n'+cmd.replace(' && ','\n')
             MKFile('menuconfig.bat', cmd)
@@ -316,11 +312,32 @@ def menuconfig(env):
             mtime2 = -1
         if(mtime != mtime2):
             GetConfig(fn,env)
-            if('RTTHREAD' in env['MODULES']):
-                mk_rtconfig(fn)
             cfgdir = 'build/%s/config'%(env['BOARD'])
             MKDir(cfgdir)
             xcc.XCC(cfgdir,env)
+        if('RTTHREAD' in env['MODULES']):
+            rtt = '%s/com/as.infrastructure/system/kernel/rtthread'%(env['ASROOT'])
+            rttf = '%s/release/download/rt-thread'%(env['ASROOT'])
+            if(not os.path.exists(rttf)):
+                RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(env['ASROOT']))
+            MKSymlink(rttf, rtt+'/rt-thread')
+            fn = rtt+'/menuconfig/.config'
+            if(os.path.isfile(fn)):
+                mtime = os.path.getmtime(fn)
+            else:
+                mtime = -1
+            cmd = 'cd %s/menuconfig && %s Kconfig'%(rtt, kconfig)
+            if(IsPlatformWindows()):
+                cmd = '@echo off\n'+cmd.replace(' && ','\n')
+                MKFile('rtmenuconfig.bat', cmd)
+                cmd = 'rtmenuconfig.bat'
+            RunCommand(cmd)
+            if(os.path.isfile(fn)):
+                mtime2 = os.path.getmtime(fn)
+            else:
+                mtime2 = -1
+            if(mtime != mtime2):
+                mk_rtconfig(fn)
         exit(0)
     else:
         raise Exception("can't find out %s"%(kconfig))

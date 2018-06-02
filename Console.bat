@@ -37,6 +37,7 @@ echo %MSYS2%\usr\bin\python2.exe %MSYS2%\usr\bin\scons %%* >> scons.bat
 
 :launchCZ
 cd %ASPATH%
+set ASROOT=%ASPATH%
 start %CZ% -ws %ASPATH%\ConsoleZ.workspace
 
 exit 0

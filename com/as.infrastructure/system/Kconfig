@@ -20,6 +20,7 @@ config SCHM
 config SHELL
 	bool "SHELL"
 	default y
+	depends on !RTTHREAD
 
 config CPLUSPLUS
 	bool "C++ support"
