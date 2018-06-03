@@ -14,10 +14,13 @@
  */
 #ifdef USE_LCD
 /* ============================ [ INCLUDES  ] ====================================================== */
-#include <Sg.h>
 #include "Lcd.h"
 
 #include "asdebug.h"
+
+#ifdef USE_LVGL
+#include "lvgl/lvgl.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define ARM_PL110_BASE 0x10120000
 /* ============================ [ TYPES     ] ====================================================== */
@@ -78,11 +81,96 @@ static void pl110_init() {
 	pl110_setResolution(PL110_640x480_25MHZ);
 
 	uint32_t x, y = 0;
-	for (x = 0; y < plInfo.height; y++)
+	for (y = 0; y < plInfo.height; y++)
 		for (x = 0; x < plInfo.width; x++)
 			pl110_setPixel(x, y, 0xff0000);
 }
 
+#ifdef USE_LVGL
+static void lcd_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
+{
+   /*Return if the area is out the screen*/
+	if(x2 < 0) return;
+	if(y2 < 0) return;
+	if(x1 > plInfo.width - 1) return;
+	if(y1 > plInfo.height - 1) return;
+
+	/*Truncate the area to the screen*/
+	int32_t act_x1 = x1 < 0 ? 0 : x1;
+	int32_t act_y1 = y1 < 0 ? 0 : y1;
+	int32_t act_x2 = x2 > plInfo.width - 1 ? plInfo.width - 1 : x2;
+	int32_t act_y2 = y2 > plInfo.height - 1 ? plInfo.height - 1 : y2;
+
+	int32_t x;
+	int32_t y;
+	uint32_t color24 = lv_color_to24(color);
+
+	for(x = act_x1; x <= act_x2; x++) {
+		for(y = act_y1; y <= act_y2; y++) {
+			plInfo.frame_buffer[y * plInfo.width + x] = color24;
+		}
+	}
+}
+
+static void lcd_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+{
+   /*Return if the area is out the screen*/
+	if(x2 < 0) return;
+	if(y2 < 0) return;
+	if(x1 > plInfo.width - 1) return;
+	if(y1 > plInfo.height - 1) return;
+
+	/*Truncate the area to the screen*/
+	int32_t act_x1 = x1 < 0 ? 0 : x1;
+	int32_t act_y1 = y1 < 0 ? 0 : y1;
+	int32_t act_x2 = x2 > plInfo.width - 1 ? plInfo.width - 1 : x2;
+	int32_t act_y2 = y2 > plInfo.height - 1 ? plInfo.height - 1 : y2;
+
+	int32_t x;
+	int32_t y;
+
+	for(y = act_y1; y <= act_y2; y++) {
+		for(x = act_x1; x <= act_x2; x++) {
+			plInfo.frame_buffer[y * plInfo.width + x] = lv_color_to24(*color_p);
+			color_p++;
+		}
+
+		color_p += x2 - act_x2;
+	}
+
+}
+
+static void lcd_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+{
+    /*Return if the area is out the screen*/
+    if(x2 < 0 || y2 < 0 || x1 > plInfo.width - 1 || y1 > plInfo.height - 1) {
+        lv_flush_ready();
+        return;
+    }
+
+    int32_t y;
+#if LV_COLOR_DEPTH != 24
+    int32_t x;
+    for(y = y1; y <= y2; y++) {
+        for(x = x1; x <= x2; x++) {
+        	plInfo.frame_buffer[y * plInfo.width + x] = lv_color_to24(*color_p);
+            color_p++;
+        }
+
+    }
+#else
+    uint32_t w = x2 - x1 + 1;
+    for(y = y1; y <= y2; y++) {
+        memcpy(&plInfo.frame_buffer[y * plInfo.width + x1], color_p, w * sizeof(lv_color_t));
+
+        color_p += w;
+    }
+#endif
+
+    /*IMPORTANT! It must be called to tell the system the flush is ready*/
+    lv_flush_ready();
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(void)
 {
@@ -93,5 +181,17 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 {
 	pl110_setPixel(x, y, color);
 }
+
+#ifdef USE_LVGL
+void lv_hw_dsp_init(void)
+{
+	lv_disp_drv_t disp_drv;
+	lv_disp_drv_init(&disp_drv);
+	disp_drv.disp_flush = lcd_flush;
+	disp_drv.disp_fill = lcd_fill;
+	disp_drv.disp_map = lcd_map;
+	lv_disp_drv_register(&disp_drv);
+}
+#endif
 #endif /* USE_LCD */
 

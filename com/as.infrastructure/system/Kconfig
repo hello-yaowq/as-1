@@ -8,10 +8,40 @@ config ECUM
 	bool "Ecu Manager"
 	default y
 
+choice
+	prompt "GUI"
+	default SG
+	depends on LCD
+
 config SG
 	bool "Static GUI"
-	default y
-	depends on LCD
+
+config LVGL
+	bool "Littlev Graphics Libraray"
+
+endchoice
+
+choice
+	prompt "LVGL example"
+	default LV_DEMO
+	depends on LVGL
+
+config LV_DEMO
+	bool "demo"
+
+config LV_BENCHMARK
+	bool "benchmark"
+
+config LV_SYSMON
+	bool "sysmon"
+
+config LV_TERMINAL
+	bool "terminal"
+
+config LV_TPCAL
+	bool "tpcal"
+
+endchoice
 
 config SCHM
 	bool "Scheduler Manager"

@@ -480,5 +480,5 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 		/* device not ready */
 	}
 }
-#endif /* USE_GUI */
+#endif /* USE_LCD */
 

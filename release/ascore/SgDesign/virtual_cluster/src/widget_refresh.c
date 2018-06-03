@@ -1,4 +1,4 @@
-#ifdef USE_GUI
+#ifdef USE_SG
 #include "Sg.h"
 #include "Stmo.h"
 #include "Dio.h"

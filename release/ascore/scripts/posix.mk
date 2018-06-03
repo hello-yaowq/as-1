@@ -77,7 +77,7 @@ def-y += -DUSE_STMO
 def-y += -D__AS_CAN_BUS__ -DAUTOSAR_SIMULATOR
 ifeq ($(sgapp),none)
 else
-def-y += -DUSE_GUI
+def-y += -DUSE_SG
 ifeq ($(termux),yes)
 else
 def-y += -DUSE_LCD

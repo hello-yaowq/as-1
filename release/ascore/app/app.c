@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#ifdef USE_GUI
+#ifdef USE_SG
 #include "Sg.h"
 #endif
 #ifdef USE_LCD
@@ -28,6 +28,9 @@
 #endif
 #ifdef USE_FTP
 #include "ftpd.h"
+#endif
+#if(OS_PTHREAD_NUM > 0)
+#include "pthread.h"
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
@@ -175,6 +178,7 @@ static void sample_pointer(void)
 
 }
 #endif
+
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
@@ -185,8 +189,36 @@ void StartupHook(void)
 #ifdef USE_LCD
 	Lcd_Init();
 #endif
-#ifdef USE_GUI
+#ifdef USE_SG
 	Sg_Init();
+#endif
+
+#ifdef USE_LVGL
+    /*Initialize LittlevGL*/
+	extern void lv_init(void);
+	extern void lv_hw_dsp_init(void);
+    lv_init();
+    lv_hw_dsp_init();
+#if USE_LV_BENCHMARK
+    extern void benchmark_create(void);
+    benchmark_create();
+#endif
+#if USE_LV_DEMO
+    extern void demo_create(void);
+    demo_create();
+#endif
+#if USE_LV_SYSMON
+    extern void sysmon_create(void);
+    sysmon_create();
+#endif
+#if USE_LV_TERMINAL
+    extern void terminal_create(void);
+    terminal_create();
+#endif
+#if USE_LV_TPCAL
+    extern void tpcal_create(void);
+    tpcal_create();
+#endif
 #endif
 
 #ifdef USE_XCP
@@ -211,10 +243,25 @@ TASK(TaskApp)
 	sample_pointer();
 	Stmo_MainFunction();
 #endif
-#ifdef USE_GUI
+#ifdef USE_SG
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
+#endif
+#ifdef USE_LVGL
+#if(OS_PTHREAD_NUM > 0)
+{
+	static int flag = 0;
+	extern void* lv_task_handler(void*);
+	if(0 == flag)
+	{
+		(void)pthread_create(NULL, NULL, lv_task_handler, NULL);
+		flag = 1;
+	}
+}
+	extern void lv_tick_inc(uint32_t inc);
+	lv_tick_inc(5);
+#endif
 #endif
 
 #ifndef USE_STDRT

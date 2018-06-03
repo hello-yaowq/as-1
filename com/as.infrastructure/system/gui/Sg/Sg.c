@@ -13,7 +13,7 @@
  * for more details.
  * Sg: static GUI
  */
-#ifdef USE_GUI
+#ifdef USE_SG
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Sg.h"
 #include "SgDraw.h"
@@ -428,4 +428,4 @@ void Sg_ManagerTask(void)
 	}
 }
 #endif /* USE_LCD */
-#endif /* USE_GUI */
+#endif /* USE_SG */

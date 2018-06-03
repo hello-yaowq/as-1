@@ -18,11 +18,13 @@ if('SCHM' in MODULES):
     asenv.Append(CPPPATH=['%s/SchM'%(cwd)])
 
 if('SG' in MODULES):
-    objs += Glob('gui/*.c')
-    asenv.Append(CPPPATH=['%s/gui'%(cwd)])
+    objs += Glob('gui/Sg/*.c')
+    asenv.Append(CPPPATH=['%s/gui/Sg'%(cwd)])
     if('OPENVG' in MODULES):
-        asenv.Append(CPPPATH=['%s/gui/openvg/include'%(cwd)])
-    asenv.Append(CPPDEFINES=['USE_GUI'])
+        asenv.Append(CPPPATH=['%s/gui/Sg/openvg/include'%(cwd)])
+
+if('LVGL' in MODULES):
+    objs += SConscript('gui/lvgl/SConscript')
 
 objs += Glob('Crc/*.c')
 

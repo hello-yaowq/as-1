@@ -1,4 +1,4 @@
-#ifdef USE_GUI
+#ifdef USE_SG
 #include "Sg.h"
 #include <time.h>
 #if !defined(__WINDOWS__) && !defined(__LINUX__)
