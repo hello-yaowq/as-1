@@ -518,9 +518,13 @@ def GetELFEnv(so=True):
   . = ALIGN(4);
   .rel.plt : { *(.rel.*) }
 }\n\n%s\n'''%(cstr), 'w')
+    CPPPATH = []
+    for p in Env['CPPPATH']:
+        if('rt-thread' not in p):
+            CPPPATH.append(p)
     env = Environment(CC=Env['CC'],
                       LINK=Env['LINK'],
-                      CPPPATH=Env['CPPPATH'],
+                      CPPPATH=CPPPATH,
                       CCFLAGS=Env['CCFLAGS']+['-fPIC'],
                       LINKFLAGS=['-e','main','-fPIC','-s','-nostdlib','-T','%s/aself.lds'%(cwd)],
                       SHLINKFLAGS=['-fPIC','-shared','-s','-nostdlib',

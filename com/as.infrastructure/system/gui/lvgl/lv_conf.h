@@ -27,8 +27,13 @@
  *===================*/
 
 /* Horizontal and vertical resolution of the library.*/
+#ifdef USE_ARCH_VERSATILEPB
+#define LV_HOR_RES          (640)
+#define LV_VER_RES          (480)
+#else
 #define LV_HOR_RES          (320)
 #define LV_VER_RES          (240)
+#endif
 #define LV_DPI              100
 
 /* Size of VDB (Virtual Display Buffer: the internal graphics buffer).

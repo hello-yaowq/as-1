@@ -29,11 +29,12 @@
 #ifdef USE_FTP
 #include "ftpd.h"
 #endif
-#if(OS_PTHREAD_NUM > 0)
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
 #include "pthread.h"
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
+#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */
@@ -197,8 +198,10 @@ void StartupHook(void)
     /*Initialize LittlevGL*/
 	extern void lv_init(void);
 	extern void lv_hw_dsp_init(void);
+	extern void lv_hw_mouse_init(void);
     lv_init();
     lv_hw_dsp_init();
+    lv_hw_mouse_init();
 #if USE_LV_BENCHMARK
     extern void benchmark_create(void);
     benchmark_create();
@@ -235,6 +238,24 @@ void SchM_StartupHook(void)
 	OsSetRelAlarm(AlarmApp, 10, 5);
 }
 
+#ifdef USE_LVGL
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
+extern void lv_task_handler(void);
+void* lv_task_thread(void* args)
+{
+	while(TRUE)
+	{
+		lv_task_handler();
+#if defined(RT_USING_PTHREADS)
+		rt_thread_delay(1);
+#else
+		usleep(1000);
+#endif
+	}
+	return NULL;
+}
+#endif
+#endif
 TASK(TaskApp)
 {
 	OS_TASK_BEGIN();
@@ -249,13 +270,13 @@ TASK(TaskApp)
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
 #endif
 #ifdef USE_LVGL
-#if(OS_PTHREAD_NUM > 0)
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
 {
 	static int flag = 0;
-	extern void* lv_task_handler(void*);
+	static pthread_t lvThread;
 	if(0 == flag)
 	{
-		(void)pthread_create(NULL, NULL, lv_task_handler, NULL);
+		(void)pthread_create(&lvThread, NULL, lv_task_thread, NULL);
 		flag = 1;
 	}
 }
