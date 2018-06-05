@@ -235,7 +235,7 @@ void StartupHook(void)
 
 void SchM_StartupHook(void)
 {
-	OsSetRelAlarm(AlarmApp, 10, 5);
+	OsSetRelAlarm(AlarmApp, MS2TICKS(10), MS2TICKS(5));
 }
 
 #ifdef USE_LVGL
@@ -256,6 +256,7 @@ void* lv_task_thread(void* args)
 }
 #endif
 #endif
+
 TASK(TaskApp)
 {
 	OS_TASK_BEGIN();
@@ -280,8 +281,9 @@ TASK(TaskApp)
 		flag = 1;
 	}
 }
+
 	extern void lv_tick_inc(uint32_t inc);
-	lv_tick_inc(5);
+	lv_tick_inc(10);
 #endif
 #endif
 

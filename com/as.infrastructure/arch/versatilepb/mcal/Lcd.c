@@ -239,19 +239,15 @@ static void mouse_pl050_interrupt(void)
 			x = pdat->xpos;
 			y = pdat->ypos;
 
-			if((btn & (0x01 << 0)) && ((relx != 0) || (rely != 0)))
-				/* touch move */;
+			last_x = x;
+			last_y = y;
 
 			if(btndown & (0x01 << 0)) {
 				left_button_down = TRUE;
-				last_x = x;
-				last_y = y;
 			}
 
 			if(btnup & (0x01 << 0)) {
 				left_button_down = FALSE;
-				last_x = x;
-				last_y = y;
 			}
 
 			ASLOG(MOUSE, "%s @(%d,%d)\n",left_button_down?"pressed":"released", x, y);
@@ -452,11 +448,16 @@ void lv_hw_dsp_init(void)
 void lv_hw_mouse_init(void)
 {
 	lv_indev_drv_t indev_drv;
+	static lv_obj_t * cursor;
+	lv_indev_t * indev;
 	mouse_init();
 	lv_indev_drv_init(&indev_drv);
 	indev_drv.type = LV_INDEV_TYPE_POINTER;
 	indev_drv.read = mouse_read;		 /*This function will be called periodically (by the library) to get the mouse position and state*/
-	lv_indev_drv_register(&indev_drv);
+	indev = lv_indev_drv_register(&indev_drv);
+	cursor = lv_label_create(lv_scr_act(), NULL);
+	lv_label_set_text(cursor, "*");
+	lv_indev_set_cursor(indev, cursor);
 }
 #endif
 #endif /* USE_LCD */
