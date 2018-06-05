@@ -220,8 +220,8 @@ static char* serach(char* const p, const char* file)
 			}
 			dirent = vfs_readdir(dir);
 		}
+		vfs_closedir(dir);
 	}
-	vfs_closedir(dir);
 
 	return NULL;
 }
