@@ -29,7 +29,7 @@
 #ifdef USE_FTP
 #include "ftpd.h"
 #endif
-#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS) || defined(__LINUX__) || defined(__WINDOWS__))
 #include "pthread.h"
 #endif
 // #define AS_PERF_ENABLED
@@ -239,7 +239,7 @@ void SchM_StartupHook(void)
 }
 
 #ifdef USE_LVGL
-#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS) || defined(__LINUX__) || defined(__WINDOWS__))
 extern void lv_task_handler(void);
 void* lv_task_thread(void* args)
 {
@@ -271,7 +271,7 @@ TASK(TaskApp)
 	ASPERF_MEASURE_STOP("Sg_ManagerTask");
 #endif
 #ifdef USE_LVGL
-#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS))
+#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS) || defined(__LINUX__) || defined(__WINDOWS__))
 {
 	static int flag = 0;
 	static pthread_t lvThread;

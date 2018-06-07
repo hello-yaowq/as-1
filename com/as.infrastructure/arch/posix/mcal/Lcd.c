@@ -29,8 +29,14 @@
 #endif
 
 #include <sys/time.h>
-
+#ifdef USE_LVGL
+#include "lvgl/lvgl.h"
+#define __SG_WIDTH__ LV_HOR_RES
+#define __SG_HEIGHT__ LV_VER_RES
+#define __SG_PIXEL__ 1
+#else
 #include <Sg.h>
+#endif
 #include "Lcd.h"
 
 //#define AS_PERF_ENABLED
@@ -68,7 +74,11 @@ static uint32*          pLcdBuffer;
 static uint32           lcdWidth    = 0;
 static uint32           lcdHeight   = 0;
 static uint8            lcdPixel    = 0;
-
+#ifdef USE_LVGL
+static bool left_button_down = FALSE;
+static int16_t last_x = 0;
+static int16_t last_y = 0;
+#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 extern int AsWsjOnline(void);
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -104,6 +114,11 @@ scribble_motion_notify_event (GtkWidget      *widget,
 
   gdk_window_get_device_position (event->window, event->device, &x, &y, &state);
 
+#ifdef USE_LVGL
+  last_x = x;
+  last_y = y;
+#endif
+  
   sprintf((char*)text,"X=%d,Y=%d",(x/lcdPixel),(y/lcdPixel));
   gtk_statusbar_pop (GTK_STATUSBAR(pStatusbar), 0); /* clear any previous message,
   										    * underflow is allowed
@@ -113,6 +128,21 @@ scribble_motion_notify_event (GtkWidget      *widget,
   /* We've handled it, stop processing */
   return TRUE;
 }
+#ifdef USE_LVGL
+static gboolean
+button_press_event( GtkWidget *widget, GdkEventButton *event )
+{
+	left_button_down = TRUE;
+	return TRUE;
+}
+static gboolean
+button_release_event( GtkWidget *widget, GdkEventButton *event )
+{
+	left_button_down = FALSE;
+	return TRUE;
+}
+
+#endif
 #endif
 
 static gboolean Refresh(gpointer data)
@@ -122,9 +152,9 @@ static gboolean Refresh(gpointer data)
 	guchar *pixels, *p;
 	uint32 index;
 	uint32 color;
-
+#ifdef USE_SG
 	if(FALSE == Sg_IsDataReady()) { return TRUE; }
-
+#endif
 	ASPERF_MEASURE_START();
 
 	n_channels = gdk_pixbuf_get_n_channels (pLcdImage);
@@ -185,12 +215,18 @@ static GtkWidget* Lcd(void)
 
 	g_signal_connect (pLcd, "motion-notify-event",
 	                        G_CALLBACK (scribble_motion_notify_event), NULL);
+#ifdef USE_LVGL
+	g_signal_connect (pLcd, "button_press_event",
+						G_CALLBACK(button_press_event), NULL);
+	g_signal_connect (pLcd, "button_release_event",
+						G_CALLBACK(button_release_event), NULL);
+#endif
 	/* Ask to receive events the drawing area doesn't normally
 	 * subscribe to
 	 */
 	gtk_widget_set_events (pLcd, gtk_widget_get_events (pLcd)
-							 /*| GDK_LEAVE_NOTIFY_MASK
-							 | GDK_BUTTON_PRESS_MASK*/
+							 | GDK_BUTTON_PRESS_MASK
+							 | GDK_BUTTON_RELEASE_MASK
 							 | GDK_POINTER_MOTION_MASK
 							 | GDK_POINTER_MOTION_HINT_MASK);
 #else
@@ -221,12 +257,14 @@ static void* Lcd_Thread(void* param)
 #else
 	usleep(1000000);
 #endif
+#ifdef USE_SG
 	if(AsWsjOnline())
 	{
 		lcdThread = NULL;	
 		free(pLcdBuffer);
 		return 0;
 	}
+#endif
 
 	PRINTF("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
@@ -291,8 +329,9 @@ static void deinit(void)
 }
 static void render(int w, int h)
 {
+#ifdef USE_SG
 	if(FALSE == Sg_IsDataReady()) { return; }
-
+#endif
 	ASPERF_MEASURE_START();
 	uint32 x,y;
 	uint8 n_channels = 4;
@@ -360,12 +399,14 @@ static DWORD Lcd_Thread(LPVOID param)
 	HWND window;
 
 	Sleep(1);
+#ifdef USE_SG
 	if(AsWsjOnline())
 	{
 		lcdThread = NULL;
 		free(pLcdBuffer);
 		return 0;
 	}
+#endif
 
 	{
 		WNDCLASS wndclass;
@@ -417,6 +458,101 @@ static DWORD Lcd_Thread(LPVOID param)
 #endif /* __WINDOWS__ */
 #endif /* GUI_USE_GTK */
 
+#ifdef USE_LVGL
+static bool mouse_read(lv_indev_data_t * data)
+{
+	/*Store the collected data*/
+	data->point.x = last_x;
+	data->point.y = last_y;
+	data->state = left_button_down ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+
+	return false;
+}
+
+static void lcd_fill(int32_t x1, int32_t y1, int32_t x2, int32_t y2, lv_color_t color)
+{
+   /*Return if the area is out the screen*/
+	if(x2 < 0) return;
+	if(y2 < 0) return;
+	if(x1 > lcdWidth - 1) return;
+	if(y1 > lcdHeight - 1) return;
+
+	/*Truncate the area to the screen*/
+	int32_t act_x1 = x1 < 0 ? 0 : x1;
+	int32_t act_y1 = y1 < 0 ? 0 : y1;
+	int32_t act_x2 = x2 > lcdWidth - 1 ? lcdWidth - 1 : x2;
+	int32_t act_y2 = y2 > lcdHeight - 1 ? lcdHeight - 1 : y2;
+
+	int32_t x;
+	int32_t y;
+	uint32_t color24 = lv_color_to24(color);
+
+	for(x = act_x1; x <= act_x2; x++) {
+		for(y = act_y1; y <= act_y2; y++) {
+			pLcdBuffer[y * lcdWidth + x] = color24;
+		}
+	}
+}
+
+static void lcd_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+{
+   /*Return if the area is out the screen*/
+	if(x2 < 0) return;
+	if(y2 < 0) return;
+	if(x1 > lcdWidth - 1) return;
+	if(y1 > lcdHeight - 1) return;
+
+	/*Truncate the area to the screen*/
+	int32_t act_x1 = x1 < 0 ? 0 : x1;
+	int32_t act_y1 = y1 < 0 ? 0 : y1;
+	int32_t act_x2 = x2 > lcdWidth - 1 ? lcdWidth - 1 : x2;
+	int32_t act_y2 = y2 > lcdHeight - 1 ? lcdHeight - 1 : y2;
+
+	int32_t x;
+	int32_t y;
+
+	for(y = act_y1; y <= act_y2; y++) {
+		for(x = act_x1; x <= act_x2; x++) {
+			pLcdBuffer[y * lcdWidth + x] = lv_color_to24(*color_p);
+			color_p++;
+		}
+
+		color_p += x2 - act_x2;
+	}
+
+}
+
+static void lcd_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t * color_p)
+{
+	/*Return if the area is out the screen*/
+	if(x2 < 0 || y2 < 0 || x1 > lcdWidth - 1 || y1 > lcdHeight - 1) {
+		lv_flush_ready();
+		return;
+	}
+
+	int32_t y;
+#if LV_COLOR_DEPTH != 24
+	int32_t x;
+	for(y = y1; y <= y2; y++) {
+		for(x = x1; x <= x2; x++) {
+			pLcdBuffer[y * lcdWidth + x] = lv_color_to24(*color_p);
+			color_p++;
+		}
+
+	}
+#else
+	uint32_t w = x2 - x1 + 1;
+	for(y = y1; y <= y2; y++) {
+		memcpy(&pLcdBuffer[y * lcdWidth + x1], color_p, w * sizeof(lv_color_t));
+
+		color_p += w;
+	}
+#endif
+
+	/*IMPORTANT! It must be called to tell the system the flush is ready*/
+	lv_flush_ready();
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Lcd_Init(void)
 {
@@ -480,5 +616,25 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 		/* device not ready */
 	}
 }
+#ifdef USE_LVGL
+void lv_hw_dsp_init(void)
+{
+	lv_disp_drv_t disp_drv;
+	lv_disp_drv_init(&disp_drv);
+	disp_drv.disp_flush = lcd_flush;
+	disp_drv.disp_fill = lcd_fill;
+	disp_drv.disp_map = lcd_map;
+	lv_disp_drv_register(&disp_drv);
+}
+
+void lv_hw_mouse_init(void)
+{
+	lv_indev_drv_t indev_drv;
+	lv_indev_drv_init(&indev_drv);
+	indev_drv.type = LV_INDEV_TYPE_POINTER;
+	indev_drv.read = mouse_read;
+	lv_indev_drv_register(&indev_drv);
+}
+#endif
 #endif /* USE_LCD */
 

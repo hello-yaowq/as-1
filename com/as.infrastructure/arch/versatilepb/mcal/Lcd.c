@@ -448,7 +448,7 @@ void lv_hw_dsp_init(void)
 void lv_hw_mouse_init(void)
 {
 	lv_indev_drv_t indev_drv;
-	static lv_obj_t * cursor;
+	lv_obj_t * cursor;
 	lv_indev_t * indev;
 	mouse_init();
 	lv_indev_drv_init(&indev_drv);

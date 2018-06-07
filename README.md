@@ -86,6 +86,7 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 * [FatFS](http://elm-chan.org/fsw/ff/00index_e.html)
 * [lwext4](https://github.com/gkostka/lwext4.git)
 * libelf: an OS independent ELF library for ELF loading&executing.
+* [LVGL](https://github.com/littlevgl/lvgl):Littlev Graphics Libraray
 
 ## 8. Setup Environment and Run
 
