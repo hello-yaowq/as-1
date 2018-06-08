@@ -81,7 +81,7 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 
 ## 7. Other 3rd part package
 * [LWIP](http://savannah.nongnu.org/projects/lwip/)
-* [afbindef/websock](https://github.com/automotive-grade-linux/docs-agl/blob/master/docs/app-framework/index.md)
+* [afbinder/websock](https://github.com/automotive-grade-linux/docs-agl/blob/master/docs/app-framework/index.md)
 * qemu PCI sample driver: [asnet](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asnet.c) [ascan](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/ascan.c) [asblk](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asblk.c)
 * [FatFS](http://elm-chan.org/fsw/ff/00index_e.html)
 * [lwext4](https://github.com/gkostka/lwext4.git)
