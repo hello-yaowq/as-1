@@ -102,13 +102,27 @@ if('GTK' in MODULES):
     if('dwmapi' in asenv['LIBS']):
         asenv['LIBS'].remove('dwmapi')
 elif('OPENVG' in MODULES):
-    asenv.Append(CPPPATH=['%s/openvg/vg'%(cwd)])
-    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/gui/openvg/include/EGL'%(ASROOT)])
-    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/gui/openvg/include/VG'%(ASROOT)])
-    asenv.Append(CPPDEFINES=['OPENVG_STATIC_LIBRARY','EGL_STATIC_LIBRARY','_WIN32'])
-    objs += Glob('openvg/vg/win32/*.cpp')
-    objs += Glob('openvg/vg/*.cpp')
-    asenv.Append(CXXFLAGS='-fpermissive')
+    CPPPATH = ['%s/openvg/vg'%(cwd),
+               '%s/com/as.infrastructure/system/gui/Sg/openvg/include'%(ASROOT),
+               '%s/com/as.infrastructure/system/gui/Sg/openvg/include/EGL'%(ASROOT),
+               '%s/com/as.infrastructure/system/gui/Sg/openvg/include/VG'%(ASROOT)
+               ]
+    asenv.Append(CPPPATH=CPPPATH)
+    if(asenv['msys2'] is True):
+        asenv.Append(LIBS = ['Gdi32'])
+        env = Environment() # default is (TOOLS=['msvc'])
+        env.Append(CPPPATH=CPPPATH)
+        env.Append(CPPDEFINES=['_WIN32','OPENVG_DLL_EXPORTS'])
+        env.Append(LIBS = ['User32','Gdi32'])
+        dll = env.SharedLibrary('openVG.dll', Glob('openvg/vg/win32/*.cpp')+Glob('openvg/vg/*.cpp'))
+        objs += ['%s/openVG.dll'%(os.getcwd())]
+        MKSymlink('%s/openVG.dll'%(os.getcwd()),
+                  '%s/release/%s/openVG.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+    else:
+        asenv.Append(CPPDEFINES=['_WIN32','OPENVG_STATIC_LIBRARY','EGL_STATIC_LIBRARY'])
+        objs += Glob('openvg/vg/win32/*.cpp')
+        objs += Glob('openvg/vg/*.cpp')
+    asenv.Append(CXXFLAGS=['-fpermissive'])
 
 asenv.Append(LIBS=['pthread','stdc++','m'])
 

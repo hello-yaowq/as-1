@@ -20,8 +20,6 @@ if('SCHM' in MODULES):
 if('SG' in MODULES):
     objs += Glob('gui/Sg/*.c')
     asenv.Append(CPPPATH=['%s/gui/Sg'%(cwd)])
-    if('OPENVG' in MODULES):
-        asenv.Append(CPPPATH=['%s/gui/Sg/openvg/include'%(cwd)])
 
 if('LVGL' in MODULES):
     objs += SConscript('gui/lvgl/SConscript')

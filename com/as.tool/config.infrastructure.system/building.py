@@ -124,6 +124,7 @@ def PrepareBuilding(env):
         if('PLATFORM_MINGW' in env['MODULES']):
             env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
             env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
+            env['EXTRAPATH'] = env['CONFIGS']['MINGW_GCC_PATH']
         elif('PLATFORM_MSYS2' in env['MODULES']):
             env['msys2'] = True
             mpath = env['CONFIGS']['MSYS2_GCC_PATH']
@@ -145,10 +146,6 @@ def PrepareBuilding(env):
         env.AppendENVPath('PATH', os.getenv('PATH'))
         win32_spawn = Win32Spawn()
         env['SPAWN'] = win32_spawn.spawn
-    if(0 != os.system('%s --version'%(env['pkgconfig']))):
-        raise Exception('no pkg-config installed, fix the path maybe!')
-    if(0 != os.system('%s --version'%(env['CC']))):
-        raise Exception('no C Compiler installed, fix the path maybe!')
     env['CXX'] = env['CC']
     # add comstr option
     AddOption('--verbose',
@@ -184,6 +181,11 @@ def PrepareBuilding(env):
         )
     if(GetOption('menuconfig')):
         menuconfig(env)
+
+    if(0 != os.system('%s --version'%(env['pkgconfig']))):
+        raise Exception('no pkg-config installed, fix the path maybe!')
+    if(0 != os.system('%s --version'%(env['CC']))):
+        raise Exception('no C Compiler installed, fix the path maybe!')
 
 def mk_rtconfig(filename):
     try:

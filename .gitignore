@@ -323,3 +323,6 @@ release/ascore/virt
 *.s19
 *.out
 *.7z
+lvgl*
+com/as.tool/lua/can/vxlapi.h
+com/as.tool/lua/can/xlLoadlib.c
