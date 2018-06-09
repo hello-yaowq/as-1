@@ -116,7 +116,8 @@ elif('OPENVG' in MODULES):
         env.Append(LIBS = ['User32','Gdi32'])
         dll = env.SharedLibrary('openVG.dll', Glob('openvg/vg/win32/*.cpp')+Glob('openvg/vg/*.cpp'))
         objs += ['%s/openVG.dll'%(os.getcwd())]
-        MKSymlink('%s/openVG.dll'%(os.getcwd()),
+        if(os.path.exists('%s/openVG.dll'%(os.getcwd()))):
+            MKSymlink('%s/openVG.dll'%(os.getcwd()),
                   '%s/release/%s/openVG.dll'%(asenv['ASROOT'],asenv['RELEASE']))
     else:
         asenv.Append(CPPDEFINES=['_WIN32','OPENVG_STATIC_LIBRARY','EGL_STATIC_LIBRARY'])

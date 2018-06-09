@@ -2,11 +2,11 @@
 #include "Sg.h"
 #include <time.h>
 #if !defined(__WINDOWS__) && !defined(__LINUX__)
-time_t time(time_t *result)
+time_t __weak time(time_t *result)
 {
 	return 0;
 }
-struct tm* localtime(const time_t* t)
+struct tm* __weak localtime(const time_t* t)
 {
 	static struct tm lt;
 	lt.tm_hour = 8;

@@ -115,12 +115,6 @@ void rt_init_thread(void* parameter)
 #endif
 #endif  /* RT_USING_DFS */
 	EcuM_Init();
-
-#ifdef RT_USING_FINSH
-	extern void finsh_set_echo(rt_uint32_t echo);
-	rt_thread_delay(RT_TICK_PER_SECOND*2);
-	finsh_set_echo(0);
-#endif
 }
 void rt_hw_board_init(void)
 {
