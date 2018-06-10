@@ -38,6 +38,8 @@ freertos way is good as I think, but toppers 1/2 MAX of counter value way is als
 * 1. pthread
 * 2. semphore
 * 3. mqueue
+* 4. signal
+
 
 
  

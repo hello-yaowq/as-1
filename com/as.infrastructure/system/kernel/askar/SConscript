@@ -17,9 +17,12 @@ objs += Glob('kernel/*.c')
 objs += Glob('portable/%s/*.c'%(arch))
 objs += Glob('portable/%s/*.S'%(arch))
 
-if('PTHREAD_SIGNAL' not in MODULES):
-    SrcRemove(objs, ['posix.c'])
-else:
-    objs += Glob('kernel/posix.xml')
+if('PTHREAD' in MODULES):
+    asenv.Append(CPPPATH=['%s/kernel/posix/include'%(cwd)])
+    objs += Glob('kernel/posix/*.c')
+    if('PTHREAD_SIGNAL' not in MODULES):
+        SrcRemove(objs, ['posix.c'])
+    else:
+        objs += Glob('kernel/posix/posix.xml')
 
 Return('objs')
