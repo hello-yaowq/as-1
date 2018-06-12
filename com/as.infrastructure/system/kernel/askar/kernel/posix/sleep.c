@@ -44,8 +44,10 @@ void Os_Sleep(TickType tick)
 	if(NULL != RunningVar)
 	{
 		Os_SleepAdd(RunningVar,tick);
+		OSPostTaskHook();
 		Sched_GetReady();
 		Os_PortDispatch();
+		OSPreTaskHook();
 	}
 	Irq_Restore(imask);
 
@@ -251,8 +253,10 @@ int Os_ListWait(TaskListType* list, const struct timespec *abstime)
 
 	if(0 == ercd)
 	{
+		OSPostTaskHook();
 		Sched_GetReady();
 		Os_PortDispatch();
+		OSPreTaskHook();
 
 		if(RunningVar->state&PTHREAD_STATE_SLEEPING)
 		{	/* event reached before timeout */

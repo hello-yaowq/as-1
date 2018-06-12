@@ -31,7 +31,7 @@ StatusType SignalCounter(CounterType CounterID)
 	if(CounterID < COUNTER_NUM)
 	{
 		Irq_Save(imask);
-		/* yes, only software couter supported */
+		/* yes, only software counter supported */
 		CounterVarArray[CounterID].value++;
 		#if (ALARM_NUM > 0)
 		while(NULL != (pVar = TAILQ_FIRST(&CounterVarArray[CounterID].head))) /* intended '=' */
@@ -41,7 +41,10 @@ StatusType SignalCounter(CounterType CounterID)
 				AlarmID = pVar - AlarmVarArray;
 				TAILQ_REMOVE(&CounterVarArray[CounterID].head, &AlarmVarArray[AlarmID], entry);
 				OS_STOP_ALARM(&AlarmVarArray[AlarmID]);
+
+				Irq_Restore(imask);
 				AlarmConstArray[AlarmID].Action();
+				Irq_Save(imask);
 
 				if(AlarmVarArray[AlarmID].period != 0)
 				{

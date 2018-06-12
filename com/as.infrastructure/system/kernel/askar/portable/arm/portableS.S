@@ -117,7 +117,7 @@ EnterISR:
 	add     r2, r2, #1  /* ISR2Counter++ */
 	str     r2, [r0]
 
-	cmp     r2, #1      /* previous CirticalCounter==0 */
+	cmp     r2, #1      /* previous ISR2Counter==0 */
 	bne     l_nosave
 
 	/* save context on fisrt ISR enter                                          */
