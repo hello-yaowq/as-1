@@ -182,7 +182,7 @@ else:
 
 if(options.freeze):
     # https://zhuanlan.zhihu.com/p/32887066
-    print('export frozen grapg mnist.pb')
+    print('export frozen graph mnist.pb')
     from tensorflow.python.framework import graph_util
     #tf.train.write_graph(sess.graph_def, './', 'mnist.pb', False)
     #tf.train.Saver().save(sess, './ckpt/mnist.ckpt')
