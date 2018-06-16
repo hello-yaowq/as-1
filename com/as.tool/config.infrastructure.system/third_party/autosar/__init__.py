@@ -16,73 +16,19 @@ import ntpath
 import os
 import xml.etree.ElementTree as ElementTree
 
-
-class DcfParser:
-   def parseXML(self,filename):
-      xmltree = ElementTree.ElementTree()
-      xmltree.parse(filename)
-      xmlroot = xmltree.getroot();
-      return xmlroot
-
-   def parseDCF(self,xmlroot):
-      result = {'fileRef':[]}
-      for elem in xmlroot.findall('./FILEREF'):
-         node = elem.find('./ARXML')
-         result['fileRef'].append({'itemType':node.attrib['ROOTITEM'],'path':node.text})
-      return result
-
-   def adjustDcfFileRef(self,dcf,basedir):
-      for elem in dcf['fileRef']:
-         basename = ntpath.basename(elem['path'])
-         dirname=ntpath.normpath(ntpath.join(basedir,ntpath.dirname(elem['path'])))
-         elem['path']=ntpath.join(dirname,basename)
-         if os.path.sep == '/': #are we running in cygwin/Linux?
-            elem['path'] = elem['path'].replace(r'\\','/')
-
-   def readFile(self,filename):
-      basedir = ntpath.dirname(filename)
-      xmlroot = self.parseXML(filename)
-      dcf = self.parseDCF(xmlroot)
-      self.adjustDcfFileRef(dcf,basedir)
-      return dcf
-
-
-def workspace(version=3.0, patch = 2, schema=None, EcuName=None, packages=None):
-   if schema is None and version == 3.0 and patch == 2:
+def workspace(version=3.0, patch = 2, schema=None, attributes=None, useDefaultWriters=True):
+   if schema is None and ( (version == 3.0 and patch == 2) or (version == "3.0.2") ):
       schema = 'autosar_302_ext.xsd'
-   return autosar.Workspace(version, patch, schema, EcuName, packages)
+   return autosar.Workspace(version, patch, schema, attributes, useDefaultWriters)
 
-def dcfImport(filename):
-   parser = DcfParser()
-   dcf = parser.readFile(filename)
-   ws = workspace()
-   result = {}
-   for elem in dcf['fileRef']:
-      ws.loadXML(elem['path'])
-   return ws
 
-def loadDcf(filename):
-   parser = DcfParser()
-   dcf = parser.readFile(filename)
-   ws = workspace()
-   result = []
-   lookupTable = {
-                     'CONSTANT': {'/Constant': 'Constant'},
-                     'DATATYPE': {'/DataType': 'DataType'},
-                     'PORTINTERFACE': {'/PortInterface': 'PortInterface'},
-                     'COMPONENTTYPE': {'/ComponentType': 'ComponentType'}
-                  }
-   for elem in dcf['fileRef']:
-      roles = lookupTable[elem['itemType']]
-      result.append({'type': 'FileRef', 'path': elem['path'], 'roles': roles})
-   return result
    
 
 def splitRef(ref):
    return autosar.base.splitRef(ref)
 
-def DataElement(name, typeRef, isQueued=False, softwareAddressMethodRef=None, parent=None, adminData=None):
-   return autosar.portinterface.DataElement(name, typeRef, isQueued, softwareAddressMethodRef, None, None, parent, adminData)
+def DataElement(name, typeRef, isQueued=False, softwareAddressMethodRef=None, swCalibrationAccess=None, swImplPolicy = None, parent=None, adminData=None):
+   return autosar.portinterface.DataElement(name, typeRef, isQueued, softwareAddressMethodRef, swCalibrationAccess, swImplPolicy, parent, adminData)
 
 def ApplicationError(name, errorCode, parent=None, adminData=None):
    return autosar.portinterface.ApplicationError(name, errorCode, parent, adminData)
@@ -93,12 +39,25 @@ def ModeGroup(name, typeRef, parent=None, adminData=None):
 def CompuMethodConst(name, elements, parent=None, adminData=None):
    return autosar.datatype.CompuMethodConst(name, elements, parent, adminData)
 
+def Parameter(name, typeRef, swAddressMethodRef=None, swCalibrationAccess=None, parent=None, adminData=None):
+   return autosar.portinterface.Parameter(name, typeRef, swAddressMethodRef, swCalibrationAccess, parent, adminData)
+
 
 #template support
 class Template(ABC):
+   
+   usageCount = 0 #number of times this template have been applied
+   
+   @classmethod
+   def get(cls, ws):
+      ref = cls.ref(ws)
+      if ws.find(ref) is None:
+         ws.apply(cls)
+      return ws.find(ref)
+   
    @classmethod
    @abstractmethod
-   def apply(cls, ws):
+   def apply(cls, ws, **kwargs):
       """
       Applies this class template to the workspace ws
       """

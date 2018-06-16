@@ -6,6 +6,6 @@
 * Running on posix-smallos virtual cluster
 * python swc/telltale/swc.py
 
-## Tauge
+## Gauge
 
 * Running on posix-smallos virtual cluster

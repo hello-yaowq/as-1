@@ -95,7 +95,7 @@ def loadpb(model):
         graph_def.ParseFromString(f.read())
         _ = tf.import_graph_def(graph_def, name='')
     print('Graph loaded.')
-    
+
     x = sess.graph.get_tensor_by_name(options.input)
     y = sess.graph.get_tensor_by_name(options.output)
     y_ = tf.placeholder(tf.float32, [None, len(class_names)], name='y_')
