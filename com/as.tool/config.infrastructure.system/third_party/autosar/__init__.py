@@ -63,14 +63,16 @@ class Template(ABC):
       """
 
 #### Constant Helpers ####
-def createConstantTemplateFromEnumerationType(name, dataTypeTemplate):
+def createConstantTemplateFromEnumerationType(name, dataTypeTemplate, default=None):
    @classmethod
    def apply(cls, ws):
       package = ws.getConstantPackage()
       if package.find(cls.__name__) is None:
          ws.apply(cls.dataTypeTemplate)
-         package.createConstant(cls.__name__, cls.dataTypeTemplate.__name__, len(cls.dataTypeTemplate.valueTable)-1)
-   return type(name, (autosar.Template,), dict(dataTypeTemplate=dataTypeTemplate, apply=apply))
+         if(cls.default is None):
+             cls.default = len(cls.dataTypeTemplate.valueTable)-1
+         package.createConstant(cls.__name__, cls.dataTypeTemplate.__name__, cls.default)
+   return type(name, (autosar.Template,), dict(dataTypeTemplate=dataTypeTemplate, apply=apply, default=default))
 
 def createConstantTemplateFromPhysicalType(name, dataTypeTemplate):
    @classmethod
@@ -81,14 +83,16 @@ def createConstantTemplateFromPhysicalType(name, dataTypeTemplate):
          package.createConstant(cls.__name__, cls.dataTypeTemplate.__name__, cls.dataTypeTemplate.maxValue)
    return type(name, (autosar.Template,), dict(dataTypeTemplate=dataTypeTemplate, apply=apply))
 #### Port Interface Helpers ####
-def createSenderReceiverInterfaceTemplate(name, dataTypeTemplate):
+def createSenderReceiverInterfaceTemplate(name, dataTypeTemplate, dataName=None):
    @classmethod
    def apply(cls, ws):
       package = ws.getPortInterfacePackage()
       if package.find(name) is None:
          ws.apply(cls.dataTypeTemplate)
-         package.createSenderReceiverInterface(name, autosar.DataElement(name, cls.dataTypeTemplate.__name__))
-   return type(name, (autosar.Template,), dict(dataTypeTemplate=dataTypeTemplate, apply=apply))
+         if(cls.dataName is None):
+             cls.dataName = name
+         package.createSenderReceiverInterface(name, autosar.DataElement(cls.dataName, cls.dataTypeTemplate.__name__))
+   return type(name, (autosar.Template,), dict(dataTypeTemplate=dataTypeTemplate, apply=apply, dataName=dataName))
 #### Signal Helpers ####
 def _createProvidePortHelper(swc, name, portInterfaceTemplate, initValueTemplate=None):
    ws = swc.rootWS()
@@ -126,3 +130,15 @@ def createSenderReceiverPortTemplate(name, portInterfaceTemplate, initValueTempl
                               Send=_createProvidePortTemplate('Send', name, portInterfaceTemplate, initValueTemplate),
                               Require=_createRequirePortTemplate('Require', name, portInterfaceTemplate, initValueTemplate, aliveTimeout),
                               Receive=_createRequirePortTemplate('Receive', name, portInterfaceTemplate, initValueTemplate, aliveTimeout)))
+
+def asSWCGen(cls):
+    ws = autosar.workspace()
+    ws.apply(cls)
+    partition = autosar.rte.Partition()
+    pkg = ws.getComponentTypePackage()
+    partition.addComponent(pkg[cls.__name__])
+    rtegen = autosar.rte.TypeGenerator(partition)
+    rtegen.generate('.')
+    rtegen = autosar.rte.ComponentHeaderGenerator(partition)
+    rtegen.generate('.')
+    print('GEN RTE Interface for',cls.__name__)

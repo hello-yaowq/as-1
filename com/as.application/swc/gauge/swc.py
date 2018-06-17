@@ -62,14 +62,5 @@ class Gauge(autosar.Template):
       swc.behavior.createTimerEvent(componentName+'_Run', 20)
 
 if(__name__ == '__main__'):
-    ws = autosar.workspace()
-    ws.apply(Gauge)
-    partition = autosar.rte.Partition()
-    pkg = ws.getComponentTypePackage()
-    partition.addComponent(pkg['Gauge'])
-    rtegen = autosar.rte.TypeGenerator(partition)
-    rtegen.generate('.')
-    rtegen = autosar.rte.ComponentHeaderGenerator(partition)
-    rtegen.generate('.')
-    print('GEN RTE Interface for Gauge')
+    autosar.asSWCGen(Gauge)
 
