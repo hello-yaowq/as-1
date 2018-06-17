@@ -9,6 +9,10 @@ config RTE_SWC_TELLTALE
 	bool "demo telltale software component"
 	default y if ARCH_POSIX && DIO
 
+config RTE_SWC_GAUGE
+	bool "demo gauge software component"
+	default y if ARCH_POSIX && STMO
+
 endmenu
 
 menu "ASCORE simple test case"

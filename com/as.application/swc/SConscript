@@ -13,6 +13,13 @@ if('RTE_SWC_TELLTALE' in MODULES):
     if(asenv.GetOption('clean')):
         RunCommand('rm -fv %s/telltale/*.h'%(cwd))
     elif(not os.path.exists('%s/telltale/Rte_Telltale.h'%(cwd))):
-        RunCommand('cd %s/.. && %s %s/telltale/swc.py'%(cwd, asenv['python3'],cwd))
+        RunCommand('cd %s/telltale && %s swc.py'%(cwd, asenv['python3']))
+
+if('RTE_SWC_GAUGE' in MODULES):
+    objs += Glob('gauge/*.c')
+    if(asenv.GetOption('clean')):
+        RunCommand('rm -fv %s/gauge/*.h'%(cwd))
+    elif(not os.path.exists('%s/gauge/Rte_Gauge.h'%(cwd))):
+        RunCommand('cd %s/gauge && %s swc.py'%(cwd, asenv['python3']))
 
 Return('objs')

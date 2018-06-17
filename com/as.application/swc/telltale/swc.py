@@ -1,11 +1,4 @@
 import sys,os
-if(os.path.exists('../as.tool/config.infrastructure.system/third_party')):
-    sys.path.append(os.path.abspath('../as.tool/config.infrastructure.system/third_party'))
-elif(os.path.exists('./config.infrastructure.system/third_party')):
-    sys.path.append(os.path.abspath('./config.infrastructure.system/third_party'))
-else:
-    raise Exception("can't locate config.infrastructure.system")
-
 import autosar
 def main():
     ws=autosar.workspace()
@@ -55,13 +48,14 @@ def main():
     partition = autosar.rte.Partition()
     partition.addComponent(swc)
     rtegen = autosar.rte.TypeGenerator(partition)
-    rtegen.generate('swc/telltale')
+    rtegen.generate('.')
 #    rtegen = autosar.rte.MockRteGenerator(partition)
-#    rtegen.generate('swc/telltale')
+#    rtegen.generate('.')
     rtegen = autosar.rte.ComponentHeaderGenerator(partition)
-    rtegen.generate('swc/telltale')
+    rtegen.generate('.')
 #    rtegen = autosar.rte.RteGenerator(partition)
-#    rtegen.generate('swc/telltale')
+#    rtegen.generate('.')
+    print('GEN RTE Interface for Telltale')
 
 if(__name__ == '__main__'):
     main()
