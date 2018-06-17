@@ -54,6 +54,7 @@ For the purpose that to be able to run most of the common applications which are
 * support CAN device by lascanlib or pyas: CANcaseXL, [PeakCAN](http://www.peak-system.com/PCAN-USB.199.0.html?L=1), [SocketCAN](https://en.wikipedia.org/wiki/SocketCAN), [ZLG USBCAN](http://www.zlg.cn/can/can/product/id/22.html)
 * support miscellaneous device by lasdevlib with the smae API interface "open/read/write/ioctl/close": rs232
 * a powerful python as.one.py tool: Dcm Xcp Bootloader and others.
+* a powerful third party RTE tool integrated: [cogu/autosar](https://github.com/cogu/autosar)
 
 ![as.one.py bootloader](http://parai.github.io/as/images/python3-asone-tool.png)
 
