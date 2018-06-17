@@ -56,6 +56,12 @@ This is very easy!
 
 * Note: for the first time build, it will be very slow as it need to dynamic download some packages and tools to directory "/as/release/download"
 
+* Note: for Ubuntu machine, just build from any shell terminal, and please remember to run below command to enable the AUTOSAR RTE generator.
+
+```sh
+export PYTHONPATH=/path/to/com/as.tool/config.infrastructure.system/third_party:${PYTHONPATH}
+```
+
 ## 3.2 choose a board want to be used
 
 * Note: x86 can only be built out by Ubunut.
