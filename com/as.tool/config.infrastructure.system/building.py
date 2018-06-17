@@ -76,6 +76,15 @@ def PrepareEnv(release):
     ASROOT=os.path.abspath('%s/../..'%(os.curdir))
     BOARD=None
 
+    try:
+        pypath = os.environ['PYTHONPATH']
+    except:
+        pypath = ''
+    if(IsPlatformWindows()):
+        os.environ['PYTHONPATH'] = '%s/com/as.tool/config.infrastructure.system/third_party;%s'%(ASROOT,pypath)
+    else:
+        os.environ['PYTHONPATH'] = '%s/com/as.tool/config.infrastructure.system/third_party:%s'%(ASROOT,pypath)
+
     asenv=Environment(TOOLS=['as','gcc','g++','gnulink'])
     asenv['ASROOT'] = ASROOT
     asenv['RELEASE'] = release
