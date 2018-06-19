@@ -38,7 +38,7 @@ echo %MSYS2%\usr\bin\python2.exe %MSYS2%\usr\bin\scons %%* >> scons.bat
 :launchCZ
 cd %ASPATH%
 set ASROOT=%ASPATH%
-set PYTHONPATH=%ASPATH%/com/as.tool/config.infrastructure.system/third_party;%PYTHONPATH%
+set PYTHONPATH=%ASPATH%/com/as.tool/config.infrastructure.system;%ASPATH%/com/as.tool/config.infrastructure.system/third_party;%PYTHONPATH%
 start %CZ% -ws %ASPATH%\ConsoleZ.workspace
 
 exit 0

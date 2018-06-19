@@ -10,14 +10,10 @@ objs = []
 
 if('RTE_SWC_TELLTALE' in MODULES):
     objs += Glob('telltale/*.c')
-    MKObject(Glob('telltale/swc.py'),
-             '%s/telltale/Rte_Telltale.h'%(cwd),
-             'cd %s/telltale && %s swc.py'%(cwd, asenv['python3']))
+    objs += Glob('telltale/swc.py')
 
 if('RTE_SWC_GAUGE' in MODULES):
     objs += Glob('gauge/*.c')
-    MKObject(Glob('gauge/swc.py'),
-             '%s/gauge/Rte_Gauge.h'%(cwd),
-             'cd %s/gauge && %s swc.py'%(cwd, asenv['python3']))
+    objs += Glob('gauge/swc.py')
 
 Return('objs')

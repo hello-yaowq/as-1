@@ -34,7 +34,28 @@ def GenCom(root,dir):
     if(len(GLGet('IPduList')) == 0):return
     GenH()
     GenC()
+    GenRTE()
     print('    >>> Gen Com DONE <<<')
+
+def GenRTE():
+    fp = open('%s/BSWCOM.py'%(__dir),'w')
+    fp.write('import autosar\n\n')
+    sigL = []
+    for pdu in GLGet('IPduList'):
+        for sig in GLGet(pdu,'SignalList'):
+            sigL.append(sig)
+        for grpSig in GLGet(pdu,'GroupSignalList'):
+            for sig in GLGet(grpSig,'SignalList'):
+                sigL.append(sig)
+    for sig in sigL:
+        fp.write("C_{0}_IV = autosar.createConstantTemplateFromPhysicalType('C_{0}_IV', autosar.{1}_T)\n".format(GAGet(sig,'Name'),GAGet(sig,'Type').upper()))
+    fp.write('\n')
+    for sig in sigL:
+        fp.write("{0}_I = autosar.createSenderReceiverInterfaceTemplate('{0}', autosar.{1}_T)\n".format(GAGet(sig,'Name'),GAGet(sig,'Type').upper()))
+    fp.write('\n')
+    for sig in sigL:
+        fp.write("{0} = autosar.createSenderReceiverPortTemplate('{0}', {0}_I, C_{0}_IV, aliveTimeout=30)\n".format(GAGet(sig,'Name')))
+    fp.close()
 
 def GenH():
     global __dir

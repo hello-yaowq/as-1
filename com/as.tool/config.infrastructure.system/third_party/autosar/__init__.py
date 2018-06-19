@@ -21,9 +21,6 @@ def workspace(version=3.0, patch = 2, schema=None, attributes=None, useDefaultWr
       schema = 'autosar_302_ext.xsd'
    return autosar.Workspace(version, patch, schema, attributes, useDefaultWriters)
 
-
-   
-
 def splitRef(ref):
    return autosar.base.splitRef(ref)
 
@@ -62,6 +59,21 @@ class Template(ABC):
       Applies this class template to the workspace ws
       """
 
+#### Default Standard Types
+def __createDataTypeFromTemplate(name, min, max):
+   @classmethod
+   def apply(cls, ws):
+      package = ws.getDataTypePackage()
+      if package.find(cls.__name__) is None:         
+         package.createIntegerDataType(cls.__name__, min=cls.minValue, max=cls.maxValue, offset=0, scaling=1, unit='1')
+   return type(name, (autosar.Template,), dict(minValue=min, maxValue=max, apply=apply))
+
+SINT8_T = __createDataTypeFromTemplate('SINT8_T', -128, 127)
+UINT8_T = __createDataTypeFromTemplate('UINT8_T', 0, 255)
+SINT16_T = __createDataTypeFromTemplate('SINT16_T', -32768, 32767)
+UINT16_T = __createDataTypeFromTemplate('UINT8_T', 0, 65535)
+SINT32_T = __createDataTypeFromTemplate('SINT32_T', -2147483648, 2147483647)
+UINT32_T = __createDataTypeFromTemplate('UINT32_T', 0, 4294967295)
 #### Constant Helpers ####
 def createConstantTemplateFromEnumerationType(name, dataTypeTemplate, default=None):
    @classmethod

@@ -72,18 +72,24 @@ def IsPlatformWindows():
         bYes = True
     return bYes
 
+def AppendPythonPath(lp):
+    try:
+        pypath = os.environ['PYTHONPATH']
+    except KeyError:
+        pypath = ''
+    sep = ':'
+    if(IsPlatformWindows()):
+        sep = ';'
+    for l in lp:
+        pypath += sep+os.path.abspath(l)
+    os.environ['PYTHONPATH'] = pypath
+
 def PrepareEnv(release):
     ASROOT=os.path.abspath('%s/../..'%(os.curdir))
     BOARD=None
 
-    try:
-        pypath = os.environ['PYTHONPATH']
-    except:
-        pypath = ''
-    if(IsPlatformWindows()):
-        os.environ['PYTHONPATH'] = '%s/com/as.tool/config.infrastructure.system/third_party;%s'%(ASROOT,pypath)
-    else:
-        os.environ['PYTHONPATH'] = '%s/com/as.tool/config.infrastructure.system/third_party:%s'%(ASROOT,pypath)
+    AppendPythonPath(['%s/com/as.tool/config.infrastructure.system'%(ASROOT),
+              '%s/com/as.tool/config.infrastructure.system/third_party'%(ASROOT)])
 
     asenv=Environment(TOOLS=['as','gcc','g++','gnulink'])
     asenv['ASROOT'] = ASROOT
@@ -807,6 +813,14 @@ def SelectCompilerX86():
         Env['CXX']  = 'gcc -m32 -fno-stack-protector'
         Env['LINK'] = 'ld -m32 -melf_i386'
 
+def BuildingSWCS(swcs):
+    for swc in swcs:
+        swc = str(swc)
+        path = os.path.dirname(swc)
+        cmd = 'cd %s && %s %s'%(path, Env['python3'], swc)
+        tgt = path+'/Rte_Type.h'
+        MKObject([swc], tgt, cmd)
+
 def BuildOFS(ofs):
     for of in ofs:
         src = str(of)
@@ -818,7 +832,7 @@ def BuildOFS(ofs):
             cflags += ' -D%s'%(d)
         cmd = 'cp %s .tmp.c && %s -S .tmp.c -o .tmp.S %s'%(src, Env['CC'], cflags)
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
-        MKObject(src, tgt, cmd)
+        MKObject([src], tgt, cmd)
 
 def Building(target, sobjs, env=None):
     if(env is None):
@@ -829,6 +843,7 @@ def Building(target, sobjs, env=None):
     objs = []
     xmls = []
     ofs = []
+    swcs = []
     arxml= None
 
     for obj in sobjs:
@@ -841,11 +856,15 @@ def Building(target, sobjs, env=None):
             xmls.append(obj)
         elif(str(obj)[-3:]=='.of'):
             ofs.append(obj)
+        elif(str(obj)[-3:]=='.py'):
+            swcs.append(obj)
         else:
             objs.append(obj)
     cfgdir = '%s/config'%(bdir)
+    AppendPythonPath([cfgdir])
+    os.environ['ARXML']=str(arxml)
     cfgdone = '%s/config.done'%(cfgdir)
-    if(((not os.path.exists(cfgdone)) and (not env.GetOption('clean'))) or env.GetOption('force')):
+    if(((not os.path.exists(cfgdone)) and (not GetOption('clean'))) or GetOption('force')):
         MKDir(cfgdir)
         RMFile(cfgdone)
         for xml in xmls:
@@ -866,11 +885,12 @@ def Building(target, sobjs, env=None):
     env.Append(ASFLAGS='-I%s'%(cfgdir))
     env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
     
-    if(env.GetOption('clean')):
+    if(GetOption('clean')):
         RMDir(cfgdir)
         RunCommand('rm -fv *.s19')
 
     BuildOFS(ofs)
+    BuildingSWCS(swcs)
     env.Program(target,objs)
 
     if(IsPlatformWindows()):target += '.exe'

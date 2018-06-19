@@ -1,6 +1,8 @@
 import sys,os
 import autosar
 
+from BSWCOM import *
+
 class InactiveActive_T(autosar.Template):
    valueTable=['InactiveActive_Inactive',
                'InactiveActive_Active',
@@ -56,8 +58,11 @@ class Telltale(autosar.Template):
     def addPorts(cls, swc):
         componentName = cls.__name__
         for tt in ttList:
-            swc.apply(TelltaleStatus[tt].Receive)
+            #swc.apply(TelltaleStatus[tt].Receive)
             swc.apply(TelltaleState[tt].Send)
+        swc.apply(Led1Sts.Receive)
+        swc.apply(Led2Sts.Receive)
+        swc.apply(Led3Sts.Receive)
 
     @classmethod
     def addBehavior(cls, swc):
