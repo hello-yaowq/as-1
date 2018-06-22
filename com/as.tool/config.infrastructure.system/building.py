@@ -883,7 +883,10 @@ def Building(target, sobjs, env=None):
     objs += Glob('%s/*.c'%(cfgdir))
     env.Append(CPPPATH=['%s'%(cfgdir)])
     env.Append(ASFLAGS='-I%s'%(cfgdir))
-    env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
+    if(target == 'mpc56xx'):
+        env.Append(CCFLAGS=['-include','asmconfig.h'])
+    else:
+        env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
     
     if(GetOption('clean')):
         RMDir(cfgdir)

@@ -21,6 +21,8 @@ elif('TRAMPOLINE' in MODULES):
     objs += SConscript('trampoline/SConscript')
 elif('TOPPERS_OSEK' in MODULES):
     objs += SConscript('toppers_osek/SConscript')
+elif('FREERTOS' in MODULES):
+    objs += SConscript('freertos/SConscript')
 else:
     assert(0)
 

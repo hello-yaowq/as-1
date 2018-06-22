@@ -247,6 +247,7 @@ def GenC():
     global __dir
     fp = open('%s/PduR_PbCfg.c'%(__dir),'w')
     fp.write(GHeader('PduR'))
+    fp.write('#ifdef USE_PDUR\n')
     ucstr = ''
     for path in GLGet('RoutineList'):
         ucstr += '#ifndef USE_%s\n'%(GAGet(path,'Module').upper())
@@ -340,4 +341,5 @@ const PduR_PBConfigType PduR_Config = {
 
 #endif //(PDUR_ZERO_COST_OPERATION == STD_OFF)  
     \n"""%( cstr, len( GLGet('RoutineList') ) ) )
+    fp.write('#endif /* USE_PDUR */\n')
     fp.close() 

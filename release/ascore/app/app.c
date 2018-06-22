@@ -29,12 +29,12 @@
 #ifdef USE_FTP
 #include "ftpd.h"
 #endif
-#if( (OS_PTHREAD_NUM > 0) || defined(RT_USING_PTHREADS) || defined(__LINUX__) || defined(__WINDOWS__))
+#if( defined(USE_PTHREAD) || defined(RT_USING_PTHREADS) || defined(__LINUX__) || defined(__WINDOWS__))
 #include "pthread.h"
+#include <unistd.h>
 #endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
-#include <unistd.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
 /* ============================ [ TYPES     ] ====================================================== */

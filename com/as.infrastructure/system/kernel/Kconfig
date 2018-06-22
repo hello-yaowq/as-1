@@ -18,6 +18,9 @@ config DEFAULT_TRAMPOLINE
 config DEFAULT_TOPPERS_OSEK
 	bool
 
+config DEFAULT_FREERTOS
+	bool
+
 choice
 	prompt "RTOS"
 	default ASKAR if DEFAULT_ASKAR
@@ -26,6 +29,7 @@ choice
 	default ATK2_SC4 if DEFAULT_ATK2_SC4
 	default TRAMPOLINE if DEFAULT_TRAMPOLINE
 	default TOPPERS_OSEK if DEFAULT_TOPPERS_OSEK
+	default FREERTOS if DEFAULT_FREERTOS
 
 config ASKAR
 	bool "askar:Automotive oSeK AutosaR/pthreads RTOS"
@@ -44,6 +48,9 @@ config TRAMPOLINE
 
 config TOPPERS_OSEK
 	bool "toppers osek"
+
+config FREERTOS
+	bool "freertos"
 
 endchoice
 

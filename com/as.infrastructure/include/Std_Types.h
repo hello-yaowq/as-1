@@ -22,9 +22,6 @@
 #include <linux/printk.h>
 #else
 #include <stdint.h>
-#ifndef USE_NEWLIB
-#include <stdbool.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -161,9 +158,9 @@ typedef unsigned short int	uint16_t;
 typedef unsigned int		uint32_t;
 typedef unsigned long long int	uint64_t;
 
-
 /* Small types.  */
-
+#endif
+#if defined(CONFIG_ARCH_VEXPRESS) || defined(USE_FAST_LEAST_TYPE_DEF)
 /* Signed.  */
 typedef signed char		int_least8_t;
 typedef short int		int_least16_t;

@@ -328,3 +328,4 @@ com/as.tool/lua/can/vxlapi.h
 com/as.tool/lua/can/xlLoadlib.c
 Rte_*.h
 tensorflow
+board.mpc56xx
