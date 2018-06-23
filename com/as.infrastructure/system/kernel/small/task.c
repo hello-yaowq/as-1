@@ -65,7 +65,7 @@ extern void StartOsTick(void);
 STATIC FUNC(void,MEM_TASK_INIT)         Init   ( void );
 STATIC FUNC(TaskType,MEM_TASK_GETBIT)   GetBit ( void  );
 STATIC FUNC(void,MEM_TASK_SETBIT)       SetBit ( uint8 priority );
-STATIC FUNC(bool,MEM_TASK_ISBITSET)     IsBitSet( uint8 priority );
+STATIC FUNC(boolean,MEM_TASK_ISBITSET)     IsBitSet( uint8 priority );
 STATIC FUNC(void,MEM_TASK_CLEARBIT)     ClearBit( uint8 priority );
 /* ============================ [ LOCALS    ] ====================================================== */
 
@@ -118,9 +118,9 @@ STATIC FUNC(void,MEM_TASK_SETBIT) SetBit(uint8 priority)
     readyTable[y] |= 1<<x;
 }
 
-STATIC FUNC(bool,MEM_TASK_ISBITSET) IsBitSet(uint8 priority)
+STATIC FUNC(boolean,MEM_TASK_ISBITSET) IsBitSet(uint8 priority)
 {
-    bool isBitSet = FALSE;
+    boolean isBitSet = FALSE;
     uint8 y = priority>>3;
     uint8 x = priority&7;
 

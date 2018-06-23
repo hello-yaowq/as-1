@@ -137,7 +137,7 @@ typedef struct
 /* ============================ [ FUNCTIONS ] ====================================================== */
 FUNC(void,MEM_BITOP_SET)      BitopSet   ( uint8* pBuffer, uint32 Position );
 FUNC(void,MEM_BITOP_CLEAR)    BitopClear ( uint8* pBuffer, uint32 Position );
-FUNC(bool,MEM_BITOP_ISBITSET) IsBitopSet ( uint8* pBuffer, uint32 Position );
+FUNC(boolean,MEM_BITOP_ISBITSET) IsBitopSet ( uint8* pBuffer, uint32 Position );
 
 FUNC(void,MEM_OS_TICK) 				 OsTick 		  ( void );
 FUNC(StatusType,MEM_GetAlarmBase) 	 GetAlarmBase    ( AlarmType AlarmId, AlarmBaseRefType Info );

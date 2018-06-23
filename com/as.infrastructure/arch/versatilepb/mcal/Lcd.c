@@ -101,7 +101,7 @@ struct mouse_pl050_pdata_t {
 static pl110_Info plInfo;
 #ifdef USE_LVGL
 static struct mouse_pl050_pdata_t mouse_data;
-static bool left_button_down = false;
+static boolean left_button_down = false;
 static int16_t last_x = 0;
 static int16_t last_y = 0;
 #endif
@@ -257,7 +257,7 @@ static void mouse_pl050_interrupt(void)
 	}
 }
 
-static bool mouse_read(lv_indev_data_t * data)
+static boolean mouse_read(lv_indev_data_t * data)
 {
 	/*Store the collected data*/
 	data->point.x = last_x;

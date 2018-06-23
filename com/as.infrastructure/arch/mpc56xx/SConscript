@@ -32,7 +32,7 @@ asenv['LINK'] = cwppc + '/mwldeppc.exe'
 asenv.Append(ASFLAGS=['-gdwarf-2','-vle'])
 asenv.Append(ASFLAGS=['-proc=56X'])
 
-asenv.Append(CPPDEFINES=['USE_FAST_LEAST_TYPE_DEF','VLE_IS_ON=1'])
+asenv.Append(CPPDEFINES=['USE_FAST_LEAST_TYPE_DEF','VLE_IS_ON=1','_G_va_list=va_list'])
 
 asenv.Append(CCFLAGS=['-readonlystrings','-RTTI','on','-dialect','c99','-gdwarf-2',
                       '-gccext','on','-gccinc','-cwd','explicit',

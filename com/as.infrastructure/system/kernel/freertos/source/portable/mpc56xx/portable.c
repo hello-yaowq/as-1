@@ -2,9 +2,6 @@
 #include "task.h"
 #include "mpc56xx.h"
 
-#define configRTI	1
-#define configDEC	2
-#define configTickSrc		configDEC
 /*-----------------------------------------------------------
  * Implementation of functions defined in portable.h for the HCS12 port.
  *----------------------------------------------------------*/
@@ -140,11 +137,7 @@ void vPortEndScheduler( void )
 #endif
 static void prvSetupTimerInterrupt( void )
 {
-	#if (configTickSrc==configDEC)
 	TickTimer_SetFreqHz( configTICK_RATE_HZ );
-	#elif (configTickSrc==configRTI)
-	INTC_InstallINTCInterruptHandler(vPortTickInterrupt,305,1); 
-	#endif
 	INTC.CPR.B.PRI = 0;/* Lower INTC's current priority */
 }
 /*-----------------------------------------------------------*/
@@ -210,33 +203,9 @@ epilog:
  * being used then this simply increments the tick count.  If the 
  * preemptive scheduler is being used a context switch can occur.
  */
-#if (configTickSrc==configDEC)
-asm
-#endif
-void  vPortTickInterrupt( void )
+
+void asm vPortTickInterrupt( void )
 {
-#if (configTickSrc==configRTI)
-	/*printk("in vPortTickInterrupt()\n");*/
-	#if configUSE_PREEMPTION == 1
-	{
-
-		/* Increment the tick ... */
-		vTaskIncrementTick();
-
-		/* ... then see if the new tick value has necessitated a
-		context switch. */
-		vTaskSwitchContext();
-
-		PIT.RTI.TFLG.B.TIF=1;			// clear the interrupt flag
-
-	}
-	#else
-	{
-		vTaskIncrementTick();
-		PIT.RTI.TFLG.B.TIF=1;			// clear the interrupt flag
-	}
-	#endif
-#elif (configTickSrc==configDEC)	/*use Decrementer as System Tick*/
 nofralloc
 	#if configUSE_PREEMPTION == 1
 prolog:
@@ -269,8 +238,6 @@ epilog:
 	mtlr r3
 	blrl
 	#endif
-
-#endif
 }
 #pragma force_active off
 #pragma pop

@@ -1,7 +1,7 @@
 config ARCH_MPC56XX
     bool
     default y
-    select DEFAULT_FREERTOS
+    select DEFAULT_ASKAR
 
 config ARCH
     string

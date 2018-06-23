@@ -90,9 +90,9 @@ static boolean fifo_read(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType*
     }
     return ercd;
 }
-static bool fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* config, VirtQ_IdxType idx)
+static boolean fifo_write(Ipc_ChannelRuntimeType* runtime, Ipc_ChannelConfigType* config, VirtQ_IdxType idx)
 {
-	bool ercd;
+	boolean ercd;
 #ifdef __WINDOWS__
 	WaitForSingleObject(config->w_lock,INFINITE);
 #else

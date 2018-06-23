@@ -75,7 +75,7 @@ static uint32           lcdWidth    = 0;
 static uint32           lcdHeight   = 0;
 static uint8            lcdPixel    = 0;
 #ifdef USE_LVGL
-static bool left_button_down = FALSE;
+static boolean left_button_down = FALSE;
 static int16_t last_x = 0;
 static int16_t last_y = 0;
 #endif
@@ -459,7 +459,7 @@ static DWORD Lcd_Thread(LPVOID param)
 #endif /* GUI_USE_GTK */
 
 #ifdef USE_LVGL
-static bool mouse_read(lv_indev_data_t * data)
+static boolean mouse_read(lv_indev_data_t * data)
 {
 	/*Store the collected data*/
 	data->point.x = last_x;

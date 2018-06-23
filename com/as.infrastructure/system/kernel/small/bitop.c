@@ -41,9 +41,9 @@ FUNC(void,MEM_BITOP_CLEAR) BitopClear ( uint8* pBuffer, uint32 Position )
     pBuffer[y] &= ~(1<<x);
 }
 
-FUNC(bool,MEM_BITOP_ISBITSET) IsBitopSet ( uint8* pBuffer, uint32 Position )
+FUNC(boolean,MEM_BITOP_ISBITSET) IsBitopSet ( uint8* pBuffer, uint32 Position )
 {
-    bool isBitSet;
+    boolean isBitSet;
     uint8   x;
     uint32  y;
 

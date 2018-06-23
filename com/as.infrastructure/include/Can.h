@@ -233,7 +233,7 @@ typedef union {
 
  typedef struct Can_ControllerConfig {
 
-     bool CanControllerActivation;
+     boolean CanControllerActivation;
 
      // Specifies the buadrate of the controller in kbps.
      uint32 CanControllerBaudRate;

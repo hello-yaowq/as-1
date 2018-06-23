@@ -22,6 +22,9 @@
 #include <linux/printk.h>
 #else
 #include <stdint.h>
+#if !defined(USE_NEWLIB) && !defined(__CWCC__)
+#include <stdbool.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
