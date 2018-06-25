@@ -255,7 +255,6 @@ __declspec (section ".__exception_handlers") extern long EXCEPTION_HANDLERS;
 #pragma function_align 16 /* We use 16 bytes alignment for Exception handlers */
 __declspec(interrupt)
 __declspec (section ".__exception_handlers")
-static void l_dispatch0(void);
 
 __asm void Os_PortStartDispatch( void )
 {
@@ -281,13 +280,6 @@ l_loop:
 l_exit:
 	lis r11, RunningVar@h
 	stw r12, RunningVar@l(r11)
-	b l_dispatch0
-}
-
-
-static __asm void l_dispatch0(void)
-{
-nofralloc
 	/* Restore 'sp' from TCB */
 	lwz r1, 0(r12)
 
@@ -298,22 +290,17 @@ nofralloc
 }
 
 #ifdef OS_USE_PRETASK_HOOK
-void __asm Os_PortResumePreHook(void)
+__asm void Os_PortResumePreHook(void)
 {
 nofralloc
 	lis r11, CallLevel@h
-	lwz r0, CallLevel@l(r11)
-	lis r12, SavedCallLevel@h
-	stw r0, SavedCallLevel@l(r12)
-	li r0, 2
-	stw r0, CallLevel@l(r11)
+	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
+	li r3, 8
+	stw r3, CallLevel@l(r11)
 	wrteei 1
 	bl PreTaskHook
 	wrteei 0
-	lis r11, SavedCallLevel@h
-	lwz r0, SavedCallLevel@l(r11)
-	lis r12, CallLevel@h
-	stw r0, CallLevel@l(r12)
+	stw r12, CallLevel@l(r11)
 	b Os_PortResume
 }
 #endif
@@ -347,20 +334,29 @@ __asm void Os_PortTickISR(void)
 nofralloc
 	OS_SAVE_CONTEXT();
 
+	lis r11, RunningVar@h
+	lwz r10, RunningVar@l(r11)
+	cmpwi r10, 0
+	beq l_nosave
+
 	lis r11, ISR2Counter@h
 	lwz r12, ISR2Counter@l(r11)
 	addi r12, r12, 1
 	stw r12, ISR2Counter@l(r11)
 	cmpwi r12, 1
 	bne l_nosave
+
 	/* Save 'ssp' to TCB */
-	lis r11, RunningVar@h
-	lwz r12, RunningVar@l(r11)
-	stw r1, 0(r12);
+	stw r1, 0(r10);
 
 	lis r11, Os_PortResume@h
 	ori r11, r11, Os_PortResume@l
 	stw r11, 4(r12)
+
+	/* load system stack */
+	li r0, 0
+	addi r1, r0, _stack_addr@h
+	addi r1, r1, _stack_addr@l
 
 l_nosave:
 	lis r11, CallLevel@h
@@ -383,13 +379,15 @@ l_nosave:
 	cmpwi r12, 0
 	bne l_nodispatch
 
+	lis r11, RunningVar@h
+	lwz r10, RunningVar@l(r11)
+	cpmwi r10, 0
+	bne l_nodispatch
+
 	lis r11, ReadyVar@h
 	lwz r12, ReadyVar@l(r11)
 	cmpwi r12, 0
 	beq l_nopreempt
-
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
 
 	lwz r3, 8(r12) /* priority of ReadyVar */
 	lwz r4, 8(r10) /* priority of RunningVar */
@@ -408,7 +406,7 @@ l_nosave:
 
 l_nopreempt:
 	lis r11, RunningVar@h
-	stw r12, RunningVar@l(r11)
+	lwz r12, RunningVar@l(r11)
 	lwz r1, 0(r12)
 
 l_nodispatch:
