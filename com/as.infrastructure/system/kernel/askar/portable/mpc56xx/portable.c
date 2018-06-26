@@ -146,6 +146,8 @@ void Os_PortTickISR(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 static unsigned int SavedCallLevel;
+
+extern int _stack_addr[];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void Os_PortActivate(void)
@@ -381,7 +383,7 @@ l_nosave:
 
 	lis r11, RunningVar@h
 	lwz r10, RunningVar@l(r11)
-	cpmwi r10, 0
+	cmpwi r10, 0
 	bne l_nodispatch
 
 	lis r11, ReadyVar@h
