@@ -813,6 +813,48 @@ def SelectCompilerX86():
         Env['CXX']  = 'gcc -m32 -fno-stack-protector'
         Env['LINK'] = 'ld -m32 -melf_i386'
 
+def SelectCompilerCWCC():
+    cw = os.getenv('CWCC_PATH')
+    if(cw is None):
+        cw = 'C:/Program Files (x86)/Freescale/CW for MPC55xx and MPC56xx 2.10'
+    if(not os.path.exists(cw)):
+        print('==> Please set environment CWCC_PATH\n\tset CWCC_PATH=/path/to/codewarrior_compiler')
+        exit()
+    cwppc = cw + '/PowerPC_EABI_Tools/Command_Line_Tools'
+    Env['CC']   = cwppc + '/mwcceppc.exe'
+    Env['AS']   = cwppc + '/mwaseppc.exe'
+    Env['CXX']  = cwppc + '/mwcceppc.exe'
+    Env['LINK'] = cwppc + '/mwldeppc.exe'
+    Env.Append(ASFLAGS=['-gdwarf-2','-vle'])
+    Env.Append(CCFLAGS=['-readonlystrings','-RTTI','on','-dialect','c99','-gdwarf-2',
+                          '-gccext','on','-gccinc','-cwd','explicit',
+                          '-opt','off','-W','most','-abi','eabi',
+                          '-fp','soft','-sdata=8','-sdata2=8',
+                          '-bool','on','-ipa','off','-inline','smart',
+                          '-ppc_asm_to_vle','-vle'])
+    Env.Append(CPPPATH=[cw + '/PA_Support/ewl/EWL_C/include',
+                          cw + '/PowerPC_EABI_Support/Runtime/Include'])
+    Env.Append(LIBPATH=[cw + '/PowerPC_EABI_Support/Runtime/Lib',
+                          cw + '/PowerPC_EABI_Support/MSL/MSL_C/PPC_EABI/Lib'])
+    Env.Append(LIBS=['Runtime.PPCEABI.VS.UC.a',
+                            'MSL_C.PPCEABI.bare.VS.UC.a'])
+    Env.Append(CCFLAGS=['-include','asmconfig.h'])
+    Env.Append(CPPDEFINES=['USE_FAST_LEAST_TYPE_DEF','VLE_IS_ON=1','_G_va_list=va_list'])
+
+def SelectCompilerPPCEabi():
+    # http://download.ronetix.info/toolchains/powerpc/ppc_cross_development_guide.pdf
+    cw = os.getenv('PPCGCC_PATH')
+    if(cw is None):
+        #ppc = 'C:/SysGCC/powerpc-eabi'
+        ppc = 'C:/Program Files (x86)/Ronetix/powerpc-eabi'
+    if(not os.path.exists(ppc)):
+        print('==> Please set environment PPCGCC_PATH\n\tset PPCGCC_PATH=/path/to/powerpc-eabi')
+        exit()
+    Env['CC']   = ppc + '/bin/powerpc-eabi-gcc.exe'
+    Env['AS']   = ppc + '/bin/powerpc-eabi-as.exe'
+    Env['CXX']  = ppc + '/bin/powerpc-eabi-g++.exe'
+    Env['LINK'] = ppc + '/bin/powerpc-eabi-link.exe'
+
 def BuildingSWCS(swcs):
     for swc in swcs:
         swc = str(swc)
@@ -883,11 +925,9 @@ def Building(target, sobjs, env=None):
     objs += Glob('%s/*.c'%(cfgdir))
     env.Append(CPPPATH=['%s'%(cfgdir)])
     env.Append(ASFLAGS='-I%s'%(cfgdir))
-    if(target == 'mpc56xx'):
-        env.Append(CCFLAGS=['-include','asmconfig.h'])
-    else:
+    if('gcc' in env['CC']):
         env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
-    
+
     if(GetOption('clean')):
         RMDir(cfgdir)
         RunCommand('rm -fv *.s19')

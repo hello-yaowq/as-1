@@ -22,40 +22,16 @@ if('MCU' in MODULES):
 if('PORT' in MODULES):
     objs += Glob('mcal/Port.c')
 
-cw = 'C:/Program Files (x86)/Freescale/CW for MPC55xx and MPC56xx 2.10'
-cwppc = cw + '/PowerPC_EABI_Tools/Command_Line_Tools'
-asenv['CC']   = cwppc + '/mwcceppc.exe'
-asenv['AS']   = cwppc + '/mwaseppc.exe'
-asenv['CXX']  = cwppc + '/mwcceppc.exe'
-asenv['LINK'] = cwppc + '/mwldeppc.exe'
+if(os.getenv('USE_CWCC') == 'no'):
+    SelectCompilerPPCEabi()
+else:
+    SelectCompilerCWCC()
+    asenv.Append(ASFLAGS=['-proc=56X'])
+    asenv.Append(CCFLAGS=['-proc=56X'])
+    asenv.Append(LINKFLAGS=['-proc=56X'])
+    asenv.Append(LINKFLAGS=['-srec','mpc56xx.s19','-sreceol','unix'])
+    asenv.Append(LINKFLAGS=['-m','_start'])
+    asenv.Append(LINKFLAGS=['-romaddr','0x0','-rambuffer','0x0','-gdwarf-2',
+                            '-code_merging','all'])
 
-asenv.Append(ASFLAGS=['-gdwarf-2','-vle'])
-asenv.Append(ASFLAGS=['-proc=56X'])
-
-asenv.Append(CPPDEFINES=['USE_FAST_LEAST_TYPE_DEF','VLE_IS_ON=1','_G_va_list=va_list'])
-
-asenv.Append(CCFLAGS=['-readonlystrings','-RTTI','on','-dialect','c99','-gdwarf-2',
-                      '-gccext','on','-gccinc','-cwd','explicit',
-                      '-opt','off','-W','most','-abi','eabi',
-                      '-fp','soft','-sdata=8','-sdata2=8',
-                      '-bool','on','-ipa','off','-inline','smart',
-                      '-ppc_asm_to_vle','-vle'])
-
-asenv.Append(CCFLAGS=['-proc=56X'])
-
-asenv.Append(CPPPATH=[cw + '/PA_Support/ewl/EWL_C/include',
-                      cw + '/PowerPC_EABI_Support/Runtime/Include'])
-
-asenv.Append(LIBPATH=[cw + '/PowerPC_EABI_Support/Runtime/Lib',
-                      cw + '/PowerPC_EABI_Support/MSL/MSL_C/PPC_EABI/Lib'])
-
-asenv.Append(LIBS=['Runtime.PPCEABI.VS.UC.a',
-                        'MSL_C.PPCEABI.bare.VS.UC.a'])
-
-asenv.Append(LINKFLAGS=['-m','_start'])
-asenv.Append(LINKFLAGS=['-romaddr','0x0','-rambuffer','0x0','-gdwarf-2',
-                        '-code_merging','all'])
-asenv.Append(LINKFLAGS=['-proc=56X'])
-
-asenv.Append(LINKFLAGS=['-srec','mpc56xx.s19','-sreceol','unix'])
 Return('objs')
