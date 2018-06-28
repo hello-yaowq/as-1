@@ -103,6 +103,24 @@ uint32_t McuE_GetSystemClock(void)
   return CPU_FREQUENCY*1000000;
 }
 
+uint32_t McuE_GetPeripheralClock(McuE_PeriperalClock_t type)
+{
+	uint32_t clk = 0;
+
+	switch(type)
+	{
+		case 0: /* CAN */
+			clk = CPU_FREQUENCY*1000000;
+			break;
+	}
+	return clk;
+}
+
+uint32_t McuE_GetClockReferencePointFrequency(void)
+{
+	return 0;
+}
+
 Std_ReturnType Mcu_InitClock( const Mcu_ClockType ClockSetting ) {
 	/**
 	 * Fref=8MHZ(CRYSTAL OSCILLATOR CLOCK)

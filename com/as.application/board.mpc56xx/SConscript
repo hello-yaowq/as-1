@@ -11,6 +11,9 @@ MODULES = ['ECUM','SCHM','MCU',
            'CLIB_STDIO_PRINTF',
            'ASKAR',
            'MPC5634M_MLQB80',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP','J1939TP',
+           'PORT','DIO'
            ]
 
 ARCH='mpc56xx'
@@ -36,6 +39,7 @@ asenv.Append(CPPPATH=['%s/common'%(cwd)])
 
 if('CAN' in MODULES):
     objs += Glob('common/Can*.c')
+    asenv.Append(CPPDEFINES=['NOT_PYGEN_CAN'])
 
 if('DIO' in MODULES):
     objs += Glob('common/Dio*.c')
@@ -54,6 +58,7 @@ if('MPC5634M_MLQB80' in MODULES):
     asenv.Append(CPPPATH=['%s/MPC5634M_MLQB80/Project/src'%(cwd)])
     MKSymlink('%s/MPC5634M_MLQB80/Project/src/MPC5634M_MLQB80.h'%(cwd),
               '%s/MPC5634M_MLQB80/Project/src/mpc56xx.h'%(cwd))
+    asenv.Append(CPPDEFINES=['CFG_MPC563XM','CFG_MPC55XX'])
 
 asenv.Append(CPPDEFINES=['CPU_FREQUENCY=64'])
 

@@ -50,6 +50,8 @@ typedef enum {
   MCU_NBR_OF_CLOCKS,
 } Mcu_ClockType;
 
+typedef uint8 McuE_PeriperalClock_t;
+
 
 #define MCU_NBR_OF_RAM_SECTIONS	0
 
