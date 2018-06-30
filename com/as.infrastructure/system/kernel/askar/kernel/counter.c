@@ -84,7 +84,6 @@ void statOsCounter(void)
 {
 	CounterType id;
 	AlarmVarType *pVar;
-	const CounterConstType *pConst;
 	imask_t mask;
 
 	Irq_Save(mask);

@@ -149,11 +149,6 @@ Mcu_ResetType Mcu_GetResetReason( void )
 	return MCU_POWER_ON_RESET;
 }
 
-void Mcu_DistributePllClock( void )
-{
-	InitializeUART();
-}
-
 void TickTimer_SetFreqHz(int Freq)
 {
 /* use Decrementer as the System Tick*/
@@ -174,6 +169,28 @@ void TickTimer_SetFreqHz(int Freq)
 		li		r0, 0x4000
 		mthid0	r0
 	}
+}
+
+void RTI_TickHandler(void)
+{
+	PIT.RTI.TFLG.B.TIF=1;
+}
+void RTI_SetFreqHz(int Freq)
+{
+	PIT.PITMCR.B.MDIS_RTI=0;/*turn on PIT just for RTI*/
+	PIT.RTI.LDVAL.R=CPU_FREQUENCY*1000000/Freq-1;
+	PIT.RTI.TCTRL.B.TIE=1;	/*enable interrupt*/
+	PIT.RTI.TCTRL.B.TEN=1;/*turn on RTI*/
+	INTC_InstallINTCInterruptHandler(RTI_TickHandler,305,1);
+}
+
+void Mcu_DistributePllClock( void )
+{
+	InitializeUART();
+	TickTimer_SetFreqHz(OS_TICKS_PER_SECOND);
+	EXCEP_InitExceptionHandlers();
+	INTC_InitINTCInterrupts();
+	RTI_SetFreqHz(100);
 }
 
 void Irq_Enable(void)

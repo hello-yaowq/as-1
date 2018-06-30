@@ -153,8 +153,11 @@
 #include "asdebug.h"
 
 #define SIMULATOR() 0
-#define ISR_INSTALL_ISR2(...)
-
+#ifndef ISR_INSTALL_ISR2
+#include "IntcInterrupts.h"
+#define ISR_INSTALL_ISR2(_name, _can_entry, _vector, _priority, _app) \
+	INTC_InstallINTCInterruptHandler(_can_entry, _vector, _priority)
+#endif
 /* ----------------------------[private define]------------------------------*/
 
 #define MAX_NUM_OF_MAILBOXES    64
