@@ -16,6 +16,18 @@
 #include "osek_kernel.h"
 #include "task.h"
 #include "mpc56xx.h"
+#include "IntcInterrupts.h"
+
+/** This macro allows to use C defined address with the inline assembler */
+#define MAKE_HLI_ADDRESS(hli_name, c_expr) /*lint -e753 */enum { hli_name=/*lint -e30*/((int)(c_expr)) /*lint -esym(749, hli_name) */ };
+
+/** Address of the IACKR Interrupt Controller register. */
+MAKE_HLI_ADDRESS(INTC_IACKR, &INTC.IACKR.R)
+/** Address of the EOIR End-of-Interrupt Register register. */
+MAKE_HLI_ADDRESS(INTC_EOIR, &INTC.EOIR.R)
+
+/** Address of the MCR -- used for e200z0h initialization */
+MAKE_HLI_ADDRESS(INTC_MCR, &INTC.MCR.R)
 /* ============================ [ MACROS	] ====================================================== */
 /***************************************************************************************************
 		Regeister Map
@@ -67,6 +79,8 @@
 
 #define STACK_FRAME_SIZE   0xB0
 
+#define STACK_PROTECT_SIZE  32
+
 #define OS_RESTORE_CONTEXT()	\
 	wrteei 0; \
 	/*restore R0,R2-R31*/	\
@@ -101,7 +115,7 @@
 
 #define OS_SAVE_CONTEXT()	\
 	/* Remain frame from stack */	\
-	subi    r1, r1, -STACK_FRAME_SIZE; \
+	subi    r1, r1, STACK_FRAME_SIZE; \
 	/*Store R0,R2,R3-R31*/	\
 	stw     r0,  XR0(r1);		\
 	stmw	r2,  XR2(r1);	  \
@@ -137,26 +151,26 @@
 extern void knl_system_tick(void);
 extern void knl_dispatch_entry(void);
 extern void knl_start_dispatch(void);
+extern void knl_isr_process(void);
 extern void OsTick(void);
 /* ============================ [ DATAS	 ] ====================================================== */
 uint32 knl_taskindp;
 VP tcxb_sp[TASK_NUM];
 FP tcxb_pc[TASK_NUM];
-#if (ISR_NUM > 0)
-extern const FP tisr_pc[ISR_NUM];
-#endif
+extern int _stack_addr[];
+static boolean knt_dispatch_started;
 /* ============================ [ LOCALS	] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void set_ipl(IPL ipl)
 {
 	if(ipl > 0)
 	{
-		disable_int();
+		INTC.CPR.B.PRI = ipl;
 	}
 }
 IPL  current_ipl(void)
 {
-	return 0;
+	return INTC.CPR.B.PRI;
 }
 void activate_r(void)
 {
@@ -171,7 +185,7 @@ void activate_context(TaskType TaskID)
 {
 	tcxb_pc[TaskID] = (FP)activate_r;
 
-	tcxb_sp[TaskID] = (VP)( (UINT32)tinib_stk[TaskID] + (UINT32)tinib_stksz[TaskID]);
+	tcxb_sp[TaskID] = (VP)( (UINT32)tinib_stk[TaskID] + (UINT32)tinib_stksz[TaskID]) - STACK_PROTECT_SIZE;
 }
 void cpu_terminate(void)
 {
@@ -185,7 +199,7 @@ void sys_exit(void)
 void cpu_initialize(void)
 {
 	knl_taskindp = 0;
-
+	knt_dispatch_started = FALSE;
 	__asm {
 		/* IVOR8 System call interrupt (SPR 408) */
 		lis r0, knl_dispatch_entry@h
@@ -195,21 +209,12 @@ void cpu_initialize(void)
 		lis     r0, knl_system_tick@h
 		ori     r0, r0, knl_system_tick@l
 		mtivor10 r0
+		/* IVOR4 External input interrupt (SPR 404) */
+		lis     r0, knl_isr_process@h
+		ori     r0, r0, knl_isr_process@l
+		mtivor4 r0
 	}
-}
-
-void knl_isr_handler(uint32 intno)
-{
-#if (ISR_NUM > 0)
-	if((intno<ISR_NUM) && (tisr_pc[intno]!=NULL))
-	{
-		tisr_pc[intno]();
-	}
-	else
-#endif
-	{
-		ShutdownOS(0xFF);
-	}
+	INTC.CPR.B.PRI = 0;/* Lower INTC's current priority */
 }
 
 void sys_initialize(void)
@@ -224,7 +229,16 @@ void tool_initialize(void)
 void start_dispatch(void)
 {
 	runtsk = INVALID_TASK;
+	knt_dispatch_started = TRUE;
 	knl_start_dispatch();
+}
+
+void SystemTickISR(void)
+{
+	if(knt_dispatch_started)
+	{
+		SignalCounter(0);
+	}
 }
 
 void exit_and_dispatch(void)
@@ -255,10 +269,10 @@ __asm void knl_start_dispatch(void)
 {
 nofralloc
 	wrteei 0
-	lis r11, schedtsk@h
-	ori r11, r11, schedtsk@l
+	lis r10, schedtsk@h
+	ori r10, r10, schedtsk@l
 l_loop:
-	lbz r0, 0(r11)
+	lbz r0, 0(r10)
 	cmpwi r0, 0xFF /* 0xFF means invalid task */
 	bne l_exit
 	wrteei 1
@@ -305,22 +319,20 @@ nofralloc
 	b knl_start_dispatch
 }
 
-__asm void knl_system_tick(void)
+__asm void EnterISR(void)
 {
 nofralloc
-	OS_SAVE_CONTEXT();
-
-	lis r11, runtsk@h
-	lbz r0, runtsk@l(r11)
-	cmpwi r0, 0xFF
-	beq l_nosave
-
 	lis r11, knl_taskindp@h
 	lwz r12, knl_taskindp@l(r11)
 	addi r12, r12, 1
 	stw r12, knl_taskindp@l(r11)
 	cmpwi r12, 1
 	bne l_nosave
+
+	lis r11, runtsk@h
+	lbz r0, runtsk@l(r11)
+	cmpwi r0, 0xFF
+	beq l_nosave
 
 	se_slwi r0, 2
 	lis r8, tcxb_sp@h
@@ -334,26 +346,34 @@ nofralloc
 	stwx r11, r8, r0
 
 	/* load system stack */
+	lis r1, _stack_addr@h
+	ori r1, r1, _stack_addr@l
+	subi    r1, r1, STACK_PROTECT_SIZE
 
 l_nosave:
 	lis r11, callevel@h
 	lbz r12, callevel@l(r11) /* save CallLevel in R12 */
 	li r3, 2
 	stb r3, callevel@l(r11)
+	blr
+}
 
-	wrteei 1
-	bl OsTick
-	li r3, 0
-	bl SignalCounter
+__asm void LeaveISR(void)
+{
+nofralloc
 	wrteei 0
 
-	stw r12, callevel@l(r11)
+	lis r11, callevel@h
+	stb r12, callevel@l(r11)
 
 	lis r11, knl_taskindp@h
-	lwz r12, knl_taskindp@l(r11)
-	subi r12, r12, 1
-	stw r12, knl_taskindp@l(r11)
-	cmpwi r12, 0
+	lwz r10, knl_taskindp@l(r11)
+	subi r10, r10, 1
+	stw r10, knl_taskindp@l(r11)
+	cmpwi r10, 0
+	bne l_nodispatch
+
+	cmpwi r12, 1   /* TCL_TASK */
 	bne l_nodispatch
 
 	lis r11, runtsk@h
@@ -380,9 +400,52 @@ l_nopreempt:
 
 l_nodispatch:
 	OS_RESTORE_CONTEXT();
+	rfi
+}
+__asm void knl_system_tick(void)
+{
+nofralloc
+	OS_SAVE_CONTEXT();
+
+	bl EnterISR
+
+	/*Clear TSR[DIS]*/
+	lis r3, 0x0800;
+	mtspr TSR, r3;
+
+	wrteei 1
+	bl SystemTickISR
+
+	b LeaveISR
+
 }
 
 __asm void knl_isr_process(void)
 {
+nofralloc
+	OS_SAVE_CONTEXT();
+	bl EnterISR
 
+	/* Clear request to processor; r3 contains the address of the ISR */
+	lis     r3, INTC_IACKR@h  /* Read pointer into ISR Vector Table & store in r3     */
+	ori     r3, r3, INTC_IACKR@l
+	lwz     r3, 0x0(r3)       /* Load INTC_IACKR, which clears request to processor   */
+	lwz     r3, 0x0(r3)       /* Read ISR address from ISR Vector Table using pointer */
+
+	wrteei 1
+	/* Branch to ISR handler address from SW vector table */
+	mtlr    r3                  /* Store ISR address to LR to use for branching later */
+	blrl                        /* Branch to ISR, but return here */
+	wrteei 0
+
+	/* Ensure interrupt flag has finished clearing */
+	mbar    0
+
+	/* Write 0 to INTC_EOIR, informing INTC to lower priority */
+	li      r3, 0
+	lis     r4, INTC_EOIR@h     /* Load upper half of INTC_EOIR address to r4 */
+	ori     r4, r4, INTC_EOIR@l
+	stw     r3, 0(r4)           /* Write 0 to INTC_EOIR */
+
+	b LeaveISR
 }

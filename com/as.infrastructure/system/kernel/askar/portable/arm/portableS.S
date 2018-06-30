@@ -177,6 +177,11 @@ ExitISR:
 	cmp     r1, #0
 	bne     l_nodispatch
 
+	ldr     r1, = CallLevel
+	ldr     r3, [r1]
+	cmp     r3, #1  /* TCL_TASK */
+	bne     l_nodispatch
+
 	ldr     r1, = ReadyVar
 	ldr     r1, [r1]
 

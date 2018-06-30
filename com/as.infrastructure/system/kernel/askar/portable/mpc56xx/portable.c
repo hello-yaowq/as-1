@@ -160,8 +160,6 @@ void Os_PortTickISR(void);
 void Os_PortExtISR(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
-static unsigned int SavedCallLevel;
-
 extern int _stack_addr[];
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -210,16 +208,6 @@ void Os_PortInitContext(TaskVarType* pTaskVar)
 {
 	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-STACK_PROTECT_SIZE;
 	pTaskVar->context.pc = Os_PortActivate;
-}
-
-void EnterISR(void)
-{
-	/* do nothing */
-}
-
-void LeaveISR(void)
-{
-	/* do nothing */
 }
 
 #ifdef USE_PTHREAD_SIGNAL
@@ -285,11 +273,11 @@ __asm void Os_PortStartDispatch( void )
 nofralloc
 	/* Interrupt disable */
 	wrteei 0
-	/* R11 = &ReadyVar */
-	lis r11, ReadyVar@h
-	ori r11, r11,ReadyVar@l
+	/* R10 = &ReadyVar */
+	lis r10, ReadyVar@h
+	ori r10, r10,ReadyVar@l
 l_loop:
-	lwz r12, 0(r11)
+	lwz r12, 0(r10)
 	cmpwi r12, 0
 	bne l_exit
 	/* Interrupt enable */
@@ -319,7 +307,7 @@ __asm void Os_PortResumePreHook(void)
 nofralloc
 	lis r11, CallLevel@h
 	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
-	li r3, 8
+	li r3, 8 /* TCL_PREPOST */
 	stw r3, CallLevel@l(r11)
 	wrteei 1
 	bl PreTaskHook
@@ -333,6 +321,95 @@ nofralloc
 __asm void Os_PortResume(void)
 {
 nofralloc
+	OS_RESTORE_CONTEXT();
+	rfi
+}
+
+__asm void EnterISR(void)
+{
+nofralloc
+	lis r11, RunningVar@h
+	lwz r10, RunningVar@l(r11)
+	cmpwi r10, 0
+	beq l_nosave
+
+	lis r11, ISR2Counter@h
+	lwz r12, ISR2Counter@l(r11)
+	addi r12, r12, 1
+	stw r12, ISR2Counter@l(r11)
+	cmpwi r12, 1
+	bne l_nosave
+
+	/* Save 'ssp' to TCB */
+	stw r1, 0(r10);
+
+	lis r11, Os_PortResume@h
+	ori r11, r11, Os_PortResume@l
+	stw r11, 4(r10)
+
+	/* load system stack */
+	lis r1, _stack_addr@h
+	ori r1, r1, _stack_addr@l
+	subi r1, r1, STACK_PROTECT_SIZE
+
+l_nosave:
+	lis r11, CallLevel@h
+	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
+	li r3, 2 /* TCL_ISR2 */
+	stw r3, CallLevel@l(r11)
+	blr
+}
+
+__asm void LeaveISR(void)
+{
+nofralloc
+	wrteei 0
+	lis r11, CallLevel@h
+	stw r12, CallLevel@l(r11)
+
+	lis r11, RunningVar@h
+	lwz r10, RunningVar@l(r11)
+	cmpwi r10, 0
+	beq l_nodispatch
+
+	lis r11, ISR2Counter@h
+	lwz r12, ISR2Counter@l(r11)
+	subi r12, r12, 1
+	stw r12, ISR2Counter@l(r11)
+	cmpwi r12, 0
+	bne l_nodispatch
+
+	lis r11, CallLevel@h
+	lwz r12, CallLevel@l(r11)
+	cmpwi r12, 1  /* TCL_TASK */
+	bne l_nodispatch
+
+	lis r11, ReadyVar@h
+	lwz r12, ReadyVar@l(r11)
+	cmpwi r12, 0
+	beq l_nopreempt
+
+	lbz r3, 8(r12) /* priority of ReadyVar */
+	lbz r4, 8(r10) /* priority of RunningVar */
+	cmpw r4, r3
+	bge l_nopreempt
+
+	#ifdef OS_USE_PRETASK_HOOK
+	lis r11, Os_PortResumePreHook@h
+	ori r11, r11, Os_PortResumePreHook@l
+	stw r11, 4(r10)
+	#endif
+
+	bl Sched_Preempt
+
+	b Os_PortStartDispatch
+
+l_nopreempt:
+	lis r11, RunningVar@h
+	lwz r12, RunningVar@l(r11)
+	lwz r1, 0(r12)
+
+l_nodispatch:
 	OS_RESTORE_CONTEXT();
 	rfi
 }
@@ -359,179 +436,18 @@ __asm void Os_PortTickISR(void)
 nofralloc
 	OS_SAVE_CONTEXT();
 
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nosave
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	addi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 1
-	bne l_nosave
-
-	/* Save 'ssp' to TCB */
-	stw r1, 0(r10);
-
-	lis r11, Os_PortResume@h
-	ori r11, r11, Os_PortResume@l
-	stw r11, 4(r10)
-
-	/* load system stack */
-	lis r1, _stack_addr@h
-	ori r1, r1, _stack_addr@l
-	subi    r1, r1, STACK_PROTECT_SIZE
-
-l_nosave:
-	lis r11, CallLevel@h
-	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
-	li r3, 2
-	stw r3, CallLevel@l(r11)
+	bl EnterISR
 
 	/*Clear TSR[DIS]*/
-	lis r3, 0x0800;
-	mtspr TSR, r3;
-
-	/* wrteei 1 */
-	bl OsTick
-	li r3, 0
-	bl SignalCounter
-	/* wrteei 0 */
-
-	lis r11, CallLevel@h
-	stw r12, CallLevel@l(r11)
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	subi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 0
-	bne l_nodispatch
-
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nodispatch
-
-	lis r11, ReadyVar@h
-	lwz r12, ReadyVar@l(r11)
-	cmpwi r12, 0
-	beq l_nopreempt
-
-	lbz r3, 8(r12) /* priority of ReadyVar */
-	lbz r4, 8(r10) /* priority of RunningVar */
-	cmpw r4, r3
-	bge l_nopreempt
-
-	#ifdef OS_USE_PRETASK_HOOK
-	lis r11, Os_PortResumePreHook@h
-	ori r11, r11, Os_PortResumePreHook@l
-	stw r11, 4(r10)
-	#endif
-
-	bl Sched_Preempt
-
-	b Os_PortStartDispatch
-
-l_nopreempt:
-	lis r11, RunningVar@h
-	lwz r12, RunningVar@l(r11)
-	lwz r1, 0(r12)
-
-l_nodispatch:
-	OS_RESTORE_CONTEXT();
-	rfi
-}
-
-__asm void Os_PortISRHandler(void)
-{
-nofralloc
-	OS_SAVE_CONTEXT();
-
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nosave
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	addi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 1
-	bne l_nosave
-
-	/* Save 'ssp' to TCB */
-	stw r1, 0(r10);
-
-	lis r11, Os_PortResume@h
-	ori r11, r11, Os_PortResume@l
-	stw r11, 4(r10)
-
-	/* load system stack */
-	lis r1, _stack_addr@h
-	ori r1, r1, _stack_addr@l
-	subi    r1, r1, STACK_PROTECT_SIZE
-
-l_nosave:
-	lis r11, CallLevel@h
-	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
-	li r3, 2
-	stw r3, CallLevel@l(r11)
-
-	/*Clear TSR[DIS]*/
-	lis r3, 0x0800;
-	mtspr TSR, r3;
+	lis r0, 0x0800;
+	mtspr TSR, r0;
 
 	wrteei 1
 	bl OsTick
 	li r3, 0
 	bl SignalCounter
-	wrteei 0
 
-	lis r11, CallLevel@h
-	stw r12, CallLevel@l(r11)
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	subi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 0
-	bne l_nodispatch
-
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nodispatch
-
-	lis r11, ReadyVar@h
-	lwz r12, ReadyVar@l(r11)
-	cmpwi r12, 0
-	beq l_nopreempt
-
-	lbz r3, 8(r12) /* priority of ReadyVar */
-	lbz r4, 8(r10) /* priority of RunningVar */
-	cmpw r4, r3
-	bge l_nopreempt
-
-	#ifdef OS_USE_PRETASK_HOOK
-	lis r11, Os_PortResumePreHook@h
-	ori r11, r11, Os_PortResumePreHook@l
-	stw r11, 4(r10)
-	#endif
-
-	bl Sched_Preempt
-
-	b Os_PortStartDispatch
-
-l_nopreempt:
-	lis r11, RunningVar@h
-	lwz r12, RunningVar@l(r11)
-	lwz r1, 0(r12)
-
-l_nodispatch:
-	OS_RESTORE_CONTEXT();
-	rfi
+	b LeaveISR
 }
 
 __asm void Os_PortExtISR(void)
@@ -539,35 +455,7 @@ __asm void Os_PortExtISR(void)
 nofralloc
 	OS_SAVE_CONTEXT();
 
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nosave
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	addi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 1
-	bne l_nosave
-
-	/* Save 'ssp' to TCB */
-	stw r1, 0(r10);
-
-	lis r11, Os_PortResume@h
-	ori r11, r11, Os_PortResume@l
-	stw r11, 4(r10)
-
-	/* load system stack */
-	lis r1, _stack_addr@h
-	ori r1, r1, _stack_addr@l
-	subi    r1, r1, STACK_PROTECT_SIZE
-
-l_nosave:
-	lis r11, CallLevel@h
-	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
-	li r3, 2
-	stw r3, CallLevel@l(r11)
+	bl EnterISR
 
 	/* Clear request to processor; r3 contains the address of the ISR */
 	lis     r3, INTC_IACKR@h  /* Read pointer into ISR Vector Table & store in r3     */
@@ -577,9 +465,9 @@ l_nosave:
 
 
 	wrteei 1
-    /* Branch to ISR handler address from SW vector table */
-    mtlr    r3                  /* Store ISR address to LR to use for branching later */
-    blrl                        /* Branch to ISR, but return here */
+	/* Branch to ISR handler address from SW vector table */
+	mtlr    r3                  /* Store ISR address to LR to use for branching later */
+	blrl                        /* Branch to ISR, but return here */
 	wrteei 0
 
 	/* Ensure interrupt flag has finished clearing */
@@ -591,47 +479,5 @@ l_nosave:
 	ori     r4, r4, INTC_EOIR@l
 	stw     r3, 0(r4)           /* Write 0 to INTC_EOIR */
 
-	lis r11, CallLevel@h
-	stw r12, CallLevel@l(r11)
-
-	lis r11, ISR2Counter@h
-	lwz r12, ISR2Counter@l(r11)
-	subi r12, r12, 1
-	stw r12, ISR2Counter@l(r11)
-	cmpwi r12, 0
-	bne l_nodispatch
-
-	lis r11, RunningVar@h
-	lwz r10, RunningVar@l(r11)
-	cmpwi r10, 0
-	beq l_nodispatch
-
-	lis r11, ReadyVar@h
-	lwz r12, ReadyVar@l(r11)
-	cmpwi r12, 0
-	beq l_nopreempt
-
-	lbz r3, 8(r12) /* priority of ReadyVar */
-	lbz r4, 8(r10) /* priority of RunningVar */
-	cmpw r4, r3
-	bge l_nopreempt
-
-	#ifdef OS_USE_PRETASK_HOOK
-	lis r11, Os_PortResumePreHook@h
-	ori r11, r11, Os_PortResumePreHook@l
-	stw r11, 4(r10)
-	#endif
-
-	bl Sched_Preempt
-
-	b Os_PortStartDispatch
-
-l_nopreempt:
-	lis r11, RunningVar@h
-	lwz r12, RunningVar@l(r11)
-	lwz r1, 0(r12)
-
-l_nodispatch:
-	OS_RESTORE_CONTEXT();
-	rfi
+	b LeaveISR
 }
