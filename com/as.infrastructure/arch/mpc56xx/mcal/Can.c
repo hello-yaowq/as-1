@@ -152,7 +152,6 @@
 //#define USE_LDEBUG_PRINTF
 #include "asdebug.h"
 
-#define SIMULATOR() 0
 #ifndef ISR_INSTALL_ISR2
 #include "IntcInterrupts.h"
 #define ISR_INSTALL_ISR2(_name, _can_entry, _vector, _priority, _app) \
@@ -1098,12 +1097,9 @@ void Can_InitController(uint8 controller,
     canHw->MCR.B.MDIS = 0;
 
     // Wait for it to reset
-    if (!SIMULATOR()) {
-        // Freeze to write all mem mapped registers ( see 25.4.8.1 )
-        canHw->MCR.B.FRZ = 1;
-        canHw->MCR.B.HALT = 1;
-    }
-
+    // Freeze to write all mem mapped registers ( see 25.4.8.1 )
+    canHw->MCR.B.FRZ = 1;
+    canHw->MCR.B.HALT = 1;
     if( config->Can_Arc_Flags & CAN_CTRL_FIFO ) {
         canHw->MCR.B.FEN = 1;       /*  Enable FIFO */
         canHw->MCR.B.IDAM = 0;      /* We want extended id's to match with */
@@ -1172,10 +1168,15 @@ void Can_InitController(uint8 controller,
 
     memset(&canHw->BUF[0],0,sizeof(struct FLEXCAN_BUF_t)*cfgCtrlPtr->Can_Arc_MailboxMax);
 
+    /* Rx Global Mask, don't care */
+    canHw->RXGMASK.R = 0;
+
+#if 0
     for( int i=0; i < 8;i++) {
         canHw->RXIMR[i].R = 0xfffffffful;
         fifoIdPtr->IDTABLE[i].R = 0x0;
     }
+#endif
 
     /* The HOHs are sorted by FIFO(FULL_CAN), FIFO(BASIC_CAN),
      * FULL_CAN(no FIFO) and last BASIC_CAN(no FIFO) */
@@ -1197,7 +1198,7 @@ void Can_InitController(uint8 controller,
         	}
 
             /* The Mask (we have FULL_CAN here) */
-            canHw->RXIMR[fifoNr].R = *hohPtr->CanFilterMaskRef;
+            //canHw->RXIMR[fifoNr].R = hohPtr->CanFilterMaskRef;
             fifoNr++;
         } else {
         	/* loop for multiplexed mailboxes, set as same as first */
@@ -1208,7 +1209,8 @@ void Can_InitController(uint8 controller,
             	mbTmp = ilog2_64(mbMask);
 
 				canHw->BUF[mbTmp].CS.B.CODE  = MB_RX;
-				canHw->RXIMR[mbTmp].R        = *hohPtr->CanFilterMaskRef;
+
+				//canHw->RXIMR[mbTmp].R        = hohPtr->CanFilterMaskRef;
 
 				if (hohPtr->CanIdType == CAN_ID_TYPE_EXTENDED) {
 					canHw->BUF[mbTmp].CS.B.IDE    = 1;

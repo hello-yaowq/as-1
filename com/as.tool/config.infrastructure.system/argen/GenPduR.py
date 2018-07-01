@@ -75,8 +75,16 @@ def GenH():
 #define PDUR_FRTP_SUPPORT STD_OFF  /* Not supported */
 #define PDUR_LINIF_SUPPORT STD_%s
 #define PDUR_LINTP_SUPPORT STD_OFF  /* Not supported */
+#ifdef USE_COM
 #define PDUR_COM_SUPPORT STD_%s
+#else
+#define PDUR_COM_SUPPORT STD_OFF
+#endif
+#ifdef USE_DCM
 #define PDUR_DCM_SUPPORT STD_%s
+#else
+#define PDUR_DCM_SUPPORT STD_OFF
+#endif
 #define PDUR_IPDUM_SUPPORT STD_OFF  /* Not supported */
 #ifdef USE_J1939TP
 #define PDUR_J1939TP_SUPPORT STD_%s
@@ -251,12 +259,14 @@ def GenC():
     ucstr = ''
     for path in GLGet('RoutineList'):
         ucstr += '#ifndef USE_%s\n'%(GAGet(path,'Module').upper())
+        ucstr += '#ifndef %s_ID_%s\n'%(GAGet(path,'Module').upper(), GAGet(path,'PduRef'))
         ucstr += '#define %s_ID_%s -1\n'%(GAGet(path,'Module').upper(), GAGet(path,'PduRef'))
-        ucstr += '#endif\n'
+        ucstr += '#endif\n#endif\n'
         for dest in GLGet(path,'DestinationList'):
             ucstr += '#ifndef USE_%s\n'%(GAGet(dest,'Module').upper())
+            ucstr += '#ifndef %s_ID_%s\n'%(GAGet(dest,'Module').upper(), GAGet(dest,'PduRef'))
             ucstr += '#define %s_ID_%s -1\n'%(GAGet(dest,'Module').upper(), GAGet(dest,'PduRef'))
-            ucstr += '#endif\n'
+            ucstr += '#endif\n#endif\n'
     cstr = ''
     for path in GLGet('RoutineList'):
         for dest in GLGet(path,'DestinationList'):

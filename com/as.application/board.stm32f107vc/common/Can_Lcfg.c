@@ -19,7 +19,7 @@
 #include "CanIf_Cbk.h"
 
 #ifndef USE_SIMUL_CAN
-Can_FilterMaskType Can_FilterMaskConfigData_Controller_1_Mask_1 = 0x0;
+const Can_FilterMaskType Can_FilterMaskConfigData_Controller_1_Mask_1 = 0x0;
 
 
 const Can_HardwareObjectType CanHardwareObjectConfig_Controller_1[] = {

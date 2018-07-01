@@ -76,6 +76,7 @@ def GenC():
     global __dir
     fp = open('%s/J1939Tp_Cfg.c'%(__dir),'w')
     fp.write(GHeader('J1939Tp'))
+    fp.write('#ifdef USE_J1939TP\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "J1939Tp.h"\n')
     fp.write('#include "PduR.h"\n')
@@ -151,4 +152,5 @@ def GenC():
     fp.write('};\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    fp.write('#endif /* USE_J1939TP */\n')
     fp.close();

@@ -31,16 +31,14 @@
 
 #define INDEX_OF_CAN_CTRL_1 0
 
-#define CAN_CTRL_A CAN_CTRL_0
-#define CAN_CTRL_B CAN_CTRL_1
-#define CAN_CTRL_C CAN_CTRL_2
+#define CAN_CTRL_A CAN_CTRL_1
+#define CAN_CTRL_C CAN_CTRL_0
 
 #define FLEXCAN_A CAN_CTRL_A
 typedef enum {
-	CAN_CTRL_0 = 0,
-	CAN_CTRL_1 = 1,
-	CAN_CTRL_2 = 2,
-	CAN_CONTROLLER_CNT = 3
+	CAN_CTRL_1 = 0,
+	CAN_CTRL_0 = 1,
+	CAN_CONTROLLER_CNT = 2
 }CanControllerIdType;
 
 
@@ -61,15 +59,15 @@ typedef enum {
 	CAN_ARC_HANDLE_TYPE_FULL
 } Can_Arc_HohType;
 
-#define Can1Hth HWObj_2
+#define Can1Hth CanAHth
 typedef enum {
-	HWObj_2,
+	CanAHth,
 	NUM_OF_HTHS
 } Can_Arc_HTHType;
 
-#define Can1Hrh HWObj_1
+#define Can1Hrh CanAHrh
 typedef enum {
-	HWObj_1,
+	CanAHrh,
 	NUM_OF_HRHS
 } Can_Arc_HRHType;
 
@@ -123,7 +121,7 @@ enum {
 
 typedef struct {
 	void (*CancelTxConfirmation)( const Can_PduType *);
-	void (*RxIndication)( uint8 ,Can_IdType ,uint8 , const uint8 * );
+	void (*RxIndication)( uint16 ,Can_IdType ,uint8 , const uint8 * );
 	void (*ControllerBusOff)(uint8);
 	void (*TxConfirmation)(PduIdType);
 	void (*ControllerWakeup)(uint8);
@@ -155,14 +153,12 @@ typedef struct Can_HardwareObjectStruct {
 
 	// Reference to the filter mask that is used for hardware filtering togerther
 	// with the CAN_ID_VALUE
-	Can_FilterMaskType *CanFilterMaskRef;
+	Can_FilterMaskType CanFilterMaskRef;
 
 	// A "1" in this mask tells the driver that that HW Message Box should be
 	// occupied by this Hoh. A "1" in bit 31(ppc) occupies Mb 0 in HW.
 	uint64 ArcMailboxMask;
 	
-	// End Of List. Set to TRUE is this is the last object in the list.
-	boolean Can_Arc_EOL;
 } Can_HardwareObjectType;
 
 
@@ -193,19 +189,9 @@ typedef struct {
 
 	uint32 CanControllerRJW;
 
-	//	Specifies the time quanta for the controller. The calculation of the resulting
-	//	prescaler value depending on module clocking and time quanta shall be
-	//	done offline Hardware specific.
-	uint32 CanControllerTimeQuanta;
-
 	//	Reference to the CPU clock configuration, which is set in the MCU driver
 	//	configuration
 	uint32 CanCpuClockRef;
-
-	//	This parameter contains a reference to the Wakeup Source for this
-	//	controller as defined in the ECU State Manager. Implementation Type:
-	//	reference to EcuM_WakeupSourceType
-	uint32 CanWakeupSourceRef;
 
 	uint64 Can_Arc_RxMailBoxMask;
 	uint64 Can_Arc_TxMailBoxMask;
@@ -222,13 +208,6 @@ typedef struct {
 	uint8 Can_Arc_HohFifoCnt;
 	uint8 Can_Arc_MailboxMax;
 
-	// Defines if a CAN controller is used in the configuration.
-	boolean CanControllerActivation;
-
-	boolean Can_Arc_Loopback;
-
-	// Set this to use the fifo
-	boolean Can_Arc_Fifo;
 } Can_ControllerConfigType;
 
 
