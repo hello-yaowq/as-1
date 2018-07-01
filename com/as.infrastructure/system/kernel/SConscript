@@ -1,13 +1,17 @@
 import os
 from building import *
+import xcc
 
 cwd = GetCurrentDir()
 
 Import('asenv')
 MODULES = asenv['MODULES']
-asenv.Append(CPPPATH=[cwd])
 
-objs = Glob('*.c')
+objs = []
+
+if('ANYOS' not in MODULES):
+    asenv.Append(CPPPATH=[cwd])
+    objs += Glob('*.c')
 
 if('ASKAR' in MODULES):
     objs += SConscript('askar/SConscript')
@@ -23,6 +27,8 @@ elif('TOPPERS_OSEK' in MODULES):
     objs += SConscript('toppers_osek/SConscript')
 elif('FREERTOS' in MODULES):
     objs += SConscript('freertos/SConscript')
+elif('ANYOS' in MODULES):
+    xcc.SetDefaultRTOS('anyos')
 else:
     assert(0)
 

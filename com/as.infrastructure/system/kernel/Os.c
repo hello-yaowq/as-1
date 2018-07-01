@@ -126,7 +126,6 @@ TimerType GetTimer(TimerType* timer)
 #ifndef __POSIX_OSAL__
 void __weak TaskIdleHook(void)
 {
-
 }
 TASK(TaskIdle)
 {

@@ -352,7 +352,9 @@ nofralloc
 
 l_nosave:
 	lis r11, callevel@h
-	lbz r12, callevel@l(r11) /* save CallLevel in R12 */
+	lbz r12, callevel@l(r11)
+	subi r1, r1, 4 /* save CallLevel in stack */
+	stb r12, 0(r1)
 	li r3, 2
 	stb r3, callevel@l(r11)
 	blr
@@ -363,6 +365,8 @@ __asm void LeaveISR(void)
 nofralloc
 	wrteei 0
 
+	lbz r12, 0(r1)
+	addi r1, r1, 4
 	lis r11, callevel@h
 	stb r12, callevel@l(r11)
 

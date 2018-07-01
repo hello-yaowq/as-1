@@ -61,7 +61,7 @@ uint8 Com_SendSignal(Com_SignalIdType SignalId, const void *SignalDataPtr) {
 	/*
 	 * If signal has triggered transmit property, trigger a transmission!
 	 */
-	if (Signal->ComTransferProperty == TRIGGERED) {
+	if (Signal->ComTransferProperty == COM_TRIGGERED) {
 		Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions + 1;
 	}
 	Irq_Restore(irq_state);
@@ -78,7 +78,7 @@ uint8 Com_ReceiveSignal(Com_SignalIdType SignalId, void* SignalDataPtr) {
 
 	uint8 r = E_OK;
 	const void* pduDataPtr = 0;
-	if (IPdu->ComIPduSignalProcessing == DEFERRED && IPdu->ComIPduDirection == RECEIVE) {
+	if (IPdu->ComIPduSignalProcessing == COM_DEFERRED && IPdu->ComIPduDirection == COM_RECEIVE) {
 		pduDataPtr = IPdu->ComIPduDeferredDataPtr;
 	} else {
 		if (isPduBufferLocked(getPduId(IPdu))) {
@@ -112,7 +112,7 @@ uint8 Com_ReceiveDynSignal(Com_SignalIdType SignalId, void* SignalDataPtr, uint1
 	uint8 startFromPduByte = (Signal->ComBitPosition) / 8;
 	uint8 r = E_OK;
 	const void* pduDataPtr = 0;
-	if (IPdu->ComIPduSignalProcessing == DEFERRED && IPdu->ComIPduDirection == RECEIVE) {
+	if (IPdu->ComIPduSignalProcessing == COM_DEFERRED && IPdu->ComIPduDirection == COM_RECEIVE) {
 		pduDataPtr = IPdu->ComIPduDeferredDataPtr;
 		iLength = Arc_IPdu->Com_Arc_DeferredDynSignalLength;
 	} else {
@@ -164,7 +164,7 @@ uint8 Com_SendDynSignal(Com_SignalIdType SignalId, const void* SignalDataPtr, ui
 		SETBIT(IPdu->ComIPduDataPtr, Signal->ComUpdateBitPosition);
 	}
 	 // If signal has triggered transmit property, trigger a transmission!
-	if (Signal->ComTransferProperty == TRIGGERED) {
+	if (Signal->ComTransferProperty == COM_TRIGGERED) {
 		Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions + 1;
 	}
     Irq_Restore(state);
@@ -310,7 +310,7 @@ void Com_TpRxIndication(PduIdType PduId, NotifResultType Result) {
 		return;
 	}
 	if (Result == NTFRSLT_OK) {
-		if (IPdu->ComIPduSignalProcessing == IMMEDIATE) {
+		if (IPdu->ComIPduSignalProcessing == COM_IMMEDIATE) {
 			// irqs needs to be disabled until signal notifications have been called
 			// Otherwise a new Tp session can start and fill up pdus
 			UnlockTpBuffer(getPduId(IPdu));
@@ -363,7 +363,7 @@ Std_ReturnType Com_SendSignalGroup(Com_SignalGroupIdType SignalGroupId) {
 	}
 
 	// If signal has triggered transmit property, trigger a transmission!
-	if (Signal->ComTransferProperty == TRIGGERED) {
+	if (Signal->ComTransferProperty == COM_TRIGGERED) {
 		Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeNumberOfRepetitions + 1;
 	}
 	Irq_Restore(irq_state);

@@ -87,7 +87,7 @@ void __putchar (char data) {
 
 void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
-
+	(void)configPtr;
 }
 
 void Mcu_SetMode( Mcu_ModeType McuMode ) {
@@ -144,9 +144,21 @@ Mcu_PllStatusType Mcu_GetPllStatus( void ) {
 }
 
 
-Mcu_ResetType Mcu_GetResetReason( void )
+Mcu_ResetType Mcu_GetResetReason(void)
 {
-	return MCU_POWER_ON_RESET;
+	Mcu_ResetType rv;
+
+	if( SIU.RSR.B.SSRS ) {
+		rv = MCU_SW_RESET;
+	} else if( SIU.RSR.B.WDRS ) {
+		rv = MCU_WATCHDOG_RESET;
+	} else if( SIU.RSR.B.PORS || SIU.RSR.B.ERS ) {
+		rv = MCU_POWER_ON_RESET;
+	} else {
+		rv = MCU_RESET_UNDEFINED;
+	}
+
+	return rv;
 }
 
 void TickTimer_SetFreqHz(int Freq)
@@ -173,24 +185,62 @@ void TickTimer_SetFreqHz(int Freq)
 
 void RTI_TickHandler(void)
 {
+#ifdef USE_SMALLOS
+	OsTick();
+#endif
 	PIT.RTI.TFLG.B.TIF=1;
 }
+
+#define POLLING_RTI
+
 void RTI_SetFreqHz(int Freq)
 {
 	PIT.PITMCR.B.MDIS_RTI=0;/*turn on PIT just for RTI*/
 	PIT.RTI.LDVAL.R=CPU_FREQUENCY*1000000/Freq-1;
+#if !defined(USE_SMALLOS) && defined(POLLING_RTI)
 	PIT.RTI.TCTRL.B.TIE=1;	/*enable interrupt*/
+#endif
 	PIT.RTI.TCTRL.B.TEN=1;/*turn on RTI*/
 	INTC_InstallINTCInterruptHandler(RTI_TickHandler,305,1);
+}
+
+#if defined(USE_SMALLOS) && defined(POLLING_RTI)
+void CheckOsTick(void)
+{
+	if(PIT.RTI.TFLG.B.TIF)
+	{
+		RTI_TickHandler();
+	}
+}
+#endif
+
+void TaskIdleHook(void)
+{
+#if defined(USE_SMALLOS) && defined(POLLING_RTI)
+	CheckOsTick();
+#endif
+#ifdef USE_SHELL
+	extern void SHELL_input(char c);
+	while(ESCI_A.SR.B.RDRF)
+	{
+		char ch = ReadUARTN();
+		if('\r' == ch) ch = '\n';
+		SHELL_input(ch);
+	}
+#endif
 }
 
 void Mcu_DistributePllClock( void )
 {
 	InitializeUART();
+#ifndef USE_SMALLOS
 	TickTimer_SetFreqHz(OS_TICKS_PER_SECOND);
 	EXCEP_InitExceptionHandlers();
 	INTC_InitINTCInterrupts();
 	RTI_SetFreqHz(100);
+#endif
+
+	printf("reset reason is %d(0x%X)\n", Mcu_GetResetReason(), SIU.RSR.R);
 }
 
 void Irq_Enable(void)
@@ -217,4 +267,14 @@ nofralloc
 	mtmsr   r3;
 	blr
 }
+
+#ifdef USE_SMALLOS
+void StartOsTick(void)
+{
+	EXCEP_InitExceptionHandlers();
+	INTC_InitINTCInterrupts();
+	RTI_SetFreqHz(OS_TICKS_PER_SECOND);
+	INTC.CPR.B.PRI = 0;
+}
+#endif
 

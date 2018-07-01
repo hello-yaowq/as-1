@@ -53,7 +53,7 @@ const Can_ControllerConfigType  Can_ControllerCfgData[]=
 		.Can_Arc_Flags = CAN_CTRL_BUSOFF_PROCESSING_INTERRUPT |
 						 CAN_CTRL_RX_PROCESSING_INTERRUPT |
 						 CAN_CTRL_TX_PROCESSING_INTERRUPT |
-						 CAN_CTRL_LOOPBACK | /* Loopback for debug */
+						 /* CAN_CTRL_LOOPBACK | Loopback for debug */
 						 CAN_CTRL_ERROR_PROCESSING_INTERRUPT,
 		.CanControllerBaudRate=1000, /* Kbps */
 		.CanControllerPropSeg=0,/* (SJW) */
@@ -66,7 +66,7 @@ const Can_ControllerConfigType  Can_ControllerCfgData[]=
 		.Can_Arc_Hoh=CAN_CTRL_A_HOHCfgData,
 		.Can_Arc_MailBoxToHrh = CAN_CTRL_A_Arc_MailBoxToHrh,
 		.Can_Arc_TxPduHandles = CAN_CTRL_A_Arc_TxPduHandles,
-		.Can_Arc_TxMailboxStart = 0,
+		.Can_Arc_TxMailboxStart = 1, /*start from 1st MSG BOX */
 		.Can_Arc_HohCnt = 2,
 		.Can_Arc_HohFifoCnt = 0,
 		.Can_Arc_MailboxMax = 64

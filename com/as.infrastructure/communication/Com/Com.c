@@ -71,8 +71,8 @@ void Com_Init(const Com_ConfigType *config ) {
 		}
 
 		// If this is a TX and cyclic IPdu, configure the first deadline.
-		if ( (IPdu->ComIPduDirection == SEND) &&
-				( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == PERIODIC) || (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED) )) {
+		if ( (IPdu->ComIPduDirection == COM_SEND) &&
+				( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_PERIODIC) || (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_MIXED) )) {
 			//IPdu->Com_Arc_TxIPduTimers.ComTxModeTimePeriodTimer = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimeOffsetFactor;
 			Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeTimePeriodTimer = IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeTimeOffsetFactor;
 		}
@@ -82,7 +82,7 @@ void Com_Init(const Com_ConfigType *config ) {
 		firstTimeout = 0xffffffffu;
 
 		// Initialize the memory with the default value.
-		if (IPdu->ComIPduDirection == SEND) {
+		if (IPdu->ComIPduDirection == COM_SEND) {
 			memset((void *)IPdu->ComIPduDataPtr, IPdu->ComTxIPdu.ComTxIPduUnusedAreasDefault, IPdu->ComIPduSize);
 		}
 
@@ -131,7 +131,7 @@ void Com_Init(const Com_ConfigType *config ) {
 				Com_WriteSignalDataToPdu(Signal->ComHandleId, Signal->ComSignalInitValue);
 			}
 		}
-		if (IPdu->ComIPduDirection == RECEIVE && IPdu->ComIPduSignalProcessing == DEFERRED) {
+		if (IPdu->ComIPduDirection == COM_RECEIVE && IPdu->ComIPduSignalProcessing == COM_DEFERRED) {
 			// Copy the initialized pdu to deferred buffer
 			memcpy(IPdu->ComIPduDeferredDataPtr,IPdu->ComIPduDataPtr,IPdu->ComIPduSize);
 		}
@@ -193,7 +193,7 @@ BufReq_ReturnType Com_CopyTxData(PduIdType PduId, PduInfoType* PduInfoPtr, Retry
 	imask_t state;
 	BufReq_ReturnType r = BUFREQ_OK;
 	const ComIPdu_type *IPdu = GET_IPdu(PduId);
-	boolean dirOk = ComConfig->ComIPdu[PduId].ComIPduDirection == SEND;
+	boolean dirOk = ComConfig->ComIPdu[PduId].ComIPduDirection == COM_SEND;
 	boolean sizeOk;
 	(void)RetryInfoPtr; // get rid of compiler warning
 
@@ -223,7 +223,7 @@ BufReq_ReturnType Com_CopyRxData(PduIdType PduId, const PduInfoType* PduInfoPtr,
 
 	remainingBytes = GET_IPdu(PduId)->ComIPduSize - Com_BufferPduState[PduId].currentPosition;
 	sizeOk = remainingBytes >= PduInfoPtr->SduLength;
-    dirOk = GET_IPdu(PduId)->ComIPduDirection == RECEIVE;
+    dirOk = GET_IPdu(PduId)->ComIPduDirection == COM_RECEIVE;
 	lockOk = isPduBufferLocked(PduId);
 	if (dirOk && lockOk && sizeOk) {
 		memcpy((void *)((uint8 *)GET_IPdu(PduId)->ComIPduDataPtr+Com_BufferPduState[PduId].currentPosition), PduInfoPtr->SduDataPtr, PduInfoPtr->SduLength);
@@ -255,7 +255,7 @@ BufReq_ReturnType Com_StartOfReception(PduIdType ComRxPduId, PduLengthType TpSdu
 
 	Irq_Save(state);
 	if (Arc_IPdu->Com_Arc_IpduStarted) {
-		if (GET_IPdu(ComRxPduId)->ComIPduDirection == RECEIVE) {
+		if (GET_IPdu(ComRxPduId)->ComIPduDirection == COM_RECEIVE) {
 			if (!Com_BufferPduState[ComRxPduId].locked) {
 				ComIPduSize = GET_IPdu(ComRxPduId)->ComIPduSize;
 				if (ComIPduSize >= TpSduLength) {

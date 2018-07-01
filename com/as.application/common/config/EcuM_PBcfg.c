@@ -32,6 +32,10 @@ extern const UdpNm_ConfigType UdpNm_Config;
 extern const ComM_ConfigType ComM_Config;
 #endif
 
+#if defined(USE_CAN)
+extern const Can_ConfigType Can_ConfigData;
+#endif
+
 #if defined(USE_J1939TP)
 extern const J1939Tp_ConfigType J1939Tp_Config;
 #endif

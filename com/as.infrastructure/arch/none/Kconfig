@@ -1,0 +1,21 @@
+if ARCH_ANY
+menu "AUTOSAR MCAL&CDD for arch ANY"
+
+config CAN
+	bool "MCAL CAN driver"
+	default n
+
+config DIO
+	bool "MCAL DIO driver"
+	default n
+
+config MCU
+	bool "MCAL MCU driver"
+	default y
+
+config PORT
+	bool "MCAL PORT driver"
+	default n
+
+endmenu
+endif

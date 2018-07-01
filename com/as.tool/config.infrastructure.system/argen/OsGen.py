@@ -74,6 +74,9 @@ def getOsRef(os_list):
     return 'askar'
     
 def OsGen(gendir):
+    if(defaultOS == 'anyos'):
+        print('  ==> skipping OSGen as set anyos...')
+        return
     os_list = ScanXML(gendir,'Os')
     if(len(ScanFrom(os_list,'General')) == 0):return
     os_ref = getOsRef(os_list)

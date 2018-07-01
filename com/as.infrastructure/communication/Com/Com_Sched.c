@@ -72,7 +72,7 @@ void Com_MainFunctionRx(void) {
 				pduUpdated = true;
 			}
 		}
-		if (pduUpdated && IPdu->ComIPduSignalProcessing == DEFERRED && IPdu->ComIPduDirection == RECEIVE) {
+		if (pduUpdated && IPdu->ComIPduSignalProcessing == COM_DEFERRED && IPdu->ComIPduDirection == COM_RECEIVE) {
 			UnlockTpBuffer(getPduId(IPdu));
 
 			/* Can only have one dynamic length signal for each PDU so just copy the length */
@@ -108,18 +108,18 @@ void Com_MainFunctionTx(void) {
 		Irq_Save(irq_state);
 
 		// Is this a IPdu that should be transmitted?
-		if ( (IPdu->ComIPduDirection == SEND) && (Arc_IPdu->Com_Arc_IpduStarted) ) {
+		if ( (IPdu->ComIPduDirection == COM_SEND) && (Arc_IPdu->Com_Arc_IpduStarted) ) {
 			// Decrease minimum delay timer
 			timerDec(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduMinimumDelayTimer);
 
 			// If IPDU has periodic or mixed transmission mode.
-			if ( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == PERIODIC)
-				|| (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED) ) {
+			if ( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_PERIODIC)
+				|| (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_MIXED) ) {
 
 				timerDec(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeTimePeriodTimer);
 
 				// Is it time for a direct transmission?
-				if ( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == MIXED)
+				if ( (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_MIXED)
 					&& (Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft > 0) ) {
 
 					timerDec(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeRepetitionPeriodTimer);
@@ -148,7 +148,7 @@ void Com_MainFunctionTx(void) {
 				}
 
 			// If IPDU has direct transmission mode.
-			} else if (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == DIRECT) {
+			} else if (IPdu->ComTxIPdu.ComTxModeTrue.ComTxModeMode == COM_DIRECT) {
 				// Do we need to transmit anything?
 				if (Arc_IPdu->Com_Arc_TxIPduTimers.ComTxIPduNumberOfRepetitionsLeft > 0) {
 					timerDec(Arc_IPdu->Com_Arc_TxIPduTimers.ComTxModeRepetitionPeriodTimer);

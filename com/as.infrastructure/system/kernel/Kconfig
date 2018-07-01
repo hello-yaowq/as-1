@@ -52,6 +52,9 @@ config TOPPERS_OSEK
 config FREERTOS
 	bool "freertos"
 
+config ANYOS
+	bool "any other 3rd party OS under board.any"
+
 endchoice
 
 config PROTOTHREAD

@@ -354,7 +354,9 @@ nofralloc
 
 l_nosave:
 	lis r11, CallLevel@h
-	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
+	lwz r12, CallLevel@l(r11)
+	subi r1, r1, 4 /* save CallLevel in stack */
+	stw r12, 0(r1)
 	li r3, 2 /* TCL_ISR2 */
 	stw r3, CallLevel@l(r11)
 	blr
@@ -364,6 +366,8 @@ __asm void LeaveISR(void)
 {
 nofralloc
 	wrteei 0
+	lwz r12, 0(r1)
+	addi r1, r1, 4
 	lis r11, CallLevel@h
 	stw r12, CallLevel@l(r11)
 
@@ -382,7 +386,7 @@ nofralloc
 	lis r11, CallLevel@h
 	lwz r12, CallLevel@l(r11)
 	cmpwi r12, 1  /* TCL_TASK */
-	bne l_nodispatch
+	bne l_nopreempt
 
 	lis r11, ReadyVar@h
 	lwz r12, ReadyVar@l(r11)

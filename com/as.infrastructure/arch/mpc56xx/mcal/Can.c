@@ -389,12 +389,13 @@ static void Can_Err(int unit)
     esr = canHw->ESR.R;
     if( esr & ESR_ERRINT )
     {
+#if 0
 		if (GET_CALLBACKS()->Arc_Error != NULL) {
 			GET_CALLBACKS()->Arc_Error(unit, err);
 		}
 
 		Can_SetControllerMode(unit, CAN_T_STOP); // CANIF272 Same handling as for busoff
-
+#endif
 		// Clear ERRINT
 		canHw->ESR.R = ESR_ERRINT;
     }

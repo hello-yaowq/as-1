@@ -113,6 +113,10 @@ def GenH(gendir,os_list):
     except KeyError:
         fp.write('#define OS_USE_POSTTASK_HOOK\n')
     try:
+        fp.write('#ifndef USE_PTHREAD\n')
+        fp.write('#define OS_PTHREAD_NUM 0\n')
+        fp.write('#define OS_PTHREAD_PRIORITY 0\n')
+        fp.write('#endif\n')
         fp.write('#ifndef OS_PTHREAD_NUM\n#define OS_PTHREAD_NUM %s\n#endif\n'%(GAGet(general,'PTHREAD')))
         fp.write('#ifndef OS_PTHREAD_PRIORITY\n#define OS_PTHREAD_PRIORITY %s\n#endif\n'%(GAGet(general,'PTHREAD_PRIORITY')))
     except KeyError:

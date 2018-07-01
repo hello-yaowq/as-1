@@ -38,7 +38,7 @@ void Com_CopySignalGroupDataFromShadowBufferToPdu(const Com_SignalIdType signalG
 	const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
 
 	uint8 *pduDataPtr = 0;
-	if (IPdu->ComIPduSignalProcessing == DEFERRED && IPdu->ComIPduDirection == RECEIVE) {
+	if (IPdu->ComIPduSignalProcessing == COM_DEFERRED && IPdu->ComIPduDirection == COM_RECEIVE) {
 		pduDataPtr = IPdu->ComIPduDeferredDataPtr;
 	} else {
 		pduDataPtr = IPdu->ComIPduDataPtr;
@@ -62,7 +62,7 @@ void Com_CopySignalGroupDataFromPduToShadowBuffer(const Com_SignalIdType signalG
 	const ComIPdu_type *IPdu = GET_IPdu(Signal->ComIPduHandleId);
 
 	const uint8 *pduDataPtr = 0;
-	if (IPdu->ComIPduSignalProcessing == DEFERRED && IPdu->ComIPduDirection == RECEIVE) {
+	if (IPdu->ComIPduSignalProcessing == COM_DEFERRED && IPdu->ComIPduDirection == COM_RECEIVE) {
 		pduDataPtr = IPdu->ComIPduDeferredDataPtr;
 	} else {
 		pduDataPtr = IPdu->ComIPduDataPtr;
@@ -501,14 +501,14 @@ void Com_RxProcessSignals(const ComIPdu_type *IPdu,Com_Arc_IPdu_type *Arc_IPdu) 
 			}
 
 			// Check the signal processing mode.
-			if (IPdu->ComIPduSignalProcessing == IMMEDIATE) {
+			if (IPdu->ComIPduSignalProcessing == COM_IMMEDIATE) {
 				// If signal processing mode is IMMEDIATE, notify the signal callback.
 				if (IPdu->ComIPduSignalRef[i]->ComNotification != NULL) {
 					IPdu->ComIPduSignalRef[i]->ComNotification();
 				}
 
 			} else {
-				// Signal processing mode is DEFERRED, mark the signal as updated.
+				// Signal processing mode is COM_DEFERRED, mark the signal as updated.
 				Arc_Signal->ComSignalUpdated = 1;
 			}
 
