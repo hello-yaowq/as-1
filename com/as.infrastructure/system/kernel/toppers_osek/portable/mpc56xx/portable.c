@@ -271,16 +271,25 @@ nofralloc
 	wrteei 0
 	lis r10, schedtsk@h
 	ori r10, r10, schedtsk@l
-l_loop:
 	lbz r0, 0(r10)
 	cmpwi r0, 0xFF /* 0xFF means invalid task */
 	bne l_exit
+	/* load system stack */
+	lis r1, _stack_addr@h
+	ori r1, r1, _stack_addr@l
+	subi r1, r1, STACK_PROTECT_SIZE
+l_loop:
 	wrteei 1
 	nop
 	nop
 	nop
 	nop
 	wrteei 0
+	lis r10, schedtsk@h
+	ori r10, r10, schedtsk@l
+	lbz r0, 0(r10)
+	cmpwi r0, 0xFF /* 0xFF means invalid task */
+	bne l_exit
 	b l_loop
 l_exit:
 	lis r11, runtsk@h

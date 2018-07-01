@@ -276,10 +276,14 @@ nofralloc
 	/* R10 = &ReadyVar */
 	lis r10, ReadyVar@h
 	ori r10, r10,ReadyVar@l
-l_loop:
 	lwz r12, 0(r10)
 	cmpwi r12, 0
 	bne l_exit
+	/* load system stack */
+	lis r1, _stack_addr@h
+	ori r1, r1, _stack_addr@l
+	subi r1, r1, STACK_PROTECT_SIZE
+l_loop:
 	/* Interrupt enable */
 	wrteei 1
 	nop
@@ -288,6 +292,11 @@ l_loop:
 	nop
 	wrteei 0
 	bl Sched_GetReady
+	lis r10, ReadyVar@h
+	ori r10, r10,ReadyVar@l
+	lwz r12, 0(r10)
+	cmpwi r12, 0
+	bne l_exit
 	b l_loop
 l_exit:
 	lis r11, RunningVar@h
