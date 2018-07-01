@@ -27,16 +27,21 @@ StatusType SignalCounter(CounterType CounterID)
 	imask_t imask;
 	AlarmVarType *pVar;
 	AlarmType AlarmID;
+	unsigned int savedLevel;
+	TickType curValue;
 
 	if(CounterID < COUNTER_NUM)
 	{
 		Irq_Save(imask);
+		savedLevel = CallLevel;
+		CallLevel = TCL_LOCK;
 		/* yes, only software counter supported */
 		CounterVarArray[CounterID].value++;
+		curValue = CounterVarArray[CounterID].value;
 		#if (ALARM_NUM > 0)
 		while(NULL != (pVar = TAILQ_FIRST(&CounterVarArray[CounterID].head))) /* intended '=' */
 		{
-			if (pVar->value == CounterVarArray[CounterID].value)
+			if (pVar->value == curValue)
 			{
 				AlarmID = pVar - AlarmVarArray;
 				TAILQ_REMOVE(&CounterVarArray[CounterID].head, &AlarmVarArray[AlarmID], entry);
@@ -49,7 +54,7 @@ StatusType SignalCounter(CounterType CounterID)
 				if(AlarmVarArray[AlarmID].period != 0)
 				{
 					Os_StartAlarm(AlarmID,
-						(TickType)(CounterVarArray[CounterID].value+AlarmVarArray[AlarmID].period),
+						(TickType)(curValue+AlarmVarArray[AlarmID].period),
 						AlarmVarArray[AlarmID].period);
 				}
 			}
@@ -59,6 +64,7 @@ StatusType SignalCounter(CounterType CounterID)
 			}
 		}
 		#endif
+		CallLevel = savedLevel;
 		Irq_Restore(imask);
 	}
 	else

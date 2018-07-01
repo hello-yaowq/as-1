@@ -394,6 +394,8 @@ void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle)
 
 	TickType left = (TickType)(Start-curValue);
 
+	asAssert(FALSE == OS_IS_ALARM_STARTED(&AlarmVarArray[AlarmID]));
+
 	AlarmVarArray[AlarmID].value  = Start;
 	AlarmVarArray[AlarmID].period = Cycle;
 

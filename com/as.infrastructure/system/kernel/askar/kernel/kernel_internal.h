@@ -61,6 +61,8 @@ enum {
 #define TCL_PREPOST		((unsigned int) 0x08)	/* PreTaskHook & PostTaskHook */
 #define TCL_STARTUP		((unsigned int) 0x10)	/* StartupHook */
 #define TCL_SHUTDOWN	((unsigned int) 0x20)	/* ShutdownHook */
+#define TCL_LOCK		((unsigned int) 0x40)	/* lock dispatcher */
+
 
 #define INVALID_PRIORITY	((PriorityType)-1)
 
