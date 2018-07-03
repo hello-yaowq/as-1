@@ -64,6 +64,7 @@ struct shellWord {
 /* ----------------------------[Private function prototypes]-----------------*/
 
 static int shellHelp(int argc, char *argv[] );
+static int shellMem(int argc, char *argv[] );
 #ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
 #endif
@@ -79,6 +80,17 @@ static SHELL_CONST ShellCmdT helpInfo  = {
 		"help",
 		"help <cmd>",
 		"Show all commands all help no a specific command\n",
+		{NULL,NULL}
+};
+
+static SHELL_CONST ShellCmdT cmdMem  = {
+		shellMem,
+		2,3,
+		"mem",
+		"mem op addr [size/value]",
+		"read or write memory at addr\n"
+		"op is 'r' for read, the size follow addr, the size can be optional, default 4 bytes\n"
+		"op must be one of 'b'(byte),'h'(half word) and 'w'(word) for write, the value follow addr",
 		{NULL,NULL}
 };
 
@@ -237,6 +249,38 @@ static int shellHelp(int argc, char *argv[] ) {
 	return 0;
 }
 
+
+static int shellMem(int argc, char *argv[] ) {
+	int rv = 0;
+	uint32 addr;
+	uint32 value = 4;
+
+	if(argc == 4) {
+		value = strtoul(argv[3], NULL, 16);
+	}
+
+	addr  = strtoul(argv[2], NULL, 16);
+
+	switch(argv[1][0]) {
+		case 'b':
+			*(volatile uint8*)addr = value;
+			break;
+		case 'h':
+			*(volatile uint16*)addr = value;
+			break;
+		case 'w':
+			*(volatile uint32*)addr = value;
+			break;
+		case 'r':
+			asmem("MEM", (void*)addr, value);
+			break;
+		default:
+			SHELL_printf("invalid op '%s'\n", argv[1]);
+			rv = -1;
+			break;
+	}
+	return rv;
+}
 /* ----------------------------[Public functions]----------------------------*/
 
 /**
@@ -248,6 +292,7 @@ int SHELL_Init( void ) {
 	TAILQ_INIT(&shellWorld.cmdHead);
 #if !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&helpInfo);
+	SHELL_AddCmd(&cmdMem);
 #endif
 	return 0;
 }
@@ -396,7 +441,8 @@ int SHELL_Mainloop( void ) {
 			lineIndex = 0;
 		}
 
-		if( c == '\b') {
+		/* for putty, backspace key value is 0x7f */
+		if( (c == '\b') || (c == 0x7f)) {
 			lineIndex--;
 			#ifdef ENABLE_SHELL_ECHO_BACK
 			SHELL_putc(c);

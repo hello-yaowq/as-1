@@ -23,6 +23,9 @@
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif
+#if defined(USE_DIO)
+#include "Dio.h"
+#endif
 //#include "Cpu.h"
 //#include "Ramlog.h"
 #include "Os.h"
@@ -227,6 +230,12 @@ void TaskIdleHook(void)
 		if('\r' == ch) ch = '\n';
 		SHELL_input(ch);
 	}
+#endif
+#if defined(USE_DIO)
+	Dio_WriteChannel(DIO_PIN_LED1, Dio_ReadChannel(DIO_PIN_KEY1));
+	Dio_WriteChannel(DIO_PIN_LED2, Dio_ReadChannel(DIO_PIN_KEY2));
+	Dio_WriteChannel(DIO_PIN_LED3, Dio_ReadChannel(DIO_PIN_KEY3));
+	Dio_WriteChannel(DIO_PIN_LED4, Dio_ReadChannel(DIO_PIN_KEY4));
 #endif
 }
 
