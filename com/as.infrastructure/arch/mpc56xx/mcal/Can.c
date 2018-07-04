@@ -160,7 +160,11 @@
 
 #define AS_LOG_CAN 1
 #define MAX_NUM_OF_MAILBOXES    64
+#ifdef USE_SHELL
+#define USE_CAN_STATISTICS      STD_ON
+#else
 #define USE_CAN_STATISTICS      STD_OFF
+#endif
 
 // Message box status defines
 #define MB_TX_ONCE              0xc
@@ -509,6 +513,7 @@ static void Can_BusOff(int unit)
 #endif
 
     if (canHw->ESR.B.BOFFINT) {
+        ASLOG(CAN,"CAN%d bus off\n", unit);
 #if (USE_CAN_STATISTICS == STD_ON)
         canUnit->stats.boffCnt++;
 #endif
@@ -1193,7 +1198,7 @@ Can_ReturnType Can_SetControllerMode(uint8 controller,
 
     switch (transition) {
     case CAN_T_START:
-    	canHw->MCR.B.FRZ = 0;
+        ASLOG(CAN,"start CAN%d\n", controller);
         canHw->MCR.B.HALT = 0;
         canUnit->state = CANIF_CS_STARTED;
         Irq_Save(state);
@@ -1209,6 +1214,7 @@ Can_ReturnType Can_SetControllerMode(uint8 controller,
         // Should be reported to DEM but DET is the next best
         VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
     case CAN_T_STOP:
+        ASLOG(CAN,"stop CAN%d\n", controller);
         // Stop
         canHw->MCR.B.HALT = 1;
         canUnit->state = CANIF_CS_STOPPED;
@@ -1582,6 +1588,32 @@ void Can_Arc_GetStatistics(uint8 controller, Can_Arc_StatisticsType *stats)
 	{
 		Can_UnitType *canUnit = CTRL_TO_UNIT_PTR(controller);
 		*stats = canUnit->stats;
+	}
+}
+#endif
+
+#ifdef USE_SHELL
+#include "shell.h"
+void statCan(void)
+{
+	Can_UnitType *uPtr;
+	if(Can_Global.initRun == CAN_READY)
+	{
+		for(int i=0;i<CAN_ARC_CTRL_CONFIG_CNT; i++ ) {
+			uPtr = &CanUnit[i];
+			SHELL_printf("CAN%d state is %d\n"
+					"  txSuccessCnt=%d, rxSuccessCnt=%d,\n"
+					"  txErrorCnt=%d, rxErrorCnt=%d,\n"
+					"  busOffCnt=%d, fifoOverflow=%d, fifoWarning=%d\n",
+					i, uPtr->state,
+					uPtr->stats.txSuccessCnt,
+					uPtr->stats.rxSuccessCnt,
+					uPtr->stats.txErrorCnt,
+					uPtr->stats.rxErrorCnt,
+					uPtr->stats.boffCnt,
+					uPtr->stats.fifoOverflow,
+					uPtr->stats.fifoWarning);
+		}
 	}
 }
 #endif

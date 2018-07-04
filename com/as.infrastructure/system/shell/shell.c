@@ -64,7 +64,9 @@ struct shellWord {
 /* ----------------------------[Private function prototypes]-----------------*/
 
 static int shellHelp(int argc, char *argv[] );
+#ifdef USE_MEM_CMD
 static int shellMem(int argc, char *argv[] );
+#endif
 #ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
 #endif
@@ -82,7 +84,9 @@ static SHELL_CONST ShellCmdT helpInfo  = {
 		"Show all commands all help no a specific command\n",
 		{NULL,NULL}
 };
+SHELL_CMD_EXPORT(helpInfo)
 
+#ifdef USE_MEM_CMD
 static SHELL_CONST ShellCmdT cmdMem  = {
 		shellMem,
 		2,3,
@@ -93,8 +97,12 @@ static SHELL_CONST ShellCmdT cmdMem  = {
 		"op must be one of 'b'(byte),'h'(half word) and 'w'(word) for write, the value follow addr",
 		{NULL,NULL}
 };
+SHELL_CMD_EXPORT(cmdMem)
+#endif
 
-SHELL_CMD_EXPORT(helpInfo);
+#ifdef USE_FLASH_CMD
+extern SHELL_CONST ShellCmdT cmdFlash;
+#endif
 
 static char cmdBuf[CMDLINE_MAX];
 static char cmdLine[CMDLINE_MAX];
@@ -249,7 +257,7 @@ static int shellHelp(int argc, char *argv[] ) {
 	return 0;
 }
 
-
+#ifdef USE_MEM_CMD
 static int shellMem(int argc, char *argv[] ) {
 	int rv = 0;
 	uint32 addr;
@@ -281,6 +289,7 @@ static int shellMem(int argc, char *argv[] ) {
 	}
 	return rv;
 }
+#endif
 /* ----------------------------[Public functions]----------------------------*/
 
 /**
@@ -292,7 +301,12 @@ int SHELL_Init( void ) {
 	TAILQ_INIT(&shellWorld.cmdHead);
 #if !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&helpInfo);
+#ifdef USE_MEM_CMD
 	SHELL_AddCmd(&cmdMem);
+#endif
+#ifdef USE_FLASH_CMD
+	SHELL_AddCmd(&cmdFlash);
+#endif
 #endif
 	return 0;
 }
