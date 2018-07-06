@@ -61,7 +61,9 @@
 #define kFlashAccerr         0x09
 
 #define FLASH_DRIVER_RELOCATABLE
+#ifndef FLASH_DRIVER_STARTADDRESS
 #define FLASH_DRIVER_STARTADDRESS   ((unsigned long)(&FlashHeader))
+#endif
 #define FLASH_DRIVER_NUMBER_OF_MODULES 1
 
 /* configuration according to the mcu information */

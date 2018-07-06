@@ -23,7 +23,7 @@
 #define FLASH_CMD_MAX_DATA 32
 #endif
 
-#define AS_LOG_FLASH 0
+#define AS_LOG_FLASH 1
 /* ============================ [ DECLARES  ] ====================================================== */
 static int shellFlash(int argc, char *argv[] );
 /* ============================ [ DATAS     ] ====================================================== */
@@ -55,12 +55,13 @@ static int shellFlash(int argc, char *argv[] ) {
 	char* pStr;
 	uint8* pData;
 	size_t len;
+	imask_t imask;
 	static uint32 data[FLASH_CMD_MAX_DATA/sizeof(uint32)];
 	(void)argc;
 
 	if(0xFF == cmdFlashParam.errorcode)
 	{
-		FlashInit(&cmdFlashParam);
+		FLASH_DRIVER_INIT(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
 		rv = -cmdFlashParam.errorcode;
 	}
 
@@ -73,7 +74,9 @@ static int shellFlash(int argc, char *argv[] ) {
 	{
 		cmdFlashParam.length = strtoul(argv[3], NULL, 16);
 		ASLOG(FLASH, "erase %08X %08X\n", cmdFlashParam.address, cmdFlashParam.length);
-		FlashErase(&cmdFlashParam);
+		Irq_Save(imask);
+		FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
+		Irq_Restore(imask);
 		rv = -cmdFlashParam.errorcode;
 	}
 	else if(0 == strcmp(argv[1], "write"))
@@ -97,7 +100,9 @@ static int shellFlash(int argc, char *argv[] ) {
 					cmdFlashParam.address, len/2,
 					cmdFlashParam.data[0],cmdFlashParam.data[1]);
 			cmdFlashParam.length = len/2;
-			FlashWrite(&cmdFlashParam);
+			Irq_Save(imask);
+			FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
+			Irq_Restore(imask);
 			rv = -cmdFlashParam.errorcode;
 		}
 		else

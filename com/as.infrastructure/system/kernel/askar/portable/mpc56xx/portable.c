@@ -265,8 +265,6 @@ nofralloc
 __declspec (section ".__exception_handlers") extern long EXCEPTION_HANDLERS;
 #pragma force_active on
 #pragma function_align 16 /* We use 16 bytes alignment for Exception handlers */
-__declspec(interrupt)
-__declspec (section ".__exception_handlers")
 
 __asm void Os_PortStartDispatch( void )
 {
@@ -427,6 +425,8 @@ l_nodispatch:
 	rfi
 }
 
+__declspec(interrupt)
+__declspec (section ".__exception_handlers")
 __asm void Os_PortDispatchEntry(void)
 {
 nofralloc
@@ -444,6 +444,8 @@ nofralloc
 	b Os_PortStartDispatch
 }
 
+__declspec(interrupt)
+__declspec (section ".__exception_handlers")
 __asm void Os_PortTickISR(void)
 {
 nofralloc
@@ -463,6 +465,8 @@ nofralloc
 	b LeaveISR
 }
 
+__declspec(interrupt)
+__declspec (section ".__exception_handlers")
 __asm void Os_PortExtISR(void)
 {
 nofralloc

@@ -136,6 +136,37 @@
 	}
 
 #define AS_LOG_FLS 0
+
+/* below is codewarrior 2.10 lcf used to compile this Flash driver
+ * to s19 record file. Need to set the Entry Point to FlashHeader
+MEMORY
+{
+    flsram  :                org = 0x40014000,   len = 0x00001000
+}
+SECTIONS
+{
+
+    GROUP  : {
+      .rodata (CONST) : {
+         *(.rdata)
+         *(.rodata)
+       }
+      .text : {}
+      .text_vle (VLECODE) ALIGN(0x08): {
+         *(.text)
+         *(.text_vle)
+       }
+       .sdata  : {}
+       .sbss   : {}
+       .sdata2 : {}
+       .init  : {}
+      .init_vle (VLECODE) : {
+        *(.init)
+        *(.init_vle)
+      }
+    } > flsram
+}
+ */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
