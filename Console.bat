@@ -49,6 +49,8 @@ cd %ASPATH%
 set ASROOT=%ASPATH%
 set PYTHONPATH=%ASPATH%/com/as.tool/config.infrastructure.system;%ASPATH%/com/as.tool/config.infrastructure.system/third_party;%PYTHONPATH%
 set ISMSYS2=YES
+REM check CI parameter
+IF "%1"=="ci" goto runCI
 if EXIST %ConEmu% goto launchConEmu
 if EXIST %CZ% goto launchCZ
 
@@ -64,6 +66,30 @@ exit 0
 start %CZ% -ws %ASPATH%\ConsoleZ.workspace
 exit 0
 
+:runCI
+%ASDISK%
+cd \
+mkdir asci
+cd asci
+git clone https://github.com/parai/as.git
+cd as\release
+rm download -fr
+mkdir download
+git pull
+cd aslua
+make aslua
+cd ..\ascore
+set BOARD=posix
+scons
+set BOARD=versatilepb
+scons
+cd ..\asboot
+set BOARD=posix
+scons
+set BOARD=versatilepb
+scons
+goto exitPoint
+
 :install_msys2
 set msys2="www.msys2.org"
 echo Please visit %msys2% and install msys2 as c:\msys64
@@ -73,3 +99,5 @@ exit -1
 :perror
 echo Please fix the var "ASDISK" and "ASPATH" to the right path!
 pause
+
+:exitPoint

@@ -3,7 +3,10 @@ import sys
 import shutil
 import string
 import re
-from SCons.Script import *
+try:
+    from SCons.Script import *
+except ImportError:
+    pass # if used by ctest.py
 
 Env = None
 
