@@ -12,6 +12,11 @@ objs = []
 if('ANYOS' not in MODULES):
     asenv.Append(CPPPATH=[cwd])
     objs += Glob('*.c')
+else:
+    # simple OSAL just make BSW of as build pass and then 
+    # to post link with other OS
+    asenv.Append(CPPPATH=['%s/small'%(cwd)])
+    asenv.Append(CPPDEFINES=['USE_OSAL'])
 
 if('ASKAR' in MODULES):
     objs += SConscript('askar/SConscript')

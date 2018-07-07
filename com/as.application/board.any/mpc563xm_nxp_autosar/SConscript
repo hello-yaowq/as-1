@@ -14,7 +14,7 @@ asenv.Append(LINKFLAGS=['-srec','mpc56xx.s19','-sreceol','unix'])
 asenv.Append(LINKFLAGS=['-m','_start'])
 asenv.Append(LINKFLAGS=['-romaddr','0x0','-rambuffer','0x0','-gdwarf-2',
                         '-code_merging','all'])
-asenv.Append(LINKFLAGS=['-map','build/mpc56xx/mpc56xx.map'])
+asenv.Append(LINKFLAGS=['-map','build/any/mpc56xx.map'])
 
 # fork env for NXP AUTOSAR BSW
 env = ForkEnv(asenv)
@@ -25,6 +25,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CLIB_STDIO_PRINTF',
            'ANYOS',
+           'PORT','DIO','ADC',
            'CAN','CANIF','PDUR','COM','COMM',
            'MPC5634M_MLQB80'
            ]
@@ -45,7 +46,13 @@ if(os.getenv('NXPMCAL')):
 else:
     nxpmcal = 'C:/Freescale/AUTOSAR/MPC563XM_MCAL3.0_RTM_2.0.0_signed'
 
+if(os.getenv('NXPOS')):
+    nxpos = os.getenv('NXPOS')
+else:
+    nxpos = 'C:/Freescale/AUTOSAR/os_freescale_mpc56xxAM'
+
 MKSymlink(nxpmcal, '%s/mcal'%(cwd))
+MKSymlink(nxpos, '%s/os'%(cwd))
 
 objs = []
 
@@ -53,24 +60,56 @@ env.Append(CPPPATH=['%s/config/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/Base_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/cfg/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/include'%(cwd)])
+env.Append(CPPPATH=['%s/mcal/Dem_TS_T2D14M20I0R0/include'%(cwd)])
+env.Append(CPPPATH=['%s/mcal/Det_TS_T2D14M20I0R0/include'%(cwd)])
+env.Append(CPPPATH=['%s/os/ssc/inc'%(cwd)])
+
+for m in MODULES:
+    env.Append(CPPDEFINES=['USE_%s'%(m)])
+
+objs += Glob('app/*.c')
+
+if('CANIF' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/CanIf_TS_T2D14M20I0R0/include'%(cwd)])
 
 if('CAN' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/Can_TS_T2D14M20I0R0/include'%(cwd)])
     objs += Glob('config/src/Can*.c')
+    objs += Glob('mcal/Can_TS_T2D14M20I0R0/src/*.c')
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Can.c')
+    env.Append(CPPDEFINES=['Can_ConfigSet_PC=Can_ConfigData',
+                           'ControllerConfigs_PC=Can_ControllerCfgData'])
 
 if('DIO' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/Dio_TS_T2D14M20I0R0/include'%(cwd)])
     objs += Glob('config/src/Dio*.c')
+    objs += Glob('mcal/Dio_TS_T2D14M20I0R0/src/*.c')
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Dio.c')
 
 if('MCU' in MODULES):
     env.Append(CPPPATH=['%s/mcal/Mcu_TS_T2D14M20I0R0/include'%(cwd)])
     objs += Glob('config/src/Mcu*.c')
     objs += Glob('mcal/Mcu_TS_T2D14M20I0R0/src/*.c')
+    env.Append(CPPDEFINES=['MCU_INIT_CONFIG_PC=McuConfigData'])
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Mcu.c')
 
 if('SCHM' in MODULES):
     env.Append(CPPPATH=['%s/mcal/SchM_TS_T2D14M20I0R0/include'%(cwd)])
     objs += Glob('config/src/SchM*.c')
 
 if('PORT' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/Port_TS_T2D14M20I0R0/include'%(cwd)])
     objs += Glob('config/src/Port*.c')
+    objs += Glob('mcal/Port_TS_T2D14M20I0R0/src/*.c')
+    env.Append(CPPDEFINES=['Port_ConfigPC=PortConfigData'])
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Port.c')
+
+if('ADC' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/Adc_TS_T2D14M20I0R0/include'%(cwd)])
+    objs += Glob('config/src/Adc*.c')
+    objs += Glob('mcal/Adc_TS_T2D14M20I0R0/src/*.c')
+    env.Append(CPPDEFINES=['AdcConfigSet_0=AdcConfig'])
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Adc.c')
 
 objs = env.Object(objs)
 
@@ -82,5 +121,9 @@ if('MPC5634M_MLQB80' in MODULES):
     asenv.Append(CPPPATH=['%s/MPC5634M_MLQB80/Project/src'%(cwd)])
     MKSymlink('%s/MPC5634M_MLQB80/Project/src/MPC5634M_MLQB80.h'%(cwd),
               '%s/MPC5634M_MLQB80/Project/src/mpc56xx.h'%(cwd))
+
+asenv.Append(CPPPATH=['%s/com/as.application/board.posix/common'%(ASROOT)])
+if('ANYOS' in MODULES):
+    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/kernel'%(ASROOT)])
 
 Return('objs')

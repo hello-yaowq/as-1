@@ -61,7 +61,8 @@ __osgen__ = {'freeosek':gen_freeosek,
              'trampoline':gen_trampoline,
              'rtthread':gen_osal,
              'tinix':gen_osal,
-             'askar':gen_askar
+             'askar':gen_askar,
+             'anyos':gen_osal,
             }
 
 def getOsRef(os_list):
@@ -74,9 +75,6 @@ def getOsRef(os_list):
     return 'askar'
     
 def OsGen(gendir):
-    if(defaultOS == 'anyos'):
-        print('  ==> skipping OSGen as set anyos...')
-        return
     os_list = ScanXML(gendir,'Os')
     if(len(ScanFrom(os_list,'General')) == 0):return
     os_ref = getOsRef(os_list)

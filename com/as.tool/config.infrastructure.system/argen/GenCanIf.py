@@ -258,7 +258,6 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
             isEol='FALSE'
         cstr += """
     {
-        .CanConfigSet = &Can_ConfigSetData,
         .CanIfHrhConfig = CanIfHrhConfigData_%s,
         .CanIfHthConfig = CanIfHthConfigData_%s,
         .CanIf_Arc_EOL = %s

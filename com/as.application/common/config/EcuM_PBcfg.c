@@ -40,7 +40,6 @@ extern const Can_ConfigType Can_ConfigData;
 extern const J1939Tp_ConfigType J1939Tp_Config;
 #endif
 
-
 const EcuM_SleepModeType EcuM_SleepModeConfig[] = {
 	{ // EcuMSleepMode 
 		.EcuMSleepModeId = ECUM_SLEEP_MODE_ECUMSLEEPMODE,
@@ -118,10 +117,10 @@ EcuM_ConfigType EcuMConfig =
 	.J1939TpConfig = &J1939Tp_Config,
 #endif
 #if defined(USE_DMA)
-	.DmaConfig = DmaConfig,
+	.DmaConfig = &DmaConfig,
 #endif
 #if defined(USE_ADC)
-	.AdcConfig = AdcConfig,
+	.AdcConfig = &AdcConfig,
 #endif
 #if defined(USE_PWM)
 	.PwmConfig = &PwmConfig,
@@ -136,7 +135,7 @@ EcuM_ConfigType EcuMConfig =
     .WdgIfConfig = &WdgIfConfig,
 #endif
 #if defined(USE_GPT)
-	.GptConfig = GptConfigData,
+	.GptConfig = &GptConfigData,
 #endif
 #if defined(USE_FLS)
 	.FlashConfig = FlsConfigSet,

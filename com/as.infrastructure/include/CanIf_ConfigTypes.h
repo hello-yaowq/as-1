@@ -140,9 +140,6 @@ typedef struct {
  */
 /** Definition of Hardware Object Handle. */
 typedef struct {
-  /** Reference to the CAN Driver controller config. */
-  const Can_ConfigSetType   *CanConfigSet;
-
   /** This container contains contiguration parameters for each hardware receive object. */
   const CanIf_HrhConfigType *CanIfHrhConfig;
 

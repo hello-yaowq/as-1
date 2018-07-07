@@ -581,7 +581,16 @@ def GetELFEnv(so=True):
 def ForkEnv(father):
     child = Environment()
     for key,v in father.items():
-        child[key] = v
+        if(type(v) is list):
+            child[key] = list(v)
+        elif(type(v) is str):
+            child[key] = str(v)
+        elif(type(v) is dict):
+            child[key] = dict(v)
+        elif(type(v) is SCons.Util.CLVar):
+            child[key] = SCons.Util.CLVar(v)
+        else:
+            child[key] = v
     return child
 
 class Qemu():
