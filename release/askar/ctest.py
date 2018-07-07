@@ -17,10 +17,12 @@
 
 import os,sys,re
 import xml.etree.ElementTree as ET
-
-sys.path.append('../../com/as.tool/config.infrastructure.system/aroil')
+studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
+sys.path.append(studio)
+sys.path.append('%s/aroil'%(studio))
 
 import reoil
+from building import *
 
 CTEST='../../com/as.infrastructure/system/kernel/freeosek/tst/ctest'
 
@@ -195,6 +197,9 @@ def test(target,case,vv):
     check(target,case)
 
 if(__name__ == '__main__'):
+    AppendPythonPath(['../../com/as.tool/config.infrastructure.system',
+              '../../com/as.tool/config.infrastructure.system/third_party'])
+
     if(len(sys.argv) == 2 and sys.argv[1] == 'all'):
         cfg = parse()
         for v in cfg:
