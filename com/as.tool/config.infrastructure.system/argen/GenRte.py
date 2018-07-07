@@ -21,12 +21,6 @@
 """
 import sys,os
 from .GCF import *
-if(os.path.exists('../../com/as.tool/config.infrastructure.system/third_party')):
-    sys.path.append(os.path.abspath('../../com/as.tool/config.infrastructure.system/third_party'))
-elif(os.path.exists('third_party')):
-    sys.path.append(os.path.abspath('third_party'))
-else:
-    raise Exception("can't locate config.infrastructure.system")
 
 if(sys.version_info > (3,0)):
     import autosar

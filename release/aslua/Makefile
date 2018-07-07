@@ -47,14 +47,19 @@ endif
 ifeq ($(host), MSYS_NT-10.0)
 export msys2 = yes
 endif
+ifeq ($(host), MINGW32_NT-6.2)
+export msys2 = yes
+endif
+# force using msys2 if invoke from Console.bat
+ifeq ($(ISMSYS2), YES)
+export msys2 = yes
+endif
 ifeq ($(msys2),yes)
 PY27 = /c/Python27/python
 PY34 = /c/Anaconda3/python
-
 else
 PY27 = C:/Python27/python
 PY34 = C:/Anaconda3/python
-$(error this is not right)
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
@@ -351,7 +356,7 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@gcc -D__SOCKET_WIN_CAN_DRIVER__ $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
 	@cp -v $(exe-dir)/socketwin_can_driver.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 endif

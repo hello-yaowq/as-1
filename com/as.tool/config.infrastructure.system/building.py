@@ -4,8 +4,6 @@ import shutil
 import string
 import re
 from SCons.Script import *
-import xcc
-import argen
 
 Env = None
 
@@ -85,13 +83,24 @@ def AppendPythonPath(lp):
     os.environ['PYTHONPATH'] = pypath
 
 def PrepareEnv(release):
-    ASROOT=os.path.abspath('%s/../..'%(os.curdir))
+    # loop to search the ASROOT
+    if(os.getenv('ASPATH')):
+        ASROOT = os.getenv('ASPATH')
+    else:
+        p = os.curdir
+        while(True):
+            p=os.path.abspath('%s/..'%(p))
+            if(os.path.isdir('%s/com'%(p)) and 
+               os.path.isdir('%s/release'%(p)) and
+               os.path.isfile('%s/Console.bat'%(p))): break
+        ASROOT=p
     BOARD=None
 
     AppendPythonPath(['%s/com/as.tool/config.infrastructure.system'%(ASROOT),
               '%s/com/as.tool/config.infrastructure.system/third_party'%(ASROOT)])
 
     asenv=Environment(TOOLS=['as','gcc','g++','gnulink'])
+    os.environ['ASROOT'] = ASROOT
     asenv['ASROOT'] = ASROOT
     asenv['RELEASE'] = release
     board_list = []
@@ -286,6 +295,7 @@ def GetConfig(cfg,env):
 
 def menuconfig(env):
     import time
+    import xcc
     kconfig = '%s/com/as.tool/kconfig-frontends/kconfig-mconf'%(env['ASROOT'])
     if(IsPlatformWindows()):
         kconfig += '.exe'
@@ -564,6 +574,12 @@ def GetELFEnv(so=True):
     if(IsPlatformWindows()):
         env['SHLINKCOM'] = '$SHLINK $SHLINKFLAGS $SOURCES -o $TARGET'
     return env
+
+def ForkEnv(father):
+    child = Environment()
+    for key,v in father.items():
+        child[key] = v
+    return child
 
 class Qemu():
     def __init__(self, qemu=None):
@@ -877,6 +893,8 @@ def BuildOFS(ofs):
         MKObject([src], tgt, cmd)
 
 def Building(target, sobjs, env=None):
+    import xcc
+    import argen
     if(env is None):
         env = Env
     if(GetOption('splint')):

@@ -1,8 +1,8 @@
 @echo off
 
 set ASPATH=%~dp0
-set tmp="%ASPATH%"
-set ASDISK=%tmp:~1,2%
+set astmp="%ASPATH%"
+set ASDISK=%astmp:~1,2%
 set MSYS2="C:\msys64"
 
 %ASDISK%
@@ -48,6 +48,7 @@ echo %MSYS2%\usr\bin\python2.exe %MSYS2%\usr\bin\scons %%* >> scons.bat
 cd %ASPATH%
 set ASROOT=%ASPATH%
 set PYTHONPATH=%ASPATH%/com/as.tool/config.infrastructure.system;%ASPATH%/com/as.tool/config.infrastructure.system/third_party;%PYTHONPATH%
+set ISMSYS2=YES
 if EXIST %ConEmu% goto launchConEmu
 if EXIST %CZ% goto launchCZ
 

@@ -1,3 +1,4 @@
+#ifdef USE_FLASH_CMD
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -118,3 +119,4 @@ static int shellFlash(int argc, char *argv[] ) {
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 
+#endif /* USE_FLASH_CMD */
