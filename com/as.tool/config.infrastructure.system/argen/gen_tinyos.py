@@ -18,8 +18,8 @@ __header = '''/**
 from .util import *
 from .GCF import *
 
-__all__ = ['gen_smallos']
-def SmallOS_TaskList(os_list):
+__all__ = ['gen_tinyos']
+def TinyOS_TaskList(os_list):
     ret_list = []
     task_list = ScanFrom(os_list,'Task')
     for task in task_list:
@@ -39,7 +39,7 @@ def SmallOS_TaskList(os_list):
                 ret_list.append(task)
     return ret_list
     
-def genForSmallOS_H(gendir,os_list):
+def genForTinyOS_H(gendir,os_list):
     fp = open('%s/Os_Cfg.h'%(gendir),'w')
     fp.write(__header)
     fp.write('#ifndef OS_CFG_H\n#define OS_CFG_H\n\n')
@@ -47,9 +47,9 @@ def genForSmallOS_H(gendir,os_list):
     fp.write('#include "Std_Types.h"\n')
     fp.write('#include "os_i.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
-    fp.write('#define __SMALL_OS__\n\n')
+    fp.write('#define __TINY_OS__\n\n')
     fp.write("#define OS_TICKS2MS(a) (a)\n\n")
-    task_list = SmallOS_TaskList(os_list)
+    task_list = TinyOS_TaskList(os_list)
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
     fp.write('#define TASK_NUM%-32s %s\n\n'%(' ',id+1))
@@ -89,7 +89,7 @@ def genForSmallOS_H(gendir,os_list):
     fp.write('\n\n')
     fp.write('#endif /* OS_CFG_H */\n\n')
     fp.close()
-def genForSmallOS_C(gendir,os_list):
+def genForTinyOS_C(gendir,os_list):
     fp = open('%s/Os_Cfg.c'%(gendir),'w')
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
@@ -100,7 +100,7 @@ def genForSmallOS_C(gendir,os_list):
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-    task_list = SmallOS_TaskList(os_list)
+    task_list = TinyOS_TaskList(os_list)
     fp.write('CONST(task_declare_t,AUTOMATIC)  TaskList[TASK_NUM] = \n{\n')
     for id,task in enumerate(task_list):
         fp.write('\tDeclareTask(%-32s, %-5s, %s    ),\n'%(GAGet(task,'Name'),GAGet(task,'Autostart').upper(),'OSDEFAULTAPPMODE'))
@@ -113,6 +113,6 @@ def genForSmallOS_C(gendir,os_list):
     fp.write('};\n\n')
     fp.write('\n\n')
     fp.close()
-def gen_smallos(gendir,os_list):
-    genForSmallOS_H(gendir,os_list)
-    genForSmallOS_C(gendir,os_list)
+def gen_tinyos(gendir,os_list):
+    genForTinyOS_H(gendir,os_list)
+    genForTinyOS_C(gendir,os_list)

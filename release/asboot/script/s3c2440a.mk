@@ -26,7 +26,7 @@ dep-s3c2440a:
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/Os.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/toppers-atk/atk2-sc4/portable/arm920t/gcc/startup.S)
 	@(cd $(src-dir);echo "" > portable.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/EcuM TRUE)

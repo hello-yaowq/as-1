@@ -4,7 +4,7 @@ automotive software and its tool-chain
 [![Build Status](https://travis-ci.org/parai/as.svg?branch=master)](https://travis-ci.org/parai/as)
 
 ## why this repository
-Because I am not powerful so I decided to develop small but smart part of automotive software based on open source, and create a general AUTOSAR & Automotive Software study environment.
+Because I am not powerful so I decided to develop tiny but smart part of automotive software based on open source, and create a general AUTOSAR & Automotive Software study environment.
 
 As below picture shows, it was an virtual cluster based on AUTOSAR and can be simulated on Windows and Linux.
 

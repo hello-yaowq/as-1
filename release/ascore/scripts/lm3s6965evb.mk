@@ -2,7 +2,7 @@
 #rtos?=freeosek
 #rtos?=freertos
 rtos?=toppers_osek
-#rtos?=smallos
+#rtos?=tinyos
 ifeq ($(compiler),cortexm3-gcc)
 link-script = $(src-dir)/linker.lds
 else

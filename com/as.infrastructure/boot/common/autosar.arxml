@@ -22,10 +22,10 @@
 <Can>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" />
 <ControllerList Max="TBD">
-<Controller Baudrate="1000" Comment="*" Name="CAN_CTRL_1" Seg1="13" Seg2="2">
+<Controller Baudrate="1000" Comment="*" Name="CAN_CTRL_0" Seg1="13" Seg2="2">
 <HohList Max="TBD">
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hrh" ObjectType="RECEIVE" />
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hth" ObjectType="TRANSMIT" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hrh" ObjectType="RECEIVE" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hth" ObjectType="TRANSMIT" />
 </HohList>
 </Controller>
 </ControllerList>
@@ -33,16 +33,16 @@
 <CanIf>
 <General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" RxFifoSize="32" TaskFifoMode="ON" TxFifoSize="32" VersionInfoApi="OFF" />
 <ChannelList Max="TBD">
-<Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
+<Channel Comment="*" ControllerRef="CAN_CTRL_0" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
-<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth" />
+<Hth Comment="*" HthRef="Can0Hth" Name="LS_Hth" />
 </HthList>
 <TxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" HthRef="LS_Hth" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" HthRef="LS_Hth" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
 </TxPduList>
 <HrhList Max="TBD">
-<Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
+<Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
 </HrhList>
 <RxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
@@ -334,6 +334,8 @@
 </Xcp>
 <Rte>
 <SwcList Max="TBD" />
+<DataTypeList Max="TBD" />
+<ConstantList Max="TBD" />
 </Rte>
 <Dem>
 <General Comment="*" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_MAX_NUMBER_FF_DATA_PRI_MEM="5" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DEM_USE_NVM="ON" DevelopmentErrorDetection="OFF" NvMFreezeFrameBlock="TBD" NvMHealingBlock="TBD" VersionInfoApi="OFF" />
@@ -344,4 +346,10 @@
 <EventClassList Max="TBD" />
 <EventParameterList Max="TBD" />
 </Dem>
+<J1939Tp>
+<General Comment="*" DevelopmentErrorDetection="OFF" PACKETS_PER_BLOCK="8" TX_CONF_TIMEOUT="1000" VersionInfoApi="OFF" />
+<ChannelList Max="TBD" />
+<ParameterGroupList Max="TBD" />
+<PduInfoList Max="TBD" />
+</J1939Tp>
 </AUTOSAR>

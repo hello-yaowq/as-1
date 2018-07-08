@@ -188,7 +188,7 @@ static void nmAddtoPresent(NetIdType NetId,NodeIdType NodeId)
 		{ /* do ind */
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.SMode == SignalActivation)
 			{
-				#ifdef __SMALL_OS__
+				#ifdef __TINY_OS__
 				#ifdef __WINDOWS__
 				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.normal.EMask);
 				#else
@@ -225,7 +225,7 @@ static void nmAddtoLimphome(NetIdType NetId,NodeIdType NodeId)
 		{ /* do ind */
 			if(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.SMode == SignalActivation)
 			{
-				#ifdef __SMALL_OS__
+				#ifdef __TINY_OS__
 				#ifdef __WINDOWS__
 				(void)SetEvent2(NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.TaskId,NM_ControlBlock[NetId].nmIndDeltaConfig.limphome.EMask);
 				#else
@@ -332,7 +332,7 @@ static void nmNormalStandard(NetIdType NetId,NMPduType* NMPDU)
 				}
 				else if(NM_ControlBlock[NetId].nmRingDataInd.SMode == SignalActivation)
 				{
-					#ifdef __SMALL_OS__
+					#ifdef __TINY_OS__
 					#ifdef __WINDOWS__
 					(void)SetEvent2(NM_ControlBlock[NetId].nmRingDataInd.TaskId,NM_ControlBlock[NetId].nmRingDataInd.EMask);
 					#else

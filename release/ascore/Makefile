@@ -209,9 +209,9 @@ qemu-i386-grub:
 
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
-	make dep board=posix compiler=posix-gcc gui=GTK rtos=smallos
+	make dep board=posix compiler=posix-gcc gui=GTK rtos=tinyos
 92:
-	make all board=posix compiler=posix-gcc gui=GTK rtos=smallos debug=true
+	make all board=posix compiler=posix-gcc gui=GTK rtos=tinyos debug=true
 ifeq ($(host),Linux)
 	pgrep viper|xargs -i kill -9 {}
 else

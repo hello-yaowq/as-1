@@ -53,7 +53,7 @@ ifeq ($(rtos),ucosii)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core ucosii)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core/ucos_ii.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/core/os_dbg_r.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos/os_i.h)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii FALSE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/ucos_ii/portable/raspi/gnu TRUE)
 endif

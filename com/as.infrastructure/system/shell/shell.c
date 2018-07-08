@@ -149,6 +149,9 @@ void SHELL_input(char c)
 		ASWARNING("shell input buffer overflow!\n");
 	}
 #if !defined(__LINUX__) && !defined(__WINDOWS__)
+#ifdef USE_TINYOS
+	OsActivateTask(TaskShell);
+#endif
 	if(E_OK != OsSetEvent(TaskShell, EventShellInput))
 	{
 		asAssert(0);
@@ -167,7 +170,11 @@ static char SHELL_getc(void)
 #if !defined(__LINUX__) && !defined(__WINDOWS__)
 		if(E_OK != OsWaitEvent(TaskShell, EventShellInput))
 		{
+#ifdef USE_TINYOS
+			return -1;
+#else
 			asAssert(0);
+#endif
 		}
 		OsClearEvent(TaskShell, EventShellInput);
 #else
@@ -439,18 +446,32 @@ static void doPrompt( void ) {
 
 int SHELL_Mainloop( void ) {
 	char c;
+#ifdef USE_TINYOS
+	static int lineIndex = -1;
+#else
 	int lineIndex = 0;
+#endif
 	int cmdRv;
+
 #if defined(__LINUX__) || defined(__WINDOWS__)
 	pthread_t thread;
 	pthread_create(&thread, NULL, ProcessStdio, NULL);
 	sem_init(&semInput, 0, 0);
 #endif
+#ifdef USE_TINYOS
+  if(-1 == lineIndex) {
+#endif
 	SHELL_puts("AS Shell version 0.1\n");
 	doPrompt();
-
+#ifdef USE_TINYOS
+	lineIndex = 0;
+  }
+#endif
 	for(;;) {
 		c = SHELL_getc();
+#ifdef USE_TINYOS
+		if(-1 == c) return 0;
+#endif
 		if( lineIndex >= CMDLINE_MAX ) {
 			lineIndex = 0;
 		}

@@ -30,7 +30,7 @@ if(asenv['RELEASE']=='asboot'):
                'DCM','XCP',
                'CLIB_STDIO_PRINTF',
                'CLIB_MISCLIB',
-               'SMALLOS',
+               'TINYOS',
                ]
     lds = '%s/script/linker-flsdrv.lds'%(cwd)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',

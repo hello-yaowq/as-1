@@ -129,7 +129,7 @@ void __weak TaskIdleHook(void)
 }
 TASK(TaskIdle)
 {
-#if !defined(__SMALL_OS__)
+#if !defined(__TINY_OS__)
 	ASLOG(STDOUT,"TaskIdle is running\n");
 	for(;;)
 	{
@@ -148,7 +148,7 @@ TASK(TaskIdle)
 
 		TaskIdleHook();
 
-#if !defined(__SMALL_OS__)
+#if !defined(__TINY_OS__)
 	}
 #endif
 }

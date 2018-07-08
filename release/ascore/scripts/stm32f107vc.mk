@@ -59,13 +59,13 @@ endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/mcal TRUE)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/common/mcal/SCan.c)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/stm32f1/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x FALSE)
-ifeq ($(rtos),smallos)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small FALSE)
+ifeq ($(rtos),tinyos)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos FALSE)
 ifeq ($(compiler),cortexm3-gcc)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m FALSE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/small/portable/armv7_m/gcc FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos/portable/armv7_m FALSE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos/portable/armv7_m/gcc FALSE)
 else
-	$(error for small os, non-gcc compiler is not supported)
+	$(error for tinyos, non-gcc compiler is not supported)
 endif
 endif
 ifeq ($(rtos),freertos)

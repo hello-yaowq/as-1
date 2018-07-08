@@ -66,7 +66,7 @@ Rectangle {
                     }
                     else if(index==1) {
                         process.setPWD("/home/parai/workspace/as/com/as.tool/config.infrastructure.system");
-                        process.start("python3",["studio.py","/home/parai/workspace/as/release/ascore/src/posix-smallos-posix-gcc"]);
+                        process.start("python3",["studio.py","/home/parai/workspace/as/release/ascore/src/posix-tinyos-posix-gcc"]);
                     }
                     else if(index==2) {
                         process.setPWD("/home/parai/workspace/as/com/as.tool/config.infrastructure.system");

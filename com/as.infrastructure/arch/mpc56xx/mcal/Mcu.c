@@ -188,7 +188,7 @@ void TickTimer_SetFreqHz(int Freq)
 
 void RTI_TickHandler(void)
 {
-#ifdef USE_SMALLOS
+#ifdef USE_TINYOS
 	OsTick();
 #endif
 	PIT.RTI.TFLG.B.TIF=1;
@@ -200,14 +200,14 @@ void RTI_SetFreqHz(int Freq)
 {
 	PIT.PITMCR.B.MDIS_RTI=0;/*turn on PIT just for RTI*/
 	PIT.RTI.LDVAL.R=CPU_FREQUENCY*1000000/Freq-1;
-#if !defined(USE_SMALLOS) && defined(POLLING_RTI)
+#if !defined(USE_TINYOS) && defined(POLLING_RTI)
 	PIT.RTI.TCTRL.B.TIE=1;	/*enable interrupt*/
 #endif
 	PIT.RTI.TCTRL.B.TEN=1;/*turn on RTI*/
 	INTC_InstallINTCInterruptHandler(RTI_TickHandler,305,1);
 }
 
-#if defined(USE_SMALLOS) && defined(POLLING_RTI)
+#if defined(USE_TINYOS) && defined(POLLING_RTI)
 void CheckOsTick(void)
 {
 	if(PIT.RTI.TFLG.B.TIF)
@@ -219,7 +219,7 @@ void CheckOsTick(void)
 
 void TaskIdleHook(void)
 {
-#if defined(USE_SMALLOS) && defined(POLLING_RTI)
+#if defined(USE_TINYOS) && defined(POLLING_RTI)
 	CheckOsTick();
 #endif
 #ifdef USE_SHELL
@@ -283,7 +283,7 @@ void Mcu_DistributePllClock( void )
 	} while(1);
 #endif
 
-#ifndef USE_SMALLOS
+#ifndef USE_TINYOS
 	TickTimer_SetFreqHz(OS_TICKS_PER_SECOND);
 	EXCEP_InitExceptionHandlers();
 	INTC_InitINTCInterrupts();
@@ -318,7 +318,7 @@ nofralloc
 	blr
 }
 
-#ifdef USE_SMALLOS
+#ifdef USE_TINYOS
 void StartOsTick(void)
 {
 	EXCEP_InitExceptionHandlers();

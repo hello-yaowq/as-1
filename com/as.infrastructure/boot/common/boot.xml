@@ -2,7 +2,7 @@
 <AS>
 	<Os>
 	    <!-- OsRef: toppers_osek freertos -->
-	    <OsRef name='smallos'/>
+	    <OsRef name='tinyos'/>
 		
 	    <!-- format, check easySAR.arxml -->
 	    <General ErrorHook="ErrorHook" 

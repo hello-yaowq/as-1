@@ -15,13 +15,13 @@ if('ANYOS' not in MODULES):
 else:
     # simple OSAL just make BSW of as build pass and then 
     # to post link with other OS
-    asenv.Append(CPPPATH=['%s/small'%(cwd)])
+    asenv.Append(CPPPATH=['%s/tinyos'%(cwd)])
     asenv.Append(CPPDEFINES=['USE_OSAL'])
 
 if('ASKAR' in MODULES):
     objs += SConscript('askar/SConscript')
-elif('SMALLOS' in MODULES):
-    objs += SConscript('small/SConscript')
+elif('TINYOS' in MODULES):
+    objs += SConscript('tinyos/SConscript')
 elif('RTTHREAD' in MODULES):
     objs += SConscript('rtthread/SConscript')
 elif('ATK2_SC4' in MODULES):

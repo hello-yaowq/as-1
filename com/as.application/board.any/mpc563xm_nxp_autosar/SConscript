@@ -24,7 +24,7 @@ for flgs in ['-include','asmconfig.h']:
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CLIB_STDIO_PRINTF',
-           'SMALLOS',
+           'TINYOS','SHELL','CLIB_STRTOK_R',
            'PORT','DIO','ADC',
            'CAN','CANIF','PDUR','COM','COMM',
            'MPC5634M_MLQB80'

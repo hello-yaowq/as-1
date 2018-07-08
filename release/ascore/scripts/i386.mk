@@ -110,7 +110,7 @@ else
 endif
 ifeq ($(rtos),tinix)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp TRUE)
-	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos/os_i.h)
 else
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/arch/x86/bsp/pci-x86.c)
 endif
@@ -127,7 +127,7 @@ ifeq ($(rtos),rtthread)
 	@(cd $(inc-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/include TRUE)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/bsp/x86/drivers/ TRUE)
 	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/rtthread TRUE)
-	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/small/os_i.h)
+	@(cd $(src-dir); $(LNFS) $(INFRASTRUCTURE)/system/kernel/tinyos/os_i.h)
 #	@(cd $(src-dir); sed -i "6c . = 0x400400;" linker-app.lds)
 	@(cd $(src-dir); sed -i "37c .bss : { *(.bss) *(.bss.*) }" linker-app.lds)
 	@(cd $(src-dir); $(LNFS) $(download)/rt-thread/components/finsh TRUE)

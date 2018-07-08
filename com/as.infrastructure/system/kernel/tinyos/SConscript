@@ -2,7 +2,7 @@ import os
 from building import *
 import xcc
 
-xcc.SetDefaultRTOS('smallos')
+xcc.SetDefaultRTOS('tinyos')
 
 cwd = GetCurrentDir()
 

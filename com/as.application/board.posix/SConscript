@@ -50,7 +50,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
            'AWS','LCD',
-           'SMALLOS',
+           'TINYOS',
            'J1939TP',
            ]
 
@@ -93,7 +93,7 @@ if(asenv['RELEASE']=='asboot'):
                'CAN','CANIF','PDUR','CANTP',
                'DCM','XCP',
                'FLASH',
-               'SMALLOS',
+               'TINYOS',
                ]
 
 if(asenv['MODULES'] is None):
