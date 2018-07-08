@@ -56,10 +56,10 @@
 <Can>
 <General Comment="*" DevelopmentErrorDetection="ON" VersionInfoApi="ON" />
 <ControllerList Max="TBD">
-<Controller Baudrate="1000" Comment="*" Name="CAN_CTRL_1" Seg1="13" Seg2="2">
+<Controller Baudrate="1000" Comment="*" Name="CAN_CTRL_0" Seg1="13" Seg2="2">
 <HohList Max="TBD">
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hrh" ObjectType="RECEIVE" />
-<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can1Hth" ObjectType="TRANSMIT" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hrh" ObjectType="RECEIVE" />
+<Hoh Comment="*" HohType="BASIC" IdentifierType="STANDARD" Name="Can0Hth" ObjectType="TRANSMIT" />
 </HohList>
 </Controller>
 </ControllerList>
@@ -67,9 +67,9 @@
 <CanIf>
 <General BusOffNotification="NULL" Comment="*" DataLengthCodeCheck="ON" DevelopmentErrorDetection="ON" ErrorNotification="NULL" RxFifoSize="32" TaskFifoMode="ON" TxFifoSize="32" VersionInfoApi="OFF" />
 <ChannelList Max="TBD">
-<Channel Comment="*" ControllerRef="CAN_CTRL_1" Name="CANIF_CHL_LS">
+<Channel Comment="*" ControllerRef="CAN_CTRL_0" Name="CANIF_CHL_LS">
 <HthList Max="TBD">
-<Hth Comment="*" HthRef="Can1Hth" Name="LS_Hth" />
+<Hth Comment="*" HthRef="Can0Hth" Name="LS_Hth" />
 </HthList>
 <TxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" HthRef="LS_Hth" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
@@ -85,7 +85,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DirectNPdu" HthRef="LS_Hth" Identifier="0x764" Name="TX_J1939TP_DirectNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 </TxPduList>
 <HrhList Max="TBD">
-<Hrh Comment="*" HrhRef="Can1Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
+<Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
 </HrhList>
 <RxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />

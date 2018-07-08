@@ -124,18 +124,18 @@ typedef uint32 Can_IdType;
 typedef struct Can_PduType_s {
 	// the CAN ID, 29 or 11-bit
 	Can_IdType 	id;
+	// private data for CanIf,just save and use for callback
+	PduIdType   swPduHandle;
 	// Length, max 8 bytes
 	uint8		length;
 	// data ptr
 	uint8 		*sdu;
-	// private data for CanIf,just save and use for callback
-	PduIdType   swPduHandle;
 } Can_PduType;
 
 
 typedef enum {
-	CAN_T_START,
 	CAN_T_STOP,
+	CAN_T_START,
 	CAN_T_SLEEP,
 	CAN_T_WAKEUP
 } Can_StateTransitionType;

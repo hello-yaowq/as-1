@@ -62,11 +62,15 @@ def GenH():
         fp.write('#define INDEX_OF_%s %s\n'%(GAGet(List[i],'Name'),i))
     
     cstrR=cstrT=''
+    NUM_OF_HTHS=0
+    NUM_OF_HRHS=0
     for ctrl in List:
         for hoh in GLGet(ctrl,'HohList'):
             if(GAGet(hoh,'ObjectType')=='RECEIVE'):
+                NUM_OF_HRHS += 1
                 cstrR+='\t%-32s,/* %-32s */ \n'%(GAGet(hoh,'Name'),GAGet(ctrl,'Name'))
             elif(GAGet(hoh,'ObjectType')=='TRANSMIT'):
+                NUM_OF_HTHS += 1
                 cstrT+='\t%-32s,/* %-32s */ \n'%(GAGet(hoh,'Name'),GAGet(ctrl,'Name'))
     fp.write("""
 
@@ -84,7 +88,16 @@ typedef enum {
     CAN_ID_TYPE_MIXED,
     CAN_ID_TYPE_STANDARD
 } Can_IdTypeType;
-
+#ifdef USE_CAN_HOH_ID
+typedef uint16 Can_Arc_HTHType;
+typedef uint16 Can_Arc_HRHType;
+enum {
+%s
+%s
+};
+#define NUM_OF_HRHS %s
+#define NUM_OF_HTHS %s
+#else
 typedef enum {
 %s
     NUM_OF_HTHS
@@ -94,7 +107,7 @@ typedef enum {
 %s
     NUM_OF_HRHS
 } Can_Arc_HRHType;
-
+#endif
 typedef struct {
     void (*CancelTxConfirmation)( const Can_PduType *);
     void (*RxIndication)( uint8 ,Can_IdType ,uint8 , const uint8 * );
@@ -235,7 +248,9 @@ typedef struct
 
 
 extern const Can_ConfigType Can_ConfigData;
-#endif /* CAN_CFG_H_ */\n\n"""%(cstrT,cstrR))
+#endif /* CAN_CFG_H_ */\n\n"""%(cstrR,cstrT,
+                                NUM_OF_HRHS,NUM_OF_HTHS,
+                                cstrT,cstrR))
     fp.close()
 
 def GenC():

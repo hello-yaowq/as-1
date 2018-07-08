@@ -24,7 +24,7 @@ for flgs in ['-include','asmconfig.h']:
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CLIB_STDIO_PRINTF',
-           'ANYOS',
+           'SMALLOS',
            'PORT','DIO','ADC',
            'CAN','CANIF','PDUR','COM','COMM',
            'MPC5634M_MLQB80'
@@ -79,6 +79,7 @@ if('CAN' in MODULES):
     objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Can.c')
     env.Append(CPPDEFINES=['Can_ConfigSet_PC=Can_ConfigData',
                            'ControllerConfigs_PC=Can_ControllerCfgData'])
+    asenv.Append(CPPDEFINES=['USE_ANYCAN','USE_CAN_HOH_ID'])
 
 if('DIO' in MODULES):
     env.Append(CPPPATH=['%s/mcal/Dio_TS_T2D14M20I0R0/include'%(cwd)])

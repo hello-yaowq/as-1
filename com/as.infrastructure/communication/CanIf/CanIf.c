@@ -524,10 +524,10 @@ void CanIf_InitController(uint8 Controller, uint8 ConfigurationIndex)
   VALIDATE_NO_RV(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfControllerIdRef == channel, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
 
   canConfig = CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfInitControllerRef;
-
+#ifndef USE_ANYCAN /*not arccore CAN driver */
   /* Validate that the CanIfControllerConfig points to configuration for the right Can Controller */
   VALIDATE_NO_RV(canConfig->CanControllerId == canControllerId, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
-
+#endif
   Can_InitController(canControllerId, canConfig);
 
   /* Set mode to stopped */
@@ -546,9 +546,10 @@ void CanIf_PreInit_InitController(uint8 Controller, uint8 ConfigurationIndex){
 	// Validate that the configuration at the index match the right channel
 	VALIDATE_NO_RV(CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfControllerIdRef == channel, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
 	const Can_ControllerConfigType *canConfig = CanIf_ConfigPtr->ControllerConfig[ConfigurationIndex].CanIfInitControllerRef;
+#ifndef USE_ANYCAN /*not arccore CAN driver */
 	// Validate that the CanIfControllerConfig points to configuration for the right Can Controller
 	VALIDATE_NO_RV(canConfig->CanControllerId == canControllerId, CANIF_INIT_CONTROLLER_ID, CANIF_E_PARAM_CONTROLLER);
-
+#endif
 	Can_InitController(canControllerId, canConfig);
 }
 
