@@ -364,10 +364,12 @@ int __weak strncmp(const char *s1, const char *s2, size_t n)
 int __weak memcmp(const void *s1, const void *s2, size_t n)
 {
 	unsigned char u1, u2;
+	const char* p1 = (const char*)s1;
+	const char* p2 = (const char*)s2;
 
-	for ( ; n-- ; s1++, s2++) {
-		u1 = * (unsigned char *) s1;
-		u2 = * (unsigned char *) s2;
+	for ( ; n-- ; p1++, p2++) {
+		u1 = * p1;
+		u2 = * p2;
 		if ( u1 != u2) {
 			return (u1-u2);
 		}

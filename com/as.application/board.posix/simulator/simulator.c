@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
-#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
+#if defined(__TINY_OS__) || defined(__CONTIKI_OS__)
 #include <sys/time.h>
 #include <time.h>
 #endif
@@ -43,7 +43,7 @@ static void on_reply(void *closure, struct afb_wsj1_msg *msg);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
 
-#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
+#if defined(__TINY_OS__) || defined(__CONTIKI_OS__)
 static clock_t previous = 0;
 #endif
 #ifdef USE_AWS
@@ -132,7 +132,7 @@ KSM(Simulator,Running)
 #ifdef USE_CAN
 	Can_SimulatorRunning();
 #endif
-#if defined(__SMALL_OS__) || defined(__CONTIKI_OS__)
+#if defined(__TINY_OS__) || defined(__CONTIKI_OS__)
 	clock_t now = clock();
 	if( now != previous )
 	{

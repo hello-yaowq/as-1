@@ -18,7 +18,7 @@ endmenu
 menu "ASCORE simple test case"
 config TEST
 	bool "some simple test case for ascore"
-	default y if !ARCH_POSIX
+	default n
 
 config PTHREAD_TEST
 	bool "askar pthread test case"
