@@ -60,7 +60,9 @@
 #define    E_OS_STATE                 (StatusType)7
 #define    E_OS_VALUE                 (StatusType)8
 
+#ifndef OSDEFAULTAPPMODE
 #define OSDEFAULTAPPMODE        (AppModeType)1
+#endif
 
 #define SUSPENDED                  ((StatusType) 0)
 #define RUNNING                    ((StatusType) 1)
@@ -79,10 +81,22 @@
 #define RES_SCHEDULER           (ResourceType)0 /* default resources for OS */
 
 /* ============================ [ TYPES     ] ====================================================== */
+#ifndef _TASK_t
+#define _TASK_t uint8
+#endif
+#ifndef _ALARM_t
+#define _ALARM_t uint8
+#endif
+#ifndef _COUNTER_t
+#define _COUNTER_t uint8
+#endif
+#ifndef _RESOURCE_t
+#define _RESOURCE_t uint8
+#endif
 typedef uint8 					StatusType;
 typedef uint32   				EventMaskType;
 typedef EventMaskType *			EventMaskRefType;
-typedef uint8  			    	TaskType;
+typedef _TASK_t  				TaskType;
 typedef TaskType *				TaskRefType;
 typedef uint8					TaskStateType;
 typedef TaskStateType *			TaskStateRefType;
@@ -91,9 +105,9 @@ typedef uint32                  AppModeType;	/*! each bit is a mode */
 typedef uint32					TickType;
 typedef TickType*				TickRefType;
 typedef uint8			        IsrType;			/* ISR ID */
-typedef uint8			        CounterType;		/* Counter ID */
+typedef _COUNTER_t				CounterType;		/* Counter ID */
 
-typedef uint8					AlarmType;
+typedef _ALARM_t				AlarmType;
 typedef struct
 {
 	TickType maxallowedvalue;
@@ -102,7 +116,7 @@ typedef struct
 } 								AlarmBaseType;
 typedef AlarmBaseType *			AlarmBaseRefType;
 
-typedef uint8                   ResourceType;
+typedef _RESOURCE_t             ResourceType;
 
 /*! extended OS types */
 typedef void         (*task_main_t)(void);

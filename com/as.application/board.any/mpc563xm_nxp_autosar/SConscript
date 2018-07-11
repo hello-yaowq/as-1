@@ -24,7 +24,7 @@ for flgs in ['-include','asmconfig.h']:
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
            'CLIB_STDIO_PRINTF',
-           'TINYOS','SHELL','CLIB_STRTOK_R',
+           'ASKAR','SHELL','CLIB_STRTOK_R',
            'PORT','DIO','ADC',
            'CAN','CANIF','PDUR','COM','COMM',
            'MPC5634M_MLQB80'
@@ -57,15 +57,26 @@ MKSymlink(nxpos, '%s/os'%(cwd))
 objs = []
 
 env.Append(CPPPATH=['%s/config/include'%(cwd)])
+
+for m in MODULES:
+    env.Append(CPPDEFINES=['USE_%s'%(m)])
+
+# should be JAVA 32
+#cmd = 'set PATH="c:/Program Files (x86)/Java/jre1.8.0_171/bin";%PATH% && '
+#cmd += '%s/os/ssc/bin/generator/sg.exe %s/config/epc/project.epc'%(cwd,cwd)
+#RunCommand(cmd)
+if('ANYOS' in MODULES):
+    env.Append(CPPPATH=['%s/config/epc'%(cwd),'%s/os/ssc/inc'%(cwd)])
+    objs += Glob('os/ssc/src/*.c')
+    objs += Glob('os/ssc/hwspec/vector.c')
+    objs += Glob('config/epc/*.c')
+
 env.Append(CPPPATH=['%s/mcal/Base_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/cfg/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/Dem_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/Det_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/os/ssc/inc'%(cwd)])
-
-for m in MODULES:
-    env.Append(CPPDEFINES=['USE_%s'%(m)])
 
 objs += Glob('app/*.c')
 
@@ -129,5 +140,11 @@ if('MPC5634M_MLQB80' in MODULES):
 asenv.Append(CPPPATH=['%s/com/as.application/board.posix/common'%(ASROOT)])
 if('ANYOS' in MODULES):
     asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/kernel'%(ASROOT)])
+    asenv.Append(CPPDEFINES=['USE_OS_CONST_ID','_TASK_t=uint16',
+                             '_COUNTER_t=uint16','_ALARM_t=uint16',
+                             '_RESOURCE_t=uint16','OSDEFAULTAPPMODE=0'])
+
+if('SHELL' in MODULES):
+    asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])
 
 Return('objs')
