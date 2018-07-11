@@ -46,17 +46,17 @@ StatusType SignalCounter(CounterType CounterID)
 				AlarmID = pVar - AlarmVarArray;
 				TAILQ_REMOVE(&CounterVarArray[CounterID].head, &AlarmVarArray[AlarmID], entry);
 				OS_STOP_ALARM(&AlarmVarArray[AlarmID]);
-
-				Irq_Restore(imask);
-				AlarmConstArray[AlarmID].Action();
-				Irq_Save(imask);
-
 				if(AlarmVarArray[AlarmID].period != 0)
 				{
 					Os_StartAlarm(AlarmID,
 						(TickType)(curValue+AlarmVarArray[AlarmID].period),
 						AlarmVarArray[AlarmID].period);
 				}
+
+				Irq_Restore(imask);
+				AlarmConstArray[AlarmID].Action();
+				Irq_Save(imask);
+
 			}
 			else
 			{
