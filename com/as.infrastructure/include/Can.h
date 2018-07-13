@@ -61,32 +61,6 @@
 #define CAN_CBK_CHECKWAKEUP_SERVICE_ID              0x0b
 //@}
 
-
-#if defined(CFG_PPC)
-
-/* HOH flags */
-#define CAN_HOH_FIFO_MASK           (1UL<<0)
-//#define CAN_HOH_EOL_MASK            (1<<9)
-
-/* Controller flags */
-#define CAN_CTRL_RX_PROCESSING_INTERRUPT        (1UL<<0)
-#define CAN_CTRL_RX_PROCESSING_POLLING          0
-#define CAN_CTRL_TX_PROCESSING_INTERRUPT        (1UL<<1)
-#define CAN_CTRL_TX_PROCESSING_POLLING          0
-#define CAN_CTRL_WAKEUP_PROCESSING_INTERRUPT    (1UL<<2)
-#define CAN_CTRL_WAKEUP_PROCESSING_POLLING      0
-#define CAN_CTRL_BUSOFF_PROCESSING_INTERRUPT    (1UL<<3)
-#define CAN_CTRL_BUSOFF_PROCESSING_POLLING      0
-#define CAN_CTRL_ACTIVATION                     (1UL<<4)
-
-#define CAN_CTRL_LOOPBACK                       (1UL<<5)
-#define CAN_CTRL_FIFO                           (1UL<<6)
-
-#define CAN_CTRL_ERROR_PROCESSING_INTERRUPT    (1UL<<7)
-#define CAN_CTRL_ERROR_PROCESSING_POLLING      0
-
-#endif
-
 #include "Std_Types.h"
 #include "CanIf_Types.h"
 #include "ComStack_Types.h"
@@ -102,14 +76,6 @@ typedef struct {
 	uint32 fifoOverflow;
 	uint32 fifoWarning;
 } Can_Arc_StatisticsType;
-
-
-#if defined(CFG_CAN_TEST)
-typedef struct {
-	uint64_t mbMaskTx;
-	uint64_t mbMaskRx;
-} Can_TestType;
-#endif
 
 // uint16: if only Standard IDs are used
 // uint32: if also Extended IDs are used

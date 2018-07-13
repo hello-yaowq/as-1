@@ -230,6 +230,9 @@ endif
 aszlg:$(download)/ControlCAN
 ifeq ($(host),Linux)
 else
+	@(echo ">>>> maybe the ControlCAN has been updated,")
+	@(echo ">>>> please manually make things working by make sure")
+	@(echo ">>>> that there is path $(download)/ControlCAN/64/ControlCAN.dll")
 ifeq ($(msys2),yes)
 	@(cp -fv $(download)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 else

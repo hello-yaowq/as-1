@@ -330,3 +330,5 @@ Rte_*.h
 tensorflow
 board.mpc56xx
 board.any
+SeedToKey.py
+kerneldlls

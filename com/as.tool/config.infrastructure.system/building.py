@@ -210,9 +210,9 @@ def PrepareBuilding(env):
         menuconfig(env)
 
     if(0 != os.system('%s --version'%(env['pkgconfig']))):
-        raise Exception('no pkg-config installed, fix the path maybe!')
+        print('WARNING: no pkg-config installed, fix the path maybe, or run command to install GTK\n\tpacman -S mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3')
     if(0 != os.system('%s --version'%(env['CC']))):
-        raise Exception('no C Compiler installed, fix the path maybe!')
+        print('WARNING: no C Compiler installed, fix the path maybe, or run command to install GCC\n\tpacman -S mingw-w64-x86_64-gcc')
 
 def mk_rtconfig(filename):
     try:

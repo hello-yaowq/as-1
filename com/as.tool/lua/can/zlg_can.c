@@ -26,6 +26,8 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define Kbps *1000
+
+#define AS_LOG_ZLG 1
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_ZLGHandle_s
 {
@@ -58,16 +60,16 @@ const Can_DeviceOpsType can_zlg_ops =
 };
 static struct Can_ZLGHandleList_s* zlgH = NULL;
 static uint32_t zlg_bauds[][2] = {
-	{1000 Kbps,0x060003	},
-	{800  Kbps,0x060004	},
-	{500  Kbps,0x060007	},
-	{250  Kbps,0x1C0008	},
-	{125  Kbps,0x1C0011	},
-	{100  Kbps,0x160023	},
-	{50   Kbps,0x1C002C	},
-	{20   Kbps,0x1600B3	},
-	{10   Kbps,0x1C00E0	},
-	{5    Kbps,0x1C01C1	}
+	{1000 Kbps,0x0014	},
+	{800  Kbps,0x0016	},
+	{500  Kbps,0x001C	},
+	{250  Kbps,0x011C	},
+	{125  Kbps,0x031C	},
+	{100  Kbps,0x041C	},
+	{50   Kbps,0x091C	},
+	{20   Kbps,0x181C	},
+	{10   Kbps,0x311C	},
+	{5    Kbps,0xBFFF	}
 };
 /* ============================ [ LOCALS    ] ====================================================== */
 static struct Can_ZLGHandle_s* getHandle(uint32_t port)
@@ -93,23 +95,20 @@ static boolean get_zlg_param(uint32_t port,uint32_t* DeviceType,uint32_t* CANInd
 	uint32_t i;
 	boolean rv = TRUE;
 
-	printf("CAN ZLG support list:\n");
-	printf("\tport 0 --> VCI_USBCAN_2E_U CAN0\n");
-	printf("\tport 1 --> VCI_USBCAN_2E_U CAN1\n");
-	printf("\tport 3 --> VCI_USBCAN_E_U  CAN0\n");
-	if(port < 2)
+	char* pVCI_USBCAN = getenv("VCI_USBCAN");
+
+	if(NULL != pVCI_USBCAN)
 	{
-		*DeviceType = VCI_USBCAN_2E_U;
+		*DeviceType = strtoul(pVCI_USBCAN, NULL, 10);
 		*CANInd  = port;
-	}
-	else if(port < 3)
-	{
-		*DeviceType = VCI_USBCAN_E_U;
-		*CANInd  = port - 2;
+		ASLOG(ZLG, "open VCI_USBCAN %d port %d\n", *DeviceType, *CANInd);
 	}
 	else
 	{
-		ASWARNING("CAN ZLG port=%d is not in the support list!\n",port);
+		ASWARNING("please set env VCI_USBCAN according to the device type value specified in ConttrolCAN.h!\n"
+				"  set VCI_USBCAN=4 REM for VCI_USBCAN2\n"
+				"  set VCI_USBCAN=21 REM for VCI_USBCAN_2E_U\n"
+				);
 		rv = FALSE;
 	}
 
@@ -156,7 +155,6 @@ static boolean zlg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 		uint32_t CANInd;
 		uint32_t baud = baudrate;
 		VCI_INIT_CONFIG init_config;
-		init_config.Mode=0; /* normal mode */
 		uint32_t status;
 
 		rv = get_zlg_param(port, &DeviceType, &CANInd,&baud);
@@ -168,22 +166,20 @@ static boolean zlg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 			if(STATUS_OK != status)
 			{
 				ASWARNING("CAN ZLG port=%d is not able to be opened,error=%X!\n",port,status);
+				ASWARNING("maybe you forgot about the ControlCAN\64\kerneldlls to be copied to local directory!\n");
 				rv = FALSE;
 			}
 		}
 
 		if(rv)
 		{
-			status = VCI_SetReference(DeviceType,0,CANInd,0,&baud);
-			if(STATUS_OK != status)
-			{
-				ASWARNING("CAN ZLG port=%d is not able to set baudrate,error=%X!\n",port,status);
-				rv = FALSE;
-			}
-		}
+			init_config.AccCode=0x00000000;
+			init_config.AccMask=0xFFFFFFFF;
+			init_config.Filter=0;
+			init_config.Mode=0;  /* normal mode */
+			init_config.Timing0=(UCHAR)(baud>>8)&0xFF;
+			init_config.Timing1=(UCHAR)baud&0xFF;
 
-		if(rv)
-		{
 			status = VCI_InitCAN(DeviceType,0,CANInd,&init_config);
 			if(STATUS_OK != status)
 			{

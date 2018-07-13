@@ -26,7 +26,8 @@ MODULES = ['ECUM','SCHM','MCU',
            'CLIB_STDIO_PRINTF',
            'ASKAR','SHELL','CLIB_STRTOK_R',
            'PORT','DIO','ADC',
-           'CAN','CANIF','PDUR','COM','COMM',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'MPC5634M_MLQB80'
            ]
 
