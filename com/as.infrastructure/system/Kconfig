@@ -62,6 +62,11 @@ config MEM_CMD
 	default n
 	depends on SHELL
 
+config JMP_CMD
+	bool "jump to program at special address"
+	default n
+	depends on SHELL
+
 config CPLUSPLUS
 	bool "C++ support"
 	default n

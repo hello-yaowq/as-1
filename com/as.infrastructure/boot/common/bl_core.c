@@ -376,12 +376,17 @@ void BL_MainFunction(void)
 				*(uint32_t*)application_main,
 				FLASH_DRIVER_STARTADDRESS);
 		if( ((*(uint32_t*)application_main) != 0)
+			&& ((*(uint32_t*)application_main) != 0xFFFFFFFF)
 #ifdef STM32F10X_CL
 			&& ((*(uint32_t*)application_main) == 0xBD02CF8)
 #endif
 		 )
 		{
+#ifndef USE_JMP_CMD
 			application_main();
+#else
+			ASLOG(BL,"use shell command jmp to launch application.\n");
+#endif
 		}
 		else
 		{

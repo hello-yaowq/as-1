@@ -371,11 +371,11 @@ class AsFlashloader(QThread):
         return self.transmit([0x37],[0x77])
     
     def download_one_section(self,address,size,data,identifier):
-        FLASH_WRITE_SIZE = 512
+        FLASH_WRITE_SIZE = 8
         blockSequenceCounter = 1
         left_size = size
         pos = 0
-        ability = int(((4096-4)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
+        ability = int(((4096-5)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
         # round up
         size2 = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
         ercd,res = self.request_download(address,size2,identifier)
@@ -404,10 +404,10 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def upload_one_section(self,address,size,identifier):
-        FLASH_READ_SIZE = 512
+        FLASH_READ_SIZE = 4
         blockSequenceCounter = 1
         left_size = size
-        ability = int(((4096-4)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
+        ability = int(((4096-5)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
         # round up
         size2 = int((left_size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
         ercd,res = self.request_upload(address,size2,identifier)
@@ -472,7 +472,10 @@ class AsFlashloader(QThread):
                 saddr = ss['address']
             if(ss['address']+ss['size'] > eaddr):
                 eaddr = ss['address']+ss['size']
-        eaddr = int((eaddr+511)/512)*512
+        # erase align
+        #eaddr = int((eaddr+511)/512)*512
+        # For MPC56XX, 128KB aligned
+        eaddr = int((eaddr+0x1FFFF)/0x20000)*0x20000
         return self.transmit([0x31,0x01,0xFF,0x01,
                               (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
                               (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
@@ -625,14 +628,18 @@ class UIFlashloader(QWidget):
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
         self.cbxCANFDMode.stateChanged.connect(self.on_cbxCANFDMode_stateChanged)
         self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
-        release = os.path.abspath('%s/../../../release'%(os.curdir))
-        default_app=''
-        default_flsdrv=''
-        if(os.path.exists(release)):
-            for ss in glob.glob('%s/ascore/*.s19'%(release)):
+        aspath = os.path.abspath('%s/../../..'%(os.curdir))
+        default_app='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/Project/bin/internal_FLASH.mot'%(aspath)
+        default_flsdrv='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/FlsDrv/bin/internal_FLASH.mot'%(aspath)
+        if(not os.path.exists(default_app)):
+            default_app = ''
+        if(not os.path.exists(default_flsdrv)):
+            default_flsdrv = ''
+        if(os.path.exists(aspath)):
+            for ss in glob.glob('%s/release/ascore/*.s19'%(aspath)):
                 default_app = ss
                 break
-            for ss in glob.glob('%s/asboot/*-flsdrv.s19'%(release)):
+            for ss in glob.glob('%s/release/asboot/*-flsdrv.s19'%(aspath)):
                 default_flsdrv = ss
                 break
         if(os.path.exists(default_app)):
@@ -660,11 +667,11 @@ class UIFlashloader(QWidget):
         self.pgbProgress.setValue(prg)
 
     def on_btnOpenApp_clicked(self):
-        rv = QFileDialog.getOpenFileName(None,'application file', '','application (*.s19 *.bin)')
+        rv = QFileDialog.getOpenFileName(None,'application file', '','application (*.s19 *.bin *.mot)')
         self.leApplication.setText(rv[0])
 
     def on_btnOpenFlsDrv_clicked(self):
-        rv = QFileDialog.getOpenFileName(None,'flash driver file', '','flash driver (*.s19 *.bin)')
+        rv = QFileDialog.getOpenFileName(None,'flash driver file', '','flash driver (*.s19 *.bin *.mot)')
         self.leFlsDrv.setText(rv[0])
 
     def on_btnStart_clicked(self):

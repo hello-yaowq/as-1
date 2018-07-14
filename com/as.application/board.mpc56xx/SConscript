@@ -16,6 +16,16 @@ MODULES = ['ECUM','SCHM','MCU',
            'PORT','DIO'
            ]
 
+# post special process for asboot release
+if(asenv['RELEASE']=='asboot'):
+    MODULES = ['ECUM','SCHM','MCU','DET',
+               'PORT','CAN','CANIF','PDUR','CANTP','XCP',
+               'DCM','FLASH','TINYOS',
+               'CLIB_STDIO_PRINTF','CLIB_STRTOK_R',
+               'SHELL','FLASH_CMD','MEM_CMD','JMP_CMD',
+               'MPC5634M_MLQB80'
+               ]
+
 ARCH='mpc56xx'
 arch='mpc56xx'
 

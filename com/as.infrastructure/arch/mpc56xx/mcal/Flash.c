@@ -232,30 +232,51 @@ void FlashErase(tFlashParam* FlashParam)
 			{
 				FLS_ADDRESS_TO_HW(address, hw);
 				FLS_ADDRESS_TO_BLOCK_NUM(address, num);
+				if(0 == hw->LMLR.B.LME)
+				{
+					hw->LMLR.R = 0xA1A11111;
+					hw->LMLR.R = 0x1300FF; /* lock all */
+				}
+
+				if(0 == hw->HLR.B.HBE)
+				{
+					hw->HLR.R = 0xB2B22222;
+					hw->HLR.R = 0x0F; /* lock all */
+				}
+				if(0 == hw->SLMLR.B.SLE)
+				{
+					hw->SLMLR.R = 0xC3C33333;
+					hw->SLMLR.R = 0x1300FF; /* lock all */
+				}
 				/* erase one block */
 				hw->MCR.R = 0x00000004; /* Set ERS in MCR: Select ERS Operation */
 				if(num < 8)
 				{
 					hw->LMSR.R = (1<<num);
+					hw->LMLR.R &= ~(1<<num);
+					hw->SLMLR.R &= ~(1<<num);
 					hw->HSR.R  = 0;
 				}
 				else if(num < 10)
 				{
 					hw->LMSR.R = (1<<(num+8));
+					hw->LMLR.R &= ~(1<<(num+8));
+					hw->SLMLR.R &= ~(1<<(num+8));
 					hw->HSR.R  = 0;
 				}
 				else if(num < 14)
 				{
 					hw->LMSR.R = 0;
 					hw->HSR.R  = (1<<(num-10));
+					hw->HLR.R &= ~(1<<(num-10));
 				}
 				else if(num < 18)
 				{
 					hw->LMSR.R = 0;
 					hw->HSR.R  = (1<<(num-14));
+					hw->HLR.R &= ~(1<<(num-14));
 				}
-				ASLOG(FLS, "erase block %d LMSR=%X HSR=%X @%p\n",
-						num, hw->LMSR.R, hw->HSR.R, hw);
+
 				/* Latch a Flash Address with any data */
 				*(volatile uint32*)address = 0xFFFFFFFF;
 				hw->MCR.R = 0x00000005; /* Set EHV in MCR: Operation Start */
@@ -271,7 +292,6 @@ void FlashErase(tFlashParam* FlashParam)
 
 				if(0 == (tmp&0x00000200)) /* Check PEG flag */
 				{
-					ASLOG(FLS, "Not Erase Good, MCR=%X\n", tmp);
 					FlashParam->errorcode = kFlashFailed;
 					break;
 				}
@@ -334,11 +354,10 @@ void FlashWrite(tFlashParam* FlashParam)
 			{
 				FLS_ADDRESS_TO_HW(address, hw);
 				hw->MCR.R = 0x00000010; /* Set PGM in MCR: Select PGM Operation */
+				//*(volatile uint64*)address = ((uint64)data[0]<<32) + data[1];
 				*(volatile uint32*)address = data[0];
 				*(volatile uint32*)(address+4) = data[1];
 				hw->MCR.R = 0x00000011; /* Set EHV in MCR: Operation Start */
-				ASLOG(FLS, "program @%X %08X%08X @%p\n",
-						address, data[0], data[1], hw);
 				do
 				{ /* wait till DONE=1*/
 					tmp=hw->MCR.R;
@@ -352,8 +371,7 @@ void FlashWrite(tFlashParam* FlashParam)
 					(*(volatile uint32*)address != data[0]) ||
 					(*(volatile uint32*)(address+4) != data[1]) )
 				{
-					ASLOG(FLS, "Not Program Good, MCR=%X\n", tmp);
-					FlashParam->errorcode = kFlashFailed;
+					FlashParam->errorcode = (0 == (tmp&0x00000200))?kFlashAccerr:kFlashFailed;
 				}
 				else
 				{

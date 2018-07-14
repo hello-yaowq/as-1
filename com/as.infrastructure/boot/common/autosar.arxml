@@ -141,6 +141,11 @@
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
 </MemoryInfo>
+<MemoryInfo AddressHigh="0x00180000" AddressLow="0x00020000" Comment="*" Name="MPC56xx">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
 </MemoryReadInfoList>
 <MemoryWriteInfoList Max="TBD">
 <MemoryInfo AddressHigh="0x00040000" AddressLow="0x00010000" Comment="*" Name="Application">
@@ -149,6 +154,11 @@
 </SecurityList>
 </MemoryInfo>
 <MemoryInfo AddressHigh="0x08000000" AddressLow="0x00040000" Comment="*" Name="AppBcm2835">
+<SecurityList Max="TBD">
+<Security Comment="*" Name="PRGS" />
+</SecurityList>
+</MemoryInfo>
+<MemoryInfo AddressHigh="0x00180000" AddressLow="0x00020000" Comment="*" Name="MPC56xx">
 <SecurityList Max="TBD">
 <Security Comment="*" Name="PRGS" />
 </SecurityList>
@@ -333,9 +343,9 @@
 <XcpEventChannelList Max="TBD" />
 </Xcp>
 <Rte>
-<SwcList Max="TBD" />
 <DataTypeList Max="TBD" />
 <ConstantList Max="TBD" />
+<SwcList Max="TBD" />
 </Rte>
 <Dem>
 <General Comment="*" DEM_CLEAR_ALL_EVENTS="OFF" DEM_DTC_STATUS_AVAILABILITY_MASK="0xFF" DEM_MAX_NUMBER_FF_DATA_PRI_MEM="5" DEM_OBD_SUPPORT="OFF" DEM_PTO_SUPPORT="OFF" DEM_TYPE_OF_DTC_SUPPORTED="0x01" DEM_USE_NVM="ON" DevelopmentErrorDetection="OFF" NvMFreezeFrameBlock="TBD" NvMHealingBlock="TBD" VersionInfoApi="OFF" />

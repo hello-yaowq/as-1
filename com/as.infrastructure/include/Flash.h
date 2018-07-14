@@ -70,7 +70,9 @@
 #ifdef STM32F10X_CL
 #define FLASH_ERASE_SIZE  2048
 #else
+#ifndef FLASH_ERASE_SIZE
 #define FLASH_ERASE_SIZE  512
+#endif
 #endif
 #ifndef FLASH_IS_ERASE_ADDRESS_ALIGNED
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )

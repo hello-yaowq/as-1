@@ -240,6 +240,7 @@ class cantp():
          
     def transmit(self,request):
         assert(len(request) < 4096)
+        self.state = CANTP_ST_IDLE
         if( (len(request) < 7) or 
            ( (self.ll_dl > 8) and ((len(request)<=(self.ll_dl-2))) ) ):
             ercd = self.__sendSF__(request)
@@ -251,7 +252,7 @@ class cantp():
         ercd = False
         data=None
         pre = time.time()
-        while ( ((time.time() -pre) < 1) and (ercd == False)): # 1s timeout
+        while ( ((time.time() -pre) < 5) and (ercd == False)): # 1s timeout
             result,canid,data= can_read(self.canbus,self.rxid)
             if((True == result) and (self.rxid == canid)):
                 ercd = True

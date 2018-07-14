@@ -111,7 +111,7 @@ Std_ReturnType Xcp_ProgramReset(void* data, int len)
 	return E_OK;
 }
 
-void TaskIdleHook(void)
+void __weak TaskIdleHook(void)
 {
 	Xcp_MainFunction();
 }

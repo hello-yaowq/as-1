@@ -67,6 +67,9 @@ static int shellHelp(int argc, char *argv[] );
 #ifdef USE_MEM_CMD
 static int shellMem(int argc, char *argv[] );
 #endif
+#ifdef USE_JMP_CMD
+static int shellJmp(int argc, char *argv[] );
+#endif
 #ifndef __LINUX__
 extern char *strtok_r(char *s1, const char *s2, char **s3);
 #endif
@@ -98,6 +101,18 @@ static SHELL_CONST ShellCmdT cmdMem  = {
 		{NULL,NULL}
 };
 SHELL_CMD_EXPORT(cmdMem)
+#endif
+
+#ifdef USE_JMP_CMD
+SHELL_CONST ShellCmdT cmdJmp  = {
+		shellJmp,
+		1,1,
+		"jmp",
+		"jmp address",
+		"  jmp to program at address\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdJmp)
 #endif
 
 #ifdef USE_FLASH_CMD
@@ -297,6 +312,23 @@ static int shellMem(int argc, char *argv[] ) {
 	return rv;
 }
 #endif
+
+#ifdef USE_JMP_CMD
+static int shellJmp(int argc, char *argv[] )
+{
+	imask_t imask;
+	int rv;
+	int (*jmp)(void);
+
+	jmp = (int (*)(void))strtoul(argv[1],NULL,16);
+
+	Irq_Save(imask);
+	rv = jmp();
+	Irq_Restore(imask);
+
+	return rv;
+}
+#endif
 /* ----------------------------[Public functions]----------------------------*/
 
 /**
@@ -313,6 +345,9 @@ int SHELL_Init( void ) {
 #endif
 #ifdef USE_FLASH_CMD
 	SHELL_AddCmd(&cmdFlash);
+#endif
+#ifdef USE_JMP_CMD
+	SHELL_AddCmd(&cmdJmp);
 #endif
 #endif
 	return 0;

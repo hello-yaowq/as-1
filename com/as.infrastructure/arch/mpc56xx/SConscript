@@ -24,6 +24,7 @@ if('PORT' in MODULES):
 
 if('FLASH' in MODULES):
     objs += Glob('mcal/Flash.c')
+    asenv.Append(CPPDEFINES=['FLASH_ERASE_SIZE=0x20000'])
 
 if(os.getenv('USE_CWCC') == 'no'):
     SelectCompilerPPCEabi()
