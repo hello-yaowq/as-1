@@ -270,7 +270,7 @@ static void socket_close(uint32_t port)
 
 		free(handle);
 
-		if(FALSE == STAILQ_EMPTY(&socketH->head))
+		if(TRUE == STAILQ_EMPTY(&socketH->head))
 		{
 			socketH->terminated = TRUE;
 		}

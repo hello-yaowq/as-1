@@ -267,7 +267,7 @@ static void serial_close(uint32_t port)
 
 		free(handle);
 
-		if(FALSE == STAILQ_EMPTY(&serialH->head))
+		if(TRUE == STAILQ_EMPTY(&serialH->head))
 		{
 			serialH->terminated = TRUE;
 		}

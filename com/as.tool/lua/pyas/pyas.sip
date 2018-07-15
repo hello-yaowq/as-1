@@ -15,6 +15,7 @@ public:
     int open(unsigned long busid,const char* device,unsigned long port, unsigned long baudrate);
     int write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
     int read(unsigned long busid,unsigned long canid,unsigned long* p_canid /Out/,unsigned long *dlc /Out/,unsigned char** data /Out/);
+    int close(unsigned long busid);
 };
 
 class asdev {

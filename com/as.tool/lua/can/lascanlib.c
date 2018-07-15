@@ -595,6 +595,40 @@ int luai_can_read  (lua_State *L)
 		return luaL_error(L, "can_read (bus_id, can_id) API should has 2 arguments");
 	}
 }
+
+int luai_can_close  (lua_State *L)
+{
+	int n = lua_gettop(L);  /* number of arguments */
+	if(1==n)
+	{
+		uint32_t busid;
+		int is_num;
+
+		busid = lua_tounsignedx(L, 1,&is_num);
+		if(!is_num)
+		{
+			 return luaL_error(L,"incorrect argument busid to function 'can_close'");
+		}
+
+		struct Can_Bus_s* b = getBus(busid);
+		if(NULL == b)
+		{
+			 return luaL_error(L,"bus(%d) is not on-line 'can_close'",busid);
+		}
+
+		(void)pthread_mutex_lock(&canbusH.q_lock);
+		b->device.ops->close(b->device.port);
+		STAILQ_REMOVE(&canbusH.head,b,Can_Bus_s,entry);
+		free(b);
+		(void)pthread_mutex_unlock(&canbusH.q_lock);
+
+		return 0;
+	}
+	else
+	{
+		return luaL_error(L, "can_close (bus_id) API should has 1 arguments");
+	}
+}
 int luai_can_log  (lua_State *L)
 {
 	int n = lua_gettop(L);  /* number of arguments */
@@ -848,6 +882,28 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 	}
 
 	fflush(stdout);
+	return rv;
+}
+
+int can_close(unsigned long busid)
+{
+	int rv;
+	struct Can_Bus_s * b = getBus(busid);
+	rv = FALSE;
+	if(NULL == b)
+	{
+		printf("ERROR :: can bus(%d) is not on-line 'can_close'\n",(int)busid);
+	}
+	else
+	{
+		(void)pthread_mutex_lock(&canbusH.q_lock);
+		b->device.ops->close(b->device.port);
+		STAILQ_REMOVE(&canbusH.head,b,Can_Bus_s,entry);
+		free(b);
+		(void)pthread_mutex_unlock(&canbusH.q_lock);
+		rv = TRUE;
+	}
+
 	return rv;
 }
 #endif /* __AS_PY_CAN__ */

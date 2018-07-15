@@ -246,7 +246,7 @@ static void peak_close(uint32_t port)
 
 		free(handle);
 
-		if(FALSE == STAILQ_EMPTY(&peakH->head))
+		if(TRUE == STAILQ_EMPTY(&peakH->head))
 		{
 			peakH->terminated = TRUE;
 		}

@@ -51,4 +51,4 @@ def can_read(busid,canid):
     return result,canid,data
 
 def can_close(busid):
-    print("ERROR: this can_close is not supported now, TODO!")
+    return __can__.close(busid)

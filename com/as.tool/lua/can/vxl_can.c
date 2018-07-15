@@ -263,7 +263,7 @@ static void vxl_close(uint32_t port)
 
 		free(handle);
 
-		if(FALSE == STAILQ_EMPTY(&vxlH->head))
+		if(TRUE == STAILQ_EMPTY(&vxlH->head))
 		{
 			vxlH->terminated = TRUE;
 		}

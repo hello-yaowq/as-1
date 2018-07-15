@@ -298,9 +298,11 @@ class AsFlashloader(QThread):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
         return self.enable[5]
-    def setTarget(self,app,flsdrv=None):
+    def setTarget(self,app,flsdrv=None, eraseProperty=None, writeProperty=None):
         self.app = app
         self.flsdrv = flsdrv
+        self.eraseProperty = eval(str(eraseProperty))
+        self.writeProperty = eval(str(writeProperty))
 
     def GetSteps(self):
         ss = []
@@ -371,7 +373,7 @@ class AsFlashloader(QThread):
         return self.transmit([0x37],[0x77])
     
     def download_one_section(self,address,size,data,identifier):
-        FLASH_WRITE_SIZE = 8
+        FLASH_WRITE_SIZE = self.writeProperty
         blockSequenceCounter = 1
         left_size = size
         pos = 0
@@ -472,10 +474,13 @@ class AsFlashloader(QThread):
                 saddr = ss['address']
             if(ss['address']+ss['size'] > eaddr):
                 eaddr = ss['address']+ss['size']
-        # erase align
-        #eaddr = int((eaddr+511)/512)*512
-        # For MPC56XX, 128KB aligned
-        eaddr = int((eaddr+0x1FFFF)/0x20000)*0x20000
+        if(type(self.eraseProperty) == list):
+            for addr in self.eraseProperty:
+                if(eaddr <= addr):
+                    eaddr = addr
+                    break
+        else:
+            eaddr = int((eaddr+self.eraseProperty-1)/self.eraseProperty)*self.eraseProperty
         return self.transmit([0x31,0x01,0xFF,0x01,
                               (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
                               (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
@@ -605,7 +610,18 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.cmbxCanBaud,3,3)
         grid.addWidget(self.btnStartASLUA,3,4)
         vbox.addLayout(grid)
-        
+
+        grid.addWidget(QLabel('Erase Property:'),4,0)
+        self.leFlsEraseProperty = QLineEdit()
+        grid.addWidget(self.leFlsEraseProperty,4,1)
+        self.leFlsEraseProperty.setToolTip('Sector start address list or the smallest sector size\nfor example:\n  list:[0,128*1024,...]\n  size: 512')
+        self.leFlsEraseProperty.setText('128*1024')
+        grid.addWidget(QLabel('Write Property:'),5,0)
+        self.leFlsWriteProperty = QLineEdit()
+        grid.addWidget(self.leFlsWriteProperty,5,1)
+        self.leFlsWriteProperty.setToolTip('the smallest page size')
+        self.leFlsWriteProperty.setText('8')
+
         hbox = QHBoxLayout()
         vbox2 = QVBoxLayout()
         for s in self.loader.GetSteps():
@@ -677,7 +693,8 @@ class UIFlashloader(QWidget):
     def on_btnStart_clicked(self):
         if(os.path.exists(str(self.leApplication.text()))):
             self.pgbProgress.setValue(1)
-            self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()))
+            self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()),
+                                  str(self.leFlsEraseProperty.text()),str(self.leFlsWriteProperty.text()))
             self.loader.start()
         else:
             QMessageBox.information(self, 'Tips', 'Please load a valid application first!')

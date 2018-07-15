@@ -279,12 +279,12 @@ static void zlg_close(uint32_t port)
 	{
 		STAILQ_REMOVE(&zlgH->head,handle,Can_ZLGHandle_s,entry);
 
-		free(handle);
-
-		if(FALSE == STAILQ_EMPTY(&zlgH->head))
+		if(TRUE == STAILQ_EMPTY(&zlgH->head))
 		{
+			VCI_CloseDevice(handle->DeviceType, 0);
 			zlgH->terminated = TRUE;
 		}
+		free(handle);
 	}
 }
 
