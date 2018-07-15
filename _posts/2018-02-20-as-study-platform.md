@@ -145,9 +145,13 @@ Then click the button "Debug" to start debug.
 
 # 4. as.one.py - a powerful pyhton tool
 
-The as.one.py is a very powerful python tool has integrated a lot features, such as BOOTLOADER, Diagnostic Communication Control(UDS iso14229) on CAN or DoIP(ethernet) and XCP(Universal Calibration Protocol).
+The as.one.py is a very powerful python tool has integrated a lot features, such as BOOTLOADER, Diagnostic Communication Control(UDS iso14229) on CAN, DoIP(ethernet) or XCP(Universal Calibration Protocol).
 
 For the purpose to use it, it must compiles the aslua firstly to build out the necessary library AS.pyd(this is generally for CAN).
+
+But first of all, the third party CAN library should be downloaded, such as the [peak-can pcan-basic.zip](https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip) and [zlg-can CAN_lib.zip](http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip). But this 2 libraries maybe updated in the future by the vendor maybe for the purpuse to add new features or fix some bugs, it may result that the automaticlly downlowded one by the aslua/Makefile will not be usable if the CAN library file structure changed. I am not going to fix those issues resulted by the third party CAN library file structure changed, so you should generally make sure the CAN library located at the as/release/download folder as below file structure.
+
+![third-party-can-folder-structure.png](/as/images/rewoa/third-party-can-folder-structure.png)
 
 Run command "make clean && make aslua" in the panel of aslua of the Console, but as the issue of msys2, you will encounter below error maybe.
 
