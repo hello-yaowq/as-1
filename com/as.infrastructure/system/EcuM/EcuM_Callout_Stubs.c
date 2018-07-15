@@ -123,6 +123,10 @@
 #include "SoAd.h"
 #endif
 
+#ifdef USE_STMO
+#include "Stmo.h"
+#endif
+
 #ifdef USE_SHELL
 #include "shell.h"
 #endif
@@ -412,6 +416,9 @@ void EcuM_AL_DriverInitTwo(const EcuM_ConfigType* ConfigPtr)
 	SoAd_Init();
 #endif
 
+#ifdef USE_STMO
+	Stmo_Init(&Stmo_ConfigData);
+#endif
 }
 
 

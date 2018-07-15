@@ -19,21 +19,34 @@
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
+#ifdef USE_RTE_SWC_TELLTALE
 extern void Swc_TelltaleManager(void);
 extern void Telltale_run(void);
+#endif
+
+#ifdef USE_RTE_SWC_GAUGE
+extern void Gauge_Run(void);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_RTE_SWC_TELLTALE
 TimerType timerTelltaleRun = 0u;
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 TASK(Rte_Runnable)
-{	/* period is 5ms */
+{	/* period is 10ms */
+#ifdef USE_RTE_SWC_TELLTALE
 	timerTelltaleRun ++;
-	if(timerTelltaleRun >= 4)
+	if(timerTelltaleRun >= 2)
 	{
 		Telltale_run();
 		timerTelltaleRun = 0;
 	}
 	Swc_TelltaleManager();
+#endif
+#ifdef USE_RTE_SWC_GAUGE
+	Gauge_Run();
+#endif
 	OsTerminateTask(Rte_Runnable);
 }
 ALARM(Alarm_Rte_Runnable)
@@ -43,7 +56,7 @@ ALARM(Alarm_Rte_Runnable)
 
 KSM(RteIdle,Init)
 {
-	OsSetRelAlarm(Alarm_Rte_Runnable, 1, 5);
+	OsSetRelAlarm(Alarm_Rte_Runnable, 1, MS2TICKS(10));
 	KGS(RteIdle,Running);
 }
 KSM(RteIdle,Start)

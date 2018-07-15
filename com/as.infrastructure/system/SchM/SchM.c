@@ -318,6 +318,10 @@
 #define SCHM_MAINFUNCTION_SOAD()
 #endif
 
+#ifdef USE_STMO
+#include "Stmo.h"
+#endif
+
 #include "asdebug.h"
 
 #ifdef __AS_BOOTLOADER__
@@ -516,6 +520,10 @@ TASK(SchM_BswService) {
 
 		#ifdef __AS_BOOTLOADER__
 		BL_MainFunction();
+		#endif
+
+		#ifdef USE_STMO
+		Stmo_MainFunction();
 		#endif
 		break;
 	}

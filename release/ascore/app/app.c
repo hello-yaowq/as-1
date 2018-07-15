@@ -20,9 +20,6 @@
 #ifdef USE_LCD
 #include "Lcd.h"
 #endif
-#ifdef USE_STMO
-#include "Stmo.h"
-#endif
 #ifdef USE_XCP
 #include "Xcp.h"
 #endif
@@ -72,121 +69,11 @@ struct process * const autostart_processes[] = {
 };
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
-#ifdef USE_STMO
-static void sample_pointer(void)
-{
-	static Stmo_DegreeType tacho = 0;
-	static Stmo_DegreeType speed = 0;
-	static Stmo_DegreeType temp = 0;
-	static Stmo_DegreeType fuel = 0;
-	static boolean tacho_up = TRUE;
-	static boolean speed_up = TRUE;
-	static boolean temp_up = TRUE;
-	static boolean fuel_up = TRUE;
-
-	if(tacho_up)
-	{
-		tacho += 50;
-		if(tacho >=  24000)
-		{
-			tacho = 24000;
-			tacho_up = FALSE;
-		}
-	}
-	else
-	{
-		if(tacho > 100)
-		{
-			tacho -= 100;
-		}
-		else
-		{
-			tacho = 0;
-			tacho_up = TRUE;
-		}
-	}
-
-	if(speed_up)
-	{
-		speed += 50;
-		if(speed >=  24000)
-		{
-			speed = 24000;
-			speed_up = FALSE;
-		}
-	}
-	else
-	{
-		if(speed > 100)
-		{
-			speed -= 100;
-		}
-		else
-		{
-			speed = 0;
-			speed_up = TRUE;
-		}
-	}
-
-	if(temp_up)
-	{
-		temp += 50;
-		if(temp >=  9700)
-		{
-			temp = 9700;
-			temp_up = FALSE;
-		}
-	}
-	else
-	{
-		if(temp > 50)
-		{
-			temp -= 50;
-		}
-		else
-		{
-			temp = 0;
-			temp_up = TRUE;
-		}
-	}
-
-	if(fuel_up)
-	{
-		fuel += 50;
-		if(fuel >=  9700)
-		{
-			fuel = 9700;
-			fuel_up = FALSE;
-		}
-	}
-	else
-	{
-		if(fuel > 50)
-		{
-			fuel -= 50;
-		}
-		else
-		{
-			fuel = 0;
-			fuel_up = TRUE;
-		}
-	}
-
-	Stmo_SetPosDegree(STMO_ID_SPEED,speed);
-	Stmo_SetPosDegree(STMO_ID_TACHO,tacho);
-	Stmo_SetPosDegree(STMO_ID_TEMP,temp);
-	Stmo_SetPosDegree(STMO_ID_FUEL,fuel);
-
-}
-#endif
 
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
 	printf(" start application BUILD @ %s %s\n",__DATE__,__TIME__);
-#ifdef USE_STMO
-	Stmo_Init(&Stmo_ConfigData);
-#endif
 #ifdef USE_LCD
 	Lcd_Init();
 #endif
@@ -261,10 +148,6 @@ TASK(TaskApp)
 {
 	OS_TASK_BEGIN();
 	ASLOG(OFF,"TaskApp is running\n");
-#ifdef USE_STMO
-	sample_pointer();
-	Stmo_MainFunction();
-#endif
 #ifdef USE_SG
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();
