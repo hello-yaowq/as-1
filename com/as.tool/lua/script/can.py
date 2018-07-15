@@ -20,7 +20,7 @@ try:
 except:
     from AS import *
 
-__all__ = ['can_open','can_write','can_read']
+__all__ = ['can_open','can_write','can_read','can_close']
 
 __can__ = can()
 
