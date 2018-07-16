@@ -37,6 +37,8 @@
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void application_main(void); /* Symbol exposed in linker.lds */
 extern uint32_t FlashDriverRam[];
+
+extern void BL_SetAutoPRGS(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static tFlashParam blFlashParam =
 {
@@ -359,6 +361,7 @@ void BL_Init(void)
 	/* TODO: check previous update request from application */
 	if(1)
 	{	/* simulation call to enter program session */
+		BL_SetAutoPRGS();
 		CanIf_RxIndication(CANIF_CHL_LS,0x731,8,CanSduPtr);
 	}
 }

@@ -17,6 +17,7 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 #include "Dcm.h"
+#include "Dcm_Internal.h"
 #ifdef USE_XCP
 #include "Xcp.h"
 #endif

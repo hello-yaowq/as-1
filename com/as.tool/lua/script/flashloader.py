@@ -235,8 +235,13 @@ class AsFlashloader(QThread):
                 saddr = ss['address']
             if(ss['address']+ss['size'] > eaddr):
                 eaddr = ss['address']+ss['size']
-        eaddr = int((eaddr+511)/512)*512
-
+        if(type(self.eraseProperty) == list):
+            for addr in self.eraseProperty:
+                if(eaddr <= addr):
+                    eaddr = addr
+                    break
+        else:
+            eaddr = int((eaddr+self.eraseProperty-1)/self.eraseProperty)*self.eraseProperty
         req = xcpbits()
         req.append(0xF6,8)
         req.append(0x00,16)      # reserved

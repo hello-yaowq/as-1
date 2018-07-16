@@ -21,13 +21,13 @@ if(IsPlatformWindows()):
         
         MKSymlink('%s/release/download/ControlCAN/64/ControlCAN.dll'%(asenv['ASROOT']),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
-        MKSymlink('%s/release/download/pcan-basic/PCAN-Basic API/x64/PCANBasic.dll'%(asenv['ASROOT']),
+        MKSymlink('%s/release/download/pcan-basic/"PCAN-Basic API"/x64/PCANBasic.dll'%(asenv['ASROOT']),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
     else:
         asenv.Append(CCFLAGS='-I%s/release/download/ControlCAN/32'%(asenv['ASROOT']))
         MKSymlink('%s/release/download/ControlCAN/32/ControlCAN.dll'%(asenv['ASROOT']),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
-        MKSymlink('%s/release/download/pcan-basic/PCAN-Basic API/Win32/PCANBasic.dll'%(asenv['ASROOT']),
+        MKSymlink('%s/release/download/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll'%(asenv['ASROOT']),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
 
 objs +=  Glob('*.c')

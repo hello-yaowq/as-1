@@ -23,6 +23,7 @@
 /* ============================ [ DATAS     ] ====================================================== */
 static uint32 bl_prgs_seed= 0xdeadbeef;
 static uint32 bl_extds_seed= 0xbeafdada;
+static boolean bl_auto_prgs = FALSE;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 Std_ReturnType BL_GetProgramSessionSeed (uint8 *securityAccessDataRecord, uint8 *seed,
@@ -119,7 +120,7 @@ Std_ReturnType BL_ProtocolIndicationCbk(uint8 *requestData, uint16 dataSize)
 Std_ReturnType BL_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew)
 {
 	Std_ReturnType ercd = E_OK;
-	ASLOG(BL,"%s()\n",__func__);
+	ASLOG(BL,"%s(%d --> %d)\n",__func__,sesCtrlTypeActive,sesCtrlTypeNew);
 
 	/* program session can only be entered through EXTDS session */
 	if(( DCM_PROGRAMMING_SESSION == sesCtrlTypeNew) && (DCM_EXTENDED_DIAGNOSTIC_SESSION != sesCtrlTypeActive))
@@ -136,5 +137,16 @@ Std_ReturnType BL_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, 
 			ercd = E_NOT_OK;
 		}
 	}
+
+	if(bl_auto_prgs==TRUE)
+	{
+		bl_auto_prgs = FALSE;
+		ercd = E_OK;
+	}
 	return ercd;
+}
+
+void BL_SetAutoPRGS(void)
+{
+	bl_auto_prgs = TRUE;
 }

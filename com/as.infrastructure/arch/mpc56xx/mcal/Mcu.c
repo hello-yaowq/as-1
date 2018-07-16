@@ -139,7 +139,7 @@ Std_ReturnType Mcu_InitClock( const Mcu_ClockType ClockSetting ) {
 }
 
 void Mcu_PerformReset( void ) {
-
+	SIU.SRCR.B.SSR = 1;
 }
 
 Mcu_PllStatusType Mcu_GetPllStatus( void ) {
