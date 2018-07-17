@@ -28,6 +28,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'PORT','DIO','ADC',
            'CAN','CANIF','PDUR','COM','COMM','CANTP',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
+           'FLS','FEE','MEMIF','NVM','CLIB_MBOX',
            'MPC5634M_MLQB80'
            ]
 
@@ -77,6 +78,7 @@ env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/
 env.Append(CPPPATH=['%s/mcal/MPC563XM_MCAL3.0_RTM_2.0.0_Integration_Application/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/Dem_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/mcal/Det_TS_T2D14M20I0R0/include'%(cwd)])
+env.Append(CPPPATH=['%s/mcal/MemIf_TS_T2D14M20I0R0/include'%(cwd)])
 env.Append(CPPPATH=['%s/os/ssc/inc'%(cwd)])
 
 objs += Glob('app/*.c')
@@ -123,6 +125,17 @@ if('ADC' in MODULES):
     objs += Glob('mcal/Adc_TS_T2D14M20I0R0/src/*.c')
     env.Append(CPPDEFINES=['AdcConfigSet_0=AdcConfig'])
     objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Adc.c')
+
+if('FLS' in MODULES):
+    env.Append(CPPPATH=['%s/mcal/Fls_TS_T2D14M20I0R0/include'%(cwd)])
+    objs += Glob('config/src/Fls*.c')
+    objs += Glob('mcal/Fls_TS_T2D14M20I0R0/src/*.c')
+    env.Append(CPPDEFINES=['FlsConfigSet_0=FlsConfigSet'])
+    objs += Glob('mcal/SchM_TS_T2D14M20I0R0/src/SchM_Fls.c')
+    asenv.Append(CPPDEFINES=['FEE_BANK1_OFFSET=0x00000',
+                             'FEE_BANK2_OFFSET=0x10000',
+                             'FEE_BANK1_LENGTH=0x10000',
+                             'FEE_BANK2_LENGTH=0x10000'])
 
 objs = env.Object(objs)
 

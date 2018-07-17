@@ -288,3 +288,18 @@ void StartOsTick(void)
 }
 #endif
 
+#ifdef __AS_BOOTLOADER__
+void application_main(void)
+{
+	const struct appbam_s {
+		uint32_t bam;
+		void (*entry)(void);
+	} *appbam = (struct appbam_s*)0x40000;
+	printf("application bam is 0x%X, entry is 0x%X\n", appbam->bam, appbam->entry);
+	if((0x015A015A == appbam->bam) && (NULL != appbam->entry))
+	{
+		appbam->entry();
+	}
+}
+#endif
+

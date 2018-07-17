@@ -31,15 +31,20 @@ void MemIf_SetMode(MemIf_ModeType Mode) {
 
 Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOffset, uint8 *DataBufferPtr, uint16 Length) {
 	//return _MemIf_Read(DeviceIndex, BlockNumber , BlockOffset, DataBufferPtr, Length );
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		Fee_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		Ea_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
 	}
 	else
+#endif
 	{
 		asAssert(0);
 	}
@@ -47,46 +52,61 @@ Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOff
 
 Std_ReturnType MemIf_Write(uint8 DeviceIndex, uint16 BlockNumber, uint8 *DataBufferPtr) {
 	//return _MemIf_Write(DeviceIndex, BlockNumber, DataBufferPtr );
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		Fee_Write(BlockNumber , DataBufferPtr);
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		Ea_Write(BlockNumber , DataBufferPtr);
 	}
 	else
+#endif
 	{
 		asAssert(0);
 	}
 }
 
 void MemIf_Cancel(uint8 DeviceIndex) {
+#ifdef USE_FEE
 	//return _MemIf_Cancel(DeviceIndex);
 	if(FEE_INDEX == DeviceIndex)
 	{
 		Fee_Cancel();
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		Ea_Cancel();
 	}
 	else
+#endif
 	{
 		asAssert(0);
 	}
 }
 MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
 	//return _MemIf_GetStatus(DeviceIndex);
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		return Fee_GetStatus();
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		return Ea_GetStatus();
 	}
 	else
+#endif
 	{
 		asAssert(0);
 		return MEMIF_UNINIT;
@@ -94,15 +114,20 @@ MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
 }
 MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex) {
 	//eturn _MemIf_GetJobResult(DeviceIndex);
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		return Fee_GetJobResult();
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		return Ea_GetJobResult();
 	}
 	else
+#endif
 	{
 		asAssert(0);
 		return MEMIF_JOB_FAILED;
@@ -111,15 +136,20 @@ MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex) {
 Std_ReturnType MemIf_InvalidateBlock(uint8 DeviceIndex, uint16 BlockNumber) {
 
 	//return _MemIf_InvalidateBlock(DeviceIndex,BlockNumber);
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		return Fee_InvalidateBlock(BlockNumber);
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		return Ea_InvalidateBlock(BlockNumber);
 	}
 	else
+#endif
 	{
 		asAssert(0);
 		return E_NOT_OK;
@@ -127,15 +157,20 @@ Std_ReturnType MemIf_InvalidateBlock(uint8 DeviceIndex, uint16 BlockNumber) {
 }
 Std_ReturnType MemIf_EraseImmediateBlock(uint8 DeviceIndex, uint16 BlockNumber) {
 	//return _MemIf_EraseImmediateBlock( DeviceIndex, BlockNumber );
+#ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
 		return Fee_EraseImmediateBlock(BlockNumber);
 	}
-	else if(EA_INDEX == DeviceIndex)
+	else
+#endif
+#ifdef USE_EA
+	if(EA_INDEX == DeviceIndex)
 	{
 		return Ea_EraseImmediateBlock(BlockNumber);
 	}
 	else
+#endif
 	{
 		asAssert(0);
 		return E_NOT_OK;

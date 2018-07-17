@@ -89,8 +89,6 @@
 #define NVM_LOC_WRITE_BLOCK_ID					0x41
 #define NVM_GLOBAL_ID							0xff
 
-
-
 #if ( NVM_VERSION_INFO_API == STD_ON )	/** @req NVM452 */
 #define NvM_GetVersionInfo(_vi) STD_GET_VERSION_INFO(_vi, NVM)
 #endif /* NVM_VERSION_INFO_API */

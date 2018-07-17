@@ -197,8 +197,33 @@ def GenC():
 #endif
 #ifdef USE_EA
 #include "Ea.h"
-#endif\n\n''') 
+#endif
+#ifndef FEE_INDEX
+#define FEE_INDEX 0xFE
+#endif
+
+#ifndef EA_INDEX
+#define EA_INDEX 0xEA
+#endif\n\n''')
     BlockList = GLGet('BlockList')
+    for block in BlockList:
+        NvramDeviceId = GAGet(block,'NvramDeviceId')
+        if('Fee' == NvramDeviceId):
+            BlockNumRef = GAGet(block,'BlockNumRef0')
+        else:
+            BlockNumRef = GAGet(block,'BlockNumRef1')
+        if(GAGet(block,'IsArray')=='False'):
+            i = 1
+        else:
+            i = Integer(GAGet(block,'ArraySize'))
+        for i in range(0,i):
+            if(GAGet(block,'IsArray')=='False'):
+                idfix = ''
+            else:
+                idfix='_%s'%(i)
+            fp.write('#ifndef %s_BLOCK_NUM_%s%s\n'%(NvramDeviceId.upper(),BlockNumRef,idfix))
+            fp.write('#define %s_BLOCK_NUM_%s%s -1\n'%(NvramDeviceId.upper(),BlockNumRef,idfix))
+            fp.write('#endif\n')
     for block in BlockList:
         if(GAGet(block,'IsArray')=='False'):
             posfix = ''
