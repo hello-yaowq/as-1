@@ -303,11 +303,12 @@ class AsFlashloader(QThread):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
         return self.enable[5]
-    def setTarget(self,app,flsdrv=None, eraseProperty=None, writeProperty=None):
+    def setTarget(self,app,flsdrv=None, eraseProperty='512', writeProperty='8', signature='8'):
         self.app = app
         self.flsdrv = flsdrv
         self.eraseProperty = eval(str(eraseProperty))
         self.writeProperty = eval(str(writeProperty))
+        self.flsSignature = eval(str(signature))
 
     def GetSteps(self):
         ss = []
@@ -494,9 +495,26 @@ class AsFlashloader(QThread):
     def download_application(self):
         app = self.apps
         ary = app.getData(True)
-        for ss in ary:
-            ercd,res = self.download_one_section(ss['address'],ss['size'],ss['data'],0xFF)
+        for id,ss in enumerate(ary):
+            if((id==0)  and (self.flsSignature>0)):
+                assert(ss['size'] >= self.flsSignature)
+                addr = ss['address']+self.flsSignature
+                data = ss['data'][self.flsSignature:]
+                size = ss['size']-self.flsSignature
+                if(size == 0):
+                    continue
+            else:
+                addr = ss['address']
+                data = ss['data']
+                size = ss['size']
+            ercd,res = self.download_one_section(addr,size,data,0xFF)
             if(ercd == False):return ercd,res
+        # write the signature at last
+        if(self.flsSignature>0):
+            addr = ary[0]['address']
+            data = ary[0]['data'][:self.flsSignature]
+            size = self.flsSignature
+            ercd,res = self.download_one_section(addr,size,data,0xFF)
         return ercd,res
 
     def check_application(self):
@@ -626,7 +644,12 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.leFlsWriteProperty,5,1)
         self.leFlsWriteProperty.setToolTip('the smallest page size')
         self.leFlsWriteProperty.setText('8')
-
+        grid.addWidget(QLabel('Signature:'),5,2)
+        self.leFlsSignature = QLineEdit()
+        self.leFlsSignature.setMaximumWidth(120)
+        grid.addWidget(self.leFlsSignature,5,3)
+        self.leFlsSignature.setToolTip('the signature size at the begining of Image')
+        self.leFlsSignature.setText('8')
         hbox = QHBoxLayout()
         vbox2 = QVBoxLayout()
         for s in self.loader.GetSteps():
@@ -699,7 +722,8 @@ class UIFlashloader(QWidget):
         if(os.path.exists(str(self.leApplication.text()))):
             self.pgbProgress.setValue(1)
             self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()),
-                                  str(self.leFlsEraseProperty.text()),str(self.leFlsWriteProperty.text()))
+                                  str(self.leFlsEraseProperty.text()),str(self.leFlsWriteProperty.text()),
+                                  str(self.leFlsSignature.text()))
             self.loader.start()
         else:
             QMessageBox.information(self, 'Tips', 'Please load a valid application first!')
