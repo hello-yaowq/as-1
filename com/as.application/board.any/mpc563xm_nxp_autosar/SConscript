@@ -22,7 +22,7 @@ for flgs in ['-include','asmconfig.h']:
 	env['CCFLAGS'].remove(flgs)
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET',
+           'DET','DEM',
            'CLIB_STDIO_PRINTF',
            'ASKAR','SHELL','CLIB_STRTOK_R',
            'PORT','DIO','ADC',

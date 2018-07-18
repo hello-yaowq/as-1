@@ -34,19 +34,19 @@ Std_ReturnType MemIf_Read(uint8 DeviceIndex, uint16 BlockNumber, uint16 BlockOff
 #ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
-		Fee_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
+		return Fee_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
 	}
 	else
 #endif
 #ifdef USE_EA
 	if(EA_INDEX == DeviceIndex)
 	{
-		Ea_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
+		return Ea_Read(BlockNumber , BlockOffset, DataBufferPtr, Length );
 	}
 	else
 #endif
 	{
-		asAssert(0);
+		return E_NOT_OK;
 	}
 }
 
@@ -55,19 +55,19 @@ Std_ReturnType MemIf_Write(uint8 DeviceIndex, uint16 BlockNumber, uint8 *DataBuf
 #ifdef USE_FEE
 	if(FEE_INDEX == DeviceIndex)
 	{
-		Fee_Write(BlockNumber , DataBufferPtr);
+		return Fee_Write(BlockNumber , DataBufferPtr);
 	}
 	else
 #endif
 #ifdef USE_EA
 	if(EA_INDEX == DeviceIndex)
 	{
-		Ea_Write(BlockNumber , DataBufferPtr);
+		return Ea_Write(BlockNumber , DataBufferPtr);
 	}
 	else
 #endif
 	{
-		asAssert(0);
+		return E_NOT_OK;
 	}
 }
 
@@ -88,7 +88,7 @@ void MemIf_Cancel(uint8 DeviceIndex) {
 	else
 #endif
 	{
-		asAssert(0);
+
 	}
 }
 MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
@@ -108,8 +108,7 @@ MemIf_StatusType MemIf_GetStatus(uint8 DeviceIndex) {
 	else
 #endif
 	{
-		asAssert(0);
-		return MEMIF_UNINIT;
+		return MEMIF_IDLE;
 	}
 }
 MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex) {
@@ -129,7 +128,6 @@ MemIf_JobResultType MemIf_GetJobResult(uint8 DeviceIndex) {
 	else
 #endif
 	{
-		asAssert(0);
 		return MEMIF_JOB_FAILED;
 	}
 }
@@ -151,7 +149,6 @@ Std_ReturnType MemIf_InvalidateBlock(uint8 DeviceIndex, uint16 BlockNumber) {
 	else
 #endif
 	{
-		asAssert(0);
 		return E_NOT_OK;
 	}
 }
@@ -172,7 +169,6 @@ Std_ReturnType MemIf_EraseImmediateBlock(uint8 DeviceIndex, uint16 BlockNumber) 
 	else
 #endif
 	{
-		asAssert(0);
 		return E_NOT_OK;
 	}
 }

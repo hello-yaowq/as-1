@@ -56,6 +56,7 @@ if('RTE' in MODULES):
 if('TEST' in MODULES):
     objs += Glob('test/*.c')
     objs += Glob('test/*.xml')
+    asenv.Append(CPPPATH=['%s/test'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/config'%(cwd)])
 

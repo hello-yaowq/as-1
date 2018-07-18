@@ -107,10 +107,12 @@ static void NvM_Test(void)
 //	printf("NvM>>> Year=%d,Month=%d,Day=%d,Hour=%d,Minute=%d,Second=%d\n",
 //			NvM_BlockTime_DataGroup_RAM.Year,NvM_BlockTime_DataGroup_RAM.Month,NvM_BlockTime_DataGroup_RAM.Day,
 //			NvM_BlockTime_DataGroup_RAM.Hour,NvM_BlockTime_DataGroup_RAM.Minute,NvM_BlockTime_DataGroup_RAM.Second);
+#ifdef USE_FEE
 	printf("NvM>>> Year=%d,Month=%d,Day=%d,Hour=%d,Minute=%d,Second=%d\n",
 			Rte_NvMRead(Time,Year),Rte_NvMRead(Time,Month),Rte_NvMRead(Time,Day),
 			Rte_NvMRead(Time,Hour),Rte_NvMRead(Time,Minute),Rte_NvMRead(Time,Second));
-
+#endif
+#ifdef USE_EA
 	printf("NvM>> EaTest1 = [0x%X,0x%X,0x%X,0x%X]\n",
 			Rte_NvMRead(EaTest1,Data0),Rte_NvMRead(EaTest1,Data1),
 			Rte_NvMRead(EaTest1,Data2),Rte_NvMRead(EaTest1,Data3));
@@ -118,14 +120,16 @@ static void NvM_Test(void)
 	printf("NvM>> EaTest2 = [0x%X,0x%X,0x%X,0x%X]\n",
 			Rte_NvMRead(EaTest2,Data1),Rte_NvMRead(EaTest2,Data2),
 			Rte_NvMRead(EaTest2,Data3),Rte_NvMRead(EaTest2,Data4));
-
+#endif
+#ifdef USE_FEE
 	Rte_NvMWrite(Time,Year,SystemTime.year);
 	Rte_NvMWrite(Time,Month,SystemTime.month);
 	Rte_NvMWrite(Time,Day,SystemTime.day);
 	Rte_NvMWrite(Time,Hour,SystemTime.hour);
 	Rte_NvMWrite(Time,Minute,SystemTime.minute);
 	Rte_NvMWrite(Time,Second,SystemTime.second);
-
+#endif
+#ifdef USE_EA
 	Rte_NvMWrite(EaTest1,Data0,0xDEADBEEF);
 	Rte_NvMWrite(EaTest1,Data1,0xAABBCCDD);
 	Rte_NvMWrite(EaTest1,Data2,0xFFAA33BB);
@@ -135,7 +139,8 @@ static void NvM_Test(void)
 	Rte_NvMWrite(EaTest2,Data2,0x12345678);
 	Rte_NvMWrite(EaTest2,Data3,0xBB994567);
 	Rte_NvMWrite(EaTest2,Data4,0x12345678);
-
+#endif
+#ifdef USE_FEE
 	if(SystemTime.second%3 == 0)
 	{
 		Rte_NvmWriteBlock(Time);
@@ -153,6 +158,7 @@ static void NvM_Test(void)
 		memcpy(Rte_NvMReadBuffer(FingerPrint),"Test by parai@foxmail.com\n",26);
 		Rte_NvmWriteBlock(FingerPrint);
 	}
+#endif
 }
 #endif
 #ifdef USE_EA_TEST
@@ -200,6 +206,7 @@ static void Dem_Test(void)
 	Dem_GetEventStatus(DEM_EVENT_ID_AIRBAG_FAILED,&status);
 	Dem_SetOperationCycleState(DEM_IGNITION,DEM_CYCLE_STATE_START);
 	printf("DEM airbag status is 0x%X\n",status);
+	asmem("DTC", NvM_Block_DemFreezeFrame_DataGroup_RAM, sizeof(NvM_Block_DemFreezeFrame_DataGroup_RAM[0]));
 	if(DEM_TEST_FAILED_THIS_OPERATION_CYCLE != status)
 	{
 		Dem_ReportErrorStatus(DEM_EVENT_ID_AIRBAG_FAILED,DEM_EVENT_STATUS_FAILED);
