@@ -1,3 +1,4 @@
+#ifdef USE_AWS
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
@@ -584,3 +585,5 @@ static void* server_main(void* param)
 	return 0;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#endif /* USE_AWS */
+

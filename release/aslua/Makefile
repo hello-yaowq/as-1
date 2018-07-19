@@ -171,8 +171,17 @@ def-y += -D__AS_BY_PARAI__
 def-y += -D$(board)_board
 def-y += -DUSE_DET
 
+ifeq ($(host), Linux)
+export USE_AWS=YES
+else
+export USE_AWS?=NO
+endif
+
+ifeq ($(USE_AWS),YES)
+def-y += -DUSE_AWS
 inc-y += -I$(LUA)/device/websock
 ldflags-y += -L$(LUA)/device/websock/out -laws
+endif
 
 ldflags-y += -lpthread
 
@@ -209,7 +218,9 @@ cleanaws:
 	@(cd $(LUA)/device/websock; make clean)
 
 libaws:
+ifeq ($(USE_AWS),YES)
 	@(cd $(LUA)/device/websock; make all CC=$(COMPILER_PREFIX)gcc AR=$(COMPILER_PREFIX)ar)
+endif
 
 $(LUA)/device/websock/out/libaws.a:libaws
 
@@ -319,7 +330,9 @@ else
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
 	@(cd $(exe-dir);$(LNFS) $(src-dir)/ControlCAN.lib libZLGCAN.a)
 endif
+ifeq ($(USE_AWS),YES)
 	@(cd $(exe-dir);$(LNFS) $(LUA)/device/websock/out/libaws.a)
+endif
 	@echo $(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)
 	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))	
 	@echo "  >> pysip build done "

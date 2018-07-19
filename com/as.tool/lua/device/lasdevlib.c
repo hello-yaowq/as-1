@@ -41,7 +41,9 @@ struct LAS_DevList_s {
 static const LAS_DeviceOpsType* devOps [] =
 {
 	&rs232_dev_ops,
+#ifdef USE_AWS
 	&websock_dev_ops,
+#endif
 	NULL
 };
 static int _fd = 0; /* file identifier start from 0 */

@@ -16,6 +16,7 @@ MPC5634M_MLQB80
 
 To support other kind of chips, please take the MPC5634M_MLQB80 as an example and modify the SConscript and Kconfig
 
+[DEMO ASBOOT & ASCORE](https://gitlab.com/as-boards/mpc56xx)
 
 [MPC563XMRM](https://www.nxp.com/docs/en/reference-manual/MPC563XMRM.pdf)
 
