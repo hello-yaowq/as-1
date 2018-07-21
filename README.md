@@ -12,11 +12,20 @@ As below picture shows, it was an virtual cluster based on AUTOSAR and can be si
 
 ## Key Point
 
-### 1. Integrated ArcCore AUTOSAR 3.1 BSW
+### 1. BSW
+
+#### 1.1 Integrated ArcCore AUTOSAR 3.1 BSW
 * Communication: Can(CanFD) CanIf PduR Com SoAd J1939Tp
 * Diagnostic: CanTp Dcm DoIP Dem
 * System: EcuM SchM
 * Memory: Fls Fee Eep Ea NvM MemIf
+
+#### 1.2 AS Mini BSW
+Mainly for the purpose to create a small footprint bootloader with all of the code implemented by me.
+
+* Diagnostic: [CanTpMini](https://github.com/parai/as/blob/master/com/as.infrastructure/communication/CanTp/CanTpMini.c) [DcmMini](https://github.com/parai/as/tree/master/com/as.infrastructure/diagnostic/Dcm/DcmMini.c)
+
+
 
 ### 2. OS [ASKAR](https://github.com/parai/as/tree/master/com/as.infrastructure/system/kernel/askar) - [Automotive oSeK AutosaR](http://parai.github.io/as/autosar/2017/10/27/ASKAR-architecture.html)
 This RTOS ASKAR is designed according to [OSEK/VDX OS223](http://trampolinebin.rts-software.org/os223.pdf) by taking a reference of a lot of other open source RTOS, generally, the bwlow is the list:

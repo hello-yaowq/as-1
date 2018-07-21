@@ -118,6 +118,7 @@ Std_ReturnType BL_ProtocolIndicationCbk(uint8 *requestData, uint16 dataSize)
 }
 
 Std_ReturnType BL_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew)
+
 {
 	Std_ReturnType ercd = E_OK;
 	ASLOG(BL,"%s(%d --> %d)\n",__func__,sesCtrlTypeActive,sesCtrlTypeNew);

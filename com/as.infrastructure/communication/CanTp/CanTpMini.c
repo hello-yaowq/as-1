@@ -457,15 +457,16 @@ static void HandleWaiting(PduIdType Instance)
 void CanTp_Init(void)
 {
 	PduIdType Instance;
-	memset(&canTpRTE, 0, sizeof(canTpRTE));
 	for(Instance=0; Instance<CANTP_INSTANCE_NUM; Instance++)
 	{
+		memset(&CANTP_RTE, 0, sizeof(CANTP_RTE));
 		CANTP_RTE.parameter = canTpInstanceDefaultParameter;
 	}
 }
 
 void CanTp_SetParameter(PduIdType Instance, const uint16* parameter)
 {
+	asAssert(Instance < CANTP_INSTANCE_NUM);
 	CANTP_RTE.parameter = parameter;
 }
 
@@ -532,7 +533,7 @@ void CanTp_MainFunction(void)
 void CanTp_RxIndication( PduIdType Instance, const PduInfoType *pdu )
 {
 	asAssert(Instance < CANTP_INSTANCE_NUM);
-	if( N_PCI_SF == (pdu->SduDataPtr[0]&N_PCI_MASK))
+	if(N_PCI_SF == (pdu->SduDataPtr[0]&N_PCI_MASK))
 	{
 		ReceiveSF(Instance, pdu->SduDataPtr);
 	}

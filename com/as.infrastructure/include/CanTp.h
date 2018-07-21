@@ -103,5 +103,6 @@ Std_ReturnType FrTp_CancelTransmitRequest( PduIdType FrTpTxPduId, FrTp_CancelRea
 
 void CanTp_MainFunction(void); /** @req CANTP213 */
 
-
+/* for CANTPmini */
+void CanTp_SetParameter(PduIdType Instance, const uint16* parameter);
 #endif /* CANTP_H_ */
