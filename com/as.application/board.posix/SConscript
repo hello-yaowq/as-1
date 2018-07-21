@@ -94,6 +94,7 @@ if(asenv['RELEASE']=='asboot'):
                'DCM','XCP',
                'FLASH',
                'TINYOS',
+               'CANTP_MINI',
                ]
 
 if(asenv['MODULES'] is None):

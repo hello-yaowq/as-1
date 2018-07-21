@@ -35,7 +35,7 @@ typedef void (*aslog_t)(char*,char*);
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 #if defined(__WINDOWS__) || defined(__LINUX__)
-static char* __aswho  = "parai";
+static char* __aswho  = "AS";
 static aslog_t __aslog  = NULL;
 static int g_argc=0;
 static char** g_argv = 0;

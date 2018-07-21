@@ -20,7 +20,10 @@ if('CANSM' in MODULES):
     asenv.Append(CPPPATH=['%s/CanSM'%(cwd)])
 
 if('CANTP' in MODULES):
-    objs += Glob('CanTp/*.c')
+    if('CANTP_MINI' in MODULES):
+        objs += Glob('CanTp/CanTpMini.c')
+    else:
+        objs += Glob('CanTp/CanTp.c')
     asenv.Append(CPPPATH=['%s/CanTp'%(cwd)])
 
 if('COM' in MODULES):

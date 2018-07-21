@@ -166,7 +166,7 @@ static boolean zlg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 			if(STATUS_OK != status)
 			{
 				ASWARNING("CAN ZLG port=%d is not able to be opened,error=%X!\n",port,status);
-				ASWARNING("maybe you forgot about the ControlCAN\64\kerneldlls to be copied to local directory!\n");
+				ASWARNING("maybe you forgot about the ControlCAN\\64\\kerneldlls to be copied to local directory!\n");
 				rv = FALSE;
 			}
 		}
