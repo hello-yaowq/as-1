@@ -44,7 +44,7 @@ Std_ReturnType BL_GetProgramSessionSeed (uint8 *securityAccessDataRecord, uint8 
 	seed[3] = (uint8)(bl_prgs_seed);
 	return E_OK;
 }
-Std_ReturnType BL_CompareProgramSessionSeed (uint8 *key)
+Std_ReturnType BL_CompareProgramSessionKey (uint8 *key)
 {
 	Std_ReturnType ercd;
 	uint32 u32Key = ((uint32)key[0]<<24) + ((uint32)key[1]<<16) + ((uint32)key[2]<<8) +((uint32)key[3]);
@@ -82,7 +82,7 @@ Std_ReturnType BL_GetExtendedSessionSeed (uint8 *securityAccessDataRecord, uint8
 	seed[3] = (uint8)(bl_extds_seed);
 	return E_OK;
 }
-Std_ReturnType BL_CompareExtendedSessionSeed (uint8 *key)
+Std_ReturnType BL_CompareExtendedSessionKey (uint8 *key)
 {
 	Std_ReturnType ercd;
 	uint32 u32Key = ((uint32)key[0]<<24) + ((uint32)key[1]<<16) + ((uint32)key[2]<<8) +((uint32)key[3]);

@@ -12,6 +12,8 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+
+/* design according to ISR 14229 (2006).pdf */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Dcm.h"
 #include "Dcm_Internal.h"
@@ -38,20 +40,57 @@
 #endif
 #define msToDcmTick(__ms) (((__ms)+DCM_MAIN_FUNCTION_PERIOD-1)/DCM_MAIN_FUNCTION_PERIOD)
 
+#define dcmSetAlarm(Alarm,timeMs)						\
+do{												\
+	DCM_RTE.timer##Alarm = msToDcmTick(timeMs)+1;	\
+}while(0)
+
+#define dcmSignalAlarm(Alarm)					\
+do{										\
+	if(DCM_RTE.timer##Alarm > 1)				\
+	{									\
+		DCM_RTE.timer##Alarm --;				\
+	}									\
+}while(0)
+#define dcmCancelAlarm(Alarm) { DCM_RTE.timer##Alarm = 0;}
+#define dcmIsAlarmTimeout(Alarm) ( 1u == DCM_RTE.timer##Alarm )
+#define dcmIsAlarmStarted(Alarm) ( 0u != DCM_RTE.timer##Alarm )
+
 #define DCM_RTE dcmRTE[Instance]
 
-#define DCM_RXSDU   (PduInfoType *)DCM_RTE.parameter[0]
+#define DCM_EOL	(-1)
+
+#ifdef __AS_BOOTLOADER__
+#define DCM_GET_SESSION_CHANGE_PERMISSION_FNC BL_GetSessionChangePermission
+#else
+#define DCM_GET_SESSION_CHANGE_PERMISSION_FNC Dcm_GetSessionChangePermission
+#endif
+
+#define DCM_RXSDU   ((PduInfoType *)DCM_RTE.parameter[0])
 #define DCM_RXSDU_SIZE (((PduInfoType *)DCM_RTE.parameter[0])->SduLength)
 #define DCM_RXSDU_DATA (((PduInfoType *)DCM_RTE.parameter[0])->SduDataPtr)
-#define DCM_TXSDU (PduInfoType *)DCM_RTE.parameter[1]
+#define DCM_TXSDU ((PduInfoType *)DCM_RTE.parameter[1])
 #define DCM_TXSDU_SIZE (((PduInfoType *)DCM_RTE.parameter[1])->SduLength)
 #define DCM_TXSDU_DATA (((PduInfoType *)DCM_RTE.parameter[1])->SduDataPtr)
+#define DCM_SESSION_LIST ((uint8 *)DCM_RTE.parameter[2])
+#define DCM_GET_SESSION_CHANGE_PERMISSION ((Dcm_CallbackGetSesChgPermissionFncType)DCM_RTE.parameter[3])
+#define DCM_SECURITY_LEVEL_LIST ((uint8 *)DCM_RTE.parameter[4])
+#define DCM_SECURITY_SEED_SIZE_LIST ((uint8 *)DCM_RTE.parameter[5])
+#define DCM_SECURITY_KEY_SIZE_LIST ((uint8 *)DCM_RTE.parameter[6])
+#define DCM_SECURITY_GET_SEED_FNC_LIST ((Dcm_CallbackGetSeedFncType*)DCM_RTE.parameter[7])
+#define DCM_SECURITY_COMPARE_KEY_FNC_LIST ((Dcm_CallbackCompareKeyFncType*)DCM_RTE.parameter[8])
+
+#define DCM_S3SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[9])
+#define DCM_P2SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[10])
 
 #define DCM_INSTANCE_DEFAULT_PARAMETER	\
-	{ (Dcm_ParameterType)&rxPduInfo, (Dcm_ParameterType)&txPduInfo }
+	{ (Dcm_ParameterType)&rxPduInfo, (Dcm_ParameterType)&txPduInfo, \
+	  (Dcm_ParameterType)sesList, (Dcm_ParameterType)DCM_GET_SESSION_CHANGE_PERMISSION_FNC, \
+	  (Dcm_ParameterType)secList, (Dcm_ParameterType)secSeedKeySizeList,  (Dcm_ParameterType)secSeedKeySizeList, \
+	  (Dcm_ParameterType)getSeedList, (Dcm_ParameterType)compareKeyList, \
+	  (Dcm_ParameterType)5000, (Dcm_ParameterType)100, \
+	}
 /* ============================ [ TYPES     ] ====================================================== */
-typedef uint32 Dcm_ParameterType;
-
 enum {
 	DCM_BUFFER_IDLE = 0,
 	DCM_BUFFER_PROVIDED,
@@ -60,22 +99,36 @@ enum {
 
 typedef struct
 {
-	TimerType timer;
+	TimerType timerS3Server;
+	TimerType timerP2Server;
 	const Dcm_ParameterType* parameter;
 	PduLengthType rxPduLength;
 	PduLengthType txPduLength;
-	uint8 sid;
+	uint8 currentSID;
 	uint8 currentSession;
 	uint8 currentLevel;
 	uint8 supressPositiveResponse;
 	uint8 rxPduState;
 	uint8 txPduState;
+	uint8 seedRequested;
 } Dcm_RuntimeType; /* RTE */
 /* ============================ [ DECLARES  ] ====================================================== */
 static void SendNRC(PduIdType Instance, uint8 nrc);
 static void SendPRC(PduIdType Instance);
 
+#ifdef __AS_BOOTLOADER__
+Std_ReturnType BL_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew);
+Std_ReturnType BL_GetProgramSessionSeed (uint8 *securityAccessDataRecord, uint8 *seed,
+		Dcm_NegativeResponseCodeType *errorCode);
+Std_ReturnType BL_CompareProgramSessionKey (uint8 *key);
+Std_ReturnType BL_GetExtendedSessionSeed (uint8 *securityAccessDataRecord, uint8 *seed,
+		Dcm_NegativeResponseCodeType *errorCode);
+Std_ReturnType BL_CompareExtendedSessionKey (uint8 *key);
+#endif
+
 Std_ReturnType Dcm_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew);
+Std_ReturnType Dcm_GetSeed(uint8 *securityAccessDataRecord, uint8 *seed, Dcm_NegativeResponseCodeType *errorCode);
+Std_ReturnType Dcm_CompareKey(uint8 *key);
 /* ============================ [ DATAS     ] ====================================================== */
 static Dcm_RuntimeType dcmRTE[DCM_INSTANCE_NUM];
 static uint8 rxBuffer[DCM_DEFAULT_RXBUF_SIZE];
@@ -89,40 +142,95 @@ static const PduInfoType txPduInfo =
 {
 	txBuffer, sizeof(txBuffer)
 };
+static const uint8 sesList[] = { DCM_DEFAULT_SESSION, DCM_PROGRAMMING_SESSION, DCM_EXTENDED_DIAGNOSTIC_SESSION, DCM_EOL };
+static const uint8 secList[] = { 1 /* EXTDS */, 2 /* PRGS */, DCM_EOL };
+static const uint8 secSeedKeySizeList[] = { 4 /* EXTDS */, 4 /* PRGS */ };
+#ifdef __AS_BOOTLOADER__
+static const Dcm_CallbackGetSeedFncType getSeedList[] = { BL_GetExtendedSessionSeed, BL_GetProgramSessionSeed };
+static const Dcm_CallbackCompareKeyFncType compareKeyList[] = { BL_CompareExtendedSessionKey, BL_CompareProgramSessionKey };
+#else
+static const Dcm_CallbackGetSeedFncType getSeedList[] = { Dcm_GetSeed, Dcm_GetSeed };
+static const Dcm_CallbackCompareKeyFncType compareKeyList[] = { Dcm_CompareKey, Dcm_CompareKey };
+#endif
 static const uint32 dcmInstanceDefaultParameter[] = DCM_INSTANCE_DEFAULT_PARAMETER;
 
 /* ============================ [ LOCALS    ] ====================================================== */
 Std_ReturnType __weak Dcm_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew)
 {
-	Std_ReturnType ercd = E_NOT_OK;
-#ifdef __AS_BOOTLOADER__
-	extern Std_ReturnType BL_GetSessionChangePermission(Dcm_SesCtrlType sesCtrlTypeActive, Dcm_SesCtrlType sesCtrlTypeNew);
-	ercd = BL_GetSessionChangePermission(sesCtrlTypeActive, sesCtrlTypeNew);
-#endif
+	Std_ReturnType ercd = E_OK;
 	return ercd;
 }
+
+Std_ReturnType __weak Dcm_GetSeed(uint8 *securityAccessDataRecord, uint8 *seed, Dcm_NegativeResponseCodeType *errorCode)
+{
+	Std_ReturnType ercd = E_OK;
+	*errorCode = DCM_E_POSITIVE_RESPONSE;
+	return ercd;
+}
+Std_ReturnType __weak Dcm_CompareKey(uint8 *key)
+{
+	Std_ReturnType ercd = E_OK;
+	return ercd;
+}
+
+static void HandleSubFunction(PduIdType Instance)
+{
+	if(DCM_RXSDU_DATA[1]&0x80)
+	{
+		DCM_RXSDU_DATA[1] &= 0x7F;
+		DCM_RTE.supressPositiveResponse = TRUE;
+	}
+}
+
+static uint8 u8IndexOfList(uint8 val, const uint8* pList)
+{
+	uint8 index = DCM_EOL;
+	const uint8* pVar = pList;
+	while(0xFF != *pVar)
+	{
+		if(*pVar == val)
+		{
+			index = pVar - pList;
+			break;
+		}
+		pVar++;
+	}
+
+	return index;
+}
+
 static void HandleSessionControl(PduIdType Instance)
 {
 	uint8 session;
+	uint8 index;
 	Std_ReturnType ercd;
 	if(2 != DCM_RXSDU_SIZE)
 	{
+		HandleSubFunction(Instance);
+
 		session = DCM_RXSDU_DATA[1];
-
-		ercd = Dcm_GetSessionChangePermission(DCM_RTE.currentSession, session);
-
-		if(E_OK == ercd)
+		index = u8IndexOfList(session, DCM_SESSION_LIST);
+		if(index != (uint8)DCM_EOL)
 		{
-			Dcm_AppendTX(Instance, session);
-			Dcm_AppendTX(Instance, 0x00);
-			Dcm_AppendTX(Instance, 0x64);
-			Dcm_AppendTX(Instance, 0x00);
-			Dcm_AppendTX(Instance, 0x0A);
-			SendPRC(Instance);
+			ercd = DCM_GET_SESSION_CHANGE_PERMISSION(DCM_RTE.currentSession, session);
+
+			if(E_OK == ercd)
+			{
+				Dcm_AppendTX(Instance, session);
+				Dcm_AppendTX(Instance, (DCM_P2SERVER_TIMEOUT_MS>>8)&0xFF);
+				Dcm_AppendTX(Instance, (DCM_P2SERVER_TIMEOUT_MS)&0xFF);
+				Dcm_AppendTX(Instance, 0x00);
+				Dcm_AppendTX(Instance, 0x0A);
+				SendPRC(Instance);
+			}
+			else
+			{
+				SendNRC(Instance, DCM_E_CONDITIONS_NOT_CORRECT);
+			}
 		}
 		else
 		{
-			SendNRC(Instance, DCM_E_CONDITIONS_NOT_CORRECT);
+			SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
 		}
 	}
 	else
@@ -130,18 +238,110 @@ static void HandleSessionControl(PduIdType Instance)
 		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
 	}
 }
+
+static void HandleSecurityAccess(PduIdType Instance)
+{
+	uint8 level;
+	uint8 index;
+	Std_ReturnType ercd;
+	Dcm_NegativeResponseCodeType errorCode = DCM_E_REQUEST_OUT_OF_RANGE;
+	if(DCM_RXSDU_SIZE >= 2)
+	{
+		HandleSubFunction(Instance);
+		level = (DCM_RXSDU_DATA[1] + 1) >> 1;
+		index = u8IndexOfList(level, DCM_SECURITY_LEVEL_LIST);
+		if(index != (uint8)DCM_EOL)
+		{
+			if(DCM_RXSDU_DATA[1]&0x01)
+			{	/* requestSeed */
+				if(2 != DCM_RTE.rxPduLength)
+				{
+					SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+				}
+				else
+				{
+					if(level == DCM_RTE.currentLevel)
+					{	/* already unlocked */
+						DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+						memset(&DCM_TXSDU_DATA[2], 0, DCM_SECURITY_SEED_SIZE_LIST[index]);
+						DCM_RTE.txPduLength = DCM_SECURITY_SEED_SIZE_LIST[index]+1;
+						SendPRC(Instance);
+					}
+					else
+					{
+						ercd = DCM_SECURITY_GET_SEED_FNC_LIST[index](NULL, &DCM_TXSDU_DATA[2], &errorCode);
+						if(E_OK == ercd)
+						{
+							DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+							DCM_RTE.txPduLength = DCM_SECURITY_SEED_SIZE_LIST[index]+1;
+							SendPRC(Instance);
+
+							DCM_RTE.seedRequested = TRUE;
+						}
+						else
+						{
+							SendNRC(Instance, errorCode);
+						}
+					}
+				}
+			}
+			else
+			{	/* sendKey */
+				if((DCM_SECURITY_KEY_SIZE_LIST[index]+2) != DCM_RTE.rxPduLength)
+				{
+					SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+				}
+				else if(FALSE == DCM_RTE.seedRequested)
+				{
+					SendNRC(Instance, DCM_E_REQUEST_SEQUENCE_ERROR);
+				}
+				else
+				{
+					ercd = DCM_SECURITY_COMPARE_KEY_FNC_LIST[index](&DCM_RXSDU_DATA[2]);
+					if(E_OK == ercd)
+					{
+						DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+						DCM_RTE.txPduLength = 1;
+						SendPRC(Instance);
+
+						DCM_RTE.seedRequested = FALSE;
+						DCM_RTE.currentLevel = level;
+					}
+					else
+					{
+						SendNRC(Instance, DCM_E_INVALID_KEY);
+					}
+				}
+			}
+		}
+		else
+		{
+			SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+	}
+}
+
 static void HandleRequest(PduIdType Instance)
 {
-	DCM_RTE.sid = DCM_RXSDU_DATA[0];
+	DCM_RTE.currentSID = DCM_RXSDU_DATA[0];
 
-	ASLOG(DCM, "Service %02X\n", DCM_RTE.sid);
+	ASLOG(DCM, "Service %02X\n", DCM_RTE.currentSID);
 
 	DCM_RTE.txPduLength = 0;
 	DCM_RTE.supressPositiveResponse = FALSE;
-	switch(DCM_RTE.sid)
+	dcmSetAlarm(S3Server,DCM_S3SERVER_TIMEOUT_MS);
+	dcmSetAlarm(P2Server,DCM_P2SERVER_TIMEOUT_MS);
+	switch(DCM_RTE.currentSID)
 	{
 		case SID_DIAGNOSTIC_SESSION_CONTROL:
 			HandleSessionControl(Instance);
+			break;
+		case SID_SECURITY_ACCESS:
+			HandleSecurityAccess(Instance);
 			break;
 		default:
 			SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
@@ -171,12 +371,21 @@ static void SendNRC(PduIdType Instance, uint8 nrc) /* send Negative Response Cod
 		DCM_RTE.rxPduState = DCM_BUFFER_IDLE;
 
 		DCM_TXSDU_DATA[0] = SID_NEGATIVE_RESPONSE;
-		DCM_TXSDU_DATA[1] = DCM_RTE.sid;
+		DCM_TXSDU_DATA[1] = DCM_RTE.currentSID;
 		DCM_TXSDU_DATA[2] = nrc;
 		DCM_RTE.txPduLength = 3;
 		DCM_RTE.txPduState = DCM_BUFFER_FULL;
 
 		HandleTransmit(Instance);
+
+		if(DCM_E_RESPONSE_PENDING != nrc)
+		{
+			dcmCancelAlarm(P2Server);
+		}
+		else
+		{
+			dcmSetAlarm(P2Server,DCM_P2SERVER_TIMEOUT_MS);
+		}
 	}
 }
 
@@ -187,12 +396,14 @@ static void SendPRC(PduIdType Instance)
 		DCM_RTE.rxPduState = DCM_BUFFER_IDLE;
 		if(FALSE == DCM_RTE.supressPositiveResponse)
 		{
-			DCM_TXSDU_DATA[0] = DCM_RTE.sid | SID_RESPONSE_BIT;
+			DCM_TXSDU_DATA[0] = DCM_RTE.currentSID | SID_RESPONSE_BIT;
 			DCM_RTE.txPduLength += 1;
 			DCM_RTE.txPduState = DCM_BUFFER_FULL;
 		}
 
 		HandleTransmit(Instance);
+
+		dcmCancelAlarm(P2Server);
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
@@ -207,7 +418,7 @@ void Dcm_Init(void)
 	}
 }
 
-void Dcm_SetParameter(PduIdType Instance, const uint32* parameter)
+void Dcm_SetParameter(PduIdType Instance, const Dcm_ParameterType* parameter)
 {
 	asAssert(Instance < DCM_INSTANCE_NUM);
 	DCM_RTE.parameter = parameter;
@@ -306,6 +517,7 @@ BufReq_ReturnType Dcm_ProvideTxBuffer(PduIdType Instance, PduInfoType **pduInfoP
 void Dcm_MainFunction(void)
 {
 	PduIdType Instance;
+	const Dcm_ParameterType* parameter;
 	for(Instance=0; Instance<DCM_INSTANCE_NUM; Instance++)
 	{
 		if(DCM_BUFFER_FULL == DCM_RTE.rxPduState)
@@ -316,6 +528,27 @@ void Dcm_MainFunction(void)
 		if(DCM_BUFFER_FULL == DCM_RTE.txPduState)
 		{
 			HandleTransmit(Instance);
+		}
+
+		if(dcmIsAlarmStarted(P2Server))
+		{
+			dcmSignalAlarm(P2Server);
+			if(dcmIsAlarmTimeout(P2Server))
+			{
+				SendNRC(Instance, DCM_E_RESPONSE_PENDING);
+			}
+		}
+
+		if(dcmIsAlarmStarted(S3Server))
+		{
+			dcmSignalAlarm(S3Server);
+			if(dcmIsAlarmTimeout(S3Server))
+			{
+				parameter = DCM_RTE.parameter;
+				memset(&DCM_RTE, 0, sizeof(DCM_RTE));
+				DCM_RTE.parameter = parameter;
+				ASLOG(DCM,"S3Server Timeout!\n");
+			}
 		}
 	}
 }

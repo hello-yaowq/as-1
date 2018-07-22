@@ -92,8 +92,8 @@
 <Session Comment="*" Identifier="3" Name="EXTDS" P2ServerMaxTimeMs="100" P2StartServerMaxTimeMs="100" />
 </SessionList>
 <SecurityList Max="TBD">
-<Security Comment="*" CompareKeyCallback="BL_CompareProgramSessionSeed" GetSeedCallback="BL_GetProgramSessionSeed" Identifier="2" KeySize="4" Name="PRGS" SeedSize="4" />
-<Security Comment="*" CompareKeyCallback="BL_CompareExtendedSessionSeed" GetSeedCallback="BL_GetExtendedSessionSeed" Identifier="1" KeySize="4" Name="EXTDS" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="BL_CompareProgramSessionKey" GetSeedCallback="BL_GetProgramSessionSeed" Identifier="2" KeySize="4" Name="PRGS" SeedSize="4" />
+<Security Comment="*" CompareKeyCallback="BL_CompareExtendedSessionKey" GetSeedCallback="BL_GetExtendedSessionSeed" Identifier="1" KeySize="4" Name="EXTDS" SeedSize="4" />
 <Security Comment="Level 0, is the default for each session when enterred" CompareKeyCallback="NULL" GetSeedCallback="NULL" Identifier="0" KeySize="4" Name="Default" SeedSize="4" />
 </SecurityList>
 <DIDControlRecordList Max="TBD" />

@@ -113,6 +113,11 @@ void DcmE_EcuPerformReset(Dcm_EcuResetType resetType);
 void Dcm_E_CommunicationControl(uint8 subFunction, uint8 communicationType, Dcm_NegativeResponseCodeType *responseCode );
 
 /* for DCMmini */
-void Dcm_SetParameter(PduIdType Instance, const uint32* parameter);
+#if defined(__LINUX__) || defined(__WINDOWS__)
+typedef uint64 Dcm_ParameterType;
+#else
+typedef uint32 Dcm_ParameterType;
+#endif
+void Dcm_SetParameter(PduIdType Instance, const Dcm_ParameterType* parameter);
 void Dcm_AppendTX(PduIdType Instance, uint8 v);
 #endif /*DCM_H_*/
