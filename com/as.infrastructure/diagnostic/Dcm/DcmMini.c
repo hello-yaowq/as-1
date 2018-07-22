@@ -83,12 +83,16 @@ do{										\
 #define DCM_S3SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[9])
 #define DCM_P2SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[10])
 
+#define DCM_SERVICE_LIST_IN_SESSION ((uint8**)DCM_RTE.parameter[11])
+#define DCM_SERVICE_LIST_IN_LEVEL   ((uint8**)DCM_RTE.parameter[12])
+
 #define DCM_INSTANCE_DEFAULT_PARAMETER	\
 	{ (Dcm_ParameterType)&rxPduInfo, (Dcm_ParameterType)&txPduInfo, \
 	  (Dcm_ParameterType)sesList, (Dcm_ParameterType)DCM_GET_SESSION_CHANGE_PERMISSION_FNC, \
 	  (Dcm_ParameterType)secList, (Dcm_ParameterType)secSeedKeySizeList,  (Dcm_ParameterType)secSeedKeySizeList, \
 	  (Dcm_ParameterType)getSeedList, (Dcm_ParameterType)compareKeyList, \
 	  (Dcm_ParameterType)5000, (Dcm_ParameterType)100, \
+	  (Dcm_ParameterType)sesServiseList, (Dcm_ParameterType)secServiseList, \
 	}
 /* ============================ [ TYPES     ] ====================================================== */
 enum {
@@ -162,8 +166,18 @@ static const PduInfoType txPduInfo =
 {
 	txBuffer, sizeof(txBuffer)
 };
-static const uint8 sesList[] = { DCM_DEFAULT_SESSION, DCM_PROGRAMMING_SESSION, DCM_EXTENDED_DIAGNOSTIC_SESSION, DCM_EOL };
+static const uint8  sesList[] = { DCM_DEFAULT_SESSION, DCM_PROGRAMMING_SESSION, DCM_EXTENDED_DIAGNOSTIC_SESSION, DCM_EOL };
+static const uint8  servicesInDFTS[] =  { SID_DIAGNOSTIC_SESSION_CONTROL, DCM_EOL };
+static const uint8  servicesInPRGS[] =  { SID_DIAGNOSTIC_SESSION_CONTROL, SID_SECURITY_ACCESS,
+		SID_REQUEST_DOWNLOAD, SID_REQUEST_UPLOAD, SID_TRANSFER_DATA, SID_REQUEST_TRANSFER_EXIT,
+		SID_ECU_RESET, SID_ROUTINE_CONTROL, DCM_EOL };
+static const uint8  servicesInEXTDS[] = { SID_DIAGNOSTIC_SESSION_CONTROL, SID_SECURITY_ACCESS, DCM_EOL };
+static const uint8* sesServiseList[] = { servicesInDFTS, servicesInPRGS, servicesInEXTDS };
 static const uint8 secList[] = { 1 /* EXTDS */, 2 /* PRGS */, DCM_EOL };
+static const uint8  servicesInLevel1[] = { DCM_EOL };
+static const uint8  servicesInLevel2[] = { SID_REQUEST_DOWNLOAD, SID_REQUEST_UPLOAD, SID_TRANSFER_DATA,
+		SID_REQUEST_TRANSFER_EXIT, SID_ECU_RESET, SID_ROUTINE_CONTROL, DCM_EOL };
+static const uint8* secServiseList[] = { servicesInLevel1, servicesInLevel2 };
 static const uint8 secSeedKeySizeList[] = { 4 /* EXTDS */, 4 /* PRGS */ };
 #ifdef __AS_BOOTLOADER__
 static const Dcm_CallbackGetSeedFncType getSeedList[] = { BL_GetExtendedSessionSeed, BL_GetProgramSessionSeed };
@@ -428,6 +442,9 @@ static void HandleRequestDownload(PduIdType Instance)
 #endif
 static void HandleRequest(PduIdType Instance)
 {
+	uint8 index;
+	uint8 index2;
+	boolean bPassCheck = TRUE;
 	DCM_RTE.currentSID = DCM_RXSDU_DATA[0];
 
 	ASLOG(DCM, "Service %02X, L=%d\n", DCM_RTE.currentSID, DCM_RTE.rxPduLength);
@@ -436,22 +453,78 @@ static void HandleRequest(PduIdType Instance)
 	DCM_RTE.supressPositiveResponse = FALSE;
 	dcmSetAlarm(S3Server,DCM_S3SERVER_TIMEOUT_MS);
 	dcmSetAlarm(P2Server,DCM_P2SERVER_TIMEOUT_MS);
-	switch(DCM_RTE.currentSID)
+
+	index = u8IndexOfList(DCM_RTE.currentSession, DCM_SESSION_LIST);
+	if((uint8)DCM_EOL == index)
+	{ /* FATAL ERROR */
+		SendNRC(Instance, DCM_E_CONDITIONS_NOT_CORRECT);
+		bPassCheck = FALSE;
+	}
+	else
 	{
-		case SID_DIAGNOSTIC_SESSION_CONTROL:
-			HandleSessionControl(Instance);
-			break;
-		case SID_SECURITY_ACCESS:
-			HandleSecurityAccess(Instance);
-			break;
-#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
-		case SID_REQUEST_DOWNLOAD:
-			HandleRequestDownload(Instance);
-			break;
-#endif
-		default:
+		index = u8IndexOfList(DCM_RTE.currentSID, DCM_SERVICE_LIST_IN_SESSION[index]);
+		if((uint8)DCM_EOL == index)
+		{
 			SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
-			break;
+			bPassCheck = FALSE;
+		}
+		else
+		{
+			bPassCheck = FALSE;	/* by default, assume this currentSID can run in any security level */
+			for(index=0; (DCM_SECURITY_LEVEL_LIST[index] != (uint8)DCM_EOL); index++)
+			{
+				index2 = u8IndexOfList(DCM_RTE.currentSID, DCM_SERVICE_LIST_IN_LEVEL[index]);
+				if((uint8)DCM_EOL != index2)
+				{	/* This currentSID hit in one of the level List, need security check */
+					bPassCheck = TRUE;
+					break;
+				}
+			}
+
+			if(bPassCheck)
+			{	/* Need security check */
+				index = u8IndexOfList(DCM_RTE.currentLevel, DCM_SECURITY_LEVEL_LIST);
+				if((uint8)DCM_EOL == index)
+				{
+					SendNRC(Instance, DCM_E_SECUTITY_ACCESS_DENIED);
+					bPassCheck = FALSE;
+				}
+				else
+				{
+					index = u8IndexOfList(DCM_RTE.currentSID, DCM_SERVICE_LIST_IN_LEVEL[index]);
+					if((uint8)DCM_EOL == index)
+					{
+						SendNRC(Instance, DCM_E_SECUTITY_ACCESS_DENIED);
+						bPassCheck = FALSE;
+					}
+				}
+			}
+			else
+			{
+				bPassCheck = TRUE;	/* service can run any level */
+			}
+		}
+	}
+
+	if(bPassCheck)
+	{
+		switch(DCM_RTE.currentSID)
+		{
+			case SID_DIAGNOSTIC_SESSION_CONTROL:
+				HandleSessionControl(Instance);
+				break;
+			case SID_SECURITY_ACCESS:
+				HandleSecurityAccess(Instance);
+				break;
+			#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
+			case SID_REQUEST_DOWNLOAD:
+				HandleRequestDownload(Instance);
+				break;
+			#endif
+			default:
+				SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
+				break;
+		}
 	}
 }
 
