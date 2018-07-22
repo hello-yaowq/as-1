@@ -221,6 +221,7 @@ static void ReceiveCF(PduIdType Instance, uint8* Data)
 			if(CANTP_RTE.SduIndex >= CANTP_RTE.SduLength)
 			{
 				CANTP_RTE.state = CANTP_BUSY;
+				tpCancelAlarm();
 				Dcm_RxIndication(Instance, NTFRSLT_OK);
 			}
 			else
@@ -230,6 +231,8 @@ static void ReceiveCF(PduIdType Instance, uint8* Data)
 				{
 					SendFC(Instance);
 				}
+
+				tpSetAlarm(N_Cr);
 			}
 		}
 		else

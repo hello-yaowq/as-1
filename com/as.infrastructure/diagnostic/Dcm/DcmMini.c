@@ -66,19 +66,19 @@ do{										\
 #define DCM_GET_SESSION_CHANGE_PERMISSION_FNC Dcm_GetSessionChangePermission
 #endif
 
-#define DCM_RXSDU   ((PduInfoType *)DCM_RTE.parameter[0])
-#define DCM_RXSDU_SIZE (((PduInfoType *)DCM_RTE.parameter[0])->SduLength)
-#define DCM_RXSDU_DATA (((PduInfoType *)DCM_RTE.parameter[0])->SduDataPtr)
-#define DCM_TXSDU ((PduInfoType *)DCM_RTE.parameter[1])
-#define DCM_TXSDU_SIZE (((PduInfoType *)DCM_RTE.parameter[1])->SduLength)
-#define DCM_TXSDU_DATA (((PduInfoType *)DCM_RTE.parameter[1])->SduDataPtr)
-#define DCM_SESSION_LIST ((uint8 *)DCM_RTE.parameter[2])
-#define DCM_GET_SESSION_CHANGE_PERMISSION ((Dcm_CallbackGetSesChgPermissionFncType)DCM_RTE.parameter[3])
-#define DCM_SECURITY_LEVEL_LIST ((uint8 *)DCM_RTE.parameter[4])
-#define DCM_SECURITY_SEED_SIZE_LIST ((uint8 *)DCM_RTE.parameter[5])
-#define DCM_SECURITY_KEY_SIZE_LIST ((uint8 *)DCM_RTE.parameter[6])
-#define DCM_SECURITY_GET_SEED_FNC_LIST ((Dcm_CallbackGetSeedFncType*)DCM_RTE.parameter[7])
-#define DCM_SECURITY_COMPARE_KEY_FNC_LIST ((Dcm_CallbackCompareKeyFncType*)DCM_RTE.parameter[8])
+#define DCM_RXSDU   ((const PduInfoType *)DCM_RTE.parameter[0])
+#define DCM_RXSDU_SIZE (((const PduInfoType *)DCM_RTE.parameter[0])->SduLength)
+#define DCM_RXSDU_DATA (((const PduInfoType *)DCM_RTE.parameter[0])->SduDataPtr)
+#define DCM_TXSDU ((const PduInfoType *)DCM_RTE.parameter[1])
+#define DCM_TXSDU_SIZE (((const PduInfoType *)DCM_RTE.parameter[1])->SduLength)
+#define DCM_TXSDU_DATA (((const PduInfoType *)DCM_RTE.parameter[1])->SduDataPtr)
+#define DCM_SESSION_LIST ((const uint8 *)DCM_RTE.parameter[2])
+#define DCM_GET_SESSION_CHANGE_PERMISSION ((const Dcm_CallbackGetSesChgPermissionFncType)DCM_RTE.parameter[3])
+#define DCM_SECURITY_LEVEL_LIST ((const uint8 *)DCM_RTE.parameter[4])
+#define DCM_SECURITY_SEED_SIZE_LIST ((const uint8 *)DCM_RTE.parameter[5])
+#define DCM_SECURITY_KEY_SIZE_LIST ((const uint8 *)DCM_RTE.parameter[6])
+#define DCM_SECURITY_GET_SEED_FNC_LIST ((const Dcm_CallbackGetSeedFncType*)DCM_RTE.parameter[7])
+#define DCM_SECURITY_COMPARE_KEY_FNC_LIST ((const Dcm_CallbackCompareKeyFncType*)DCM_RTE.parameter[8])
 
 #define DCM_S3SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[9])
 #define DCM_P2SERVER_TIMEOUT_MS ((uint32)DCM_RTE.parameter[10])
@@ -97,6 +97,23 @@ enum {
 	DCM_BUFFER_FULL,
 };
 
+/* UDT = Upload Download Transfer */
+typedef enum
+{
+	DCM_UDT_IDLE_STATE = 0,
+	DCM_UDT_UPLOAD_STATE,
+	DCM_UDT_DOWNLOAD_STATE
+}Dcm_UDTStateType;
+
+typedef struct
+{
+	Dcm_UDTStateType  state;
+	uint32 memoryAddress;
+	uint32 memorySize;
+	uint8  blockSequenceCounter;
+	uint8  dataFormatIdentifier;
+}Dcm_UDTType;
+
 typedef struct
 {
 	TimerType timerS3Server;
@@ -111,6 +128,9 @@ typedef struct
 	uint8 rxPduState;
 	uint8 txPduState;
 	uint8 seedRequested;
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+	Dcm_UDTType UDTData;
+#endif
 } Dcm_RuntimeType; /* RTE */
 /* ============================ [ DECLARES  ] ====================================================== */
 static void SendNRC(PduIdType Instance, uint8 nrc);
@@ -173,6 +193,20 @@ Std_ReturnType __weak Dcm_CompareKey(uint8 *key)
 	return ercd;
 }
 
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) \
+	|| defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+boolean __weak Dcm_CheckMemory(uint8 attr, uint8 memoryIdentifier, uint32 memoryAddress, uint32 length)
+{	/*attr: bit mask 0x04=READ 0x02=WRITE 0x01=EXECUTE */
+	return TRUE;
+}
+
+boolean __weak Dcm_CheckDataFormatIdentifier(uint8 dataFormatIdentifier)
+{
+	return TRUE;
+}
+#endif
+
+
 static void HandleSubFunction(PduIdType Instance)
 {
 	if(DCM_RXSDU_DATA[1]&0x80)
@@ -204,7 +238,7 @@ static void HandleSessionControl(PduIdType Instance)
 	uint8 session;
 	uint8 index;
 	Std_ReturnType ercd;
-	if(2 != DCM_RXSDU_SIZE)
+	if(2 == DCM_RTE.rxPduLength)
 	{
 		HandleSubFunction(Instance);
 
@@ -216,6 +250,7 @@ static void HandleSessionControl(PduIdType Instance)
 
 			if(E_OK == ercd)
 			{
+				DCM_RTE.currentSession = session;
 				Dcm_AppendTX(Instance, session);
 				Dcm_AppendTX(Instance, (DCM_P2SERVER_TIMEOUT_MS>>8)&0xFF);
 				Dcm_AppendTX(Instance, (DCM_P2SERVER_TIMEOUT_MS)&0xFF);
@@ -245,7 +280,7 @@ static void HandleSecurityAccess(PduIdType Instance)
 	uint8 index;
 	Std_ReturnType ercd;
 	Dcm_NegativeResponseCodeType errorCode = DCM_E_REQUEST_OUT_OF_RANGE;
-	if(DCM_RXSDU_SIZE >= 2)
+	if(DCM_RTE.rxPduLength >= 2)
 	{
 		HandleSubFunction(Instance);
 		level = (DCM_RXSDU_DATA[1] + 1) >> 1;
@@ -324,12 +359,78 @@ static void HandleSecurityAccess(PduIdType Instance)
 		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
 	}
 }
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
+static void HandleRequestDownload(PduIdType Instance)
+{
+	Std_ReturnType ercd;
+	uint8 dataFormatIdentifier;
+	uint8 addressFormat;
+	uint8 lengthFormat;
+	uint8 memoryIdentifier;
+	if(DCM_RTE.rxPduLength >= 5)
+	{
+		dataFormatIdentifier = DCM_RXSDU_DATA[1];
+		addressFormat = (uint8)((DCM_RXSDU_DATA[2]>>0u)&0x0Fu);
+		lengthFormat  = (uint8)((DCM_RXSDU_DATA[2]>>4u)&0x0Fu);
+		memoryIdentifier = DCM_RXSDU_DATA[3+addressFormat+lengthFormat];
+		if((addressFormat+lengthFormat+4u) == DCM_RTE.rxPduLength)
+		{
+			if( (addressFormat<=4) && (lengthFormat<=4) && 	\
+				(Dcm_CheckDataFormatIdentifier(dataFormatIdentifier)))
+			{
+				uint32 memoryAddress=0u,memorySize=0u;
+				for(int i=0;i<addressFormat;i++)
+				{
+					memoryAddress = (memoryAddress<<8) + DCM_RXSDU_DATA[3+i];
+				}
+				for(int i=0;i<lengthFormat;i++)
+				{
+					memorySize = (memorySize<<8) + DCM_RXSDU_DATA[3+addressFormat+i];
+				}
 
+				if(Dcm_CheckMemory(0x02,memoryIdentifier,memoryAddress,memorySize))
+				{
+					DCM_RTE.UDTData.state   = DCM_UDT_DOWNLOAD_STATE;
+					DCM_RTE.UDTData.memoryAddress = memoryAddress;
+					DCM_RTE.UDTData.memorySize    = memorySize;
+					DCM_RTE.UDTData.dataFormatIdentifier = dataFormatIdentifier;
+					DCM_RTE.UDTData.blockSequenceCounter = 1u;
+
+					ASLOG(DCM,"request download addr(%X) size(%X),memory=%X\n",memoryAddress,memorySize,memoryIdentifier);
+					/* create positive response code */
+					DCM_TXSDU_DATA[1] = 0x20;  /* lengthFormatIdentifier = 2 Bytes */
+
+					DCM_TXSDU_DATA[2] = (DCM_TXSDU_SIZE >> 8) & 0xFF;
+					DCM_TXSDU_DATA[3] = (DCM_TXSDU_SIZE >> 0) & 0xFF;
+					DCM_RTE.txPduLength = 3;
+					SendPRC(Instance);
+				}
+				else
+				{
+					SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+				}
+			}
+			else
+			{
+				SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+			}
+		}
+		else
+		{
+			SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+	}
+}
+#endif
 static void HandleRequest(PduIdType Instance)
 {
 	DCM_RTE.currentSID = DCM_RXSDU_DATA[0];
 
-	ASLOG(DCM, "Service %02X\n", DCM_RTE.currentSID);
+	ASLOG(DCM, "Service %02X, L=%d\n", DCM_RTE.currentSID, DCM_RTE.rxPduLength);
 
 	DCM_RTE.txPduLength = 0;
 	DCM_RTE.supressPositiveResponse = FALSE;
@@ -343,6 +444,11 @@ static void HandleRequest(PduIdType Instance)
 		case SID_SECURITY_ACCESS:
 			HandleSecurityAccess(Instance);
 			break;
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
+		case SID_REQUEST_DOWNLOAD:
+			HandleRequestDownload(Instance);
+			break;
+#endif
 		default:
 			SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
 			break;
@@ -480,7 +586,7 @@ BufReq_ReturnType Dcm_ProvideRxBuffer(PduIdType Instance, PduLengthType tpSduLen
 	}
 	else
 	{
-		*pduInfoPtr = DCM_RXSDU;
+		*pduInfoPtr = (PduInfoType *)DCM_RXSDU;
 		DCM_RTE.rxPduLength = tpSduLength;
 		DCM_RTE.rxPduState = DCM_BUFFER_PROVIDED;
 	}
@@ -508,7 +614,7 @@ BufReq_ReturnType Dcm_ProvideTxBuffer(PduIdType Instance, PduInfoType **pduInfoP
 	}
 	else
 	{
-		*pduInfoPtr = DCM_TXSDU;
+		*pduInfoPtr = (PduInfoType *)DCM_TXSDU;
 		DCM_RTE.txPduState = DCM_BUFFER_PROVIDED;
 	}
 	return ret;
@@ -547,6 +653,7 @@ void Dcm_MainFunction(void)
 				parameter = DCM_RTE.parameter;
 				memset(&DCM_RTE, 0, sizeof(DCM_RTE));
 				DCM_RTE.parameter = parameter;
+				DCM_RTE.currentSession = DCM_DEFAULT_SESSION;
 				ASLOG(DCM,"S3Server Timeout!\n");
 			}
 		}

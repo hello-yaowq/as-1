@@ -34,6 +34,13 @@
 #define FL_WRITE_PER_CYCLE (4096/FLASH_WRITE_SIZE)
 #define FL_READ_PER_CYCLE  (4096/FLASH_WRITE_SIZE)
 /* ============================ [ TYPES     ] ====================================================== */
+typedef struct
+{
+	uint32 addressLow;
+	uint32 addressHigh;
+	uint8  identifier;
+	uint8  attr; /*attr: bit mask 0x04=READ 0x02=WRITE 0x01=EXECUTE */
+} BL_MemoryInfoType;
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void application_main(void); /* Symbol exposed in linker.lds */
 extern uint32_t FlashDriverRam[];
@@ -53,6 +60,13 @@ static uint32  blMemoryAddress;
 static uint32  blMemorySize;
 static uint32* blMemoryData;
 static TimerType appTimer;
+
+static BL_MemoryInfoType blMemoryList[] = {
+	/* STM32F017VC  */ { 0x00010000, 0x00040000, 0xFF, 0x04|0x02|0x01 },
+	/* VERSATILEPB  */ { 0x00040000, 0x08000000, 0xFF, 0x04|0x02|0x01 },
+	/* MPC56XX      */ { 0x00020000, 0x00180000, 0xFF, 0x04|0x02|0x01 },
+	/* FLASH DRIVER */ { 0x00000000, 0x00001000, 0xFD, 0x04|0x02|0x01 },
+};
 /* ============================ [ LOCALS    ] ====================================================== */
 static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize)
 {
@@ -332,6 +346,41 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 			break;
 	}
 	Irq_Restore(imask);
+	return rv;
+}
+
+boolean Dcm_CheckMemory(uint8 attr, uint8 memoryIdentifier, uint32 memoryAddress, uint32 length)
+{
+	boolean rv = FALSE;
+	uint32 i;
+	for(i=0; i<(sizeof(blMemoryList)/sizeof(BL_MemoryInfoType)); i++)
+	{
+		if( (memoryIdentifier == blMemoryList[i].identifier) &&
+			((blMemoryList[i].attr&attr) == attr) &&
+			(memoryAddress >= blMemoryList[i].addressLow) &&
+			((memoryAddress+length) <= blMemoryList[i].addressHigh) )
+		{
+			rv = TRUE;
+			break;
+		}
+	}
+	return rv;
+}
+
+boolean Dcm_CheckDataFormatIdentifier(uint8 dataFormatIdentifier)
+{
+	boolean rv = FALSE;
+
+	if(0x00u == dataFormatIdentifier)
+	{
+		rv = TRUE; /* no compressionMethod nor encryptingMethod is used */
+
+	}
+	else
+	{
+		rv = FALSE;
+	}
+
 	return rv;
 }
 
