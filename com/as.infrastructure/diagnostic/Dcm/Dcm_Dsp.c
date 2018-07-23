@@ -261,6 +261,7 @@ typedef struct
 	uint32 memorySize;
 	uint8  blockSequenceCounter;
 	uint8  dataFormatIdentifier;
+	uint8  memoryIdentifier;
 }Dcm_DspUDTType;
 #if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 static Dcm_DspUDTType dspUDTData;
@@ -4472,6 +4473,7 @@ void DspRequestDownload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						dspUDTData.memorySize    = memorySize;
 						dspUDTData.dataFormatIdentifier = dataFormatIdentifier;
 						dspUDTData.blockSequenceCounter = 1u;
+						dspUDTData.memoryIdentifier = memoryIdentifier;
 
 						ASLOG(DCM,"request download addr(%X) size(%X),memory=%X",memoryAddress,memorySize,memoryIdentifier);
 						/* create positive response code */
@@ -4513,6 +4515,7 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 		uint8 dataFormatIdentifier = pduRxData->SduDataPtr[1];
 		uint8 addressFormat = (uint8)((pduRxData->SduDataPtr[2]>>0u)&0x0Fu);
 		uint8 lengthFormat  = (uint8)((pduRxData->SduDataPtr[2]>>4u)&0x0Fu);
+		uint8 memoryIdentifier = pduRxData->SduDataPtr[3+addressFormat+lengthFormat];
 		if((addressFormat+lengthFormat+4u) == pduRxData->SduLength)
 		{
 			if(DCM_UDT_IDLE_STATE == dspUDTData.state )
@@ -4530,7 +4533,7 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						memorySize = (memorySize<<8) + pduRxData->SduDataPtr[3+addressFormat+i];
 					}
 
-					responseCode = checkAddressRange(DCM_READ_MEMORY,0xFF,memoryAddress,memorySize);
+					responseCode = checkAddressRange(DCM_READ_MEMORY,memoryIdentifier,memoryAddress,memorySize);
 
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
@@ -4539,6 +4542,7 @@ void DspRequestUpload(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 						dspUDTData.memorySize    = memorySize;
 						dspUDTData.dataFormatIdentifier = dataFormatIdentifier;
 						dspUDTData.blockSequenceCounter = 1u;
+						dspUDTData.memoryIdentifier = memoryIdentifier;
 
 						/* create positive response code */
 						pduTxData->SduDataPtr[1] = 0x20;  /* lengthFormatIdentifier = 2 Bytes */
@@ -4594,12 +4598,20 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 					memoryAddress = dspUDTData.memoryAddress;
 					length = (pduTxData->SduLength-2)&0xFFFC; /* ability 4 align */
 					memoryIdentifier = pduRxData->SduDataPtr[3];
+
 					if(dspUDTData.memorySize < length)
 					{
 						length = dspUDTData.memorySize;
 					}
 
-					responseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, pduTxData);
+					if(dspUDTData.memoryIdentifier != memoryIdentifier)
+					{
+						responseCode = DCM_E_REQUEST_OUT_OF_RANGE;
+					}
+					else
+					{
+						responseCode = readMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length, pduTxData);
+					}
 					if(DCM_E_POSITIVE_RESPONSE == responseCode)
 					{
 						if(DCM_PENDING == OpStatus)
@@ -4643,8 +4655,15 @@ void DspTransferData(const PduInfoType *pduRxData,PduInfoType *pduTxData)
 					length = dspUDTData.memorySize;
 				}
 
-				responseCode = writeMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length,
+				if(dspUDTData.memoryIdentifier != memoryIdentifier)
+				{
+					responseCode = DCM_E_REQUEST_OUT_OF_RANGE;
+				}
+				else
+				{
+					responseCode = writeMemoryData(&OpStatus, memoryIdentifier, memoryAddress, length,
 												&pduRxData->SduDataPtr[4]);
+				}
 
 				if(DCM_E_POSITIVE_RESPONSE == responseCode)
 				{

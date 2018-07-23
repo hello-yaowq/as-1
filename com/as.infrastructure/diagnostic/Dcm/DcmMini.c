@@ -116,6 +116,7 @@ typedef struct
 	uint32 memorySize;
 	uint8  blockSequenceCounter;
 	uint8  dataFormatIdentifier;
+	uint8  memoryIdentifier;
 }Dcm_UDTType;
 
 typedef struct
@@ -155,16 +156,17 @@ Std_ReturnType Dcm_GetSeed(uint8 *securityAccessDataRecord, uint8 *seed, Dcm_Neg
 Std_ReturnType Dcm_CompareKey(uint8 *key);
 /* ============================ [ DATAS     ] ====================================================== */
 static Dcm_RuntimeType dcmRTE[DCM_INSTANCE_NUM];
-static uint8 rxBuffer[DCM_DEFAULT_RXBUF_SIZE];
-static uint8 txBuffer[DCM_DEFAULT_TXBUF_SIZE];
+/* uint64 for 8 byte alignment */
+static uint64 rxBuffer[(DCM_DEFAULT_RXBUF_SIZE+sizeof(uint64)-1)/sizeof(uint64)];
+static uint64 txBuffer[(DCM_DEFAULT_TXBUF_SIZE+sizeof(uint64)-1)/sizeof(uint64)];
 static const PduInfoType rxPduInfo =
 {
-	rxBuffer, sizeof(rxBuffer)
+	(uint8*)rxBuffer, sizeof(rxBuffer)
 };
 
 static const PduInfoType txPduInfo =
 {
-	txBuffer, sizeof(txBuffer)
+	(uint8*)txBuffer, sizeof(txBuffer)
 };
 static const uint8  sesList[] = { DCM_DEFAULT_SESSION, DCM_PROGRAMMING_SESSION, DCM_EXTENDED_DIAGNOSTIC_SESSION, DCM_EOL };
 static const uint8  servicesInDFTS[] =  { SID_DIAGNOSTIC_SESSION_CONTROL, DCM_EOL };
@@ -373,8 +375,8 @@ static void HandleSecurityAccess(PduIdType Instance)
 		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
 	}
 }
-#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
-static void HandleRequestDownload(PduIdType Instance)
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+static void HandleRequestDownloadOrUpload(PduIdType Instance, Dcm_UDTStateType state)
 {
 	Std_ReturnType ercd;
 	uint8 dataFormatIdentifier;
@@ -402,15 +404,19 @@ static void HandleRequestDownload(PduIdType Instance)
 					memorySize = (memorySize<<8) + DCM_RXSDU_DATA[3+addressFormat+i];
 				}
 
-				if(Dcm_CheckMemory(0x02,memoryIdentifier,memoryAddress,memorySize))
+				if(Dcm_CheckMemory((DCM_UDT_DOWNLOAD_STATE==state)?0x02:0x04,
+						memoryIdentifier, memoryAddress, memorySize))
 				{
-					DCM_RTE.UDTData.state   = DCM_UDT_DOWNLOAD_STATE;
+					DCM_RTE.UDTData.state   = state;
 					DCM_RTE.UDTData.memoryAddress = memoryAddress;
 					DCM_RTE.UDTData.memorySize    = memorySize;
 					DCM_RTE.UDTData.dataFormatIdentifier = dataFormatIdentifier;
+					DCM_RTE.UDTData.memoryIdentifier = memoryIdentifier;
 					DCM_RTE.UDTData.blockSequenceCounter = 1u;
 
-					ASLOG(DCM,"request download addr(%X) size(%X),memory=%X\n",memoryAddress,memorySize,memoryIdentifier);
+					ASLOG(DCM,"request %s addr(%X) size(%X),memory=%X\n",
+							(DCM_UDT_DOWNLOAD_STATE==state)?"download":"upload",
+							memoryAddress, memorySize, memoryIdentifier);
 					/* create positive response code */
 					DCM_TXSDU_DATA[1] = 0x20;  /* lengthFormatIdentifier = 2 Bytes */
 
@@ -440,20 +446,12 @@ static void HandleRequestDownload(PduIdType Instance)
 	}
 }
 #endif
-static void HandleRequest(PduIdType Instance)
+
+static boolean CheckSessionSecurity(PduIdType Instance)
 {
 	uint8 index;
 	uint8 index2;
 	boolean bPassCheck = TRUE;
-	DCM_RTE.currentSID = DCM_RXSDU_DATA[0];
-
-	ASLOG(DCM, "Service %02X, L=%d\n", DCM_RTE.currentSID, DCM_RTE.rxPduLength);
-
-	DCM_RTE.txPduLength = 0;
-	DCM_RTE.supressPositiveResponse = FALSE;
-	dcmSetAlarm(S3Server,DCM_S3SERVER_TIMEOUT_MS);
-	dcmSetAlarm(P2Server,DCM_P2SERVER_TIMEOUT_MS);
-
 	index = u8IndexOfList(DCM_RTE.currentSession, DCM_SESSION_LIST);
 	if((uint8)DCM_EOL == index)
 	{ /* FATAL ERROR */
@@ -505,6 +503,22 @@ static void HandleRequest(PduIdType Instance)
 			}
 		}
 	}
+	return bPassCheck;
+}
+
+static void HandleRequest(PduIdType Instance)
+{
+	boolean bPassCheck = TRUE;
+	DCM_RTE.currentSID = DCM_RXSDU_DATA[0];
+
+	ASLOG(DCM, "Service %02X, L=%d\n", DCM_RTE.currentSID, DCM_RTE.rxPduLength);
+
+	DCM_RTE.txPduLength = 0;
+	DCM_RTE.supressPositiveResponse = FALSE;
+	dcmSetAlarm(S3Server,DCM_S3SERVER_TIMEOUT_MS);
+	dcmSetAlarm(P2Server,DCM_P2SERVER_TIMEOUT_MS);
+
+	bPassCheck = CheckSessionSecurity(Instance);
 
 	if(bPassCheck)
 	{
@@ -518,9 +532,16 @@ static void HandleRequest(PduIdType Instance)
 				break;
 			#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
 			case SID_REQUEST_DOWNLOAD:
-				HandleRequestDownload(Instance);
+				HandleRequestDownloadOrUpload(Instance, DCM_UDT_DOWNLOAD_STATE);
 				break;
 			#endif
+			#if defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+			case SID_REQUEST_UPLOAD:
+				HandleRequestDownloadOrUpload(Instance, DCM_UDT_UPLOAD_STATE);
+				break;
+			#endif
+			case SID_TRANSFER_DATA:
+				break;
 			default:
 				SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
 				break;
