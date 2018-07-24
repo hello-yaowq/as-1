@@ -117,6 +117,7 @@ typedef struct
 	uint8  blockSequenceCounter;
 	uint8  dataFormatIdentifier;
 	uint8  memoryIdentifier;
+	Dcm_OpStatusType OpStatus;
 }Dcm_UDTType;
 
 typedef struct
@@ -159,6 +160,7 @@ static Dcm_RuntimeType dcmRTE[DCM_INSTANCE_NUM];
 /* uint64 for 8 byte alignment */
 static uint64 rxBuffer[(DCM_DEFAULT_RXBUF_SIZE+sizeof(uint64)-1)/sizeof(uint64)];
 static uint64 txBuffer[(DCM_DEFAULT_TXBUF_SIZE+sizeof(uint64)-1)/sizeof(uint64)];
+/* 0xFFF=4095 is the maximum ability */
 static const PduInfoType rxPduInfo =
 {
 	(uint8*)rxBuffer, sizeof(rxBuffer)
@@ -413,6 +415,7 @@ static void HandleRequestDownloadOrUpload(PduIdType Instance, Dcm_UDTStateType s
 					DCM_RTE.UDTData.dataFormatIdentifier = dataFormatIdentifier;
 					DCM_RTE.UDTData.memoryIdentifier = memoryIdentifier;
 					DCM_RTE.UDTData.blockSequenceCounter = 1u;
+					DCM_RTE.UDTData.OpStatus = DCM_INITIAL;
 
 					ASLOG(DCM,"request %s addr(%X) size(%X),memory=%X\n",
 							(DCM_UDT_DOWNLOAD_STATE==state)?"download":"upload",
@@ -447,11 +450,169 @@ static void HandleRequestDownloadOrUpload(PduIdType Instance, Dcm_UDTStateType s
 }
 #endif
 
+#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
+static void HandleTransferDownload(PduIdType Instance)
+{
+	uint32 memoryAddress;
+	uint32 length;
+	uint8   memoryIdentifier;
+	Dcm_ReturnWriteMemoryType writeRet;
+
+	if(DCM_RTE.UDTData.memorySize>0)
+	{
+		if(DCM_RTE.rxPduLength < 4)
+		{
+			SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+		}
+		else if(DCM_RTE.UDTData.blockSequenceCounter != DCM_RXSDU_DATA[1])
+		{
+			SendNRC(Instance, DCM_E_WRONG_BLOCK_SEQUENCE_COUNTER);
+		}
+		else
+		{
+			memoryAddress = DCM_RTE.UDTData.memoryAddress;
+			length = DCM_RTE.rxPduLength-4;
+			memoryIdentifier = DCM_RXSDU_DATA[3];
+			if(DCM_RTE.UDTData.memorySize < length)
+			{
+				length = DCM_RTE.UDTData.memorySize;
+			}
+
+			if(DCM_RTE.UDTData.memoryIdentifier != memoryIdentifier)
+			{
+				SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+			}
+			else
+			{
+				writeRet = Dcm_WriteMemory(DCM_RTE.UDTData.OpStatus,
+											memoryIdentifier,
+											memoryAddress,
+											length,
+											&DCM_RXSDU_DATA[4]);
+				if(DCM_WRITE_OK == writeRet)
+				{
+					DCM_RTE.UDTData.memoryAddress += length;
+					DCM_RTE.UDTData.memorySize    -= length;
+					DCM_RTE.UDTData.blockSequenceCounter ++; /* may roll-over from 0xFF to 0x00 */
+
+					/* create positive response code */
+					DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+					DCM_RTE.txPduLength = 1;
+					SendPRC(Instance);
+				}
+				else if(DCM_WRITE_PENDING == writeRet)
+				{	/* switch op status to pending and no response,
+					 * so this HandleTransferDownload will be called again */
+					DCM_RTE.UDTData.OpStatus = DCM_PENDING;
+				}
+				else
+				{
+					SendNRC(Instance, DCM_E_GENERAL_PROGRAMMING_FAILURE);
+				}
+			}
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_CONDITIONS_NOT_CORRECT);
+	}
+}
+#endif
+
+#if defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+static void HandleTransferUpload(PduIdType Instance)
+{
+	uint32 memoryAddress;
+	uint32 length;
+	uint8   memoryIdentifier;
+	Dcm_ReturnReadMemoryType readRet;
+
+	if(DCM_RTE.UDTData.memorySize>0)
+	{
+		if(DCM_RTE.rxPduLength != 4)
+		{
+			SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+		}
+		else if(DCM_RTE.UDTData.blockSequenceCounter != DCM_RXSDU_DATA[1])
+		{
+			SendNRC(Instance, DCM_E_WRONG_BLOCK_SEQUENCE_COUNTER);
+		}
+		else
+		{
+			memoryAddress = DCM_RTE.UDTData.memoryAddress;
+			length = (DCM_TXSDU_SIZE-2)&0xFFFC; /* ability 4 align */
+			memoryIdentifier = DCM_RXSDU_DATA[3];
+			if(DCM_RTE.UDTData.memorySize < length)
+			{
+				length = DCM_RTE.UDTData.memorySize;
+			}
+
+			if(DCM_RTE.UDTData.memoryIdentifier != memoryIdentifier)
+			{
+				SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+			}
+			else
+			{
+				readRet = Dcm_ReadMemory(DCM_RTE.UDTData.OpStatus,memoryIdentifier,
+												memoryAddress,
+												length,
+												&DCM_TXSDU_DATA[2]);
+				if(DCM_READ_OK == readRet)
+				{
+					DCM_RTE.UDTData.memoryAddress += length;
+					DCM_RTE.UDTData.memorySize    -= length;
+					DCM_RTE.UDTData.blockSequenceCounter ++; /* may roll-over from 0xFF to 0x00 */
+
+					/* create positive response code */
+					DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+					DCM_RTE.txPduLength = 1+length;
+					SendPRC(Instance);
+				}
+				else if(DCM_READ_PENDING == readRet)
+				{	/* switch op status to pending and no response,
+					 * so this HandleTransferUpload will be called again */
+					DCM_RTE.UDTData.OpStatus = DCM_PENDING;
+				}
+				else
+				{
+					SendNRC(Instance, DCM_E_GENERAL_PROGRAMMING_FAILURE);
+				}
+			}
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_CONDITIONS_NOT_CORRECT);
+	}
+}
+#endif
+#if defined(DCM_USE_SERVICE_TRANSFER_DATA)
+static void HandleTransferData(PduIdType Instance)
+{
+	switch(DCM_RTE.UDTData.state)
+	{
+		#if defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
+		case DCM_UDT_UPLOAD_STATE:
+			HandleTransferUpload(Instance);
+			break;
+		#endif
+		#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
+		case DCM_UDT_DOWNLOAD_STATE:
+			HandleTransferDownload(Instance);
+			break;
+		#endif
+		default:
+			SendNRC(Instance, DCM_E_REQUEST_SEQUENCE_ERROR);
+			break;
+	}
+}
+#endif
 static boolean CheckSessionSecurity(PduIdType Instance)
 {
 	uint8 index;
 	uint8 index2;
 	boolean bPassCheck = TRUE;
+
 	index = u8IndexOfList(DCM_RTE.currentSession, DCM_SESSION_LIST);
 	if((uint8)DCM_EOL == index)
 	{ /* FATAL ERROR */
@@ -503,6 +664,7 @@ static boolean CheckSessionSecurity(PduIdType Instance)
 			}
 		}
 	}
+
 	return bPassCheck;
 }
 
@@ -540,8 +702,11 @@ static void HandleRequest(PduIdType Instance)
 				HandleRequestDownloadOrUpload(Instance, DCM_UDT_UPLOAD_STATE);
 				break;
 			#endif
+			#if defined(DCM_USE_SERVICE_TRANSFER_DATA)
 			case SID_TRANSFER_DATA:
+				HandleTransferData(Instance);
 				break;
+			#endif
 			default:
 				SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED);
 				break;
