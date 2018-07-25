@@ -607,6 +607,31 @@ static void HandleTransferData(PduIdType Instance)
 	}
 }
 #endif
+
+#if defined(DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT)
+static void HandleRequestTransferExit(PduIdType Instance)
+{
+	Dcm_NegativeResponseCodeType responseCode = DCM_E_POSITIVE_RESPONSE;
+	if(1 == DCM_RTE.rxPduLength)
+	{
+		if( (DCM_UDT_IDLE_STATE != DCM_RTE.UDTData.state)
+			/* && (0u == DCM_RTE.UDTData.memorySize) */)
+		{
+			memset(&DCM_RTE.UDTData,0u,sizeof(DCM_RTE.UDTData)); /* Exit */
+			SendPRC(Instance);
+		}
+		else
+		{
+			SendNRC(Instance, DCM_E_REQUEST_SEQUENCE_ERROR);
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+	}
+}
+#endif
+
 static boolean CheckSessionSecurity(PduIdType Instance)
 {
 	uint8 index;
@@ -705,6 +730,11 @@ static void HandleRequest(PduIdType Instance)
 			#if defined(DCM_USE_SERVICE_TRANSFER_DATA)
 			case SID_TRANSFER_DATA:
 				HandleTransferData(Instance);
+				break;
+			#endif
+			#if defined(DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT)
+			case SID_REQUEST_TRANSFER_EXIT:
+				HandleRequestTransferExit(Instance);
 				break;
 			#endif
 			default:
