@@ -52,7 +52,7 @@
 #define N_Ar_     200
 #define N_Br_     200
 #define N_Cr_     200
-#define N_STmin_  10
+#define N_STmin_  1
 #define N_BS_     8
 
 #define CANIF_CANTP_TXPDUID CANTP_RTE.parameter[0]

@@ -117,7 +117,6 @@ typedef struct
 	uint8  blockSequenceCounter;
 	uint8  dataFormatIdentifier;
 	uint8  memoryIdentifier;
-	Dcm_OpStatusType OpStatus;
 }Dcm_UDTType;
 
 typedef struct
@@ -134,6 +133,7 @@ typedef struct
 	uint8 rxPduState;
 	uint8 txPduState;
 	uint8 seedRequested;
+	uint8 counter;
 #if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 	Dcm_UDTType UDTData;
 #endif
@@ -238,7 +238,7 @@ static uint8 u8IndexOfList(uint8 val, const uint8* pList)
 {
 	uint8 index = DCM_EOL;
 	const uint8* pVar = pList;
-	while(0xFF != *pVar)
+	while((uint8)DCM_EOL != *pVar)
 	{
 		if(*pVar == val)
 		{
@@ -377,6 +377,130 @@ static void HandleSecurityAccess(PduIdType Instance)
 		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
 	}
 }
+
+#if defined(DCM_USE_SERVICE_ROUTINE_CONTROL)
+#ifdef __AS_BOOTLOADER__
+static void BL_StartEraseFlash(PduIdType Instance)
+{
+	uint32 memoryAddress;
+	uint32 length;
+	uint8  memoryIdentifier;
+	Dcm_ReturnEraseMemoryType eraseRet;
+	if(13 == DCM_RTE.rxPduLength)
+	{
+		if(DCM_RTE.currentSession != DCM_PROGRAMMING_SESSION)
+		{
+			SendNRC(Instance, DCM_E_SERVICE_NOT_SUPPORTED_IN_ACTIVE_SESSION);
+		}
+		else if(DCM_RTE.currentLevel != 2 /* PRGS */)
+		{
+			SendNRC(Instance, DCM_E_SECUTITY_ACCESS_DENIED);
+		}
+		else
+		{
+			memoryAddress = ((uint32)DCM_RXSDU_DATA[4]<<24) + ((uint32)DCM_RXSDU_DATA[5]<<16)
+					+ ((uint32)DCM_RXSDU_DATA[6]<<8) +((uint32)DCM_RXSDU_DATA[7]);
+			length  = ((uint32)DCM_RXSDU_DATA[8]<<24) + ((uint32)DCM_RXSDU_DATA[9]<<16)
+					+ ((uint32)DCM_RXSDU_DATA[10]<<8) +((uint32)DCM_RXSDU_DATA[11]);
+			memoryIdentifier = DCM_RXSDU_DATA[12];
+
+			eraseRet = Dcm_EraseMemory( (1==DCM_RTE.counter)?DCM_INITIAL:DCM_PENDING,
+										memoryIdentifier,
+										memoryAddress,
+										length);
+			if(DCM_ERASE_OK == eraseRet)
+			{
+				DCM_TXSDU_DATA[1] = DCM_RXSDU_DATA[1];
+				DCM_TXSDU_DATA[2] = DCM_RXSDU_DATA[2];
+				DCM_TXSDU_DATA[3] = DCM_RXSDU_DATA[3];
+				DCM_RTE.txPduLength = 3;
+				SendPRC(Instance);
+			}
+			else if(DCM_ERASE_PENDING == eraseRet)
+			{
+				/* nothing */
+			}
+			else
+			{
+				SendNRC(Instance, DCM_E_GENERAL_PROGRAMMING_FAILURE);
+			}
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+	}
+}
+
+Std_ReturnType BL_TestJumpToApplicatin(uint8 *inBuffer, uint8 *outBuffer, Dcm_NegativeResponseCodeType *errorCode);
+static void BL_StartApplication(PduIdType Instance)
+{
+	Dcm_NegativeResponseCodeType errorCode;
+	(void) BL_TestJumpToApplicatin(&DCM_RXSDU_DATA[4], &DCM_TXSDU_DATA[4], &errorCode);
+	SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+}
+#endif
+static void HandleRoutineControlStart(PduIdType Instance)
+{
+#ifdef __AS_BOOTLOADER__
+	uint16 rcId = (uint16)((uint16)DCM_RXSDU_DATA[2] << 8) + DCM_RXSDU_DATA[3];
+	switch(rcId)
+	{
+		case 0xFF01:
+			BL_StartEraseFlash(Instance);
+			break;
+		case 0xFF03:
+			BL_StartApplication(Instance);
+			break;
+		default:
+			SendNRC(Instance, DCM_E_REQUEST_OUT_OF_RANGE);
+			break;
+	}
+#else
+	SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
+#endif
+}
+
+static void HandleRoutineControlStop(PduIdType Instance)
+{
+	SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
+}
+
+static void HandleRoutineControlResult(PduIdType Instance)
+{
+	SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
+}
+
+static void HandleRoutineControl(PduIdType Instance)
+{
+	if(DCM_RTE.rxPduLength >= 4)
+	{
+		HandleSubFunction(Instance);
+
+		switch(DCM_RXSDU_DATA[1])
+		{
+			case 0x01: /* start */
+				HandleRoutineControlStart(Instance);
+				break;
+			case 0x02: /* stop */
+				HandleRoutineControlStop(Instance);
+				break;
+			case 0x03: /* request result */
+				HandleRoutineControlResult(Instance);
+				break;
+			default:
+				SendNRC(Instance, DCM_E_SUB_FUNCTION_NOT_SUPPORTED);
+				break;
+		}
+	}
+	else
+	{
+		SendNRC(Instance, DCM_E_INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT);
+	}
+
+}
+
+#endif /* DCM_USE_SERVICE_ROUTINE_CONTROL */
 #if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD) || defined(DCM_USE_SERVICE_REQUEST_UPLOAD)
 static void HandleRequestDownloadOrUpload(PduIdType Instance, Dcm_UDTStateType state)
 {
@@ -415,7 +539,6 @@ static void HandleRequestDownloadOrUpload(PduIdType Instance, Dcm_UDTStateType s
 					DCM_RTE.UDTData.dataFormatIdentifier = dataFormatIdentifier;
 					DCM_RTE.UDTData.memoryIdentifier = memoryIdentifier;
 					DCM_RTE.UDTData.blockSequenceCounter = 1u;
-					DCM_RTE.UDTData.OpStatus = DCM_INITIAL;
 
 					ASLOG(DCM,"request %s addr(%X) size(%X),memory=%X\n",
 							(DCM_UDT_DOWNLOAD_STATE==state)?"download":"upload",
@@ -484,7 +607,7 @@ static void HandleTransferDownload(PduIdType Instance)
 			}
 			else
 			{
-				writeRet = Dcm_WriteMemory(DCM_RTE.UDTData.OpStatus,
+				writeRet = Dcm_WriteMemory((1==DCM_RTE.counter)?DCM_INITIAL:DCM_PENDING,
 											memoryIdentifier,
 											memoryAddress,
 											length,
@@ -503,7 +626,6 @@ static void HandleTransferDownload(PduIdType Instance)
 				else if(DCM_WRITE_PENDING == writeRet)
 				{	/* switch op status to pending and no response,
 					 * so this HandleTransferDownload will be called again */
-					DCM_RTE.UDTData.OpStatus = DCM_PENDING;
 				}
 				else
 				{
@@ -553,7 +675,8 @@ static void HandleTransferUpload(PduIdType Instance)
 			}
 			else
 			{
-				readRet = Dcm_ReadMemory(DCM_RTE.UDTData.OpStatus,memoryIdentifier,
+				readRet = Dcm_ReadMemory((1==DCM_RTE.counter)?DCM_INITIAL:DCM_PENDING,
+												memoryIdentifier,
 												memoryAddress,
 												length,
 												&DCM_TXSDU_DATA[2]);
@@ -571,7 +694,6 @@ static void HandleTransferUpload(PduIdType Instance)
 				else if(DCM_READ_PENDING == readRet)
 				{	/* switch op status to pending and no response,
 					 * so this HandleTransferUpload will be called again */
-					DCM_RTE.UDTData.OpStatus = DCM_PENDING;
 				}
 				else
 				{
@@ -700,6 +822,7 @@ static void HandleRequest(PduIdType Instance)
 
 	ASLOG(DCM, "Service %02X, L=%d\n", DCM_RTE.currentSID, DCM_RTE.rxPduLength);
 
+	DCM_RTE.counter ++;
 	DCM_RTE.txPduLength = 0;
 	DCM_RTE.supressPositiveResponse = FALSE;
 	dcmSetAlarm(S3Server,DCM_S3SERVER_TIMEOUT_MS);
@@ -717,6 +840,11 @@ static void HandleRequest(PduIdType Instance)
 			case SID_SECURITY_ACCESS:
 				HandleSecurityAccess(Instance);
 				break;
+			#if defined(DCM_USE_SERVICE_ROUTINE_CONTROL)
+			case SID_ROUTINE_CONTROL:
+				HandleRoutineControl(Instance);
+				break;
+			#endif
 			#if defined(DCM_USE_SERVICE_REQUEST_DOWNLOAD)
 			case SID_REQUEST_DOWNLOAD:
 				HandleRequestDownloadOrUpload(Instance, DCM_UDT_DOWNLOAD_STATE);
@@ -771,11 +899,13 @@ static void SendNRC(PduIdType Instance, uint8 nrc) /* send Negative Response Cod
 		DCM_RTE.txPduLength = 3;
 		DCM_RTE.txPduState = DCM_BUFFER_FULL;
 
+
 		HandleTransmit(Instance);
 
 		if(DCM_E_RESPONSE_PENDING != nrc)
 		{
 			dcmCancelAlarm(P2Server);
+			DCM_RTE.counter = 0;
 		}
 		else
 		{
@@ -789,6 +919,7 @@ static void SendPRC(PduIdType Instance)
 	if(DCM_BUFFER_IDLE == DCM_RTE.txPduState)
 	{
 		DCM_RTE.rxPduState = DCM_BUFFER_IDLE;
+		DCM_RTE.counter = 0;
 		if(FALSE == DCM_RTE.supressPositiveResponse)
 		{
 			DCM_TXSDU_DATA[0] = DCM_RTE.currentSID | SID_RESPONSE_BIT;
