@@ -54,12 +54,13 @@ endif
 ifeq ($(ISMSYS2), YES)
 export msys2 = yes
 endif
+
 ifeq ($(msys2),yes)
-PY27 = /c/Python27/python
-PY34 = /c/Anaconda3/python
+PY27 ?= /c/Python27/python
+PY34 ?= /c/Anaconda3/python
 else
-PY27 = C:/Python27/python
-PY34 = C:/Anaconda3/python
+PY27 ?= C:/Python27/python
+PY34 ?= C:/Anaconda3/python
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
@@ -76,9 +77,9 @@ ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
 ifeq ($(msys2),yes)
-export AS  = /mingw64/bin/gcc
-export CC  = /mingw64/bin/gcc
-export AR  = /mingw64/bin/ar
+export AS  = gcc
+export CC  = gcc
+export AR  = ar
 endif
 include ../make/posix.mk
 endif
