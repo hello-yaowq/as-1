@@ -38,7 +38,7 @@ I didn't get the dispatch(asm "svc 0") works now as it may hardfaut, so it can o
 ```sh
 set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
 pacman -Sy
-pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
+pacman -S unzip wget curl git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
 pacman -S ncurses-devel gperf curl
 pacman -Syuu
 wget https://pypi.python.org/packages/1f/3b/ee6f354bcb1e28a7cd735be98f39ecf80554948284b41e9f7965951befa6/pyserial-3.2.1.tar.gz#md5=7142a421c8b35d2dac6c47c254db023d
@@ -53,6 +53,8 @@ conda install scons
 This is very easy!
 
 ## 3.1 launch the [/as/Console.bat](https://github.com/parai/as/blob/master/Console.bat) by double click
+
+* Note: before launch the /as/Console.bat, please make sure [7z](https://www.7-zip.org/download.html) is installed as path "C:\Program Files\7-Zip\7z.exe"
 
 * Note: for the first time build, it will be very slow as it need to dynamic download some packages and tools to directory "/as/release/download"
 
@@ -151,6 +153,8 @@ For the purpose to use it, it must compiles the aslua firstly to build out the n
 
 But first of all, the third party CAN library should be downloaded, such as the [peak-can pcan-basic.zip](https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip) and [zlg-can CAN_lib.zip](http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip). But this 2 libraries maybe updated in the future by the vendor maybe for the purpuse to add new features or fix some bugs, it may result that the automaticlly downlowded one by the aslua/Makefile will not be usable if the CAN library file structure changed. I am not going to fix those issues resulted by the third party CAN library file structure changed, so you should generally make sure the CAN library located at the as/release/download folder as below file structure.
 
+And for the zlg can, the [VC 2008 Runtime X64](https://www.microsoft.com/en-us/download/details.aspx?id=15336)  or the [VC 2008 Runtime X86](https://www.microsoft.com/en-us/download/details.aspx?id=29) should be installed.
+
 ![third-party-can-folder-structure.png](/as/images/rewoa/third-party-can-folder-structure.png)
 
 Run command "make clean && make aslua" in the panel of aslua of the Console, but as the issue of msys2, you will encounter below error maybe.
@@ -199,4 +203,18 @@ That's all! Have Fun with AS.
 sudo apt install scons gtk+-3.0 autoconf libtool-bin python3-sip python3-sip-dev sip-dev python3-pip flex bison gperf \
   libncurses-dev nasm gnome-terminal gcc-arm-none-eabi libreadline-dev python3-pyqt5 glib2.0 libcurl4-openssl-dev
 sudo pip3 install pillow pyserial bitarray
+```
+
+## 5.2 Windows 32bit
+
+Just give some commands, up to your ability to set it up.
+
+First of all, the 32 bit Anaconda should be installed
+
+```sh
+pacman -S mingw32/mingw-w64-i686-gcc
+
+# build of aslua
+set PATH=c:\msys64\mingw32\bin;%PATH%
+make aslua
 ```
