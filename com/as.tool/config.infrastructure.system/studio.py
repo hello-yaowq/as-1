@@ -252,6 +252,8 @@ class easySARGui(QMainWindow):
             self.modifyCanIfbyCANDBC(dbc,bus)
             self.modifyPduRbyCANDBC(dbc)
             self.modifyCombyCANDBC(dbc)
+        self.mSave('-import-dbc')
+        print('!!!Importing Done!!!')
 
     def getModule(self, name):
         for module in self.modules:
@@ -284,12 +286,12 @@ class easySARGui(QMainWindow):
         if(default == None):
             QMessageBox(QMessageBox.Information, 'Info', 
                         'Open OpenSAR Configuration arxml Successfully !').exec_();
-    def mSave(self):
+    def mSave(self, alt=''):
         if(self.pdir == ''):
             self.pdir = QFileDialog.getExistingDirectory(None,'Save OpenSAR Configuration',gDefault_GEN,QFileDialog.DontResolveSymlinks)
         if(self.pdir == ''):
             return
-        wfxml = '%s/autosar.arxml'%(self.pdir)
+        wfxml = '%s/autosar%s.arxml'%(self.pdir,alt)
         ROOT = ET.Element('AUTOSAR')
         for module in self.modules:
             ROOT.append(module.toArxml())
@@ -301,6 +303,7 @@ class easySARGui(QMainWindow):
         fp = open(wfxml,'w')
         fp.write(content.replace('>','>\n'))
         fp.close()
+        print('!!!Saving to %s done!!!'%(wfxml))
         QMessageBox(QMessageBox.Information, 'Info', 
                     'Save OpenSAR Configuration arxml Successfully !').exec_();
     def mGen(self):
