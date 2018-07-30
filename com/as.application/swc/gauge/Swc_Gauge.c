@@ -17,6 +17,10 @@
 #ifdef USE_STMO
 #include "Stmo.h"
 #endif
+
+#ifdef USE_COM
+#include "Com.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -25,6 +29,13 @@
 #ifdef USE_STMO
 static void sample_pointer(void)
 {
+#ifdef COM_SID_VehicleSpeed
+	uint16 VehicleSpeed = 0;
+#endif
+#ifdef COM_SID_TachoSpeed
+	uint16 TachoSpeed = 0;
+#endif
+
 	static Stmo_DegreeType tacho = 0;
 	static Stmo_DegreeType speed = 0;
 	static Stmo_DegreeType temp = 0;
@@ -34,6 +45,10 @@ static void sample_pointer(void)
 	static boolean temp_up = TRUE;
 	static boolean fuel_up = TRUE;
 
+#ifdef COM_SID_TachoSpeed
+	(void)Com_ReceiveSignal(COM_SID_TachoSpeed,&TachoSpeed);
+	tacho = TachoSpeed;
+#else
 	if(tacho_up)
 	{
 		tacho += 50;
@@ -55,7 +70,12 @@ static void sample_pointer(void)
 			tacho_up = TRUE;
 		}
 	}
+#endif
 
+#ifdef COM_SID_VehicleSpeed
+	(void)Com_ReceiveSignal(COM_SID_VehicleSpeed,&VehicleSpeed);
+	speed = VehicleSpeed;
+#else
 	if(speed_up)
 	{
 		speed += 50;
@@ -77,7 +97,7 @@ static void sample_pointer(void)
 			speed_up = TRUE;
 		}
 	}
-
+#endif
 	if(temp_up)
 	{
 		temp += 50;

@@ -25,16 +25,19 @@ __all__ = ['can_open','can_write','can_read','can_close']
 __can__ = can()
 
 def can_open(busid,device,port,baudrate):
-    
     return __can__.open(busid,device.encode('utf-8'),port,baudrate)
 
 def can_write(busid,canid,data):
     '''can request write on can bus <busid>'''
     sd = ''
-    for i,c in enumerate(data):
-        sd += '%02X'%(c&0xFF)
-    dlc = len(data)
-    return __can__.write(busid,canid,dlc,sd.encode('utf-8'))
+    if(type(data) is str):
+        sd = data
+        dlc = int(len(data)/2)
+    else:
+        for i,c in enumerate(data):
+            sd += '%02X'%(c&0xFF)
+        dlc = int(len(data))
+    return __can__.write(busid, canid, dlc, sd.encode('utf-8'))
 
 def can_read(busid,canid):
     ''' can request read a can frame from <canid> queue of <busid>'''
@@ -52,3 +55,4 @@ def can_read(busid,canid):
 
 def can_close(busid):
     return __can__.close(busid)
+
