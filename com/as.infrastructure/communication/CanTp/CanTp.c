@@ -603,6 +603,7 @@ static BufReq_ReturnType sendNextTxFrame(
 	BufReq_ReturnType ret = BUFREQ_OK;
 
 	// copy data to temp buffer
+	uint32 byteCount = 0;
 	for(; txRuntime->canFrameBuffer.byteCount < MAX_SEGMENT_DATA_SIZE && ret == BUFREQ_OK ;) {
 		if(txRuntime->pdurBuffer == 0 || txRuntime->pdurBufferCount == txRuntime->pdurBuffer->SduLength) {
 			// data empty, request new data
@@ -620,6 +621,7 @@ static BufReq_ReturnType sendNextTxFrame(
 		}
 		txRuntime->canFrameBuffer.data[txRuntime->canFrameBuffer.byteCount++] = txRuntime->pdurBuffer->SduDataPtr[txRuntime->pdurBufferCount++];
 		txRuntime->transferCount++;
+		byteCount ++;
 		if(txRuntime->transferCount == txRuntime->transferTotal) {
 			// all bytes, send
 			break;
@@ -630,15 +632,24 @@ static BufReq_ReturnType sendNextTxFrame(
 		Std_ReturnType resp;
 		pduInfo.SduDataPtr = txRuntime->canFrameBuffer.data;
 		pduInfo.SduLength = txRuntime->canFrameBuffer.byteCount;
-		// change state to verify tx confirm within timeout
-		txRuntime->iso15765.stateTimeoutCount = CANTP_CONVERT_MS_TO_MAIN_CYCLES(txConfig->CanTpNas);  /** @req CANTPxxx */
-		txRuntime->iso15765.state = TX_WAIT_TX_CONFIRMATION;
 		resp = canTansmitPaddingHelper(txConfig, txRuntime, &pduInfo);
 		if(resp == E_OK) {
-			// sending done
+			// change state to verify tx confirm within timeout
+			txRuntime->iso15765.stateTimeoutCount = CANTP_CONVERT_MS_TO_MAIN_CYCLES(txConfig->CanTpNas);  /** @req CANTPxxx */
+			txRuntime->iso15765.state = TX_WAIT_TX_CONFIRMATION;
 		} else {
-			// failed to send
-			ret = BUFREQ_NOT_OK;
+			txRuntime->transferCount -= byteCount;
+			txRuntime->canFrameBuffer.byteCount -= byteCount;
+			txRuntime->pdurBufferCount -= byteCount;
+			txRuntime->iso15765.stateTimeoutCount ++;
+			if(txRuntime->iso15765.stateTimeoutCount < 0xFF)
+			{
+				ret = BUFREQ_OK;
+			}
+			else
+			{
+				ret = BUFREQ_NOT_OK;
+			}
 		}
 	}
 	return ret;
