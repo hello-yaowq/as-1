@@ -25,6 +25,7 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define CAN_BUS_NUM   4
 #define CAN_BUS_PDU_NUM   16
+#define CAN_BUS_Q_PDU_NUM   1024
 
 #define AS_LOG_LUA 0
 #define AS_LOG_CAN 0
@@ -36,7 +37,7 @@ typedef struct {
     /* Length, max 8 bytes */
     uint8_t		length;
     /* data ptr */
-    uint8_t 		sdu[64];
+    uint8_t 	sdu[64];
 } Can_PduType;
 struct Can_Pdu_s {
 	Can_PduType msg;
@@ -56,6 +57,10 @@ struct Can_Bus_s {
 	STAILQ_HEAD(,Can_PduQueue_s) head;	/* sort message by CANID queue */
 	STAILQ_HEAD(,Can_Pdu_s) head2;	/* for all the message received by this bus */
 	uint32_t                size2;
+
+	STAILQ_HEAD(,Can_Pdu_s) headQ;	/* for all the message RX or TX by this bus with single Queue */
+	uint32_t                sizeQ;
+	uint32_t                warningQ;
 	STAILQ_ENTRY(Can_Bus_s) entry;
 };
 
@@ -146,13 +151,62 @@ static struct Can_Bus_s* getBus(uint32_t busid)
 	}
 	return handle;
 }
+
+
+static void saveQ(struct Can_Bus_s* b, uint32_t canid, uint8_t dlc, uint8_t * data)
+{
+	struct Can_Pdu_s* pdu;
+	if(b->sizeQ > CAN_BUS_Q_PDU_NUM)
+	{
+		if(FALSE == b->warningQ)
+		{
+			b->warningQ = TRUE;
+			ASWARNING("LUA CAN BUSQ[id=%X] List is full with size %d\n", b->busid, b->sizeQ);
+		}
+		return;
+	}
+	pdu = malloc(sizeof(struct Can_Pdu_s));
+	if(NULL != pdu)
+	{
+		pdu->msg.bus = b->busid;
+		pdu->msg.id = canid;
+		pdu->msg.length = dlc;
+		memcpy(&(pdu->msg.sdu),data,dlc);
+		(void)pthread_mutex_lock(&canbusH.q_lock);
+		STAILQ_INSERT_TAIL(&b->headQ, pdu, entry);
+		b->sizeQ ++;
+		(void)pthread_mutex_unlock(&canbusH.q_lock);
+		b->warningQ = FALSE;
+	}
+}
+
+static struct Can_Pdu_s* getQ(struct Can_Bus_s* b)
+{
+	struct Can_Pdu_s* pdu = NULL;
+	(void)pthread_mutex_lock(&canbusH.q_lock);
+	if((FALSE == STAILQ_EMPTY(&b->headQ)))
+	{
+		pdu = STAILQ_FIRST(&b->headQ);
+		/* when remove, should remove from the both queue */
+		STAILQ_REMOVE_HEAD(&b->headQ,entry);
+		b->sizeQ --;
+	}
+	(void)pthread_mutex_unlock(&canbusH.q_lock);
+	return pdu;
+}
+
 static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 {
 	struct Can_PduQueue_s* L=NULL;
 	struct Can_Pdu_s* pdu = NULL;
 	struct Can_PduQueue_s* l;
-	(void)pthread_mutex_lock(&canbusH.q_lock);
 
+	if((uint32_t)-2 == canid)
+	{
+		return getQ(b);
+	}
+
+	(void)pthread_mutex_lock(&canbusH.q_lock);
 	if((uint32_t)-1 == canid)
 	{	/* id is -1, means get the first of queue from b->head2 */
 		if(FALSE == STAILQ_EMPTY(&b->head2))
@@ -188,6 +242,7 @@ static struct Can_Pdu_s* getPdu(struct Can_Bus_s* b,uint32_t canid)
 	(void)pthread_mutex_unlock(&canbusH.q_lock);
 	return pdu;
 }
+
 static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 {
 	struct Can_PduQueue_s* L;
@@ -244,6 +299,7 @@ static void saveB(struct Can_Bus_s* b,struct Can_Pdu_s* pdu)
 
 	(void)pthread_mutex_unlock(&canbusH.q_lock);
 }
+
 static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	if((busid < CAN_BUS_NUM) && ((uint32_t)-1 != canid))
@@ -260,6 +316,7 @@ static void rx_notification(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* 
 				memcpy(&(pdu->msg.sdu),data,dlc);
 
 				saveB(b,pdu);
+				saveQ(b,canid,dlc,data);
 				logCan(TRUE,busid,canid,dlc,data);
 			}
 			else
@@ -401,6 +458,7 @@ int luai_can_open  (lua_State *L)
 				b->device.ops = ops;
 				b->device.busid = busid;
 				b->device.port = port;
+				b->warningQ = FALSE;
 
 				boolean rv = ops->probe(busid,port,baudrate,rx_notification);
 
@@ -408,7 +466,9 @@ int luai_can_open  (lua_State *L)
 				{
 					STAILQ_INIT(&b->head);
 					STAILQ_INIT(&b->head2);
+					STAILQ_INIT(&b->headQ);
 					b->size2 = 0;
+					b->sizeQ = 0;
 					pthread_mutex_lock(&canbusH.q_lock);
 					STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
 					pthread_mutex_unlock(&canbusH.q_lock);
@@ -462,7 +522,7 @@ int luai_can_write (lua_State *L)
 		}
 		else
 		{
-			int i = 0;
+			size_t i = 0;
 			/* Push another reference to the table on top of the stack (so we know
 			 * where it is, and this function can work for negative, positive and
 			 * pseudo indices
@@ -511,6 +571,7 @@ int luai_can_write (lua_State *L)
 				boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
 				ASLOG(CAN,"can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 										busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);
+				saveQ(b,canid,dlc,data);
 				logCan(FALSE,busid,canid,dlc,data);
 				if(rv)
 				{
@@ -740,7 +801,9 @@ int can_open(unsigned long busid,const char* device_name,unsigned long port, uns
 			{
 				STAILQ_INIT(&b->head);
 				STAILQ_INIT(&b->head2);
+				STAILQ_INIT(&b->headQ);
 				b->size2 = 0;
+				b->sizeQ = 0;
 				pthread_mutex_lock(&canbusH.q_lock);
 				STAILQ_INSERT_TAIL(&canbusH.head,b,entry);
 				pthread_mutex_unlock(&canbusH.q_lock);
@@ -805,6 +868,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 					busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]); */
 			rv = b->device.ops->write(b->device.port,canid,dlc,data);
+			saveQ(b,canid,dlc,data);
 			#else
 			unsigned char buffer[64]; /* 64 for CANFD */
 			for(unsigned long i=0;i<dlc;i++)
@@ -814,6 +878,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 					busid,canid,dlc,buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7]);*/
 			rv = b->device.ops->write(b->device.port,canid,dlc,buffer);
+			saveQ(b,canid,dlc,buffer);
 			#endif
 			if(rv)
 			{
@@ -864,6 +929,7 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 			size_t size = 0;
 			*p_canid = pdu->msg.id;
 			*dlc = pdu->msg.length;
+			saveQ(b,pdu->msg.id,pdu->msg.length,pdu->msg.sdu);
 			#if defined(__AS_CAN_BUS__)
 			asAssert(data);
 			memcpy(data,pdu->msg.sdu,*dlc);

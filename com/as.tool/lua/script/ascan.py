@@ -131,8 +131,8 @@ class UICan(QWidget):
             self.traceTimer = self.startTimer(1)
             self.timeTick = 0
         else:
-            self.traceTimer = None
             self.killTimer(self.traceTimer)
+            self.traceTimer = None
 
     def timerEvent(self,ev):
         if(ev.timerId() == self.traceTimer):
@@ -148,19 +148,15 @@ class UICan(QWidget):
 
     def onTraceTimerEvent(self):
         self.timeTick += 1
-        if(self.canTraceEnable.isChecked()==False):
-            return
         for bus in range(self.bus_num):
             if(self.online[bus]):
-                ercd = True
-                while(ercd):
-                    ercd,canid,data = can_read(bus,-1)
-                    if(ercd):
-                        cstr = 'bus=%s canid=%03X data=['%(bus,canid)
-                        for d in data:
-                            cstr += ' %02X'%(d)
-                        cstr += '] @ %d ms'%(self.timeTick)
-                        self.canTrace.append(cstr)
+                ercd,canid,data = can_read(bus,-2)
+                if(ercd):
+                    cstr = 'bus=%s canid=%03X data=['%(bus,canid)
+                    for d in data:
+                        cstr += ' %02X'%(d)
+                    cstr += '] @ %d ms'%(self.timeTick)
+                    self.canTrace.append(cstr)
 
     def on_btnOpen(self,id):
         if(str(self.btnOpen[id].text())=='Open'):
@@ -172,7 +168,6 @@ class UICan(QWidget):
             else:
                 port = int(str(self.cmbxCanPort[id].currentText()).replace('port',''))
             baud = int(str(self.cmbxCanBaud[id].currentText()))
-            print(bus, device, port)
             can_open(bus,device,port,baud)
             self.btnOpen[id].setText('Close')
             self.online[id] = True
