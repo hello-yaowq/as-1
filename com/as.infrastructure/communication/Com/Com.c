@@ -30,6 +30,7 @@
 #include "shell.h"
 
 static int cmdComLsSgFunc(int argc, char *argv[]);
+static int cmdComWrSgFunc(int argc, char *argv[]);
 
 static SHELL_CONST ShellCmdT cmdComLsSg  = {
 		cmdComLsSgFunc,
@@ -40,6 +41,16 @@ static SHELL_CONST ShellCmdT cmdComLsSg  = {
 		{NULL,NULL}
 };
 SHELL_CMD_EXPORT(cmdComLsSg)
+
+static SHELL_CONST ShellCmdT cmdComWrSg  = {
+		cmdComWrSgFunc,
+		2,3,
+		"wrsg",
+		"wrsg sid value [gid]",
+		"write signal, if sid is group signals, need the gid\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdComWrSg)
 
 static void ListSignal(void) {
 	union {
@@ -54,7 +65,7 @@ static void ListSignal(void) {
 		for (uint16 i = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[i] != NULL); i++) {
 			const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
 
-			if(signal->Com_Arc_IsSignalGroup == FALSE)
+			if(FALSE == signal->Com_Arc_IsSignalGroup)
 			{
 				switch(signal->ComSignalType)
 				{
@@ -133,6 +144,75 @@ static int cmdComLsSgFunc(int argc, char *argv[] ) {
 	ListSignal();
 	return rv;
 }
+
+static int cmdComWrSgFunc(int argc, char *argv[])
+{
+	int rv = 0;
+	uint16 sid,gid;
+	uint32 u32V;
+	union {
+		uint32 u32V;
+		uint16 u16V;
+		uint8  u8V;
+	} uV;
+	const ComSignal_type * signal;
+	const ComGroupSignal_type *gsignal;
+
+	sid = strtoul(argv[1],NULL, 10);
+	u32V = strtoul(argv[2],NULL, 16);
+	signal = GET_Signal(sid);
+	if(FALSE == signal->Com_Arc_IsSignalGroup)
+	{
+		switch(signal->ComSignalType)
+		{
+			case COM_SIGNAL_TYPE_UINT8:
+			case COM_SIGNAL_TYPE_SINT8:
+				uV.u8V = (uint8)u32V;
+				(void)Com_SendSignal(signal->ComHandleId, &uV.u8V);
+				break;
+			case COM_SIGNAL_TYPE_UINT16:
+			case COM_SIGNAL_TYPE_SINT16:
+				uV.u16V = (uint16)u32V;
+				(void)Com_SendSignal(signal->ComHandleId, &uV.u16V);
+				break;
+			case COM_SIGNAL_TYPE_UINT32:
+			case COM_SIGNAL_TYPE_SINT32:
+				uV.u32V = (uint32)u32V;
+				(void)Com_SendSignal(signal->ComHandleId, &uV.u32V);
+				break;
+			default:
+				break;
+		}
+	}
+	else
+	{
+		gid = strtoul(argv[3],NULL, 10);
+		gsignal = signal->ComGroupSignal[gid];
+		switch(gsignal->ComSignalType)
+		{
+			case COM_SIGNAL_TYPE_UINT8:
+			case COM_SIGNAL_TYPE_SINT8:
+				uV.u8V = (uint8)u32V;
+				(void)Com_UpdateShadowSignal(gsignal->ComHandleId, &uV.u8V);
+				break;
+			case COM_SIGNAL_TYPE_UINT16:
+			case COM_SIGNAL_TYPE_SINT16:
+				uV.u16V = (uint16)u32V;
+				(void)Com_UpdateShadowSignal(gsignal->ComHandleId, &uV.u16V);
+				break;
+			case COM_SIGNAL_TYPE_UINT32:
+			case COM_SIGNAL_TYPE_SINT32:
+				uV.u32V = (uint32)u32V;
+				(void)Com_UpdateShadowSignal(gsignal->ComHandleId, &uV.u32V);
+				break;
+			default:
+				break;
+		}
+		Com_SendSignalGroup(signal->ComHandleId);
+	}
+
+	return 0;
+}
 #endif
 
 /* TODO: Better way to get endianness across all compilers? */
@@ -155,6 +235,7 @@ void Com_Init(const Com_ConfigType *config ) {
 
 #if !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&cmdComLsSg);
+	SHELL_AddCmd(&cmdComWrSg);
 #endif
 	ComConfig = config;
 	if      ( endiannessByte == 0xef ) { Com_SystemEndianness = COM_LITTLE_ENDIAN; }

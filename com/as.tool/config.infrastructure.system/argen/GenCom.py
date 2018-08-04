@@ -226,7 +226,7 @@ def GenC():
         #endif
         .ComBitPosition= %s,
         .ComBitSize= %s,
-        .ComHandleId= COM_ID_%s,
+        .ComHandleId= COM_GSID_%s,
         .ComSignalEndianess= COM_%s,
         .ComSignalInitValue= &%s_InitValue,
         .ComSignalType= COM_SIGNAL_TYPE_%s,
@@ -234,7 +234,7 @@ def GenC():
     },\n"""%(GAGet(sig,'Name'),
              GAGet(sig,'StartBit'),
              GAGet(sig,'Size'),
-             GAGet(pdu,'PduRef'),
+             GAGet(sig,'Name'),
              GAGet(sig,'Endianess'),
              GAGet(sig,'Name'),
              GAGet(sig,'Type').upper(),
