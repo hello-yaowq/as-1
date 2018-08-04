@@ -145,6 +145,8 @@ class easySARGui(QMainWindow):
             self.pdir = QFileDialog.getExistingDirectory(None,'Save OpenSAR Configuration',gDefault_GEN,QFileDialog.DontResolveSymlinks)
         if(self.pdir == ''):
             return
+        if(alt == False):
+            alt = ''
         wfxml = '%s/autosar%s.arxml'%(self.pdir,alt)
         ROOT = ET.Element('AUTOSAR')
         for module in self.modules:

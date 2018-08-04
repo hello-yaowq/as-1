@@ -26,6 +26,115 @@
 #include "Com_misc.h"
 #include "asdebug.h"
 
+#ifdef USE_SHELL
+#include "shell.h"
+
+static int cmdComLsSgFunc(int argc, char *argv[]);
+
+static SHELL_CONST ShellCmdT cmdComLsSg  = {
+		cmdComLsSgFunc,
+		0,1,
+		"lssg",
+		"lssg",
+		"list all the value of com signals\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdComLsSg)
+
+static void ListSignal(void) {
+	union {
+		uint32 u32V;
+		uint16 u16V;
+		uint8  u8V;
+	} uV;
+	for (uint16 pduId = 0; !ComConfig->ComIPdu[pduId].Com_Arc_EOL; pduId++) {
+		const ComIPdu_type *IPdu = GET_IPdu(pduId);
+		imask_t irq_state;
+		Irq_Save(irq_state);
+		for (uint16 i = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[i] != NULL); i++) {
+			const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
+
+			if(signal->Com_Arc_IsSignalGroup == FALSE)
+			{
+				switch(signal->ComSignalType)
+				{
+					case COM_SIGNAL_TYPE_UINT8:
+					case COM_SIGNAL_TYPE_SINT8:
+						(void)Com_ReceiveSignal(signal->ComHandleId, &uV.u8V);
+						SHELL_printf("%s.%s(SID=%d): V = 0x%02X(%d)\n",
+								IPdu->name, signal->name, signal->ComHandleId, uV.u8V, uV.u8V);
+						break;
+					case COM_SIGNAL_TYPE_UINT16:
+					case COM_SIGNAL_TYPE_SINT16:
+						(void)Com_ReceiveSignal(signal->ComHandleId, &uV.u16V);
+						SHELL_printf("%s.%s(SID=%d): V = 0x%04X(%d)\n",
+								IPdu->name, signal->name, signal->ComHandleId, uV.u16V, uV.u16V);
+						break;
+					case COM_SIGNAL_TYPE_UINT32:
+					case COM_SIGNAL_TYPE_SINT32:
+						(void)Com_ReceiveSignal(signal->ComHandleId, &uV.u32V);
+						SHELL_printf("%s.%s(SID=%d): V = 0x%08X(%d)\n",
+								IPdu->name, signal->name, signal->ComHandleId, uV.u32V, uV.u32V);
+						break;
+					default:
+						SHELL_printf("%s.%s(SID=%d): unsupported type %d(%d)\n",
+								IPdu->name, signal->name, signal->ComHandleId, signal->ComSignalType);
+						break;
+				}
+			}
+			else
+			{
+				for (uint16 j = 0; (signal->ComGroupSignal != NULL) && (signal->ComGroupSignal[j] != NULL); j++) {
+					const ComGroupSignal_type *gsignal = signal->ComGroupSignal[j];
+					(void)Com_ReceiveSignalGroup(signal->ComHandleId);
+					switch(gsignal->ComSignalType)
+					{
+						case COM_SIGNAL_TYPE_UINT8:
+						case COM_SIGNAL_TYPE_SINT8:
+							(void)Com_ReceiveShadowSignal(gsignal->ComHandleId, &uV.u8V);
+							SHELL_printf("%s.%s.%s(SID=%d,GID=%d): V = 0x%02X(%d)\n",
+									IPdu->name, signal->name, gsignal->name,
+									signal->ComHandleId, gsignal->ComHandleId,
+									uV.u8V, uV.u8V);
+							break;
+						case COM_SIGNAL_TYPE_UINT16:
+						case COM_SIGNAL_TYPE_SINT16:
+							(void)Com_ReceiveShadowSignal(gsignal->ComHandleId, &uV.u16V);
+							SHELL_printf("%s.%s.%s(SID=%d,GID=%d): V = 0x%04X(%d)\n",
+									IPdu->name, signal->name, gsignal->name,
+									signal->ComHandleId, gsignal->ComHandleId,
+									uV.u16V, uV.u16V);
+							break;
+						case COM_SIGNAL_TYPE_UINT32:
+						case COM_SIGNAL_TYPE_SINT32:
+							(void)Com_ReceiveShadowSignal(gsignal->ComHandleId, &uV.u32V);
+							SHELL_printf("%s.%s.%s(SID=%d,GID=%d): V = 0x%08X(%d)\n",
+									IPdu->name, signal->name, gsignal->name,
+									signal->ComHandleId, gsignal->ComHandleId,
+									uV.u32V, uV.u32V);
+							break;
+						default:
+							SHELL_printf("%s.%s.%s(SID=%d,GID=%d): unsupported type %d\n",
+									IPdu->name, signal->name, gsignal->name,
+									signal->ComHandleId, gsignal->ComHandleId,
+									gsignal->ComSignalType);
+							break;
+					}
+				}
+			}
+
+
+		}
+		Irq_Restore(irq_state);
+	}
+}
+static int cmdComLsSgFunc(int argc, char *argv[] ) {
+	int rv = 0;
+	ListSignal();
+	return rv;
+}
+#endif
+
 /* TODO: Better way to get endianness across all compilers? */
 static const uint32_t endianness_test = 0xdeadbeefU;
 ComSignalEndianess_type Com_SystemEndianness;
@@ -37,14 +146,17 @@ const Com_ConfigType * ComConfig;
 void Com_Init(const Com_ConfigType *config ) {
 	DEBUG(DEBUG_LOW, "--Initialization of COM--\n");
 
-	ComConfig = config;
-
 	uint8 failure = 0;
 
 	uint32 firstTimeout;
 
 	//lint --e(928)	PC-Lint exception Misra 11.4, Must be like this. /tojo
 	uint8 endiannessByte = *(const uint8 *)&endianness_test;
+
+#if !defined(USE_SHELL_SYMTAB)
+	SHELL_AddCmd(&cmdComLsSg);
+#endif
+	ComConfig = config;
 	if      ( endiannessByte == 0xef ) { Com_SystemEndianness = COM_LITTLE_ENDIAN; }
 	else if ( endiannessByte == 0xde ) { Com_SystemEndianness = COM_BIG_ENDIAN; }
 	else {

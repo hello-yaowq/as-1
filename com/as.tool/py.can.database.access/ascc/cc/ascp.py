@@ -23,6 +23,8 @@ __self_node_name__ = 'AS'
 
 def get_period(p,msg):
     id = msg['bo']['id']
+    if('baList' not in p):
+        return None
     for ba in p['baList']:
         if((ba[1]=='"GenMsgCycleTime"') and (ba[2]=='BO_')):
             if(ba[3]==id):
@@ -31,6 +33,8 @@ def get_period(p,msg):
 
 def get_init(p,sig):
     name = sig['sg']['name']
+    if('baList' not in p):
+        return None
     for ba in p['baList']:
         if((ba[1]=='"GenSigStartValue"') and (ba[2]=='SG_')):
             if(ba[4]==name):
@@ -39,6 +43,8 @@ def get_init(p,sig):
 
 def get_comment(p,sig):
     name = sig['sg']['name']
+    if('baList' not in p):
+        return None
     for cm in p['cmList']:
         if((cm[1]=='SG_') and (cm[3]==name)):
             return cm[4]

@@ -221,6 +221,9 @@ def GenC():
                     isEol = 'FALSE'
                 cstr1 += """    
     {
+        #if defined(USE_SHELL)
+        .name = "%s",
+        #endif
         .ComBitPosition= %s,
         .ComBitSize= %s,
         .ComHandleId= COM_ID_%s,
@@ -228,7 +231,8 @@ def GenC():
         .ComSignalInitValue= &%s_InitValue,
         .ComSignalType= COM_SIGNAL_TYPE_%s,
         .Com_Arc_EOL= %s
-    },\n"""%(GAGet(sig,'StartBit'),
+    },\n"""%(GAGet(sig,'Name'),
+             GAGet(sig,'StartBit'),
              GAGet(sig,'Size'),
              GAGet(pdu,'PduRef'),
              GAGet(sig,'Endianess'),
@@ -264,7 +268,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         for sig in GLGet(pdu,'SignalList'):
             cstr += """
     {
-        #if defined(__GTK__)
+        #if defined(USE_SHELL)
         .name = "%s",
         #endif
         .ComBitPosition =  %s,
@@ -308,7 +312,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
         for sig in GLGet(pdu,'GroupSignalList'):
             cstr += """
     {
-        #if defined(__GTK__)
+        #if defined(USE_SHELL)
         .name = "%s",
         #endif
         .ComBitPosition =  %s,
@@ -397,7 +401,7 @@ static const ComIPduGroup_type ComIPduGroup[] = {
             dbf='NULL'
         cstr += """
     {
-        #if defined(__GTK__)
+        #if defined(USE_SHELL)
         .name = "%s",
         #endif
         .ComIPduCallout =  %s,

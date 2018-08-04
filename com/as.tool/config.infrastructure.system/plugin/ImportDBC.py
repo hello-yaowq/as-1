@@ -142,6 +142,7 @@ class Plugin(QAction):
             R.append(msg['bo']['name'])
         IPduList = arxml.find('IPduList')
         self.root.removeXml(IPduList, R)
+        print('WARNING: This plugin only support BIG_ENDIAN(Motorola) Format signals')
         for msg in dbc['boList']:
             msg = msg['bo']
             ipdu = ET.Element('IPdu')

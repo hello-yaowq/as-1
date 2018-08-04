@@ -174,5 +174,4 @@ void Com_MainFunctionTx(void) {
 		Irq_Restore(irq_state);
 	}
 }
-
 #endif /* USE_COM */

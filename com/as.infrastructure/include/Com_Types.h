@@ -147,6 +147,9 @@ typedef struct {
 
 /** Configuration structure for group signals */
 typedef struct {
+#if defined(USE_SHELL)
+	uint8 name[64];
+#endif
 	/** Starting position (bit) of the signal within the IPDU.
 	 * Range 0 to 63.
 	 */
@@ -202,7 +205,7 @@ typedef struct {
 
 /** Configuration structure for signals and signal groups. */
 typedef struct {
-#if defined(__GTK__)
+#if defined(USE_SHELL)
 	uint8 name[64];
 #endif
 
@@ -372,7 +375,7 @@ typedef struct ComIPduGroup_type {
 
 /** Configuration structure for an I-PDU. */
 typedef struct {
-#if defined(__GTK__)
+#if defined(USE_SHELL)
 	uint8 name[64];
 #endif
 	/** Callout function of this IPDU.

@@ -178,7 +178,7 @@
 <GroupSignalList Max="TBD">
 <GroupSignal Comment="*" Endianess="OPAQUE" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="56" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
 <SignalList Max="TBD">
-<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="15" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="7" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="12" Name="month" Size="8" StartBit="23" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="15" Name="day" Size="8" StartBit="31" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="19" Name="hour" Size="8" StartBit="39" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
@@ -190,8 +190,8 @@
 </IPdu>
 <IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="RECEIVE" Name="AbsInfo" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="RxMsgAbsInfo" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="10" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <SignalList Max="TBD">
-<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="VehicleSpeed" ReceivedNotification="NULL" Size="16" StartBit="15" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
-<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="TachoSpeed" ReceivedNotification="NULL" Size="16" StartBit="31" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="VehicleSpeed" ReceivedNotification="NULL" Size="16" StartBit="7" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="TachoSpeed" ReceivedNotification="NULL" Size="16" StartBit="23" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led1Sts" ReceivedNotification="NULL" Size="2" StartBit="39" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led2Sts" ReceivedNotification="NULL" Size="2" StartBit="37" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led3Sts" ReceivedNotification="NULL" Size="2" StartBit="35" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
