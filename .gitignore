@@ -26,6 +26,7 @@ syntax: glob
 *.so
 *.os
 *.bin
+*.dbc
 out
 
 # switch to regexp syntax.
@@ -332,3 +333,4 @@ board.mpc56xx
 board.any
 SeedToKey.py
 kerneldlls
+parsetab.py
