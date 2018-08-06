@@ -18,8 +18,11 @@ __lic__ = '''
 import os,sys,time
 import threading
 from bitarray import bitarray
+from pyas.can import *
 
 __all__ = ['Network']
+
+
 
 # big endian bits map
 _bebm = []
@@ -33,6 +36,13 @@ class Sdu():
         self.data = []
         for i in range(0,length):
             self.data.append(0x55)
+
+    def __iter__(self):
+        for v in self.data:
+            yield v
+
+    def __len__(self):
+        return len(self.data)
 
     def set(self, start, size, value):
         # for big endian only
@@ -51,11 +61,27 @@ class Sdu():
             nBit += 1
             rBit -= 1
 
+    def get(self, start, size):
+        # for big endian only
+        rBit = size-1
+        nBit = _bebm.index(start)
+        rByte = 0
+        value = 0
+        for i in range(size):
+            rBit = _bebm[nBit]
+            rByte = int(rBit/8)
+            if(self.data[rByte]&(1<<(rBit%8)) != 0):
+                value = (value<<1)+1
+            else:
+                value = (value<<1)+0
+            nBit += 1
+            rBit -= 1
+        return value
+
     def __str__(self):
-        cstr = '[ '
+        cstr = ''
         for b in self.data:
-            cstr += '%02X, '%(b)
-        cstr += ']'
+            cstr += '%02X'%(b)
         return cstr
 
 class Signal():
@@ -74,8 +100,9 @@ class Signal():
         return  self.sg[key]
 
 class Message():
-    def __init__(self, msg):
+    def __init__(self, msg, busid):
         self.msg = msg
+        self.busid = busid
         self.sgs = {}
         self.sdu = Sdu(8)
         if('period' in msg):
@@ -87,19 +114,32 @@ class Message():
             sg = sg['sg']
             self.sgs[sg['name']] = Signal(sg)
 
+    def set_period(self, period):
+        self.period = period
+
+    def transmit(self):
+        for sig in self:
+            self.sdu.set(sig['start'], sig['size'], sig.value)
+        ercd = can_write(self.busid, self.msg['id'], self.sdu)
+        if(ercd == False):
+            raise Exception('cansend can%s %03X#%s failed'%(self.busid, self.msg['id'], self.sdu))
+
     def ProcessTX(self):
+        if(self.period <= 0): return
         elapsed = time.time() - self.timer
         if(self.period <= elapsed*1000):
             self.timer = time.time()
-            for sig in self:
-                self.sdu.set(sig['start'], sig['size'], sig.value)
-            print('TX', self.msg['name'], self.sdu)
+            self.transmit()
 
     def ProcessRX(self):
-        pass
+        result,canid,data = can_read(self.busid, self.msg['id'])
+        if(result):
+            self.sdu.data = data
+            for sig in self:
+                sig.value = self.sdu.get(sig['start'], sig['size'])
 
     def Process(self):
-        if(self.msg['node'] == 'AS'):
+        if(self.msg['node'] != 'AS'):
             self.ProcessTX()
         else:
             self.ProcessRX()
@@ -112,16 +152,19 @@ class Message():
             yield sig
 
     def __getitem__(self, key):
-        return  self.sgs[key]
+        return  self.sgs[key].value
+
+    def __setitem__(self, key, value):
+        self.sgs[key].set_value(value)
 
 class Network(threading.Thread):
-    def __init__(self, dbcf):
+    def __init__(self, dbcf, busid=0):
         threading.Thread.__init__(self)
         dbc = self.parseCANDBC(dbcf)
         self.msgs = {}
         for msg in dbc['boList']:
             msg = msg['bo']
-            self.msgs[msg['name']] = Message(msg)
+            self.msgs[msg['name']] = Message(msg, busid)
         self.start()
 
     def stop(self):
@@ -149,7 +192,21 @@ class Network(threading.Thread):
         return ascp.parse(dbc)
 
 if(__name__ == '__main__'):
+    can_open(0, 'socket', 0, 1000000)
     nt = Network(sys.argv[1])
-    time.sleep(5)
+    nt['RxMsgAbsInfo'].set_period(100)
+    nt['RxMsgAbsInfo']['VehicleSpeed'] = 24000
+    nt['RxMsgAbsInfo']['TachoSpeed'] = 8000
+    nt['RxMsgAbsInfo']['Led1Sts'] = 1
+    nt['RxMsgAbsInfo']['Led2Sts'] = 2
+    nt['RxMsgAbsInfo']['Led3Sts'] = 3
+    time.sleep(1)
+    print('year is', nt['TxMsgTime']['SystemTime_year'])
+    print('month is', nt['TxMsgTime']['SystemTime_month'])
+    print('day is', nt['TxMsgTime']['SystemTime_day'])
+    print('hour is', nt['TxMsgTime']['SystemTime_hour'])
+    print('minute is', nt['TxMsgTime']['SystemTime_minute'])
+    print('second is', nt['TxMsgTime']['SystemTime_second'])
+
     nt.stop()
 

@@ -30,10 +30,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "RPmsg.h"
 #include "asdebug.h"
 #ifdef __AS_CAN_BUS__
 #include "lascanlib.h"
+#else
+#include "RPmsg.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define USE_CAN_STATISTICS      STD_ON
@@ -150,6 +151,7 @@ typedef struct {
   Can_Arc_ObjectHOHMapType CanHTHMap[NUM_OF_HTHS];
 } Can_GlobalType;
 
+#ifndef __AS_CAN_BUS__
 struct Can_RPmsgPud_s {
 	Can_RPmsgPduType msg;
 	STAILQ_ENTRY(Can_RPmsgPud_s) pduEntry;
@@ -159,6 +161,7 @@ struct Can_RPmsgPduQueue_s {
 	pthread_mutex_t w_lock;
 	STAILQ_HEAD(,Can_RPmsgPud_s) pduHead;
 };
+#endif
 /* Type for holding information about each controller */
 typedef struct {
   CanIf_ControllerModeType state;

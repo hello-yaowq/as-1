@@ -35,44 +35,11 @@ typedef void (*aslog_t)(char*,char*);
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 #if defined(__WINDOWS__) || defined(__LINUX__)
-static char* __aswho  = "AS";
-static aslog_t __aslog  = NULL;
 static int g_argc=0;
 static char** g_argv = 0;
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-#if defined(__WINDOWS__) || defined(__LINUX__)
-void aslog_init(char* who, aslog_t handler)
-{
-	__aswho = strdup(who);
-	__aslog = handler;
-}
-char* aswho(void)
-{
-	return __aswho;
-}
-void aslog(const char* module,const char* format,...)
-{
-	static char buf[1024*2];
-	static char name[256];
-	va_list args;
-
-	va_start(args , format);
-	sprintf(name,"%s.%s",__aswho,module);
-	vsprintf(buf,format,args);
-	if(NULL != __aslog)
-	{
-		__aslog(name,buf);
-	}
-	else
-	{
-		printf("%-16s :: %s",name,buf);
-	}
-
-	va_end(args);
-}
-#endif
 void asmem(const char* prefix, const void* address,size_t size)
 {
 	uint32 i,j;
@@ -231,7 +198,7 @@ void asPerfLog(asperf_t *m0,asperf_t *m1,char* infor)
 		rv = rv - 1 + (float)(1000000.0+m1->tv_usec-m0->tv_usec)/1000000.0;
 	}
 
-	aslog("Perf","%s :: cost %f s\n",infor,rv);
+	printf("%s :: cost %f s\n",infor,rv);
 }
 
 void asEnvInit(int argc,char* argv[])

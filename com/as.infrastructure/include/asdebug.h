@@ -42,19 +42,6 @@
 #define AS_LOG_TRACE_E AS_LOG_DEFAULT
 
 #ifdef USE_DET
-#if defined(__LINUX__) || defined(__WINDOWS__)
-#define ASLOG(level,fmt,...) 								\
-	do {													\
-		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
-			aslog(#level,fmt,##__VA_ARGS__);				\
-		} 													\
-	}while(0)
-
-#define ASWARNING(fmt,...) 									\
-	do {													\
-			aslog("WARING",fmt,##__VA_ARGS__);				\
-	}while(0)
-#else
 #define ASLOG(level,fmt,...) 								\
 	do {													\
 		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
@@ -68,7 +55,6 @@
 			printf("%-16s:","WARNING");						\
 			printf(fmt,##__VA_ARGS__);						\
 	}while(0)
-#endif
 
 #define ASMEM(level,prefix,p,len)							\
 	if((AS_LOG_##level) >= AS_LOG_DEFAULT) {				\
@@ -155,10 +141,8 @@ typedef struct timeval asperf_t;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef CONFIG_ARCH_VEXPRESS
-extern void  aslog(const char* module,const char* format,...);
 extern void  asmem(const char* prefix,const void* address,size_t size);
 extern char* ashex(unsigned long a);
-extern char* aswho(void);
 extern void  asAssertErrorHook(void);
 #if defined(__LINUX__)
 extern void  asPrintCallStack(void);

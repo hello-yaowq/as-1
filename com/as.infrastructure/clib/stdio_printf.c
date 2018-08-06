@@ -537,7 +537,7 @@ int sprintf (char *__restrict buf, const char *__restrict format, ...)
 
 	return n;
 }
-#endif
+
 /**
  * This function will print a formatted string on system console
  *
@@ -614,7 +614,7 @@ int puts(const char* pstr)
 
 	return len;
 }
-#if !defined(__LINUX__) && !defined(__WINDOWS__)
+
 #ifdef putchar
 #undef putchar
 #endif
@@ -623,4 +623,4 @@ int putchar(int c)
 	__putchar(c);
 	return 1;
 }
-#endif
+#endif /* !defined(__LINUX__) && !defined(__WINDOWS__) */
