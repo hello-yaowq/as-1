@@ -176,7 +176,7 @@
 <IPduList Max="TBD">
 <IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="MsgTime" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgTime" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <GroupSignalList Max="TBD">
-<GroupSignal Comment="*" Endianess="OPAQUE" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="56" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="True">
+<GroupSignal Comment="*" Endianess="OPAQUE" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="56" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="False">
 <SignalList Max="TBD">
 <Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="2013" Name="year" Size="16" StartBit="7" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" InitialValue="12" Name="month" Size="8" StartBit="23" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
