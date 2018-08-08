@@ -29,6 +29,7 @@ from pyas.ascan import *
 from asdcm import *
 from asxcp import *
 from assg import *
+from ascom import *
 
 class AsAction(QAction):
     action=QtCore.pyqtSignal(str)
@@ -41,12 +42,12 @@ class AsAction(QAction):
 
 class Window(QMainWindow):
     UIList= {'Serial':UISerial,'Flashloader':UIFlashloader,'Can':UICan,'Dcm':UIDcm,'Xcp':UIXcp,
-             'Sg':UISg }
+             'Sg':UISg, 'Com':UICom }
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent) 
         self.creGui()
         self.setWindowTitle("AsOne")
-           
+
     def closeEvent(self,Event):
         pass
 
@@ -84,6 +85,7 @@ class Window(QMainWindow):
         self.onAction('Flashloader')
         self.onAction('Dcm')
         self.onAction('Xcp')
+        self.onAction('Com')
 
         self.setMinimumSize(1200, 600)
 

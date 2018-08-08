@@ -88,10 +88,13 @@ class Signal():
     def __init__(self, sg):
         self.sg = sg
         self.mask = (1<<sg['size'])-1
-        self.set_value(0xA55A5AA5)
+        self.set_value(0)
 
     def set_value(self, v):
         self.value = v&self.mask
+
+    def get_value(self):
+        return self.value&self.mask
 
     def __str__(self):
         return str(self.sg)
@@ -114,15 +117,21 @@ class Message():
             sg = sg['sg']
             self.sgs[sg['name']] = Signal(sg)
 
+    def attrib(self, key):
+        return self.msg[key]
+
     def set_period(self, period):
         self.period = period
+
+    def get_period(self):
+        return self.period
 
     def transmit(self):
         for sig in self:
             self.sdu.set(sig['start'], sig['size'], sig.value)
         ercd = can_write(self.busid, self.msg['id'], self.sdu)
         if(ercd == False):
-            raise Exception('cansend can%s %03X#%s failed'%(self.busid, self.msg['id'], self.sdu))
+            print('cansend can%s %03X#%s failed'%(self.busid, self.msg['id'], self.sdu))
 
     def ProcessTX(self):
         if(self.period <= 0): return
@@ -137,6 +146,11 @@ class Message():
             self.sdu.data = data
             for sig in self:
                 sig.value = self.sdu.get(sig['start'], sig['size'])
+
+    def IsTransmit(self):
+        if(self.msg['node'] != 'AS'):
+            return True
+        return False
 
     def Process(self):
         if(self.msg['node'] != 'AS'):
