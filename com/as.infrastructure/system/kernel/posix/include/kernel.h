@@ -96,8 +96,6 @@ FUNC(StatusType,MEM_GetAlarm) 		 GetAlarm	     ( AlarmType AlarmId, TickRefType 
 FUNC(StatusType,MEM_SetRelAlarm) 	 SetRelAlarm     ( AlarmType AlarmId, TickType Increment, TickType Cycle );
 FUNC(StatusType,MEM_SetAbsAlarm) 	 SetAbsAlarm     ( AlarmType AlarmId, TickType Increment, TickType Cycle );
 FUNC(StatusType,MEM_CancelAlarm)     CancelAlarm     ( AlarmType AlarmId );
-FUNC(TickType,MEM_GetOsTick)         GetOsTick       ( void );
-FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick( TickType prevTick );
 FUNC(StatusType,MEM_ACTIVATE_TASK) 	 ActivateTask    ( TaskType TaskId);
 FUNC(StatusType,MEM_ACTIVATE_TASK) 	 TerminateTask   ( void );
 FUNC(StatusType,MEM_Schedule) 		 Schedule        ( void );

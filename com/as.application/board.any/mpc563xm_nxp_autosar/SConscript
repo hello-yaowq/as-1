@@ -153,7 +153,6 @@ if('MPC5634M_MLQB80' in MODULES):
 
 asenv.Append(CPPPATH=['%s/com/as.application/board.posix/common'%(ASROOT)])
 if('ANYOS' in MODULES):
-    asenv.Append(CPPPATH=['%s/com/as.infrastructure/system/kernel'%(ASROOT)])
     asenv.Append(CPPDEFINES=['USE_OS_CONST_ID','_TASK_t=uint16',
                              '_COUNTER_t=uint16','_ALARM_t=uint16',
                              '_RESOURCE_t=uint16','OSDEFAULTAPPMODE=0'])

@@ -180,11 +180,6 @@ AccessType probe_trusted_osap_mem(MemoryStartAddressType sadr, MemoryStartAddres
 	return AP_NoAccess;
 }
 
-TickType GetOsTick( void )
-{
-	return OsTickCounter;
-}
-
 void knl_system_tick_handler(void)
 {
 

@@ -528,8 +528,3 @@ SignalCounter(CounterType cntid)
 	call_errorhook(ercd, OSServiceId_SignalCounter);
 	goto exit;
 }
-
-TickType GetOsTick()
-{
-	return OsTickCounter;
-}

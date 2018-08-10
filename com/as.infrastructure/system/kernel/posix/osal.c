@@ -527,20 +527,6 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 	return E_OK;
 }
 
-FUNC(TickType,MEM_GetOsTick) GetOsTick( void )
-{
-	return OsTickCounter;
-}
-FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
-{
-    if (OsTickCounter >= prevTick) {
-		return(OsTickCounter - prevTick);
-	}
-	else {
-		return(prevTick - OsTickCounter + (TICK_MAX + 1));
-	}
-}
-
 FUNC(void,MEM_OsAlarmInit) OsAlarmInit ( void )
 {
     memset(AlarmTick,0,sizeof(AlarmTick));

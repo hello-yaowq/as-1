@@ -19,7 +19,6 @@
 #include "CanTp_Cbk.h" /** @req CANTP233 */
 #include "Det.h"
 #include "CanIf.h"
-#include "SchM_CanTp.h"
 #include "PduR_CanTp.h"
 #include "Dcm.h"
 #include "Dcm_Cbk.h"
@@ -39,6 +38,12 @@
 #endif
 
 #define CANTP_LL_DL 8
+
+#if defined(USE_ANYOS) && defined(__AS_BOOTLOADER__)
+#ifndef CANTP_MAIN_FUNCTION_PERIOD
+#define CANTP_MAIN_FUNCTION_PERIOD 1
+#endif
+#endif
 
 #ifndef CANTP_MAIN_FUNCTION_PERIOD
 #define CANTP_MAIN_FUNCTION_PERIOD 10

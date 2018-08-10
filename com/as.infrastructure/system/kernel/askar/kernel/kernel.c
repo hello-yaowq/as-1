@@ -215,8 +215,3 @@ void OsTick(void)
 	Os_SleepTick();
 #endif
 }
-
-TickType GetOsTick(void)
-{
-	return OsTickCounter;
-}

@@ -639,8 +639,4 @@ void Irq_Restore(imask_t irq_state)
 {
 	vPortExitCritical();
 }
-TickType_t GetOsTick( void )
-{
-	return OsTickCounter;
-}
 

@@ -90,38 +90,6 @@ KSMState_Type KsmGetState(KsmID_Type Ksm)
 	return state;
 }
 #endif /* KSM_NUM  */
-void StartTimer(TimerType* timer)
-{
-	asAssert(timer!=NULL);
-	*timer = OsTickCounter;
-}
-void StopTimer(TimerType* timer)
-{
-	asAssert(timer!=NULL);
-	*timer = 0;
-}
-TimerType GetTimer(TimerType* timer)
-{
-	TimerType time;
-	asAssert(timer!=NULL);
-
-	if(0 == *timer)
-	{
-		time = 0;
-	}
-	else
-	{
-		if (OsTickCounter >= *timer)
-		{
-			 time = (OsTickCounter - *timer);
-		}
-		else
-		{
-			time = (TICK_MAX - *timer + OsTickCounter);
-		}
-	}
-	return time;
-}
 
 #ifndef __POSIX_OSAL__
 void __weak TaskIdleHook(void)

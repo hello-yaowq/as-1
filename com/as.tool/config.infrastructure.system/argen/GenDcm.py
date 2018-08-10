@@ -609,6 +609,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
     for pro in GLGet('ProtocolList'):
         for con in GLGet(pro,'ConnectionList'):
             for rx in GLGet(con,'RxChannelList'):
+                fp.write('#ifndef PDUR_ID_{0}\n#define PDUR_ID_{0} -1\n#endif\n'.format(GAGet(rx,'PduRef')))
                 cstr += '\t{// %s->%s->%s\n'%(GAGet(pro,'Name'), GAGet(con,'Name'), GAGet(rx,'Name'));
                 cstr += '\t\t.DslMainConnectionParent =  &DslMainConnectionList[%s],\n'%(cid);
                 cstr += '\t\t.DslProtocolAddrType = DCM_PROTOCOL_%s_ADDR_TYPE,\n'%(GAGet(rx,'AddressingType'));
@@ -630,6 +631,7 @@ Dcm_DslBufferRuntimeType rxBufferParams_%s =
         for con in GLGet(pro,'ConnectionList'):
             tx = GLGet(con,'TxChannel')
             if(tx != []):
+                fp.write('#ifndef PDUR_ID_{0}\n#define PDUR_ID_{0} -1\n#endif\n'.format(GAGet(tx,'PduRef')))
                 cstr += '\t{// %s->%s->%s\n'%(GAGet(pro,'Name'), GAGet(con,'Name'), GAGet(tx,'Name'));
                 cstr += '\t\t.DslMainConnectionParent =  &DslMainConnectionList[%s],\n'%(cid);
                 cstr += '\t\t.DcmDslProtocolTxPduId =  PDUR_ID_%s,\n'%(GAGet(tx,'PduRef'));

@@ -9,8 +9,9 @@ MODULES = asenv['MODULES']
 
 objs = []
 
+asenv.Append(CPPPATH=[cwd])
+
 if('ANYOS' not in MODULES):
-    asenv.Append(CPPPATH=[cwd])
     objs += Glob('*.c')
 else:
     # simple OSAL just make BSW of as build pass and then 

@@ -87,6 +87,7 @@ typedef uint32 KsmID_Type;
 typedef TickType TimerType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern TickType OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void StartOS( AppModeType app_mode );
@@ -98,8 +99,49 @@ extern void KsmStop(void);
 extern void KsmExecute(void);
 extern void KsmSetState(KsmID_Type Ksm,KSMState_Type state);
 extern KSMState_Type KsmGetState(KsmID_Type Ksm);
-extern void StartTimer(TimerType* timer);
-extern void StopTimer(TimerType* timer);
-extern TimerType GetTimer(TimerType* timer);
-extern TickType GetOsTick(void);
+
+static inline void StartTimer(TimerType* timer)
+{
+	*timer = OsTickCounter;
+}
+static inline void StopTimer(TimerType* timer)
+{
+	*timer = 0;
+}
+static inline TimerType GetTimer(TimerType* timer)
+{
+	TimerType time;
+
+	if(0 == *timer)
+	{
+		time = 0;
+	}
+	else
+	{
+		if (OsTickCounter >= *timer)
+		{
+			 time = (OsTickCounter - *timer);
+		}
+		else
+		{
+			time = (TICK_MAX - *timer + OsTickCounter);
+		}
+	}
+	return time;
+}
+
+static inline TickType GetOsTick(void)
+{
+	return OsTickCounter;
+}
+
+static inline TickType GetOsElapsedTick  ( TickType prevTick )
+{
+    if (OsTickCounter >= prevTick) {
+		return(OsTickCounter - prevTick);
+	}
+	else {
+		return(prevTick - OsTickCounter + (TICK_MAX + 1));
+	}
+}
 #endif /* _OS_H_ */

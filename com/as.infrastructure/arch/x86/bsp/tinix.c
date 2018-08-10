@@ -184,7 +184,7 @@ FUNC(void,MEM_OsTick)         OsTick       ( void )
 
 	if(0u == OsTickCounter)
 	{
-		OsTickCounter = 0;
+		OsTickCounter = 1;
 	}
 	/* each task one tick slot */
 	p_proc_ready = &proc_table[(p_proc_ready->pid+1)<TASK_NUM?(p_proc_ready->pid+1):0];

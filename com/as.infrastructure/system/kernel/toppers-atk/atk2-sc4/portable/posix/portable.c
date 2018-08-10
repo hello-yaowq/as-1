@@ -99,7 +99,3 @@ AccessType probe_trusted_osap_mem(MemoryStartAddressType sadr, MemoryStartAddres
 	return AP_NoAccess;
 }
 
-TickType GetOsTick( void )
-{
-	return 0;
-}

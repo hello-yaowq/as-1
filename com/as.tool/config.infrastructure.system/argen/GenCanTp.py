@@ -105,6 +105,8 @@ static const CanTp_NTaType CanTpNTaConfig =
 };\n\n""")
     cstr = 'const CanTp_NSduType CanTpNSduConfigList[] =\n{\n'
     for obj in GLGet('RxSduList'):
+        fp.write('#ifndef CANIF_ID_{0}\n#define CANIF_ID_{0} -1\n#endif\n'.format(GAGet(obj,'TxFcPduRef')))
+        fp.write('#ifndef PDUR_ID_{0}\n#define PDUR_ID_{0} -1\n#endif\n'.format(GAGet(obj,'RxPduRef')))
         cstr +="""
     {
         .direction =  ISO15765_RECEIVE,
@@ -140,6 +142,8 @@ static const CanTp_NTaType CanTpNTaConfig =
            GAGet(obj,'ll_dl'))
     Index = -1
     for obj in GLGet('TxSduList'):
+        fp.write('#ifndef CANIF_ID_{0}\n#define CANIF_ID_{0} -1\n#endif\n'.format(GAGet(obj,'TxPduRef')))
+        fp.write('#ifndef PDUR_ID2_{0}\n#define PDUR_ID2_{0} -1\n#endif\n'.format(GAGet(obj,'TxPduRef')))
         Index += 1
         if(Index == len(GLGet('TxSduList'))):
             isLast='CANTP_END_OF_LIST'

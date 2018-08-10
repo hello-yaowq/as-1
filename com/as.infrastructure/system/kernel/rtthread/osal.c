@@ -306,21 +306,6 @@ FUNC(StatusType,MEM_CancelAlarm) CancelAlarm ( AlarmType AlarmId )
 	return ercd;
 }
 
-FUNC(TickType,MEM_GetOsTick) GetOsTick( void )
-{
-	return OsTickCounter;
-}
-
-FUNC(TickType,MEM_GetOsElapsedTick)  GetOsElapsedTick  ( TickType prevTick )
-{
-	if (OsTickCounter >= prevTick) {
-		return(OsTickCounter - prevTick);
-	}
-	else {
-		return(prevTick - OsTickCounter + (TICK_MAX + 1));
-	}
-}
-
 FUNC(StatusType,MEM_Schedule)       Schedule ( void )
 {
 	StatusType ercd = E_OK;

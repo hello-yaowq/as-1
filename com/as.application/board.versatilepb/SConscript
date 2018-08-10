@@ -68,7 +68,18 @@ arch='arm'
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):
     asenv.Append(CPPDEFINES='FL_ERASE_PER_CYCLE=2048')
-    MODULES = ['ECUM','SCHM','MCU','DET',
+    if(os.getenv('MINIBLT') == 'YES'):
+        MODULES = ['MCU','DET',
+           'CAN','CANTP','DCM',
+           'FLASH',
+           'PCI',
+           'CLIB_ASHEAP','CLIB_MISCLIB',
+           'CLIB_STDIO_PRINTF',
+           'ANYOS',
+           'CANTP_MINI','DCM_MINI'
+           ]
+    else:
+        MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
                'DCM','XCP',
                'FLASH',
@@ -112,5 +123,8 @@ if('EEP' in MODULES):
 
 if('FLS' in MODULES):
     objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
+
+if('ANYOS' in MODULES):
+    objs += Glob('%s/com/as.infrastructure/system/kernel/askar/portable/arm/startup.S'%(ASROOT))
 
 Return('objs')

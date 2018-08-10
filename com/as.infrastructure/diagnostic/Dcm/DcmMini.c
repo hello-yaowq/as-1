@@ -35,6 +35,12 @@
 #define DCM_DEFAULT_TXBUF_SIZE 4095
 #endif
 
+#if defined(USE_ANYOS) && defined(__AS_BOOTLOADER__)
+#ifndef DCM_MAIN_FUNCTION_PERIOD
+#define DCM_MAIN_FUNCTION_PERIOD 1
+#endif
+#endif
+
 #ifndef DCM_MAIN_FUNCTION_PERIOD
 #define DCM_MAIN_FUNCTION_PERIOD 10
 #endif
