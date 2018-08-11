@@ -334,3 +334,4 @@ board.any
 SeedToKey.py
 kerneldlls
 parsetab.py
+com/as.infrastructure/boot/mininc

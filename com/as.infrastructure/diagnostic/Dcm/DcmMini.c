@@ -21,7 +21,7 @@
 #include "Os.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_DCM  1
+#define AS_LOG_DCM  0
 #define AS_LOG_DCME 1
 
 #ifndef DCM_INSTANCE_NUM
@@ -1000,15 +1000,15 @@ BufReq_ReturnType Dcm_ProvideRxBuffer(PduIdType Instance, PduLengthType tpSduLen
 
 	if(DCM_BUFFER_IDLE != DCM_RTE.rxPduState)
 	{
-		ret = BUFREQ_BUSY;
+		ret = BUFREQ_E_BUSY;
 	}
 	else if(NULL == pduInfoPtr)
 	{
-		ret = BUFREQ_NOT_OK;
+		ret = BUFREQ_E_NOT_OK;
 	}
 	else if((tpSduLength > DCM_RXSDU_SIZE) || (0 == tpSduLength))
 	{
-		ret = BUFREQ_OVFL;
+		ret = BUFREQ_E_OVFL;
 	}
 	else
 	{
@@ -1028,15 +1028,15 @@ BufReq_ReturnType Dcm_ProvideTxBuffer(PduIdType Instance, PduInfoType **pduInfoP
 
 	if(DCM_BUFFER_FULL != DCM_RTE.txPduState)
 	{
-		ret = BUFREQ_BUSY;
+		ret = BUFREQ_E_BUSY;
 	}
 	else if(NULL == pduInfoPtr)
 	{
-		ret = BUFREQ_NOT_OK;
+		ret = BUFREQ_E_NOT_OK;
 	}
 	else if((length > DCM_TXSDU_SIZE) || (0 == length))
 	{
-		ret = BUFREQ_OVFL;
+		ret = BUFREQ_E_OVFL;
 	}
 	else
 	{

@@ -278,7 +278,7 @@ class cantp():
                 lsize = data[0]&ISO15765_TPCI_DL
                 rPos = 1
                 if(lsize == 0):
-                    lsize == data[1]
+                    lsize = data[1]
                     rPos = 2
                 for i in range(lsize):
                     response.append(data[rPos+i])

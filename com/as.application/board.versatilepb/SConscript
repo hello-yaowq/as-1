@@ -76,6 +76,7 @@ if(asenv['RELEASE']=='asboot'):
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_STDIO_PRINTF',
            'ANYOS',
+           'MINIBLT',
            'CANTP_MINI','DCM_MINI'
            ]
     else:

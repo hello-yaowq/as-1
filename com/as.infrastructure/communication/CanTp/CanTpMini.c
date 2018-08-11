@@ -37,8 +37,6 @@
 #define CANIF_CANTP_TXPDUID_ CANIF_ID_TxDiagP2P
 #endif
 
-#define CANTP_LL_DL 8
-
 #if defined(USE_ANYOS) && defined(__AS_BOOTLOADER__)
 #ifndef CANTP_MAIN_FUNCTION_PERIOD
 #define CANTP_MAIN_FUNCTION_PERIOD 1
@@ -59,16 +57,19 @@
 #define N_Cr_     200
 #define N_STmin_  1
 #define N_BS_     8
+#define CANTP_LL_DL_ CAN_LL_DL
 
 #define CANIF_CANTP_TXPDUID CANTP_RTE.parameter[0]
 #define N_Bs                CANTP_RTE.parameter[1]
 #define N_Cr                CANTP_RTE.parameter[2]
 #define N_STmin             CANTP_RTE.parameter[3]
 #define N_BS                CANTP_RTE.parameter[4]
+#define CANTP_LL_DL         CANTP_RTE.parameter[5]
 
+#define CANTP_PADDING_VALUE 0x55
 
 #define CANTP_INSTANCE_DEFAULT_PARAMETER	\
-	{ CANIF_CANTP_TXPDUID_, N_Bs_, N_Cr_, N_STmin_, N_BS_ }
+	{ CANIF_CANTP_TXPDUID_, N_Bs_, N_Cr_, N_STmin_, N_BS_, CANTP_LL_DL_ }
 
 /* see ISO 15765-2 2004 */
 #define N_PCI_MASK  0x30
@@ -86,8 +87,8 @@
 
 #define N_PCI_SN   0x0F
 
-#define N_SF_MAX_LENGTH   7
-#define N_FF_MAX_LENGTH   6
+#define N_SF_MAX_LENGTH   ((CANTP_LL_DL>8)?(CANTP_LL_DL-1):7)
+#define N_FF_MAX_LENGTH   ((CANTP_LL_DL>8)?(CANTP_LL_DL-6):6)
 
 #define CANTP_RTE canTpRTE[Instance]
 
@@ -144,6 +145,7 @@ static const uint16 canTpInstanceDefaultParameter[] = CANTP_INSTANCE_DEFAULT_PAR
 static void ReceiveSF(uint8 Instance, uint8* Data)
 {
 	uint8 length;
+	uint8 *pData;
 	BufReq_ReturnType ret;
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
 	if(CANTP_RTE.state != CANTP_IDLE)
@@ -153,12 +155,21 @@ static void ReceiveSF(uint8 Instance, uint8* Data)
 	else
 	{
 		length = Data[0]&N_PCI_SF_DL;
+		if(0 == length)
+		{	/* okay, not classic CANTP */
+			length = Data[1];
+			pData = &(Data[2]);
+		}
+		else
+		{
+			pData = &(Data[1]);
+		}
 		ret = Dcm_ProvideRxBuffer(Instance, length, &(CANTP_RTE.pdu));
 		if( (BUFREQ_OK == ret) &&
 			(NULL != CANTP_RTE.pdu) &&
 			(NULL != CANTP_RTE.pdu->SduDataPtr) &&
 			(length <= CANTP_RTE.pdu->SduLength)) {
-			memcpy(CANTP_RTE.pdu->SduDataPtr,&(Data[1]),length);
+			memcpy(CANTP_RTE.pdu->SduDataPtr,pData,length);
 			CANTP_RTE.state = CANTP_BUSY;
 			Dcm_RxIndication(Instance, NTFRSLT_OK);
 		}
@@ -173,6 +184,7 @@ static void ReceiveSF(uint8 Instance, uint8* Data)
 static void ReceiveFF(PduIdType Instance, uint8* Data)
 {
 	PduLengthType length;
+	uint8 *pData;
 	BufReq_ReturnType ret;
 
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
@@ -183,6 +195,15 @@ static void ReceiveFF(PduIdType Instance, uint8* Data)
 	else
 	{
 		length = ((Data[0]&0x0F) << 8) + Data[1];
+		if(0 == length)
+		{	/* okay, not classic CANTP */
+			length = ((uint32)Data[2]<<24) + ((uint32)Data[3]<<16) + ((uint32)Data[4]<<8) + ((uint32)Data[5]);
+			pData = &(Data[6]);
+		}
+		else
+		{
+			pData = &(Data[2]);
+		}
 		ret = Dcm_ProvideRxBuffer(Instance, length, &(CANTP_RTE.pdu));
 		if( (BUFREQ_OK == ret) &&
 			(NULL != CANTP_RTE.pdu) &&
@@ -191,7 +212,7 @@ static void ReceiveFF(PduIdType Instance, uint8* Data)
 			CANTP_RTE.SduLength = length;
 			CANTP_RTE.SduIndex = N_FF_MAX_LENGTH;
 			CANTP_RTE.SN = 1;
-			memcpy(CANTP_RTE.pdu->SduDataPtr,&(Data[2]),N_FF_MAX_LENGTH);
+			memcpy(CANTP_RTE.pdu->SduDataPtr,pData,N_FF_MAX_LENGTH);
 			SendFC(Instance);
 		}
 		else
@@ -282,12 +303,13 @@ static void SendFC(PduIdType Instance)
 	uint8 data[CANTP_LL_DL];
 
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
+	memset(data, CANTP_PADDING_VALUE, CANTP_LL_DL);
 
 	data[0] = N_PCI_FC|N_PCI_CTS;
 	data[1] = N_BS;
 	data[2] = N_STmin;
 	pdu.SduDataPtr = data;
-	pdu.SduLength = 3;
+	pdu.SduLength = CANTP_LL_DL;
 
 	ercd = CanIf_Transmit(CANIF_CANTP_TXPDUID,&pdu);
 	if(E_OK == ercd)
@@ -312,6 +334,7 @@ static void SendCF(PduIdType Instance)
 	uint8 data[CANTP_LL_DL];
 
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
+	memset(data, CANTP_PADDING_VALUE, CANTP_LL_DL);
 
 	if(tpIsAlarmStarted())
 	{
@@ -333,7 +356,7 @@ static void SendCF(PduIdType Instance)
 		data[0] = N_PCI_CF|CANTP_RTE.SN;
 		memcpy(&data[1], CANTP_RTE.pdu->SduDataPtr+CANTP_RTE.SduIndex, doSz);
 		pdu.SduDataPtr = data;
-		pdu.SduLength = doSz+1;
+		pdu.SduLength = CANTP_LL_DL;
 		ercd = CanIf_Transmit(CANIF_CANTP_TXPDUID,&pdu);
 		if(E_OK == ercd)
 		{
@@ -375,12 +398,25 @@ static void SendSF(PduIdType Instance)
 	Std_ReturnType ercd;
 	PduInfoType pdu;
 	uint8 data[CANTP_LL_DL];
+	uint8* pData;
 
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
-	data[0] = N_PCI_SF|CANTP_RTE.SduLength;
-	memcpy(&data[1], CANTP_RTE.pdu->SduDataPtr, CANTP_RTE.SduLength);
+	memset(data, CANTP_PADDING_VALUE, CANTP_LL_DL);
+
+	if(CANTP_LL_DL > 8)
+	{
+		data[0] = N_PCI_SF;
+		data[1] = CANTP_RTE.SduLength;
+		pData = &data[2];
+	}
+	else
+	{
+		data[0] = N_PCI_SF|CANTP_RTE.SduLength;
+		pData = &data[1];
+	}
+	memcpy(pData, CANTP_RTE.pdu->SduDataPtr, CANTP_RTE.SduLength);
 	pdu.SduDataPtr = data;
-	pdu.SduLength = CANTP_RTE.SduLength+1;
+	pdu.SduLength  = CANTP_LL_DL;
 
 	ercd = CanIf_Transmit(CANIF_CANTP_TXPDUID,&pdu);
 	if(E_OK == ercd)
@@ -399,13 +435,29 @@ static void SendFF(PduIdType Instance)
 	Std_ReturnType ercd;
 	PduInfoType pdu;
 	uint8 data[CANTP_LL_DL];
+	uint8* pData;
 	uint8 i;
 
 	ASLOG(CANTP, "[%d]%s\n", Instance, __func__);
+	memset(data, CANTP_PADDING_VALUE, CANTP_LL_DL);
 
-	data[0] = N_PCI_FF|( (CANTP_RTE.SduLength>>8)&0x0F );
-	data[1] = CANTP_RTE.SduLength&0xFF;
-	memcpy(&data[2], CANTP_RTE.pdu->SduDataPtr, N_FF_MAX_LENGTH);
+	if(CANTP_LL_DL > 8)
+	{
+		data[0] = N_PCI_FF;
+		data[1] = 0;
+		data[2] = (CANTP_RTE.SduLength>>24)&0xFF;
+		data[3] = (CANTP_RTE.SduLength>>16)&0xFF;
+		data[4] = (CANTP_RTE.SduLength>>8 )&0xFF;
+		data[5] = (CANTP_RTE.SduLength>>0 )&0xFF;
+		pData = &data[6];
+	}
+	else
+	{
+		data[0] = N_PCI_FF|( (CANTP_RTE.SduLength>>8)&0x0F );
+		data[1] = CANTP_RTE.SduLength&0xFF;
+		pData = &data[2];
+	}
+	memcpy(pData, CANTP_RTE.pdu->SduDataPtr, N_FF_MAX_LENGTH);
 	pdu.SduDataPtr = data;
 	pdu.SduLength = CANTP_LL_DL;
 

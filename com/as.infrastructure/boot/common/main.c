@@ -13,7 +13,9 @@
  * for more details.
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
+#ifdef USE_ECUM
 #include "EcuM.h"
+#endif
 #include "Os.h"
 #ifdef USE_MCU
 #include "Mcu.h"

@@ -14,7 +14,7 @@ if('DCM' in MODULES):
     else:
         objs += Glob('Dcm/*.c')
         SrcRemove(objs, ['DcmMini.c'])
-    asenv.Append(CPPPATH=['%s/Dcm'%(cwd)])
+    asenv.Append(CPPPATH=['%s/Dcm/inc'%(cwd)])
 
 if('DEM' in MODULES):
     objs += Glob('Dem/*.c')

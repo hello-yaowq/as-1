@@ -74,7 +74,7 @@ def GenC():
     global __dir
     fp = open('%s/CanTp_Cfg.c'%(__dir),'w')
     fp.write(GHeader('CanTp'))
-    fp.write('#ifdef USE_CANTP\n')
+    fp.write('#if defined(USE_CANTP) && !defined(USE_CANTP_MINI)\n')
     fp.write("""#include "CanTp.h"
 #if defined(USE_CANIF)
 #include "CanIf.h"

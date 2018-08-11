@@ -96,7 +96,7 @@ def GenH():
 def GenC():
     fp = open('%s/Dcm_LCfg.c'%(__dir),'w')
     fp.write(GHeader('Dcm'))
-    fp.write('#ifdef USE_DCM\n')
+    fp.write('#if defined(USE_DCM) && !defined(USE_DCM_MINI)\n')
     fp.write("""#include "Std_Types.h"
 #include "Dcm.h"
 #include "Dcm_Internal.h"
