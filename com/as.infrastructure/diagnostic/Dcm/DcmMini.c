@@ -1080,7 +1080,7 @@ void Dcm_MainFunction(void)
 				memset(&DCM_RTE, 0, sizeof(DCM_RTE));
 				DCM_RTE.parameter = parameter;
 				DCM_RTE.currentSession = DCM_DEFAULT_SESSION;
-				ASLOG(DCM,"S3Server Timeout!\n");
+				ASLOG(STDOUT,"S3Server Timeout!\n");
 			}
 		}
 	}

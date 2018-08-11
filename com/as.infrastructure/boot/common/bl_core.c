@@ -33,6 +33,10 @@
 #endif
 #define FL_WRITE_PER_CYCLE (4096/FLASH_WRITE_SIZE)
 #define FL_READ_PER_CYCLE  (4096/FLASH_WRITE_SIZE)
+
+#ifndef BL_STAY_TIME_MS
+#define BL_STAY_TIME_MS 50
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
@@ -86,7 +90,7 @@ static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 			{
 				rv = DCM_ERASE_FAILED;
 			}
-			break;
+			/* no break here intentionally */
 		case DCM_PENDING:
 			if(blMemorySize > (FL_ERASE_PER_CYCLE*FLASH_ERASE_SIZE))
 			{
@@ -129,10 +133,10 @@ static Dcm_ReturnEraseMemoryType eraseFlash(Dcm_OpStatusType OpStatus,uint32 Mem
 	return rv;
 }
 
-static Dcm_ReturnEraseMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
+static Dcm_ReturnWriteMemoryType writeFlash(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
 		uint8* MemoryData)
 {
-	Dcm_ReturnEraseMemoryType rv;
+	Dcm_ReturnWriteMemoryType rv;
 	uint32 length;
 	switch(OpStatus)
 	{
@@ -239,7 +243,7 @@ static Dcm_ReturnReadMemoryType readFlash(Dcm_OpStatusType OpStatus,uint32 Memor
 	return rv;
 }
 
-static Dcm_ReturnEraseMemoryType writeFlashDriver(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
+static Dcm_ReturnWriteMemoryType writeFlashDriver(Dcm_OpStatusType OpStatus,uint32 MemoryAddress,uint32 MemorySize,
 		uint8* MemoryData)
 {
 	memcpy((void*)&(FlashDriverRam[MemoryAddress/sizeof(uint32_t)]),(void*)MemoryData,MemorySize);
@@ -294,6 +298,7 @@ Dcm_ReturnWriteMemoryType Dcm_WriteMemory(Dcm_OpStatusType OpStatus,
 	Dcm_ReturnEraseMemoryType rv;
 	ASLOG(BL,"Dcm_WriteMemory(%X,%X,%X,%X)\n",
 			OpStatus,MemoryIdentifier,MemoryAddress,MemorySize);
+	StopTimer(&appTimer);
 	if(DCM_INITIAL == OpStatus)
 	{
 		blMemoryIdentifier = MemoryIdentifier;
@@ -417,7 +422,7 @@ void BL_Init(void)
 
 void BL_MainFunction(void)
 {
-	if(GetTimer(&appTimer) > 50)
+	if(GetTimer(&appTimer) > BL_STAY_TIME_MS)
 	{
 		imask_t imask;
 

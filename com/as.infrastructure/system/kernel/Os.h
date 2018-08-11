@@ -16,8 +16,10 @@
 #define _OS_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#ifndef NO_OSCFG
 #include "Os_Cfg.h"
 #include "ksm_cfg.h"
+#endif
 #ifdef USE_PROTOTHREAD
 #include "contiki.h"
 #endif
@@ -72,6 +74,9 @@
 /* trigger the KSM go to next state */
 #define KGS(Ksm,State)  KsmSetState(KSM_ID_##Ksm,KSM_##Ksm##_##State)
 
+#ifdef NO_OSCFG
+#define OSDEFAULTAPPMODE 0
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #if(KSM_NUM < 0xFF)
 typedef uint8 KsmID_Type;
@@ -79,6 +84,13 @@ typedef uint8 KsmID_Type;
 typedef uint16 KsmID_Type;
 #else
 typedef uint32 KsmID_Type;
+#endif
+
+#ifdef NO_OSCFG
+typedef uint32 TickType;
+typedef uint8 AppModeType;
+typedef uint8 StatusType;
+typedef uint8 KSMState_Type;
 #endif
 /* Kernel Timer.
  * If Tick is 1ms per Tick,

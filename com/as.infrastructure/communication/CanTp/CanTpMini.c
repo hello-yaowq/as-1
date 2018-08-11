@@ -17,12 +17,12 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "CanTp.h" /** @req CANTP219 */
 #include "CanTp_Cbk.h" /** @req CANTP233 */
-#include "Det.h"
 #include "CanIf.h"
-#include "PduR_CanTp.h"
 #include "Dcm.h"
 #include "Dcm_Cbk.h"
+#ifdef USE_CAN
 #include "Can.h"
+#endif
 #include "Os.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -47,6 +47,10 @@
 #define CANTP_MAIN_FUNCTION_PERIOD 10
 #endif
 #define msToCanTpTick(__ms) (((__ms)+CANTP_MAIN_FUNCTION_PERIOD-1)/CANTP_MAIN_FUNCTION_PERIOD)
+
+#ifndef CAN_LL_DL
+#define CAN_LL_DL 8
+#endif
 
 /* Default Configuration */
 #define N_As_     1

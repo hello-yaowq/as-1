@@ -41,7 +41,7 @@
 #define AS_LOG_TRACE_W AS_LOG_DEFAULT
 #define AS_LOG_TRACE_E AS_LOG_DEFAULT
 
-#ifdef USE_DET
+#if defined(USE_DET) || defined(USE_ASLOG)
 #define ASLOG(level,fmt,...) 								\
 	do {													\
 		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
@@ -66,7 +66,7 @@
 #define ASMEM(level,prefix,p,len)
 #endif
 
-#ifdef USE_DET
+#if defined(USE_DET) || defined(USE_ASLOG)
 #define PRINTF(fmt,...) ASLOG(STDOUT,fmt,##__VA_ARGS__)
 #if defined(__WINDOWS__) || defined(__LINUX__)
 #define ASHEX(a)	ashex((unsigned long)(a))
@@ -78,7 +78,7 @@
 #define ASHEX(a)	"hex-null"
 #endif
 
-#ifdef USE_DET
+#if defined(USE_DET) || defined(USE_ASLOG)
 #define asAssert(e)  																					\
 	do {																								\
 		if(!(e))																					\

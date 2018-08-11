@@ -16,8 +16,10 @@
 #define _MINIBLT_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
+#ifdef USE_CAN
 #include "ComStack_Types.h"
 #include "Can.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define DCM_ERASE_OK					((Dcm_ReturnEraseMemoryType)0x00)
 #define DCM_ERASE_PENDING				((Dcm_ReturnEraseMemoryType)0x01)
@@ -73,7 +75,10 @@
 #define NTFRSLT_OK						0x00
 #define NTFRSLT_E_NOT_OK				0x01
 
-
+#ifndef USE_CAN
+#define Can0Hrh 0
+#define Can0Hth 0
+#endif
 #define CANIF_CHL_LS 0
 
 #define CANIF_ID_RxDiagP2P 0
@@ -88,6 +93,36 @@
 #define DCM_USE_SERVICE_TRANSFER_DATA				1
 #define DCM_USE_SERVICE_REQUEST_TRANSFER_EXIT		1
 /* ============================ [ TYPES     ] ====================================================== */
+#ifndef USE_CAN
+typedef uint16 PduIdType;
+typedef uint16 PduLengthType;
+typedef struct {
+	uint8 *SduDataPtr;
+	PduLengthType SduLength;
+} PduInfoType;
+typedef enum {
+	BUFREQ_OK=0,
+	BUFREQ_E_NOT_OK,
+	BUFREQ_E_BUSY,
+	BUFREQ_E_OVFL
+} BufReq_ReturnType;
+typedef uint8 NotifResultType;
+
+typedef uint32 Can_IdType;
+typedef struct Can_PduType_s {
+	Can_IdType	id;
+	PduIdType	swPduHandle;
+	uint8		length;
+	uint8 		*sdu;
+} Can_PduType;
+
+typedef enum {
+	CAN_OK,
+	CAN_NOT_OK,
+	CAN_BUSY
+} Can_ReturnType;
+#endif
+
 typedef uint8 Dcm_ReturnEraseMemoryType;
 typedef uint8 Dcm_ReturnReadMemoryType;
 typedef uint8 Dcm_ReturnWriteMemoryType;
@@ -111,6 +146,9 @@ typedef uint32 Dcm_ParameterType;
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
+#ifndef USE_CAN
+Can_ReturnType Can_Write( uint8 hth, Can_PduType *pduInfo );
+#endif
 void CanIf_TxConfirmation( PduIdType canTxPduId );
 void CanIf_RxIndication( uint16 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8 *CanSduPtr );
 Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId, const PduInfoType *PduInfoPtr);

@@ -44,7 +44,7 @@
 extern void StartOsTick(void);
 /* ============================ [ DATAS     ] ====================================================== */
 #ifdef USE_ANYOS
-TickType				OsTickCounter;
+TickType				OsTickCounter = 1;
 #endif
 
 #ifdef USE_CAN
@@ -62,7 +62,7 @@ void SchM_StartupHook(void)
 
 }
 
-#if !defined(USE_CANIF) && defined(USE_CAN)
+#if !defined(USE_CANIF)
 void CanIf_TxConfirmation( PduIdType canTxPduId )
 {
 	if(CANIF_ID_TxDiagP2P == canTxPduId)
