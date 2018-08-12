@@ -82,7 +82,9 @@
 #define CANIF_CHL_LS 0
 
 #define CANIF_ID_RxDiagP2P 0
+#define CANIF_ID_XCP_RX    1
 #define CANIF_ID_TxDiagP2P 0
+#define CANIF_ID_XCP_TX    1
 
 #define CANTP_ID_RxDiagP2P 0
 #define CANTP_ID_TxDiagP2P 1
@@ -142,8 +144,18 @@ typedef uint64 Dcm_ParameterType;
 typedef uint32 Dcm_ParameterType;
 #endif
 
+typedef enum {
+	XCP_PROTECT_NONE = 0,
+	XCP_PROTECT_CALPAG = 1 << 0,
+	XCP_PROTECT_DAQ = 1 << 2,
+	XCP_PROTECT_STIM = 1 << 3,
+	XCP_PROTECT_PGM = 1 << 4,
+} Xcp_ProtectType;
+
+typedef int Xcp_ConfigType;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
+extern const Xcp_ConfigType XcpConfig;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef USE_CAN
@@ -183,4 +195,9 @@ Dcm_ReturnReadMemoryType Dcm_ReadMemory(Dcm_OpStatusType OpStatus,
 											   uint32 MemoryAddress,
 											   uint32 MemorySize,
 											   uint8* MemoryData);
+
+void Xcp_Init(const Xcp_ConfigType* Xcp_ConfigPtr);
+void Xcp_MainFunction(void);
+void Xcp_CanIfRxIndication(PduIdType    XcpRxPduId, PduInfoType* XcpRxPduPtr);
+void Xcp_CanIfTxConfirmation (PduIdType XcpTxPduId);
 #endif /* _MINIBLT_H_ */

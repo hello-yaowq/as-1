@@ -14,7 +14,7 @@ if(not os.path.exists(lwext4)):
     MKDir(download)
     cmd = 'sed -i "40c static const char *fname = \\"ExtFs.img\\";" lwext4/blockdev/linux/file_dev.c'
     cmd += ' && sed -i "43c #define EXT4_FILEDEV_BSIZE 4096" lwext4/blockdev/linux/file_dev.c'
-    RunCommand('''cd %s && git clone https://github.com/gkostka/lwext4.git &&
+    RunCommand('''cd %s && git clone https://github.com/parai/lwext4.git &&
         sed -i "156c /*fflush(stdout);*/ \\\\\\\\" lwext4/include/ext4_debug.h && %s'''%(download,cmd))
 
 MKSymlink(lwext4,'%s/lwext4'%(cwd))

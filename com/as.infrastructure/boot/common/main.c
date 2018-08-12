@@ -30,6 +30,9 @@
 #ifdef USE_DCM
 #include "Dcm.h"
 #endif
+#ifdef USE_XCP
+#include "Xcp.h"
+#endif
 
 #include "bootloader.h"
 
@@ -65,10 +68,18 @@ void SchM_StartupHook(void)
 #if !defined(USE_CANIF)
 void CanIf_TxConfirmation( PduIdType canTxPduId )
 {
+#ifdef USE_CANTP
 	if(CANIF_ID_TxDiagP2P == canTxPduId)
 	{
 		CanTp_TxConfirmation(CANTP_ID_TxDiagP2P);
 	}
+#endif
+#ifdef USE_CANTP
+	if(CANIF_ID_XCP_TX == canTxPduId)
+	{
+		Xcp_CanIfTxConfirmation(CANIF_ID_XCP_TX);
+	}
+#endif
 }
 void CanIf_RxIndication( uint16 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8 *CanSduPtr )
 {
@@ -76,11 +87,18 @@ void CanIf_RxIndication( uint16 Hrh, Can_IdType CanId, uint8 CanDlc, const uint8
 
 	pdu.SduDataPtr = (uint8*)CanSduPtr;
 	pdu.SduLength = CanDlc;
-
+#ifdef USE_CANTP
 	if(0x731 == CanId)
 	{
 		CanTp_RxIndication(0, &pdu);
 	}
+#endif
+#ifdef USE_XCP
+	if(0x554 == CanId)
+	{
+		Xcp_CanIfRxIndication(0, &pdu);
+	}
+#endif
 }
 
 Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId,
@@ -89,6 +107,7 @@ Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId,
 	Can_PduType canPdu;
 	Can_ReturnType rVal;
 	Std_ReturnType ret = E_OK;
+#ifdef USE_CANTP
 	if(CANIF_ID_TxDiagP2P == CanTxPduId)
 	{
 		canPdu.id = 0x732;
@@ -103,6 +122,23 @@ Std_ReturnType CanIf_Transmit(PduIdType CanTxPduId,
 		}
 	}
 	else
+#endif
+#ifdef USE_CANTP
+	if(CANIF_ID_XCP_TX == CanTxPduId)
+	{
+		canPdu.id = 0x555;
+
+		canPdu.length = PduInfoPtr->SduLength;
+		canPdu.sdu = PduInfoPtr->SduDataPtr;
+		canPdu.swPduHandle = CanTxPduId;
+		rVal = Can_Write(Can0Hth, &canPdu);
+
+		if (rVal == CAN_NOT_OK){
+			ret = E_NOT_OK;
+		}
+	}
+	else
+#endif
 	{
 		ret = E_NOT_OK;
 	}
@@ -147,8 +183,15 @@ void StartOS( AppModeType mode )
 
 		if(preTick != OsTickCounter)
 		{
+			#ifdef USE_CANTP
 			CanTp_MainFunction();
+			#endif
+			#ifdef USE_DCM
 			Dcm_MainFunction();
+			#endif
+			#ifdef USE_XCP
+			Xcp_MainFunction();
+			#endif
 			BL_MainFunction();
 			preTick = OsTickCounter;
 		}
@@ -186,6 +229,10 @@ void EcuM_Init(void)
 
 #ifdef USE_DCM
 	Dcm_Init();
+#endif
+
+#ifdef USE_XCP
+	Xcp_Init(&XcpConfig);
 #endif
 
 	BL_Init();

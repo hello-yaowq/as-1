@@ -98,7 +98,7 @@ def GenC():
     global __dir
     fp = open('%s/Xcp_Cfg.c'%(__dir),'w')
     fp.write(GHeader('XCP'))
-    fp.write('#ifdef USE_XCP\n')
+    fp.write('#if defined(USE_XCP) && !defined(USE_XCP_MINI)\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Xcp.h"\n')
     fp.write('#include "Xcp_Internal.h"\n')

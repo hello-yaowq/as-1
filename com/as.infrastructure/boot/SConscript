@@ -19,7 +19,7 @@ if(asenv['RELEASE']=='asboot'):
         MKDir('%s/mininc'%(cwd))
         for f in ['CanIf_Cbk.h', 'CanIf.h', 'CanTp_Cbk.h',
                   'CanTp.h', 'Dcm.h', 'Dcm_Internal.h',
-                  'Dcm_Cbk.h']:
+                  'Dcm_Cbk.h','Xcp.h']:
             fl = '%s/mininc/%s'%(cwd,f)
             if(not os.path.exists(fl)):
                 fp = open(fl,'w')

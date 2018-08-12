@@ -1052,7 +1052,8 @@ void Dcm_MainFunction(void)
 	const Dcm_ParameterType* parameter;
 	for(Instance=0; Instance<DCM_INSTANCE_NUM; Instance++)
 	{
-		if(DCM_BUFFER_FULL == DCM_RTE.rxPduState)
+		if( (DCM_BUFFER_FULL == DCM_RTE.rxPduState) &&
+			(DCM_BUFFER_IDLE == DCM_RTE.txPduState))
 		{
 			HandleRequest(Instance);
 		}

@@ -63,7 +63,11 @@ if('SOAD' in MODULES):
     asenv.Append(CPPPATH=['%s/SoAd'%(cwd)])
 
 if('XCP' in MODULES):
-    objs += Glob('Xcp/*.c')
+    if('XCP_MINI' in MODULES):
+        objs += Glob('Xcp/XcpMini.c')
+    else:
+        objs += Glob('Xcp/*.c')
+        SrcRemove(objs, ['XcpMini.c'])
     asenv.Append(CPPPATH=['%s/Xcp'%(cwd)])
 
 if('J1939TP' in MODULES):

@@ -45,14 +45,14 @@
 #define ASLOG(level,fmt,...) 								\
 	do {													\
 		if((AS_LOG_##level) >= AS_LOG_DEFAULT) {			\
-			printf("%-16s:",#level);						\
+			printf("%-8s:",#level);						\
 			printf(fmt,##__VA_ARGS__);						\
 		} 													\
 	}while(0)
 
 #define ASWARNING(fmt,...) 									\
 	do {													\
-			printf("%-16s:","WARNING");						\
+			printf("%-8s:","WARNING");						\
 			printf(fmt,##__VA_ARGS__);						\
 	}while(0)
 
