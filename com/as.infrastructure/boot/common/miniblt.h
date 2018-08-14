@@ -200,4 +200,7 @@ void Xcp_Init(const Xcp_ConfigType* Xcp_ConfigPtr);
 void Xcp_MainFunction(void);
 void Xcp_CanIfRxIndication(PduIdType    XcpRxPduId, PduInfoType* XcpRxPduPtr);
 void Xcp_CanIfTxConfirmation (PduIdType XcpTxPduId);
+Std_ReturnType Xcp_FlashErase(uint32 address, uint32 length);
+Std_ReturnType Xcp_FlashWrite(uint32 address, uint8* data, uint32 length);
+Std_ReturnType Xcp_ProgramReset(void* data, int len);
 #endif /* _MINIBLT_H_ */

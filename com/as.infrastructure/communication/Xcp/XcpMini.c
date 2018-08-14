@@ -23,7 +23,7 @@
 #include "CanIf.h"
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
-#define AS_LOG_XCP     1
+#define AS_LOG_XCP     0
 #define AS_LOG_XCPE    1
 
 #ifndef CAN_LL_DL
@@ -132,12 +132,24 @@
 #define XCP_FLAG_SEED_REQUESTED_MASK       (XCP_FLAG_RES_MASK<<8)
 
 #define XCP_FLAG_CONNECTED             0x10000
+#define XCP_FLAG_PGM_STARTED           0x20000
 
 #define RWU16(a) (*(uint16*)(&(a)))
 #define RWU32(a) (*(uint32*)(&(a)))
 
 #define RWS16(a) (*(sint16*)(&(a)))
 #define RWS32(a) (*(sint32*)(&(a)))
+
+
+#define XCP_CHECK(e,msg)							\
+	do {											\
+		if(FALSE == (e)) {							\
+			ASLOG(XCPE, "%s: %s", __func__, msg);	\
+			XcpSendNRC(XCP_ERR_GENERIC);			\
+			return;									\
+		}											\
+	} while(0)
+
 /* ============================ [ TYPES     ] ====================================================== */
 enum {
 	XCP_ON_NONE = 0,
@@ -149,9 +161,17 @@ enum {
 	XCP_BUFFER_IDLE = 0,
 	XCP_BUFFER_FULL,
 };
+
+enum {
+	XCP_MTA_RAM = 0,
+	XCP_MTA_ROM, /* FLASH */
+	XCP_MTA_NONE
+};
+
 typedef struct
 {
 	uint32        flags;
+	uint32        mtaAddr;	/* memory address to be accessed */
 	/* MUST BE 4 byte aligned */
 	uint8         rxBuffer[XCP_MAX_CTO];
 	uint8         txBuffer[XCP_MAX_DTO];
@@ -163,6 +183,8 @@ typedef struct
 	uint8         rxBufferState;
 	uint8         txBufferState;
 	uint8         counter;
+
+	uint8         mtaExt;
 } Xcp_RuntimeType; /* RTE */
 
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -181,6 +203,7 @@ const Xcp_ConfigType XcpConfig;
 static void XcpReset(void)
 {
 	memset(&XCP_RTE, 0 , sizeof(XCP_RTE));
+	XCP_RTE.mtaExt = XCP_MTA_NONE;
 }
 
 
@@ -225,61 +248,49 @@ static void XcpCmdConnect(void)
 	uint8 mode;
 	uint32 endian_mask = 0xdeadbeef;
 
-	if(2 == XCP_RTE.rxLength)
-	{
-		mode = XCP_RTE.rxBuffer[1];
+	XCP_CHECK(2 <= XCP_RTE.rxLength, "invalid message length!\n");
 
-		if(0 == mode)
-		{
-			/* report available resources */
-			XCP_RTE.txBuffer[1] = 0;
-			#ifdef USE_XCP_RES_CALPAG
-			XCP_RTE.txBuffer[1] |= XCP_RES_CALPAG;
-			#endif
+	mode = XCP_RTE.rxBuffer[1];
 
-			#ifdef USE_XCP_RES_PGM
-			XCP_RTE.txBuffer[1] |= XCP_RES_PGM;
-			#endif
+	XCP_CHECK(0 == mode, "invalid mode!\n");
 
-			#ifdef USE_XCP_RES_DAQ
-			XCP_RTE.txBuffer[1] |= XCP_RES_DAQ;
-			#endif
+	/* report available resources */
+	XCP_RTE.txBuffer[1] = 0;
+	#ifdef USE_XCP_RES_CALPAG
+	XCP_RTE.txBuffer[1] |= XCP_RES_CALPAG;
+	#endif
 
-			#ifdef USE_XCP_RES_STIM
-			XCP_RTE.txBuffer[1] |= XCP_RES_STIM;
-			#endif
+	#ifdef USE_XCP_RES_PGM
+	XCP_RTE.txBuffer[1] |= XCP_RES_PGM;
+	#endif
 
-			/* report communication mode info. only byte granularity is supported */
-			XCP_RTE.txBuffer[2] = 0;
-			if(0xde == (*(uint8_t*)&endian_mask))
-			{	/* big endian */
-				XCP_RTE.txBuffer[2] |= 0x01;
-			}
-			/* report max cto data length */
-			XCP_RTE.txBuffer[3] = XCP_MAX_CTO;
-			RWU16(XCP_RTE.txBuffer[4]) = XCP_MAX_DTO;
-			/* report msb of protocol layer version number */
-			XCP_RTE.txBuffer[6] = 1;
+	#ifdef USE_XCP_RES_DAQ
+	XCP_RTE.txBuffer[1] |= XCP_RES_DAQ;
+	#endif
 
-			/* report msb of transport layer version number */
-			XCP_RTE.txBuffer[7] = 1;
-			XcpSendPRC(7);
+	#ifdef USE_XCP_RES_STIM
+	XCP_RTE.txBuffer[1] |= XCP_RES_STIM;
+	#endif
 
-			if(0 == (XCP_RTE.flags&XCP_FLAG_CONNECTED))
-			{
-				XCP_RTE.flags = XCP_FLAG_CONNECTED;
-			}
-		}
-		else
-		{
-			ASLOG(XCPE, "invalid mode!\n");
-			XcpCmdServiceDone();
-		}
+	/* report communication mode info. only byte granularity is supported */
+	XCP_RTE.txBuffer[2] = 0;
+	if(0xde == (*(uint8_t*)&endian_mask))
+	{	/* big endian */
+		XCP_RTE.txBuffer[2] |= 0x01;
 	}
-	else
+	/* report max cto data length */
+	XCP_RTE.txBuffer[3] = XCP_MAX_CTO;
+	RWU16(XCP_RTE.txBuffer[4]) = XCP_MAX_DTO;
+	/* report msb of protocol layer version number */
+	XCP_RTE.txBuffer[6] = 1;
+
+	/* report msb of transport layer version number */
+	XCP_RTE.txBuffer[7] = 1;
+	XcpSendPRC(7);
+
+	if(0 == (XCP_RTE.flags&XCP_FLAG_CONNECTED))
 	{
-		ASLOG(XCPE, "invalid message length!\n");
-		XcpCmdServiceDone();
+		XCP_RTE.flags = XCP_FLAG_CONNECTED;
 	}
 }
 
@@ -288,6 +299,9 @@ static void XcpCmdUnlock(void)
 	uint8 bOk = TRUE;
 	Std_ReturnType ret;
 	uint8 res;
+
+	XCP_CHECK((XCP_RTE.rxBuffer[1]+2) <= XCP_RTE.rxLength, "invalid message length!\n");
+
 #ifdef USE_XCP_RES_PGM
 	if(XCP_RTE.flags&XCP_FLAG_PGM_SEED_REQUESTED)
 	{
@@ -342,6 +356,10 @@ static void XcpCmdGetSeed(void)
 	uint8 res;
 
 	res  = XCP_RTE.rxBuffer[2];
+
+	XCP_CHECK(3 <= XCP_RTE.rxLength, "invalid message length!\n");
+	XCP_CHECK(0 == XCP_RTE.rxBuffer[1], "invalid mode!\n");
+
 #ifdef USE_XCP_RES_PGM
 	if(XCP_RES_PGM == res)
 	{	/* NOTE: seed&key size should be less or equal than XCP_MAX_CTO-2 */
@@ -373,6 +391,209 @@ static void XcpCmdGetSeed(void)
 		XcpSendNRC(XCP_ERR_OUT_OF_RANGE);
 	}
 }
+#ifdef USE_XCP_RES_PGM
+static void XcpCmdProgramStart(void)
+{
+	XCP_CHECK(1 <= XCP_RTE.rxLength, "invalid message length!\n");
+	if(XCP_RTE.flags&XCP_RES_PGM)
+	{
+		/* initialize reserved parameter */
+		XCP_RTE.txBuffer[1] = 0;
+		/* no special communication mode supported during programming */
+		XCP_RTE.txBuffer[2] = 0;
+
+		/* cto packet length stays the same during programming */
+		XCP_RTE.txBuffer[3] = XCP_MAX_CTO;
+
+		/* no block size, st-min time, or queue size supported */
+		XCP_RTE.txBuffer[4] = 0;
+		XCP_RTE.txBuffer[5] = 0;
+		XCP_RTE.txBuffer[6] = 0;
+
+		XCP_RTE.flags |= XCP_FLAG_PGM_STARTED;
+		XcpSendPRC(7);
+	}
+	else
+	{
+		XcpSendNRC(XCP_ERR_ACCESS_LOCKED);
+	}
+}
+
+static void XcpCmdProgramClear(void)
+{
+	uint32 length;
+
+	XCP_CHECK(8 <= XCP_RTE.rxLength, "invalid message length!\n");
+	XCP_CHECK(0 == XCP_RTE.rxBuffer[1], "invalid access mode!\n");
+
+	if(XCP_RTE.flags&XCP_RES_PGM)
+	{
+		if( (XCP_RTE.flags&XCP_FLAG_PGM_STARTED) &&
+			(XCP_MTA_ROM == XCP_RTE.mtaExt) )
+		{
+			length = RWU32(XCP_RTE.rxBuffer[4]);
+
+			if(E_OK == Xcp_FlashErase(XCP_RTE.mtaAddr, length))
+			{
+				XcpSendPRC(0);
+			}
+			else
+			{
+				XcpSendNRC(XCP_ERR_GENERIC);
+			}
+		}
+		else
+		{
+			XcpSendNRC(XCP_ERR_SEQUENCE);
+		}
+	}
+	else
+	{
+		XcpSendNRC(XCP_ERR_ACCESS_LOCKED);
+	}
+}
+
+static void XcpCmdProgramReset(void)
+{
+	uint32 length;
+
+	XCP_CHECK(1 <= XCP_RTE.rxLength, "invalid message length!\n");
+
+	if(XCP_RTE.flags&XCP_RES_PGM)
+	{
+		if(XCP_RTE.flags&XCP_FLAG_PGM_STARTED)
+		{
+			if(E_OK == Xcp_ProgramReset(&XCP_RTE.txBuffer[1], XCP_RTE.rxLength-1))
+			{
+				XcpSendPRC(0);
+			}
+			else
+			{
+				XcpSendNRC(XCP_ERR_GENERIC);
+			}
+		}
+		else
+		{
+			XcpSendNRC(XCP_ERR_SEQUENCE);
+		}
+	}
+	else
+	{
+		XcpSendNRC(XCP_ERR_ACCESS_LOCKED);
+	}
+}
+#endif
+
+
+static void XcpSetMTA(void)
+{
+	uint8 ext;
+	uint32 addr;
+	XCP_CHECK(8 <= XCP_RTE.rxLength, "invalid message length!\n");
+
+	ext = RWU16(XCP_RTE.rxBuffer[3]);
+	addr = RWU32(XCP_RTE.rxBuffer[4]);
+
+	switch(ext)
+	{
+		case XCP_MTA_RAM: /* intended no break */
+		case XCP_MTA_ROM:
+			XCP_RTE.mtaExt = ext;
+			XCP_RTE.mtaAddr = addr;
+			XcpSendPRC(0);
+			break;
+		default:
+			XcpSendNRC(XCP_ERR_OUT_OF_RANGE);
+			break;
+	}
+}
+
+#ifdef USE_XCP_RES_CALPAG
+static void XcpCmdDownload(void)
+{
+	uint8 doSz;
+
+	XCP_CHECK(2 < XCP_RTE.rxLength, "invalid message length!\n");
+	if(XCP_RTE.flags&XCP_RES_CALPAG)
+	{
+		doSz = XCP_RTE.rxBuffer[1];
+		if(doSz <= (XCP_MAX_CTO-2))
+		{
+			switch(XCP_RTE.mtaExt)
+			{
+				case XCP_MTA_RAM:
+					memcpy((void*)XCP_RTE.mtaAddr, &XCP_RTE.rxBuffer[2], doSz);
+					XCP_RTE.mtaAddr += doSz;
+					XcpSendPRC(0);
+					break;
+				case XCP_MTA_ROM:
+					if(E_OK == Xcp_FlashWrite(XCP_RTE.mtaAddr, &XCP_RTE.rxBuffer[2], doSz))
+					{
+						if(0 == memcmp((void*)XCP_RTE.mtaAddr, &XCP_RTE.rxBuffer[2], doSz))
+						{
+							XCP_RTE.mtaAddr += doSz;
+							XcpSendPRC(0);
+						}
+						else
+						{
+							XcpSendNRC(XCP_ERR_GENERIC);
+						}
+					}
+					else
+					{
+						XcpSendNRC(XCP_ERR_SEQUENCE);
+					}
+					break;
+				default:
+					XcpSendNRC(XCP_ERR_SEQUENCE);
+					break;
+			}
+		}
+		else
+		{
+			XcpSendNRC(XCP_ERR_OUT_OF_RANGE);
+		}
+	}
+	else
+	{
+		XcpSendNRC(XCP_ERR_ACCESS_LOCKED);
+	}
+}
+
+static void XcpCmdUpload(void)
+{
+	uint8 doSz;
+
+	XCP_CHECK(2 <= XCP_RTE.rxLength, "invalid message length!\n");
+	if(XCP_RTE.flags&XCP_RES_CALPAG)
+	{
+		doSz = XCP_RTE.rxBuffer[1];
+		if(doSz <= (XCP_MAX_CTO-1))
+		{
+			switch(XCP_RTE.mtaExt)
+			{
+				case XCP_MTA_RAM: /* intended no break */
+				case XCP_MTA_ROM:
+					memcpy(&XCP_RTE.txBuffer[1], (void*)XCP_RTE.mtaAddr, doSz);
+					XCP_RTE.mtaAddr += doSz;
+					XcpSendPRC(doSz);
+					break;
+				default:
+					XcpSendNRC(XCP_ERR_SEQUENCE);
+					break;
+			}
+		}
+		else
+		{
+			XcpSendNRC(XCP_ERR_OUT_OF_RANGE);
+		}
+	}
+	else
+	{
+		XcpSendNRC(XCP_ERR_ACCESS_LOCKED);
+	}
+}
+#endif
 
 static void XcpHandleRequest(void)
 {
@@ -390,6 +611,28 @@ static void XcpHandleRequest(void)
 	{
 		switch(cmd)
 		{
+			#ifdef USE_XCP_RES_PGM
+			case XCP_CMD_PROGRAM_RESET:
+				XcpCmdProgramReset();
+				break;
+			case XCP_CMD_PROGRAM_CLEAR:
+				XcpCmdProgramClear();
+				break;
+			case XCP_CMD_PROGRAM_START:
+				XcpCmdProgramStart();
+				break;
+			#endif
+			#ifdef USE_XCP_RES_CALPAG
+			case XCP_CMD_DOWNLOAD:
+				XcpCmdDownload();
+				break;
+			case XCP_CMD_UPLOAD:
+				XcpCmdUpload();
+				break;
+			#endif
+			case XCP_CMD_SET_MTA:
+				XcpSetMTA();
+				break;
 			case XCP_CMD_UNLOCK:
 				XcpCmdUnlock();
 				break;
@@ -442,7 +685,7 @@ void Xcp_Init(const Xcp_ConfigType* Xcp_ConfigPtr)
 {
 	asAssert( 0 == (((uint32)XCP_RTE.rxBuffer) & 0x03));
 	asAssert( 0 == (((uint32)XCP_RTE.rxBuffer) & 0x03));
-	memset(&XCP_RTE, 0 , sizeof(XCP_RTE));
+	XcpReset();
 }
 
 void Xcp_RxIndication(const uint8* data, PduLengthType len)

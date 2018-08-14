@@ -179,7 +179,6 @@ class AsFlashloader(QThread):
         
         data = []
         left = size
-        ability = self.xcp.get_max_cto()-2
 
         self.infor.emit(' uploading data...')
         ability = self.xcp.get_max_cto()-1
@@ -262,7 +261,7 @@ class AsFlashloader(QThread):
 
     def program_one_section_xcp(self,address,size,data,identifier):
         # TODO: should use command program instead of download
-        return self.download_one_section_xcp(address,size,data,0x00)
+        return self.download_one_section_xcp(address,size,data,identifier)
 
     def download_application_xcp(self):
         app = self.apps

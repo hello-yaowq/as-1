@@ -74,6 +74,8 @@ Std_ReturnType Xcp_FlashErase(uint32 address, uint32 length)
 {
 	Std_ReturnType ercd = E_OK;
 
+	ASLOG(PBL,"Flash erase @%X size %X.\n", address, length);
+
 	if(kFlashOk != pblFlashParam.errorcode)
 	{
 		FLASH_DRIVER_INIT(FLASH_DRIVER_STARTADDRESS,&pblFlashParam);
@@ -89,9 +91,51 @@ Std_ReturnType Xcp_FlashErase(uint32 address, uint32 length)
 			FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&pblFlashParam);
 			if(kFlashOk != pblFlashParam.errorcode)
 			{
+				ASLOG(PBL,"Flash erase failed %d.\n", pblFlashParam.errorcode);
 				ercd = E_NOT_OK;
 			}
 		}
+	}
+	return ercd;
+}
+
+Std_ReturnType Xcp_FlashWrite(uint32 address, uint8* data, uint32 length)
+{
+	Std_ReturnType ercd = E_OK;
+	uint32 doSz;
+	static uint32 page[(FLASH_WRITE_SIZE+3)/4];
+
+	if(kFlashOk == pblFlashParam.errorcode)
+	{
+		pblFlashParam.length  = FLASH_WRITE_SIZE;
+		pblFlashParam.data    = page;
+
+		do {
+			doSz = FLASH_WRITE_SIZE - (address & (FLASH_WRITE_SIZE-1));
+			pblFlashParam.address = address&(~(FLASH_WRITE_SIZE-1));
+			/* who cares, read ROM @ page aligned address to the page buffer
+			 * firstly, though maybe not necessary */
+			memcpy(page, (void*)pblFlashParam.address, FLASH_WRITE_SIZE);
+
+			if(doSz > length)
+			{
+				doSz = length;
+			}
+
+			memcpy(((uint8*)&page) + (address&(FLASH_WRITE_SIZE-1)), data, doSz);
+
+			address += doSz;
+			length  -= doSz;
+			data    += doSz;
+
+			FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&pblFlashParam);
+			if(kFlashOk != pblFlashParam.errorcode)
+			{
+				ASLOG(PBL,"Flash write failed %d.\n", pblFlashParam.errorcode);
+				ercd = E_NOT_OK;
+				break;
+			}
+		} while(length > 0);
 	}
 	return ercd;
 }
