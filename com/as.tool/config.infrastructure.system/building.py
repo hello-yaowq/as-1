@@ -196,6 +196,12 @@ def PrepareBuilding(env):
             default = False,
             help = 'enanle splint for Automotive Software AS')
 
+    AddOption('--memory',
+            dest = 'memory',
+            action = 'store_true',
+            default = False,
+            help = 'show memory usage information')
+
     if(not GetOption('verbose')):
     # override the default verbose command string
         env.Replace(
@@ -883,6 +889,63 @@ def SelectCompilerPPCEabi():
     Env['CXX']  = ppc + '/bin/powerpc-eabi-g++.exe'
     Env['LINK'] = ppc + '/bin/powerpc-eabi-link.exe'
 
+def MemoryUsage(target, objs):
+    try:
+        from elftools.elf.elffile import ELFFile
+    except ModuleNotFoundError:
+        RunCommand('pip install pyelftools')
+        from elftools.elf.elffile import ELFFile
+    def Summary(filename):
+        with open(filename, 'rb') as f:
+            elf = ELFFile(f)
+            summary = { 'obj': os.path.basename(filename)}
+            for sec in elf.iter_sections():
+                ss = sec.name.split('.')
+                if(len(ss) <= 1 ): continue
+                name = ss[1]
+                if(name in summary):
+                    summary[name] += len(sec.data())
+                else:
+                    summary[name] = len(sec.data())
+        return summary
+
+    secs = ['obj']
+    summ = Summary(target)
+    for key,_ in summ.items():
+        if(key not in secs):
+            secs.append(key)
+    objsums = []
+    for obj in objs:
+        obj = str(obj)
+        osumm = Summary(obj)
+        objsums.append(osumm)
+        for key,_ in osumm.items():
+            if(key not in secs):
+                secs.append(key)
+    fp = open('%s.csv'%(target),'w')
+    for sec in secs:
+        fp.write(sec+',')
+    fp.write('\n')
+    for sm in objsums+[summ]:
+        for sec in secs:
+            if(sec in sm):
+                fp.write('%s,'%(sm[sec]))
+            else:
+                fp.write(',')
+        fp.write('\n')
+    fp.close()
+    care = ['obj','text','rodata','data','bss']
+    print('obj                      text     rodata   data     bss')
+    for sm in objsums+[summ]:
+        v = []
+        for sec in care:
+            if(sec in sm):
+                v.append(sm[sec])
+            else:
+                v.append(0)
+        print('%-24s %-8s %-8s %-8s %-8s'%(v[0],v[1],v[2],v[3],v[4]))
+    print('Please check more detailed memory usage information in %s.csv'%(target))
+
 def BuildingSWCS(swcs):
     for swc in swcs:
         swc = str(swc)
@@ -964,9 +1027,11 @@ def Building(target, sobjs, env=None):
 
     BuildOFS(ofs)
     BuildingSWCS(swcs)
-    env.Program(target,objs)
+    env.Program(target, objs)
 
     if(IsPlatformWindows()):target += '.exe'
+    if(GetOption('memory')):
+        MemoryUsage(target, env.Object(objs))
     #env['POSTACTION'].append('readelf -l %s'%(target))
     for action in env['POSTACTION']:
         env.AddPostAction(target, action)
