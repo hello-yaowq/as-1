@@ -719,7 +719,24 @@ class Qemu():
             print('and then do "scons run" again')
             exit(-1)
         else:
-            RunCommand('cd %s/release/ascore && make asqemu'%(ASROOT))
+            fp = open('/tmp/asqemu.mk','w')
+            fp.write('''download = $(prj-dir)/release/download
+
+$(download)/qemu/hw/char/libpyas.a:
+\t(cd $(prj-dir)/release/aslua; make clean; make 81; make 82 forceclib=yes)
+
+$(download)/qemu: $(download)/qemu/hw/char/libpyas.a $(dep-wincap)
+\t@(cd $(download); git clone https://github.com/qemu/qemu.git; \
+        cd qemu; git submodule update --init dtc ; \
+        git checkout 223cd0e13f2e46078d7b573f0b8402bfbee339be; \
+        cd hw/char; $(LNFS) $(prj-dir)/com/as.tool/qemu/hw/char TRUE; \
+        cp $(prj-dir)/release/aslua/out/libpyas.a .; \
+        cat Makefile >> Makefile.objs)
+
+asqemu:$(download)/qemu
+\t@(cd $(download)/qemu; ./configure; make LDFLAGS="-L/usr/lib/x86_64-linux-gnu")\n''')
+            fp.close()
+            RunCommand('make asqemu -f /tmp/asqemu.mk prj-dir=%s'%(ASROOT))
 
 # accroding to http://benno.id.au/blog/2006/08/27/filtergensplint
 # scons --splint -i  >  splint.log 2>&1
@@ -892,7 +909,7 @@ def SelectCompilerPPCEabi():
 def MemoryUsage(target, objs):
     try:
         from elftools.elf.elffile import ELFFile
-    except ModuleNotFoundError:
+    except:
         RunCommand('pip install pyelftools')
         from elftools.elf.elffile import ELFFile
     def Summary(filename):

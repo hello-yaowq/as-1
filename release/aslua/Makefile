@@ -88,7 +88,11 @@ ifeq ($(compiler),arm-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = /usr
 COMPILER_PREFIX = arm-linux-gnueabi-
-include ../make/arm.gcc.mk
+AS  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
+CC  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
+LD  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
+AR  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)ar
+include ../make/posix.mk
 endif
 
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #

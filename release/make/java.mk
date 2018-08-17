@@ -34,7 +34,7 @@ obj-y += $(patsubst %.java,$(obj-dir)/%.class,$(foreach x,$(dir-y),$(notdir $(wi
 
 $(obj-dir):
 	@mkdir -p $(obj-dir)
-	
+
 $(exe-dir):
 	@mkdir -p $(exe-dir)
 
@@ -42,7 +42,7 @@ $(obj-dir)/%.class:%.java
 	@echo
 	@echo "  >> JAVAC $(notdir $<)"
 	$(Q) $(JAVAC) $(jflags-y) $<	
-	
+
 .PHONY:all exe clean
 
 exe: $(obj-dir) $(exe-dir) $(obj-y)
