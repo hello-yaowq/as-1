@@ -372,7 +372,7 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ -I$(INFRASTRUCTURE)/include $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
 	@cp -v $(exe-dir)/socketwin_can_driver.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 endif

@@ -49,10 +49,13 @@ MODULES = ['ECUM','SCHM','MCU',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
-           'AWS','LCD',
+           'LCD',
            'TINYOS',
            'J1939TP',
            ]
+
+if(not IsPlatformWindows()):
+    MODULES.append('AWS')
 
 ARCH='posix'
 arch='posix'

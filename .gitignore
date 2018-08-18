@@ -335,3 +335,5 @@ SeedToKey.py
 kerneldlls
 parsetab.py
 com/as.infrastructure/boot/mininc
+*.csv
+

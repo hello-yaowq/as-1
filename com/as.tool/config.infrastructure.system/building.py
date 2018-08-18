@@ -166,10 +166,11 @@ def PrepareBuilding(env):
         if('MSYS_NT' in str(uname)):
             print('build on %s, default assume 64 bit machine'%(uname.strip()))
             env['msys2'] = True
-            env['pkgconfig'] = 'c:/msys64/mingw64/bin/pkg-config'
-            env['CC'] = 'c:/msys64/mingw64/bin/gcc'
-            env['LINK'] = 'c:/msys64/mingw64/bin/gcc'
-            env['EXTRAPATH'] = 'c:/msys64/mingw64/bin;c:/msys64/usr/bin'
+            mpath = os.path.abspath(os.getenv('MSYS2').replace('"',''))
+            env['pkgconfig'] = '%s/mingw64/bin/pkg-config'%(mpath)
+            env['CC'] = '%s/mingw64/bin/gcc'%(mpath)
+            env['LINK'] = '%s/mingw64/bin/gcc'%(mpath)
+            env['EXTRAPATH'] = '{0}/mingw64/bin;{0}/usr/bin'.format(mpath)
     env['python3'] = 'python3'
     if(IsPlatformWindows()):
         env['python3'] = 'python'
@@ -714,7 +715,7 @@ class Qemu():
     def BuildASQemu(self):
         ASROOT = Env['ASROOT']
         if(IsPlatformWindows()):
-            mpath = os.path.abspath(Env['CONFIGS']['MSYS2_GCC_PATH']+"/../..")
+            mpath = os.getenv('MSYS2')
             RunCommand('%s/msys2_shell.cmd -mingw64 -where %s/com/as.tool/qemu'%(mpath,ASROOT))
             print('please mannuly invoke below comand in the poped up msys2 window:')
             print('\tMINGW_INSTALLS=mingw64 makepkg-mingw -sLf')

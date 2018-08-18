@@ -54,16 +54,14 @@ if('LWIP' in MODULES):
         #objs += Glob('lwip-contrib/ports/win32/pcapif_helper.c')
         asenv.Append(CPPDEFINES='PCAPIF_HANDLE_LINKSTATE=0')
         asenv.Append(CPPDEFINES='USE_PCAPIF')
-        MKSymlink('%s/ports/win32/lwipcfg_msvc.h.example'%(lwip),
-                  '%s/ports/win32/lwipcfg_msvc.h'%(lwip))
     else:
         objs += Glob('lwip/tapif.c')
 
     if(IsPlatformWindows()):
         pcap='%s/WpdPack'%(download)
         if(not os.path.exists(pcap)):
-            RunCommand('''cd %s && curl -O https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip &&
-                unzip WpdPack_4_1_2.zip'''%(download))
+            RunCommand('cd %s && curl -O https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip'%(download))
+            RunCommand('cd %s && unzip WpdPack_4_1_2.zip'%(download))
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
         asenv.Append(CPPPATH=['%s/WpdPack/Include'%(cwd)])
         if(asenv['msys2']):

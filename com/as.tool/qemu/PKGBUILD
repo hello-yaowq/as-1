@@ -34,8 +34,8 @@ noextract=(${_pkgfqn}.tar.xz)
 prepare() {
   asdir=${srcdir}/../../../..
   if ! [[ -d ${srcdir}/${_pkgfqn} ]] ; then
-    xz -d ${srcdir}/${_pkgfqn}.tar.xz
-    tar -xvf ${srcdir}/${_pkgfqn}.tar -C ${srcdir} --skip-old-files
+    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} 2>/dev/null || true
+    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} --skip-old-files
     head -n 11 ${asdir}/com/as.tool/qemu//hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
     echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib /mingw64/lib/ControlCAN.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
   fi

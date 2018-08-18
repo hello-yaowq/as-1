@@ -17,7 +17,7 @@ if(not os.path.exists(jsonc)):
     MKDir(download)
     RunCommand('cd %s && git clone https://github.com/json-c/json-c.git'%(download))
     if(IsPlatformWindows()):
-        RunCommand('cd %s/json-c && cp config.h.win32 config.h && cp json_config.h.win32 json_config.h'%(download))
+        RunCommand('cd %s/json-c && mkdir build && cd build && cmake ../ && cp config.h ../config.h && cp json_config.h ../json_config.h'%(download))
         asenv.Append(CCFLAGS='-D_MSC_VER')
         RunCommand('cd %s/json-c && sed -i "11c #include <windows.h>" json_util.c'%(download))
     else:
