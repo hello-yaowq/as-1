@@ -66,6 +66,11 @@ prepare() {
     cp ${asdir}/release/download/ControlCAN/64/ControlCAN.lib /mingw64/lib -v
   fi
 
+  if ! [[ -f /mingw64/include/sys/queue.h ]] ; then
+    mkdir -p /mingw64/include/sys
+    cp ${asdir}/com/as.infrastructure/include/sys/queue.h /mingw64/include/sys -v
+  fi
+
   cp ${asdir}/com/as.tool/qemu/hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v
 
   cd ${srcdir}/${_pkgfqn}
