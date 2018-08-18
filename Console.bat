@@ -24,7 +24,7 @@ mkdir ConEmu
 cd ConEmu
 wget https://github.com/Maximus5/ConEmu/releases/download/v18.06.26/ConEmuPack.180626.7z
 "C:\Program Files\7-Zip\7z.exe" x ConEmuPack.180626.7z
-cd ..
+cd %ASPATH%
 
 if EXIST %CZ% goto prepareEnv
 cd %ASPATH%\release\download
@@ -32,6 +32,7 @@ wget https://github.com/cbucher/console/releases/download/1.18.3/ConsoleZ.x64.1.
 mkdir ConsoleZ
 cd ConsoleZ
 unzip ..\ConsoleZ.x64.1.18.3.18143.zip
+cd %ASPATH%
 
 :prepareEnv
 set MSYS=winsymlinks:nativestrict

@@ -84,6 +84,9 @@ def AppendPythonPath(lp):
     for l in lp:
         pypath += sep+os.path.abspath(l)
     os.environ['PYTHONPATH'] = pypath
+    if(not IsPlatformWindows()):
+        print('please run command below if you see import error of autosar\n'
+              '\texport PYTHONPATH=$PYTHONPATH%s'%(pypath))
 
 def PrepareEnv(release):
     # loop to search the ASROOT
