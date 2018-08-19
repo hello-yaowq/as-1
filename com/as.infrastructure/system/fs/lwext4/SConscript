@@ -10,7 +10,7 @@ MODULES = asenv['MODULES']
 download = '%s/release/download'%(ASROOT)
 lwext4='%s/lwext4'%(download)
 
-if(os.path.exists(lwext4)):
+if(not os.path.exists(lwext4)):
     MKDir(download)
     cmd = 'sed -i "40c static const char *fname = \\"ExtFs.img\\";" lwext4/blockdev/linux/file_dev.c'
     cmd += ' && sed -i "43c #define EXT4_FILEDEV_BSIZE 4096" lwext4/blockdev/linux/file_dev.c'
