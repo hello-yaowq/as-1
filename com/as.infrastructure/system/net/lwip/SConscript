@@ -8,17 +8,9 @@ ASROOT = asenv['ASROOT']
 MODULES=asenv['MODULES']
 
 download = '%s/release/download'%(ASROOT)
-lwip='%s/lwip'%(download)
-lwipc='%s/lwip-contrib'%(download)
-
-if(not os.path.exists(lwip)):
-    MKDir(download)
-    RunCommand('cd %s && git clone git://git.savannah.nongnu.org/lwip.git && cd lwip && git checkout STABLE-1_4_1'%(download))
-
-if(not os.path.exists(lwipc)):
-    MKDir(download)
-    RunCommand('cd %s && git clone git://git.savannah.nongnu.org/lwip/lwip-contrib.git && cd lwip-contrib && git checkout STABLE-1_4_1'%(download))
-    RunCommand('sed -i "22c #include <ddk/ntddndis.h>" %s/lwip-contrib/ports/win32/pcapif_helper.c'%(download))
+lwip=Package('git://git.savannah.nongnu.org/lwip.git', version='STABLE-1_4_1')
+cmd = 'sed -i "22c #include <ddk/ntddndis.h>" ports/win32/pcapif_helper.c'
+lwipc=Package('git://git.savannah.nongnu.org/lwip/lwip-contrib.git', cmd=cmd, version='STABLE-1_4_1')
 
 MKSymlink('%s/ports/win32/lwipcfg_msvc.h.example'%(lwipc),
           '%s/ports/win32/lwipcfg_msvc.h'%(lwipc))

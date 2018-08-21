@@ -7,14 +7,7 @@ Import('asenv')
 ASROOT = asenv['ASROOT']
 MODULES = asenv['MODULES']
 
-download = '%s/release/download'%(ASROOT)
-newlib='%s/newlib-3.0.0'%(download)
-
-if(not os.path.exists(newlib)):
-    MKDir(download)
-    cmd = 'cd %s && curl -O ftp://sourceware.org/pub/newlib/newlib-3.0.0.tar.gz'%(download)
-    cmd += ' && tar xf newlib-3.0.0.tar.gz'
-    RunCommand(cmd)
+newlib=Package('ftp://sourceware.org/pub/newlib/newlib-3.0.0.tar.gz') +'/newlib-3.0.0' 
 
 MKSymlink(newlib,'%s/newlib'%(cwd))
 

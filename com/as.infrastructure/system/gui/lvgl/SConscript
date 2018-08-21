@@ -8,17 +8,9 @@ ASROOT = asenv['ASROOT']
 MODULES=asenv['MODULES']
 
 download = '%s/release/download'%(ASROOT)
-lvgl='%s/lvgl'%(download)
-lvglex='%s/lv_examples'%(download)
 
-if(not os.path.exists(lvgl)):
-    MKDir(download)
-    RunCommand('''cd %s && git clone https://github.com/littlevgl/lvgl.git && 
-        cd lvgl && git checkout v5.1.1'''%(download))
-
-if(not os.path.exists(lvglex)):
-    MKDir(download)
-    RunCommand('cd %s && git clone https://github.com/littlevgl/lv_examples.git'%(download))
+lvgl = Package('https://github.com/littlevgl/lvgl.git', version = 'v5.1.1')
+lvglex = Package('https://github.com/littlevgl/lv_examples.git')
 
 MKSymlink(lvgl,'%s/lvgl'%(cwd))
 MKSymlink(lvglex,'%s/lv_examples'%(cwd))

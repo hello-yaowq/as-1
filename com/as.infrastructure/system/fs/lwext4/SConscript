@@ -7,16 +7,13 @@ Import('asenv')
 ASROOT = asenv['ASROOT']
 MODULES = asenv['MODULES']
 
-download = '%s/release/download'%(ASROOT)
-lwext4='%s/lwext4'%(download)
 
-if(not os.path.exists(lwext4)):
-    MKDir(download)
-    cmd = 'sed -i "40c static const char *fname = \\"ExtFs.img\\";" lwext4/blockdev/linux/file_dev.c'
-    cmd += ' && sed -i "43c #define EXT4_FILEDEV_BSIZE 4096" lwext4/blockdev/linux/file_dev.c'
-    cmd += ' && sed -i "28c -DWIN32=1 \\\\\\\\" lwext4/Makefile'
-    RunCommand('cd %s && git clone https://github.com/parai/lwext4.git &&'
-        ' sed -i "156c /*fflush(stdout);*/ \\\\\\\\" lwext4/include/ext4_debug.h && %s'%(download,cmd))
+cmd = 'sed -i "40c static const char *fname = \\"ExtFs.img\\";" blockdev/linux/file_dev.c'
+cmd += ' && sed -i "43c #define EXT4_FILEDEV_BSIZE 4096" blockdev/linux/file_dev.c'
+cmd += ' && sed -i "28c -DWIN32=1 \\\\\\\\" Makefile'
+cmd += ' && sed -i "156c /*fflush(stdout);*/ \\\\\\\\" include/ext4_debug.h'
+
+lwext4 = Package('https://github.com/parai/lwext4.git', cmd=cmd)
 
 MKSymlink(lwext4,'%s/lwext4'%(cwd))
 

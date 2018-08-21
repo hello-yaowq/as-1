@@ -3,6 +3,7 @@ import sys
 import shutil
 import string
 import re
+from matplotlib.sankey import DOWN
 try:
     from SCons.Script import *
 except ImportError:
@@ -412,6 +413,66 @@ def CURL(url, tgt=None):
     if(not os.path.exists(tgt)):
         RunCommand('curl %s -o %s'%(url,tgt))
 
+def Package(url, ** parameters):
+    cwd = GetCurrentDir()
+    bsw = os.path.basename(cwd)
+    download = '%s/release/download'%(Env['ASROOT'])
+    MKDir(download)
+    pkgBaseName = os.path.basename(url)
+    if(pkgBaseName.endswith('.zip')):
+        tgt = '%s/%s'%(download, pkgBaseName)
+        CURL(url, tgt)
+        pkgName = pkgBaseName[:-4]
+        pkg = '%s/%s'%(download, pkgName)
+        MKDir(pkg)
+        flag = '%s/.unzip.done'%(pkg)
+        if(not os.path.exists(flag)):
+            RunCommand('cd %s && unzip ../%s'%(pkg, pkgBaseName))
+            MKFile(flag,'url')
+    elif(pkgBaseName.endswith('.tar.gz')):
+        tgt = '%s/%s'%(download, pkgBaseName)
+        CURL(url, tgt)
+        pkgName = pkgBaseName[:-7]
+        pkg = '%s/%s'%(download, pkgName)
+        MKDir(pkg)
+        flag = '%s/.unzip.done'%(pkg)
+        if(not os.path.exists(flag)):
+            RunCommand('cd %s && tar xf ../%s'%(pkg, pkgBaseName))
+            MKFile(flag,'url')
+    elif(pkgBaseName.endswith('.git')):
+        pkgName = pkgBaseName[:-4]
+        pkg = '%s/%s'%(download, pkgName)
+        if(not os.path.exists(pkg)):
+            RunCommand('cd %s && git clone %s'%(download, url))
+        if('version' in parameters):
+            flag = '%s/.%s.version.done'%(pkg,bsw)
+            if(not os.path.exists(flag)):
+                ver = parameters['version']
+                RunCommand('cd %s && git checkout %s'%(pkg, ver))
+                MKFile(flag,ver)
+                # remove all cmd Done flags
+                for cmdF in Glob('%s/.*.cmd.done'%(pkg)):
+                    RMFile(str(cmdF))
+    else:
+        raise('unsupported package process for url %s'%(url))
+    # cmd is generally a series of 'sed' operatiron to do some simple modifications
+    if('cmd' in parameters):
+        flag = '%s/.%s.cmd.done'%(pkg, bsw)
+        cmd = 'cd %s && '%(pkg)
+        cmd += parameters['cmd']
+        if(not os.path.exists(flag)):
+            RunCommand(cmd)
+            MKFile(flag,cmd)
+
+    # post check
+    verList = Glob('%s/.*.version.done'%(pkg))
+    cmdList = Glob('%s/.*.cmd.done'%(pkg))
+    if(len(verList) >=2 or len(cmdList) >=2):
+        print('WARNING: BSW %s : 2 or more BSWs require package %s, '
+              'please make sure version and cmd has no conflicts\n'
+              '\t please check %s/SConscript'%(bsw, pkgBaseName, cwd))
+    return pkg
+
 def MKObject(src, tgt, cmd, rm=True):
     if(GetOption('clean') and rm):
         RMFile(tgt)
@@ -438,8 +499,10 @@ def MKFile(p,c='',m='w'):
 def MKSymlink(src,dst):
     asrc = os.path.abspath(src)
     adst = os.path.abspath(dst)
+
     if(not os.path.exists(dst)):
         if(IsPlatformWindows()):
+            RunSysCmd('rmdir %s'%(adst))
             if((sys.platform == 'msys') and
                (os.getenv('MSYS') == 'winsymlinks:nativestrict')):
                 RunCommand('ln -fs %s %s'%(asrc,adst))
@@ -448,6 +511,7 @@ def MKSymlink(src,dst):
             else:
                 RunCommand('mklink %s %s'%(adst,asrc))
         else:
+            RunSysCmd('rm -f %s'%(adst))
             os.symlink(asrc,adst)
 
 def SrcRemove(src, remove):

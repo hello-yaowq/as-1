@@ -5,7 +5,7 @@ MODULES = asenv['MODULES']
 ASROOT = asenv['ASROOT']
 cwd = GetCurrentDir()
 
-uip='%s/release/download/contiki'%(ASROOT)
+uip=Package('https://github.com/contiki-os/contiki.git', version='release-3-1')
 
 MKDir('%s/core'%(cwd))
 
