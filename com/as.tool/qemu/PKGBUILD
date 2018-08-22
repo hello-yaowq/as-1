@@ -46,16 +46,17 @@ prepare() {
   make 82 forceclib=yes msys=yes -i
   cp ${asdir}/release/aslua/out/libpyas.a /mingw64/lib -v
 
-  if ! [[ -d ${asdir}/release/download/WpdPack ]] ; then
-    cd ${asdir}/release/download/
+  if ! [[ -d ${asdir}/release/download/WpdPack_4_1_2/WpdPack ]] ; then
+    cd ${asdir}/release/download
     wget https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
-    unzip WpdPack_4_1_2.zip
+    mkdir WpdPack_4_1_2
+    unzip WpdPack_4_1_2.zip -d WpdPack_4_1_2
     cd -
   fi
   
   if ! [[ -d /mingw64/include/pcap ]] ; then
-    cp ${asdir}/release/download/WpdPack/Include/* /mingw64/include -rv
-    cp ${asdir}/release/download/WpdPack/Lib/x64/* /mingw64/lib -v
+    cp ${asdir}/release/download/WpdPack_4_1_2/WpdPack/Include/* /mingw64/include -rv
+    cp ${asdir}/release/download/WpdPack_4_1_2/WpdPack/Lib/x64/* /mingw64/lib -v
   fi
   
   if ! [[ -f /mingw64/lib/PCANBasic.lib ]] ; then

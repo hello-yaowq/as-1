@@ -3,7 +3,7 @@ import sys
 import shutil
 import string
 import re
-from matplotlib.sankey import DOWN
+
 try:
     from SCons.Script import *
 except ImportError:
@@ -427,7 +427,10 @@ def Package(url, ** parameters):
         MKDir(pkg)
         flag = '%s/.unzip.done'%(pkg)
         if(not os.path.exists(flag)):
-            RunCommand('cd %s && unzip ../%s'%(pkg, pkgBaseName))
+            try:
+                RunCommand('cd %s && unzip ../%s'%(pkg, pkgBaseName))
+            except Exception as e:
+                print('WARNING:',e)
             MKFile(flag,'url')
     elif(pkgBaseName.endswith('.tar.gz')):
         tgt = '%s/%s'%(download, pkgBaseName)
@@ -454,7 +457,9 @@ def Package(url, ** parameters):
                 for cmdF in Glob('%s/.*.cmd.done'%(pkg)):
                     RMFile(str(cmdF))
     else:
-        raise('unsupported package process for url %s'%(url))
+        pkg = '%s/%s'%(download, url)
+        if(not os.path.isdir(pkg)):
+            raise('unsupported package process for url %s'%(url))
     # cmd is generally a series of 'sed' operatiron to do some simple modifications
     if('cmd' in parameters):
         flag = '%s/.%s.cmd.done'%(pkg, bsw)
@@ -527,13 +532,13 @@ def SrcRemove(src, remove):
                 src.remove(item)
 
 def RunCommand(cmd):
-    import subprocess
     if(GetOption('verbose')):
         print(' >> RunCommand "%s"'%(cmd))
     if(os.name == 'nt'):
         cmd = cmd.replace('&&', '&')
-    if(0 != os.system(cmd)):
-        raise Exception('FAIL of RunCommand "%s"'%(cmd))
+    ret = os.system(cmd)
+    if(0 != ret):
+        raise Exception('FAIL of RunCommand "%s" = %s'%(cmd, ret))
 
 def RunSysCmd(cmd):
     import subprocess

@@ -46,8 +46,7 @@ if('STMO' in MODULES):
     objs += Glob('mcal/Stmo.c')
 
 if('LWIP' in MODULES):
-    download = '%s/release/download'%(ASROOT)
-    lwip='%s/lwip-contrib'%(download)
+    lwip=Package('lwip-contrib')
     if(IsPlatformWindows()):
         asenv.Append(CPPPATH='%s/ports/win32'%(lwip))
         objs += ['%s/ports/win32/pcapif.c'%(lwip)]
@@ -58,10 +57,7 @@ if('LWIP' in MODULES):
         objs += Glob('lwip/tapif.c')
 
     if(IsPlatformWindows()):
-        pcap='%s/WpdPack'%(download)
-        if(not os.path.exists(pcap)):
-            RunCommand('cd %s && curl -O https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip'%(download))
-            RunCommand('cd %s && unzip WpdPack_4_1_2.zip'%(download))
+        pcap=Package('https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip')+'/WpdPack'
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
         asenv.Append(CPPPATH=['%s/WpdPack/Include'%(cwd)])
         if(asenv['msys2']):
@@ -73,7 +69,7 @@ if('LWIP' in MODULES):
             asenv.Append(CPPDEFINES='_MSC_VER')
 
 if('UIP' in MODULES):
-    uip='%s/release/download/contiki'%(ASROOT)
+    uip=Package('contiki')
     asenv.Append(CPPPATH=['%s/cpu/native'%(uip)])
     asenv.Append(LIBS=['iphlpapi'])
     if(IsPlatformWindows()):
