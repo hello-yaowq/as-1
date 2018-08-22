@@ -199,8 +199,6 @@ endif
 ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN_lib/CAN*)
 
 # --------------------------------- [ BUILD ACTIONs ] ------------------------------------------- #
-all: aslua
-
 $(inc-dir)/utility:
 	@mkdir -p $@
 $(inc-dir):
