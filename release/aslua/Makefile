@@ -193,7 +193,13 @@ ldflags-y += -lpthread
 ifeq ($(host), Linux)
 else
 ldflags-y += -lwsock32
+inc-y += -I$(download)/pcan-basic/"PCAN-Basic API"/Include
 endif
+
+ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN_lib/CAN*)
+
+# --------------------------------- [ BUILD ACTIONs ] ------------------------------------------- #
+all: aslua
 
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -237,22 +243,23 @@ else
 	@(cd $(download);${WGET} http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip)
 endif
 
-$(download)/ControlCAN:$(download)/CAN_lib.zip
+$(download)/CAN_lib: $(download)/CAN_lib.zip
 ifeq ($(host),Linux)
 else
-	@(cd $(download);unzip CAN_lib.zip)
+	@mkdir -p $@
+	@(cd $(download);unzip CAN_lib.zip -d CAN_lib)
 endif
 
-aszlg:$(download)/ControlCAN
+aszlg:$(download)/CAN_lib
 ifeq ($(host),Linux)
 else
 	@(echo ">>>> maybe the ControlCAN has been updated,")
 	@(echo ">>>> please manually make things working by make sure")
-	@(echo ">>>> that there is path $(download)/ControlCAN/64/ControlCAN.dll")
+	@(echo ">>>> that there is path $(ZLGCAN)/ControlCAN/64/ControlCAN.dll")
 ifeq ($(msys2),yes)
-	@(cp -fv $(download)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(ZLGCAN)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 else
-	@(cp -fv $(download)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(ZLGCAN)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 endif
 endif
 
@@ -303,10 +310,10 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(msys2),yes)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
 else
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/32 FALSE)
 endif
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
@@ -352,10 +359,10 @@ else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(msys2),yes)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
 else
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/32 FALSE)
 endif
 endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
