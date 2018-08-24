@@ -226,6 +226,8 @@ extern int can_read(unsigned long busid,unsigned long canid,unsigned long* p_can
 extern void luai_canlib_open(void);
 extern void luai_canlib_close(void);
 #endif
+
+extern void Can_SimulatorRunning(void);
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 /**
@@ -608,7 +610,7 @@ void Can_MainFunction_Wakeup( void ) {
 
 
 void Can_MainFunction_Write( void ) {
-    /* NOT SUPPORTED */
+	Can_SimulatorRunning();
 }
 
 void Can_MainFunction_Error( void ) {

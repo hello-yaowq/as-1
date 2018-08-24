@@ -20,16 +20,42 @@
 #include "shell.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
-#define IBUFFER_MAX 512
+#ifndef CAN_STDIO_IBUFFER_SIZE
+#define CAN_STDIO_IBUFFER_SIZE 512
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static uint32_t rpos=0;
 static uint32_t wpos=0;
 static volatile uint32_t isize=0;
-static char     ibuffer[IBUFFER_MAX];
+static char     ibuffer[CAN_STDIO_IBUFFER_SIZE];
 static uint32_t wmissing=0;
 /* ============================ [ LOCALS    ] ====================================================== */
+static boolean is_can_online(void)
+{
+	boolean online = FALSE;
+	Std_ReturnType ercd;
+	CanIf_ChannelGetModeType mode;
+	EcuM_StateType state;
+
+	EcuM_GetState(&state);
+	if(ECUM_STATE_APP_RUN == state)
+	{
+		ercd = CanIf_GetPduMode(CANIF_CHL_LS, &mode);
+
+		if(E_OK == ercd)
+		{
+			if((CANIF_GET_TX_ONLINE == mode) || (CANIF_GET_ONLINE == mode))
+			{
+				online = TRUE;
+			}
+		}
+	}
+
+	return online;
+}
+
 static void flush_can(void)
 {
 	PduInfoType pdu;
@@ -39,29 +65,8 @@ static void flush_can(void)
 	int trpos;
 	Std_ReturnType ercd;
 	imask_t imask;
-	CanIf_ChannelGetModeType mode;
-	EcuM_StateType state;
 
-	EcuM_GetState(&state);
-	if(ECUM_STATE_APP_RUN != state)
-	{
-		return;
-	}
-
-	ercd = CanIf_GetPduMode(CANIF_CHL_LS, &mode);
-
-	if(E_OK == ercd)
-	{
-		if((CANIF_GET_TX_ONLINE == mode) || (CANIF_GET_ONLINE == mode))
-		{
-			/* pass check, possible to send */
-		}
-		else
-		{
-			return;
-		}
-	}
-	else
+	if(FALSE == is_can_online())
 	{
 		return;
 	}
@@ -83,7 +88,7 @@ static void flush_can(void)
 		{
 			data[index] = ibuffer[trpos];
 			trpos ++;
-			if(trpos >= IBUFFER_MAX)
+			if(trpos >= CAN_STDIO_IBUFFER_SIZE)
 			{
 				trpos = 0;
 			}
@@ -106,12 +111,23 @@ void Can_putc(char ch)
 {
 	imask_t imask;
 
-	if(isize < IBUFFER_MAX)
+#ifndef CAN_STDIO_IBUFFER_FULL_IGNORE
+	while((isize >= CAN_STDIO_IBUFFER_SIZE) && is_can_online())
+	{
+		Can_MainFunction_Write();
+#if defined(CANIF_TASK_FIFO_MODE) && (CANIF_TASK_FIFO_MODE == STD_ON)
+		CanIf_MainFunction();
+#endif
+		flush_can();
+	}
+#endif
+
+	if(isize < CAN_STDIO_IBUFFER_SIZE)
 	{
 		Irq_Save(imask);
 		ibuffer[wpos] = ch;
 		wpos ++;
-		if(wpos >= IBUFFER_MAX)
+		if(wpos >= CAN_STDIO_IBUFFER_SIZE)
 		{
 			wpos = 0;
 		}

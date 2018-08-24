@@ -492,7 +492,7 @@ void Can_EnableControllerInterrupts( uint8 controller )
 // Hth - for Flexcan, the hardware message box number... .We don't care
 void Can_Cbk_CheckWakeup( uint8 controller ){(void)controller;}
 
-void Can_MainFunction_Write( void ) {}
+void Can_MainFunction_Write( void ) { can_isr();}
 void Can_MainFunction_Read( void )  { can_isr();}
 void Can_MainFunction_BusOff( void ){}
 void Can_MainFunction_Wakeup( void ){}

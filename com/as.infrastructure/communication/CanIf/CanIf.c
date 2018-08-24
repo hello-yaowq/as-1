@@ -1235,7 +1235,6 @@ uint8 CanIf_Arc_GetChannelDefaultConfIndex(CanIf_Arc_ChannelIdType Channel)
 	return CanIf_Config.Arc_ChannelDefaultConfIndex[Channel];
 }
 
-
 KSM(CANIdle,Init)
 {
 	KGS(CANIdle,Running);
@@ -1258,6 +1257,12 @@ TASK(TaskCanIf)
 	scheduleTxFifo();
 	scheduldRxFifo();
 	OsTerminateTask(TaskCanIf);
+}
+
+void CanIf_MainFunction(void)
+{
+	scheduleTxFifo();
+	scheduldRxFifo();
 }
 #else
 TASK(TaskCanIf)

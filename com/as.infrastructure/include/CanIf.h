@@ -133,4 +133,5 @@ Std_ReturnType CanIf_CheckValidation( EcuM_WakeupSourceType WakeupSource );
 
 uint8 CanIf_Arc_GetChannelDefaultConfIndex(CanIf_Arc_ChannelIdType Channel);
 
+void CanIf_MainFunction(void);
 #endif /*CANIF_H_*/
