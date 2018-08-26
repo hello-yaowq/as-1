@@ -38,6 +38,18 @@
 #define _G_va_list __gnuc_va_list
 #endif
 
+#define STDIO_PUTC(o, c)			\
+	do {							\
+		if(NULL != (o)) {			\
+			(*o) = (c);				\
+			++ (o);					\
+		} else __putchar((c));		\
+	} while(0)
+
+#define STDIO_EXPR(o, e)			\
+	do {							\
+		if(NULL != (o)) { e; };		\
+	} while(0)
 
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -143,8 +155,7 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 		while (size-->0)
 		{
 			if (buf <= end)
-				*buf = ' ';
-			++ buf;
+				STDIO_PUTC(buf, ' ');
 		}
 	}
 
@@ -152,10 +163,9 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 	{
 		if (buf <= end)
 		{
-			*buf = sign;
+			STDIO_PUTC(buf, sign);
 			-- size;
 		}
-		++ buf;
 	}
 
 #ifdef TM_PRINTF_SPECIAL
@@ -164,19 +174,16 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 		if (base==8)
 		{
 			if (buf <= end)
-				*buf = '0';
-			++ buf;
+				STDIO_PUTC(buf, '0');
 		}
 		else if (base == 16)
 		{
 			if (buf <= end)
-				*buf = '0';
-			++ buf;
+				STDIO_PUTC(buf, '0');
 			if (buf <= end)
 			{
-				*buf = type & LARGE? 'X' : 'x';
+				STDIO_PUTC(buf, type & LARGE? 'X' : 'x');
 			}
-			++ buf;
 		}
 	}
 #endif
@@ -187,8 +194,7 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 		while (size-- > 0)
 		{
 			if (buf <= end)
-				*buf = c;
-			++ buf;
+				STDIO_PUTC(buf, c);
 		}
 	}
 
@@ -196,8 +202,7 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 	while (i < precision--)
 	{
 		if (buf <= end)
-			*buf = '0';
-		++ buf;
+			STDIO_PUTC(buf, '0');
 	}
 #endif
 
@@ -205,15 +210,13 @@ static char *print_number(char *buf, char *end, long num, int base, int s, int t
 	while (i-- > 0)
 	{
 		if (buf <= end)
-			*buf = tmp[i];
-		++ buf;
+			STDIO_PUTC(buf, tmp[i]);
 	}
 
 	while (size-- > 0)
 	{
 		if (buf <= end)
-			*buf = ' ';
-		++ buf;
+			STDIO_PUTC(buf, ' ');
 	}
 
 	return buf;
@@ -267,8 +270,7 @@ int vsnprintf (char *__restrict buf, size_t size,
 		if (*fmt != '%')
 		{
 			if (str <= end)
-				*str = *fmt;
-			++ str;
+				STDIO_PUTC(str, *fmt); /* *str = *fmt; */
 			continue;
 		}
 
@@ -347,21 +349,18 @@ int vsnprintf (char *__restrict buf, size_t size,
 			{
 				while (--field_width > 0)
 				{
-					if (str <= end) *str = ' ';
-					++ str;
+					if (str <= end) STDIO_PUTC(str, ' ');
 				}
 			}
 
 			/* get character */
 			c = (unsigned char)va_arg(args, int);
-			if (str <= end) *str = c;
-			++ str;
+			if (str <= end) STDIO_PUTC(str, c);
 
 			/* put width */
 			while (--field_width > 0)
 			{
-				if (str <= end) *str = ' ';
-				++ str;
+				if (str <= end) STDIO_PUTC(str, ' ');
 			}
 			continue;
 
@@ -378,22 +377,19 @@ int vsnprintf (char *__restrict buf, size_t size,
 			{
 				while (len < field_width--)
 				{
-					if (str <= end) *str = ' ';
-					++ str;
+					if (str <= end) STDIO_PUTC(str, ' ');
 				}
 			}
 
 			for (i = 0; i < len; ++i)
 			{
-				if (str <= end) *str = *s;
-				++ str;
+				if (str <= end) STDIO_PUTC(str, *s);
 				++ s;
 			}
 
 			while (len < field_width--)
 			{
-				if (str <= end) *str = ' ';
-				++ str;
+				if (str <= end) STDIO_PUTC(str, ' ');
 			}
 			continue;
 
@@ -415,8 +411,7 @@ int vsnprintf (char *__restrict buf, size_t size,
 			continue;
 
 		case '%':
-			if (str <= end) *str = '%';
-			++ str;
+			if (str <= end) STDIO_PUTC(str, '%');
 			continue;
 
 			/* integer number formats - set up the flags and "break" */
@@ -437,13 +432,11 @@ int vsnprintf (char *__restrict buf, size_t size,
 			break;
 
 		default:
-			if (str <= end) *str = '%';
-			++ str;
+			if (str <= end) STDIO_PUTC(str, '%');
 
 			if (*fmt)
 			{
-				if (str <= end) *str = *fmt;
-				++ str;
+				if (str <= end) STDIO_PUTC(str, *fmt);
 			}
 			else
 			{
@@ -479,8 +472,8 @@ int vsnprintf (char *__restrict buf, size_t size,
 #endif
 	}
 
-	if (str <= end) *str = '\0';
-	else *end = '\0';
+	if (str <= end) STDIO_EXPR(str, *str = '\0');
+	else STDIO_EXPR(str, *end = '\0');
 
 	/* the trailing null byte doesn't count towards the total
 	* ++str;
@@ -547,36 +540,10 @@ int printf (const char *__restrict fmt, ...)
 {
 	va_list args;
 	unsigned long length;
-#ifndef WITH_PUTS	
-	unsigned long i;
-	static 
-#endif
-	char tm_log_buf[TM_PRINTF_BUF_SIZE];
 
 	va_start(args, fmt);
 
-#ifndef WITH_PUTS
-	imask_t imask;
-
-	Irq_Save(imask);
-#endif
-
-	length = vsnprintf(tm_log_buf, sizeof(tm_log_buf), fmt, args);
-
-#ifndef WITH_PUTS
-	for(i=0;i<length;i++)
-	{
-		if('\n' == tm_log_buf[i])
-		{
-			__putchar('\r');
-		}
-		__putchar(tm_log_buf[i]);
-	}
-
-	Irq_Restore(imask);
-#else
-	__puts(tm_log_buf);
-#endif
+	length = vsnprintf(NULL, -1, fmt, args);
 
 	va_end(args);
 
@@ -585,34 +552,7 @@ int printf (const char *__restrict fmt, ...)
 
 int puts(const char* pstr)
 {
-	int len = 0;
-
-#ifndef WITH_PUTS
-
-	imask_t imask;
-
-	Irq_Save(imask);
-
-	while('\0' != pstr[len])
-	{
-		if('\n' == pstr[len])
-		{
-			__putchar('\r');
-		}
-		__putchar(pstr[len]);
-		len ++;
-	}
-
-	__putchar('\r');
-	__putchar('\n');
-
-	Irq_Restore(imask);
-#else
-	len = strlen(pstr);
-	__puts(pstr);
-#endif
-
-	return len;
+	return printf("%s\n",pstr);
 }
 
 #ifdef putchar
