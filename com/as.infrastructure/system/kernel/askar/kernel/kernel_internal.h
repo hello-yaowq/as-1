@@ -267,6 +267,7 @@ typedef struct
 	#ifdef EXTENDED_TASK
 	EventVarType* pEventVar;
 	#endif
+	AppModeType appModeMask;
 	#if (OS_STATUS == EXTENDED)
 	boolean (*CheckAccess)(ResourceType);
 	#endif
@@ -276,7 +277,6 @@ typedef struct
 	#ifdef MULTIPLY_TASK_ACTIVATION
 	uint8 maxActivation;
 	#endif
-	uint8 flag;
 } TaskConstType;
 
 typedef struct TaskVar
@@ -385,7 +385,7 @@ extern const AlarmConstType AlarmConstArray[ALARM_NUM];
 extern TickType OsTickCounter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-extern void Os_TaskInit(void);
+extern void Os_TaskInit(AppModeType appMode);
 extern void Os_ResourceInit(void);
 extern void Os_CounterInit(void);
 extern void Os_AlarmInit(void);

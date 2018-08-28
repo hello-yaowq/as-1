@@ -1025,7 +1025,7 @@ def MemoryUsage(target, objs):
         fp.write('\n')
     fp.close()
     care = ['obj','text','rodata','data','bss']
-    print('obj                      text     rodata   data     bss')
+    print('obj                      text     rodata   data     bss', file=sys.stderr)
     for sm in objsums+[summ]:
         v = []
         for sec in care:

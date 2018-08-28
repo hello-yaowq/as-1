@@ -576,7 +576,7 @@ StatusType GetTaskState ( TaskType TaskID,TaskStateRefType State )
 	return ercd;
 }
 
-void Os_TaskInit(void)
+void Os_TaskInit(AppModeType appMode)
 {
 	TaskType id;
 
@@ -594,7 +594,7 @@ void Os_TaskInit(void)
 		pTaskVar->actCnt = 0;
 		#endif
 
-		if(pTaskConst->flag&TASK_AUTOSTART_MASK)
+		if(pTaskConst->appModeMask&appMode)
 		{
 			(void)ActivateTask(id);
 		}

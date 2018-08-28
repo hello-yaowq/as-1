@@ -323,6 +323,14 @@ def GenC(gendir,os_list):
                 raise Exception('Task<%s>: multiple requesting of task activation allowed for basic tasks'%(GAGet(task,'Name')))
             maxAct = 1
             event = '&%s_EventVar'%(GAGet(task,'Name'))
+        def AST(task):
+            if(GAGet(task,'Autostart').upper() == 'TRUE'):
+                cstr = '(0'
+                for appmode in GLGet(task, 'ApplicationModeList'):
+                    cstr += ' | (%s)'%(GAGet(appmode,'Name'))
+                cstr += ')'
+                return cstr
+            return 0
         fp.write('\t{\n')
         fp.write('\t\t/*.pStack =*/ %s_Stack,\n'%(GAGet(task,'Name')))
         fp.write('\t\t/*.stackSize =*/ sizeof(%s_Stack),\n'%(GAGet(task,'Name')))
@@ -330,6 +338,7 @@ def GenC(gendir,os_list):
         fp.write('\t\t#ifdef EXTENDED_TASK\n')
         fp.write('\t\t/*.pEventVar =*/ %s,\n'%(event))
         fp.write('\t\t#endif\n')
+        fp.write('\t\t/*.appModeMask =*/ %s,\n'%(AST(task)))
         fp.write('\t\t#if (OS_STATUS == EXTENDED)\n')
         fp.write('\t\t/*.CheckAccess =*/ %s_CheckAccess,\n'%(GAGet(task,'Name')))
         fp.write('\t\t#endif\n')
@@ -339,11 +348,6 @@ def GenC(gendir,os_list):
         fp.write('\t\t#ifdef MULTIPLY_TASK_ACTIVATION\n')
         fp.write('\t\t/*.maxActivation =*/ %s,\n'%(maxAct))
         fp.write('\t\t#endif\n')
-        def AST(task):
-            if(GAGet(task,'Autostart').upper() == 'TRUE'):
-                return 'TASK_AUTOSTART_MASK'
-            return 0
-        fp.write('\t\t/*.flag =*/ %s,\n'%(AST(task)))
         fp.write('\t},\n')
     fp.write('};\n\n')
     fp.write('const ResourceConstType ResourceConstArray[RESOURCE_NUM] =\n{\n')

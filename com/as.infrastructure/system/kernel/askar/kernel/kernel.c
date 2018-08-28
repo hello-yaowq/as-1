@@ -174,7 +174,7 @@ void StartOS ( AppModeType Mode )
 
 	Os_MiscInit();
 	Os_PortInit();
-	Os_TaskInit();
+	Os_TaskInit(Mode);
 	Os_ResourceInit();
 #if (COUNTER_NUM > 0)
 	Os_CounterInit();
