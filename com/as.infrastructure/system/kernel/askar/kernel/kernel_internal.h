@@ -332,8 +332,10 @@ typedef struct
 	const char* name;
 	AlarmVarType*     pVar;
 	const CounterConstType* pCounter;
-	void (*Start)(void);
 	void (*Action)(void);
+	AppModeType appModeMask;
+	TickType start;
+	TickType period;
 } AlarmConstType;
 
 typedef struct
@@ -388,7 +390,7 @@ extern TickType OsTickCounter;
 extern void Os_TaskInit(AppModeType appMode);
 extern void Os_ResourceInit(void);
 extern void Os_CounterInit(void);
-extern void Os_AlarmInit(void);
+extern void Os_AlarmInit(AppModeType appMode);
 extern void Os_StartAlarm(AlarmType AlarmID, TickType Start ,TickType Cycle);
 
 extern void Os_PortInit(void);

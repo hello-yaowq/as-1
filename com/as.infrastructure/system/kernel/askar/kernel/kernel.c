@@ -180,7 +180,7 @@ void StartOS ( AppModeType Mode )
 	Os_CounterInit();
 #endif
 #if (ALARM_NUM > 0)
-	Os_AlarmInit();
+	Os_AlarmInit(Mode);
 #endif
 
 	OSStartupHook();

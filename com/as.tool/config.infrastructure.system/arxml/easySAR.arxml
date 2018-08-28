@@ -50,7 +50,7 @@
 			</Event>
 		</EventList>
 		<ApplicationModeList Max="32">
-			<Application 
+			<ApplicationMode 
 				Name="EnumRef=OS.ApplicationModeList PosGUI=0" 
 				Comment="TextArea Default=* PosGUI=1"
 			/>
@@ -77,6 +77,12 @@
 			Application="EnumRef=OS.ApplicationList PosGUI=9"
 			Comment="TextArea Default=* PosGUI=10"
 			>
+			<ApplicationModeList Max="32">
+				<ApplicationMode 
+					Name="EnumRef=OS.ApplicationModeList PosGUI=0" 
+					Comment="TextArea Default=* PosGUI=1"
+				/>
+			</ApplicationModeList>
 			<ApplicationList Max="32">
 				<Application
 					Name="EnumRef=OS.ApplicationList PosGUI=0" 

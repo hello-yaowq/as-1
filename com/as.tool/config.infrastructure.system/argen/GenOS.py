@@ -389,21 +389,25 @@ def GenC(gendir,os_list):
             else:
                 assert(0)
             fp.write('}\n')
-            fp.write('static void %s_Autostart(void)\n{\n'%(GAGet(alarm,'Name')))
-            if(GAGet(alarm,'Autostart').upper() == 'TRUE'):
-                fp.write('\t(void)SetAbsAlarm(ALARM_ID_%s, %s, %s);\n'%(GAGet(alarm,'Name'),GAGet(alarm,'StartTime'),GAGet(alarm,'Period')))
-            else:
-                fp.write('\t/* not autostart */\n')
-            fp.write('}\n')
         fp.write('AlarmVarType AlarmVarArray[ALARM_NUM];\n')
         fp.write('const AlarmConstType AlarmConstArray[ALARM_NUM] =\n{\n')
         for id,alarm in enumerate(alarm_list):
+            def AST(alarm):
+                if(GAGet(alarm,'Autostart').upper() != 'FALSE'):
+                    cstr = '(0'
+                    for appmode in GLGet(alarm, 'ApplicationModeList'):
+                        cstr += ' | (%s)'%(GAGet(appmode,'Name'))
+                    cstr += ')'
+                    return cstr
+                return 0
             fp.write('\t{\n')
             fp.write('\t\t/*.name=*/"%s",\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pVar=*/&AlarmVarArray[ALARM_ID_%s],\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pCounter=*/&CounterConstArray[COUNTER_ID_%s],\n'%(GAGet(alarm,'Counter')))
-            fp.write('\t\t/*.Start=*/%s_Autostart,\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.Action=*/%s_Action,\n'%(GAGet(alarm,'Name')))
+            fp.write('\t\t/*.appModeMask=*/%s,\n'%(AST(alarm)))
+            fp.write('\t\t/*.start=*/%s,\n'%(GAGet(alarm,'StartTime')))
+            fp.write('\t\t/*.period=*/%s,\n'%(GAGet(alarm,'Period')))
             fp.write('\t},\n')
         fp.write('};\n\n')
 

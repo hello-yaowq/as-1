@@ -369,7 +369,7 @@ StatusType CancelAlarm ( AlarmType AlarmID )
 }
 
 
-void Os_AlarmInit(void)
+void Os_AlarmInit(AppModeType appMode)
 {
 	AlarmType id;
 
@@ -382,7 +382,10 @@ void Os_AlarmInit(void)
 
 		OS_STOP_ALARM(&AlarmVarArray[id]);
 
-		AlarmConstArray[id].Start();
+		if(AlarmConstArray[id].appModeMask&appMode)
+		{
+			(void) SetAbsAlarm(id, AlarmConstArray[id].start, AlarmConstArray[id].period);
+		}
 	}
 }
 

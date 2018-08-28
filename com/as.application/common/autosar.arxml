@@ -12,7 +12,7 @@
 <TaskList Max="TBD">
 <Task Activation="1" Application="OsDefaultApp" Autostart="True" Comment="*" Name="SchM_Startup" Priority="7" Schedule="FULL" StackSize="2048">
 <ApplicationModeList Max="TBD">
-<Application Comment="*" Name="OSDEFAULTAPPMODE" />
+<ApplicationMode Comment="*" Name="OSDEFAULTAPPMODE" />
 </ApplicationModeList>
 </Task>
 <Task Activation="1" Application="OsDefaultApp" Autostart="False" Comment="*" Name="SchM_BswService" Priority="8" Schedule="FULL" StackSize="2048" />
