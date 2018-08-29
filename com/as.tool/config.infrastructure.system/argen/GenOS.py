@@ -398,16 +398,17 @@ def GenC(gendir,os_list):
                     for appmode in GLGet(alarm, 'ApplicationModeList'):
                         cstr += ' | (%s)'%(GAGet(appmode,'Name'))
                     cstr += ')'
-                    return cstr
-                return 0
+                    return cstr,GAGet(alarm,'StartTime'),GAGet(alarm,'Period')
+                return 0,0,0
             fp.write('\t{\n')
             fp.write('\t\t/*.name=*/"%s",\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pVar=*/&AlarmVarArray[ALARM_ID_%s],\n'%(GAGet(alarm,'Name')))
             fp.write('\t\t/*.pCounter=*/&CounterConstArray[COUNTER_ID_%s],\n'%(GAGet(alarm,'Counter')))
             fp.write('\t\t/*.Action=*/%s_Action,\n'%(GAGet(alarm,'Name')))
-            fp.write('\t\t/*.appModeMask=*/%s,\n'%(AST(alarm)))
-            fp.write('\t\t/*.start=*/%s,\n'%(GAGet(alarm,'StartTime')))
-            fp.write('\t\t/*.period=*/%s,\n'%(GAGet(alarm,'Period')))
+            appmode,start,period=AST(alarm)
+            fp.write('\t\t/*.appModeMask=*/%s,\n'%(appmode))
+            fp.write('\t\t/*.start=*/%s,\n'%(start))
+            fp.write('\t\t/*.period=*/%s,\n'%(period))
             fp.write('\t},\n')
         fp.write('};\n\n')
 
