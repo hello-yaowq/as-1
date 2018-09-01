@@ -7,9 +7,18 @@ default:all
 
 $(CURDIR)/minix:
 	@(git clone https://github.com/Stichting-MINIX-Research-Foundation/minix.git)
-	@(sudo cp -v $(CURDIR)/minix/etc/mk.conf /etc)
+	@(cp -v $(CURDIR)/minix/etc/mk.conf /etc)
 
 all:$(CURDIR)/minix
-	@(cd minix && export DESTDIR=$(CURDIR)/out-$(ARCH) && ./build.sh -m$(ARCH) -E -O $(CURDIR)/build-$(ARCH) tools && \
-		./build.sh -m$(ARCH) -O $(CURDIR)/build-${ARCH} -U distribution)
+ifeq ($(ARCH), i386)
+	@(cd minix && bash ./releasetools/x86_hdimage.sh)
+endif
+ifeq ($(ARCH), arm)
+	@(cd minix && bash ./releasetools/arm_sdimage.sh)
+endif
 
+run:
+ifeq ($(ARCH), i386)
+	echo telnet 127.0.0.1 1103
+	qemu-system-i386 -m 256 -hda minix/minix_x86.img -serial tcp:127.0.0.1:1103,server
+endif

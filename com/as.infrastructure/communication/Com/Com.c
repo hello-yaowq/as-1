@@ -233,7 +233,7 @@ void Com_Init(const Com_ConfigType *config ) {
 	//lint --e(928)	PC-Lint exception Misra 11.4, Must be like this. /tojo
 	uint8 endiannessByte = *(const uint8 *)&endianness_test;
 
-#if !defined(USE_SHELL_SYMTAB)
+#if !defined(USE_SHELL_SYMTAB) && defined(USE_SHELL)
 	SHELL_AddCmd(&cmdComLsSg);
 	SHELL_AddCmd(&cmdComWrSg);
 #endif

@@ -78,7 +78,7 @@ if(not os.path.exists('%s/release/download/rt-thread'%(asenv['ASROOT']))):
 MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
 
 asenv.Append(CPPPATH=['%s/menuconfig'%(cwd)])
-asenv.Append(CPPPATH=['%s/../small'%(cwd)])
+asenv.Append(CPPPATH=['%s/../tinyos'%(cwd)])
 asenv.Append(CPPPATH=['%s/components/drivers/include'%(rtroot)])
 asenv.Append(CPPDEFINES=['USE_OSAL'])
 asenv.Append(CPPDEFINES=['USE_STDRT'])
