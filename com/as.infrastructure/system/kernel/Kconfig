@@ -21,6 +21,9 @@ config DEFAULT_TOPPERS_OSEK
 config DEFAULT_FREERTOS
 	bool
 
+config DEFAULT_MINIX
+	bool
+
 choice
 	prompt "RTOS"
 	default ASKAR if DEFAULT_ASKAR
@@ -30,6 +33,7 @@ choice
 	default TRAMPOLINE if DEFAULT_TRAMPOLINE
 	default TOPPERS_OSEK if DEFAULT_TOPPERS_OSEK
 	default FREERTOS if DEFAULT_FREERTOS
+	default MINIX if DEFAULT_MINIX
 
 config ASKAR
 	bool "askar:Automotive oSeK AutosaR/pthreads RTOS"
@@ -51,6 +55,9 @@ config TOPPERS_OSEK
 
 config FREERTOS
 	bool "freertos"
+
+config MINIX
+	bool "minix 3.0: internal study purpose"
 
 config ANYOS
 	bool "any other 3rd party OS under board.any"

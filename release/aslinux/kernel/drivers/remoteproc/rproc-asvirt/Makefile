@@ -36,3 +36,5 @@ dep:
 
 
 obj-y += RPmsg.o RPmsg_Cfg.o Rproc_Cfg.o VirtQ.o VirtQ_Cfg.o Ipc_Cfg.o Ipc.o
+
+CFLAGS += -DUSE_LINUX

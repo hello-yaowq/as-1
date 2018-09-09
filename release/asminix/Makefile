@@ -1,5 +1,6 @@
 # Makefile for mini3 study
 # http://wiki.minix3.org/doku.php?id=developersguide:crosscompiling
+# http://www.minix3.org/docs/Implementing.MINIX.On.The.Single.Chip.Cloud.Computer.pdf
 
 ARCH ?= i386
 
@@ -17,6 +18,7 @@ ifeq ($(ARCH), arm)
 	@(cd minix && bash ./releasetools/arm_sdimage.sh)
 endif
 
+# modify minix boot menu in the releasetools/*image.sh, change the "default" one to the one with console=tty00
 run:
 ifeq ($(ARCH), i386)
 	echo telnet 127.0.0.1 1103

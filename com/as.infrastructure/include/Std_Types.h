@@ -15,7 +15,7 @@
 #ifndef STD_TYPES_H
 #define STD_TYPES_H
 /* ============================ [ INCLUDES  ] ====================================================== */
-#ifdef CONFIG_ARCH_VEXPRESS
+#if defined(USE_LINUX)
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
@@ -143,7 +143,7 @@
 #define strcmp rt_strcmp
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
-#ifdef CONFIG_ARCH_VEXPRESS
+#if defined(USE_LINUX)
 /* Exact integral types.  */
 
 /* Signed.  */
@@ -163,7 +163,7 @@ typedef unsigned long long int	uint64_t;
 
 /* Small types.  */
 #endif
-#if defined(CONFIG_ARCH_VEXPRESS) || defined(USE_FAST_LEAST_TYPE_DEF)
+#if defined(USE_FAST_LEAST_TYPE_DEF)
 /* Signed.  */
 typedef signed char		int_least8_t;
 typedef short int		int_least16_t;

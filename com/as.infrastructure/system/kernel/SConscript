@@ -33,6 +33,8 @@ elif('TOPPERS_OSEK' in MODULES):
     objs += SConscript('toppers_osek/SConscript')
 elif('FREERTOS' in MODULES):
     objs += SConscript('freertos/SConscript')
+elif('MINIX' in MODULES):
+    objs += SConscript('minix/SConscript')
 elif('ANYOS' in MODULES):
     xcc.SetDefaultRTOS('anyos')
 else:
