@@ -18,7 +18,7 @@
 #include "Mcu.h"
 #include "Os.h"
 #include "asdebug.h"
-#ifdef __RTTHREAD_OS__
+#ifdef USE_STDRT
 #include <rtthread.h>
 #include <rthw.h>
 #endif
@@ -30,13 +30,14 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void serial_putc(const char c);
+extern void rt_console_putc(int c);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
 {
 	(void)ch;
-#ifdef __RTTHREAD_OS__
+#ifdef USE_STDRT
 	rt_console_putc(ch);
 #else
 	serial_putc(ch);
@@ -98,7 +99,7 @@ void tpl_shutdown(void)
 {
 	while(1);
 }
-#ifdef __RTTHREAD_OS__
+#ifdef USE_STDRT
 void rt_low_level_init(void)
 {
 }
@@ -143,36 +144,19 @@ void Irq_Disable(void)
 	disable_int();
 }
 
-#ifdef __RTTHREAD_OS__
-extern unsigned char __bss_start[];
-extern unsigned char __bss_end[];
-extern void main(void);
-extern void rt_hw_console_init(void);
 
-void rt_hw_clear_bss(void)
+#ifdef USE_STDRT
+#ifdef RT_USING_DFS
+#include <time.h>
+time_t mktime (struct tm *tim_p)
 {
-    unsigned char *dst;
-    dst = __bss_start;
-    while (dst < __bss_end)
-        *dst++ = 0;
+	return 0;
 }
-
-#define INTTIMER0 0
-extern void tpl_call_counter_tick(void);
-void rtthread_startup(void)
+struct tm * localtime(const time_t *timer)
 {
-    rt_hw_clear_bss();
+	static struct tm tm0 = {0,};
 
-    rt_hw_interrupt_init();
-
-    rt_hw_console_init();
-    rt_console_set_device("console");
-
-    rt_hw_board_init();
-	rt_hw_interrupt_install(INTTIMER0, tpl_call_counter_tick, RT_NULL, "tick");
-    rt_show_version();
-
-	main();
+	return &tm0;
 }
-#endif /* __RTTHREAD_OS__ */
-
+#endif
+#endif

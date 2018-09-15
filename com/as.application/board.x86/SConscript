@@ -22,6 +22,7 @@ if(not IsPlatformWindows()):
 MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_STDIO_PRINTF','CLIB_NEWLIB',
+           'SHELL','CLIB_STRTOK_R',
            'ASKAR',
            'FATFS','FATFS_DRV','PCI',
            ]
@@ -52,5 +53,8 @@ if('EEP' in MODULES):
 
 if('FLS' in MODULES):
     objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
+
+if('RTTHREAD' in MODULES):
+    asenv.Append(CPPDEFINES=['RT_HEAP_SIZE=0x800000'])
 
 Return('objs')

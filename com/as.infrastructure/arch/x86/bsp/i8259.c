@@ -8,7 +8,9 @@
 #include "Std_Types.h"
 #include "mmu.h"
 #include "Os.h"
-
+#ifdef USE_STDRT
+#include "rthw.h"
+#endif
 /* 8259A interrupt controller ports. */
 #define	INT_M_CTL	0x20	/* I/O port for interrupt controller         <Master> */
 #define	INT_M_CTLMASK	0x21	/* setting bits in this port disables ints   <Master> */
@@ -91,6 +93,12 @@ void serial_enable_rx(void)
 	put_irq_handler(RS232_IRQ, (t_pf_irq_handler)serial_isr);
 	enable_irq(RS232_IRQ);
 }
+#ifdef USE_STDRT
+static void rt_timer_handler(int vector, void* param)
+{
+	rt_tick_increase();
+}
+#endif
 
 void init_clock(void)
 {
@@ -98,11 +106,21 @@ void init_clock(void)
 	out_byte(TIMER_MODE, RATE_GENERATOR);
 	out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
 	out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
-
+#ifndef USE_STDRT
 	put_irq_handler(CLOCK_IRQ, (t_pf_irq_handler)Os_PortSysTick);	/* 设定时钟中断处理程序 */
 	enable_irq(CLOCK_IRQ);				/* 让8259A可以接收时钟中断 */
 
 	serial_enable_rx();
+#else
+	/* install interrupt handler */
+	rt_hw_interrupt_install(CLOCK_IRQ, rt_timer_handler, RT_NULL, "tick");
+	rt_hw_interrupt_umask(CLOCK_IRQ);
+#endif
+}
+
+void rt_hw_timer_init(void)
+{
+	init_clock();
 }
 
 

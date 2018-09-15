@@ -66,7 +66,7 @@ enum{
 
 #define MAX_ADDR_LEN 6
 /* ============================ [ TYPES     ] ====================================================== */
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 struct tap_netif
 {
 	/* inherit from ethernet device */
@@ -77,7 +77,7 @@ struct tap_netif
 };
 #endif
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 extern void rt_thread_exit(void);
 #endif
 #ifdef USE_LWIP
@@ -88,12 +88,12 @@ err_t low_level_output(struct netif *netif, struct pbuf *p);
 static pci_dev *pdev = NULL;
 static void* __iobase= NULL;
 static char pkbuf[1514];
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 static struct tap_netif tap_netif_device;
 static struct rt_semaphore sem_lock;
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 static struct netif* sys_get_netif(void)
 {
 	return tap_netif_device.parent.netif;
@@ -149,7 +149,7 @@ void Eth_Isr(void)
 #else
 void __weak Eth_Isr(void) {}
 #endif /* USE_LWIP */
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 static void tap_asnet_thread_entry(void* param)
 {
 	struct eth_device* eth;
@@ -509,7 +509,7 @@ err_t tapif_init(struct netif *netif)
 }
 #endif
 
-#ifdef USE_STDRT
+#if defined(USE_STDRT) && defined(RT_USING_LWIP)
 void tap_netif_hw_init(void)
 {
 	rt_sem_init(&sem_lock, "eth_lock", 1, RT_IPC_FLAG_FIFO);

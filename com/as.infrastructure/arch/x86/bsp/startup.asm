@@ -17,7 +17,7 @@
 
 		;;  导入函数
 		extern	cstart
-		extern	main
+		extern	kmain
 
 		;;  导入全局变量
 		extern	gdt_ptr
@@ -106,5 +106,5 @@ csinit:							; “这个跳转指令强制使用刚刚初始化的结构”—�
 	mov	ax, SELECTOR_TSS
 	ltr	ax
 
-	jmp	main
+	jmp	kmain
 

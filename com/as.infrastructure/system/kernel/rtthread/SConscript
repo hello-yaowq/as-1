@@ -12,6 +12,9 @@ class RTCONFIG():
         if(env['BOARD']=='versatilepb'):
             self.ARCH='arm'
             self.CPU='arm926'
+        elif(env['BOARD']=='x86'):
+            self.ARCH='ia32'
+            self.CPU=''
         else:
             assert(0)
         self.CROSS_TOOL='gcc'
@@ -53,7 +56,7 @@ class RTCONFIG():
         PatchedPreProcessor.stop_handling_includes = stop_handling_includes
         # parse rtconfig.h to get used component
         PreProcessor = PatchedPreProcessor()
-        f = open('%s/menuconfig/rtconfig.h'%(cwd), 'r')
+        f = open('%s/menuconfig/%s/rtconfig.h'%(cwd,env['BOARD']), 'r')
         contents = f.read()
         f.close()
         PreProcessor.process_contents(contents)
@@ -72,12 +75,11 @@ Export('remove_components')
 Export('RTT_ROOT')
 Export('rtconfig')
 
-if(not os.path.exists('%s/release/download/rt-thread'%(asenv['ASROOT']))):
-    RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(asenv['ASROOT']))
+rtt = Package('https://github.com/RT-Thread/rt-thread.git')
 
-MKSymlink('%s/release/download/rt-thread'%(asenv['ASROOT']),rtroot)
+MKSymlink(rtt,rtroot)
 
-asenv.Append(CPPPATH=['%s/menuconfig'%(cwd)])
+asenv.Append(CPPPATH=['%s/menuconfig/%s'%(cwd,asenv['BOARD'])])
 asenv.Append(CPPPATH=['%s/../tinyos'%(cwd)])
 asenv.Append(CPPPATH=['%s/components/drivers/include'%(rtroot)])
 asenv.Append(CPPDEFINES=['USE_OSAL'])
@@ -95,5 +97,10 @@ for d in list:
 
 if('FTP' in asenv['MODULES']):
     objs += Glob('rt-thread/components/net/lwip-1.3.2/apps/ftpd.c')
+
+if(asenv['BOARD'] == 'x86'):
+    objs += Glob('rt-thread/bsp/x86/drivers/*.c')
+    asenv.Append(CPPPATH=['%s/rt-thread/bsp/x86/drivers/include'%(cwd)])
+    SrcRemove(objs, ['start_gcc.S','board.c'])
 
 Return('objs')

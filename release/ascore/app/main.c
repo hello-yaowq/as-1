@@ -17,6 +17,7 @@
 #include "asdebug.h"
 #ifdef USE_STDRT
 #include "rthw.h"
+#include "rtthread.h"
 #ifdef RT_USING_LWIP
 #include <lwip/sys.h>
 #include <netif/ethernetif.h>
@@ -24,7 +25,9 @@
 #ifdef RT_USING_DFS
 /* dfs filesystem:ELM filesystem init */
 #include <dfs_elm.h>
+#if defined(RT_USING_LWEXT4)
 #include <dfs_ext.h>
+#endif
 /* dfs Filesystem APIs */
 #include <dfs_fs.h>
 #endif
@@ -47,6 +50,9 @@ extern void lwip_system_init(void);
 extern void netbios_init(void);
 extern void rt_hw_asblk_init_all(void);
 extern void ftpd_start();
+extern rt_err_t rt_thread_sleep(rt_tick_t tick);
+extern void finsh_set_echo(rt_uint32_t echo);
+extern int rt_system_dlmodule_init(void);
 #endif
 /* ============================ [ DATAS	 ] ====================================================== */
 #ifdef USE_STDRT
@@ -81,11 +87,11 @@ void rt_init_thread(void* parameter)
 	/* initialize the elm chan FatFS file system*/
 	elm_init();
 #endif
-
+#if defined(RT_USING_LWEXT4)
 	dfs_ext_init();
-
+#endif
 #ifdef RT_USING_MODULE
-	rt_system_module_init();
+	rt_system_dlmodule_init();
 #endif
 
 #ifdef USE_FATFS
@@ -114,9 +120,15 @@ void rt_init_thread(void* parameter)
 	}
 #endif
 #endif  /* RT_USING_DFS */
+
 	EcuM_Init();
+
+#ifdef USE_ARCH_X86
+	rt_thread_sleep(100);
+	finsh_set_echo(1);
+#endif
 }
-void rt_hw_board_init(void)
+void __weak rt_hw_board_init(void)
 {
 
 }
@@ -140,9 +152,6 @@ void rt_application_init(void)
 	finsh_set_device("console");
 #endif
 #endif
-
-	if (tid != RT_NULL)
-		rt_thread_startup(tid);
 
 	tid = rt_thread_create("rtinit",
 						  (void(*)(void*))rt_init_thread, RT_NULL,

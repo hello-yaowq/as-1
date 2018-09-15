@@ -546,6 +546,45 @@ size_t __weak strnlen(const char* s, size_t maxlen)
 	return sc - s;
 }
 
+char* __weak strrchr (const char * s, int c)
+{
+	while(*s != '\0')
+	{
+		s++;
+		if(*s == c)
+		{
+			return s;
+		}
+	}
+
+	return NULL;
+}
+
+char* __weak strstr(const char *s1, const char *s2)
+{
+	int l1, l2;
+
+	l2 = strlen(s2);
+	if (!l2)
+		return (char *)s1;
+	l1 = strlen(s1);
+	while (l1 >= l2)
+	{
+		l1 --;
+		if (!memcmp(s1, s2, l2))
+			return (char *)s1;
+		s1 ++;
+	}
+
+	return NULL;
+}
+
+int __weak atoi (const char *s)
+{
+	return strtoul(s, NULL, 10);
+}
+
+
 
 /*****************************************************************************/
 /** Pinkie Just Enough Sscanf To Work

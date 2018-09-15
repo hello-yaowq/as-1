@@ -34,15 +34,9 @@ extern void dispatch(int cmd, void* param);
 static void sys_dispatch(int cmd, void* param);
 
 /* ============================ [ DATAS     ] ====================================================== */
-uint8_t             gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
-mmu_descriptor_t    gdt[GDT_SIZE];
-uint8_t             idt_ptr[6]; /* 0~15:Limit  16~47:Base */
-mmu_gate_t          idt[IDT_SIZE];
-
-uint32_t disp_pos;
+extern mmu_descriptor_t    gdt[GDT_SIZE];
 int k_reenter;
 
-tss_t tss;
 void* sys_call_table[] = {
 	sys_dispatch,
 };
@@ -174,43 +168,6 @@ void Os_PortStartDispatch(void)
 void Os_PortDispatch(void)
 {
 	dispatch(CMD_DISPATCH,NULL);
-}
-void cstart(void)
-{
-	disp_pos = 0;
-
-	serial_init();
-	ASLOG(OS,"cstart begins\n");
-
-	/* copy the GDT of LOADER to the new GDT */
-	memcpy(&gdt,    /* New GDT */
-		   (void*)(*((uint32_t*)(&gdt_ptr[2]))),   /* Base  of Old GDT */
-		   *((uint16_t*)(&gdt_ptr[0])) + 1    /* Limit of Old GDT */
-		);
-	/* gdt_ptr[6] has 6 bytes : 0~15:Limit  16~47:Base, acting as parameter of instruction sgdt & lgdt */
-	uint16_t* p_gdt_limit = (uint16_t*)(&gdt_ptr[0]);
-	uint32_t* p_gdt_base  = (uint32_t*)(&gdt_ptr[2]);
-	*p_gdt_limit = GDT_SIZE * sizeof(mmu_descriptor_t) - 1;
-	*p_gdt_base  = (uint32_t)&gdt;
-
-	/* idt_ptr[6] 共 6 个字节：0~15:Limit  16~47:Base。用作 sidt 以及 lidt 的参数。*/
-	uint16_t* p_idt_limit = (uint16_t*)(&idt_ptr[0]);
-	uint32_t* p_idt_base  = (uint32_t*)(&idt_ptr[2]);
-	*p_idt_limit = IDT_SIZE * sizeof(mmu_gate_t) - 1;
-	*p_idt_base = (uint32_t)&idt;
-
-	init_prot();
-
-	/* 填充 GDT 中 TSS 这个描述符 */
-	memset(&tss, 0, sizeof(tss));
-	tss.ss0		= SELECTOR_KERNEL_DS;
-	init_descriptor(&gdt[INDEX_TSS],
-			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
-			sizeof(tss) - 1,
-			DA_386TSS);
-	tss.iobase	= sizeof(tss);	/* 没有I/O许可位图 */
-
-	ASLOG(OS,"cstart finished\n");
 }
 
 int ffs(int v)

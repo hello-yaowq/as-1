@@ -40,5 +40,11 @@ config LWIP_DRV
 	depends on PCI
 	default y
 
+if RTTHREAD
+config LIBC_SIGNAL_H__
+	int
+	default 1
+endif
+
 endmenu
 endif

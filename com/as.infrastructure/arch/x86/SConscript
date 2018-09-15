@@ -11,8 +11,9 @@ objs = []
 
 objs += Glob('bsp/i8259.c')
 objs += Glob('bsp/protect.c')
-objs += Glob('bsp/serial.c')
 objs += Glob('bsp/mmu.c')
+if('RTTHREAD' not in MODULES):
+    objs += Glob('bsp/serial.c')
 
 if(asenv.GetOption('clean')):
     RunCommand('cd %s/bsp && rm -fv *.asm.obj'%(cwd))
@@ -39,6 +40,9 @@ else:
     asenv['POSTACTION'].append('%s cp kernel.bin /kernel.bin TINIX.IMG'%(fatfs))
 
 objs += Glob('bsp/*.asm.obj')
+
+if('RTTHREAD' in MODULES):
+    SrcRemove(objs, ['irq_a.asm.obj'])
 
 asenv.Append(CPPDEFINES=['__X86__'])
 

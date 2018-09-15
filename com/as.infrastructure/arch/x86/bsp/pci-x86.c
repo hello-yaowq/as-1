@@ -15,6 +15,9 @@
 #ifdef USE_PCI
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "pci_core.h"
+#ifdef USE_STDRT
+#include "rthw.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define     CONFIG_ADDRESS_REG          0x0cf8
 #define     CONFIG_DATA_REG             0x0cfc

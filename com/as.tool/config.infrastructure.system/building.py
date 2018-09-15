@@ -231,7 +231,7 @@ def mk_rtconfig(filename):
     except:
         print('open %s failed'%(filename))
         return
-    rtcfg = os.path.abspath('../../com/as.infrastructure/system/kernel/rtthread/menuconfig/rtconfig.h')
+    rtcfg = os.path.abspath('../../com/as.infrastructure/system/kernel/rtthread/menuconfig/%s/rtconfig.h'%(Env['BOARD']))
     if(not os.path.exists(rtcfg)):
         print('%s is not exits!'%(rtcfg))
     rtconfig = open(rtcfg, 'w')
@@ -358,16 +358,14 @@ def menuconfig(env):
             xcc.XCC(cfgdir,env)
         if('RTTHREAD' in env['MODULES']):
             rtt = '%s/com/as.infrastructure/system/kernel/rtthread'%(env['ASROOT'])
-            rttf = '%s/release/download/rt-thread'%(env['ASROOT'])
-            if(not os.path.exists(rttf)):
-                RunCommand('cd %s/release/download && git clone https://github.com/RT-Thread/rt-thread.git'%(env['ASROOT']))
+            rttf = Package('https://github.com/RT-Thread/rt-thread.git')
             MKSymlink(rttf, rtt+'/rt-thread')
-            fn = rtt+'/menuconfig/.config'
+            fn = rtt+'/menuconfig/%s/.config'%(env['BOARD'])
             if(os.path.isfile(fn)):
                 mtime = os.path.getmtime(fn)
             else:
                 mtime = -1
-            cmd = 'cd %s/menuconfig && %s Kconfig'%(rtt, kconfig)
+            cmd = 'cd %s/menuconfig/%s && %s ../Kconfig'%(rtt, env['BOARD'], kconfig)
             if(IsPlatformWindows()):
                 cmd = '@echo off\n'+cmd.replace(' && ','\n')
                 MKFile('rtmenuconfig.bat', cmd)
@@ -468,7 +466,11 @@ def Package(url, ** parameters):
         if(not os.path.exists(flag)):
             RunCommand(cmd)
             MKFile(flag,cmd)
-
+    if('pyfnc' in parameters):
+        flag = '%s/.%s.pyfnc.done'%(pkg, bsw)
+        if(not os.path.exists(flag)):
+            parameters['pyfnc'](pkg)
+            MKFile(flag)
     # post check
     verList = Glob('%s/.*.version.done'%(pkg))
     cmdList = Glob('%s/.*.cmd.done'%(pkg))
@@ -528,6 +530,11 @@ def SrcRemove(src, remove):
             if(os.path.basename(item) in remove):
                 src.remove(str(item))
         else:
+            if(type(item) == list):
+                for itt in item:
+                    if(os.path.basename(itt.rstr()) in remove):
+                        item.remove(itt)
+                continue
             if(os.path.basename(item.rstr()) in remove):
                 src.remove(item)
 
@@ -794,7 +801,7 @@ class Qemu():
         else:
             fp = open('/tmp/asqemu.mk','w')
             fp.write('''download = $(prj-dir)/release/download
-
+LNFS=python $(prj-dir)/release/make/lnfs.py
 $(download)/qemu/hw/char/libpyas.a:
 \t(cd $(prj-dir)/release/aslua; make clean; make 81; make 82 forceclib=yes)
 
@@ -927,13 +934,13 @@ def SelectCompilerX86():
         if(not os.path.exists(cpl)):
             RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccx86,gccx86,gccx86))
         Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
-        Env['AS']   = '%s/bin/i686-elf-gcc -m32'%(cpl)
+        Env['AS']   = '%s/bin/i686-elf-gcc -m32 -c'%(cpl)
         Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
         Env['LINK'] = '%s/bin/i686-elf-ld -m32 -melf_i386'%(cpl)
         Env.Append(CPPPATH=['%s/lib/gcc/i686-elf/7.1.0/include'%(cpl)])
     else:
         Env['CC']   = 'gcc -m32 -std=gnu99 -fno-stack-protector'
-        Env['AS']   = 'gcc -m32'
+        Env['AS']   = 'gcc -m32 -c'
         Env['CXX']  = 'gcc -m32 -fno-stack-protector'
         Env['LINK'] = 'ld -m32 -melf_i386'
 
