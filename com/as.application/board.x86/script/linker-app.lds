@@ -20,7 +20,12 @@ SECTIONS {
         __vsymtab_start = .;
         KEEP(*(VSymTab))
         __vsymtab_end = .;
-        . = ALIGN(4); 
+        . = ALIGN(4);
+        /* section information for modules */
+        . = ALIGN(4);
+        __rtmsymtab_start = .;
+        KEEP(*(RTMSymTab))
+        __rtmsymtab_end = .;
         /* section information for shell */
         . = ALIGN(4);
         __ssymtab_start = .;

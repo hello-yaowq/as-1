@@ -15,6 +15,7 @@ objs += Glob('bsp/mmu.c')
 if('RTTHREAD' not in MODULES):
     objs += Glob('bsp/serial.c')
 
+
 if(asenv.GetOption('clean')):
     RunCommand('cd %s/bsp && rm -fv *.asm.obj'%(cwd))
     RunCommand('cd %s/boot && rm -fv *.bin'%(cwd))

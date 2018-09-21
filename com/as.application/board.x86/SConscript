@@ -55,6 +55,6 @@ if('FLS' in MODULES):
     objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
 
 if('RTTHREAD' in MODULES):
-    asenv.Append(CPPDEFINES=['RT_HEAP_SIZE=0x800000'])
+    asenv.Append(CPPDEFINES=['RT_HEAP_SIZE=0x800000','__x86__'])
 
 Return('objs')

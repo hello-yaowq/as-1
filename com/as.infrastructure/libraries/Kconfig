@@ -1,0 +1,11 @@
+menu "libraries"
+
+config IFX
+	bool "Interpolation Fixed point"
+	default y
+
+config FDT
+	bool "flat device tree library"
+	default y
+
+endmenu
