@@ -23,6 +23,7 @@
 extern void tester_time_1000ms_runnable(void);
 extern void tester_nvm_1000ms_runnable(void);
 extern void pthread_test(void);
+extern void fdt_test_init(void);
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
 static TimerType timer;
@@ -33,6 +34,9 @@ KSM(Tester,Init)
 	StartTimer(&timer);
 #ifdef USE_PTHREAD_TEST
 	pthread_test();
+#endif
+#if defined(USE_SHELL) && defined(USE_VFS) && defined(USE_FDT)
+	fdt_test_init();
 #endif
 }
 

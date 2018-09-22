@@ -36,6 +36,9 @@ extern const struct vfs_filesystem_ops fatfs_ops;
 #ifdef USE_LWEXT4
 extern const struct vfs_filesystem_ops lwext_ops;
 #endif
+#if defined(__WINDOWS__) || defined(__LINUX__)
+extern const struct vfs_filesystem_ops hofs_ops;
+#endif
 static VFS_FILE* lvfs_fopen (const char *filename, const char *opentype);
 static int lvfs_fclose (VFS_FILE* stream);
 static int lvfs_fread (void *data, size_t size, size_t count, VFS_FILE *stream);
@@ -60,6 +63,7 @@ static int lsFunc(int argc, char* argv[]);
 static int chdirFunc(int argc, char* argv[]);
 static int mkdirFunc(int argc, char* argv[]);
 static int rmFunc(int argc, char* argv[]);
+static int cpFunc(int argc, char* argv[]);
 static int pwdFunc(int argc, char* argv[]);
 static int catFunc(int argc, char* argv[]);
 static int hexdumpFunc(int argc, char* argv[]);
@@ -93,6 +97,9 @@ static const struct vfs_filesystem_ops* vfs_ops[] =
 #endif
 #ifdef USE_LWEXT4
 	&lwext_ops,
+#endif
+#if defined(__WINDOWS__) || defined(__LINUX__)
+	&hofs_ops,
 #endif
 	/* must be the last one */
 	&lvfs_ops,
@@ -151,6 +158,16 @@ static SHELL_CONST ShellCmdT rmVfsCmd  = {
 	{NULL,NULL}
 };
 SHELL_CMD_EXPORT(rmVfsCmd);
+
+static SHELL_CONST ShellCmdT cpVfsCmd  = {
+	cpFunc,
+	2,2,
+	"cp",
+	"cp file path",
+	"copy a file to another path\n",
+	{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cpVfsCmd);
 
 static SHELL_CONST ShellCmdT catVfsCmd  = {
 	catFunc,
@@ -607,6 +624,51 @@ static int rmFunc(int argc, char* argv[])
 	return r;
 }
 
+static int cpFunc(int argc, char* argv[])
+{
+	int r = -1;
+	int len;
+	VFS_FILE* fps;
+	VFS_FILE* fpt;
+	char buf[512];
+
+	fps = vfs_fopen(argv[1],"rb");
+	if(NULL == fps)
+	{
+		SHELL_printf("open %s failed!\n",argv[1]);
+	}
+	else
+	{
+		fpt = vfs_fopen(argv[2],"wb");
+		if(NULL == fpt)
+		{
+			SHELL_printf("create %s failed!\n",argv[2]);
+			vfs_fclose(fps);
+		}
+		else
+		{
+			do {
+				len = vfs_fread(buf, 1, sizeof(buf), fps);
+				if(len > 0)
+				{
+					r = vfs_fwrite(buf, 1, len, fpt);
+					if(len != r)
+					{
+						SHELL_printf("write to %s failed!\n",argv[2]);
+						r = -2;
+						break;
+					}
+				}
+			} while(len > 0);
+
+			vfs_fclose(fps);
+			vfs_fclose(fpt);
+		}
+	}
+
+	return r;
+}
+
 static int catFunc(int argc, char* argv[])
 {
 	VFS_FILE* f;
@@ -691,11 +753,16 @@ static int hexdumpFunc(int argc, char* argv[])
 						printf("%08X ::",(uint32_t)offset);
 						for(i=0;i<16;i++)
 						{
-							printf(" %02X",buf[i]);
+							if(i < r) {
+								printf(" %02X",buf[i]);
+							} else {
+								printf("   ");
+							}
 						}
 						printf("\t");
 						for(i=0;i<16;i++)
 						{
+							if(i >= r) break;
 							if(isprint(buf[i]))
 							{
 								printf("%c",buf[i]);
@@ -1059,6 +1126,7 @@ void vfs_init(void)
 	SHELL_AddCmd(&pwdVfsCmd);
 	SHELL_AddCmd(&mkdirVfsCmd);
 	SHELL_AddCmd(&rmVfsCmd);
+	SHELL_AddCmd(&cpVfsCmd);
 	SHELL_AddCmd(&catVfsCmd);
 	SHELL_AddCmd(&hexdumpVfsCmd);
 #endif
