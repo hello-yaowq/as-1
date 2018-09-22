@@ -5,11 +5,13 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 
-cmd = 'sed -i "67c die(\\"realloc()\ failed (len=%d)\\", (int)len);" util.h'
-cmd += ' && sed -i "21c CFLAGS = -g -Os $(SHAREDLIB_CFLAGS) $(WARNINGS)" Makefile'
-cmd += ' && sed -i "9c util.c fnmatch.c" Makefile.convert-dtsv0'
 if(not IsPlatformWindows()):
-    cmd += ' && make'
+    cmd = 'make'
+else:
+    cmd = 'sed -i "67c die(\\"realloc()\ failed (len=%d)\\", (int)len);" util.h'
+    cmd += ' && sed -i "21c CFLAGS = -g -Os $(SHAREDLIB_CFLAGS) $(WARNINGS)" Makefile'
+    cmd += ' && sed -i "9c util.c fnmatch.c" Makefile.convert-dtsv0'
+
 libfdt = Package('https://github.com/dgibson/dtc.git', cmd=cmd, version='v1.4.7')
 
 if(IsPlatformWindows()):

@@ -49,7 +49,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO','EEP','FLS','STMO',
            'EA','FEE','MEMIF','NVM',
-           'LCD',
+           'LCD','FDT',
            'TINYOS',
            'J1939TP',
            ]

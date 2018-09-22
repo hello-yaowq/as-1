@@ -8,14 +8,10 @@ MODULES = asenv['MODULES']
 
 objs = []
 
-if('FDT' in MODULES):
+if('IFX' in MODULES):
     objs += Glob('Ifx/*.c')
 
-list = os.listdir(cwd)
-
-for d in list:
-    path = os.path.join(cwd, d)
-    if os.path.isfile(os.path.join(path, 'SConscript')):
-        objs = objs + SConscript(os.path.join(d, 'SConscript'))
+if('FDT' in MODULES):
+    objs += SConscript('libfdt/SConscript')
 
 Return('objs')

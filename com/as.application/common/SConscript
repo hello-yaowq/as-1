@@ -58,6 +58,9 @@ if('TEST' in MODULES):
     objs += Glob('test/*.xml')
     asenv.Append(CPPPATH=['%s/test'%(cwd)])
 
+if('FDT' in MODULES):
+    objs += Glob('config/as.dts')
+
 asenv.Append(CPPPATH=['%s/config'%(cwd)])
 
 Return('objs')

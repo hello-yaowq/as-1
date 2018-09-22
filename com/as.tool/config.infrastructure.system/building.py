@@ -1064,6 +1064,15 @@ def BuildOFS(ofs):
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
         MKObject([src], tgt, cmd)
 
+def BuildDTS(dts,bdir):
+    dtc = Package('dtc')+'/dtc'
+    for src in dts:
+        src=str(src)
+        bp = os.path.dirname(src)
+        tgt = '%s/%s.dtb'%(os.path.abspath(bdir), os.path.basename(src)[:-4])
+        cmd = 'cd %s && %s -I dts -O dtb %s -o %s'%(bp, dtc, src, tgt)
+        MKObject([src], tgt, cmd)
+
 def Building(target, sobjs, env=None):
     import xcc
     import argen
@@ -1076,6 +1085,7 @@ def Building(target, sobjs, env=None):
     xmls = []
     ofs = []
     swcs = []
+    dts = []
     arxml= None
 
     for obj in sobjs:
@@ -1090,6 +1100,8 @@ def Building(target, sobjs, env=None):
             ofs.append(obj)
         elif(str(obj)[-3:]=='.py'):
             swcs.append(obj)
+        elif(str(obj)[-4:]=='.dts'):
+            dts.append(obj)
         else:
             objs.append(obj)
     cfgdir = '%s/config'%(bdir)
@@ -1122,6 +1134,7 @@ def Building(target, sobjs, env=None):
         RMDir(cfgdir)
         RunCommand('rm -fv *.s19')
 
+    BuildDTS(dts,bdir)
     BuildOFS(ofs)
     BuildingSWCS(swcs)
     env.Program(target, objs)
