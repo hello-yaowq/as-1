@@ -17,7 +17,6 @@
 #include <io.h>
 #include <unistd.h>
 #include <dirent.h>
-#define _VFS_SYS_DIRENT_H_
 #include "vfs.h"
 #include "asdebug.h"
 
@@ -194,8 +193,11 @@ static vfs_dirent_t * host_readdir (VFS_DIR *dirstream)
 
 	if(NULL != rentry)
 	{
+#if defined(__LINUX__)
+		dirent.d_namlen = rentry->d_reclen;
+#else
 		dirent.d_namlen = rentry->d_namlen;
-
+#endif
 		strcpy(dirent.d_name, rentry->d_name);
 
 		rdirent = &dirent;
@@ -257,8 +259,11 @@ static int host_mkdir (const char *filename, uint32_t mode)
 
 	ASLOG(HOFS, "mkdir(%s, 0x%x)\n", filename, mode);
 
+#if defined(__LINUX__)
+	r = mkdir(TO_HOFS_PATH(filename), mode);
+#else
 	r = mkdir(TO_HOFS_PATH(filename));
-
+#endif
 	return r;
 }
 

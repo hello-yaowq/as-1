@@ -15,7 +15,7 @@
 
 #ifndef IO_H_
 #define IO_H_
-#if defined(__WINDOWS__) || defined(__LINUX__)
+#if defined(__WINDOWS__)
 #include_next <io.h>
 #endif
 #include "Std_Types.h"

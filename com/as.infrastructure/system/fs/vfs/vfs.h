@@ -20,7 +20,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#if defined(__WINDOWS__) || defined(__LINUX__)
+#else
 #include <sys/dirent.h>
+#endif
 #include <time.h>
 #include <errno.h>
 /* ============================ [ MACROS    ] ====================================================== */
