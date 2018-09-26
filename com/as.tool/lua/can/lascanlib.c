@@ -824,29 +824,7 @@ int can_open(unsigned long busid,const char* device_name,unsigned long port, uns
 	fflush(stdout);
 	return rv;
 }
-static uint32_t IntH(char chr)
-{
-	uint32_t v;
-	if( (chr>='0') && (chr<='9'))
-	{
-		v= chr - '0';
-	}
-	else if( (chr>='A') && (chr<='F'))
-	{
-		v= chr - 'A' + 10;
-	}
-	else if( (chr>='a') && (chr<='f'))
-	{
-		v= chr - 'a' + 10;
-	}
-	else
-	{
-		printf("CAN serial receiving invalid data '0x%02X', cast to 0\n",chr);
-		v = 0;
-	}
 
-	return v;
-}
 int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data)
 {
 	int rv;
@@ -864,22 +842,10 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 	{
 		if(b->device.ops->write)
 		{
-			#if defined(__AS_CAN_BUS__)
 			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 					busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]); */
 			rv = b->device.ops->write(b->device.port,canid,dlc,data);
 			saveQ(b,canid,dlc,data);
-			#else
-			unsigned char buffer[64]; /* 64 for CANFD */
-			for(unsigned long i=0;i<dlc;i++)
-			{
-				buffer[i] = (IntH(data[2*i])<<4) + (IntH(data[2*i+1]));
-			}
-			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
-					busid,canid,dlc,buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7]);*/
-			rv = b->device.ops->write(b->device.port,canid,dlc,buffer);
-			saveQ(b,canid,dlc,buffer);
-			#endif
 			if(rv)
 			{
 				/* result OK */
@@ -934,13 +900,9 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 			asAssert(data);
 			memcpy(data,pdu->msg.sdu,*dlc);
 			#else
-			*data = malloc((*dlc)*2+1);
+			*data = malloc(*dlc);
 			asAssert(*data);
-			for(unsigned long i=0;i<*dlc;i++)
-			{
-				size += snprintf((char*)&((*data)[size]),(*dlc)*2+1-size,"%02X",pdu->msg.sdu[i]);
-			}
-			(*data)[size] = '\0';
+			memcpy(*data,pdu->msg.sdu,*dlc);
 			#endif
 			free(pdu);
 			rv = TRUE;

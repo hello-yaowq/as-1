@@ -56,6 +56,7 @@ class doip():
             self.routingActivationResponseCode=data[4]
             if(self.routingActivationResponseCode != 0x10):
                 raise Exception('  >> DoIP: do Routing Activation request failed as %s!'%(self.__rapc[self.routingActivationResponseCode]))
+        print('DoIP online!')
 
     def set_ll_dl(self,v):
         pass

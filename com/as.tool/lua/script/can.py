@@ -35,21 +35,13 @@ def can_write(busid,canid,data):
         dlc = int(len(data)/2)
     else:
         for i,c in enumerate(data):
-            sd += '%02X'%(c&0xFF)
+            sd += '%c'%(c&0xFF)
         dlc = int(len(data))
     return __can__.write(busid, canid, dlc, sd.encode('utf-8'))
 
 def can_read(busid,canid):
     ''' can request read a can frame from <canid> queue of <busid>'''
-    result,canid,dlc,cstr= __can__.read(busid,canid)
-    
-    if(result):
-        data = []
-        for i in range(len(cstr)>>1):
-            data.append(int(cstr[2*i:2*i+2],16))
-        assert(dlc == len(data))
-    else:
-        data = None
+    result,canid,dlc,data= __can__.read(busid,canid)
 
     return result,canid,data
 
