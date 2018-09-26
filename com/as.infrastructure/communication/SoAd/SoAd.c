@@ -405,11 +405,11 @@ static void socketTcpRead(uint16 sockNr)
 			DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_TCP_READ_ID, SOAD_E_CONFIG_INVALID);
 		}
 		break;	// SOAD_AUTOSAR_CONNECTOR_PDUR
-
+#ifdef USE_DOIP
 	case SOAD_AUTOSAR_CONNECTOR_DOIP:
 		DoIp_HandleTcpRx(sockNr);
 		break;	// SOAD_AUTOSAR_CONNECTOR_DOIP
-
+#endif
 	default:
 		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_TCP_READ_ID, SOAD_E_NOCONNECTOR);
 		break;
@@ -505,11 +505,11 @@ static void socketUdpRead(uint16 sockNr)
 			DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_UDP_READ_ID, SOAD_E_CONFIG_INVALID);
 		}
 		break;	// SOAD_AUTOSAR_CONNECTOR_PDUR
-
+#ifdef USE_DOIP
 	case SOAD_AUTOSAR_CONNECTOR_DOIP:
 		DoIp_HandleUdpRx(sockNr);
 		break;	// SOAD_AUTOSAR_CONNECTOR_DOIP
-
+#endif
 	default:
 		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_SOCKET_UDP_READ_ID, SOAD_E_NOCONNECTOR);
 		break;
@@ -612,8 +612,9 @@ void SoAd_Init(void)
 		PduAdminList[i].PduStatus = PDU_IDLE;
 	}
 
-
+#ifdef USE_DOIP
 	DoIp_Init();
+#endif
 	TcpIp_Init();
 
 	ModuleStatus = SOAD_INITIALIZED;
@@ -644,7 +645,7 @@ void SoAd_Cbk_LocalIpAssignmentChg( uint8 Index, boolean Valid, SoAd_SockAddrTyp
 		// Link is up.
 		// Start timer so that we can send out vehicle announcements.
 		LinkStatus = SOAD_ARC_LINKUP;
-#if SOAD_DOIP_ACTIVE == STD_ON
+#ifdef USE_DOIP
 		DoIp_LocalIpAddrAssignmentChg((SoAd_SoConIdType)Index, TCPIP_IPADDR_STATE_ASSIGNED);
 
 #endif
@@ -653,7 +654,7 @@ void SoAd_Cbk_LocalIpAssignmentChg( uint8 Index, boolean Valid, SoAd_SockAddrTyp
 		// Stop timer so that we can stop sending out vehicle announcements.
 		LinkStatus = SOAD_ARC_LINKDOWN;
 
-#if SOAD_DOIP_ACTIVE == STD_ON
+#ifdef USE_DOIP
 		DoIp_LocalIpAddrAssignmentChg((SoAd_SoConIdType)Index, TCPIP_IPADDR_STATE_ASSIGNED);
 #endif
 
@@ -775,11 +776,11 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 				returnCode = E_NOT_OK;
 			}
 			break;
-
+#ifdef USE_DOIP
 		case SOAD_AUTOSAR_CONNECTOR_DOIP:
 			returnCode = DoIp_HandleTpTransmit(SoAdSrcPduId, SoAdSrcPduInfoPtr);
 			break;
-
+#endif
 		default:
 			// Not supported connector type
 			returnCode = E_NOT_OK;
