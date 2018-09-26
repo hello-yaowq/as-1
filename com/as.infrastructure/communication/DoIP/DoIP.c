@@ -39,7 +39,7 @@
 
 #define DOIP_PROTOCOL_VERSION	2
 
-#define AS_LOG_SOAD 0
+#define AS_LOG_DOIP 0
 
 // Generic doip header negative acknowledge codes
 #define DOIP_E_INCORRECT_PATTERN_FORMAT	0x00
@@ -1135,7 +1135,7 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 		nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
 		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].ConnectionHandle);
 		if (nBytes >= 8) {
-			ASMEM(SOAD,"RX",rxBuffer,nBytes);
+			ASMEM(DOIP,"RX",rxBuffer,nBytes);
 			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
 			if (((rxBuffer[0] == 1) || (rxBuffer[0] == 2)) && (((uint8)(~rxBuffer[1]) == 1) || ((uint8)(~rxBuffer[1]) == 2))) {
 			//if ((rxBuffer[0] == DOIP_PROTOCOL_VERSION) && ((uint8)(~rxBuffer[1]) == DOIP_PROTOCOL_VERSION)) {

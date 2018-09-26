@@ -36,6 +36,7 @@
 
 /* DCM debug switch */
 #define AS_LOG_DCM 0
+#define AS_LOG_DCME 1
 
 #define DECREMENT(timer) { if (timer > 0){timer--;} }
 #define DCM_CONVERT_MS_TO_MAIN_CYCLES(x)  ((x)/DCM_MAIN_FUNCTION_PERIOD_TIME_MS)
@@ -609,6 +610,7 @@ void DslMain(void) {
 						transmitResult = PduR_DcmTransmit(txPduId, &runtime->diagnosticResponseFromDsd); /** @req DCM237 *//* Will trigger PduR (CanTP) to call DslProvideTxBuffer(). */
 						if (transmitResult != E_OK) {
 							// TODO: What to do here?
+							ASLOG( DCME, "send response failed!\n");
 							releaseExternalRxTxBuffers(protocolRow, runtime);
 						}
 					} else {
@@ -620,6 +622,7 @@ void DslMain(void) {
 						transmitResult = PduR_DcmTransmit(txPduId, &runtime->diagnosticResponseFromDsd); /** @req DCM237 *//* Will trigger PduR (CanTP) to call DslProvideTxBuffer(). */
 						if (transmitResult != E_OK) {
 							// TODO: What to do here?
+							ASLOG( DCME, "xx send response failed!\n");
 							releaseExternalRxTxBuffers(protocolRow, runtime);
 						}
 					}
