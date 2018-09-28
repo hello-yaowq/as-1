@@ -843,7 +843,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 		if(b->device.ops->write)
 		{
 			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
-					busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]); */
+			  busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);*/
 			rv = b->device.ops->write(b->device.port,canid,dlc,data);
 			saveQ(b,canid,dlc,data);
 			if(rv)

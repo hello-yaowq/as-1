@@ -39,7 +39,7 @@ set MSYS=winsymlinks:nativestrict
 if EXIST "%ASPATH%\scons.bat" goto launchConsole
 REM pacman -Syuu
 pacman -S unzip wget git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
-pacman -S mingw32/mingw-w64-i686-gcc
+pacman -S mingw32/mingw-w64-i686-gcc mingw-w64-x86_64-diffutils
 pacman -S ncurses-devel gperf scons curl make cmake
 conda install scons pyserial
 echo @echo off > scons.bat

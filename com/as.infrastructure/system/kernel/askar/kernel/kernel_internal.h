@@ -216,9 +216,6 @@ enum {
 #define PTHREAD_DEFAULT_PRIORITY    (OS_PTHREAD_PRIORITY/2)
 #endif
 
-/* OSEK TASK flag mask */
-#define TASK_AUTOSTART_MASK 0x01
-
 /* PTHREAD TASK flag mask */
 #define PTHREAD_DYNAMIC_CREATED_MASK 0x10
 #define PTHREAD_JOINABLE_MASK        0x20
@@ -276,6 +273,9 @@ typedef struct
 	PriorityType runPriority;
 	#ifdef MULTIPLY_TASK_ACTIVATION
 	uint8 maxActivation;
+	#endif
+	#ifdef USE_PTHREAD
+	uint8 flag;
 	#endif
 } TaskConstType;
 
