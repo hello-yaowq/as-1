@@ -15,8 +15,14 @@
 #ifndef BSD_H
 #define BSD_H
 
+#ifdef USE_LWIP
 #include "ipv4/lwip/inet.h"
 #include "lwip_handler.h"
 #include "lwip/sockets.h"
+#endif
+
+#ifdef USE_UIP
+#include "contiki-net.h"
+#endif
 
 #endif /* BSD_H */

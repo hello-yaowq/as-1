@@ -1065,7 +1065,8 @@ def BuildOFS(ofs):
         MKObject([src], tgt, cmd)
 
 def BuildDTS(dts,bdir):
-    dtc = Package('dtc')+'/dtc'
+    if(len(dts) > 0):
+        dtc = Package('dtc')+'/dtc'
     for src in dts:
         src=str(src)
         bp = os.path.dirname(src)

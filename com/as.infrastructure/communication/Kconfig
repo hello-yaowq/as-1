@@ -57,7 +57,7 @@ config RPMSG
 
 config SOAD
 	bool "Socket Adapter"
-	depends on LWIP
+	depends on (LWIP || UIP)
 	default y
 
 config XCP

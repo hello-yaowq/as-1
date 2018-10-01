@@ -23,7 +23,7 @@ if(IsPlatformWindows()):
     cmd += ' && sed -i "s/FNM_NORES/3/g" fnmatch.c'
     cmd += ' && sed -i "s/git__tolower/tolower/g" fnmatch.c'
     cmd += ' && sed -i "s/lstat/stat/g" fstree.c'
-    MKObject([],libfdt+'/dtc.exe','cd %s && %s && make'%(libfdt,cmd))
+    MKObject([],libfdt+'/dtc.exe','cd %s && %s && make'%(libfdt,cmd), False)
 
 asenv.Append(CPPPATH=['%s/libfdt'%(libfdt)])
 objs = Glob('%s/libfdt/*.c'%(libfdt))

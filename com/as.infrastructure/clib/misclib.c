@@ -553,7 +553,7 @@ char* __weak strrchr (const char * s, int c)
 		s++;
 		if(*s == c)
 		{
-			return s;
+			return (char*)s;
 		}
 	}
 

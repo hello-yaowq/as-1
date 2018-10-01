@@ -1,6 +1,7 @@
 /*-------------------------------- Arctic Core ------------------------------
  * Copyright (C) 2013, ArcCore AB, Sweden, www.arccore.com.
  * Contact: <contact@arccore.com>
+ * Copyright (C) 2018  AS <parai@foxmail.com>
  *
  * You may ONLY use this file:
  * 1)if you have a valid commercial ArcCore license and then in accordance with
@@ -32,12 +33,8 @@
 #endif
 #include "asdebug.h"
 
-#ifdef LWIP_POSIX_ARCH
-#include "pthread.h"
-#include <unistd.h>
-#endif
-
-#define AS_LOG_SOAD 0
+#define AS_LOG_SOAD  0
+#define AS_LOG_SOADE 1
 
 typedef enum {
   SOAD_UNINITIALIZED = 0,
@@ -53,27 +50,25 @@ SocketAdminType SocketAdminList[SOAD_SOCKET_COUNT];
 
 PduAdminListType PduAdminList[SOAD_PDU_ROUTE_COUNT];
 
-#if 1
-#include "lwip/mem.h"
+#ifdef USE_CLIB_ASHEAP
 boolean SoAd_BufferGet(uint32 size, uint8** buffPtr)
 {
 	boolean res;
 
-	*buffPtr = mem_malloc(size);
+	*buffPtr = malloc(size);
 	res = (*buffPtr != NULL) ? TRUE : FALSE;
 
 	return res;
 }
 void SoAd_BufferFree(uint8* buffPtr)
 {
-	mem_free(buffPtr);
+	free(buffPtr);
 }
-
 #else
 typedef struct  {
-	boolean	bufferInUse;
-	uint16	bufferLen;
 	uint8*	bufferPtr;
+	uint16	bufferLen;
+	boolean	bufferInUse;
 } AdminBufferType;
 
 static uint8 buffer1[42];
@@ -155,14 +150,14 @@ void SoAd_SocketClose(uint16 sockNr)
 	switch (SocketAdminList[sockNr].SocketState) {
 	case SOCKET_UDP_READY:
 	case SOCKET_TCP_LISTENING:
-		lwip_close(SocketAdminList[sockNr].SocketHandle);
+		SoAd_SocketCloseImpl(SocketAdminList[sockNr].SocketHandle);
 		SocketAdminList[sockNr].SocketHandle = -1;
 		SocketAdminList[sockNr].SocketState = SOCKET_INIT;
 		break;
 
 
 	case SOCKET_TCP_READY:
-		lwip_close(SocketAdminList[sockNr].ConnectionHandle);
+		SoAd_SocketCloseImpl(SocketAdminList[sockNr].ConnectionHandle);
     	SocketAdminList[sockNr].ConnectionHandle = -1;
 		SocketAdminList[sockNr].RemoteIpAddress = inet_addr(SoAd_Config.SocketConnection[sockNr].SocketRemoteIpAddress);
 		SocketAdminList[sockNr].RemotePort = htons(SoAd_Config.SocketConnection[sockNr].SocketRemotePort);
@@ -190,34 +185,27 @@ void SoAd_SocketClose(uint16 sockNr)
 
 }
 
-
 void SoAd_SocketStatusCheck(uint16 sockNr, int sockHandle)
 {
 	int sockErr;
-	socklen_t sockErrLen = sizeof(sockErr);
 
-	lwip_getsockopt(sockHandle, SOL_SOCKET, SO_ERROR, &sockErr, &sockErrLen);
-	if ((sockErr != 0) && (sockErr != EWOULDBLOCK)) {
+	sockErr = SoAd_SocketStatusCheckImpl(sockHandle);
+	if (sockErr != 0) {
+		ASLOG(SOADE, "socket[%d] status not okay, closed!\n", sockNr);
 		SoAd_SocketClose(sockNr);
 	}
 }
-
 
 uint16 SoAd_SendIpMessage(uint16 sockNr, uint32 msgLen, uint8* buff)
 {
 	uint16 bytesSent;
 	ASMEM(SOAD,"TX",buff,msgLen);
 	if (SocketAdminList[sockNr].SocketProtocolIsTcp) {
-		bytesSent = lwip_send(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
+		bytesSent = SoAd_SendImpl(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
 	} else {
-	    struct sockaddr_in toAddr;
-	    socklen_t toAddrLen = sizeof(toAddr);
-	    toAddr.sin_family = AF_INET;
-	    toAddr.sin_len = sizeof(toAddr);
-
-	    toAddr.sin_addr.s_addr = SocketAdminList[sockNr].RemoteIpAddress;
-	    toAddr.sin_port = SocketAdminList[sockNr].RemotePort;
-		bytesSent = lwip_sendto(SocketAdminList[sockNr].SocketHandle, buff, msgLen, 0, (struct sockaddr *)&toAddr, toAddrLen);
+		bytesSent = SoAd_SendToImpl(SocketAdminList[sockNr].SocketHandle, buff, msgLen,
+									SocketAdminList[sockNr].RemoteIpAddress,
+									SocketAdminList[sockNr].RemotePort);
 	}
 
 	return bytesSent;
@@ -228,7 +216,7 @@ static void socketCreate(uint16 sockNr)
 {
     int sockFd;
     int sockType;
-    struct sockaddr_in sLocalAddr;
+	int r;
 
     if (SocketAdminList[sockNr].SocketProtocolIsTcp) {
     	sockType = SOCK_STREAM;
@@ -236,44 +224,31 @@ static void socketCreate(uint16 sockNr)
     	sockType = SOCK_DGRAM;
     }
 
-    sockFd = lwip_socket(AF_INET, sockType, 0);
+    sockFd = SoAd_CreateSocketImpl(AF_INET, sockType, 0);
     if (sockFd >= 0) {
-        ASLOG(SOAD,"SoAd create socket[%d] on lwip %d okay.\n",sockNr,sockFd);
-    	memset((char *)&sLocalAddr, 0, sizeof(sLocalAddr));
-
-    	int on = 1;
-    	lwip_ioctl(sockFd, FIONBIO, &on);
-
-    	lwip_setsockopt(sockFd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));	// Set socket to no delay
-
-    	/*Source*/
-    	sLocalAddr.sin_family = AF_INET;
-    	sLocalAddr.sin_len = sizeof(sLocalAddr);
-
-    	sLocalAddr.sin_addr.s_addr = htonl(INADDR_ANY);		// NOTE: Use IP from configuration instead
-    	sLocalAddr.sin_port = htons(SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
-
-    	if(lwip_bind(sockFd, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr)) >= 0) {
-            ASLOG(SOAD,"SoAd bind socket[%d] on lwip %d(port=%d) okay.\n",sockNr,sockFd,
+        ASLOG(SOAD,"SoAd create socket[%d] okay.\n",sockNr);
+		r = SoAd_BindImpl(sockFd, SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
+		if(r >= 0) {
+			ASLOG(SOAD,"SoAd bind socket[%d] on port %d okay.\n",sockNr,
                 SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
             if (!SocketAdminList[sockNr].SocketProtocolIsTcp) {
             	// Now the UDP socket is ready for receive/transmit
             	SocketAdminList[sockNr].SocketHandle = sockFd;
             	SocketAdminList[sockNr].SocketState = SOCKET_UDP_READY;
             } else {
-                if  ( lwip_listen(sockFd, 20) == 0 ){	// NOTE: What number of the backlog?
+                if  ( SoAd_ListenImpl(sockFd, 20) == 0 ){	// NOTE: What number of the backlog?
                 	// Now the TCP socket is ready for receive/transmit
-                    ASLOG(SOAD,"SoAd listen socket[%d] on lwip %d okay.\n",sockNr,sockFd);
+                    ASLOG(SOAD,"SoAd listen socket[%d] okay.\n",sockNr);
                 	SocketAdminList[sockNr].SocketHandle = sockFd;
                 	SocketAdminList[sockNr].SocketState = SOCKET_TCP_LISTENING;
                 } else {
-                    ASLOG(SOAD,"SoAd listen socket[%d] on lwip %d failed.\n",sockNr,sockFd);
-                	lwip_close(sockFd);
+                    ASLOG(SOAD,"SoAd listen socket[%d] failed.\n",sockNr);
+                	SoAd_SocketCloseImpl(sockFd);
                 }
             }
     	} else {
-            ASLOG(SOAD,"SoAd bind socket[%d] on lwip %d failed.\n",sockNr,sockFd);
-    		lwip_close(sockFd);
+            ASLOG(SOAD,"SoAd bind socket[%d] failed.\n",sockNr);
+    		SoAd_SocketCloseImpl(sockFd);
     	}
     } else {
     	// Socket creation failed
@@ -287,25 +262,16 @@ static void socketAccept(uint16 sockNr)
 {
 	uint16 i;
 	int clientFd;
-	struct sockaddr_in client_addr;
-	int addrlen = sizeof(client_addr);
+	uint32 RemoteIpAddress;
+	uint16 RemotePort;
 
-	clientFd = lwip_accept(SocketAdminList[sockNr].SocketHandle, (struct sockaddr*)&client_addr, (socklen_t *)&addrlen);
+	clientFd = SoAd_AcceptImpl(SocketAdminList[sockNr].SocketHandle, &RemoteIpAddress, &RemotePort);
 
 	if( clientFd != (-1))
 	{
-		// Check that remote port and ip match
-		// NOTE: Check remote port and ip with SocketAdminList and select first matching
-
-		// New connection established
-		int on = 1;
-    	lwip_ioctl(clientFd, FIONBIO, &on);	// Set socket to non block mode
-
-    	lwip_setsockopt(clientFd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));	// Set socket to no delay
-
     	SocketAdminList[sockNr].ConnectionHandle = clientFd;
-		SocketAdminList[sockNr].RemotePort = client_addr.sin_port;
-		SocketAdminList[sockNr].RemoteIpAddress = client_addr.sin_addr.s_addr;
+		SocketAdminList[sockNr].RemotePort = RemotePort;
+		SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 		SocketAdminList[sockNr].SocketState = SOCKET_TCP_READY;
 
 		// Check if there is any free duplicate of this socket
@@ -349,13 +315,13 @@ static void socketTcpRead(uint16 sockNr)
 		    PduInfoType pduInfo;
 
 			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
-				nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
+				nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
 				SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].ConnectionHandle);
 
 				if ((nBytes > 0) && (nBytes >= SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength)) {
 					if  (!SocketAdminList[sockNr].SocketConnectionRef->PduProvideBufferEnable) {
 						// IF-type
-						pduInfo.SduLength = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0);
+						pduInfo.SduLength = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0);
 
 						(void)PduR_SoAdIfRxIndication(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, &pduInfo);
 					} else {
@@ -364,7 +330,7 @@ static void socketTcpRead(uint16 sockNr)
 					    result = PduR_SoAdTpStartOfReception(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, &len);
 						if (result == BUFREQ_OK && len>0) {
 							pduInfo.SduLength = SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength;
-							nBytes = lwip_recv(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0);
 
 							/* Let pdur copy received data */
 							if(len < SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength)
@@ -422,26 +388,25 @@ static void socketUdpRead(uint16 sockNr)
 {
 #ifdef USE_PDUR
     BufReq_ReturnType result;
+	uint32 RemoteIpAddress;
+	uint16 RemotePort;
+	int nBytes;
+	PduInfoType pduInfo;
 
 	switch (SocketAdminList[sockNr].SocketConnectionRef->AutosarConnectorType) {
 	case SOAD_AUTOSAR_CONNECTOR_PDUR:
 		if (SocketAdminList[sockNr].SocketRouteRef != NULL) {
-			struct sockaddr_in fromAddr;
-			socklen_t fromAddrLen = sizeof(fromAddr);
-			int nBytes;
-			PduInfoType pduInfo;
-
 			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
-			    nBytes = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK, (struct sockaddr*)&fromAddr, &fromAddrLen);
+			    nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK, &RemoteIpAddress, &RemotePort);
 				SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].SocketHandle);
 
 				if (nBytes > 0){
 					if(nBytes >= SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength) {
 						if  (!SocketAdminList[sockNr].SocketConnectionRef->PduProvideBufferEnable) {
 							// IF-type
-							pduInfo.SduLength = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0, (struct sockaddr*)&fromAddr, &fromAddrLen);
-							SocketAdminList[sockNr].RemotePort = fromAddr.sin_port;
-							SocketAdminList[sockNr].RemoteIpAddress = fromAddr.sin_addr.s_addr;
+							pduInfo.SduLength = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, 0, &RemoteIpAddress, &RemotePort);
+							SocketAdminList[sockNr].RemotePort = RemotePort;
+							SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 							/* NOTE Find out how autosar connector and user really shall be used. This is just one interpretation
 							 * support for XCP, CDD will have to be added later when supported */
 							switch(SocketAdminList[sockNr].SocketRouteRef->UserRxIndicationUL){
@@ -460,9 +425,9 @@ static void socketUdpRead(uint16 sockNr)
 							result = PduR_SoAdTpStartOfReception(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, &len);
 							if (result == BUFREQ_OK && len > 0) {
 								pduInfo.SduLength = SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength;
-								nBytes = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength,0, (struct sockaddr*)&fromAddr, &fromAddrLen);
-								SocketAdminList[sockNr].RemotePort = fromAddr.sin_port;
-								SocketAdminList[sockNr].RemoteIpAddress = fromAddr.sin_addr.s_addr;
+								nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, 0, &RemoteIpAddress, &RemotePort);
+								SocketAdminList[sockNr].RemotePort = RemotePort;
+									SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 
 								/* Let pdur copy received data */
 								if(len < SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength)
@@ -799,7 +764,12 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 /** @req SOAD193 */
 void TcpIp_Init(void)
 {
+	#ifdef USE_LWIP
     LwIP_Init();
+	#endif
+	#ifdef USE_UIP
+	/* contiki uip socket is started up by EcuM */
+	#endif
 }
 
 
