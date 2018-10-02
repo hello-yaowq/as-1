@@ -242,18 +242,18 @@ static void socketCreate(uint16 sockNr)
                 	SocketAdminList[sockNr].SocketHandle = sockFd;
                 	SocketAdminList[sockNr].SocketState = SOCKET_TCP_LISTENING;
                 } else {
-                    ASLOG(SOAD,"SoAd listen socket[%d] failed.\n",sockNr);
+                    ASLOG(SOADE,"SoAd listen socket[%d] failed.\n",sockNr);
                 	SoAd_SocketCloseImpl(sockFd);
                 }
             }
     	} else {
-            ASLOG(SOAD,"SoAd bind socket[%d] failed.\n",sockNr);
+            ASLOG(SOADE,"SoAd bind socket[%d] failed.\n",sockNr);
     		SoAd_SocketCloseImpl(sockFd);
     	}
     } else {
     	// Socket creation failed
     	// Do nothing, try again later
-        ASLOG(SOAD,"SoAd create socket[%d] failed! try again later.\n",sockNr);
+        ASLOG(SOADE,"SoAd create socket[%d] failed! try again later.\n",sockNr);
     }
 }
 

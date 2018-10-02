@@ -71,8 +71,8 @@ if('LWIP' in MODULES):
 if('UIP' in MODULES):
     uip=Package('contiki')
     asenv.Append(CPPPATH=['%s/cpu/native'%(uip)])
-    asenv.Append(LIBS=['iphlpapi'])
     if(IsPlatformWindows()):
+        asenv.Append(LIBS=['iphlpapi'])
         objs += Glob('%s/cpu/native/net/wpcap*.c'%(uip))
     else:
         objs += Glob('%s/cpu/native/net/tapdev.c'%(uip))

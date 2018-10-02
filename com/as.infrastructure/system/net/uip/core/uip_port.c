@@ -62,6 +62,8 @@ PROCESS_THREAD(protoUIPMain, ev, data)
 	process_start(&tcp_socket_process, NULL);
 
 	for(;;) {
+		process_poll(&ethernet_process);
+		process_poll(&protoUIPMain);
 		PROCESS_YIELD();
 	}
 	PROCESS_END();

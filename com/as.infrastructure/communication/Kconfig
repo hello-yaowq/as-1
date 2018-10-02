@@ -32,7 +32,7 @@ config COMM
 
 config DOIP
 	bool "Diagnostic Over IP"
-	depends on LWIP
+	depends on SOAD
 	default y
 
 config NM

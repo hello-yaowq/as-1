@@ -23,6 +23,8 @@
 
 #ifdef USE_UIP
 #include "contiki-net.h"
+uint16_t htons(uint16_t n);
+uint32_t inet_addr(const char *cp);
 #endif
 
 #endif /* BSD_H */

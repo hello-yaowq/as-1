@@ -10,15 +10,213 @@
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
 #if defined(USE_SOAD) && defined(USE_UIP)
-/* ============================ [ INCLUDES  ] ====================================================== */
-/* ============================ [ MACROS    ] ====================================================== */
-/* ============================ [ TYPES     ] ====================================================== */
-/* ============================ [ DECLARES  ] ====================================================== */
-/* ============================ [ DATAS     ] ====================================================== */
-/* ============================ [ LOCALS    ] ====================================================== */
+/* ============================ [ INCLUDES] ====================================================== */
+#include "Bsd.h"
+#include "SoAd_Internal.h"
+#include "asdebug.h"
+/* ============================ [ MACROS] ====================================================== */
+#define AS_LOG_SOAD  0
+#define AS_LOG_SOADE 1
+
+#ifndef SOAD_TCP_SOCKET_NUM
+#define SOAD_TCP_SOCKET_NUM (2*SOAD_SOCKET_COUNT)
+#endif
+#ifndef SOAD_TX_BUFFER_SIZE
+#define SOAD_TX_BUFFER_SIZE SOAD_RX_BUFFER_SIZE
+#endif
+/* ============================ [ TYPES] ====================================================== */
+/* ============================ [ DECLARES] ====================================================== */
+/* ============================ [ DATAS] ====================================================== */
+static struct tcp_socket tcpSocket[SOAD_TCP_SOCKET_NUM];
+static uint8  tcpBufRx[SOAD_TCP_SOCKET_NUM][SOAD_RX_BUFFER_SIZE];
+static uint8  tcpBufTx[SOAD_TCP_SOCKET_NUM][SOAD_TX_BUFFER_SIZE];
+static uint32 tcpSocketFlag = 0;
+static uint32 tcpSocketConnectFlag = 0;
+static uint8* tcpSocketDatatPtr[SOAD_TCP_SOCKET_NUM];
+static uint32 tcpSocketDatatLen[SOAD_TCP_SOCKET_NUM];
+/* ============================ [ LOCALS] ====================================================== */
+int tcp_socket_data_callback(struct tcp_socket *s,
+							 void *ptr,
+							 const uint8_t *input_data_ptr,
+							 int input_data_len)
+{
+	int slot = (int)ptr;
+	asAssert(slot == (s-tcpSocket));
+	ASLOG(SOAD, "%s(%d)\n", __func__, slot);
+
+	if(NULL == tcpSocketDatatPtr[slot])
+	{
+		tcpSocketDatatPtr[slot] = input_data_ptr;
+		tcpSocketDatatLen[slot] = input_data_len;
+	}
+	else
+	{
+		ASLOG(SOADE, "%s(%d) data coming too fast!\n", __func__, slot);
+	}
+
+	return input_data_len;
+}
+
+void tcp_socket_event_callback(struct tcp_socket *s,
+							   void *ptr,
+							   tcp_socket_event_t event)
+{
+	int slot = (int)ptr;
+	asAssert(slot == (s-tcpSocket));
+	ASLOG(SOAD, "%s(%d, %d)\n", __func__, slot, event);
+	switch(event) {
+		case TCP_SOCKET_CONNECTED:
+			tcpSocketConnectFlag |= 1<<slot;
+			break;
+		case TCP_SOCKET_CLOSED:
+			tcp_socket_unregister(s);
+			tcpSocketFlag &= ~(1<<slot);
+			break;
+		case TCP_SOCKET_TIMEDOUT:
+			tcp_socket_close(s);
+			break;
+		case TCP_SOCKET_ABORTED:
+			tcp_socket_close(s);
+			break;
+		case TCP_SOCKET_DATA_SENT:
+			/* do nothing */
+			break;
+		default:
+			break;
+	}
+
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
+int SoAd_SocketCloseImpl(int s)
+{
+	int r = -1;
+	if((s < 32) && ((1<<s)&tcpSocketFlag))
+	{
+		tcp_socket_close(&tcpSocket[s]);
+		r = 0;
+	}
+	else
+	{
+		s = s - 32;
+		/* TODO: for UDP */
+	}
+	return r;
+}
+
+int SoAd_SocketStatusCheckImpl(int s)
+{
+	return 0;
+}
+
+int SoAd_SendImpl(int s, const void *data, size_t size, int flags)
+{
+	int r = 0;
+
+	if((s < 32) && ((1<<s)&tcpSocketFlag))
+	{
+		r = tcp_socket_send(&tcpSocket[s], data, size);
+	}
+
+	return r;
+}
+
+int SoAd_SendToImpl(int s, const void *data, size_t size, uint32 RemoteIpAddress, uint16 RemotePort)
+{
+	return SoAd_SendImpl(s, data, size, 0);
+}
+
+int SoAd_CreateSocketImpl(int domain, int type, int protocol)
+{
+	int r = -1;
+	int slot;
+	if((SOCK_STREAM == type) && (0xFFFFFFFFUL != tcpSocketFlag))
+	{
+		slot = ffs(~tcpSocketFlag) - 1;
+		if(slot < SOAD_TCP_SOCKET_NUM)
+		{
+			tcpSocket[slot].ptr = (void*)slot;
+			tcp_socket_register(&tcpSocket[slot], NULL,
+							tcpBufRx[slot], sizeof(tcpBufRx[slot]),
+							tcpBufTx[slot], sizeof(tcpBufTx[slot]),
+							tcp_socket_data_callback, tcp_socket_event_callback);
+			tcpSocketFlag |= 1<<slot;
+			tcpSocketConnectFlag &= ~(1<<slot);
+			tcpSocketDatatPtr[slot] = NULL;
+			r = slot;
+		}
+
+	}
+	else
+	{
+		ASLOG(SOADE, "socket on UIP UDP not supported!\n");
+	}
+	return r;
+}
+
+int SoAd_BindImpl(int s, uint16 SocketLocalPort)
+{
+	int r = -1;
+	if((s < 32) && ((1<<s)&tcpSocketFlag))
+	{
+		tcp_socket_listen(&tcpSocket[s], SocketLocalPort);
+		r = 0;
+	}
+	return r;
+}
+
+int SoAd_ListenImpl(int s, int backlog)
+{
+	return 0;
+}
+
+int SoAd_AcceptImpl(int s, uint32 *RemoteIpAddress, uint16 *RemotePort)
+{
+	int r = -1;
+
+	if((s < 32) && ((1<<s)&tcpSocketConnectFlag))
+	{
+		tcpSocketConnectFlag &= ~(1<<s);
+		r = s;
+	}
+
+	return r;
+}
+
+int SoAd_RecvFromImpl(int s, void *mem, size_t len, int flags,
+					  uint32 *RemoteIpAddress, uint16 *RemotePort)
+{
+	return SoAd_RecvImpl(s, mem, len, flags);
+}
+
+int SoAd_RecvImpl(int s, void *mem, size_t len, int flags)
+{
+	int r = 0;
+	if((s<32) && (NULL != tcpSocketDatatPtr[s]))
+	{
+		r = len;
+		if(len > tcpSocketDatatLen[s])
+		{
+			r = tcpSocketDatatLen[s];
+		}
+		memcpy(mem, tcpSocketDatatPtr[s], len);
+
+		if(0u == (flags&MSG_PEEK))
+		{
+			tcpSocketDatatLen[s] -= r;
+			if(0 == tcpSocketDatatLen[s])
+			{
+				tcpSocketDatatPtr[s] == NULL;
+			}
+			else
+			{
+				tcpSocketDatatPtr[s] += r;
+			}
+		}
+	}
+	return r;
+}
 #endif

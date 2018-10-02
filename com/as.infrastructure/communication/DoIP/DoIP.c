@@ -105,12 +105,12 @@ static void discardIpMessage(uint16 socketHandle, uint16 len, uint8 *rxBuffer)
 	// Discarding this message
 	while(len > SOAD_RX_BUFFER_SIZE)
 	{
-		(void)lwip_recv(socketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, 0);
+		(void)SoAd_RecvImpl(socketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, 0);
 		len -= SOAD_RX_BUFFER_SIZE;
 	}
 
 	if(len > 0){
-		(void)lwip_recv(socketHandle, rxBuffer, len, 0);
+		(void)SoAd_RecvImpl(socketHandle, rxBuffer, len, 0);
 	}
 }
 
@@ -1086,12 +1086,12 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 				pduInfo->SduLength = diagnosticMessageLength;
 				associateTargetWithConnectionIndex(targetIndex, connectionIndex);
 
-				(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
+				(void)SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
 
 				/* Let pdur copy received data */
 				while(len < diagnosticMessageLength)
 				{
-					len += lwip_recv(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo->SduDataPtr[len]), diagnosticMessageLength-len, 0);
+					len += SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo->SduDataPtr[len]), diagnosticMessageLength-len, 0);
 				}
 
 				/* Finished reception */
@@ -1132,7 +1132,7 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 	uint16 payloadLength;
 
 	if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &rxBuffer)) {
-		nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
+		nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK);
 		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].ConnectionHandle);
 		if (nBytes >= 8) {
 			ASMEM(DOIP,"RX",rxBuffer,nBytes);
@@ -1147,44 +1147,44 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 						switch (payloadType) {
 #if 0 /* Vehicle identification requests are not to be supported over TCP */
 						case 0x0001:	// Vehicle Identification Request
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_ALL);
 							break;
 
 						case 0x0002:	// Vehicle Identification Request with EID
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_EID);
 							break;
 
 						case 0x0003:	// Vehicle Identification Request with VIN
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_VIN);
 							break;
 #endif /* Vehicle identification requests are not to be supported over TCP */
 
 						case 0x005:		// Routing Activation request
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleRoutingActivationReq(sockNr, payloadLength, rxBuffer);
 							break;
 
 						case 0x008:     // Alive check response
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleAliveCheckResp(sockNr, payloadLength, rxBuffer);
 							break;
 
 						case 0x4003:
 							// @req SWS_DoIP_00090
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							createAndSendNack(sockNr, DOIP_E_INVALID_PAYLOAD_LENGTH);
 							break;
 
 						case 0x8001:	// Diagnostic message
-							//nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							//nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleDiagnosticMessage(sockNr, payloadLength, rxBuffer);
 							break;
 
 						default:
-							nBytes = lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							createAndSendNack(sockNr, DOIP_E_UNKNOWN_PAYLOAD_TYPE);
 							break;
 						}
@@ -1213,11 +1213,11 @@ void DoIp_HandleUdpRx(uint16 sockNr)
 	uint8* rxBuffer;
 	uint16 payloadType;
 	uint16 payloadLength;
-	struct sockaddr_in fromAddr;
-    socklen_t fromAddrLen = sizeof(fromAddr);
+	uint32 RemoteIpAddress;
+	uint16 RemotePort;
 
 	if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &rxBuffer)) {
-	    nBytes = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK, (struct sockaddr*)&fromAddr, &fromAddrLen);
+	    nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK, &RemoteIpAddress, &RemotePort);
 		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].SocketHandle);
 		if (nBytes >= 8) {
 			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
@@ -1228,9 +1228,9 @@ void DoIp_HandleUdpRx(uint16 sockNr)
 				if ((payloadLength + 8) <= SOAD_RX_BUFFER_SIZE) {
 					if ((payloadLength + 8) <= nBytes) {
 						// Grab the message
-						nBytes = lwip_recvfrom(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, (struct sockaddr*)&fromAddr, &fromAddrLen);
-						SocketAdminList[sockNr].RemotePort = fromAddr.sin_port;
-						SocketAdminList[sockNr].RemoteIpAddress = fromAddr.sin_addr.s_addr;
+						nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, &RemoteIpAddress, &RemotePort);
+						SocketAdminList[sockNr].RemotePort = RemotePort;
+						SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 						switch (payloadType) {
 						
 						case 0x0001:	// Vehicle Identification Request
