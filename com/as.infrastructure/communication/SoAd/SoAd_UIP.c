@@ -36,22 +36,32 @@ static uint8  tcpBufRx[SOAD_TCP_SOCKET_NUM][SOAD_RX_BUFFER_SIZE];
 static uint8  tcpBufTx[SOAD_TCP_SOCKET_NUM][SOAD_TX_BUFFER_SIZE];
 static uint32 tcpSocketFlag = 0;
 static uint32 tcpSocketConnectFlag = 0;
-static uint8* tcpSocketDatatPtr[SOAD_TCP_SOCKET_NUM];
-static uint32 tcpSocketDatatLen[SOAD_TCP_SOCKET_NUM];
+static const uint8* tcpSocketDatatPtr[SOAD_TCP_SOCKET_NUM];
+static int          tcpSocketDatatLen[SOAD_TCP_SOCKET_NUM];
 /* ============================ [ LOCALS] ====================================================== */
 int tcp_socket_data_callback(struct tcp_socket *s,
 							 void *ptr,
 							 const uint8_t *input_data_ptr,
 							 int input_data_len)
 {
-	int slot = (int)ptr;
+	int slot = (int)(long)ptr;
 	asAssert(slot == (s-tcpSocket));
 	ASLOG(SOAD, "%s(%d)\n", __func__, slot);
 
 	if(NULL == tcpSocketDatatPtr[slot])
 	{
+		int sc = 10;
 		tcpSocketDatatPtr[slot] = input_data_ptr;
 		tcpSocketDatatLen[slot] = input_data_len;
+
+		while(--sc > 0)
+		{   /* dispatch this message by SoAd */
+			SoAd_MainFunction();
+			#ifdef USE_DOIP
+			extern void Dcm_MainFunction(void);
+			Dcm_MainFunction();
+			#endif
+		}
 	}
 	else
 	{
@@ -65,7 +75,7 @@ void tcp_socket_event_callback(struct tcp_socket *s,
 							   void *ptr,
 							   tcp_socket_event_t event)
 {
-	int slot = (int)ptr;
+	int slot = (int)(long)ptr;
 	asAssert(slot == (s-tcpSocket));
 	ASLOG(SOAD, "%s(%d, %d)\n", __func__, slot, event);
 	switch(event) {
@@ -73,14 +83,12 @@ void tcp_socket_event_callback(struct tcp_socket *s,
 			tcpSocketConnectFlag |= 1<<slot;
 			break;
 		case TCP_SOCKET_CLOSED:
-			tcp_socket_unregister(s);
-			tcpSocketFlag &= ~(1<<slot);
 			break;
 		case TCP_SOCKET_TIMEDOUT:
-			tcp_socket_close(s);
+			SoAd_SocketCloseImpl(slot);
 			break;
 		case TCP_SOCKET_ABORTED:
-			tcp_socket_close(s);
+			SoAd_SocketCloseImpl(slot);
 			break;
 		case TCP_SOCKET_DATA_SENT:
 			/* do nothing */
@@ -88,15 +96,19 @@ void tcp_socket_event_callback(struct tcp_socket *s,
 		default:
 			break;
 	}
-
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
 int SoAd_SocketCloseImpl(int s)
 {
 	int r = -1;
+
+	ASLOG(SOAD, "%s(%d)\n", __func__, s);
+	
 	if((s < 32) && ((1<<s)&tcpSocketFlag))
 	{
 		tcp_socket_close(&tcpSocket[s]);
+		tcp_socket_unregister(&tcpSocket[s]);
+		tcpSocketFlag &= ~(1<<s);
 		r = 0;
 	}
 	else
@@ -138,7 +150,7 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 		slot = ffs(~tcpSocketFlag) - 1;
 		if(slot < SOAD_TCP_SOCKET_NUM)
 		{
-			tcpSocket[slot].ptr = (void*)slot;
+			tcpSocket[slot].ptr = (void*)(long)slot;
 			tcp_socket_register(&tcpSocket[slot], NULL,
 							tcpBufRx[slot], sizeof(tcpBufRx[slot]),
 							tcpBufTx[slot], sizeof(tcpBufTx[slot]),
@@ -202,21 +214,33 @@ int SoAd_RecvImpl(int s, void *mem, size_t len, int flags)
 		{
 			r = tcpSocketDatatLen[s];
 		}
-		memcpy(mem, tcpSocketDatatPtr[s], len);
+
+		memcpy(mem, tcpSocketDatatPtr[s], r);
 
 		if(0u == (flags&MSG_PEEK))
 		{
 			tcpSocketDatatLen[s] -= r;
-			if(0 == tcpSocketDatatLen[s])
+
+			if(0u == tcpSocketDatatLen[s])
 			{
-				tcpSocketDatatPtr[s] == NULL;
+				tcpSocketDatatPtr[s] = NULL;
 			}
 			else
 			{
 				tcpSocketDatatPtr[s] += r;
 			}
 		}
+
+		if(0u == tcpSocketDatatLen[s])
+		{
+			tcpSocketDatatPtr[s] = NULL;
+		}
+
+		ASLOG(SOAD, "uip socket[%d]: %s %d bytes, left %d bytes.\n",
+			  s, (flags&MSG_PEEK)?"peek":"recv", r, tcpSocketDatatLen[s]);
+		ASMEM(SOAD, "", mem, r);
 	}
+
 	return r;
 }
 #endif
