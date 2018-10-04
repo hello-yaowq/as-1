@@ -22,6 +22,17 @@ objs += Glob('core/net/ipv4/*.c')
 objs += Glob('core/net/ip/*.c')
 objs += Glob('core/*.c')
 
+if('SOAD' in MODULES):
+    lwip = Package('lwip')
+    objs += Glob('%s/src/core/ipv4/ip_addr.c'%(lwip))
+    objs += Glob('%s/src/core/def.c'%(lwip))
+    asenv.Append(CPPPATH=['%s/src/include'%(lwip),
+                          '%s/src/include/ipv4'%(lwip),
+                          '%s/com/as.infrastructure/arch/common/lwip'%(ASROOT)])
+    asenv.Append(CPPDEFINES=['ipaddr_addr=inet_addr'])
+
+asenv.Append(CPPDEFINES=['UIP_CONF_BUFFER_SIZE=512'])
+    
 SrcRemove(objs, ['uip-over-mesh.c','slipdev.c','dhcpc.c'])
 
 Return('objs')

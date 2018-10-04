@@ -69,14 +69,20 @@ config STMO
 	  This driver is used to simulate the step motor which if usually used by
 	  instrument cluster as gauge pointer.
 
+choice
+	prompt "ethernet driver"
+	default LWIP_DRV
+
 config LWIP_DRV
 	bool "LWIP driver"
-	default y
 
 config UIP_DRV
-	bool "micro IP from contiki"
-	depends on (!LWIP_DRV && PROTOTHREAD)
-	default n
+	bool "micro IP driver from contiki"
+
+config NO_ETH_DRV
+	   bool "disabled"
+
+endchoice
 
 config AWS
 	bool "AS remote websock device"

@@ -23,7 +23,7 @@
 
 #ifdef USE_UIP
 #include "contiki-net.h"
-uint16_t htons(uint16_t n);
+#define htons(val)  UIP_HTONS(val)
 uint32_t inet_addr(const char *cp);
 #endif
 

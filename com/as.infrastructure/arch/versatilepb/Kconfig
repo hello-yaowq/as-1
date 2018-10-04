@@ -39,10 +39,22 @@ config MCU
 	bool "MCAL MCU driver"
 	default y
 
+choice
+	prompt "ethernet driver"
+	default LWIP_DRV
+
 config LWIP_DRV
 	bool "LWIP driver"
 	depends on PCI
-	default y
+
+config UIP_DRV
+	bool "micro IP driver from contiki"
+	depends on PCI
+
+config NO_ETH_DRV
+	   bool "disabled"
+
+endchoice
 
 endmenu
 endif

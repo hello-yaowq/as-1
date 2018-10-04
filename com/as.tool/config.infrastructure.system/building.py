@@ -751,7 +751,7 @@ class Qemu():
             fp = open('%s/qemu.sh'%(build),'w')
             fp.write('%s %s %s & sh %s/telnet.sh\nsleep 60\n'%(self.qemu,params,self.params,build))
             fp.close()
-            RunCommand('sudo pgrep qemu-system-%s | xargs -i kill -9 {}'%(self.arch))
+            RunCommand('sudo pgrep qemu-system-%s | xargs -i sudo kill -9 {}'%(self.arch))
             RunCommand('cd %s && chmod +x %s/*.sh && sudo gnome-terminal -x %s/qemu.sh'%(build,build,build))
         exit(0)
 

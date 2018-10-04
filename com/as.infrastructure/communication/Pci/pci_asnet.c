@@ -17,6 +17,12 @@
 #include "Os.h"
 #include "pci_core.h"
 #include "asdebug.h"
+#include "Bsd.h"
+#ifdef USE_UIP
+#include "contiki-net.h"
+#include "net/ip/uip.h"
+#include "net/ip/uipopt.h"
+#endif
 #ifdef USE_LWIP
 #include "lwip/opt.h"
 #include "lwip/arch.h"
@@ -40,6 +46,7 @@
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_ETH 1
+#define AS_LOG_ETHE 1
 
 #define IFNAME0 't'
 #define IFNAME1 'p'
@@ -65,6 +72,11 @@ enum{
 };
 
 #define MAX_ADDR_LEN 6
+
+#ifdef USE_UIP
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #if defined(USE_STDRT) && defined(RT_USING_LWIP)
 struct tap_netif
@@ -91,6 +103,10 @@ static char pkbuf[1514];
 #if defined(USE_STDRT) && defined(RT_USING_LWIP)
 static struct tap_netif tap_netif_device;
 static struct rt_semaphore sem_lock;
+#endif
+
+#ifdef USE_UIP
+PROCESS(ethernet_process, "uip driver");
 #endif
 /* ============================ [ LOCALS    ] ====================================================== */
 #if defined(USE_STDRT) && defined(RT_USING_LWIP)
@@ -528,4 +544,140 @@ void tap_netif_hw_init(void)
 	eth_device_init(&(tap_netif_device.parent), "e0");
 }
 #endif /* USE_STDRT */
+
+#ifdef USE_UIP
+static void ethernet_send(void)
+{
+	char *bufptr;
+	uint32 pos = 0;
+	imask_t irq_state;
+	uint32 tot_len;
+
+	if(NULL == __iobase) return;
+
+	Irq_Save(irq_state);
+
+	tot_len = uip_len;
+	/* signal that packet should be sent(); */
+	writel(__iobase+REG_LENGTH, uip_len);
+	while(tot_len > 0)
+	{
+		writel(__iobase+REG_DATA,*((uint8*)&uip_buf[pos]));
+		pos += 1;
+		tot_len -= 1;
+	}
+	writel(__iobase+REG_CMD, 1);
+	Irq_Restore(irq_state);
+}
+
+#if !NETSTACK_CONF_WITH_IPV6
+static uint8_t ethernet_output(void)
+{
+   uip_arp_out();
+   ethernet_send();  
+   return 0;
+}
+#endif
+
+static uint16_t ethernet_poll(void)
+{
+	int size = 0;
+	uint32 flag;
+	imask_t irq_state;
+	uint16 len,pos;
+	Irq_Save(irq_state);
+	if(__iobase != NULL)
+	{
+		flag = readl(__iobase+REG_NETSTATUS);
+		if(flag&FLG_RX)
+		{
+			size = len = readl(__iobase+REG_LENGTH);
+			if(size > UIP_BUFSIZE)
+			{
+				ASLOG(ETHE, "uip input buffer(%d bytes) is not enough for packet with size %d bytes.\n", UIP_BUFSIZE, size);
+				size = len = UIP_BUFSIZE;
+			}
+			if(size > 0)
+			{
+				pos = 0;
+				while(len > 0)
+				{
+					uip_buf[pos] = readl(__iobase+REG_DATA);
+					pos ++;
+					len --;
+				}
+			}
+		}
+	}
+	Irq_Restore(irq_state);
+	return size;
+}
+
+static void ethernet_exit(void)
+{
+}
+
+static void ethernet_init(void)
+{
+	uint32 mtu;
+	uint8 hwaddr[6];
+	PciNet_Init(inet_addr("172.18.0.1"), inet_addr("255.255.255.0"), hwaddr,&mtu);
+
+	ASLOG(ETH,"hwaddr is %02X:%02X:%02X:%02X:%02X:%02X, mtu=%d\n",
+			hwaddr[0],hwaddr[1],hwaddr[2],
+			hwaddr[3],hwaddr[4],hwaddr[5],
+			mtu);
+}
+
+static void pollhandler(void)
+{
+  uip_len = ethernet_poll();
+
+  if(uip_len > 0) {
+#if NETSTACK_CONF_WITH_IPV6
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
+      tcpip_input();
+    } else
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+    if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
+      uip_len -= sizeof(struct uip_eth_hdr);
+      tcpip_input();
+    } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
+#if !NETSTACK_CONF_WITH_IPV6 //math
+       uip_arp_arpin();
+       /* If the above function invocation resulted in data that
+	  should be sent out on the network, the global variable
+	  uip_len is set to a value > 0. */
+       if(uip_len > 0) {
+	  ethernet_send();
+       }
+#endif              
+    } else {
+      uip_clear_buf();
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(ethernet_process, ev, data)
+{
+  PROCESS_POLLHANDLER(pollhandler());
+
+  PROCESS_BEGIN();
+
+  ethernet_init();
+#if !NETSTACK_CONF_WITH_IPV6
+  tcpip_set_outputfunc(ethernet_output);
+#else
+  tcpip_set_outputfunc(ethernet_send);
+#endif
+  process_poll(&ethernet_process);
+
+  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+  ethernet_exit();
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+#endif /* USE_UIP */
 #endif /* USE_PCI */
