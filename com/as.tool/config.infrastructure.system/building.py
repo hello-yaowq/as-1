@@ -995,7 +995,7 @@ def MemoryUsage(target, objs):
     def Summary(filename):
         with open(filename, 'rb') as f:
             elf = ELFFile(f)
-            summary = { 'obj': os.path.basename(filename)}
+            summary = { 'obj': os.path.basename(filename), 'full_name': filename }
             for sec in elf.iter_sections():
                 ss = sec.name.split('.')
                 if(len(ss) <= 1 ): continue
@@ -1006,7 +1006,7 @@ def MemoryUsage(target, objs):
                     summary[name] = len(sec.data())
         return summary
 
-    secs = ['obj']
+    secs = ['full_name','obj']
     summ = Summary(target)
     for key,_ in summ.items():
         if(key not in secs):

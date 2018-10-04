@@ -90,7 +90,8 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ```
 
 ## 7. Other 3rd part package
-* [LWIP](http://savannah.nongnu.org/projects/lwip/)
+* [LWIP](http://savannah.nongnu.org/projects/lwip/): about text:133Kb, data:11Kb
+* [contiki-net](http://contiki-os.org/): about text:54Kb(including the protothread), data:4Kb
 * [afbinder/websock](https://github.com/automotive-grade-linux/docs-agl/blob/master/docs/app-framework/index.md)
 * qemu PCI sample driver: [asnet](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asnet.c) [ascan](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/ascan.c) [asblk](https://github.com/parai/as/blob/master/com/as.tool/qemu/hw/char/asblk.c)
 * [FatFS](http://elm-chan.org/fsw/ff/00index_e.html)
