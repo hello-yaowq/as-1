@@ -619,18 +619,18 @@ static uint16_t ethernet_poll(void)
 
 static void ethernet_exit(void)
 {
+	ASLOG(ETHE, "ethernet exit is not supported\n");
 }
 
 static void ethernet_init(void)
 {
 	uint32 mtu;
-	uint8 hwaddr[6];
-	PciNet_Init(inet_addr("172.18.0.1"), inet_addr("255.255.255.0"), hwaddr,&mtu);
+	PciNet_Init(inet_addr("172.18.0.1"), inet_addr("255.255.255.0"), uip_lladdr.addr, &mtu);
 
 	ASLOG(ETH,"hwaddr is %02X:%02X:%02X:%02X:%02X:%02X, mtu=%d\n",
-			hwaddr[0],hwaddr[1],hwaddr[2],
-			hwaddr[3],hwaddr[4],hwaddr[5],
-			mtu);
+		  uip_lladdr.addr[0],uip_lladdr.addr[1],uip_lladdr.addr[2],
+		  uip_lladdr.addr[3],uip_lladdr.addr[4],uip_lladdr.addr[5],
+		  mtu);
 }
 
 static void pollhandler(void)
