@@ -7,6 +7,7 @@ config LWIP
 config UIP
 	bool "UIP"
 	depends on UIP_DRV
+	select PROTOTHREAD
 	default y
 
 if !RTTHREAD

@@ -3,6 +3,7 @@ from building import *
 Import('asenv')
 MODULES = asenv['MODULES']
 ASROOT = asenv['ASROOT']
+BOARD = asenv['BOARD']
 cwd = GetCurrentDir()
 
 uip=Package('https://github.com/contiki-os/contiki.git', version='release-3-1')
@@ -22,7 +23,7 @@ objs += Glob('core/net/ipv4/*.c')
 objs += Glob('core/net/ip/*.c')
 objs += Glob('core/*.c')
 
-if('SOAD' in MODULES):
+if(('SOAD' in MODULES) and (BOARD != 'posix')):
     lwip = Package('lwip')
     objs += Glob('%s/src/core/ipv4/ip_addr.c'%(lwip))
     objs += Glob('%s/src/core/def.c'%(lwip))

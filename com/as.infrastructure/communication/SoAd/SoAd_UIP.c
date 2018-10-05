@@ -30,6 +30,7 @@
 #endif
 /* ============================ [ TYPES] ====================================================== */
 /* ============================ [ DECLARES] ====================================================== */
+extern int  ffs(int v);
 /* ============================ [ DATAS] ====================================================== */
 static struct tcp_socket tcpSocket[SOAD_TCP_SOCKET_NUM];
 static uint8  tcpBufRx[SOAD_TCP_SOCKET_NUM][SOAD_RX_BUFFER_SIZE];
@@ -148,6 +149,7 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 	if((SOCK_STREAM == type) && (0xFFFFFFFFUL != tcpSocketFlag))
 	{
 		slot = ffs(~tcpSocketFlag) - 1;
+		ASLOG(SOAD, "create uip socket on slot %d\n", slot);
 		if(slot < SOAD_TCP_SOCKET_NUM)
 		{
 			tcpSocket[slot].ptr = (void*)(long)slot;

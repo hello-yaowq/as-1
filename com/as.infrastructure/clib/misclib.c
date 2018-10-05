@@ -702,3 +702,20 @@ pinkie_sscanf_match:
 
     return args;
 }
+#ifdef __WINDOWS__
+int  ffs(int v)
+{
+	int i;
+	int r = 0;
+	for(i=0;i<32;i++)
+	{
+		if(v&(1<<i))
+		{
+			r = i+1;
+			break;
+		}
+	}
+
+	return r;
+}
+#endif

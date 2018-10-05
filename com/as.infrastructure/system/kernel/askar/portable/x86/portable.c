@@ -180,6 +180,7 @@ int ffs(int v)
 		if(v&(1<<i))
 		{
 			r = i+1;
+			break;
 		}
 	}
 
