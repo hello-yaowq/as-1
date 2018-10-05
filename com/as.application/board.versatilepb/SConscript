@@ -84,6 +84,7 @@ if(asenv['RELEASE']=='asboot'):
         MODULES = ['ECUM','SCHM','MCU','DET',
                'CAN','CANIF','PDUR','CANTP',
                'DCM','XCP',
+               'UIP','SOAD','DOIP','PROTOTHREAD',
                'FLASH',
                'PCI',
                'CLIB_ASHEAP','CLIB_MISCLIB',

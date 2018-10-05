@@ -53,6 +53,11 @@ SECTIONS {
 	 **/
 	.text : {
 		*(.text)
+		. = ALIGN(4);
+        autostart_processes = .;
+        KEEP(*(ProtoSymTab))
+        KEEP(*(ProtoSymTabEnd))
+
 	} > RAM
     _etext = .;
 

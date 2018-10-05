@@ -239,6 +239,9 @@ def GenH():
 #if defined(USE_CANTP)
 #include "CanTp.h"
 #endif
+#if defined(USE_SOAD)
+#include "SoAd.h"
+#endif
 
 extern const PduR_PBConfigType PduR_Config;
 

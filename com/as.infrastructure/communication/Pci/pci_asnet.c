@@ -50,9 +50,9 @@
 
 #define IFNAME0 't'
 #define IFNAME1 'p'
-
+#ifndef PACKET_LIB_ADAPTER_NR
 #define PACKET_LIB_ADAPTER_NR 0
-
+#endif
 enum {
 	FLG_RX = 0x01,
 	FLG_TX = 0x02,
@@ -221,6 +221,7 @@ static rt_err_t tap_netif_init(rt_device_t dev)
 	enable_pci_interrupt(pdev);
 
 #ifdef USE_PCAPIF
+	ASLOG(ETH, "using adapter %d\n", PACKET_LIB_ADAPTER_NR);
 	writel(__iobase+REG_ADAPTERID, PACKET_LIB_ADAPTER_NR);
 	writel(__iobase+REG_MACH,0xdeadbeef);
 	writel(__iobase+REG_MACL,0xdeadbeef);
@@ -385,6 +386,7 @@ void PciNet_Init(uint32 gw, uint32 netmask, uint8* hwaddr, uint32* mtu)
 		enable_pci_interrupt(pdev);
 
 #ifdef USE_PCAPIF
+		ASLOG(ETH, "using adapter %d, gw/netmask=%08X/%08X\n", PACKET_LIB_ADAPTER_NR, gw, netmask);
 		writel(__iobase+REG_ADAPTERID, PACKET_LIB_ADAPTER_NR);
 		writel(__iobase+REG_MACH,0xdeadbeef);
 		writel(__iobase+REG_MACL,0xdeadbeef);
@@ -555,6 +557,8 @@ static void ethernet_send(void)
 
 	if(NULL == __iobase) return;
 
+	//ASMEM(ETH, "TX", uip_buf, uip_len);
+
 	Irq_Save(irq_state);
 
 	tot_len = uip_len;
@@ -634,6 +638,7 @@ static void pollhandler(void)
   uip_len = ethernet_poll();
 
   if(uip_len > 0) {
+	  //ASMEM(ETH, "RX", uip_buf, uip_len);
 #if NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();

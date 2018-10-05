@@ -17,6 +17,8 @@
 <Pdu Comment="*" Name="RxDiagP2P" Size="64" />
 <Pdu Comment="*" Name="XCP_RX" Size="64" />
 <Pdu Comment="*" Name="XCP_TX" Size="64" />
+<Pdu Comment="*" Name="SOAD_RX" Size="64" />
+<Pdu Comment="*" Name="SOAD_TX" Size="64" />
 </PduList>
 </EcuC>
 <Can>
@@ -61,7 +63,7 @@
 </TxSduList>
 </CanTp>
 <PduR>
-<General CanIfUsed="False" CanTpUsed="True" ComUsed="False" Comment="*" DcmUsed="True" DevelopmentErrorDetection="ON" J1939TpUsed="False" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="ON" ZeroCostTp="CanTp" />
+<General CanIfUsed="False" CanTpUsed="True" ComUsed="False" Comment="*" DcmUsed="True" DevelopmentErrorDetection="ON" J1939TpUsed="False" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="OFF" ZeroCostTp="CanTp" />
 <RoutineList Max="TBD">
 <Source Comment="*" Module="Dcm" Name="DcmP2P" PduRef="TxDiagP2P">
 <DestinationList Max="TBD">
@@ -71,6 +73,16 @@
 <Source Comment="*" Module="CanTp" Name="CanTpP2P" PduRef="RxDiagP2P">
 <DestinationList Max="TBD">
 <Destination Comment="*" Module="Dcm" Name="DcmP2P" PduRef="RxDiagP2P" />
+</DestinationList>
+</Source>
+<Source Comment="*" Module="Dcm" Name="DoIP_TX" PduRef="SOAD_TX">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="SoAdTp" Name="Destination1" PduRef="SOAD_TX" />
+</DestinationList>
+</Source>
+<Source Comment="*" Module="SoAdTp" Name="DoIP_RX" PduRef="SOAD_RX">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="Dcm" Name="Destination1" PduRef="SOAD_RX" />
 </DestinationList>
 </Source>
 </RoutineList>
@@ -216,6 +228,16 @@
 <RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="RxDiagP2P" />
 </RxChannelList>
 <TxChannel Comment="*" Name="TxChannel2" PduRef="TxDiagP2P" />
+</Connection>
+</ConnectionList>
+</Protocol>
+<Protocol Comment="*" Name="DoIP" ProtocolID="UDS_ON_DOIP" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
+<ConnectionList Max="TBD">
+<Connection Comment="*" Name="Connection1">
+<RxChannelList Max="TBD">
+<RxChannel AddressingType="PHYSICAL" Comment="*" Name="RxChannel1" PduRef="SOAD_RX" />
+</RxChannelList>
+<TxChannel Comment="*" Name="TBD" PduRef="SOAD_TX" />
 </Connection>
 </ConnectionList>
 </Protocol>
