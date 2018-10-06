@@ -157,3 +157,11 @@ Irq_Enable:
     bic r0, r0, #0xc0
     msr cpsr_c, r0
     mov pc, lr
+
+    .global loadsp
+    .type   loadsp, %function
+/* void loadsp( void* sp ); */
+loadsp:
+    mov sp, r0
+    mov pc, lr
+

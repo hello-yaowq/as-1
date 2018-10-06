@@ -92,12 +92,8 @@ TASK(TaskNmInd)
 {
 	StatusType ercd;
 	EventMaskType mask;
-#if defined(__FREERTOS__)
-	ercd = E_OK;
-#else
-	ercd =
-#endif
-	WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
+	OS_TASK_BEGIN();
+	ercd = WaitEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	if(E_OK == ercd)
 	{
 		GetEvent(TASK_ID_TaskNmInd,&mask);
@@ -120,6 +116,7 @@ TASK(TaskNmInd)
 		ClearEvent(EventNmNormal|EventNmLimphome|EventNmStatus|EventRingData);
 	}
 	OsTerminateTask(TaskNmInd);
+	OS_TASK_END();
 }
 
 /* This is an example of how to write NMInit() */

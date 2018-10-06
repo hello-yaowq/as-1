@@ -97,14 +97,14 @@ void __weak TaskIdleHook(void)
 }
 TASK(TaskIdle)
 {
-#if !defined(__TINY_OS__)
+#if !defined(USE_TINYOS) && !defined(USE_CONTIKI)
 	ASLOG(STDOUT,"TaskIdle is running\n");
 	for(;;)
 	{
 #endif
 		Irq_Enable(); /* for robustness */
 		KSM_EXECUTE();
-#ifdef USE_PROTOTHREAD
+#if defined(USE_PROTOTHREAD) && !defined(USE_CONTIKI)
 		ScheduleContiki();
 #endif
 #if defined(__FREEOSEK__) \
@@ -116,7 +116,7 @@ TASK(TaskIdle)
 
 		TaskIdleHook();
 
-#if !defined(__TINY_OS__)
+#if !defined(USE_TINYOS) && !defined(USE_CONTIKI)
 	}
 #endif
 }

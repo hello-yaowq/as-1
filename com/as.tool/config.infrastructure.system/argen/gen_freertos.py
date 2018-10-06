@@ -104,7 +104,7 @@ __for_freertos_macros = \
 
 #define ActivateTask OsActivateTask_impl
 #define SetEvent     OsSetEvent_impl
-#define WaitEvent(mask)    do  { TaskType __tid;GetTaskID(&__tid);OsWaitEvent_impl(__tid,(mask)); } while(0)
+#define WaitEvent(mask)    E_OK; do  { TaskType __tid;GetTaskID(&__tid);OsWaitEvent_impl(__tid,(mask)); } while(0)
 #define GetEvent(__tid,pmask)     do  { *(pmask)=OsGetEvent_impl(__tid); } while(0)
 #define ClearEvent(mask)  do  { TaskType __tid;GetTaskID(&__tid);OsClearEvent_impl(__tid,(mask)); } while(0)
 

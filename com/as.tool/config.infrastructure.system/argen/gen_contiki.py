@@ -19,36 +19,24 @@ from .GCF import *
 
 __all__ = ['gen_contiki']
 
-def genForContikiConf_H(gendir,os_list):
-    fp = open('%s/contiki-conf.h'%(gendir),'w')
-    fp.write(__header)
-    fp.write('#ifndef CONTIKI_CONF_H\n#define CONTIKI_CONF_H\n\n')
-    fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
-    fp.write('#include "Std_Types.h"\n\n')
-    fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
-    fp.write('#define CCIF\n#define CLIF\n\n')
-    fp.write('#define AUTOSTART_ENABLE 1\n')
-    fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
-    fp.write('typedef unsigned long clock_time_t;\n\n')
-    fp.write('typedef unsigned short uip_stats_t;\n')
-    fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
-    fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
-    fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
-    fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
-
-    fp.write('#endif /* CONTIKI_CONF_H */\n\n')
-    fp.close()
-      
 def genForContiki_H(gendir,os_list):
     fp = open('%s/Os_Cfg.h'%(gendir),'w')
     fp.write(__header)
     fp.write('#ifndef OS_CFG_H\n#define OS_CFG_H\n\n')
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Std_Types.h"\n')
+    fp.write('#include "contiki.h"\n')
     fp.write('#include "os_i.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('#define __CONTIKI_OS__\n\n')
     fp.write("#define OS_TICKS2MS(a) (a)\n\n")
+    fp.write('#define WaitEvent(mask) E_OK; PROCESS_WAIT_EVENT_UNTIL(taskEvcb[task_id_of(process_pt)]&(mask))\n')
+    fp.write('#define GetEvent(tskid, pmask) E_OK; *(pmask)=taskEvcb[tskid]\n')
+    fp.write('#define SetEvent(tskid, mask) E_OK; taskEvcb[tskid] |= (mask)\n')
+    fp.write('#define ClearEvent(mask) E_OK; taskEvcb[task_id_of(process_pt)] &= ~(mask)\n')
+    fp.write('#define TerminateTask() PROCESS_EXIT()\n')
+    fp.write('#define GetResource(resid) E_OK; PROCESS_WAIT_EVENT_UNTIL(rescb[resid] == 0)\n')
+    fp.write('#define ReleaseResource(resid) E_OK; rescb[resid] = 0\n')
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
         fp.write('#define TASK_ID_%-32s %-3s /* priority = %s */\n'%(GAGet(task,'Name'),id,GAGet(task,'Priority')))
@@ -74,6 +62,9 @@ def genForContiki_H(gendir,os_list):
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    fp.write('extern EventMaskType taskEvcb[TASK_NUM];\n')
+    fp.write('extern boolean       rescb[RES_NUMBER];\n')
+    fp.write('extern struct process * const TaskList[TASK_NUM];\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
@@ -83,6 +74,7 @@ def genForContiki_H(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('extern ALARM(%s);\n'%(GAGet(alarm,'Name')))
     fp.write('\n\n')
+    fp.write('TaskType task_id_of(struct pt* process_pt);\n\n')
     fp.write('#endif /* OS_CFG_H */\n\n')
     fp.close()
 def genForContiki_C(gendir,os_list):
@@ -90,31 +82,44 @@ def genForContiki_C(gendir,os_list):
     fp.write(__header)
     fp.write('/* ============================ [ INCLUDES  ] ====================================================== */\n')
     fp.write('#include "Os.h"\n')
+    fp.write('#include "asdebug.h"\n')
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     task_list = ScanFrom(os_list,'Task')
-    cstr=cstr2=''
+    cstr=''
     for id,task in enumerate(task_list):
         fp.write('PROCESS(%s,"%s");\n'%(GAGet(task,'Name'),GAGet(task,'Name')))
-        cstr2 += '\t&%s,\n'%(GAGet(task,'Name'))
+        cstr += '\t&%s,\n'%(GAGet(task,'Name'))
         if(GAGet(task,'Autostart').upper()=='TRUE'):
-            cstr += '\t&%s,\n'%(GAGet(task,'Name'))
-    fp.write('AUTOSTART_PROCESSES(\n%s\n);\n'%(cstr[:-2]))
-    fp.write('struct process * const TaskList[TASK_NUM] = {\n%s\n};\n'%(cstr2[:-2]))
-    
+            fp.write('PROTO_AUTOSTART_PROCESS_EXPORT(%s);\n'%(GAGet(task,'Name')))
+    fp.write('struct process * const TaskList[TASK_NUM] = {\n%s\n};\n'%(cstr[:-2]))
     alarm_list = ScanFrom(os_list,'Alarm')
     fp.write('CONST(alarm_declare_t,AUTOMATIC) AlarmList[ALARM_NUM] = \n{\n')
     for id,alarm in enumerate(alarm_list):
         fp.write('\tDeclareAlarm(%s),\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
-    
+    fp.write('EventMaskType taskEvcb[TASK_NUM];\nboolean       rescb[RES_NUMBER];\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
+    fp.write('''TaskType task_id_of(struct pt* process_pt)
+{
+    TaskType id = -1;
+    TaskType i;
+    for(i=0; i<TASK_NUM; i++)
+    {
+        if(process_pt == (&(TaskList[i]->pt)))
+        {
+            id = i;
+        }
+    }
+    asAssert(id != -1);
+    return id;
+}
+\n\n''')
     fp.close()
 
 def gen_contiki(gendir,os_list):
-    #genForContikiConf_H(gendir,os_list)
     genForContiki_H(gendir,os_list)
     genForContiki_C(gendir,os_list)

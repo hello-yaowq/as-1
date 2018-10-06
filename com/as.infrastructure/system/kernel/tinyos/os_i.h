@@ -74,7 +74,11 @@
 /*
  *  Macro for declare Task/Alarm/ISR Entry
  */
+#ifdef USE_CONTIKI
+#define TASK(TaskName)           PROCESS_THREAD(TaskName, ev, data)
+#else
 #define TASK(TaskName)        	 void TaskMain##TaskName(void)
+#endif
 #define ISR(ISRName)        	 void ISRMain##ISRName(void)
 #define ALARM(AlarmCallBackName) void AlarmMain##AlarmCallBackName(void)
 

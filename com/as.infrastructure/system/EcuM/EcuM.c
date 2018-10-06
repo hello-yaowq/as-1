@@ -220,7 +220,7 @@ void EcuM_StartupTwo(void)
 
 	set_current_state(ECUM_STATE_STARTUP_TWO);
 
-#ifdef USE_PROTOTHREAD
+#if defined(USE_PROTOTHREAD) && !defined(USE_CONTIKI)
 	StartContiki();
 #endif
 	// Initialize the BSW scheduler

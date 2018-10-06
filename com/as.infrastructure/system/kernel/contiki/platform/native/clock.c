@@ -58,3 +58,7 @@ clock_delay(unsigned int d)
   /* Does not do anything. */
 }
 /*---------------------------------------------------------------------------*/
+
+
+void __weak loadsp( void* sp ) { (void)sp; }
+

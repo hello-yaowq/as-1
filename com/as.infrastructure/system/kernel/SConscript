@@ -37,10 +37,12 @@ elif('MINIX' in MODULES):
     objs += SConscript('minix/SConscript')
 elif('ANYOS' in MODULES):
     xcc.SetDefaultRTOS('anyos')
+elif('CONTIKI' in MODULES):
+    xcc.SetDefaultRTOS('contiki')
 else:
     assert(0)
 
-if('PROTOTHREAD' in MODULES):
+if(('PROTOTHREAD' in MODULES) or ('CONTIKI' in MODULES)):
     objs += SConscript('contiki/SConscript')
 
 Return('objs')

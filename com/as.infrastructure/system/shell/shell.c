@@ -122,7 +122,6 @@ extern SHELL_CONST ShellCmdT cmdFlash;
 static char cmdBuf[CMDLINE_MAX];
 static char cmdLine[CMDLINE_MAX];
 #if defined(__LINUX__) || defined(__WINDOWS__)
-static sem_t semInput;
 void* ProcessStdio(void* arg)
 {
 	char ch;
@@ -144,6 +143,7 @@ static char     ibuffer[IBUFFER_MAX];
 void SHELL_input(char c)
 {
 	imask_t imask;
+	StatusType ercd;
 	if(c == '\r')
 		return;
 
@@ -163,16 +163,14 @@ void SHELL_input(char c)
 	{
 		ASWARNING("shell input buffer overflow!\n");
 	}
-#if !defined(__LINUX__) && !defined(__WINDOWS__)
-#ifdef USE_TINYOS
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
 	OsActivateTask(TaskShell);
-#endif
-	if(E_OK != OsSetEvent(TaskShell, EventShellInput))
+#else
+	ercd = OsSetEvent(TaskShell, EventShellInput);
+	if(E_OK != ercd)
 	{
 		asAssert(0);
 	}
-#else
-	sem_post(&semInput);
 #endif
 }
 
@@ -182,18 +180,15 @@ static char SHELL_getc(void)
 	imask_t imask;
 	while(0 == isize)
 	{
-#if !defined(__LINUX__) && !defined(__WINDOWS__)
-		if(E_OK != OsWaitEvent(TaskShell, EventShellInput))
+#if !defined(USE_TINYOS) && !defined(USE_CONTIKI)
+		StatusType ercd = OsWaitEvent(TaskShell, EventShellInput);
+		if(E_OK != ercd)
 		{
-#ifdef USE_TINYOS
-			return -1;
-#else
 			asAssert(0);
-#endif
 		}
 		OsClearEvent(TaskShell, EventShellInput);
 #else
-		sem_wait(&semInput);
+		return -1;
 #endif
 	}
 
@@ -481,31 +476,26 @@ static void doPrompt( void ) {
 
 int SHELL_Mainloop( void ) {
 	char c;
-#ifdef USE_TINYOS
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
 	static int lineIndex = -1;
 #else
 	int lineIndex = 0;
 #endif
 	int cmdRv;
 
-#if defined(__LINUX__) || defined(__WINDOWS__)
-	pthread_t thread;
-	pthread_create(&thread, NULL, ProcessStdio, NULL);
-	sem_init(&semInput, 0, 0);
-#endif
-#ifdef USE_TINYOS
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
   if(-1 == lineIndex) {
 #endif
 	SHELL_puts("AS Shell version 0.1\n");
 	doPrompt();
-#ifdef USE_TINYOS
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
 	lineIndex = 0;
   }
 #endif
 	for(;;) {
 		c = SHELL_getc();
-#ifdef USE_TINYOS
-		if(-1 == c) return 0;
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
+		if((char)-1 == c) return 0;
 #endif
 		if( lineIndex >= CMDLINE_MAX ) {
 			lineIndex = 0;
@@ -539,13 +529,21 @@ int SHELL_Mainloop( void ) {
 #ifdef USE_SCHM
 TASK(TaskShell)
 {
+	OS_TASK_BEGIN();
 #if defined(__LINUX__) || defined(__WINDOWS__)
-	pthread_t thread;
-	pthread_create(&thread, NULL, (void * (*)(void *))SHELL_Mainloop, NULL);
-#else
-	SHELL_Mainloop();
+{
+	static boolean flag = 0;
+	if(0 == flag)
+	{
+		pthread_t thread;
+		pthread_create(&thread, NULL, ProcessStdio, NULL);
+		flag = 1;
+	}
+}
 #endif
+	SHELL_Mainloop();
 	OsTerminateTask(TaskShell);
+	OS_TASK_END();
 }
 #endif
 

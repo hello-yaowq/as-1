@@ -24,6 +24,9 @@ config DEFAULT_FREERTOS
 config DEFAULT_MINIX
 	bool
 
+config DEFAULT_CONTIKI
+	bool
+
 choice
 	prompt "RTOS"
 	default ASKAR if DEFAULT_ASKAR
@@ -33,6 +36,7 @@ choice
 	default TRAMPOLINE if DEFAULT_TRAMPOLINE
 	default TOPPERS_OSEK if DEFAULT_TOPPERS_OSEK
 	default FREERTOS if DEFAULT_FREERTOS
+	default CONTIKI if DEFAULT_CONTIKI
 	default MINIX if DEFAULT_MINIX
 
 config ASKAR
@@ -55,6 +59,9 @@ config TOPPERS_OSEK
 
 config FREERTOS
 	bool "freertos"
+
+config CONTIKI
+	bool "Contiki: The Open Source OS for the Internet of Things"
 
 config MINIX
 	bool "minix 3.0: internal study purpose"

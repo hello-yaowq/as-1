@@ -122,7 +122,6 @@ const char *GetWakeupReactionAsString( EcuM_WakeupReactionType reaction ) {
 			"ECUM_WKACT_RUN",
 			"??????",
 			"ECUM_WKACT_TTII",
-			"ECUM_WKACT_SHUTDOWN",
 	};
 	return  WakeupReactionAsString[reaction];
 }
@@ -314,7 +313,9 @@ static void in_state_goSleep( void ) {
 #endif
 
 		/* Let no one else run */
+#if !defined(USE_CONTIKI)
 		GetResource(RES_SCHEDULER);
+#endif
 		set_current_state(ECUM_STATE_SLEEP);
 
 	} else if( EcuM_GetPendingWakeupEvents() != 0 ) {

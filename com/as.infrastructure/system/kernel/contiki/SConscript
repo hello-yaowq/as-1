@@ -2,6 +2,7 @@ import os
 from building import *
 Import('asenv')
 ASROOT = asenv['ASROOT']
+arch = asenv['arch']
 cwd = GetCurrentDir()
 
 cmd = 'sed -i "274c /*static*/ PT_THREAD(process_thread_##name(struct pt *process_pt, \\\\\\\\" core/sys/process.h'
@@ -16,8 +17,6 @@ MKSymlink('%s/release/download/contiki/core/lib'%(asenv['ASROOT']),'%s/core/lib'
 asenv.Append(CPPPATH=['%s/core'%(protothread),'%s/include'%cwd,
                       '%s/platform/native'%cwd])
 
-asenv.Append(CPPDEFINES=['USE_PROTOTHREAD'])
-
 objs= []
 
 for obj in ['core/sys/pro*.c','core/sys/*timer.c','core/sys/autostart.c',
@@ -26,5 +25,10 @@ for obj in ['core/sys/pro*.c','core/sys/*timer.c','core/sys/autostart.c',
     objs += Glob(obj)
 
 SrcRemove(objs, ['rtimer.c'])
+
+if('CONTIKI' in asenv['MODULES']):
+    asenv.Append(CPPPATH=['%s/../tinyos'%(cwd)])
+    if(arch=='arm'):
+        objs += Glob('../askar/portable/arm/startup.S')
 
 Return('objs')
