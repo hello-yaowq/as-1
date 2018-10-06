@@ -22,7 +22,7 @@ import socket
 class doip():
     #Generic doip header negative acknowledge codes
     __generalAck = {0x00:'DOIP_E_INCORRECT_PATTERN_FORMAT', 0x01:'DOIP_E_UNKNOWN_PAYLOAD_TYPE',
-                  0x02:'DOIP_E_MESSAGE_TO_LARGE',         0x03:'DOIP_E_OUT_OF_MEMORY',
+                  0x02:'DOIP_E_MESSAGE_TOO_LARGE',         0x03:'DOIP_E_OUT_OF_MEMORY',
                   0x04:'DOIP_E_INVALID_PAYLOAD_LENGTH' }
     #Diagnostic message negative acknowledge codes
     __diagAck = { 0x02:'DOIP_E_DIAG_INVALID_SA',  0x03:'DOIP_E_DIAG_UNKNOWN_TA',

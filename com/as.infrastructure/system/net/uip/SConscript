@@ -32,8 +32,8 @@ if(('SOAD' in MODULES) and (BOARD != 'posix')):
                           '%s/com/as.infrastructure/arch/common/lwip'%(ASROOT)])
     asenv.Append(CPPDEFINES=['ipaddr_addr=inet_addr'])
 
-asenv.Append(CPPDEFINES=['UIP_CONF_BUFFER_SIZE=512'])
-    
+asenv.Append(CPPDEFINES=['UIP_CONF_BUFFER_SIZE=1500'])
+
 SrcRemove(objs, ['uip-over-mesh.c','slipdev.c','dhcpc.c'])
 
 Return('objs')

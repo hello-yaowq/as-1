@@ -53,6 +53,7 @@ class AsFlashloader(QThread):
         self.app = None
         self.flsdrv = None
         self.protocol = 'UDS'
+        self.ability = 4096
 
     def add_progress(self,sz):
         self.txSz += sz
@@ -292,11 +293,24 @@ class AsFlashloader(QThread):
         req.append(0xCF,8)
         return self.transmit_xcp(req, True)
 
-    def set_ll_dl(self,v):
-        self.dcm.set_ll_dl(v)
-    
     def set_protocol(self,p):
-        self.protocol = p
+        if(p == 'UDS on CAN'):
+            self.protocol = 'UDS'
+            self.dcm = dcm(0,0x732,0x731)
+            self.ability = 4096
+        elif(p == 'UDS on CANFD'):
+            self.protocol = 'UDS'
+            self.dcm = dcm(0,0x732,0x731)
+            self.dcm.set_ll_dl(64)
+            self.ability = 4096
+        elif(p == 'UDS on DOIP'):
+            self.protocol = 'UDS'
+            self.dcm = dcm('172.18.0.200',8989)
+            self.ability = 1400 # tested okay with this value
+        elif(p == 'XCP on CAN'):
+            self.protocol = 'XCP'
+        else:
+            assert(0)
 
     def is_check_application_enabled(self):
         return self.enable[8]
@@ -382,7 +396,7 @@ class AsFlashloader(QThread):
         blockSequenceCounter = 1
         left_size = size
         pos = 0
-        ability = int(((4096-5)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
+        ability = int(((self.ability-5)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
         # round up
         size2 = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
         ercd,res = self.request_download(address,size2,identifier)
@@ -414,7 +428,7 @@ class AsFlashloader(QThread):
         FLASH_READ_SIZE = 4
         blockSequenceCounter = 1
         left_size = size
-        ability = int(((4096-5)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
+        ability = int(((self.ability-5)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
         # round up
         size2 = int((left_size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
         ercd,res = self.request_upload(address,size2,identifier)
@@ -612,13 +626,11 @@ class UIFlashloader(QWidget):
         self.pgbProgress = QProgressBar()
         self.pgbProgress.setRange(0,100)
         grid.addWidget(self.pgbProgress,2,1)
-        self.cbxCANFDMode = QCheckBox("CANFD mode")
-        grid.addWidget(self.cbxCANFDMode,2,2)
         self.cmbxProtocol = QComboBox()
-        self.cmbxProtocol.addItems(['UDS','XCP'])
-        grid.addWidget(self.cmbxProtocol,2,3)
+        self.cmbxProtocol.addItems(['UDS on CAN','UDS on CANFD','UDS on DOIP','XCP on CAN'])
+        grid.addWidget(self.cmbxProtocol,2,2)
         self.btnStart=QPushButton('Start')
-        grid.addWidget(self.btnStart,2,4)
+        grid.addWidget(self.btnStart,2,3)
         grid.addWidget(QLabel('aslua bootloader:'),3,0)
         self.cmbxCanDevice = QComboBox()
         self.cmbxCanDevice.addItems(['socket','serial','vxl','peak','tcp'])
@@ -669,7 +681,6 @@ class UIFlashloader(QWidget):
         self.btnOpenFlsDrv.clicked.connect(self.on_btnOpenFlsDrv_clicked)
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
-        self.cbxCANFDMode.stateChanged.connect(self.on_cbxCANFDMode_stateChanged)
         self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
         aspath = os.path.abspath('%s/../../..'%(os.curdir))
         default_app='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/Project/bin/internal_FLASH.mot'%(aspath)
@@ -692,13 +703,6 @@ class UIFlashloader(QWidget):
 
     def on_cmbxProtocol_currentIndexChanged(self,index):
         self.loader.set_protocol(str(self.cmbxProtocol.currentText()))
-
-    def on_cbxCANFDMode_stateChanged(self,state):
-        if(state):
-            ll_dl=64
-        else:
-            ll_dl=8
-        self.loader.set_ll_dl(ll_dl)
 
     def on_enableChanged(self,step,enable):
         self.loader.SetEnable(step, enable)

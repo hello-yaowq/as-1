@@ -40,6 +40,7 @@ static uint32 tcpSocketConnectFlag = 0;
 static const uint8* tcpSocketDatatPtr[SOAD_TCP_SOCKET_NUM];
 static int          tcpSocketDatatLen[SOAD_TCP_SOCKET_NUM];
 /* ============================ [ LOCALS] ====================================================== */
+/* Note: for this implementation, a socket frame should fit into a signle MTU(1500) frame */
 int tcp_socket_data_callback(struct tcp_socket *s,
 							 void *ptr,
 							 const uint8_t *input_data_ptr,
@@ -47,11 +48,11 @@ int tcp_socket_data_callback(struct tcp_socket *s,
 {
 	int slot = (int)(long)ptr;
 	asAssert(slot == (s-tcpSocket));
-	ASLOG(SOAD, "%s(%d)\n", __func__, slot);
+	ASLOG(SOAD, "%s(%d) message %d@%p\n", __func__, slot, input_data_len, input_data_ptr);
 
 	if(NULL == tcpSocketDatatPtr[slot])
 	{
-		int sc = 10;
+		int sc = 5;
 		tcpSocketDatatPtr[slot] = input_data_ptr;
 		tcpSocketDatatLen[slot] = input_data_len;
 
@@ -62,6 +63,15 @@ int tcp_socket_data_callback(struct tcp_socket *s,
 			extern void Dcm_MainFunction(void);
 			Dcm_MainFunction();
 			#endif
+		}
+
+		if(tcpSocketDatatPtr[slot] != NULL)
+		{
+			tcpSocketDatatPtr[slot] = NULL;
+			ASLOG(SOADE, "%s(%d) message %d@%p is not fully consumed,"
+				  " maybe UIP buffer is too small,"
+				  " or upper layer has some erros\n",
+				  __func__, slot, input_data_len, input_data_ptr);
 		}
 	}
 	else
