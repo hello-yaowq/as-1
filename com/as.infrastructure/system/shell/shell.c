@@ -1,3 +1,4 @@
+#ifdef USE_SHELL
 /* -------------------------------- Arctic Core ------------------------------
  * Arctic Core - the open source AUTOSAR platform http://arccore.com
  *
@@ -26,12 +27,20 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "shell.h"
 #if defined(__LINUX__) || defined(__WINDOWS__)
 #include <pthread.h>
-#include <semaphore.h>
 #ifdef USE_SCHM
 #include "Os.h"
+#else
+/* for those without any os */
+typedef int StatusType;
+#define EventShellInput 0x01
+#define TaskShell 0x01
+StatusType OsWaitEvent(uint32_t id, uint32_t mask);
+StatusType OsSetEvent(uint32_t id, uint32_t mask);
+StatusType OsClearEvent(uint32_t id, uint32_t mask);
 #endif
 #else
 #include "Os.h"
@@ -546,4 +555,6 @@ TASK(TaskShell)
 	OS_TASK_END();
 }
 #endif
+
+#endif /* USE_SHELL */
 

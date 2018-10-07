@@ -14,6 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <pthread.h>
+#include <semaphore.h>
 #include <unistd.h>
 #include "Std_Types.h"
 
@@ -36,6 +37,10 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define SHELL_CMD_CACHE_SIZE  4096
 #define AS_LOG_SHELL 1
+#ifdef USE_SHELL
+#define EventShellInput 0x01
+#define TaskShell 0x01
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #ifdef USE_SHELL
 typedef struct {
@@ -45,11 +50,13 @@ typedef struct {
 	pthread_mutex_t w_lock;
 	char     cmd[SHELL_CMD_CACHE_SIZE];
 }Shel_CmdInputCacheType;
+typedef int StatusType;
 #endif
 /* ============================ [ DECLARES  ] ====================================================== */
 extern int lua_main(int argc, char *argv[]);
 #ifdef USE_SHELL
 static int lua_main_entry(int argc, char *argv[]);
+extern void* ProcessStdio(void* arg);
 #endif
 extern void luaclose_as(void);
 /* ============================ [ DATAS     ] ====================================================== */
@@ -63,12 +70,15 @@ static ShellCmdT luacmd =
 	.shortDesc = "lua <script>",
 	.longDesc ="lua script executor",
 };
+static sem_t semInput;
 #endif
 
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_SHELL
 static void StartupHook(void)
 {
+	pthread_t thread;
+
 #if defined(USE_IPC)
 	Ipc_Init(&Ipc_Config);
 #endif
@@ -80,6 +90,9 @@ static void StartupHook(void)
 #if defined(USE_RPMSG)
 	RPmsg_Init(&RPmsg_Config);
 #endif
+
+	sem_init(&semInput, 0, 0);
+	pthread_create(&thread, NULL, ProcessStdio, NULL);
 
 	SHELL_Init();
 	SHELL_AddCmd(&luacmd);
@@ -124,6 +137,36 @@ void RPmsg_Client_TxConfirmation(RPmsg_ChannelType chl)
 #endif /* USE_RPMSG */
 imask_t __Irq_Save(void) { return 0; }
 void Irq_Restore(imask_t mask) { (void) mask; }
+#ifdef USE_SHELL
+StatusType OsWaitEvent(uint32_t id, uint32_t mask)
+{
+	StatusType ercd = E_NOT_OK;
+
+	if((id==TaskShell) && (mask == EventShellInput))
+	{
+		sem_wait(&semInput);
+		ercd = E_OK;
+	}
+
+	return ercd;
+}
+StatusType OsSetEvent(uint32_t id, uint32_t mask)
+{
+	StatusType ercd = E_NOT_OK;
+	if((id==TaskShell) && (mask == EventShellInput))
+	{
+		sem_post(&semInput);
+		ercd = E_OK;
+	}
+	return ercd;
+}
+StatusType OsClearEvent(uint32_t id, uint32_t mask)
+{
+	(void)id;
+	(void)mask;
+	return E_OK;
+}
+#endif
 int main(int argc,char* argv[])
 {
 	ASENVINIT(argc,argv);
