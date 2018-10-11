@@ -404,12 +404,19 @@ def RMFile(p):
         print('removing %s'%(os.path.abspath(p)))
         os.remove(os.path.abspath(p))
 
-def CURL(url, tgt=None):
+def Download(url, tgt=None):
     # curl is better than wget on msys2
     if(tgt == None):
         tgt = url.split('/')[-1]
     if(not os.path.exists(tgt)):
-        RunCommand('curl %s -o %s'%(url,tgt))
+        print('Downloading from %s to %s'%(url, tgt))
+        ret = RunCommand('curl %s -o %s'%(url,tgt), False)
+        if((ret != 0) or (os.path.getsize(tgt) == 0)):
+            tf = url.split('/')[-1]
+            RMFile(tf)
+            print('temporarily saving to %s'%(os.path.abspath(tf)))
+            RunCommand('wget %s'%(url))
+            RunCommand('mv -v %s %s'%(tf, tgt))
 
 def Package(url, ** parameters):
     cwd = GetCurrentDir()
@@ -419,7 +426,7 @@ def Package(url, ** parameters):
     pkgBaseName = os.path.basename(url)
     if(pkgBaseName.endswith('.zip')):
         tgt = '%s/%s'%(download, pkgBaseName)
-        CURL(url, tgt)
+        Download(url, tgt)
         pkgName = pkgBaseName[:-4]
         pkg = '%s/%s'%(download, pkgName)
         MKDir(pkg)
@@ -430,10 +437,20 @@ def Package(url, ** parameters):
             except Exception as e:
                 print('WARNING:',e)
             MKFile(flag,'url')
-    elif(pkgBaseName.endswith('.tar.gz')):
+    elif(pkgBaseName.endswith('.tar.gz') or pkgBaseName.endswith('.tar.xz')):
         tgt = '%s/%s'%(download, pkgBaseName)
-        CURL(url, tgt)
+        Download(url, tgt)
         pkgName = pkgBaseName[:-7]
+        pkg = '%s/%s'%(download, pkgName)
+        MKDir(pkg)
+        flag = '%s/.unzip.done'%(pkg)
+        if(not os.path.exists(flag)):
+            RunCommand('cd %s && tar xf ../%s'%(pkg, pkgBaseName))
+            MKFile(flag,'url')
+    elif(pkgBaseName.endswith('.tar.bz2')):
+        tgt = '%s/%s'%(download, pkgBaseName)
+        Download(url, tgt)
+        pkgName = pkgBaseName[:-8]
         pkg = '%s/%s'%(download, pkgName)
         MKDir(pkg)
         flag = '%s/.unzip.done'%(pkg)
@@ -457,7 +474,7 @@ def Package(url, ** parameters):
     else:
         pkg = '%s/%s'%(download, url)
         if(not os.path.isdir(pkg)):
-            raise('unsupported package process for url %s'%(url))
+            print('ERROR: %s require %s but now it is missing! It maybe downloaded later, so please try build again.'%(bsw, url))
     # cmd is generally a series of 'sed' operatiron to do some simple modifications
     if('cmd' in parameters):
         flag = '%s/.%s.cmd.done'%(pkg, bsw)
@@ -538,14 +555,15 @@ def SrcRemove(src, remove):
             if(os.path.basename(item.rstr()) in remove):
                 src.remove(item)
 
-def RunCommand(cmd):
+def RunCommand(cmd, e=True):
     if(GetOption('verbose')):
         print(' >> RunCommand "%s"'%(cmd))
     if(os.name == 'nt'):
         cmd = cmd.replace('&&', '&')
     ret = os.system(cmd)
-    if(0 != ret):
+    if(0 != ret and e):
         raise Exception('FAIL of RunCommand "%s" = %s'%(cmd, ret))
+    return ret
 
 def RunSysCmd(cmd):
     import subprocess
@@ -885,64 +903,45 @@ def SelectCompilerArmNoneEabi():
     Env['LINK']='arm-none-eabi-ld'
     Env['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
     if(IsPlatformWindows()):
-        gccarm = 'gcc-arm-none-eabi-5_4-2016q3-20160926-win32'
-        gccsrc= 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/%s.zip'%(gccarm)
-        cpl = '%s/release/download/%s'%(ASROOT,gccarm)
-        if(not os.path.exists(cpl)):
-            RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
-        Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
-        Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
-        Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
-        Env['CXX']='%s/bin/arm-none-eabi-g++'%(cpl)
-        Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
-        Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
-        Env['S19'] = '%s/bin/%s'%(cpl,Env['S19'])
+        gccarm = 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip'
     else:
-        for major in range(10):
-            for minor in range(10):
-                for patch in range(10):
-                    libgcc2 = '/usr/lib/gcc/arm-none-eabi/%s.%s.%s'%(major, minor, patch)
-                    if(os.path.exists(libgcc2)):
-                        libgcc = libgcc2 # use the latest found version
-                        break
-        # FIXME to the right path
-        Env.Append(LIBPATH=[libgcc,'/usr/lib/arm-none-eabi/newlib'])
+        gccarm = 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-linux.tar.bz2'
+    cpl = Package(gccarm)
+    if(not IsPlatformWindows()):
+       cpl += '/gcc-arm-none-eabi-5_4-2016q3'
+    Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
+    Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
+    Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
+    Env['CXX']='%s/bin/arm-none-eabi-g++'%(cpl)
+    Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
+    Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
+    Env['S19'] = '%s/bin/arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'%(cpl)
 
 def SelectCompilerArm64():
     global Env
     ASROOT = Env['ASROOT']
     if(IsPlatformWindows()):
-        gccarm = 'gcc-linaro-7.2.1-2017.11-i686-mingw32_aarch64-elf'
+        gccarm = 'gcc-linaro-7.2.1-2017.11-i686-mingw32_aarch64-elf.tar.xz'
     else:
-        gccarm = 'gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf'
-    gccsrc = 'https://releases.linaro.org/components/toolchain/binaries/latest/aarch64-elf/%s.tar.xz'%(gccarm)
-    cpl = '%s/release/download/%s'%(ASROOT,gccarm)
-    if(not os.path.exists(cpl)):
-        RunCommand('cd %s/release/download && curl -O %s && tar xf %s.tar.xz'%(ASROOT,gccsrc,gccarm))
+        gccarm = 'gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf.tar.xz'
+    pkg = Package('https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-elf/%s'%(gccarm))
+    cpl = '%s/%s'%(pkg, gccarm)
     Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99 -fno-stack-protector'%(cpl)
     Env['CXX']='%s/bin/aarch64-elf-g++'%(cpl)
     Env['AS']='%s/bin/aarch64-elf-gcc -c'%(cpl)
     Env['LINK']='%s/bin/aarch64-elf-ld'%(cpl)
 
 def SelectCompilerX86():
-    global Env
     if(IsPlatformWindows()):
-        ASROOT = Env['ASROOT']
-        gccx86='i686-elf-tools-windows'
-        gccsrc= 'https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/i686-elf-tools-windows.zip'
-        cpl = '%s/release/download/%s'%(ASROOT,gccx86)
-        if(not os.path.exists(cpl)):
-            RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccx86,gccx86,gccx86))
-        Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
-        Env['AS']   = '%s/bin/i686-elf-gcc -m32 -c'%(cpl)
-        Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
-        Env['LINK'] = '%s/bin/i686-elf-ld -m32 -melf_i386'%(cpl)
-        Env.Append(CPPPATH=['%s/lib/gcc/i686-elf/7.1.0/include'%(cpl)])
+        gccx86='i686-elf-tools-windows.zip'
     else:
-        Env['CC']   = 'gcc -m32 -std=gnu99 -fno-stack-protector'
-        Env['AS']   = 'gcc -m32 -c'
-        Env['CXX']  = 'gcc -m32 -fno-stack-protector'
-        Env['LINK'] = 'ld -m32 -melf_i386'
+        gccx86='i686-elf-tools-linux.zip'
+    cpl = Package('https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/%s'%(gccx86))
+    Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
+    Env['AS']   = '%s/bin/i686-elf-gcc -m32 -c'%(cpl)
+    Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
+    Env['LINK'] = '%s/bin/i686-elf-ld -m32 -melf_i386'%(cpl)
+    Env.Append(CPPPATH=['%s/lib/gcc/i686-elf/7.1.0/include'%(cpl)])
 
 def SelectCompilerCWCC():
     cw = os.getenv('CWCC_PATH')
@@ -1146,3 +1145,15 @@ def Building(target, sobjs, env=None):
     #env['POSTACTION'].append('readelf -l %s'%(target))
     for action in env['POSTACTION']:
         env.AddPostAction(target, action)
+
+if(not IsPlatformWindows()):
+    AddOption('--prepare',
+              dest = 'prepare',
+              action = 'store_true',
+              default = False,
+              help = 'prepare build env for linux')
+    if(GetOption('prepare')):
+        os.system('sudo apt-get install gtk+-3.0 autoconf libtool-bin curl flex bison gperf nasm '
+                  'libncurses-dev libreadline-dev glib2.0 libcurl4-openssl-dev libstdc++6:i386 '
+                  'python3-pyqt5 python3-sip python3-sip-dev sip-dev python3-pip net-tools')
+        os.system('sudo pip3 install pillow pyserial bitarray')

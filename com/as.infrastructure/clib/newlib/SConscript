@@ -13,9 +13,9 @@ MKSymlink(newlib,'%s/newlib'%(cwd))
 
 libgcc2 = 'https://raw.githubusercontent.com/gcc-mirror/gcc/master'
 MKDir('%s/libgcc'%(cwd))
-CURL('%s/libgcc/libgcc2.c'%(libgcc2),'%s/libgcc/libgcc2.c'%(cwd))
-CURL('%s/libgcc/libgcc2.h'%(libgcc2),'%s/libgcc/libgcc2.h'%(cwd))
-CURL('%s/include/longlong.h'%(libgcc2),'%s/libgcc/longlong.h'%(cwd))
+Download('%s/libgcc/libgcc2.c'%(libgcc2),'%s/libgcc/libgcc2.c'%(cwd))
+Download('%s/libgcc/libgcc2.h'%(libgcc2),'%s/libgcc/libgcc2.h'%(cwd))
+Download('%s/include/longlong.h'%(libgcc2),'%s/libgcc/longlong.h'%(cwd))
 
 RMFile('%s/newlib/libc/include/signal.h'%(newlib))
 RMFile('%s/newlib/libc/include/sched.h'%(newlib))

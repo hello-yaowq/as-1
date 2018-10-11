@@ -12,10 +12,10 @@ objs = []
 asenv.Append(CCFLAGS='-I%s'%(cwd))
 asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
 
-peakcan = Package('https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip')
-zlgcan_o = Package('http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip')
-
-zlgcan = str(Glob('%s/CAN_lib/CAN*'%(zlgcan_o))[0])
+if(IsPlatformWindows()):
+    peakcan = Package('https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip')
+    zlgcan_o = Package('http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip')
+    zlgcan = str(Glob('%s/CAN_lib/CAN*'%(zlgcan_o))[0])
 
 if(IsPlatformWindows()):
     asenv.Append(CCFLAGS='-I%s/"PCAN-Basic API"/Include'%(peakcan))

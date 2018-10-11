@@ -43,8 +43,6 @@ asenv.Append(ASFLAGS=['-g'])
 asenv.Append(CCFLAGS=['-mcpu=cortex-m3','-mthumb'])
 asenv.Append(ASFLAGS=['-mcpu=cortex-m3','-mthumb'])
 
-asenv['S19'] = 'arm-none-eabi-objcopy -O srec --srec-forceS3 --srec-len 32'
-
 asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
 asenv.Append(LINKFLAGS='--gc-sections')
 

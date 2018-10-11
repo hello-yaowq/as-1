@@ -16,8 +16,8 @@ libfdt = Package('https://github.com/dgibson/dtc.git', cmd=cmd, version='v1.4.7'
 
 if(IsPlatformWindows()):
     msys2_runtime = 'https://raw.githubusercontent.com/git-for-windows/msys2-runtime/master'
-    CURL('%s//include/fnmatch.h'%(msys2_runtime),'%s/fnmatch.h'%(libfdt))
-    CURL('https://raw.githubusercontent.com/libgit2/libgit2/master/src/fnmatch.c', '%s/fnmatch.c'%(libfdt))
+    Download('%s//include/fnmatch.h'%(msys2_runtime),'%s/fnmatch.h'%(libfdt))
+    Download('https://raw.githubusercontent.com/libgit2/libgit2/master/src/fnmatch.c', '%s/fnmatch.c'%(libfdt))
     cmd = 'sed -i "s/p_fnmatch(/fnmatch(/g" fnmatch.c'
     cmd += ' && sed -i "s/FNM_NOSYS/2/g" fnmatch.c'
     cmd += ' && sed -i "s/FNM_NORES/3/g" fnmatch.c'
