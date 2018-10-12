@@ -14,7 +14,7 @@ before_script:
   - "sudo apt-get install -qq gcc-arm-linux-gnueabi || true"
   - "sudo apt-get insatll -qq g++-arm-linux-gnueabi || true"
   - "sudo apt-get insatll -qq cmake uuid-dev libboost-dev || true"
-  - "sudo apt-get insatll -qq qemu scons nasm || true"
+  - "sudo apt-get insatll -qq qemu scons nasm libstdc++6:i386 || true"
 
 script:
   - cd release/ascore

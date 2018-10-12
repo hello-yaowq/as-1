@@ -4,10 +4,11 @@ import shutil
 import string
 import re
 
+bScons = True
 try:
     from SCons.Script import *
 except ImportError:
-    pass # if used by ctest.py
+    bScons = False # if used by ctest.py
 
 Env = None
 
@@ -411,7 +412,7 @@ def Download(url, tgt=None):
     if(not os.path.exists(tgt)):
         print('Downloading from %s to %s'%(url, tgt))
         ret = RunCommand('curl %s -o %s'%(url,tgt), False)
-        if((ret != 0) or (os.path.getsize(tgt) == 0)):
+        if((ret != 0) or (not os.path.exists(tgt)) or (os.path.getsize(tgt) == 0)):
             tf = url.split('/')[-1]
             RMFile(tf)
             print('temporarily saving to %s'%(os.path.abspath(tf)))
@@ -1146,7 +1147,7 @@ def Building(target, sobjs, env=None):
     for action in env['POSTACTION']:
         env.AddPostAction(target, action)
 
-if(not IsPlatformWindows()):
+if((not IsPlatformWindows()) and bScons):
     AddOption('--prepare',
               dest = 'prepare',
               action = 'store_true',
@@ -1157,3 +1158,4 @@ if(not IsPlatformWindows()):
                   'libncurses-dev libreadline-dev glib2.0 libcurl4-openssl-dev libstdc++6:i386 '
                   'python3-pyqt5 python3-sip python3-sip-dev sip-dev python3-pip net-tools')
         os.system('sudo pip3 install pillow pyserial bitarray')
+
