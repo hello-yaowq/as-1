@@ -1155,7 +1155,9 @@ if((not IsPlatformWindows()) and bScons):
               help = 'prepare build env for linux')
     if(GetOption('prepare')):
         os.system('sudo apt-get install gtk+-3.0 autoconf libtool-bin curl flex bison gperf nasm '
-                  'libncurses-dev libreadline-dev glib2.0 libcurl4-openssl-dev libstdc++6:i386 '
+                  'libncurses-dev libreadline-dev glib2.0 libcurl4-openssl-dev '
                   'python3-pyqt5 python3-sip python3-sip-dev sip-dev python3-pip net-tools')
+        os.system('sudo apt-get intsall lib32stdc++6')    # for Ubuntu before 18.04
+        os.system('sudo apt-get intsall libstdc++6:i386') # for Ubuntu 18.04
         os.system('sudo pip3 install pillow pyserial bitarray')
 
