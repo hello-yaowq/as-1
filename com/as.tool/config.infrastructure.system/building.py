@@ -409,10 +409,23 @@ def Download(url, tgt=None):
     # curl is better than wget on msys2
     if(tgt == None):
         tgt = url.split('/')[-1]
+    def IsProperType(f):
+        tL = {'.zip':'Zip archive data', '.tar.gz':'gzip compressed data',
+              '.tar.xz':'XZ compressed data','.tar.bz2':'bzip2 compressed data'}
+        if(not os.path.exists(f)):
+            return False
+        if(0 == os.path.getsize(f)):
+            return False
+        for t,v in tL.items():
+            if(f.endswith(t)):
+                if(v not in RunSysCmd('file %s'%(tgt))):
+                    return False
+                break
+        return True
     if(not os.path.exists(tgt)):
         print('Downloading from %s to %s'%(url, tgt))
         ret = RunCommand('curl %s -o %s'%(url,tgt), False)
-        if((ret != 0) or (not os.path.exists(tgt)) or (os.path.getsize(tgt) == 0)):
+        if((ret != 0) or (not IsProperType(tgt))):
             tf = url.split('/')[-1]
             RMFile(tf)
             print('temporarily saving to %s'%(os.path.abspath(tf)))
