@@ -81,7 +81,7 @@ class AsSerial(QThread):
                 if(False == ercd):
                     print('Seial: send can message failed!')
             return
-        self.serial.write(data)
+        self.serial.write(data.encode('utf-8'))
     
     def __recv(self):
         data, quit = '', False
@@ -105,7 +105,7 @@ class AsSerial(QThread):
             while(True):
                 n = self.serial.inWaiting()
                 if( n > 0):
-                    data = '%s%s' % (data, self.serial.read(n))
+                    data += self.serial.read(n)
                     sleep(0.02) # data is this interval will be merged
                 else:
                     quit = True
@@ -113,7 +113,7 @@ class AsSerial(QThread):
             if(quit==True):
                 break
 
-        return data
+        return data.decode('utf-8')
     
     def close(self):
         if(self.isCANMode): return

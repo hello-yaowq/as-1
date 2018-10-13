@@ -116,7 +116,10 @@ class UICan(QWidget):
         canid = int(str(self.leCanID.text()),16)
         busid = int(str(self.leBusID.text()),10)
         data = str(self.leCanData.text())
-        can_write(busid, canid, data)
+        rdata = []
+        for i in range(int(len(data)/2)):
+            rdata.append(int(data[2*i:2*i+1],16))
+        can_write(busid, canid, rdata)
 
     def on_btnSend_clicked(self):
         period = int(str(self.leCanPeriod.text()),10)

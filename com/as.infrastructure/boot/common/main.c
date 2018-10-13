@@ -74,7 +74,7 @@ void CanIf_TxConfirmation( PduIdType canTxPduId )
 		CanTp_TxConfirmation(CANTP_ID_TxDiagP2P);
 	}
 #endif
-#ifdef USE_CANTP
+#ifdef USE_XCP
 	if(CANIF_ID_XCP_TX == canTxPduId)
 	{
 		Xcp_CanIfTxConfirmation(CANIF_ID_XCP_TX);
