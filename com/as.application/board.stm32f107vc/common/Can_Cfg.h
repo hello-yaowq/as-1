@@ -31,7 +31,9 @@
 #define CAN_WAKEUP_SUPPORT				STD_OFF  // Not supported
 #define CAN_HW_TRANSMIT_CANCELLATION	STD_OFF  // Not supported
 
-#define INDEX_OF_CAN_CTRL_1 0
+/* for the default CANIF configuration */
+#define INDEX_OF_CAN_CTRL_0 0
+#define CAN_CTRL_0 CAN_CTRL_1
 
 typedef enum {
 	CAN_CTRL_1 = 0,
@@ -57,13 +59,13 @@ typedef enum {
 	CAN_ARC_HANDLE_TYPE_FULL
 } Can_Arc_HohType;
 
-#define Can1Hth HWObj_2
+#define Can0Hth HWObj_2
 typedef enum {
 	HWObj_2,
 	NUM_OF_HTHS
 } Can_Arc_HTHType;
 
-#define Can1Hrh HWObj_1
+#define Can0Hrh HWObj_1
 typedef enum {
 	HWObj_1,
 	NUM_OF_HRHS

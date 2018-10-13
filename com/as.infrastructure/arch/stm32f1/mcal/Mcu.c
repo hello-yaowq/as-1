@@ -330,11 +330,14 @@ int putchar( int ch )	/* for printf */
 #ifndef USE_SCAN
 void knl_isr_usart2_process(void)
 {
-
 	if(USART_GetITStatus(USART2,USART_IT_RXNE))
 	{
 		char ch = (char)(USART_ReceiveData(USART2)&0xFF);
 #ifdef USE_SHELL
+		if('\r' == ch)
+		{
+			ch = '\n';
+		}
 		SHELL_input(ch);
 #endif
 		USART_ClearITPendingBit(USART2,USART_IT_RXNE);

@@ -26,8 +26,7 @@ MODULES += ['CLIB_STDIO_CAN']
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):
     MODULES = ['ECUM','SCHM','MCU','DET',
-               'CAN','CANIF','PDUR','CANTP',
-               'DCM','XCP',
+               'CAN','CANIF','PDUR','CANTP','DCM',
                'CLIB_STDIO_PRINTF',
                'CLIB_MISCLIB',
                'TINYOS',

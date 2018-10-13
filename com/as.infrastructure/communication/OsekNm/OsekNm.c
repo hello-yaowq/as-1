@@ -175,7 +175,13 @@ static void nmAddtoPresent(NetIdType NetId,NodeIdType NodeId)
 	uint8 RefConfig[32]; /* old config */
 	if(NM_ControlBlock[NetId].nmIndDeltaConfig.normal.SMode != SignalInvalid)
 	{
-		memcpy(RefConfig,NM_ControlBlock[NetId].nmConfig.normal,32);
+		/* memcpy(RefConfig,NM_ControlBlock[NetId].nmConfig.normal,32);
+		 * arm-none-eabi-gcc seems has a bug here for API call memcpy, in fact the asm code is
+		 * not a memcpy call, seems to be a code opmization with builtin memcpy but which has issues */
+		for(int i=0; i< 32; i++)
+		{
+			RefConfig[i] =NM_ControlBlock[NetId].nmConfig.normal[1];
+		}
 	}
 	nmAddToConfig(NetId,NM_ckNormal,NodeId);
 	nmRemoveFromConfig(NetId,NM_ckLimphome,NodeId);

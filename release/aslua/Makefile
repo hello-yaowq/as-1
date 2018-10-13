@@ -445,29 +445,6 @@ endif
 	@(cd $(prj-dir)/com/as.tool/as.one.py; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)
 	@(cp -v $(exe-dir)/libpyas.a $(VIRTUAL)/source/libpyas.so)
 
-
-# SIP install
-sip-4.18.1.tar.gz:
-	@($(WGET) https://sourceforge.net/projects/pyqt/files/sip/sip-4.18.1/sip-4.18.1.tar.gz)
-
-extract-sip:
-	@(gunzip -kv sip-4.18.1.tar.gz)
-	@(tar -xvf sip-4.18.1.tar -C $(CURDIR))
-	@rm sip-4.18.1.tar
-
-sip: sip-4.18.1.tar.gz extract-sip
-	@(cd sip-4.18.1; $(PY34) configure.py;make;sudo make install)
-
-pyserial-3.1.1.tar.gz:
-	@(${WGET} https://github.com/pyserial/pyserial/releases/download/v3.1.1/pyserial-3.1.1.tar.gz)
-
-extract-pyserial:
-	@(gunzip -kv pyserial-3.1.1.tar.gz)
-	@(tar -xvf pyserial-3.1.1.tar -C $(CURDIR))
-	@rm pyserial-3.1.1.tar
-
-pyserial:pyserial-3.1.1.tar.gz extract-pyserial
-
 $(download):
 	mkdir -p $@
 

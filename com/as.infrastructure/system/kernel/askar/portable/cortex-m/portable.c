@@ -79,6 +79,9 @@ void Os_PortInit(void)
 	SCB->VTOR = (uint32_t)pSrc;
 #endif
 
+	SCB->CCR |= 0x18; /* enable div-by-0 and unaligned fault */
+	SCB->SHCSR |= 0x00007000; /* enable Usage Fault, Bus Fault, and MMU Fault */
+
 	ISR2Counter = 0;
 	knl_dispatch_started = FALSE;
 
@@ -158,6 +161,7 @@ void dump_fault_stack(const char* prefix, uint32* sp) {
 	for(i=0; i<16; i++) {
 		printf("sp[%d] = 0x%X\n", i, sp[i]);
 	}
+	asAssert(0);
 }
 
 void dump_nmi_fault_stack(uint32* sp) {

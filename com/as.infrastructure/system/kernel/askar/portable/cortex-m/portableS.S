@@ -58,6 +58,10 @@ knl_activate:
 	ldr r2, =Os_PortActivate
 	push {r2,r3}
 	subs  sp,sp,#24
+	# will going to task level
+	ldr     r1, = CallLevel
+	mov     r2, #1   /* CallLevel = TCL_TASK */
+	str     r2,[r1]
 	bx lr
 
 	.global  knl_resume
