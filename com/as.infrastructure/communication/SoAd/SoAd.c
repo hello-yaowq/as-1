@@ -32,6 +32,9 @@
 #include "UdpNm.h"
 #endif
 #include "asdebug.h"
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 
 #define AS_LOG_SOAD  0
 #define AS_LOG_SOADE 1
@@ -41,7 +44,39 @@ typedef enum {
   SOAD_INITIALIZED
 } SoadStateType;
 
+#ifdef USE_SHELL
+static int shellIfconfig(int argc, char* argv[])
+{
+#ifdef USE_LWIP
+	extern struct netif* sys_get_netif(void);
+	struct netif* netif = sys_get_netif();
 
+	SHELL_printf("Ethernet Interface     : %02X:%02X:%02X:%02X:%02X:%02X, mtu=%d\n",
+				netif->hwaddr[0],netif->hwaddr[1],netif->hwaddr[2],
+				netif->hwaddr[3],netif->hwaddr[4],netif->hwaddr[5],
+				netif->mtu);
+	SHELL_printf("IP address of interface: %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+		ip4_addr1_16(&netif->ip_addr), ip4_addr2_16(&netif->ip_addr),
+		ip4_addr3_16(&netif->ip_addr), ip4_addr4_16(&netif->ip_addr));
+	SHELL_printf("Netmask of interface   : %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+		ip4_addr1_16(&netif->netmask), ip4_addr2_16(&netif->netmask),
+		ip4_addr3_16(&netif->netmask), ip4_addr4_16(&netif->netmask));
+	SHELL_printf("Gateway of interface   : %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+		ip4_addr1_16(&netif->gw), ip4_addr2_16(&netif->gw),
+		ip4_addr3_16(&netif->gw), ip4_addr4_16(&netif->gw));
+#endif
+	return 0;
+}
+static SHELL_CONST ShellCmdT cmdIfconfig  = {
+		shellIfconfig,
+		0,1,
+		"ifconfig",
+		"ifconfig",
+		"Show all commands all help no a specific command\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdIfconfig)
+#endif
 
 static SoadStateType ModuleStatus = SOAD_UNINITIALIZED;
 static SoadArcLinkStatusType LinkStatus = SOAD_ARC_LINKDOWN;
@@ -764,6 +799,9 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 /** @req SOAD193 */
 void TcpIp_Init(void)
 {
+#if !defined(USE_SHELL_SYMTAB)
+	SHELL_AddCmd(&cmdIfconfig);
+#endif
 	#ifdef USE_LWIP
     LwIP_Init();
 	#endif

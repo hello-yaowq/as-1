@@ -32,12 +32,7 @@
 #include "Os.h"
 #include "Mcu.h"
 
-#define MAX_DHCP_TRIES        1
-
-static struct netif netif;
-
-err_t ethernetif_input(struct netif *netif, struct pbuf *p);
-
+extern struct netif* sys_get_netif(void);
 /* Eth Isr routine */
 void knl_isr_eth_process(void)
 {
@@ -45,14 +40,15 @@ void knl_isr_eth_process(void)
 
 	while((ETH_GetRxPktSize() != 0) && (res == 0))
 	{
-		  /* move received packet into a new pbuf */
-		  struct pbuf *p = low_level_input();
+		struct netif* netif = sys_get_netif();
+		/* move received packet into a new pbuf */
+		struct pbuf *p = low_level_input();
 
-          if(p!=NULL){
-        	  tcpip_input(p, &netif);
-          }else{
-        	  res = 1;
-          }
+		if(p!=NULL){
+			tcpip_input(p, netif);
+		}else{
+			res = 1;
+		}
 	}
 
 	/* Clear the Eth DMA Rx IT pending bits */
@@ -60,73 +56,7 @@ void knl_isr_eth_process(void)
 	ETH_DMAClearITPendingBit(ETH_DMA_IT_NIS);
 	ETH_DMAClearITPendingBit(ETH_DMA_IT_RO);
 	ETH_DMAClearITPendingBit(ETH_DMA_IT_RBU);
+	NVIC_ClearPendingIRQ(ETH_IRQn);
 }
 
-static boolean tcpip_initialized = FALSE;
 
-static void
-tcpip_init_done(void *arg)
-{
-	tcpip_initialized = TRUE;
-}
-
-struct netif * LwIP_Init()
-{
-  uint8_t macaddress[6] = ETH_MAC_ADDR;
-  struct ip_addr ipaddr;
-  struct ip_addr netmask;
-  struct ip_addr gw;
-
-  /* Configure ethernet */
-   Ethernet_Configuration();
-
-#if NO_SYS
-#if (MEM_LIBC_MALLOC==0)  
-  mem_init();
-#endif
-#if (MEMP_MEM_MALLOC==0)  
-  memp_init();
-#endif
-#else
-  pre_sys_init();
-  tcpip_init(tcpip_init_done, NULL);
-  uint32 lockcnt = 0;
-  while(tcpip_initialized == FALSE){
-  	 lockcnt++;
-  };
-#endif
-
-#if LWIP_DHCP
-  ipaddr.addr = 0;
-  netmask.addr = 0;
-  gw.addr = 0;
-#else
-  GET_BOOT_IPADDR;
-  GET_BOOT_NETMASK;
-  GET_BOOT_GW;
-#endif
-
-  Set_MAC_Address(macaddress);
-
-  /* Add network interface to the netif_list */
-  netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
-
-  /*  Registers the default network interface.*/
-  netif_set_default(&netif);
-
-#if LWIP_DHCP
-  /* start dhcp search */
-  dhcp_start(&netif);
-#else
-  netif_set_addr(&netif, &ipaddr , &netmask, &gw);
-#endif
-
-  /* netif is configured */
-  netif_set_up(&netif);
-
-  EnableEthDMAIrq();
-
-  netbios_init();
-
-  return &netif;
-}

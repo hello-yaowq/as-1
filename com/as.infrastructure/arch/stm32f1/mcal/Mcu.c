@@ -399,6 +399,12 @@ void Mcu_DistributePllClock(void)
 
   /* NOT IMPLEMENTED due to pointless function on this hardware */
   Usart_Init();
+
+#ifdef USE_LWIP
+  /* Enable ETHERNET clock  */
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
+                        RCC_AHBPeriph_ETH_MAC_Rx, ENABLE);
+#endif
 }
 
 //-------------------------------------------------------------------

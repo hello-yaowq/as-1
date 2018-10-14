@@ -65,7 +65,7 @@
 #include "asdebug.h"
 
 #define AS_LOG_LWIP 1
-
+#define AS_LOG_LWIPE 1
 
 /* TCP and ARP timeouts */
 volatile int tcp_end_time, arp_end_time;
@@ -121,7 +121,7 @@ u32 ETH_TxPkt_ChainMode(u16 FrameLength);
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
-void Set_MAC_Address(uint8_t* macadd)
+void ethernet_set_mac_address(uint8_t* macadd)
 {
   MACaddr[0] = macadd[0];
   MACaddr[1] = macadd[1];
@@ -190,22 +190,222 @@ low_level_init(struct netif *netif)
 
 }
 
-
+/* according to this uc/Eval-STM32F107 schematic https://wenku.baidu.com/view/8ec41270168884868762d6e2.html
+ * PHY is DP83848CVV */
 #define PHY_ADDRESS       0x01 /* Relative to STM3210C-EVAL Board */
+#define MII_MODE          /* MII mode for STM3210C-EVAL Board (MB784) (check jumpers setting) */
+//#define RMII_MODE       /* RMII mode for STM3210C-EVAL Board (MB784) (check jumpers setting) */
 
-//#define MII_MODE          /* MII mode for STM3210C-EVAL Board (MB784) (check jumpers setting) */
-#define RMII_MODE       /* RMII mode for STM3210C-EVAL Board (MB784) (check jumpers setting) */
+void Delay_ARMJISHU(__IO uint32_t nCount)
+{
+  for (; nCount != 0; nCount--);
+}
+
+void Ethernet_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+#ifdef MII_MODE  //lihao
+  /* ETHERNET pins configuration */
+  /* AF Output Push Pull:
+  - ETH_MII_MDIO / ETH_RMII_MDIO: PA2
+  - ETH_MII_MDC / ETH_RMII_MDC: PC1
+  - ETH_MII_TXD2: PC2
+  - ETH_MII_TX_EN / ETH_RMII_TX_EN: PB11
+  - ETH_MII_TXD0 / ETH_RMII_TXD0: PB12
+  - ETH_MII_TXD1 / ETH_RMII_TXD1: PB13
+  - ETH_MII_PPS_OUT / ETH_RMII_PPS_OUT: PB5
+  - ETH_MII_TXD3: PB8 */
+
+  /* Configure PA2 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  /* Configure PC1, PC2 and PC3 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+  /* Configure PB5, PB8, PB11, PB12 and PB13 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_8 | GPIO_Pin_11 |
+                                GPIO_Pin_12 | GPIO_Pin_13;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  /**************************************************************/
+  /*               For Remapped Ethernet pins                   */
+  /*************************************************************/
+  /* Input (Reset Value):
+  - ETH_MII_CRS CRS: PA0
+  - ETH_MII_RX_CLK / ETH_RMII_REF_CLK: PA1
+  - ETH_MII_COL: PA3
+  - ETH_MII_RX_DV / ETH_RMII_CRS_DV: PD8
+  - ETH_MII_TX_CLK: PC3
+  - ETH_MII_RXD0 / ETH_RMII_RXD0: PD9
+  - ETH_MII_RXD1 / ETH_RMII_RXD1: PD10
+  - ETH_MII_RXD2: PD11
+  - ETH_MII_RXD3: PD12
+  - ETH_MII_RX_ER: PB10 */
+
+  /* ETHERNET pins remapp in STM3210C-EVAL board: RX_DV and RxD[3:0] */
+  GPIO_PinRemapConfig(GPIO_Remap_ETH, ENABLE);
+
+  /* Configure PA0, PA1 and PA3 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_3;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  /* Configure PB10 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  /* Configure PC3 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+  /* Configure PD8, PD9, PD10, PD11 and PD12 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOD, &GPIO_InitStructure); /**/
+
+  /* MCO pin configuration------------------------------------------------- */
+  /* Configure MCO (PA8) as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+#else
+  /* ETHERNET pins configuration */
+  /* AF Output Push Pull:
+  - ETH_MII_MDIO / ETH_RMII_MDIO: PA2
+  - ETH_MII_MDC / ETH_RMII_MDC: PC1
+  - ETH_MII_TXD2: PC2
+  - ETH_MII_TX_EN / ETH_RMII_TX_EN: PB11
+  - ETH_MII_TXD0 / ETH_RMII_TXD0: PB12
+  - ETH_MII_TXD1 / ETH_RMII_TXD1: PB13
+ */
+
+  /* Configure PA2 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  /* Configure PC1, PC2 and PC3 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+  /* Configure PB5, PB8, PB11, PB12 and PB13 as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  /**************************************************************/
+  /*               For Remapped Ethernet pins                   */
+  /*************************************************************/
+  /* Input (Reset Value):
+  - ETH_MII_RX_CLK / ETH_RMII_REF_CLK: PA1
+  - ETH_MII_RX_DV / ETH_RMII_CRS_DV: PD8
+  - ETH_MII_RXD0 / ETH_RMII_RXD0: PD9
+  - ETH_MII_RXD1 / ETH_RMII_RXD1: PD10
+ */
+
+  /* ETHERNET pins remapp in STM3210C-EVAL board: RX_DV and RxD[3:0] */
+  GPIO_PinRemapConfig(GPIO_Remap_ETH, ENABLE);
+
+  /* Configure PA1 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  /* Configure PD8, PD9, PD10, PD11 and PD12 as input */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOD, &GPIO_InitStructure); /**/
+
+  /* MCO pin configuration--------------------------------------- */
+  /* Configure MCO (PA8) as alternate function push-pull */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+#endif
+}
+
+void Ethernet_Security(void)
+{
+  uint16_t reg;
+  /* MII/RMII Media interface selection ------------------------------------------*/
+#ifdef MII_MODE /* Mode MII with STM3210C-EVAL  */
+  GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_MII);
+
+  /* Get HSE clock = 25MHz on PA8 pin (MCO) */
+  RCC_MCOConfig(RCC_MCO_HSE);
+
+#elif defined RMII_MODE  /* Mode RMII with STM3210C-EVAL */
+  GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_RMII);
+
+  /* Set PLL3 clock output to 50MHz (25MHz /5 *10 =50MHz) */
+  RCC_PLL3Config(RCC_PLL3Mul_10);
+  /* Enable PLL3 */
+  RCC_PLL3Cmd(ENABLE);
+  /* Wait till PLL3 is ready */
+  while (RCC_GetFlagStatus(RCC_FLAG_PLL3RDY) == RESET)
+  {}
+
+  /* Get PLL3 clock on PA8 pin (MCO) */
+  RCC_MCOConfig(RCC_MCO_PLL3CLK);
+#endif
+
+  Ethernet_MDIO_Config();
+  /*-------------------- PHY initialization and configuration ----------------*/
+  /* Put the PHY in reset mode */
+  ETH_WritePHYRegister(PHY_ADDRESS, PHY_BCR, PHY_Reset);
+  Delay_ARMJISHU(2*PHY_ResetDelay);
+  reg = ETH_ReadPHYRegister(PHY_ADDRESS, 0x02);
+  if(reg != 0x0181)
+  {
+     ASLOG(LWIPE, "PHY reg 2 is 0x%X != 0x0181\n", reg);
+  }
+
+  reg = ETH_ReadPHYRegister(PHY_ADDRESS, 16);
+  if((reg & 0x100) != 0x100)
+  {
+     ASLOG(LWIPE, "PHY reg 16 is 0x%X&0x100 != 0x100\n", reg);
+  }
+
+}
 
 /**
   * @brief  Configures the Ethernet Interface
   * @param  None
   * @retval None
   */
-void Ethernet_Configuration(void)
+void ethernet_configure(void)
 {
   ETH_InitTypeDef ETH_InitStructure;
 
   ASLOG(LWIP, "Ethernet Configuration\n");
+
+  Ethernet_GPIO_Init();
+
+  /* to assure Ethernet Phy work well */
+  Ethernet_Security();
   /* MII/RMII Media interface selection ------------------------------------------*/
 #ifdef MII_MODE /* Mode MII with STM3210C-EVAL  */
   GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_MII);
@@ -279,10 +479,12 @@ void Ethernet_Configuration(void)
   ASLOG(LWIP, "Ethernet Configuration Successfully\n");
 }
 
-void EnableEthDMAIrq()
+void ethernet_enable_interrupt()
 {
 	  /* Enable the Ethernet Rx Interrupt */
 	  ETH_DMAITConfig(ETH_DMA_IT_NIS | ETH_DMA_IT_R | ETH_DMA_IT_RO | ETH_DMA_IT_RBU, ENABLE);
+
+	  NVIC_EnableIRQ(ETH_IRQn);
 }
 
 /**

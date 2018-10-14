@@ -19,8 +19,9 @@
 #include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define LWIP_ICMP 1
+#ifndef LWIP_DHCP
 #define LWIP_DHCP 0
-
+#endif
 #define ETH_MAC_ADDR {0xde,0xed,0xbe,0xef,0xaa,0xbb}
 /* On Windows, by default use the VirtualBox Host-Only Ethernet Adapter #2,
  * And please configure its IPv4 address to 172.18.0.100. */
@@ -31,6 +32,14 @@
 #define EVENT_MASK_SLEEP_TCPIP EVENT_MASK_TaskLwip_Event22
 #define EVENT_MASK_START_TCPIP EVENT_MASK_TaskLwip_Event23
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
+
+#ifndef MEM_ALIGNMENT
+#define MEM_ALIGNMENT 4
+#endif
+
+#ifndef ETH_PAD_SIZE
+#define ETH_PAD_SIZE 2
+#endif
 
 #ifndef LWIP_DEBUG
 #define LWIP_DEBUG 0

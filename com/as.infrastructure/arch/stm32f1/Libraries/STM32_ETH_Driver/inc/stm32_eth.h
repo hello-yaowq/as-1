@@ -1598,6 +1598,7 @@ typedef struct  {
   * @{
   */ 
 void ETH_DeInit(void);
+void Ethernet_MDIO_Config(void);
 uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, u16 PHYAddress);
 void ETH_StructInit(ETH_InitTypeDef* ETH_InitStruct);
 void ETH_SoftwareReset(void);

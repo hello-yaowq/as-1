@@ -29,6 +29,7 @@ if('LWIP' in MODULES):
     objs += Glob('lwip/*.c')
     objs += Glob('Libraries/STM32_ETH_Driver/src/*.c')
     asenv.Append(CPPPATH=['%s/Libraries/STM32_ETH_Driver/inc'%(cwd)])
+    asenv.Append(CPPDEFINES=['LWIP_DHCP=1'])
 
 asenv.Append(CPPDEFINES=['USE_STDPERIPH_DRIVER'])
 objs += Glob('Libraries/STM32F10x_StdPeriph_Driver/src/*.c')

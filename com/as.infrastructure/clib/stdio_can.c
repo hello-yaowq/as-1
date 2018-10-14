@@ -23,6 +23,7 @@
 #ifndef CAN_STDIO_IBUFFER_SIZE
 #define CAN_STDIO_IBUFFER_SIZE 512
 #endif
+
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -38,15 +39,25 @@ static boolean is_can_online(void)
 	Std_ReturnType ercd;
 	CanIf_ChannelGetModeType mode;
 	EcuM_StateType state;
+	CanIf_ControllerModeType csMode;
 
 	EcuM_GetState(&state);
 	if(ECUM_STATE_APP_RUN == state)
 	{
+		ercd = CanIf_GetControllerMode(CANIF_CHL_LS, &csMode);
+
+
+		if(E_OK != ercd)
+		{
+			csMode = CANIF_CS_STOPPED;
+		}
+
 		ercd = CanIf_GetPduMode(CANIF_CHL_LS, &mode);
 
 		if(E_OK == ercd)
 		{
-			if((CANIF_GET_TX_ONLINE == mode) || (CANIF_GET_ONLINE == mode))
+			if( (csMode == CANIF_CS_STARTED) &&
+				((CANIF_GET_TX_ONLINE == mode) || (CANIF_GET_ONLINE == mode)))
 			{
 				online = TRUE;
 			}

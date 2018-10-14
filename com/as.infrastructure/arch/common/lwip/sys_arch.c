@@ -54,11 +54,19 @@ struct semlist_t
 };
 #endif /* LWIP_POSIX_ARCH */
 /* ============================ [ DECLARES  ] ====================================================== */
-#ifndef USE_LWIP_POSIX_ARCH
-err_t ethernetif_input(struct netif *netif, struct pbuf *p);
+#if !defined(__WINDOWS__) && !defined(__LINUX__)
 err_t ethernetif_init(struct netif *netif);
+#else
+#ifdef USE_PCAPIF
+extern err_t pcapif_init(struct netif *netif);
+#define ethernetif_init pcapif_init
+#else
+extern err_t tapif_init(struct netif *netif);
+#define ethernetif_init tapif_init
+#endif
 #endif /* USE_LWIP_POSIX_ARCH */
 extern void Eth_Isr(void);
+extern void netbios_init(void);
 /* ============================ [ DATAS     ] ====================================================== */
 static struct netif netif;
 static boolean tcpip_initialized = FALSE;
@@ -545,14 +553,11 @@ tcpip_init_done(void *arg)
 {
 	tcpip_initialized = TRUE;
 }
-void __weak Ethernet_Configuration(void) {}
-void __weak Set_MAC_Address(uint8_t *macaddress) {}
-void __weak EnableEthDMAIrq(void) {}
-#ifndef __WINDOWS__
-struct netif * __weak LwIP_Init(void)
-#else
+void __weak ethernet_configure(void) {}
+void __weak ethernet_set_mac_address(uint8_t *macaddress) {}
+void __weak ethernet_enable_interrupt(void) {}
+
 struct netif * LwIP_Init(void)
-#endif
 {
 #ifdef USE_LWIP
 	uint8_t macaddress[6] = ETH_MAC_ADDR;
@@ -561,7 +566,7 @@ struct netif * LwIP_Init(void)
 	struct ip_addr gw;
 
 	/* Configure ethernet */
-	Ethernet_Configuration();
+	ethernet_configure();
 
 #if NO_SYS
 #if (MEM_LIBC_MALLOC==0)
@@ -592,16 +597,10 @@ struct netif * LwIP_Init(void)
 	GET_BOOT_GW;
 #endif
 
-	Set_MAC_Address(macaddress);
+	ethernet_set_mac_address(macaddress);
 
 	/* Add network interface to the netif_list */
-#ifdef USE_PCAPIF
-	extern err_t pcapif_init(struct netif *netif);
-	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &pcapif_init, &tcpip_input);
-#else
-	extern err_t tapif_init(struct netif *netif);
-	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &tapif_init, &tcpip_input);
-#endif
+	netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
 	/*  Registers the default network interface.*/
 	netif_set_default(&netif);
 
@@ -615,8 +614,8 @@ struct netif * LwIP_Init(void)
 	/* netif is configured */
 	netif_set_up(&netif);
 
-	EnableEthDMAIrq();
-	extern void netbios_init(void);
+	ethernet_enable_interrupt();
+
 	netbios_init();
 #ifdef USE_LWIP_POSIX_ARCH
 	extern void http_server_netconn_init(void);

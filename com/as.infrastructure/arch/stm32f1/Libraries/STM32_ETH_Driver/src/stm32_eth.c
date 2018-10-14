@@ -126,6 +126,38 @@ void ETH_DeInit(void)
   RCC_AHBPeriphResetCmd(RCC_AHBPeriph_ETH_MAC, DISABLE);
 }
 
+void Ethernet_MDIO_Config(void) /* www.armjishu lihao */
+{
+  uint32_t tmpreg = 0;
+  RCC_ClocksTypeDef  rcc_clocks;
+  uint32_t hclk = 60000000;
+  /*---------------------- ETHERNET MACMIIAR Configuration -------------------*/
+  /* Get the ETHERNET MACMIIAR value */
+  tmpreg = ETH->MACMIIAR;
+  /* Clear CSR Clock Range CR[2:0] bits */
+  tmpreg &= MACMIIAR_CR_MASK;
+  /* Get hclk frequency value */
+  RCC_GetClocksFreq(&rcc_clocks);
+  hclk = rcc_clocks.HCLK_Frequency;
+  /* Set CR bits depending on hclk value */
+  if((hclk >= 20000000)&&(hclk < 35000000))
+  {
+    /* CSR Clock Range between 20-35 MHz */
+    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div16;
+  }
+  else if((hclk >= 35000000)&&(hclk < 60000000))
+  {
+    /* CSR Clock Range between 35-60 MHz */
+    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div26;
+  }
+  else /* ((hclk >= 60000000)&&(hclk <= 72000000)) */
+  {
+    /* CSR Clock Range between 60-72 MHz */
+    tmpreg |= (uint32_t)ETH_MACMIIAR_CR_Div42;
+  }
+  /* Write to ETHERNET MAC MIIAR: Configure the ETHERNET CSR Clock Range */
+  ETH->MACMIIAR = (uint32_t)tmpreg;
+}
 /**
   * @brief  Initializes the ETHERNET peripheral according to the specified
   *   parameters in the ETH_InitStruct .

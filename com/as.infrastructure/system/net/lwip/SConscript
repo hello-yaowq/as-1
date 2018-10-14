@@ -36,8 +36,8 @@ if('LWIP_POSIX_ARCH' in MODULES):
               '%s/lwip_sys_arch.h'%(cwd))
     objs += Glob('lwip-contrib/apps/httpserver/*.c')
 
+print('INFO: set LWIP_DEBUG=yes to enable debug')
 if(os.getenv('LWIP_DEBUG')=='yes'):
-    print('INFO: set LWIP_DEBUG=yes to enable debug')
     asenv.Append(CPPDEFINES = '-DLWIP_DEBUG=1')
 
 Return('objs')

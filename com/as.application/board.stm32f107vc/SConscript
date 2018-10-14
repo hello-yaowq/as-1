@@ -76,7 +76,7 @@ if('MCU' in MODULES):
 if('PORT' in MODULES):
     objs += Glob('common/Port*.c')
 
-if('LWIP_DRV' in MODULES):
+if('LWIP' in MODULES):
     objs += Glob('common/isr_eth.xml')
 
 if('DEMO_LED_APP' in MODULES):

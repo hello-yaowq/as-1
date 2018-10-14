@@ -73,7 +73,17 @@ struct process * const autostart_processes[] = {
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void StartupHook(void)
 {
+	uint32 endian = 0xdeadbeef;
 	printf(" start application BUILD @ %s %s\n",__DATE__,__TIME__);
+
+	if(0xde == (*(uint8_t*)&endian))
+	{
+		printf(" cpu is big endian\n");
+	}
+	else
+	{
+		printf(" cpu is little endian\n");
+	}
 #ifdef USE_LCD
 	Lcd_Init();
 #endif
