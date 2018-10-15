@@ -5,6 +5,7 @@ cwd = GetCurrentDir()
 
 Import('asenv')
 ASROOT = asenv['ASROOT']
+MODULES = asenv['MODULES']
 
 objs = []
 
@@ -16,9 +17,9 @@ fatfs = Package('http://elm-chan.org/fsw/ff/arc/ff13.zip', cmd=cmd)
 
 MKSymlink(fatfs,'%s/fatfs'%(cwd))
 
-objs += Glob('fatfs/source/*.c')
-
-asenv.Append(CPPPATH = ['%s/fatfs/source'%(cwd)])
+if('RTTHREAD' not in MODULES):
+    objs += Glob('fatfs/source/*.c')
+    asenv.Append(CPPPATH = ['%s/fatfs/source'%(cwd)])
 
 # FATFS NATIVE TOOS
 srcs = Glob('%s/com/as.infrastructure/arch/posix/mcal/diskio.c'%(ASROOT))

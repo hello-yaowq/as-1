@@ -55,8 +55,11 @@ class RTCONFIG():
         PatchedPreProcessor.start_handling_includes = start_handling_includes
         PatchedPreProcessor.stop_handling_includes = stop_handling_includes
         # parse rtconfig.h to get used component
+        fc = '%s/menuconfig/%s/rtconfig.h'%(cwd,env['BOARD'])
         PreProcessor = PatchedPreProcessor()
-        f = open('%s/menuconfig/%s/rtconfig.h'%(cwd,env['BOARD']), 'r')
+        if(not os.path.exists(fc)):
+            mk_rtconfig('%s/menuconfig/%s/.config'%(cwd,env['BOARD']))
+        f = open(fc, 'r')
         contents = f.read()
         f.close()
         PreProcessor.process_contents(contents)

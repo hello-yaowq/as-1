@@ -44,6 +44,10 @@ def XCC(gendir, env=None):
                  '#define _EXFUN(N,P) N P\n'
                  '#define _READ_WRITE_RETURN_TYPE int\n'
                  '#endif\n')
+        else:
+            fp.write('#if defined(USE_RTTHREAD) && defined(USE_ARCH_X86)\n'
+                 '#define _EXFUN(N,P) N P\n'
+                 '#endif\n')
         fp.write('#endif /* _AS_MCONF_H_ */\n')
         fp.close()
         cfgdone = '%s/config.done'%(gendir)

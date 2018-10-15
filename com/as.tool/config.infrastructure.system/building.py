@@ -232,7 +232,7 @@ def mk_rtconfig(filename):
     except:
         print('open %s failed'%(filename))
         return
-    rtcfg = os.path.abspath('../../com/as.infrastructure/system/kernel/rtthread/menuconfig/%s/rtconfig.h'%(Env['BOARD']))
+    rtcfg = os.path.abspath('%s/com/as.infrastructure/system/kernel/rtthread/menuconfig/%s/rtconfig.h'%(Env['ASROOT'],Env['BOARD']))
     if(not os.path.exists(rtcfg)):
         print('%s is not exits!'%(rtcfg))
     rtconfig = open(rtcfg, 'w')
@@ -950,6 +950,14 @@ def SelectCompilerX86():
         gccx86='i686-elf-tools-windows.zip'
     else:
         gccx86='i686-elf-tools-linux.zip'
+        print('INFO: if the downloading of toolchain is too slow,'
+              'Ctrl+C and then run below command to set up the toolchain\n'
+              ' mkdir -p {0}/release/download/i686-elf-tools-linux/bin\n'
+              ' cd {0}/release/download/i686-elf-tools-linux/bin\n'
+              ' ln -fs /usr/bin/gcc i686-elf-gcc\n'
+              ' ln -fs /usr/bin/ld i686-elf-ld\n'
+              ' echo native > ../../{1}\n'
+              ' cd -'.format(Env['ASROOT'],gccx86))
     cpl = Package('https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/%s'%(gccx86))
     Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
     Env['AS']   = '%s/bin/i686-elf-gcc -m32 -c'%(cpl)
