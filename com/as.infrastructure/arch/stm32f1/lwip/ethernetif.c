@@ -64,7 +64,7 @@
 #include "Os.h"
 #include "asdebug.h"
 
-#define AS_LOG_LWIP 1
+#define AS_LOG_LWIP 0
 #define AS_LOG_LWIPE 1
 
 /* TCP and ARP timeouts */
@@ -349,7 +349,9 @@ void Ethernet_GPIO_Init(void)
 
 void Ethernet_Security(void)
 {
-  uint16_t reg;
+#if AS_LOG_LWIP
+  uint16_t i,reg;
+#endif
   /* MII/RMII Media interface selection ------------------------------------------*/
 #ifdef MII_MODE /* Mode MII with STM3210C-EVAL  */
   GPIO_ETH_MediaInterfaceConfig(GPIO_ETH_MediaInterface_MII);
@@ -377,18 +379,13 @@ void Ethernet_Security(void)
   /* Put the PHY in reset mode */
   ETH_WritePHYRegister(PHY_ADDRESS, PHY_BCR, PHY_Reset);
   Delay_ARMJISHU(2*PHY_ResetDelay);
-  reg = ETH_ReadPHYRegister(PHY_ADDRESS, 0x02);
-  if(reg != 0x0181)
+#if AS_LOG_LWIP
+  for( i=0; i<32; i++)
   {
-     ASLOG(LWIPE, "PHY reg 2 is 0x%X != 0x0181\n", reg);
+     reg = ETH_ReadPHYRegister(PHY_ADDRESS, i);
+     ASLOG(LWIP, "PHY reg[%d]=0x%X\n", i, reg);
   }
-
-  reg = ETH_ReadPHYRegister(PHY_ADDRESS, 16);
-  if((reg & 0x100) != 0x100)
-  {
-     ASLOG(LWIPE, "PHY reg 16 is 0x%X&0x100 != 0x100\n", reg);
-  }
-
+#endif
 }
 
 /**
@@ -632,6 +629,9 @@ low_level_input()
   len = frame.length;
 
   if(len != ETH_ERROR){
+	  #if ETH_PAD_SIZE
+	  len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
+	  #endif
 	  buffer = (u8 *)frame.buffer;
 
 	  /* We allocate a pbuf chain of pbufs from the pool. */
@@ -639,11 +639,17 @@ low_level_input()
 
 	  if (p != NULL)
 	  {
+		#if ETH_PAD_SIZE
+		pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+		#endif
 		for (q = p; q != NULL; q = q->next)
 		{
 		  memcpy((u8_t*)q->payload, (u8_t*)&buffer[l], q->len);
 		  l = l + q->len;
 		}
+		#if ETH_PAD_SIZE
+		pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+		#endif
 	  }else{
 		/* Out of memory, IMPROVEMENT how should we handle this */
 		LWIP_DEBUGF(NETIF_DEBUG, ("low_level_input: out of memory\n"));
@@ -693,13 +699,17 @@ low_level_output(struct netif *netif, struct pbuf *p)
   int l = 0;
 
   u8 *buffer =  (u8 *)(DMATxDescToSet->Buffer1Addr);  /* Return Buffer address */
-
+  #if ETH_PAD_SIZE
+  pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+  #endif
   for(q = p; q != NULL; q = q->next)
   {
     memcpy((u8_t*)&buffer[l], q->payload, q->len);
 	l = l + q->len;
   }
-
+  #if ETH_PAD_SIZE
+  pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+  #endif
   return ETH_TxPkt_ChainMode(l);
 }
 

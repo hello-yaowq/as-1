@@ -441,10 +441,16 @@ struct pbuf * low_level_input(void)
 		return NULL;
 	}
 
+	#if ETH_PAD_SIZE
+	len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
+	#endif
 	/* We allocate a pbuf chain of pbufs from the pool. */
 	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
 
 	if(p != NULL) {
+		#if ETH_PAD_SIZE
+		pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+		#endif
 		/* We iterate over the pbuf chain until we have read the entire
 			packet into the pbuf. */
 		bufptr = &pkbuf[0];
@@ -456,6 +462,9 @@ struct pbuf * low_level_input(void)
 			memcpy(q->payload, bufptr, q->len);
 			bufptr += q->len;
 		}
+		#if ETH_PAD_SIZE
+		pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+		#endif
 	/* acknowledge that packet has been read(); */
 	} else {
 		/* drop packet(); */
@@ -477,7 +486,9 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 
 	Irq_Save(irq_state);
 	/* initiate transfer(); */
-
+	#if ETH_PAD_SIZE
+	pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+	#endif
 	bufptr = &pkbuf[0];
 
 	for(q = p; q != NULL; q = q->next) {
@@ -488,6 +499,9 @@ err_t low_level_output(struct netif *netif, struct pbuf *p)
 		memcpy(bufptr, q->payload, q->len);
 		bufptr += q->len;
 	}
+	#if ETH_PAD_SIZE
+	pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+	#endif
 
 	/* signal that packet should be sent(); */
 	writel(__iobase+REG_LENGTH,p->tot_len);

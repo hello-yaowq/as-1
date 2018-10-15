@@ -77,8 +77,12 @@ def switch_to_protocol(protocol):
     global __dcm__
 
     if(protocol == 'DOIP'):
-        __dcm__ = dcm('172.18.0.200',8989)
-        print("switch to UDS on DoIP mode")
+        if(os.getenv('DOIP_IP')):
+            ip = os.getenv('DOIP_IP')
+        else:
+            ip = '172.18.0.200'
+        __dcm__ = dcm(ip,8989)
+        print("switch to UDS on DoIP mode on %s:8989"%(ip))
     elif(protocol == 'J1939TP'):
         config = {'busid':0,
                   'TxFcNPdu':0x751,

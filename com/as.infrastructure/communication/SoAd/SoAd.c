@@ -55,7 +55,7 @@ static int shellIfconfig(int argc, char* argv[])
 				netif->hwaddr[0],netif->hwaddr[1],netif->hwaddr[2],
 				netif->hwaddr[3],netif->hwaddr[4],netif->hwaddr[5],
 				netif->mtu);
-	SHELL_printf("IP address of interface: %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+	SHELL_printf("IP addr of interface   : %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
 		ip4_addr1_16(&netif->ip_addr), ip4_addr2_16(&netif->ip_addr),
 		ip4_addr3_16(&netif->ip_addr), ip4_addr4_16(&netif->ip_addr));
 	SHELL_printf("Netmask of interface   : %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
@@ -65,6 +65,20 @@ static int shellIfconfig(int argc, char* argv[])
 		ip4_addr1_16(&netif->gw), ip4_addr2_16(&netif->gw),
 		ip4_addr3_16(&netif->gw), ip4_addr4_16(&netif->gw));
 #endif
+#ifdef USE_UIP
+	SHELL_printf("Ethernet Interface     : %02X:%02X:%02X:%02X:%02X:%02X\n",
+				uip_lladdr.addr[0],uip_lladdr.addr[1],uip_lladdr.addr[2],
+				uip_lladdr.addr[3],uip_lladdr.addr[4],uip_lladdr.addr[5]);
+	SHELL_printf("IP addr of interface   : %d.%d.%d.%d\n",
+			uip_hostaddr.u8[0], uip_hostaddr.u8[1],
+			uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
+	SHELL_printf("Netmask of interface   : %d.%d.%d.%d\n",
+			uip_netmask.u8[0], uip_netmask.u8[1],
+			uip_netmask.u8[2], uip_netmask.u8[3]);
+	SHELL_printf("Gateway of interface   : %d.%d.%d.%d\n",
+			uip_draddr.u8[0], uip_draddr.u8[1],
+			uip_draddr.u8[2], uip_draddr.u8[3]);
+#endif
 	return 0;
 }
 static SHELL_CONST ShellCmdT cmdIfconfig  = {
@@ -72,7 +86,7 @@ static SHELL_CONST ShellCmdT cmdIfconfig  = {
 		0,1,
 		"ifconfig",
 		"ifconfig",
-		"Show all commands all help no a specific command\n",
+		"show network information\n",
 		{NULL,NULL}
 };
 SHELL_CMD_EXPORT(cmdIfconfig)
@@ -799,9 +813,10 @@ Std_ReturnType SoAdTp_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 /** @req SOAD193 */
 void TcpIp_Init(void)
 {
-#if !defined(USE_SHELL_SYMTAB)
+#if defined(USE_SHELL) && !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&cmdIfconfig);
 #endif
+
 	#ifdef USE_LWIP
     LwIP_Init();
 	#endif
