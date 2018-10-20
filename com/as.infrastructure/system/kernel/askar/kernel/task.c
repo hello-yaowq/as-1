@@ -163,7 +163,6 @@ StatusType ActivateTask ( TaskType TaskID )
 		{
 			Sched_Preempt();
 			Os_PortDispatch();
-			OSPreTaskHook();
 		}
 
 		Irq_Restore(imask);
@@ -232,8 +231,6 @@ StatusType TerminateTask( void )
 
 	if(E_OK == ercd)
 	{
-		OSPostTaskHook();
-
 		Irq_Save(mask);
 		#ifdef MULTIPLY_TASK_ACTIVATION
 		asAssert(RunningVar->activation > 0);
@@ -252,6 +249,7 @@ StatusType TerminateTask( void )
 		}
 
 		Sched_GetReady();
+		OSPostTaskHook();
 		Os_PortStartDispatch();
 
 		Irq_Restore(mask);
@@ -397,9 +395,9 @@ StatusType ChainTask    ( TaskType TaskID )
 		if(ercd == E_OK)
 		{
 			OS_TRACE_TASK_ACTIVATION(pTaskVar);
-			OSPostTaskHook();
 			Irq_Save(mask);
 			Sched_GetReady();
+			OSPostTaskHook();
 			Os_PortStartDispatch();
 			Irq_Restore(mask);
 		}
@@ -464,9 +462,7 @@ StatusType Schedule     ( void )
 		RunningVar->priority = RunningVar->pConst->initPriority;
 		if(Sched_Schedule())
 		{
-			OSPostTaskHook();
 			Os_PortDispatch();
-			OSPreTaskHook();
 		}
 		RunningVar->priority = RunningVar->pConst->runPriority;
 		Irq_Restore(mask);

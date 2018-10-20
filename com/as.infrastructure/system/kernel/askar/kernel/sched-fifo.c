@@ -262,7 +262,6 @@ void Sched_Preempt(void)
 	PriorityType priority;
 	const ReadyFIFOType* fifo;
 
-	OSPostTaskHook();
 	/* remove the ReadyVar from the queue */
 	priority = ReadyVar->priority;
 	fifo = &ReadyFIFO[priority];

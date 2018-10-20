@@ -11,10 +11,13 @@ MODULES = ['ECUM','SCHM','MCU',
            'CLIB_STDIO_PRINTF',
            'ASKAR','SHELL','CLIB_STRTOK_R',
            'MPC5634M_MLQB80',
-           'CAN','CANIF','PDUR','COM','COMM','CANTP',
-           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
            'PORT','DIO'
            ]
+
+print('INFO: set NO_COM=YES to remove COM stack')
+if(os.getenv('NO_COM') != 'YES'):
+    MODULES += ['CAN','CANIF','PDUR','COM','COMM','CANTP',
+                'DCM','CANNM','CANSM','NM','OSEKNM','XCP']
 
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):

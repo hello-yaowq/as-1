@@ -85,7 +85,6 @@ StatusType SetEvent  ( TaskType TaskID , EventMaskType Mask )
 			{
 				Sched_Preempt();
 				Os_PortDispatch();
-				OSPreTaskHook();
 			}
 		}
 		Irq_Restore(imask);
@@ -252,10 +251,8 @@ StatusType WaitEvent ( EventMaskType Mask )
 			RunningVar->priority = RunningVar->pConst->initPriority;
 			RunningVar->pConst->pEventVar->wait = Mask;
 			RunningVar->state=WAITING;
-			OSPostTaskHook();
 			Sched_GetReady();
 			Os_PortDispatch();
-			OSPreTaskHook();
 
 			RunningVar->priority = RunningVar->pConst->runPriority;
 		}

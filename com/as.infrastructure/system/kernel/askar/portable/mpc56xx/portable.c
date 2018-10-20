@@ -152,9 +152,6 @@ MAKE_HLI_ADDRESS(INTC_MCR, &INTC.MCR.R)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 void Os_PortResume(void);
-#ifdef OS_USE_PRETASK_HOOK
-void Os_PortResumePreHook(void);
-#endif
 void Os_PortDispatchEntry(void);
 void Os_PortTickISR(void);
 void Os_PortExtISR(void);
@@ -170,8 +167,6 @@ void Os_PortActivate(void)
 
 	ASLOG(OS, "%s(%d) is running\n", RunningVar->pConst->name,
 			RunningVar->pConst->initPriority);
-
-	OSPreTaskHook();
 
 	CallLevel = TCL_TASK;
 	Irq_Enable();
@@ -210,6 +205,19 @@ void Os_PortInitContext(TaskVarType* pTaskVar)
 	pTaskVar->context.pc = Os_PortActivate;
 }
 
+#ifdef OS_USE_POSTTASK_HOOK
+void Os_PortPostTaskHook(void)
+{
+	OSPostTaskHook();
+}
+#endif
+
+#ifdef OS_USE_PRETASK_HOOK
+void Os_PortPreTaskHook(void)
+{
+	OSPreTaskHook();
+}
+#endif
 #ifdef USE_PTHREAD_SIGNAL
 void Os_PortCallSignal(int sig, void (*handler)(int), void* sp, void (*pc)(void))
 {
@@ -299,6 +307,13 @@ l_loop:
 l_exit:
 	lis r11, RunningVar@h
 	stw r12, RunningVar@l(r11)
+
+	#ifdef OS_USE_PRETASK_HOOK
+	bl Os_PortPreTaskHook
+	lis r11, RunningVar@h
+	stw r12, RunningVar@l(r11)
+	#endif
+
 	/* Restore 'sp' from TCB */
 	lwz r1, 0(r12)
 
@@ -307,23 +322,6 @@ l_exit:
 	mtctr r11
 	se_bctrl
 }
-
-#ifdef OS_USE_PRETASK_HOOK
-__asm void Os_PortResumePreHook(void)
-{
-nofralloc
-	lis r11, CallLevel@h
-	lwz r12, CallLevel@l(r11) /* save CallLevel in R12 */
-	li r3, 8 /* TCL_PREPOST */
-	stw r3, CallLevel@l(r11)
-	wrteei 1
-	bl PreTaskHook
-	wrteei 0
-	lis r11, CallLevel@h
-	stw r12, CallLevel@l(r11)
-	b Os_PortResume
-}
-#endif
 
 __asm void Os_PortResume(void)
 {
@@ -358,6 +356,16 @@ nofralloc
 	lis r1, _stack_addr@h
 	ori r1, r1, _stack_addr@l
 	subi r1, r1, STACK_PROTECT_SIZE
+
+	#ifdef OS_USE_POSTTASK_HOOK
+	mflr r0
+	subi r1, r1, 4 /* save LR in stack */
+	stw r0, 0(r1)
+	bl Os_PortPostTaskHook
+	lwz r0, 0(r1)
+	addi r1, r1, 4
+	mtlr r0
+	#endif
 
 l_nosave:
 	lis r11, CallLevel@h
@@ -405,17 +413,14 @@ nofralloc
 	cmpw r4, r3
 	bge l_nopreempt
 
-	#ifdef OS_USE_PRETASK_HOOK
-	lis r11, Os_PortResumePreHook@h
-	ori r11, r11, Os_PortResumePreHook@l
-	stw r11, 4(r10)
-	#endif
-
 	bl Sched_Preempt
 
 	b Os_PortStartDispatch
 
 l_nopreempt:
+	#ifdef OS_USE_PRETASK_HOOK
+	bl Os_PortPreTaskHook
+	#endif
 	lis r11, RunningVar@h
 	lwz r12, RunningVar@l(r11)
 	lwz r1, 0(r12)
@@ -440,6 +445,16 @@ nofralloc
 	lis r11, Os_PortResume@h
 	ori r11, r11, Os_PortResume@l
 	stw r11, 4(r12)
+
+	#ifdef OS_USE_POSTTASK_HOOK
+	mflr r0
+	subi r1, r1, 4 /* save LR in stack */
+	stw r0, 0(r1)
+	bl Os_PortPostTaskHook
+	lwz r0, 0(r1)
+	addi r1, r1, 4
+	mtlr r0
+	#endif
 
 	b Os_PortStartDispatch
 }

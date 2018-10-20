@@ -441,11 +441,15 @@ def GenC(gendir,os_list):
         if(prio > maxPrio):
             maxPrio = prio
     fp.write('#ifdef USE_SCHED_FIFO\n')
+    fp.write('#ifdef USE_PTHREAD\n')
     cstr = '\nconst ReadyFIFOType ReadyFIFO[OS_PTHREAD_PRIORITY+PRIORITY_NUM+1]=\n{\n'
+    cstr += '#ifdef USE_PTHREAD\n'
     for prio in range(pthprio):
         sumact = pthnum
         fp.write('static TaskType ReadyFIFO_pthread_prio%s[%s];\n'%(prio,sumact))
         cstr += '\t{\n\t\t/*.max=*/%s,\n\t\t/*.pFIFO=*/ReadyFIFO_pthread_prio%s\n\t},\n'%(sumact, prio)
+    cstr += '#endif\n'
+    fp.write('#endif\n')
     for prio in range(maxPrio+1):
         sumact = 3+2 # 2 for the ceiling of resource and one more additional slow
         comments = ''

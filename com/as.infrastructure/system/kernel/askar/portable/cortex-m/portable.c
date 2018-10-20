@@ -32,6 +32,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void knl_activate(void);
+extern void knl_start_dispatch(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 extern const uint32 __vector_table[];
@@ -48,8 +49,6 @@ void Os_PortActivate(void)
 
 	ASLOG(OS, "%s(%d) is running\n", RunningVar->pConst->name,
 			RunningVar->pConst->initPriority);
-
-	OSPreTaskHook();
 
 	CallLevel = TCL_TASK;
 	Irq_Enable();
@@ -115,10 +114,11 @@ void Os_PortDispatch(void)
 void Os_PortStartDispatch(void)
 {
 	knl_dispatch_started = TRUE; /* always set it to true here, ugly code */
+	printf("^");
 	RunningVar = NULL;
 	__asm("cpsie   i");
 	__asm("svc 0");
-	while(1);
+	asAssert(0);
 }
 
 void knl_isr_handler(int intno)
@@ -158,9 +158,14 @@ void dump_fault_stack(const char* prefix, uint32* sp) {
 	int i;
 	Irq_Disable();
 	printf("%s, SP = %p :\n", prefix, sp);
-	for(i=0; i<16; i++) {
-		printf("sp[%d] = 0x%X\n", i, sp[i]);
-	}
+	printf("R0 = 0x%X\n", sp[0]);
+	printf("R1 = 0x%X\n", sp[1]);
+	printf("R2 = 0x%X\n", sp[2]);
+	printf("R3 = 0x%X\n", sp[3]);
+	printf("R12= 0x%X\n", sp[4]);
+	printf("LR = 0x%X\n", sp[5]);
+	printf("PC = 0x%X\n", sp[6]);
+	printf("PSR= 0x%X\n", sp[7]);
 	asAssert(0);
 }
 

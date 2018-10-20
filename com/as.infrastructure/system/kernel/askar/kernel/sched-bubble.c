@@ -151,7 +151,6 @@ void Sched_RemoveReady(TaskType TaskID)
 
 void Sched_Preempt(void)
 {
-	OSPostTaskHook();
 	asAssert(ReadyVar == &TaskVarArray[ReadyQueue.heap[0].taskID]);
 	ReadyQueue.heap[0].taskID = RunningVar - TaskVarArray;
 	ReadyQueue.heap[0].priority = NEW_PRIOHIGHEST(RunningVar->priority);

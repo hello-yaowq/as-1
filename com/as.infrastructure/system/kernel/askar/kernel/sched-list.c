@@ -172,7 +172,6 @@ void Sched_Preempt(void)
 {
 	PriorityType priority;
 
-	OSPostTaskHook();
 	/* remove the ReadyVar from the queue */
 	priority = ReadyVar->priority;
 	TAILQ_REMOVE(&(ReadyList[priority]), ReadyVar, rentry);

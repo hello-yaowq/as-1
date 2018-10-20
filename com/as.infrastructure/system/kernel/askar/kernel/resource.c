@@ -184,9 +184,7 @@ StatusType ReleaseResource ( ResourceType ResID )
 			{	/* if PRIORITY_NUM, then not preempt-able */
 				if(Sched_Schedule())
 				{
-					OSPostTaskHook();
 					Os_PortDispatch();
-					OSPreTaskHook();
 				}
 			}
 			Irq_Restore(imask);

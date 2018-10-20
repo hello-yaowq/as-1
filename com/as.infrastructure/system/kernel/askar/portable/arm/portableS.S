@@ -53,16 +53,9 @@ Os_PortStartDispatch:
 	ldr     r0, [r0]
 	cmp     r0, #0
 	beq     Os_PortIdle
-Os_PortDispatchFormISR:
 	ldr     r1, =RunningVar
 	str     r0, [r1]
-	ldr     sp, [r0, #0x0 ]
-	ldr     r1,[r0,#0x04]
-	mov     pc,r1
-
-	.global Os_PortResume
-	.type   Os_PortResume, %function
-Os_PortResumePreHook:
+Os_PortDispatchFormISR:
 	#ifdef OS_USE_PRETASK_HOOK
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
@@ -73,6 +66,12 @@ Os_PortResumePreHook:
 	ldmfd   sp!, {r0-r3}
 	str     r3,[r1]  /* restore CallLevel */
 	#endif
+	ldr     sp, [r0, #0x0 ]
+	ldr     r1,[r0,#0x04]
+	mov     pc,r1
+
+	.global Os_PortResume
+	.type   Os_PortResume, %function
 Os_PortResume:
 	ldmfd   sp!, {r0}
 	msr     spsr, r0
@@ -99,6 +98,16 @@ Os_PortDispatch:
 	ldr     r12, =Os_PortResume
 	str     r12, [r4, #0x04]
 
+	#ifdef OS_USE_POSTTASK_HOOK
+	ldr     r1, = CallLevel
+	ldr     r3, [r1]
+	mov     r2, #8   /* CallLevel = TCL_PREPOST */
+	str     r2,[r1]
+	stmfd   sp!, {r0-r3}
+	bl      PostTaskHook
+	ldmfd   sp!, {r0-r3}
+	str     r3,[r1]  /* restore CallLevel */
+	#endif
 	b       Os_PortStartDispatch                 /* To dispatch processing */
 
 	.global vector_irq
@@ -148,6 +157,16 @@ EnterISR:
 	ldr     r12, =Os_PortResume
 	str     r12, [r4, #0x04]
 
+	#ifdef OS_USE_POSTTASK_HOOK
+	ldr     r1, = CallLevel
+	ldr     r3, [r1]
+	mov     r2, #8   /* CallLevel = TCL_PREPOST */
+	str     r2,[r1]
+	stmfd   sp!, {r0-r3}
+	bl      PostTaskHook
+	ldmfd   sp!, {r0-r3}
+	str     r3,[r1]  /* restore CallLevel */
+	#endif
 l_nosave:
 	stmfd   sp!, {lr}     /* push {lr} */
 	ldr     r1, = CallLevel
@@ -180,7 +199,7 @@ ExitISR:
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
 	cmp     r3, #1  /* TCL_TASK */
-	bne     l_nodispatch
+	bne     l_nopreempt
 
 	ldr     r1, = ReadyVar
 	ldr     r1, [r1]
@@ -192,11 +211,6 @@ ExitISR:
 	ldrb    r3, [r0, #8]  /* priority of RunningVar */
 	cmp     r3, r2
 	bge     l_nopreempt
-
-	#ifdef OS_USE_PRETASK_HOOK
-	ldr     r12, =Os_PortResumePreHook
-	str     r12, [r0, #0x04]
-	#endif
 
 	bl      Sched_Preempt
 

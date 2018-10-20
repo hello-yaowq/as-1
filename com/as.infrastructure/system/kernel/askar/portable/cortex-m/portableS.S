@@ -41,13 +41,13 @@ Os_PortIdle:
 	/* set RunningVar to NULL */
 	ldr     r1, =RunningVar
 	str     r0, [r1]
-	bl      Irq_Enable
+	cpsie   i
 l_idle:
 	ldr     r0, =ReadyVar
 	ldr     r0, [r0]
 	cmp     r0, #0
 	ble     l_idle
-	bl      Irq_Disable
+	cpsid   i
 	bl      Sched_GetReady
 	b       knl_start_dispatch
 
@@ -58,17 +58,28 @@ knl_activate:
 	ldr r2, =Os_PortActivate
 	push {r2,r3}
 	subs  sp,sp,#24
-	# will going to task level
-	ldr     r1, = CallLevel
-	mov     r2, #1   /* CallLevel = TCL_TASK */
-	str     r2,[r1]
 	bx lr
 
 	.global  knl_resume
 	.type   knl_resume, %function
-	.global  knl_resume_pre_hook
-	.type   knl_resume_pre_hook, %function
-knl_resume_pre_hook:
+knl_resume:
+	/* start to restore task's context */
+	pop     {r4-r11}
+    cpsie   i
+	bx      lr
+
+	.global knl_start_dispatch
+	.type   knl_start_dispatch, %function
+knl_start_dispatch:
+	cpsid   i
+	ldr lr, =0xFFFFFFF9 /* force it to process mode and use MSP */
+	ldr     r0, =ReadyVar
+	ldr     r0, [r0]
+	cmp     r0, #0
+	beq     Os_PortIdle
+	ldr     r1, =RunningVar
+	str     r0, [r1]
+knl_start_dispatch_from_isr:
 	#ifdef OS_USE_PRETASK_HOOK
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
@@ -79,25 +90,6 @@ knl_resume_pre_hook:
 	pop     {r0-r3,lr}
 	str     r3,[r1]  /* restore CallLevel */
 	#endif
-knl_resume:
-	/* start to restore task's context */
-	pop     {r4-r11}
-    cpsie   i
-    dsb
-    isb
-	bx      lr
-
-	.global knl_start_dispatch
-	.type   knl_start_dispatch, %function
-knl_start_dispatch:
-	ldr lr, =0xFFFFFFF9 /* force it to process mode and use MSP */
-	ldr     r0, =ReadyVar
-	ldr     r0, [r0]
-	cmp     r0, #0
-	beq     Os_PortIdle
-knl_start_dispatch_from_isr:
-	ldr     r1, =RunningVar
-	str     r0, [r1]
 	ldr     sp, [r0, #0x0 ]
 	ldr     r1,[r0,#0x04]
 	bx      r1
@@ -114,11 +106,21 @@ knl_dispatch_entry:
 
 	ldr     r12, =knl_resume
 	str     r12, [r4, #0x04]
-
+	#ifdef OS_USE_POSTTASK_HOOK
+	ldr     r1, = CallLevel
+	ldr     r3, [r1]
+	mov     r2, #8   /* CallLevel = TCL_PREPOST */
+	str     r2,[r1]
+	push    {r0-r3,lr}
+	bl      PostTaskHook
+	pop     {r0-r3,lr}
+	str     r3,[r1]  /* restore CallLevel */
+	#endif
 	b       knl_start_dispatch
 
 	.type   EnterISR, %function
 EnterISR:
+	cpsid   i
 	ldr     r0, = RunningVar
 	ldr     r0, [r0]
 	cmp     r0, #0
@@ -143,6 +145,16 @@ EnterISR:
     /* and then load isr system stack */
     ldr     sp, =knl_system_stack_top  /* Set system stack */
 
+	#ifdef OS_USE_POSTTASK_HOOK
+	ldr     r1, = CallLevel
+	ldr     r4, [r1]
+	mov     r2, #8   /* CallLevel = TCL_PREPOST */
+	str     r2,[r1]
+	push    {r0-r4,lr}
+	bl      PostTaskHook
+	pop     {r0-r4,lr}
+	str     r4,[r1]  /* restore CallLevel */
+	#endif
 l_nosave:
 	push    {r3} /* lr */
 	ldr     r1, = CallLevel
@@ -177,7 +189,7 @@ ExitISR:
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
 	cmp     r3, #1  /* TCL_TASK */
-	bne     l_nodispatch
+	bne     l_nopreempt
 
 	ldr     r1, = ReadyVar
 	ldr     r1, [r1]
@@ -189,11 +201,6 @@ ExitISR:
 	ldrb    r3, [r0, #8]  /* priority of RunningVar */
 	cmp     r3, r2
 	bge     l_nopreempt
-
-	#ifdef OS_USE_PRETASK_HOOK
-	ldr     r12, =knl_resume_pre_hook
-	str     r12, [r0, #0x04]
-	#endif
 
 	bl      Sched_Preempt
 
