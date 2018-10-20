@@ -32,7 +32,6 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void knl_activate(void);
-extern void knl_start_dispatch(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 extern const uint32 __vector_table[];
@@ -114,7 +113,6 @@ void Os_PortDispatch(void)
 void Os_PortStartDispatch(void)
 {
 	knl_dispatch_started = TRUE; /* always set it to true here, ugly code */
-	printf("^");
 	RunningVar = NULL;
 	__asm("cpsie   i");
 	__asm("svc 0");
