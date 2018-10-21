@@ -71,6 +71,7 @@ static inline uint16 Sched_RealPriority(uint16 priority)
 	return real;
 }
 #endif
+
 static void Sched_BubbleUp(ReadyQueueType* pReadyQueue, uint32 index)
 {
 	uint32 father = index >> 1;
@@ -102,7 +103,7 @@ static void Sched_BubbleDown(ReadyQueueType* pReadyQueue, uint32 index)
 		}
 		if (REAL_PRIORITY(pReadyQueue->heap[index].priority) < REAL_PRIORITY(pReadyQueue->heap[child].priority))
 		{
-			/* the father has a priority <, swap */
+			/* the child has a higher priority, swap */
 			ReadyEntryType tmpVar = pReadyQueue->heap[index];
 			pReadyQueue->heap[index] = pReadyQueue->heap[child];
 			pReadyQueue->heap[child] = tmpVar;
@@ -122,7 +123,18 @@ void Sched_Init(void)
 {
 	ReadyQueue.size = 0;
 }
-
+void Sched_ShowRdyQ(void)
+{
+	uint32 i;
+	printf("\nRDYQ:");
+	for(i=0; i<ReadyQueue.size; i++)
+	{
+		printf("%d(%d/%d)->", ReadyQueue.heap[i].taskID,
+				REAL_PRIORITY(ReadyQueue.heap[i].priority),
+				TaskVarArray[ReadyQueue.heap[i].taskID].priority);
+	}
+	printf("\n");
+}
 void Sched_AddReady(TaskType TaskID)
 {
 	asAssert(ReadyQueue.size < ACTIVATION_SUM);
@@ -193,7 +205,6 @@ boolean Sched_Schedule(void)
 			needSchedule = TRUE;
 		}
 	}
-
 	return needSchedule;
 }
 
