@@ -125,6 +125,14 @@ void Can_putc(char ch)
 #ifndef CAN_STDIO_IBUFFER_FULL_IGNORE
 	while((isize >= CAN_STDIO_IBUFFER_SIZE) && is_can_online())
 	{
+		#ifdef USE_ASKAR
+		extern unsigned int CallLevel;
+		if(/*TCL_TASK*/0x01 != CallLevel)
+		{
+			wmissing ++;
+			return;
+		}
+		#endif
 		Can_MainFunction_Write();
 #if defined(CANIF_TASK_FIFO_MODE) && (CANIF_TASK_FIFO_MODE == STD_ON)
 		CanIf_MainFunction();
