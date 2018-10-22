@@ -44,16 +44,16 @@ class AsFlashloader(QThread):
                   (self.download_flash_driver,True),(self.check_flash_driver,False),
                   (self.routine_erase_flash,True), (self.download_application,True),
                   (self.check_application,False), (self.launch_application,True) ]
-        self.stepsXcp = [ (self.dummy,True), (self.dummy,True),
+        self.stepsXcp = [ (self.dummy,False), (self.dummy,False),
                   (self.enter_program_session_xcp,True),(self.security_prgs_access_xcp,True),
                   (self.download_flash_driver_xcp,True),(self.check_flash_driver_xcp,False),
                   (self.routine_erase_flash_xcp,True), (self.download_application_xcp,True),
                   (self.check_application_xcp,False), (self.launch_application_xcp,True) ]
-        self.stepsCmd = [ (self.open_cmd,True), (self.dummy,True),
-                  (self.dummy,True),(self.dummy,True),
+        self.stepsCmd = [ (self.open_cmd,True), (self.dummy,False),
+                  (self.dummy,False),(self.dummy,False),
                   (self.download_flash_driver_cmd,True),(self.dummy,False),
                   (self.routine_erase_flash_cmd,True), (self.download_application_cmd,True),
-                  (self.dummy,True), (self.close_cmd,True) ]
+                  (self.dummy,False), (self.close_cmd,True) ]
         self.enable = []
         for s in self.steps:
             self.enable.append(s[1])
@@ -397,13 +397,19 @@ class AsFlashloader(QThread):
 
     def GetSteps(self):
         ss = []
-        for s in self.steps:
+        if(self.protocol == 'XCP'):
+            steps = self.stepsXcp
+        elif(self.protocol == 'CMD'):
+            steps = self.stepsCmd
+        else:
+            steps = self.steps
+        for s in steps:
             ss.append((s[0].__name__.replace('_',' '),s[1]))
         return ss
     
     def SetEnable(self,step,enable):
-        for id,s in enumerate(self.steps):
-            if(step == s[0].__name__.replace('_',' ')):
+        for id,s in enumerate(self.GetSteps()):
+            if(step == s[0]):
                 self.enable[id] = enable
 
     def step_progress(self,v):
@@ -753,11 +759,13 @@ class UIFlashloader(QWidget):
         self.leFlsSignature.setText('8')
         hbox = QHBoxLayout()
         vbox2 = QVBoxLayout()
+        self.cbxEnableList = []
         for s in self.loader.GetSteps():
             cbxEnable = AsStepEnable(s[0])
             cbxEnable.setChecked(s[1])
             cbxEnable.enableChanged.connect(self.on_enableChanged)
             vbox2.addWidget(cbxEnable)
+            self.cbxEnableList.append(cbxEnable)
         hbox.addLayout(vbox2)
         self.leinfor = QTextEdit()
         self.leinfor.setReadOnly(True)
@@ -793,6 +801,10 @@ class UIFlashloader(QWidget):
 
     def on_cmbxProtocol_currentIndexChanged(self,index):
         self.loader.set_protocol(str(self.cmbxProtocol.currentText()))
+
+        for id,s in enumerate(self.loader.GetSteps()):
+            self.cbxEnableList[id].setText(s[0])
+            self.cbxEnableList[id].setChecked(s[1])
 
     def on_enableChanged(self,step,enable):
         self.loader.SetEnable(step, enable)
