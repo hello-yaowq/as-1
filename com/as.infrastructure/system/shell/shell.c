@@ -54,7 +54,9 @@ StatusType OsClearEvent(uint32_t id, uint32_t mask);
 #define CMDLINE_MAX		4096
 #else
 #define MAX_ARGS		32
+#ifndef CMDLINE_MAX
 #define CMDLINE_MAX		256
+#endif
 #endif
 
 #define IBUFFER_MAX    CMDLINE_MAX
@@ -125,7 +127,9 @@ SHELL_CMD_EXPORT(cmdJmp)
 #endif
 
 #ifdef USE_FLASH_CMD
-extern SHELL_CONST ShellCmdT cmdFlash;
+extern SHELL_CONST ShellCmdT cmdFlashLoadDriver;
+extern SHELL_CONST ShellCmdT cmdFlashErase;
+extern SHELL_CONST ShellCmdT cmdFlashWrite;
 #endif
 
 static char cmdBuf[CMDLINE_MAX];
@@ -152,7 +156,10 @@ static char     ibuffer[IBUFFER_MAX];
 void SHELL_input(char c)
 {
 	imask_t imask;
+#if defined(USE_TINYOS) || defined(USE_CONTIKI)
+#else
 	StatusType ercd;
+#endif
 	if(c == '\r')
 		return;
 
@@ -348,7 +355,9 @@ int SHELL_Init( void ) {
 	SHELL_AddCmd(&cmdMem);
 #endif
 #ifdef USE_FLASH_CMD
-	SHELL_AddCmd(&cmdFlash);
+	SHELL_AddCmd(&cmdFlashLoadDriver);
+	SHELL_AddCmd(&cmdFlashErase);
+	SHELL_AddCmd(&cmdFlashWrite);
 #endif
 #ifdef USE_JMP_CMD
 	SHELL_AddCmd(&cmdJmp);

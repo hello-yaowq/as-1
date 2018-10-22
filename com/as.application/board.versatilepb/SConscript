@@ -86,6 +86,7 @@ if(asenv['RELEASE']=='asboot'):
                'DCM','XCP',
                'UIP','SOAD','DOIP','PROTOTHREAD',
                'FLASH',
+               'SHELL','FLASH_CMD',
                'PCI',
                'CLIB_ASHEAP','CLIB_MISCLIB',
                'CLIB_STDIO_PRINTF',

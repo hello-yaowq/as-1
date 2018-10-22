@@ -1,3 +1,4 @@
+from networkx.algorithms.flow.mincost import cost_of_flow
 __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
@@ -27,6 +28,9 @@ from PyQt5.QtWidgets import *
 
 import os
 import glob
+import time
+
+from asserial import *
 
 __all__ = ['UIFlashloader']
 
@@ -45,6 +49,11 @@ class AsFlashloader(QThread):
                   (self.download_flash_driver_xcp,True),(self.check_flash_driver_xcp,False),
                   (self.routine_erase_flash_xcp,True), (self.download_application_xcp,True),
                   (self.check_application_xcp,False), (self.launch_application_xcp,True) ]
+        self.stepsCmd = [ (self.open_cmd,True), (self.dummy,True),
+                  (self.dummy,True),(self.dummy,True),
+                  (self.download_flash_driver_cmd,True),(self.dummy,False),
+                  (self.routine_erase_flash_cmd,True), (self.download_application_cmd,True),
+                  (self.dummy,True), (self.close_cmd,True) ]
         self.enable = []
         for s in self.steps:
             self.enable.append(s[1])
@@ -61,6 +70,80 @@ class AsFlashloader(QThread):
 
     def dummy(self):
         return False,None
+
+    def runcmd(self,cmd):
+        ercd,msg = self.serial.runcmd(cmd)
+        if(ercd == False):
+            self.infor.emit('%s\n%s'%(cmd,msg))
+        #print(cmd,msg)
+        return ercd,msg
+
+    def open_cmd(self):
+        settings = {}
+        settings['port'] = self.port
+        settings['baund'] = 115200
+        settings['bytesize'] = 8
+        settings['parity']='N'
+        settings['stopbits']=1
+        settings['timeout'] = 0.1
+        self.serial = AsSerial()
+        ercd,msg = self.serial.open(settings,False)
+        if(False == ercd):
+            self.infor.emit(msg)
+        return ercd,None
+
+    def close_cmd(self):
+        self.serial.close()
+        return True,None
+
+    def download_one_section_cmd(self,address,size,data,identifier):
+        FLASH_WRITE_SIZE = self.writeProperty
+        left_size = size
+        pos = 0
+        # FIXME: according to the shell command implementation
+        ability = 2000
+        # round up
+        size2 = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
+        ercd = True
+        while(left_size>0 and ercd==True):
+            cmd = '%s %s '%(identifier,hex(address+pos))
+            if(left_size > ability):
+                sz = ability
+                left_size = left_size - ability
+            else:
+                sz = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
+                left_size = 0
+            for i in range(sz):
+                if((pos+i)<size):
+                    cmd += '%02X'%(data[pos+i])
+                else:
+                    cmd += 'FF'
+            ercd,res = self.runcmd(cmd)
+            if(ercd == False):return ercd,res
+            self.add_progress(sz)
+            pos += sz
+        return ercd,res
+
+    def download_flash_driver_cmd(self):
+        flsdrv = self.flsdrvs
+        ary = flsdrv.getData()
+        for ss in ary:
+            ercd,res = self.download_one_section_cmd(ss['address'],ss['size'],ss['data'],'load')
+            if(ercd == False):return ercd,res
+        return ercd,res
+
+    def routine_erase_flash_cmd(self):
+        saddr, eaddr = self.get_app_erase_range()
+        cmd = 'erase %s %s'%(hex(saddr), hex(eaddr-saddr))
+        return self.runcmd(cmd)
+
+    def download_application_cmd(self):
+        app = self.apps
+        ary = app.getData(True)
+        for ss in ary:
+            ercd,res = self.download_one_section_cmd(ss['address'],ss['size'],ss['data'],'write')
+            if(ercd == False):return ercd,res
+        return ercd,res
 
     def transmit_xcp(self, req, ignore=False):
         res = self.xcp.transmit(req.toarray())
@@ -226,22 +309,7 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def routine_erase_flash_xcp(self):
-        app = self.apps
-        ary = app.getData(True)
-        saddr = ary[0]['address']
-        eaddr = ary[0]['address'] + ary[0]['size']
-        for ss in ary:
-            if(ss['address']< saddr):
-                saddr = ss['address']
-            if(ss['address']+ss['size'] > eaddr):
-                eaddr = ss['address']+ss['size']
-        if(type(self.eraseProperty) == list):
-            for addr in self.eraseProperty:
-                if(eaddr <= addr):
-                    eaddr = addr
-                    break
-        else:
-            eaddr = int((eaddr+self.eraseProperty-1)/self.eraseProperty)*self.eraseProperty
+        saddr, eaddr = self.get_app_erase_range()
         req = xcpbits()
         req.append(0xF6,8)
         req.append(0x00,16)      # reserved
@@ -309,8 +377,12 @@ class AsFlashloader(QThread):
             self.ability = 1400 # tested okay with this value
         elif(p == 'XCP on CAN'):
             self.protocol = 'XCP'
+        elif(p.startswith('CMD on COM')):
+            self.protocol = 'CMD'
+            self.port = p.split(' ')[2]
         else:
-            assert(0)
+            self.protocol = 'unknown protocol %s'%(p)
+            self.infor.emit(self.protocol)
 
     def is_check_application_enabled(self):
         return self.enable[8]
@@ -414,7 +486,6 @@ class AsFlashloader(QThread):
                     req.append(data[pos+i])
                 else:
                     req.append(0xFF)
-            self.infor.emit(' transfer block %s'%(blockSequenceCounter))
             ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
             self.add_progress(sz)
             if(ercd == False):return ercd,res
@@ -482,8 +553,8 @@ class AsFlashloader(QThread):
                 return False,res
         flsdrvr.dump('read_%s'%(os.path.basename(self.flsdrv)))
         return ercd,res
-    
-    def routine_erase_flash(self):
+
+    def get_app_erase_range(self):
         app = self.apps
         ary = app.getData(True)
         saddr = ary[0]['address']
@@ -500,6 +571,10 @@ class AsFlashloader(QThread):
                     break
         else:
             eaddr = int((eaddr+self.eraseProperty-1)/self.eraseProperty)*self.eraseProperty
+        return saddr, eaddr
+
+    def routine_erase_flash(self):
+        saddr, eaddr = self.get_app_erase_range()
         return self.transmit([0x31,0x01,0xFF,0x01,
                               (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
                               (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
@@ -569,6 +644,7 @@ class AsFlashloader(QThread):
         self.txSz = 0
         self.infor.emit('summary transfer size is %s bytes(app %s, flsdrv %s)!'%(
                         self.sumSz,ssz(self.apps),ssz(self.flsdrvs)))
+        pre = time.time()
         for id,s in enumerate(steps):
             if((self.enable[id] == True) and (s[0].__name__ != 'dummy')):
                 self.infor.emit('>> '+s[0].__name__.replace('_',' '))
@@ -576,6 +652,9 @@ class AsFlashloader(QThread):
                 if(ercd == False):
                     self.infor.emit("\n\n  >> boot failed <<\n\n")
                     return
+        cost = time.time() - pre
+        speed = int(self.sumSz/cost)
+        self.infor.emit('cost %ss, speed is %sbps'%(cost, speed))
         self.progress.emit(100)
 
     def run_uds(self):
@@ -584,12 +663,19 @@ class AsFlashloader(QThread):
     def run_xcp(self):
         self.run_common(self.stepsXcp)
 
+    def run_cmd(self):
+        self.run_common(self.stepsCmd)
+
     def run(self):
         self.infor.emit('starting with protocol "%s"... '%(self.protocol))
         if(self.protocol == 'UDS'):
             self.run_uds()
-        else:
+        elif(self.protocol == 'CMD'):
+            self.run_cmd()
+        elif(self.protocol == 'XCP'):
             self.run_xcp()
+        else:
+            self.infor.emit('invalid protocol')
 
 class AsStepEnable(QCheckBox):
     enableChanged=QtCore.pyqtSignal(str,bool)
@@ -627,7 +713,11 @@ class UIFlashloader(QWidget):
         self.pgbProgress.setRange(0,100)
         grid.addWidget(self.pgbProgress,2,1)
         self.cmbxProtocol = QComboBox()
-        self.cmbxProtocol.addItems(['UDS on CAN','UDS on CANFD','UDS on DOIP','XCP on CAN'])
+        items = ['UDS on CAN','UDS on CANFD','UDS on DOIP','XCP on CAN']
+        for i in search_serial_ports():
+            items.append('CMD on COM%s'%(i))
+        self.cmbxProtocol.addItems(items)
+        self.cmbxProtocol.setEditable(True)
         grid.addWidget(self.cmbxProtocol,2,2)
         self.btnStart=QPushButton('Start')
         grid.addWidget(self.btnStart,2,3)

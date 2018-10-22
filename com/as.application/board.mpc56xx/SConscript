@@ -28,6 +28,7 @@ if(asenv['RELEASE']=='asboot'):
                'SHELL','FLASH_CMD','MEM_CMD','JMP_CMD',
                'MPC5634M_MLQB80'
                ]
+    asenv.Append(CPPDEFINES=['CMDLINE_MAX=4096','FLASH_CMD_MAX_DATA=2000'])
 
 ARCH='mpc56xx'
 arch='mpc56xx'

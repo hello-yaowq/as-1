@@ -24,22 +24,42 @@
 #define FLASH_CMD_MAX_DATA 32
 #endif
 
-#define AS_LOG_FLASH 1
+#define AS_LOG_FLASH 0
 /* ============================ [ DECLARES  ] ====================================================== */
-static int shellFlash(int argc, char *argv[] );
+static int shellFlashLoadDriver(int argc, char *argv[]);
+static int shellFlashErase(int argc, char *argv[]);
+static int shellFlashWrite(int argc, char *argv[]);
 /* ============================ [ DATAS     ] ====================================================== */
-SHELL_CONST ShellCmdT cmdFlash  = {
-		shellFlash,
-		3,3,
-		"flash",
-		"flash erase/write addr size/data",
-		"  erase or write flash memory at addr\n"
-		"  flash erase addr size\n"
-		"  flash write addr data\n"
-		"  example: flash write 4000 1122334455667788\n",
+SHELL_CONST ShellCmdT cmdFlashLoadDriver  = {
+		shellFlashLoadDriver,
+		2,2,
+		"load",
+		"load addr data",
+		"",
 		{NULL,NULL}
 };
-SHELL_CMD_EXPORT(cmdFlash)
+SHELL_CMD_EXPORT(cmdFlashLoadDriver)
+
+SHELL_CONST ShellCmdT cmdFlashErase  = {
+		shellFlashErase,
+		2,2,
+		"erase",
+		"erase addr size",
+		"",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdFlashErase)
+
+SHELL_CONST ShellCmdT cmdFlashWrite  = {
+		shellFlashWrite,
+		2,2,
+		"write",
+		"write addr data",
+		"",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdFlashWrite)
+
 
 static tFlashParam cmdFlashParam =
 {
@@ -49,72 +69,115 @@ static tFlashParam cmdFlashParam =
     .wdTriggerFct = NULL,
     .errorcode   = 0xFF,
 };
+
+static uint32 working_buffer[FLASH_CMD_MAX_DATA/sizeof(uint32)];
 /* ============================ [ LOCALS    ] ====================================================== */
-static int shellFlash(int argc, char *argv[] ) {
-	int rv = 0;
+static int parse_data(char* pStr)
+{
 	char tmp[3];
-	char* pStr;
 	uint8* pData;
-	size_t len;
+	int len;
+
+	len = strlen(pStr);
+	if((len <= (sizeof(working_buffer)*2)) && (0==(len&0x01)))
+	{
+		memset(working_buffer, 0xFF, sizeof(working_buffer));
+		pData = (uint8*)working_buffer;
+		tmp[2] = '\0';
+		while(*pStr != '\0')
+		{
+			tmp[0] = pStr[0];
+			tmp[1] = pStr[1];
+			*pData = strtoul(tmp, NULL, 16);
+			pStr += 2;
+			pData ++;
+		}
+
+		len = len/2;
+	}
+	else
+	{
+		len = 0;
+	}
+
+	return len;
+}
+static int shellFlashLoadDriver(int argc, char *argv[])
+{
+	int rv = 0;
+	int len;
+	uint32 addr;
+	(void)argc;
+
+	addr  = strtoul(argv[1], NULL, 16);
+	len = parse_data(argv[2]);
+	if(len > 0)
+	{
+		memcpy((void*)addr, working_buffer, len);
+		cmdFlashParam.errorcode = 0xFF;
+	}
+	else
+	{
+		rv = -11;
+	}
+
+	return rv;
+}
+static int shellFlashErase(int argc, char *argv[] ) {
+	int rv = 0;
 	imask_t imask;
-	static uint32 data[FLASH_CMD_MAX_DATA/sizeof(uint32)];
+
 	(void)argc;
 
 	if(0xFF == cmdFlashParam.errorcode)
 	{
 		FLASH_DRIVER_INIT(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
-		rv = -cmdFlashParam.errorcode;
+		rv = cmdFlashParam.errorcode;
 	}
 
-	cmdFlashParam.errorcode = kFlashOk;
-
-	cmdFlashParam.address  = strtoul(argv[2], NULL, 16);
-	cmdFlashParam.data  = data;
-
-	if(0 == strcmp(argv[1], "erase"))
+	if(0 == rv)
 	{
-		cmdFlashParam.length = strtoul(argv[3], NULL, 16);
+		cmdFlashParam.address  = strtoul(argv[1], NULL, 16);
+		cmdFlashParam.length = strtoul(argv[2], NULL, 16);
 		ASLOG(FLASH, "erase %08X %08X\n", cmdFlashParam.address, cmdFlashParam.length);
 		Irq_Save(imask);
 		FLASH_DRIVER_ERASE(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
 		Irq_Restore(imask);
-		rv = -cmdFlashParam.errorcode;
+		rv = cmdFlashParam.errorcode;
 	}
-	else if(0 == strcmp(argv[1], "write"))
+
+	return rv;
+}
+
+static int shellFlashWrite(int argc, char *argv[] ) {
+	int rv = 0;
+	imask_t imask;
+	(void)argc;
+
+	rv = cmdFlashParam.errorcode;
+
+	if(0 == rv)
 	{
-		len = strlen(argv[3]);
-		if( (len <= (sizeof(data)*2)) && (0==(len&0x01)))
+		cmdFlashParam.address  = strtoul(argv[1], NULL, 16);
+		cmdFlashParam.data  = working_buffer;
+		cmdFlashParam.length = parse_data(argv[2]);
+		if(cmdFlashParam.length > 0)
 		{
-			memset(data, 0xFF, sizeof(data));
-			pData = (uint8*)data;
-			pStr = argv[3];
-			tmp[2] = '\0';
-			while(*pStr != '\0')
-			{
-				tmp[0] = pStr[0];
-				tmp[1] = pStr[1];
-				*pData = strtoul(tmp, NULL, 16);
-				pStr += 2;
-				pData ++;
-			}
 			ASLOG(FLASH, "write %08X (len=%d) %08X%08X...\n",
-					cmdFlashParam.address, len/2,
+					cmdFlashParam.address, cmdFlashParam.length,
 					cmdFlashParam.data[0],cmdFlashParam.data[1]);
-			cmdFlashParam.length = len/2;
+
 			Irq_Save(imask);
 			FLASH_DRIVER_WRITE(FLASH_DRIVER_STARTADDRESS,&cmdFlashParam);
 			Irq_Restore(imask);
-			rv = -cmdFlashParam.errorcode;
+			rv = cmdFlashParam.errorcode;
 		}
 		else
 		{
 			rv = -11;
 		}
 	}
-	else
-	{
-		rv = -44;
-	}
+
 	return rv;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

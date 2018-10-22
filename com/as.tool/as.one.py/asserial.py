@@ -19,13 +19,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from serial import Serial
-from time import sleep
-from time import ctime
+import time
 from binascii import hexlify, unhexlify
-import sys
+import sys,re
 from pyas.can import *
 
-__all__ = ['UISerial']
+__all__ = ['UISerial','search_serial_ports','AsSerial']
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -38,7 +37,7 @@ class AsSerial(QThread):
         super(QThread, self).__init__(parent)
         self.isCANMode=False
         
-    def open(self, settings):
+    def open(self, settings, start=True):
         self.__terminate = False
         if(settings['port'] == 'CAN'):
             self.isCANMode = True
@@ -52,12 +51,47 @@ class AsSerial(QThread):
         except:
             return (False, "%s"%(sys.exc_info()[1]))
 
-        self.start()
+        if(start == True):
+            self.start()
         return (True, 'success')
+
+    def runcmd(self,cmd):
+        self.serial.flushOutput()
+        self.serial.flushInput()
+        if(cmd[-1] != '\n'):
+            cmd += '\n'
+        ercd = True
+        result = ''
+        reResult = re.compile(r'exit\((\d+)\)')
+        for c in cmd:
+            self.send(c)
+            r = self.read()
+            if(r != c):
+                ercd = False
+                result = 'bus error'
+                break
+
+        while(ercd):
+            r = self.read(1, 5)
+            if(r == None):
+                ercd = False
+                break
+            result += r
+            if('[AS] $' in result):
+                result = result[:-6]
+                if(reResult.search(result)):
+                    r = reResult.search(result).groups()[0]
+                    if(r != '0'):
+                        ercd = False
+                else:
+                    ercd = False
+                break
+        return ercd, result
+
     def resetArduino(self):
         if(self.isCANMode): return
         self.serial.setDTR(0)
-        sleep(0.1)
+        time.sleep(0.1)
         self.serial.setDTR(1)
         
     def terminate(self):
@@ -82,9 +116,22 @@ class AsSerial(QThread):
                     print('Seial: send can message failed!')
             return
         self.serial.write(data.encode('utf-8'))
-    
+
+    def read(self,length=1, timeout=0.1):
+        result = bytes()
+        t = time.time()
+        while(len(result) <length):
+            data = self.serial.read(1)
+            if(len(data) == 0):
+                continue
+            else:
+                result += data
+            if((time.time()-t) > timeout):
+                return None
+        return result.decode('utf-8')
+
     def __recv(self):
-        data, quit = '', False
+        data, quit = bytes(), False
         while(True):
             if(self.__terminate):
                 break
@@ -100,13 +147,13 @@ class AsSerial(QThread):
                     break
                 continue
             data = self.serial.read(1)
-            if(data == ''):
+            if(len(data) == 0):
                 continue
             while(True):
                 n = self.serial.inWaiting()
                 if( n > 0):
                     data += self.serial.read(n)
-                    sleep(0.02) # data is this interval will be merged
+                    time.sleep(0.02) # data is this interval will be merged
                 else:
                     quit = True
                     break
@@ -129,6 +176,24 @@ class AsSerial(QThread):
         if(self.isCANMode): return
         self.serial.close()  
 
+def search_serial_ports():
+    settings = {}
+    settings['baund'] = 115200
+    settings['bytesize'] = 8
+    settings['parity']='N'
+    settings['stopbits']=1
+    settings['timeout'] = 100
+    ports = []
+    for i in range(0,100):
+        settings['port'] = 'COM%s'%(i)
+        try:
+            serial = Serial(settings['port'], settings['baund'], settings['bytesize'],
+                settings['parity'], settings['stopbits'], settings['timeout'])
+            ports.append(i)
+        except:
+            pass
+    return ports
+
 class UISerial(QWidget):
     toVisualHex = lambda self,data: ' '.join([hexlify(c) for c in data]).upper()
     toHex = lambda self,data: ''.join([unhexlify(data[i:i+2]) for i in xrange(0, len(data), 2)])
@@ -142,7 +207,10 @@ class UISerial(QWidget):
         grid = QGridLayout()
         grid.addWidget(QLabel('Port:'), 0, 0)
         self.cmdPorts = QComboBox()
-        self.cmdPorts.addItems(['CAN','COM0','COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9'])
+        items = ['CAN']
+        for i in search_serial_ports():
+            items.append('COM%s'%(i))
+        self.cmdPorts.addItems(items)
         grid.addWidget(self.cmdPorts, 0, 1)
         self.cmdPorts.setCurrentIndex(0)
         self.cmdPorts.setEditable(True)
