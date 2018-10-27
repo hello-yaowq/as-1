@@ -109,14 +109,15 @@ class AsCommand():
         L.append(('Others(ISR...)',(1-usage)*tall,0,0,0))
 
         print('original trace result:\n',result)
-        format = '%-'+str(maxL)+'s %-10s %-10s %-10s %-8s %s%%\n'
+        format = '%-'+str(maxL)+'s %-10s %-10s %-10s %-8s %s\n'
         rs = format%('ID','sum','max','min','times','CPU usage all=%.6ss'%(tall))
         for id,sum,max,min,times in L:
-            rs += format%(id,'%-10.6f'%(sum),'%-10.6f'%(max),'%-10.6f'%(min),times,'%10.3f'%(100*sum/tall))
+            rs += format%(id,'%-10.6f'%(sum),'%-10.6f'%(max),'%-10.6f'%(min),times,'%10.3f%%'%(100*sum/tall))
         return rs
 
 class AsSerial(QThread):
     recv_msg = QtCore.pyqtSignal(str)
+    toStr = lambda self,data: ''.join(['%c'%(c) for c in data])
     def __init__(self,parent=None):
         super(QThread, self).__init__(parent)
         self.isCANMode=False
@@ -203,7 +204,9 @@ class AsSerial(QThread):
                 if(False == ercd):
                     print('Seial: send can message failed!')
             return
-        self.serial.write(data.encode('utf-8'))
+        if(type(data) != bytes):
+            data = data.encode('utf-8')
+        self.serial.write(data)
 
     def read(self,length=1, timeout=0.1):
         result = bytes()
@@ -216,7 +219,7 @@ class AsSerial(QThread):
                 result += data
             if((time.time()-t) > timeout):
                 return None
-        return result.decode('utf-8')
+        return self.toStr(result)
 
     def __recv(self):
         data, quit = bytes(), False
@@ -249,7 +252,7 @@ class AsSerial(QThread):
                     break
             if(quit==True):
                 break
-        return data.decode('utf-8')
+        return self.toStr(data)
 
     def close(self):
         if(self.isCANMode): return
@@ -284,8 +287,8 @@ def search_serial_ports():
     return ports
 
 class UISerial(QWidget):
-    toVisualHex = lambda self,data: ' '.join([hexlify(c) for c in data]).upper()
-    toHex = lambda self,data: ''.join([unhexlify(data[i:i+2]) for i in xrange(0, len(data), 2)])
+    toVisualHex = lambda self,data: ''.join(['%02X'%(ord(c)) for c in data])
+    toHex = lambda self,data: unhexlify(data)
     def __init__(self, parent=None):
         super(QWidget, self).__init__(parent)
         self.creGui()
@@ -393,7 +396,8 @@ class UISerial(QWidget):
 
         errch, msg = None, 'success'
         if(self.rbHex.isChecked()):
-            data = ''.join(data.split())
+            if(data[-1]=='\n'):
+                data = data[:-1]
             if len(data) % 2 != 0:
                 errch, msg = True, 'HEX mode, data length should be odd'
             else:
@@ -405,9 +409,6 @@ class UISerial(QWidget):
 
     def onSendData(self, data=None):
         if(not data): data = self.teInput.toPlainText()
-        if(self.rbHex.isChecked()):
-            data = ''.join(data.split())
-            data = ' '.join([data[i:i+2] for i in xrange(0, len(data), 2)]).upper()
         self.tbHistory.insertPlainText(str(data))
         self.teInput.clear()
         bytes = self.rbAscii.isChecked() and len(data) or len(data) / 2
@@ -423,6 +424,9 @@ class UISerial(QWidget):
             QMessageBox.information(self, 'Tips', 'Please open COM fistly.')
             return
         data = self.teInput.toPlainText()
+        if(self.rbHex.isChecked()):
+            if(data[-1]=='\n'):
+                data = data[:-1]
         ret, msg = self.checkData(data)
         if not ret:
             QMessageBox.critical(self, 'Error', msg)
@@ -430,7 +434,7 @@ class UISerial(QWidget):
         
         self.onSendData(data)
         if(self.rbHex.isChecked()):
-            data = self.toHex(''.join(data.split()))
+            data = self.toHex(data)
         self.serial.send(data)
     def on_message_received(self,data):
         bytes = len(data)
