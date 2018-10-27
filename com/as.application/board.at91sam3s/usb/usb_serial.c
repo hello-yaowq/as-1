@@ -645,7 +645,7 @@ void usb_serial_task(void)
 
 		isCdcSerialON = 0;
 	}
-
+#if 0
 	if (UART_IsRxReady()) {
 
 		uint8_t key = UART_GetChar();
@@ -671,6 +671,7 @@ void usb_serial_task(void)
 			_DebugHelp();
 		}
 	}
+#endif
 
 }
 

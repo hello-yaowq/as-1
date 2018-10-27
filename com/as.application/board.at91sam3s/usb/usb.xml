@@ -8,9 +8,9 @@
 		<USB2Serial><Running/></USB2Serial>
 	</KSM>
 	<Os>
-	    <ISR name='USART1_IrqHandler' vector='15'/>
-	    <ISR name='TC0_IrqHandler'    vector='23'/>   
-	    <ISR name='USBD_IrqHandler'   vector='34'/>  
+	    <ISR Name='USART1_IrqHandler' Vector='15'/>
+	    <ISR Name='TC0_IrqHandler'    Vector='23'/>   
+	    <ISR Name='USBD_IrqHandler'   Vector='34'/>  
 	</Os>
 </AS>
 

@@ -10,13 +10,13 @@ cwd = GetCurrentDir()
 objs = []
 
 if('MCU' in MODULES):
-    objs += Glob('../common/mcal/Mcu.c')
+    objs += Glob('mcal/Mcu.c')
 
-if('USB_DRV' in MODULES):
+if('USB' in MODULES):
     objs += Glob('libraries/usb/common/core/*.c')
     objs += Glob('libraries/usb/common/cdc/*.c')
-    objs += Glob('libraries/usb/common/device/core/*.c')
-    objs += Glob('libraries/usb/common/device/cdc-serial/*.c')
+    objs += Glob('libraries/usb/device/core/*.c')
+    objs += Glob('libraries/usb/device/cdc-serial/*.c')
     asenv.Append(CPPPATH=['%s/libraries/usb/include'%(cwd)])
     asenv.Append(CPPPATH=['%s/libraries/usb/common/core'%(cwd)])
     asenv.Append(CPPPATH=['%s/libraries/usb/common/cdc'%(cwd)])
@@ -32,8 +32,9 @@ asenv.Append(CPPPATH=['%s/libraries/libchip_sam3s/include'%(cwd)])
 asenv.Append(CPPPATH=['%s/libraries/libboard_sam3s-ek'%(cwd)])
 asenv.Append(CPPPATH=['%s/libraries/libboard_sam3s-ek/include'%(cwd)])
 
-iarPath = SelectCompilerARMICC()
-if(iarPath is not None):
+print('INFO: set USE_IAR=YES to enable IAR compiler')
+if(os.getenv('USE_IAR')=='YES'):
+    SelectCompilerARMICC()
     asenv.Append(CCFLAGS=['--cpu=Cortex-M3','-e','--fpu=None','--endian=little',
                           '--no_cse','--no_unroll','--no_inline','--no_code_motion',
                           '--no_tbaa','--no_clustering','--no_scheduling',
@@ -47,5 +48,17 @@ if(iarPath is not None):
 else:
     SelectCompilerArmNoneEabi()
     asenv.Append(CPPPATH=['%s/libraries/libchip_sam3s/cmsis'%(cwd)])
+    asenv.Append(CCFLAGS=['-O0','-g'])
+    asenv.Append(ASFLAGS=['-g'])
+
+    asenv.Append(CCFLAGS=['-mcpu=cortex-m3','-mthumb'])
+    asenv.Append(ASFLAGS=['-mcpu=cortex-m3','-mthumb'])
+
+    asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
+    asenv.Append(LINKFLAGS='--gc-sections')
+
+    asenv.Append(LIBS=['c','gcc'])
+    asenv.Append(LINKFLAGS='-static -T %s'%(asenv['LINKSCRIPT']))
+    asenv.Append(LINKFLAGS='-Map build/at91sam3s/at91sam3s.map')
 
 Return('objs')

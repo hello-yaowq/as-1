@@ -272,7 +272,7 @@ def GenC(gendir,os_list):
         pthprio = 0
     task_list = ScanFrom(os_list,'Task')
     for id,task in enumerate(task_list):
-        fp.write('static uint32_t %s_Stack[(%s*(OS_STK_SIZE_SCALER)+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
+        fp.write('static uint32_t %s_Stack[(%s*OS_STK_SIZE_SCALER+sizeof(uint32_t)-1)/sizeof(uint32_t)];\n'%(GAGet(task,'Name'),GAGet(task,'StackSize')))
         if(len(GLGet(task,'EventList')) > 0):
             fp.write('static EventVarType %s_EventVar;\n'%(GAGet(task,'Name')))
     fp.write('#if (OS_STATUS == EXTENDED)\n')

@@ -489,13 +489,6 @@ void EcuM_OnGoOffTwo(void)
  */
 void EcuM_AL_SwitchOff(void)
 {
-
-	/* ADD CODE BELOW */
-#if 0
-	/* Example */
-	Dio_WriteChannel(DIO_CHANNEL_NAME_MY_POWER,STD_LOW);
-#endif
-
 #if defined(USE_MCU) && (MCU_PERFORM_RESET_API == STD_ON)
 	Mcu_PerformReset();
 #endif
@@ -510,7 +503,7 @@ void EcuM_AL_SwitchOff(void)
  */
 
 void EcuM_CheckWakeup(EcuM_WakeupSourceType source) {
-
+#ifdef USE_MCU
 	/* Re-enable PLL again */
 	EcuM_ConfigType *ecuMConfigPtr;
 	ecuMConfigPtr = EcuM_DeterminePbConfiguration();
@@ -520,17 +513,7 @@ void EcuM_CheckWakeup(EcuM_WakeupSourceType source) {
 	while (Mcu_GetPllStatus() != MCU_PLL_LOCKED) {
 		;
 	}
-
-	/* ADD CODE BELOW */
-#if 0
-	/* Example */
-	if (ECUM_WKSOURCE_SWITCH & wakeupSource) {
-		if (CRP.PSCR.R & 0x00020000) {
-			EcuM_SetWakeupEvent(ECUM_WKSOURCE_SWITCH);
-		}
-	}
 #endif
-
 }
 
 
@@ -618,15 +601,6 @@ void EcuM_AL_DriverRestart(void) {
 
 	/* Start all drivers for now */
 	EcuM_AL_DriverInitOne(config);
-
-	/* Setup the systick interrupt */
-#if defined(USE_MCU)
-	{
-//		uint32_t sys_freq = McuE_GetSystemClock();
-//		Os_SysTickInit();
-//		Os_SysTickStart(sys_freq / OsTickFreq);
-	}
-#endif
 
 	EcuM_AL_DriverInitTwo(config);
 }

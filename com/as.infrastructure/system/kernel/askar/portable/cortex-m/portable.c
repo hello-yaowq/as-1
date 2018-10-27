@@ -69,17 +69,14 @@ void Os_PortInit(void)
 	{
 		SCB->VTOR |= 1 << SCB_VTOR_TBLBASE_Pos ;
 	}
-
-	WDT_Disable(WDT);
-	/* Low level Initialize */
-	LowLevelInit() ;
 #else
 	SCB->VTOR = (uint32_t)pSrc;
 #endif
 
+	#if 0 /* better not enable this */
 	SCB->CCR |= 0x18; /* enable div-by-0 and unaligned fault */
 	SCB->SHCSR |= 0x00007000; /* enable Usage Fault, Bus Fault, and MMU Fault */
-
+	#endif
 	ISR2Counter = 0;
 	knl_dispatch_started = FALSE;
 
