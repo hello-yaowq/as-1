@@ -64,6 +64,11 @@ env.Append(CPPPATH=['%s/config/include'%(cwd)])
 for m in MODULES:
     env.Append(CPPDEFINES=['USE_%s'%(m)])
 
+pkg = Package('https://gitlab.com/as-boards/mpc56xx-nxp.git')
+MKSymlink(pkg+'/MPC5634M_MLQB80',cwd+'/MPC5634M_MLQB80')
+MKSymlink(pkg+'/app',cwd+'/app')
+MKSymlink(pkg+'/config',cwd+'/config')
+
 # should be JAVA 32
 #cmd = 'set PATH="c:/Program Files (x86)/Java/jre1.8.0_171/bin";%PATH% && '
 #cmd += '%s/os/ssc/bin/generator/sg.exe %s/config/epc/project.epc'%(cwd,cwd)
