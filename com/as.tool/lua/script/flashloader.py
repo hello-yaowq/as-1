@@ -49,11 +49,11 @@ class AsFlashloader(QThread):
                   (self.download_flash_driver_xcp,True),(self.check_flash_driver_xcp,False),
                   (self.routine_erase_flash_xcp,True), (self.download_application_xcp,True),
                   (self.check_application_xcp,False), (self.launch_application_xcp,True) ]
-        self.stepsCmd = [ (self.open_cmd,True), (self.dummy,False),
+        self.stepsCmd = [ (self.dummy,False), (self.dummy,False),
                   (self.dummy,False),(self.dummy,False),
                   (self.download_flash_driver_cmd,True),(self.dummy,False),
                   (self.routine_erase_flash_cmd,True), (self.download_application_cmd,True),
-                  (self.dummy,False), (self.close_cmd,True) ]
+                  (self.dummy,False), (self.dummy,False) ]
         self.enable = []
         for s in self.steps:
             self.enable.append(s[1])
@@ -670,7 +670,9 @@ class AsFlashloader(QThread):
         self.run_common(self.stepsXcp)
 
     def run_cmd(self):
+        self.open_cmd()
         self.run_common(self.stepsCmd)
+        self.close_cmd()
 
     def run(self):
         self.infor.emit('starting with protocol "%s"... '%(self.protocol))

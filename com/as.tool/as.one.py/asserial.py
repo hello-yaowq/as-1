@@ -31,12 +31,97 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 
+class AsCommand():
+    def __init__(self, serial):
+        self.serial = serial
+        self.cmdTracePre = None
+        self.cmdList = []
+        self.cmdPre = None
+        self.taskList = []
+
+    def append(self, cmd):
+        self.cmdList.append(cmd)
+
+    def __runcmd(self):
+        cmd = self.cmdList.pop(0)
+        pre = time.time()
+        ercd,result=self.serial.runcmd(cmd)
+        if(not ercd):
+            self.serial.recv_msg.emit('run cmd %s failed\n'%(cmd))
+            return
+        now = time.time()
+        if(self.cmdPre == None):
+            elapsed = 'unknown'
+        else:
+            elapsed = now - self.cmdPre
+        self.cmdPre = now
+        if(cmd == 'trace'):
+            result = self.__trace_result(result, now, pre)
+        msg = 'since last command elapsed %.6s s, cmd "%s" cost %.6s s:\n%s\n'%(elapsed, cmd, now-pre,result)
+        self.serial.recv_msg.emit(msg)
+
+    def run(self):
+        while(len(self.cmdList)>0):
+            self.__runcmd()
+
+    def __trace_result(self,result,now,pre):
+        reMatch = re.compile(r'(\d+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)')
+        reTask = re.compile(r'^(\w+)\s+(\w+)\s+(\d+)\s+(\d+)\s+(\d+)')
+        reFreq = re.compile(r'FREQ=(\d+)')
+        if(len(self.taskList) == 0):
+            ercd,msg = self.serial.runcmd('ps')
+            if(ercd):
+                for el in msg.split('\n'):
+                    if(reTask.search(el)):
+                        self.taskList.append(reTask.search(el).groups()[0])
+        L = []
+        maxL = 0
+        for el in result.split('\n'):
+            if(reFreq.search(el)):
+                freq = int(reFreq.search(el).groups()[0])
+            if(reMatch.search(el)):
+                grp = reMatch.search(el).groups()
+                id = int(grp[0])
+                if(id < len(self.taskList)):
+                    id = self.taskList[id]
+                if(len(id)>maxL):
+                    maxL = len(id)
+                sum = float(int(grp[1],16)*(1<<32) +int(grp[2],16))/freq
+                max = float(int(grp[3],16))/freq
+                min = float(int(grp[4],16))/freq
+                times = int(grp[5],16)
+                L.append((id,sum,max,min,times))
+        tall = 0
+        for id,sum,max,min,times in L:
+            tall += sum
+        if(self.cmdTracePre == None):
+            pass
+        else:
+            tall2 = now - self.cmdTracePre - (now-pre)
+            if(tall2>tall):
+                tall = tall2
+
+        self.cmdTracePre = now
+
+        usage = 0
+        for id,sum,max,min,times in L:
+            usage += sum/tall
+        L.append(('Others(ISR...)',(1-usage)*tall,0,0,0))
+
+        print('original trace result:\n',result)
+        format = '%-'+str(maxL)+'s %-10s %-10s %-10s %-8s %s%%\n'
+        rs = format%('ID','sum','max','min','times','CPU usage all=%.6ss'%(tall))
+        for id,sum,max,min,times in L:
+            rs += format%(id,'%-10.6f'%(sum),'%-10.6f'%(max),'%-10.6f'%(min),times,'%10.3f'%(100*sum/tall))
+        return rs
+
 class AsSerial(QThread):
     recv_msg = QtCore.pyqtSignal(str)
     def __init__(self,parent=None):
         super(QThread, self).__init__(parent)
         self.isCANMode=False
-        
+        self.cmd = AsCommand(self)
+
     def open(self, settings, start=True):
         self.__terminate = False
         if(settings['port'] == 'CAN'):
@@ -55,7 +140,10 @@ class AsSerial(QThread):
             self.start()
         return (True, 'success')
 
-    def runcmd(self,cmd):
+    def runcmd(self,cmd,runNow=True):
+        if(False == runNow):
+            self.cmd.append(cmd)
+            return True,None
         self.serial.flushOutput()
         self.serial.flushInput()
         if(cmd[-1] != '\n'):
@@ -93,10 +181,10 @@ class AsSerial(QThread):
         self.serial.setDTR(0)
         time.sleep(0.1)
         self.serial.setDTR(1)
-        
+
     def terminate(self):
         self.__terminate = True
-        
+
     def send(self, data):
         if(self.isCANMode):
             index = 0
@@ -135,6 +223,8 @@ class AsSerial(QThread):
         while(True):
             if(self.__terminate):
                 break
+            if(len(self.cmd.cmdList)>0):
+                break
             if(self.isCANMode):
                 # default on CAN bus0, CANID 0x702
                 ercd,canid,d = can_read(0, 0x702)
@@ -159,20 +249,19 @@ class AsSerial(QThread):
                     break
             if(quit==True):
                 break
-
         return data.decode('utf-8')
-    
+
     def close(self):
         if(self.isCANMode): return
         if self.serial.isOpen():
             self.serial.close()
-    
+
     def run(self):
         while(True):
+            self.cmd.run()
             data = self.__recv()
-            if not data:
-                break
-            self.recv_msg.emit(data)
+            if(len(data) > 0):
+                self.recv_msg.emit(data)
         if(self.isCANMode): return
         self.serial.close()  
 
@@ -182,7 +271,7 @@ def search_serial_ports():
     settings['bytesize'] = 8
     settings['parity']='N'
     settings['stopbits']=1
-    settings['timeout'] = 100
+    settings['timeout'] = 0.1
     ports = []
     for i in range(0,100):
         settings['port'] = 'COM%s'%(i)
@@ -207,9 +296,10 @@ class UISerial(QWidget):
         grid = QGridLayout()
         grid.addWidget(QLabel('Port:'), 0, 0)
         self.cmdPorts = QComboBox()
-        items = ['CAN']
+        items = []
         for i in search_serial_ports():
             items.append('COM%s'%(i))
+        items.append('CAN')
         self.cmdPorts.addItems(items)
         grid.addWidget(self.cmdPorts, 0, 1)
         self.cmdPorts.setCurrentIndex(0)
@@ -249,29 +339,33 @@ class UISerial(QWidget):
         self.btnOpenClose = QPushButton('Open')
         self.btnOpenClose.clicked.connect(self.on_btnOpenClose_clicked)
         grid.addWidget(self.btnOpenClose, 1, 11)
-        
+
+        self.btnTraceAs = QPushButton('Trace AS')
+        self.btnTraceAs.clicked.connect(self.on_btnTraceAs_clicked)
+        grid.addWidget(self.btnTraceAs, 1, 4)
+
         self.rbAscii = QRadioButton('ASCII')
         self.rbAscii.setChecked(True)
         self.rbHex = QRadioButton('HEX')
         grid.addWidget(self.rbAscii, 1, 0)
         grid.addWidget(self.rbHex, 1, 1)
-        
+
         self.btnClearHistory = QPushButton('Clear history')
         self.btnClearHistory.clicked.connect(self.on_btnClearHistory_clicked)
         grid.addWidget(self.btnClearHistory, 1, 7)
         vbox.addLayout(grid)
-        
+
         self.tbHistory = QTextEdit()
         self.tbHistory.setReadOnly(True)
         self.tbHistory.setStyleSheet(_fromUtf8("background-color: rgb(36, 36, 36);\ncolor: rgb(12, 190, 255);"))
         vbox.addWidget(self.tbHistory)
-       
+
         self.teInput = QTextEdit()
         self.teInput.setMaximumHeight(50)
         self.teInput.setStyleSheet(_fromUtf8("background-color: rgb(36, 36, 36);\ncolor: rgb(12, 190, 255);"))
         vbox.addWidget(self.teInput)
         self.teInput.textChanged.connect(self.on_teInput_textChanged)
-        
+
         hbox = QHBoxLayout()
         self.btnResetArduin = QPushButton('ResetArduino')
         self.btnSend = QPushButton('Send')
@@ -286,17 +380,17 @@ class UISerial(QWidget):
         hbox.addWidget(self.btnResetArduin)
         hbox.addWidget(self.btnSend)
         self.btnSend.clicked.connect(self.on_btnSend_clicked)
-        
+
         vbox.addLayout(hbox)
-        
+
         self.setLayout(vbox)
-        
+
         self.serial = AsSerial()
-    
+
     def checkData(self, data):
         if data == '':
             return (False, 'data can\'t be null')
-    
+
         errch, msg = None, 'success'
         if(self.rbHex.isChecked()):
             data = ''.join(data.split())
@@ -308,7 +402,7 @@ class UISerial(QWidget):
                         errch, msg = ch, 'invalid char in HEX mode'
                         break           
         return ((not errch), msg)
-     
+
     def onSendData(self, data=None):
         if(not data): data = self.teInput.toPlainText()
         if(self.rbHex.isChecked()):
@@ -354,7 +448,7 @@ class UISerial(QWidget):
             settings['bytesize'] = int(str(self.cmdData.currentText()),10)
             settings['parity']=str(self.cmdParity.currentText())[:1]
             settings['stopbits']=float(str(self.cmdStop.currentText()))
-            settings['timeout'] = 100
+            settings['timeout'] = 0.1
             self.serial.recv_msg.connect(self.on_message_received)
             ret, msg = self.serial.open(settings)
             if(ret==False): # open failed
@@ -367,6 +461,9 @@ class UISerial(QWidget):
             self.serial.close()
             self.btnOpenClose.setText('Open')
             self.flags['opened'] = False
-    
+
+    def on_btnTraceAs_clicked(self):
+        self.serial.runcmd('trace', False)
+
     def on_btnClearHistory_clicked(self):
         pass         

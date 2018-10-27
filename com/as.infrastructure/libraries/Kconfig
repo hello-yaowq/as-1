@@ -8,4 +8,8 @@ config FDT
 	bool "flat device tree library"
 	default y
 
+config TRACE
+	bool "enable the trace library"
+	default y
+
 endmenu

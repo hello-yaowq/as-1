@@ -8,6 +8,7 @@ ASROOT = asenv['ASROOT']
 
 MODULES = ['ECUM','SCHM','MCU',
            'DET',
+           'TRACE',
            'CLIB_STDIO_PRINTF',
            'ASKAR','SHELL','CLIB_STRTOK_R',
            'MPC5634M_MLQB80',

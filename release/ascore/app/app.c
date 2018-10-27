@@ -30,6 +30,9 @@
 #include "pthread.h"
 #include <unistd.h>
 #endif
+#ifdef USE_TRACE
+#include "trace.h"
+#endif
 // #define AS_PERF_ENABLED
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -127,6 +130,10 @@ void StartupHook(void)
 	{
 		xcpSimMTAMemory[i] = i;
 	}
+#endif
+
+#ifdef USE_TRACE
+	Trace_Init();
 #endif
 }
 
@@ -329,9 +336,19 @@ void ErrorHook(StatusType ercd)
 
 void PreTaskHook(void)
 {
+#ifdef USE_TRACE
+	TaskType TaskID;
+	GetTaskID(&TaskID);
+	Trace_PerfStart(TaskID);
+#endif
 }
 void PostTaskHook(void)
 {
+#ifdef USE_TRACE
+	TaskType TaskID;
+	GetTaskID(&TaskID);
+	Trace_PerfStop(TaskID);
+#endif
 }
 
 void ShutdownHook(StatusType ercd)

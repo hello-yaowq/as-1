@@ -14,4 +14,8 @@ if('IFX' in MODULES):
 if('FDT' in MODULES):
     objs += SConscript('libfdt/SConscript')
 
+if('TRACE' in MODULES):
+    objs += Glob('trace/*.c')
+    asenv.Append(CPPPATH=['%s/trace'%(cwd)])
+
 Return('objs')

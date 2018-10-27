@@ -15,6 +15,9 @@
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Os.h"
 #include "asdebug.h"
+#ifdef USE_TRACE
+#include "trace.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -60,7 +63,6 @@ STATIC AppModeType				AppMode;
 extern FUNC(void,MEM_OsAlarmInit)    OsAlarmInit ( void );
 extern FUNC(void,MEM_OsResourceInit) OsResourceInit ( void );
 extern void StartOsTick(void);
-
 STATIC FUNC(void,MEM_TASK_INIT)         Init   ( void );
 STATIC FUNC(TaskType,MEM_TASK_GETBIT)   GetBit ( void  );
 STATIC FUNC(void,MEM_TASK_SETBIT)       SetBit ( uint8 priority );
@@ -185,7 +187,13 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
 
             ReleaseResource(RES_SCHEDULER);
 
+            #ifdef USE_TRACE
+            Trace_PerfStart(task);
+            #endif
             declare->main();
+            #ifdef USE_TRACE
+            Trace_PerfStop(task);
+            #endif
 
             GetResource(RES_SCHEDULER);
 
@@ -203,7 +211,13 @@ FUNC(StatusType,MEM_Schedule) 		Schedule      ( void )
                 ReleaseResource(RES_SCHEDULER);
 
                 declare = &TaskList[0];
+                #ifdef USE_TRACE
+                Trace_PerfStart(0);
+                #endif
                 declare->main();
+                #ifdef USE_TRACE
+                Trace_PerfStop(0);
+                #endif
 
                 GetResource(RES_SCHEDULER);
             }
