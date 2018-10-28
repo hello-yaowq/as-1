@@ -172,7 +172,7 @@ static uint8_t usbBuffer[DATABUFFERSIZE];
 static uint8_t isCdcSerialON = 0;
 
 /** CDC Echo back ON/OFF */
-static uint8_t isCdcEchoON = 0;
+static uint8_t isCdcEchoON = 1;
 
 /** DBG Port Activity ON/OFF */
 static uint8_t isDbgStrON = 0;
@@ -559,6 +559,11 @@ static void _TestSpeed(void)
     endT = tcTick;
     printf("- Done: Size %d, Count %d, Time %d ~ %d\n\r", (int)TEST_BUFFER_SIZE, (int)testCnt, (int)startT, (int)endT);
     printf("- Speed %dKB/s\n\r", (int)((TEST_BUFFER_SIZE*testCnt)/4/(endT-startT)));
+}
+
+uint8_t CDCDSerial_LineCodingIsToChange(CDCLineCoding * pLineCoding)
+{
+	return USBRC_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
