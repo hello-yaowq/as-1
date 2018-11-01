@@ -18,4 +18,8 @@ if('TRACE' in MODULES):
     objs += Glob('trace/*.c')
     asenv.Append(CPPPATH=['%s/trace'%(cwd)])
 
+if('RINGBUFFER' in MODULES):
+    objs += Glob('ringbuffer/*.c')
+    asenv.Append(CPPPATH=['%s/ringbuffer'%(cwd)])
+
 Return('objs')
