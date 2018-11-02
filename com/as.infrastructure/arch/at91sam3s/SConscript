@@ -16,13 +16,15 @@ if('USB' in MODULES):
     objs += Glob('libraries/usb/common/core/*.c')
     objs += Glob('libraries/usb/common/cdc/*.c')
     objs += Glob('libraries/usb/device/core/*.c')
-    objs += Glob('libraries/usb/device/cdc-serial/*.c')
     asenv.Append(CPPPATH=['%s/libraries/usb/include'%(cwd)])
     asenv.Append(CPPPATH=['%s/libraries/usb/common/core'%(cwd)])
     asenv.Append(CPPPATH=['%s/libraries/usb/common/cdc'%(cwd)])
     asenv.Append(CPPPATH=['%s/libraries/usb/device/core'%(cwd)])
-    asenv.Append(CPPPATH=['%s/libraries/usb/device/cdc-serial'%(cwd)])
     asenv.Append(CPPDEFINES=['USBD_LEDUSB=LED_RED'])
+
+if('USB_SERIAL' in MODULES):
+    objs += Glob('libraries/usb/device/cdc-serial/*.c')
+    asenv.Append(CPPPATH=['%s/libraries/usb/device/cdc-serial'%(cwd)])
 
 objs += Glob('libraries/libchip_sam3s/source/*.c')
 objs += Glob('libraries/libboard_sam3s-ek/source/*.c')

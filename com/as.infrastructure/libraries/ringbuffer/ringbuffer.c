@@ -54,7 +54,7 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 	{
 		/* full, do nothing */
 	}
-	else if(in < out)
+	else if(in <= out)
 	{
 		l = out - in + 1;
 		if(l > len)
@@ -144,7 +144,7 @@ rb_size_t RB_Pop (const RingBufferType* rb, void* data, rb_size_t len)
 			out = 0;
 		}
 
-		if(out < in)
+		if(out <= in)
 		{
 			l = in - out + 1;
 			if(l > len)

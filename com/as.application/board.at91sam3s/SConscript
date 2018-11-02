@@ -7,8 +7,8 @@ Import('asenv')
 ASROOT = asenv['ASROOT']
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET','SHELL',
-           'USB',
+           'DET','SHELL','RINGBUFFER',
+           'USB','USB_SERIAL',
            'CLIB_ASHEAP','CLIB_MBOX','CLIB_MISCLIB',
            'CLIB_STRTOK_R','CLIB_STDIO_PRINTF',
            'ASKAR',
@@ -39,7 +39,7 @@ if('DEMO_LED_APP' in MODULES):
     objs += Glob('leds/*.xml')
     objs += Glob('leds/*.c')
 
-if('USB' in MODULES):
+if('USB_SERIAL' in MODULES):
     objs += Glob('usb/*.xml')
     objs += Glob('usb/*.c')
 

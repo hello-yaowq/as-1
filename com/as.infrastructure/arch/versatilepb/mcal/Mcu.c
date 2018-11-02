@@ -32,29 +32,46 @@
 #include "rthw.h"
 #endif
 #include "asdebug.h"
+
+#ifdef USE_RINGBUFFER
+#include "ringbuffer.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8040))()
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*reset_t)(void);
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void timer_init(void (*cbk)(void));
+#ifdef USE_STDRT
 void rt_console_putc(int c);
+#endif
 extern void vic_setup(void);
 extern unsigned int _start;
+#ifdef USE_CLIB_STDIO_CAN
 extern void Can_putc(char ch);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
+#ifdef USE_RINGBUFFER
+RB_DECLARE(stdio, char, 4096);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
 {
 #ifndef USE_STDRT
+#ifdef USE_RINGBUFFER
+	RB_Push(&rb_stdio, &ch, 1);
+#else
 	serial_send_char(ch);
+#endif
 #else
 	rt_console_putc(ch);
 #endif
+
 #ifdef USE_CLIB_STDIO_CAN
 	Can_putc(ch);
 #endif
+
 }
 
 #ifndef __GNUC__
@@ -146,5 +163,16 @@ void Mcu_DistributePllClock( void )
 	timer_init(NULL);
 #endif
 	printf(" >> versatilepb startup done,start @%p\n",&_start);
+#endif
+}
+
+void TaskIdleHook(void)
+{
+#ifdef USE_RINGBUFFER
+	char ch;
+	if(1 == RB_Pop(&rb_stdio, &ch, 1))
+	{
+		serial_send_char(ch);
+	}
 #endif
 }

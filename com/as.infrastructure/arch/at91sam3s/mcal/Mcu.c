@@ -30,21 +30,62 @@
 #include "shell.h"
 #endif
 #include "board.h"
+
+#ifdef USE_RINGBUFFER
+#include "ringbuffer.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
-
-
-
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void LowLevelInit( void );
+
+#ifdef USE_USB_SERIAL
+void USB_SerialPutChar(char ch);
+#endif
 /* ============================ [ DATAS     ] ====================================================== */
-
+#ifdef USE_RINGBUFFER
+RB_DECLARE(stdio, char, 512);
+#endif
 /* ============================ [ LOCALS    ] ====================================================== */
+#ifdef USE_RINGBUFFER
+static void flush_stdio(void)
+{
+	char ch0;
+	rb_size_t r0;
+	imask_t imask;
 
+	Irq_Save(imask);
+	r0 = RB_Pop(&rb_stdio, &ch0, 1);
+	Irq_Restore(imask);
+
+	if(1 == r0)
+	{
+		UART_PutChar(ch0);
+	}
+}
+#endif
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void __putchar(char ch)
 {
+#ifdef USE_RINGBUFFER
+	rb_size_t r;
+	imask_t imask;
+	do {
+		Irq_Save(imask);
+		r = RB_Push(&rb_stdio, &ch, 1);
+		Irq_Restore(imask);
+		if(0 == r)
+		{
+			flush_stdio();
+		}
+	} while(r != 1);
+#else
 	UART_PutChar(ch);
+#endif
+
+#ifdef USE_USB_SERIAL
+	USB_SerialPutChar(ch);
+#endif
 }
 
 #ifndef __GNUC__
@@ -110,6 +151,13 @@ void TaskIdleHook(void)
 			ch = '\n';
 		}
 		SHELL_input(ch);
+	}
+#endif
+
+#ifdef USE_RINGBUFFER
+	if(0 != (UART0->UART_SR & UART_SR_TXEMPTY))
+	{
+		flush_stdio();
 	}
 #endif
 }

@@ -11,7 +11,8 @@ config DEMO_LED_APP
 	bool "demo led application"
 	default y
 
-config DEMO_USB_APP
-	bool "demo USB application"
+config USB_SERIAL
+	bool "demo USB on serial application"
 	default y
 	depends on USB_DRV
+	select RINGBUFFER

@@ -88,7 +88,7 @@
 
 /* By default, all traces are output except the debug one. */
 #if !defined(TRACE_LEVEL)
-#define TRACE_LEVEL TRACE_LEVEL_INFO
+#define TRACE_LEVEL TRACE_LEVEL_WARNING
 #endif
 
 /* By default, trace level is static (not dynamic) */
