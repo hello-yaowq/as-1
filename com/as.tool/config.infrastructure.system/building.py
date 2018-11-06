@@ -111,6 +111,7 @@ def PrepareEnv(release):
     os.environ['ASROOT'] = ASROOT
     asenv['ASROOT'] = ASROOT
     asenv['RELEASE'] = release
+    asenv['PACKAGES'] = []
     board_list = []
     for dir in os.listdir('%s/com/as.application'%(ASROOT)):
         if(dir[:6]=='board.' and 
@@ -433,6 +434,9 @@ def Download(url, tgt=None):
             RunCommand('mv -v %s %s'%(tf, tgt))
 
 def Package(url, ** parameters):
+    if(type(url) == dict):
+        parameters = url
+        url = url['url']
     cwd = GetCurrentDir()
     bsw = os.path.basename(cwd)
     download = '%s/release/download'%(Env['ASROOT'])
@@ -1109,6 +1113,12 @@ def Building(target, sobjs, env=None):
     swcs = []
     dts = []
     arxml= None
+
+    if('PACKAGES' in env):
+        for p in env['PACKAGES']:
+            pkg = Package(p)
+            pbdir = '%s/packages/%s'%(bdir,os.path.basename(pkg))
+            sobjs += SConscript('%s/SConscript'%(pkg),variant_dir=pbdir, duplicate=0)
 
     for obj in sobjs:
         if(str(obj)[-6:]=='.arxml'):

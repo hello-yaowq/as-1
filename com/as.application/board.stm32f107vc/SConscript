@@ -13,6 +13,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'DCM',
            'PORT','DIO','DEMO_LED_APP',
            'ASKAR',
+           'USB','USB_SERIAL',
            ]
 
 ARCH='stm32f1'
@@ -82,6 +83,10 @@ if('LWIP' in MODULES):
 if('DEMO_LED_APP' in MODULES):
     objs += Glob('leds/*.xml')
     objs += Glob('leds/*.c')
+
+if('USB' in MODULES):
+    asenv['PACKAGES'].append({'url':'https://gitlab.com/as-boards/stm32f107vc.git'})
+    objs += Glob('common/isr_usb.xml')
 
 asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
 asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])

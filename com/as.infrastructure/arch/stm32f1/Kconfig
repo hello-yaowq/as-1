@@ -25,5 +25,14 @@ config LWIP_DRV
 	bool "LWIP driver"
 	default y
 
+config USB_DRV
+	bool "USB driver"
+	default y
+	select USB
+
+config USB
+	bool "USB core"
+	default y
+
 endmenu
 endif

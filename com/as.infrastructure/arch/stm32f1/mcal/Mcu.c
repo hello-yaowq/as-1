@@ -32,6 +32,8 @@
 #include "shell.h"
 #endif
 
+#include "asdebug.h"
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x)  (sizeof(_x)/sizeof((_x)[0]))
 #endif
@@ -405,6 +407,7 @@ void Mcu_DistributePllClock(void)
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_ETH_MAC | RCC_AHBPeriph_ETH_MAC_Tx |
                         RCC_AHBPeriph_ETH_MAC_Rx, ENABLE);
 #endif
+
 }
 
 //-------------------------------------------------------------------
@@ -563,3 +566,31 @@ void Mcu_ConfigureFlash(void)
 {
 
 }
+
+#ifdef USE_USB
+uint32_t HAL_GetTick(void)
+{
+	return GetOsTick();
+}
+
+void _Error_Handler(char *file, int line)
+{
+	printf("%s %d\n", file, line);
+	asAssert(0);
+}
+#endif
+
+void TaskIdleHook(void)
+{
+#ifdef USE_USB
+  {
+	static uint8 flag = 0;
+	extern void MX_USB_DEVICE_Init(void);
+	if(0 == flag) {
+		MX_USB_DEVICE_Init();
+		flag = 1;
+	}
+  }
+#endif
+}
+

@@ -11,3 +11,9 @@ config DEMO_LED_APP
 config ARCH
     string
     default "stm32f1"
+
+config USB_SERIAL
+	bool "demo USB on serial application"
+	default y
+	depends on USB
+	select RINGBUFFER
