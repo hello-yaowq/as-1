@@ -1114,6 +1114,12 @@ def Building(target, sobjs, env=None):
     dts = []
     arxml= None
 
+    cfgdir = '%s/config'%(bdir)
+    env.Append(CPPPATH=['%s'%(cfgdir)])
+    env.Append(ASFLAGS='-I%s'%(cfgdir))
+    if('gcc' in env['CC']):
+        env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
+
     if('PACKAGES' in env):
         for p in env['PACKAGES']:
             pkg = Package(p)
@@ -1136,7 +1142,7 @@ def Building(target, sobjs, env=None):
             dts.append(obj)
         else:
             objs.append(obj)
-    cfgdir = '%s/config'%(bdir)
+
     AppendPythonPath([cfgdir])
     os.environ['ARXML']=str(arxml)
     cfgdone = '%s/config.done'%(cfgdir)
@@ -1157,10 +1163,6 @@ def Building(target, sobjs, env=None):
         exit(0)
 
     objs += Glob('%s/*.c'%(cfgdir))
-    env.Append(CPPPATH=['%s'%(cfgdir)])
-    env.Append(ASFLAGS='-I%s'%(cfgdir))
-    if('gcc' in env['CC']):
-        env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
 
     if(GetOption('clean')):
         RMDir(cfgdir)
