@@ -7,7 +7,7 @@ Import('asenv')
 ASROOT = asenv['ASROOT']
 
 MODULES = ['ECUM','SCHM','MCU',
-           'DET','SHELL','RINGBUFFER',
+           'DET','SHELL',
            'USB','USB_SERIAL',
            'CLIB_ASHEAP','CLIB_MBOX','CLIB_MISCLIB',
            'CLIB_STRTOK_R','CLIB_STDIO_PRINTF',

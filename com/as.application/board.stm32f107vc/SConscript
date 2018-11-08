@@ -13,7 +13,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'DCM',
            'PORT','DIO','DEMO_LED_APP',
            'ASKAR',
-           'USB','USB_SERIAL','RINGBUFFER'
+           'USB','USB_SERIAL'
            ]
 
 ARCH='stm32f1'

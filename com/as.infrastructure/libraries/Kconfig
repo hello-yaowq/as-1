@@ -12,8 +12,4 @@ config TRACE
 	bool "enable the trace library"
 	default y
 
-config RINGBUFFER
-	bool "simple ringbuffer library"
-	default y
-
 endmenu

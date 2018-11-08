@@ -16,4 +16,3 @@ config USB_SERIAL
 	bool "demo USB on serial application"
 	default y
 	depends on USB
-	select RINGBUFFER

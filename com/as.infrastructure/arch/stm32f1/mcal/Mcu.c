@@ -32,11 +32,9 @@
 #include "shell.h"
 #endif
 
-#ifdef USE_RINGBUFFER
-#include "ringbuffer.h"
-#endif
-
 #include "asdebug.h"
+
+#include "stdio_cfg.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x)  (sizeof(_x)/sizeof((_x)[0]))
@@ -90,10 +88,6 @@ Mcu_GlobalType Mcu_Global =
 		.initRun = 0,
 		.config = &McuConfigData[0],
 };
-
-#ifdef USE_RINGBUFFER
-RB_DECLARE(stdio, char, 512);
-#endif
 
 //-------------------------------------------------------------------
 
@@ -313,7 +307,7 @@ Std_ReturnType Mcu_InitClock(const Mcu_ClockType ClockSetting)
   return E_OK;
 }
 
-void UART_PutChar(char ch)
+void Stdio_PutChar(char ch)
 {
   uint32_t timeout = 0;
   /* Place your implementation of fputc here */
@@ -327,56 +321,9 @@ void UART_PutChar(char ch)
 	  timeout ++;
   }
 }
-#ifdef USE_RINGBUFFER
-static void flush_stdio(void)
-{
-	char ch0;
-	rb_size_t r0;
-	imask_t imask;
 
-	Irq_Save(imask);
-	r0 = RB_Pop(&rb_stdio, &ch0, 1);
-	Irq_Restore(imask);
-
-	if(1 == r0)
-	{
-		UART_PutChar(ch0);
-	}
-}
-#endif
 //-------------------------------------------------------------------
-void __putchar(char ch)
-{
-#ifdef USE_RINGBUFFER
-	rb_size_t r;
-	imask_t imask;
-	do {
-		Irq_Save(imask);
-		r = RB_Push(&rb_stdio, &ch, 1);
-		Irq_Restore(imask);
-		if(0 == r)
-		{
-			flush_stdio();
-		}
-	} while(r != 1);
-#else
-	UART_PutChar(ch);
-#endif
 
-#ifdef USE_USB_SERIAL
-	extern void USB_SerialPutChar(char ch);
-	USB_SerialPutChar(ch);
-#endif
-
-}
-
-#ifndef __GNUC__
-int putchar( int ch )	/* for printf */
-{
-	__putchar(ch);
-  return ch;
-}
-#endif
 
 #ifndef USE_SCAN
 void knl_isr_usart2_process(void)
@@ -648,11 +595,7 @@ void TaskIdleHook(void)
 #endif
 #endif
 
-#ifdef USE_RINGBUFFER
-	if(USART_GetFlagStatus(USART2, USART_FLAG_TC) != RESET)
-	{
-		flush_stdio();
-	}
-#endif
+
+	FLUSH_STDIO_IF(USART_GetFlagStatus(USART2, USART_FLAG_TC) != RESET);
 }
 
