@@ -223,6 +223,7 @@ class AsSerial(QThread):
 
     def __recv(self):
         data, quit = bytes(), False
+        if(self.isCANMode): data = ''
         while(True):
             if(self.__terminate):
                 break

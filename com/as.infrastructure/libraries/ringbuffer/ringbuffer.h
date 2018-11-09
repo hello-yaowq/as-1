@@ -67,6 +67,7 @@ typedef struct
 void      RB_Init(const RingBufferType* rb);
 rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len);
 rb_size_t RB_Pop (const RingBufferType* rb, void* data, rb_size_t len);
+rb_size_t RB_Poll (const RingBufferType* rb, void* data, rb_size_t len);
 rb_size_t RB_Left(const RingBufferType* rb);
 rb_size_t RB_Size(const RingBufferType* rb);
 #endif /* _RINGBUFFER_H_ */

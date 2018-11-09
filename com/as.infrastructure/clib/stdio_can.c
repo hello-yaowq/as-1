@@ -19,6 +19,8 @@
 #ifdef USE_SHELL
 #include "shell.h"
 #endif
+
+#include "ringbuffer.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #ifndef CAN_STDIO_IBUFFER_SIZE
 #define CAN_STDIO_IBUFFER_SIZE 512
@@ -27,10 +29,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
-static uint32_t rpos=0;
-static uint32_t wpos=0;
-static volatile uint32_t isize=0;
-static char     ibuffer[CAN_STDIO_IBUFFER_SIZE];
+RB_DECLARE(stdio_can,char,CAN_STDIO_IBUFFER_SIZE);
 static uint32_t wmissing=0;
 /* ============================ [ LOCALS    ] ====================================================== */
 static boolean is_can_online(void)
@@ -71,9 +70,7 @@ static void flush_can(void)
 {
 	PduInfoType pdu;
 	uint8 data[8];
-	int sz;
-	int index;
-	int trpos;
+	rb_size_t sz;
 	Std_ReturnType ercd;
 	imask_t imask;
 
@@ -82,36 +79,20 @@ static void flush_can(void)
 		return;
 	}
 
-	sz = isize;
-	if(sz > 8)
-	{
-		sz = 8;
-	}
+	Irq_Save(imask);
+	sz = RB_Poll(&rb_stdio_can, data, 8);
+	Irq_Restore(imask);
 
 	if(sz > 0)
 	{
 		pdu.SduDataPtr = data;
 		pdu.SduLength = sz;
 
-		index = 0;
-		trpos = rpos;
-		while(sz > index)
-		{
-			data[index] = ibuffer[trpos];
-			trpos ++;
-			if(trpos >= CAN_STDIO_IBUFFER_SIZE)
-			{
-				trpos = 0;
-			}
-			index ++;
-		}
-
 		ercd = CanIf_Transmit(CANIF_ID_STDOUT, &pdu);
 		if(E_OK == ercd)
 		{
 			Irq_Save(imask);
-			rpos = trpos;
-			isize -= sz;
+			(void)RB_Pop(&rb_stdio_can, data, sz); /* consume it */
 			Irq_Restore(imask);
 		}
 	}
@@ -121,9 +102,10 @@ static void flush_can(void)
 void Can_putc(char ch)
 {
 	imask_t imask;
+	rb_size_t r;
 
 #ifndef CAN_STDIO_IBUFFER_FULL_IGNORE
-	while((isize >= CAN_STDIO_IBUFFER_SIZE) && is_can_online())
+	while((0 == RB_Left(&rb_stdio_can)) && is_can_online())
 	{
 		#ifdef USE_ASKAR
 		extern unsigned int CallLevel;
@@ -141,25 +123,17 @@ void Can_putc(char ch)
 	}
 #endif
 
-	if(isize < CAN_STDIO_IBUFFER_SIZE)
-	{
-		Irq_Save(imask);
-		ibuffer[wpos] = ch;
-		wpos ++;
-		if(wpos >= CAN_STDIO_IBUFFER_SIZE)
-		{
-			wpos = 0;
-		}
-		isize ++;
-		Irq_Restore(imask);
-	}
-	else
+	Irq_Save(imask);
+	r = RB_Push(&rb_stdio_can,&ch,1);
+	Irq_Restore(imask);
+
+	if(1 != r)
 	{
 		/* do noting as full */
 		wmissing ++;
 	}
 
-	if( ('\r' == ch) || ('\n' == ch) || (isize >= 8) )
+	if( ('\r' == ch) || ('\n' == ch) || (RB_Size(&rb_stdio_can) >= 8) )
 	{
 		flush_can();
 	}
@@ -182,7 +156,7 @@ void CanIf_StdioRxIndication(uint8 channel, PduIdType pduId, const uint8 *sduPtr
 void CanIf_StdioTxConfirmation(PduIdType id)
 {
 	(void) id;
-	if(isize > 0)
+	if(RB_Size(&rb_stdio_can) > 0)
 	{
 		flush_can();
 	}

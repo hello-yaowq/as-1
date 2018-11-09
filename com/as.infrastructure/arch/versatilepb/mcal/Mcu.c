@@ -33,9 +33,7 @@
 #endif
 #include "asdebug.h"
 
-#ifdef USE_RINGBUFFER
-#include "ringbuffer.h"
-#endif
+#include "stdio_cfg.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define RESET() ((reset_t)(0x8040))()
 /* ============================ [ TYPES     ] ====================================================== */
@@ -51,19 +49,12 @@ extern unsigned int _start;
 extern void Can_putc(char ch);
 #endif
 /* ============================ [ DATAS     ] ====================================================== */
-#ifdef USE_RINGBUFFER
-RB_DECLARE(stdio, char, 4096);
-#endif
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void __putchar(char ch)
+void Stdio_PutChar(char ch)
 {
 #ifndef USE_STDRT
-#ifdef USE_RINGBUFFER
-	RB_Push(&rb_stdio, &ch, 1);
-#else
 	serial_send_char(ch);
-#endif
 #else
 	rt_console_putc(ch);
 #endif
@@ -71,16 +62,7 @@ void __putchar(char ch)
 #ifdef USE_CLIB_STDIO_CAN
 	Can_putc(ch);
 #endif
-
 }
-
-#ifndef __GNUC__
-int putchar( int ch )	/* for printf */
-{
-	__putchar(ch);
-  return ch;
-}
-#endif
 
 void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
@@ -168,11 +150,5 @@ void Mcu_DistributePllClock( void )
 
 void TaskIdleHook(void)
 {
-#ifdef USE_RINGBUFFER
-	char ch;
-	if(1 == RB_Pop(&rb_stdio, &ch, 1))
-	{
-		serial_send_char(ch);
-	}
-#endif
+	FLUSH_STDIO_IF(1);
 }
