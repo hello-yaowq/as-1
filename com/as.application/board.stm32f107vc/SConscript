@@ -27,10 +27,12 @@ MODULES += ['CLIB_STDIO_CAN']
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):
     MODULES = ['ECUM','SCHM','MCU','DET',
-               'CAN','CANIF','PDUR','CANTP','DCM',
+               'SCAN','CANIF','PDUR','CANTP','DCM',
                'CLIB_STDIO_PRINTF',
                'CLIB_MISCLIB',
                'TINYOS',
+               'USB','USB_CAN','CANTP_MINI','DCM_MINI',
+               'SHELL','FLASH_CMD','MEM_CMD','JMP_CMD','CLIB_STRTOK_R'
                ]
     lds = '%s/script/linker-flsdrv.lds'%(cwd)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
@@ -38,7 +40,7 @@ if(asenv['RELEASE']=='asboot'):
                                   'CHIP_STM32F10X','STM32F10X_CL'],
                        'CCFLAGS':[],
                        'CPPPATH':['%s/com/as.infrastructure/include'%(ASROOT)],
-                       'LINKFLAGS':['-static','-T%s'%(lds)],
+                       'LINKFLAGS':['-static','-T%s'%(lds),'-Map','build/stm32f107vc/stm32f107vc-flsdrv.map'],
                        'objs':[]}
 
 if(asenv['MODULES'] is None):

@@ -58,4 +58,6 @@ if(asenv['RELEASE']=='asboot'):
                     '%s/Libraries/CMSIS/Include'%(cwd),
                     '%s/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x'%(cwd)]
     asenv['flsdrv']['CPPDEFINES'] += ['USE_STDPERIPH_DRIVER']
+    asenv['flsdrv']['CCFLAGS'] += ['-mcpu=cortex-m3','-mthumb','-ffunction-sections','-fdata-sections']
+    asenv['flsdrv']['LINKFLAGS'] += ['--gc-sections']
 Return('objs')

@@ -127,6 +127,8 @@ typedef void         (*task_main_t)(void);
 typedef void         (*alarm_main_t)(void);
 typedef uint8 		   task_priority_t;
 
+typedef void	(*FP)(void);
+
 typedef struct
 {
     task_main_t    	main;

@@ -415,7 +415,7 @@ class AsFlashloader(QThread):
     def step_progress(self,v):
         self.progress.emit(v)
 
-    def transmit(self,req,exp):
+    def transmit(self,req,exp,ignore=False):
         ercd,res = self.dcm.transmit(req)
         if(ercd == True):
             if(len(res)>=len(exp)):
@@ -426,7 +426,7 @@ class AsFlashloader(QThread):
             else:
                 ercd = False
         if(ercd == True):
-            self.infor.emit('  success')
+            if(not ignore): self.infor.emit('  success')
         else:
             self.infor.emit('  failed')
         return ercd,res
@@ -492,7 +492,7 @@ class AsFlashloader(QThread):
                     req.append(data[pos+i])
                 else:
                     req.append(0xFF)
-            ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
+            ercd,res = self.transmit(req,[0x76,blockSequenceCounter],True)
             self.add_progress(sz)
             if(ercd == False):return ercd,res
             blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
@@ -513,8 +513,7 @@ class AsFlashloader(QThread):
         data = []
         while(left_size>0 and ercd==True):
             req = [0x36,blockSequenceCounter,0,identifier]
-            self.infor.emit(' transfer block %s'%(blockSequenceCounter))
-            ercd,res = self.transmit(req,[0x76,blockSequenceCounter])
+            ercd,res = self.transmit(req,[0x76,blockSequenceCounter],True)
             if(ercd == False):return ercd,res,None
             blockSequenceCounter = (blockSequenceCounter + 1)&0xFF
             sz = len(res)-2
@@ -581,6 +580,7 @@ class AsFlashloader(QThread):
 
     def routine_erase_flash(self):
         saddr, eaddr = self.get_app_erase_range()
+        eaddr = eaddr - saddr # get the length
         return self.transmit([0x31,0x01,0xFF,0x01,
                               (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
                               (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
@@ -792,6 +792,7 @@ class UIFlashloader(QWidget):
         if(os.path.exists(aspath)):
             for ss in glob.glob('%s/release/ascore/*.s19'%(aspath)):
                 default_app = ss
+                self.leFlsEraseProperty.setText('2*1024')
                 break
             for ss in glob.glob('%s/release/asboot/*-flsdrv.s19'%(aspath)):
                 default_flsdrv = ss

@@ -380,10 +380,8 @@ static void Usart_Init(void)
 
     /* USART configuration */
     USART_Init(USART2, &USART_InitStructure);
-	#ifndef USE_SCAN
 	USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
 	NVIC_EnableIRQ(USART2_IRQn);
-	#endif
     /* Enable USART */
     USART_Cmd(USART2, ENABLE);
 }

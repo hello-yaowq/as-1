@@ -71,6 +71,12 @@ def genForTinyOS_H(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('#define ALARM_ID_%-32s %s\n'%(GAGet(alarm,'Name'),id))
     fp.write('#define ALARM_NUM%-32s %s\n\n'%(' ',id+1))
+    isr_list = ScanFrom(os_list,'ISR')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
+    fp.write('#define ISR_NUM  %s\n\n'%(isr_num))
     fp.write('\n\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
@@ -97,6 +103,9 @@ def genForTinyOS_C(gendir,os_list):
     fp.write('/* ============================ [ MACROS    ] ====================================================== */\n')
     fp.write('/* ============================ [ TYPES     ] ====================================================== */\n')
     fp.write('/* ============================ [ DECLARES  ] ====================================================== */\n')
+    isr_list = ScanFrom(os_list,'ISR')
+    for isr in isr_list:
+        fp.write('extern void %s (void);\n'%(isr.attrib['Name']))
     fp.write('/* ============================ [ DATAS     ] ====================================================== */\n')
     fp.write('/* ============================ [ LOCALS    ] ====================================================== */\n')
     fp.write('/* ============================ [ FUNCTIONS ] ====================================================== */\n')
@@ -111,6 +120,20 @@ def genForTinyOS_C(gendir,os_list):
     for id,alarm in enumerate(alarm_list):
         fp.write('\tDeclareAlarm(%s),\n'%(GAGet(alarm,'Name')))
     fp.write('};\n\n')
+    isr_num = len(isr_list)
+    for isr in isr_list:
+        if((int(isr.attrib['Vector'],10)+1)>isr_num):
+            isr_num = int(isr.attrib['Vector'],10)+1
+    if(isr_num > 0):
+        fp.write('const FP tisr_pc[ %s ] = {\n'%(isr_num))
+        for iid in range(isr_num):
+            iname = 'NULL'
+            for isr in isr_list:
+                if(iid == int(isr.attrib['Vector'])):
+                    iname = isr.attrib['Name']
+                    break
+            fp.write('\t%s, /* %s */\n'%(iname,iid))
+        fp.write('};\n\n')
     fp.write('\n\n')
     fp.close()
 def gen_tinyos(gendir,os_list):
