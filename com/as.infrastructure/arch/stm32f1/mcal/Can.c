@@ -834,63 +834,6 @@ void Can_Arc_GetStatistics( uint8 controller, Can_Arc_StatisticsType *stats)
   Can_UnitType *canUnit = GET_PRIVATE_DATA(controller);
   *stats = canUnit->stats;
 }
-
-#else /* USE_SCAN */
-#include "stm32f10x.h"
-#include "stm32f10x_usart.h"
-
-
-Can_ReturnType CanHW_SetControllerMode( uint8 Controller, Can_StateTransitionType transition )
-{
-	(void)Controller;
-	switch(transition )
-	{
-		case CAN_T_START:	/* no break here */
-		case CAN_T_WAKEUP:
-			USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
-			NVIC_EnableIRQ(USART2_IRQn);
-		break;
-		case CAN_T_SLEEP:
-		case CAN_T_STOP:
-		default:
-			USART_ITConfig(USART2,USART_IT_RXNE,DISABLE);
-			NVIC_DisableIRQ(USART2_IRQn);
-		break;
-	}
-	return E_OK;
-}
-
-int Can_GetChar(char* chr)
-{
-	if(USART_GetITStatus(USART2,USART_IT_RXNE))
-	{
-		*chr = (char)(USART_ReceiveData(USART2)&0xFF);
-		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
-
-		return 1;
-	}
-
-	return 0;
-}
-extern void Can_MainFunction_Read_InISR( void );
-void knl_isr_usart2_process(void)	/* USART2_IRQn = 38 + 16 = 54 */
-{
-	Can_MainFunction_Read_InISR();
-
-	NVIC_ClearPendingIRQ(USART2_IRQn);
-}
-
-void CanHW_DisableControllerInterrupts( uint8 controller )
-{
-	(void)controller;
-	NVIC_DisableIRQ(USART2_IRQn);
-}
-
-void CanHW_EnableControllerInterrupts( uint8 controller )
-{
-	(void)controller;
-	NVIC_EnableIRQ(USART2_IRQn);
-}
 #endif
 
 

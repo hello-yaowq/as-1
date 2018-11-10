@@ -37,8 +37,13 @@
 		&rbV_##name										\
 	}
 
-
 #define RB_EXTERN(name) extern RingBufferType rb_##name;
+
+#define RB_PUSH(name, data, sz) RB_Push(&rb_##name, data, sz)
+#define RB_POLL(name, data, sz) RB_Poll(&rb_##name, data, sz)
+#define RB_POP(name, data, sz)  RB_Pop(&rb_##name, data, sz)
+#define RB_LEFT(name)           RB_Left(&rb_##name)
+#define RB_SIZE(name)           RB_Size(&rb_##name)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef RB_SIZE_TYPE rb_size_t;
 

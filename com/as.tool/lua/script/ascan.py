@@ -52,9 +52,9 @@ class UICan(QWidget):
             self.cmbxCanDevice[i].addItems(['socket','serial','vxl','peak','tcp','zlg'])
             self.cmbxCanPort[i].addItems(['port 0','port 1','port 2','port 3','port 4','port 5','port 6','port 7'])
             self.cmbxCanBaud[i].addItems(['125000','250000','500000','1000000','115200'])
-        
+
             self.cmbxCanBus[i].setEditable(True)
-            self.cmbxCanDevice[i].setEditable(True)
+            self.cmbxCanPort[i].setEditable(True)
             self.cmbxCanBaud[i].setEditable(True)
             
             self.cmbxCanBus[i].setCurrentIndex(i)

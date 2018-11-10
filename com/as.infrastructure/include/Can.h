@@ -98,6 +98,20 @@ typedef struct Can_PduType_s {
 	uint8 		*sdu;
 } Can_PduType;
 
+typedef struct {
+	uint8_t busid;
+	uint8_t canid[4];
+	uint8_t dlc;
+	uint8_t data[8];
+} Can_SerialInPduType;
+
+typedef struct {
+	uint8_t busid;
+	uint8_t canid[4];
+	uint8_t dlc;
+	uint8_t data[8];
+	PduIdType swPduHandle;
+} Can_SerialOutPduType;
 
 typedef enum {
 	CAN_T_STOP,

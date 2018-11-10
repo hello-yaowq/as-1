@@ -8,12 +8,12 @@ ASROOT = asenv['ASROOT']
 
 MODULES = ['ECUM','SCHM','MCU',
            'DET','SHELL',
-           'CAN','CANIF','PDUR','COM','COMM','CANTP','J1939TP',
+           'SCAN','CANIF','PDUR','COM','COMM','CANTP','J1939TP',
            'CANNM','CANSM','NM','OSEKNM','XCP',
            'DCM',
            'PORT','DIO','DEMO_LED_APP',
            'ASKAR',
-           'USB','USB_SERIAL'
+           'USB','USB_CAN'
            ]
 
 ARCH='stm32f1'
@@ -63,6 +63,9 @@ asenv.Append(CPPPATH=['%s/common'%(cwd)])
 if('CAN' in MODULES):
     objs += Glob('common/Can*.c')
     objs += Glob('common/isr_can.xml')
+    asenv.Append(CPPDEFINES=['NOT_PYGEN_CAN'])
+
+if('SCAN' in MODULES):
     asenv.Append(CPPDEFINES=['NOT_PYGEN_CAN'])
 
 if('SHELL' in MODULES):

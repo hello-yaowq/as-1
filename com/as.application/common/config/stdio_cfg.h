@@ -46,7 +46,7 @@ RB_DECLARE(stdio, char, STDIO_RINGBUFFER_SIZE);
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
 #ifndef NO_STDIO_RINGBUFFER
-static void flush_stdio(void)
+void flush_stdio(void)
 {
 	char ch0;
 	rb_size_t r0;

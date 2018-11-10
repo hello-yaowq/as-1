@@ -98,14 +98,17 @@ knl_start_dispatch_from_isr:
 	.type   knl_dispatch_entry, %function
 knl_dispatch_entry:
 	/* EXCEPTION stack:H->L: PSR PC LR R12 R3 R2 R1 R0 */
-	push    {r4-r11}
-	ldr     r3, =RunningVar
-	ldr     r4, [r3]
+	ldr     r1, =RunningVar
+	ldr     r2, [r1]
+	cmp     r2, #0
+	beq     knl_start_dispatch
 
-	str     sp, [r4, #0x0 ]
+	push    {r4-r11}
+
+	str     sp, [r2, #0x0 ]
 
 	ldr     r12, =knl_resume
-	str     r12, [r4, #0x04]
+	str     r12, [r2, #0x04]
 	#ifdef OS_USE_POSTTASK_HOOK
 	ldr     r1, = CallLevel
 	ldr     r3, [r1]
@@ -116,6 +119,7 @@ knl_dispatch_entry:
 	pop     {r0-r3,lr}
 	str     r3,[r1]  /* restore CallLevel */
 	#endif
+
 	b       knl_start_dispatch
 
 	.type   EnterISR, %function

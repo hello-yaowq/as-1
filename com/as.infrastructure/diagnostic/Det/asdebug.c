@@ -148,6 +148,7 @@ void asPrintCallStack( void )
 }
 #endif
 void __weak Sched_ShowRdyQ(void) {}
+void __weak flush_stdio(void) {}
 void asAssertErrorHook(void)
 {
 #if defined(__WINDOWS__) || defined(__LINUX__)
@@ -160,6 +161,7 @@ void asAssertErrorHook(void)
 	extern int statOsFunc(int argc, char* argv[]);
 	statOsFunc(1, NULL);
 	Sched_ShowRdyQ();
+	while(1) flush_stdio();
 #endif
 #endif
 	while(1);

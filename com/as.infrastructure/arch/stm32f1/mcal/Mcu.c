@@ -323,9 +323,6 @@ void Stdio_PutChar(char ch)
 }
 
 //-------------------------------------------------------------------
-
-
-#ifndef USE_SCAN
 void knl_isr_usart2_process(void)
 {
 	if(USART_GetITStatus(USART2,USART_IT_RXNE))
@@ -342,7 +339,7 @@ void knl_isr_usart2_process(void)
 	}
 	NVIC_ClearPendingIRQ(USART2_IRQn);
 }
-#endif
+
 static void Usart_Init(void)
 {
     USART_InitTypeDef USART_InitStructure;
@@ -587,7 +584,7 @@ void TaskIdleHook(void)
 		flag = 1;
 	}
   }
-#ifdef USE_USB_SERIAL
+#if defined(USE_USB_SERIAL) || defined(USE_USB_CAN)
   {
 	extern void CDC_MainFunction(void);
 	CDC_MainFunction();

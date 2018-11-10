@@ -111,8 +111,7 @@ void Os_PortStartDispatch(void)
 {
 	knl_dispatch_started = TRUE; /* always set it to true here, ugly code */
 	RunningVar = NULL;
-	__asm("cpsie   i");
-	__asm("svc 0");
+	Os_PortDispatch();
 	asAssert(0);
 }
 
