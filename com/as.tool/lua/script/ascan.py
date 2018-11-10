@@ -51,6 +51,7 @@ class UICan(QWidget):
             self.cmbxCanBus[i].addItems(['bus 0','bus 1','bus 2','bus 3','bus 4','bus 5','bus 6','bus 7'])
             self.cmbxCanDevice[i].addItems(['socket','serial','vxl','peak','tcp','zlg'])
             self.cmbxCanPort[i].addItems(['port 0','port 1','port 2','port 3','port 4','port 5','port 6','port 7'])
+            self.cmbxCanPort[i].setToolTip('for serial: e.g COM5 = port 4, support from COM1 to COM16')
             self.cmbxCanBaud[i].addItems(['125000','250000','500000','1000000','115200'])
 
             self.cmbxCanBus[i].setEditable(True)
@@ -118,7 +119,7 @@ class UICan(QWidget):
         data = str(self.leCanData.text())
         rdata = []
         for i in range(int(len(data)/2)):
-            rdata.append(int(data[2*i:2*i+1],16))
+            rdata.append(int(data[2*i:2*i+2],16))
         can_write(busid, canid, rdata)
 
     def on_btnSend_clicked(self):

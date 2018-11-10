@@ -176,7 +176,7 @@ static void saveQ(struct Can_Bus_s* b, uint32_t canid, uint8_t dlc, uint8_t * da
 		STAILQ_INSERT_TAIL(&b->headQ, pdu, entry);
 		b->sizeQ ++;
 		(void)pthread_mutex_unlock(&canbusH.q_lock);
-		b->warningQ = FALSE;
+		/* b->warningQ = FALSE; */
 	}
 }
 

@@ -213,11 +213,12 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 	if(handle != NULL)
 	{
 		Can_SerialPduType pdu;
-		pdu.busid = port;
+		pdu.busid = handle->busid;
 		SETSCANID(pdu.canid, canid);
 		pdu.dlc = dlc;
 		memcpy(pdu.data, data, dlc);
-
+		ASLOG(OFF, "Tx busid=%X, CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+				port, canid, dlc, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 		if( CAN_TCP_SERIAL_PORT == handle->port)
 		{
 			if(sizeof(pdu) == send(handle->s, (void*)&pdu, sizeof(pdu),0))
