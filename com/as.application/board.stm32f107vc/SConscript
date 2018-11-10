@@ -36,7 +36,7 @@ if(asenv['RELEASE']=='asboot'):
                ]
     lds = '%s/script/linker-flsdrv.lds'%(cwd)
     asenv['flsdrv'] = {'CPPDEFINES':['FLASH_DRIVER_DYNAMIC_DOWNLOAD',
-                                  'FLASH_WRITE_SIZE=2',
+                                  'FLASH_WRITE_SIZE=4',
                                   'CHIP_STM32F10X','STM32F10X_CL'],
                        'CCFLAGS':[],
                        'CPPPATH':['%s/com/as.infrastructure/include'%(ASROOT)],

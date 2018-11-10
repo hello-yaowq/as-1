@@ -782,6 +782,7 @@ class UIFlashloader(QWidget):
         self.btnStart.clicked.connect(self.on_btnStart_clicked)
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
         self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
+        self.btnStartASLUA.setDisabled(True)
         aspath = os.path.abspath('%s/../../..'%(os.curdir))
         default_app='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/Project/bin/internal_FLASH.mot'%(aspath)
         default_flsdrv='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/FlsDrv/bin/internal_FLASH.mot'%(aspath)
