@@ -28,7 +28,7 @@ int can_open(unsigned long busid,const char* device,unsigned long port, unsigned
 int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned char* data);
 int can_read(unsigned long busid,unsigned long canid,unsigned long *p_canid,unsigned long *dlc,unsigned char** data);
 int can_close(unsigned long busid);
-
+int can_reset(unsigned long busid);
 }
 /* ============================ [ CLASS     ] ====================================================== */
 class can
@@ -64,6 +64,10 @@ public:
 		return can_close(busid);
 	}
 
+	int reset(unsigned long busid)
+	{
+		return can_reset(busid);
+	}
 };
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */

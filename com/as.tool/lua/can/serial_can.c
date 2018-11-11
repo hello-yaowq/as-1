@@ -72,6 +72,7 @@ struct Can_SerialHandleList_s
 static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
 static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
 static void serial_close(uint32_t port);
+static boolean serial_reset(uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_serial_ops =
@@ -80,6 +81,7 @@ const Can_DeviceOpsType can_serial_ops =
 	.probe = serial_probe,
 	.close = serial_close,
 	.write = serial_write,
+	.reset = serial_reset,
 };
 static struct Can_SerialHandleList_s* serialH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
@@ -275,6 +277,36 @@ static void serial_close(uint32_t port)
 			serialH->terminated = TRUE;
 		}
 	}
+}
+static boolean serial_reset(uint32_t port)
+{
+	boolean rv = TRUE;
+	int ret;
+	int tryTimes = 10000;
+	struct Can_SerialHandle_s* handle = getHandle(port);
+	if(NULL != handle)
+	{
+		if(CAN_TCP_SERIAL_PORT != port)
+		{
+			RS232_CloseComport(handle->port);
+			do {
+				ret = RS232_OpenComport(port,handle->baudrate,"8N1");
+				tryTimes--;
+			} while((ret != 0) && (tryTimes>0));
+
+			if(ret != 0)
+			{
+				rv = FALSE;
+				ASWARNING("CAN Serial port=%d do reset failed!\n",port);
+			}
+		}
+	}
+	else
+	{
+		rv = FALSE;
+		ASWARNING("CAN Serial port=%d is not on-line, not able to reset!\n",port);
+	}
+	return rv;
 }
 
 static void * rx_daemon(void * param)

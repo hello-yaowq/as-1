@@ -35,7 +35,7 @@
 #define FL_READ_PER_CYCLE  (4096/FLASH_WRITE_SIZE)
 
 #ifndef BL_STAY_TIME_MS
-#define BL_STAY_TIME_MS 50
+#define BL_STAY_TIME_MS 1000
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
@@ -439,11 +439,7 @@ void BL_MainFunction(void)
 #endif
 		 )
 		{
-#ifndef USE_JMP_CMD
 			application_main();
-#else
-			ASLOG(BL,"use shell command jmp to launch application.\n");
-#endif
 		}
 		else
 		{

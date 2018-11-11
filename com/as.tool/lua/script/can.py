@@ -20,7 +20,7 @@ try:
 except:
     from AS import *
 
-__all__ = ['can_open','can_write','can_read','can_close']
+__all__ = ['can_open','can_write','can_read','can_close','can_reset']
 
 __can__ = can()
 
@@ -39,4 +39,8 @@ def can_read(busid,canid):
 
 def can_close(busid):
     return __can__.close(busid)
+
+def can_reset(busid):
+    return __can__.reset(busid)
+
 

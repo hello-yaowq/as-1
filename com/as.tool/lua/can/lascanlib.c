@@ -934,4 +934,27 @@ int can_close(unsigned long busid)
 
 	return rv;
 }
+int can_reset(unsigned long busid)
+{
+	int rv;
+	struct Can_Bus_s * b = getBus(busid);
+	rv = FALSE;
+	if(NULL == b)
+	{
+		printf("ERROR :: can bus(%d) is not on-line 'can_reset'\n",(int)busid);
+	}
+	else
+	{
+		if(NULL != b->device.ops->reset)
+		{
+			rv = b->device.ops->reset(b->device.port);
+		}
+		else
+		{
+			rv = TRUE;
+		}
+	}
+
+	return rv;
+}
 #endif /* __AS_PY_CAN__ */

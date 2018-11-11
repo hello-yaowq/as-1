@@ -27,6 +27,7 @@ public:
             return pyObj;
     %End
     int close(unsigned long busid);
+    int reset(unsigned long busid);
 };
 
 class asdev {

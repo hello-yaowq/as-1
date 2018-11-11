@@ -14,7 +14,6 @@ __lic__ = '''
  * for more details.
  */
  '''
-
 try:
     from .cantp import *
     from .doip import *
@@ -23,7 +22,7 @@ except:
     from cantp import *
     from doip import *
     from J1939Tp import *
-
+import time
 __all__ = ['dcm']
 
 class dcm():
@@ -62,6 +61,7 @@ class dcm():
             self.cantp = doip(busid_or_uri,rxid_or_port)
         self.last_error = None
         self.last_reponse = None
+        self.usbcan=False
 
     def set_ll_dl(self,v):
         self.cantp.set_ll_dl(v)
@@ -118,6 +118,13 @@ class dcm():
         response  = None
         self.__show_request__(req)
         ercd = self.cantp.transmit(req)
+        if((req[0]==0x10) and (req[1]==0x02) and
+           (type(self.cantp)==cantp) and (self.usbcan==True)):
+            # workaround for USBCAN as RESET will cause the USB device disconnect
+            r = self.cantp.reset()
+            if(r==True):
+                time.sleep(0.1)
+                return r, [0x50,0x02]
         if((len(req)>=2) and (req[0] in self.__sbr__) and ((req[1]&0x80) != 0)):
             # suppress positive response
             return True,[req[0]|0x40]

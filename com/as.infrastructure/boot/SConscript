@@ -13,7 +13,7 @@ if(asenv['RELEASE']=='asboot'):
     objs += Glob('common/*.xml')
     objs += Glob('common/*.arxml')
     asenv.Append(CPPPATH=['%s/common'%(cwd)])
-    asenv.Append(CCFLAGS='-D__AS_BOOTLOADER__')
+    asenv.Append(CPPDEFINES=['__AS_BOOTLOADER__','NO_STDIO_RINGBUFFER'])
     if('MINIBLT' in MODULES):
         asenv.Prepend(CPPPATH=['%s/mininc'%(cwd)])
         MKDir('%s/mininc'%(cwd))

@@ -72,6 +72,9 @@ class cantp():
         self.cfgBS = 0
         self.ll_dl = 8
 
+    def reset(self):
+        return can_reset(self.canbus)
+
     def set_ll_dl(self,v):
         if(v in [8,64]):
             self.ll_dl = v

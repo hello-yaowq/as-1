@@ -366,6 +366,11 @@ class AsFlashloader(QThread):
             self.protocol = 'UDS'
             self.dcm = dcm(0,0x732,0x731)
             self.ability = 4096
+        elif(p == 'UDS on USBCAN'):
+            self.protocol = 'UDS'
+            self.dcm = dcm(0,0x732,0x731)
+            self.ability = 4096
+            self.dcm.usbcan=True
         elif(p == 'UDS on CANFD'):
             self.protocol = 'UDS'
             self.dcm = dcm(0,0x732,0x731)
@@ -721,7 +726,7 @@ class UIFlashloader(QWidget):
         self.pgbProgress.setRange(0,100)
         grid.addWidget(self.pgbProgress,2,1)
         self.cmbxProtocol = QComboBox()
-        items = ['UDS on CAN','UDS on CANFD','UDS on DOIP','XCP on CAN']
+        items = ['UDS on CAN','UDS on CANFD','UDS on DOIP','XCP on CAN','UDS on USBCAN']
         for i in search_serial_ports():
             items.append('CMD on COM%s'%(i))
         self.cmbxProtocol.addItems(items)
