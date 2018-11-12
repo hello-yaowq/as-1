@@ -71,6 +71,7 @@ class cantp():
         self.cfgSTmin = 0
         self.cfgBS = 0
         self.ll_dl = 8
+        self.timeout = 5
 
     def reset(self):
         return can_reset(self.canbus)
@@ -255,7 +256,7 @@ class cantp():
         ercd = False
         data=None
         pre = time.time()
-        while ( ((time.time() -pre) < 5) and (ercd == False)): # 1s timeout
+        while ( ((time.time() -pre) < self.timeout) and (ercd == False)):
             result,canid,data= can_read(self.canbus,self.rxid)
             if((True == result) and (self.rxid == canid)):
                 ercd = True
@@ -364,9 +365,10 @@ class cantp():
    
         return can_write(self.canbus,self.txid,pdu)
 
-    def receive(self):
+    def receive(self, timeout=5):
         ercd = True
         response = []
+        self.timeout = timeout
   
         finished = False
   

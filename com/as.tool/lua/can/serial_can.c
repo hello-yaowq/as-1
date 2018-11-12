@@ -58,6 +58,7 @@ struct Can_SerialHandle_s
 	uint32_t busid;
 	uint32_t port;
 	uint32_t baudrate;
+	int online;
 	int  s; /* socket handle used only by QEMU TCP 127.0.0.1:1103 */
 	can_device_rx_notification_t rx_notification;
 	STAILQ_ENTRY(Can_SerialHandle_s) entry;
@@ -67,6 +68,7 @@ struct Can_SerialHandleList_s
 	pthread_t rx_thread;
 	volatile boolean   terminated;
 	STAILQ_HEAD(,Can_SerialHandle_s) head;
+	pthread_mutex_t mutex;
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
@@ -113,6 +115,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		STAILQ_INIT(&serialH->head);
 
 		serialH->terminated = TRUE;
+		pthread_mutex_init(&serialH->mutex, NULL);
 	}
 
 	handle = getHandle(port);
@@ -170,7 +173,10 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 				handle->port = port;
 				handle->baudrate = baudrate;
 				handle->rx_notification = rx_notification;
+				pthread_mutex_lock(&serialH->mutex);
+				handle->online = TRUE;
 				STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
+				pthread_mutex_unlock(&serialH->mutex);
 				ASLOG(STDOUT,"CAN Serial TCP open OK\n");
 			}
 		}
@@ -182,7 +188,10 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			handle->port = port;
 			handle->baudrate = baudrate;
 			handle->rx_notification = rx_notification;
+			pthread_mutex_lock(&serialH->mutex);
+			handle->online = TRUE;
 			STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
+			pthread_mutex_unlock(&serialH->mutex);
 			ASLOG(STDOUT,"CAN Serial open port %d OK\n",port);
 		}
 		else
@@ -255,7 +264,9 @@ static void serial_close(uint32_t port)
 	struct Can_SerialHandle_s* handle = getHandle(port);
 	if(NULL != handle)
 	{
+		pthread_mutex_lock(&serialH->mutex);
 		STAILQ_REMOVE(&serialH->head,handle,Can_SerialHandle_s,entry);
+		pthread_mutex_unlock(&serialH->mutex);
 
 		if(CAN_TCP_SERIAL_PORT == port)
 		{
@@ -281,23 +292,29 @@ static void serial_close(uint32_t port)
 static boolean serial_reset(uint32_t port)
 {
 	boolean rv = TRUE;
-	int ret;
-	int tryTimes = 10000;
 	struct Can_SerialHandle_s* handle = getHandle(port);
 	if(NULL != handle)
 	{
 		if(CAN_TCP_SERIAL_PORT != port)
 		{
-			RS232_CloseComport(handle->port);
-			do {
-				ret = RS232_OpenComport(port,handle->baudrate,"8N1");
-				tryTimes--;
-			} while((ret != 0) && (tryTimes>0));
-
-			if(ret != 0)
+			if(handle->online == TRUE)
+			{
+				ASLOG(RS232, "reset port %d start\n", port);
+				pthread_mutex_lock(&serialH->mutex);
+				handle->online = FALSE;
+				pthread_mutex_unlock(&serialH->mutex);
+				RS232_CloseComport(handle->port);
+			}
+			if(0 != RS232_OpenComport(port,handle->baudrate,"8N1"))
 			{
 				rv = FALSE;
-				ASWARNING("CAN Serial port=%d do reset failed!\n",port);
+			}
+			else
+			{
+				ASLOG(RS232, "reset port %d done\n", port);
+				pthread_mutex_lock(&serialH->mutex);
+				handle->online = TRUE;
+				pthread_mutex_unlock(&serialH->mutex);
 			}
 		}
 	}
@@ -317,8 +334,10 @@ static void * rx_daemon(void * param)
 	int size;
 	while(FALSE == serialH->terminated)
 	{
+		pthread_mutex_lock(&serialH->mutex);
 		STAILQ_FOREACH(handle,&serialH->head,entry)
 		{
+		  if(handle->online == TRUE) {
 			do
 			{
 				if(CAN_TCP_SERIAL_PORT == handle->port)
@@ -337,8 +356,10 @@ static void * rx_daemon(void * param)
 						handle->rx_notification(pdu.busid,SCANID(pdu.canid),pdu.dlc,pdu.data);
 					}
 				}
-			}while(1u == size);
+			}while(sizeof(pdu) == size);
+		  }
 		}
+		pthread_mutex_unlock(&serialH->mutex);
 	}
 
 	return NULL;

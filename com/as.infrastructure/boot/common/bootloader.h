@@ -35,4 +35,5 @@
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void BL_Init(void);
 void BL_MainFunction(void);
+void BL_StopAppTimer(void);
 #endif /* COM_AS_INFRASTRUCTURE_BOOT_COMMON_BOOTLOADER_H_ */

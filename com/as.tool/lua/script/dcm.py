@@ -122,9 +122,11 @@ class dcm():
            (type(self.cantp)==cantp) and (self.usbcan==True)):
             # workaround for USBCAN as RESET will cause the USB device disconnect
             r = self.cantp.reset()
-            if(r==True):
+            tryTimes = 1
+            while((False == r) and (tryTimes<10)):
                 time.sleep(0.1)
-                return r, [0x50,0x02]
+                r = self.cantp.reset()
+                tryTimes += 1
         if((len(req)>=2) and (req[0] in self.__sbr__) and ((req[1]&0x80) != 0)):
             # suppress positive response
             return True,[req[0]|0x40]

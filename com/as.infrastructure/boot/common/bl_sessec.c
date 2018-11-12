@@ -55,6 +55,7 @@ Std_ReturnType BL_CompareProgramSessionKey (uint8 *key)
 	if(u32KeyExpected == u32Key)
 	{
 		ercd = E_OK;
+		BL_StopAppTimer();
 	}
 	else
 	{

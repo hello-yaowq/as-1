@@ -420,6 +420,10 @@ void BL_Init(void)
 	}
 }
 
+void BL_StopAppTimer(void)
+{
+	StopTimer(&appTimer);
+}
 void BL_MainFunction(void)
 {
 	if(GetTimer(&appTimer) > BL_STAY_TIME_MS)
