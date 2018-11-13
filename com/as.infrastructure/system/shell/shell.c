@@ -46,6 +46,7 @@ StatusType OsClearEvent(uint32_t id, uint32_t mask);
 #include "Os.h"
 #endif
 #include "asdebug.h"
+#include "ringbuffer.h"
 /* ----------------------------[Private define]------------------------------*/
 
 /* The maximum number of arguments when calling a shell function */
@@ -134,6 +135,8 @@ extern SHELL_CONST ShellCmdT cmdFlashWrite;
 
 static char cmdBuf[CMDLINE_MAX];
 static char cmdLine[CMDLINE_MAX];
+RB_DECLARE(shin, char, IBUFFER_MAX);
+
 #if defined(__LINUX__) || defined(__WINDOWS__)
 void* ProcessStdio(void* arg)
 {
@@ -148,14 +151,10 @@ void* ProcessStdio(void* arg)
 }
 #endif
 
-static uint32_t rpos=0;
-static uint32_t wpos=0;
-static volatile uint32_t isize=0;
-static char     ibuffer[IBUFFER_MAX];
-
 void SHELL_input(char c)
 {
 	imask_t imask;
+	rb_size_t r;
 #if defined(USE_TINYOS) || defined(USE_CONTIKI)
 #else
 	StatusType ercd;
@@ -163,19 +162,10 @@ void SHELL_input(char c)
 	if(c == '\r')
 		return;
 
-	if(isize < IBUFFER_MAX)
-	{
-		ibuffer[wpos] = c;
-		wpos ++;
-		if(wpos >= IBUFFER_MAX)
-		{
-			wpos = 0;
-		}
-		Irq_Save(imask);
-		isize ++;
-		Irq_Restore(imask);
-	}
-	else
+	Irq_Save(imask);
+	r = RB_PUSH(shin, &c, 1);
+	Irq_Restore(imask);
+	if(1 != r)
 	{
 		ASWARNING("shell input buffer overflow!\n");
 	}
@@ -193,31 +183,28 @@ void SHELL_input(char c)
 static char SHELL_getc(void)
 {
 	char c;
+	rb_size_t r;
 	imask_t imask;
-	while(0 == isize)
+
+	do
 	{
-#if !defined(USE_TINYOS) && !defined(USE_CONTIKI)
-		StatusType ercd = OsWaitEvent(TaskShell, EventShellInput);
-		if(E_OK != ercd)
+		Irq_Save(imask);
+		r = RB_POP(shin, &c, 1);
+		Irq_Restore(imask);
+		if(0 == r)
 		{
-			asAssert(0);
+			#if !defined(USE_TINYOS) && !defined(USE_CONTIKI)
+			StatusType ercd = OsWaitEvent(TaskShell, EventShellInput);
+			if(E_OK != ercd)
+			{
+				asAssert(0);
+			}
+			OsClearEvent(TaskShell, EventShellInput);
+			#else
+			return -1;
+			#endif
 		}
-		OsClearEvent(TaskShell, EventShellInput);
-#else
-		return -1;
-#endif
-	}
-
-	c = ibuffer[rpos];
-
-	rpos ++;
-	if(rpos >= IBUFFER_MAX)
-	{
-		rpos = 0;
-	}
-	Irq_Save(imask);
-	isize --;
-	Irq_Restore(imask);
+	} while(0 == r);
 
 	return c;
 }

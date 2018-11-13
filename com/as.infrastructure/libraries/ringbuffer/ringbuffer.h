@@ -41,9 +41,13 @@
 
 #define RB_PUSH(name, data, sz) RB_Push(&rb_##name, data, sz)
 #define RB_POLL(name, data, sz) RB_Poll(&rb_##name, data, sz)
+#define RB_DROP(name, sz)       RB_Drop(&rb_##name, sz)
 #define RB_POP(name, data, sz)  RB_Pop(&rb_##name, data, sz)
 #define RB_LEFT(name)           RB_Left(&rb_##name)
 #define RB_SIZE(name)           RB_Size(&rb_##name)
+#define RB_INP(name)            RB_InP(&rb_##name)
+#define RB_OUTP(name)           RB_OutP(&rb_##name)
+#define IS_RB_EMPTY(name)       ((rb_##name.V->in)==(rb_##name.V->out))
 /* ============================ [ TYPES     ] ====================================================== */
 typedef RB_SIZE_TYPE rb_size_t;
 
@@ -72,7 +76,11 @@ typedef struct
 void      RB_Init(const RingBufferType* rb);
 rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len);
 rb_size_t RB_Pop (const RingBufferType* rb, void* data, rb_size_t len);
-rb_size_t RB_Poll (const RingBufferType* rb, void* data, rb_size_t len);
+rb_size_t RB_Poll(const RingBufferType* rb, void* data, rb_size_t len);
+rb_size_t RB_Drop(const RingBufferType* rb, rb_size_t len);
 rb_size_t RB_Left(const RingBufferType* rb);
 rb_size_t RB_Size(const RingBufferType* rb);
+void*     RB_OutP(const RingBufferType* rb);
+void*     RB_InP (const RingBufferType* rb);
+
 #endif /* _RINGBUFFER_H_ */

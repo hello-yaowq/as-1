@@ -18,9 +18,100 @@
 #include "ringbuffer.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
+typedef enum
+{
+	RB_POLL,
+	RB_POP,
+	RB_DROP
+} rb_action_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 /* ============================ [ LOCALS    ] ====================================================== */
+static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len, rb_action_t action)
+{
+	rb_size_t l = 0;
+	rb_size_t doSz;
+	rb_size_t in,out;
+	rb_size_t min,max;
+	char* buffer;
+
+	buffer = rb->C->buffer;
+	in  = rb->V->in;
+	out = rb->V->out;
+	min = rb->C->min;
+	max = rb->C->max;
+
+	assert((len%min) == 0);
+
+	if(out == in)
+	{
+		/* already empty */
+	}
+	else
+	{
+		out ++;
+		if(out >= max)
+		{
+			out = 0;
+		}
+
+		if(out <= in)
+		{
+			l = in - out + 1;
+			if(l > len)
+			{
+				l = len;
+			}
+			if(action != RB_DROP) memcpy(data, &buffer[out], l);
+			out += l - 1;
+
+			if(action != RB_POLL) rb->V->out = out;
+		}
+		else
+		{
+			doSz = max - out;
+			if(doSz > len)
+			{
+				doSz = len;
+			}
+			if(action != RB_DROP) memcpy(data, &buffer[out], doSz);
+			out += doSz;
+			l += doSz;
+			len = len-doSz;
+
+			if(out >= max)
+			{
+				out = 0;
+			}
+
+			if(len > 0)
+			{
+				doSz = out - in + 1;
+				if(doSz > len)
+				{
+					doSz = len;
+				}
+				if(action != RB_DROP) memcpy(&((char*)data)[l], &buffer[out], doSz);
+				out += doSz;
+				l += doSz;
+			}
+
+			if(action != RB_DROP)
+			{
+				if(0 == out)
+				{
+					rb->V->out = max - 1;
+				}
+				else
+				{
+					rb->V->out = out - 1;
+				}
+			}
+		}
+	}
+
+	return l;
+}
 /* ============================ [ FUNCTIONS ] ====================================================== */
 void      RB_Init(const RingBufferType* rb)
 {
@@ -65,7 +156,7 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 		{
 			l = l - min;
 		}
-		memcpy(&buffer[in], data, l);
+		if(data != NULL) memcpy(&buffer[in], data, l);
 		in += l - 1;
 
 		rb->V->in = in;
@@ -77,7 +168,7 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 		{
 			doSz = len;
 		}
-		memcpy(&buffer[in], data, doSz);
+		if(data != NULL) memcpy(&buffer[in], data, doSz);
 		in += doSz;
 		l += doSz;
 		len = len-doSz;
@@ -98,7 +189,7 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 			{
 				doSz = doSz - min;
 			}
-			memcpy(&buffer[in], &((char*)data)[l], doSz);
+			if(data != NULL) memcpy(&buffer[in], &((char*)data)[l], doSz);
 			in += doSz;
 			l += doSz;
 		}
@@ -118,91 +209,50 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 
 rb_size_t RB_Pop (const RingBufferType* rb, void* data, rb_size_t len)
 {
-	rb_size_t l = 0;
-	rb_size_t doSz;
-	rb_size_t in,out;
-	rb_size_t min,max;
-	char* buffer;
-
-	buffer = rb->C->buffer;
-	in  = rb->V->in;
-	out = rb->V->out;
-	min = rb->C->min;
-	max = rb->C->max;
-
-	assert((len%min) == 0);
-
-	if(out == in)
-	{
-		/* already empty */
-	}
-	else
-	{
-		out ++;
-		if(out >= max)
-		{
-			out = 0;
-		}
-
-		if(out <= in)
-		{
-			l = in - out + 1;
-			if(l > len)
-			{
-				l = len;
-			}
-			memcpy(data, &buffer[out], l);
-			out += l - 1;
-
-			rb->V->out = out;
-		}
-		else
-		{
-			doSz = max - out;
-			if(doSz > len)
-			{
-				doSz = len;
-			}
-			memcpy(data, &buffer[out], doSz);
-			out += doSz;
-			l += doSz;
-			len = len-doSz;
-
-			if(out >= max)
-			{
-				out = 0;
-			}
-
-			if(len > 0)
-			{
-				doSz = out - in + 1;
-				if(doSz > len)
-				{
-					doSz = len;
-				}
-				memcpy(&((char*)data)[l], &buffer[out], doSz);
-				out += doSz;
-				l += doSz;
-			}
-
-			if(0 == out)
-			{
-				rb->V->out = max - 1;
-			}
-			else
-			{
-				rb->V->out = out - 1;
-			}
-		}
-	}
-
-	return l;
+	return RB_Action(rb, data, len, RB_POP);
 }
 
 rb_size_t RB_Poll (const RingBufferType* rb, void* data, rb_size_t len)
 {
-	rb_size_t l = 0;
-	rb_size_t doSz;
+	return RB_Action(rb, data, len, RB_POLL);
+}
+
+rb_size_t RB_Drop (const RingBufferType* rb, rb_size_t len)
+{
+	return RB_Action(rb, NULL, len, RB_DROP);
+}
+
+void* RB_OutP(const RingBufferType* rb)
+{
+	rb_size_t in,out;
+	rb_size_t max;
+	char* buffer;
+
+	buffer = rb->C->buffer;
+	in = rb->V->in;
+	out = rb->V->out;
+	max = rb->C->max;
+
+	if(out == in)
+	{
+		buffer = NULL;
+	}
+	else
+	{
+		out ++;
+		if(out >= max)
+		{
+			out = 0;
+		}
+
+		buffer = &buffer[out];
+	}
+
+	return buffer;
+}
+
+void* RB_InP(const RingBufferType* rb)
+{
 	rb_size_t in,out;
 	rb_size_t min,max;
 	char* buffer;
@@ -213,59 +263,22 @@ rb_size_t RB_Poll (const RingBufferType* rb, void* data, rb_size_t len)
 	min = rb->C->min;
 	max = rb->C->max;
 
-	assert((len%min) == 0);
-
-	if(out == in)
+	in ++;
+	if(in >= max)
 	{
-		/* already empty */
+		in = 0;
+	}
+
+	if((in+min-1) == out)
+	{
+		buffer = NULL;
 	}
 	else
 	{
-		out ++;
-		if(out >= max)
-		{
-			out = 0;
-		}
-
-		if(out <= in)
-		{
-			l = in - out + 1;
-			if(l > len)
-			{
-				l = len;
-			}
-			memcpy(data, &buffer[out], l);
-		}
-		else
-		{
-			doSz = max - out;
-			if(doSz > len)
-			{
-				doSz = len;
-			}
-			memcpy(data, &buffer[out], doSz);
-			out += doSz;
-			l += doSz;
-			len = len-doSz;
-
-			if(out >= max)
-			{
-				out = 0;
-			}
-
-			if(len > 0)
-			{
-				doSz = out - in + 1;
-				if(doSz > len)
-				{
-					doSz = len;
-				}
-				memcpy(&((char*)data)[l], &buffer[out], doSz);
-			}
-		}
+		buffer = &buffer[in];
 	}
 
-	return l;
+	return buffer;
 }
 
 rb_size_t RB_Left(const RingBufferType* rb)
@@ -283,6 +296,7 @@ rb_size_t RB_Left(const RingBufferType* rb)
 
 	return left;
 }
+
 rb_size_t RB_Size(const RingBufferType* rb)
 {
 	rb_size_t size;
