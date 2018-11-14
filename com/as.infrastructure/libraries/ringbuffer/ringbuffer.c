@@ -96,7 +96,7 @@ static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len,
 				l += doSz;
 			}
 
-			if(action != RB_DROP)
+			if(action != RB_POLL)
 			{
 				if(0 == out)
 				{

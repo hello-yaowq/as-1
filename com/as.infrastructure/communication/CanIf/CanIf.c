@@ -51,6 +51,7 @@
 #include "Os.h"
 
 #include "asdebug.h"
+#include "ringbuffer.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_CANIF  0
 
@@ -98,28 +99,10 @@ typedef struct {
     uint8_t				dlc;
 } CanIf_PduType;
 
-typedef struct {
-	CanIf_PduType pdu[CANIF_RX_FIFO_SIZE];
-	uint16_t      r_pos;
-	uint16_t      w_pos;
-	volatile uint16_t      counter;
-}CanIf_RxFifoType;
-
-typedef struct {
-	PduIdType 	  pdu[CANIF_TX_FIFO_SIZE];
-	uint16_t      r_pos;
-	uint16_t      w_pos;
-	volatile uint16_t      counter;
-}CanIf_TxFifoType;
-
 typedef struct
 {
   boolean initRun;
   CanIf_ChannelPrivateType channelData[CANIF_CHANNEL_CNT];
-#if (CANIF_TASK_FIFO_MODE==STD_ON)
-  CanIf_RxFifoType rfifo;
-  CanIf_TxFifoType tfifo;
-#endif
 } CanIf_GlobalType;
 
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -142,6 +125,9 @@ static SHELL_CONST ShellCmdT canIfCmd  = {
 
 SHELL_CMD_EXPORT(canIfCmd);
 #endif
+
+RB_DECLARE(canifTx, PduIdType, CANIF_TX_FIFO_SIZE);
+RB_DECLARE(canifRx, CanIf_PduType, CANIF_RX_FIFO_SIZE);
 /* ============================ [ LOCALS    ] ====================================================== */
 #ifdef USE_SHELL
 void __weak statCan(void)
@@ -274,26 +260,15 @@ static void scheduleTxConfirmation(PduIdType canTxPduId)
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
 static void scheduleTxFifo(void)
 {
-	CanIf_TxFifoType *fifo;
 	PduIdType canTxPduId;
-	imask_t imask;
+	rb_size_t r;
 
-	fifo = &(CanIf_Global.tfifo);
+	r = RB_POP(canifTx, &canTxPduId, sizeof(canTxPduId));
 
-	while(fifo->counter > 0)
+	while(sizeof(canTxPduId) == r)
 	{
-		canTxPduId = fifo->pdu[fifo->r_pos++];
-
-		Irq_Save(imask);
-		fifo->counter --;
-
-		if(fifo->r_pos >= CANIF_TX_FIFO_SIZE)
-		{
-			fifo->r_pos = 0;
-		}
-		Irq_Restore(imask);
-
 		scheduleTxConfirmation(canTxPduId);
+		r = RB_POP(canifTx, &canTxPduId, sizeof(canTxPduId));
 	}
 }
 #endif
@@ -433,27 +408,16 @@ static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
 static void scheduldRxFifo(void)
 {
-	CanIf_RxFifoType *fifo;
 	CanIf_PduType* pdu;;
-	imask_t imask;
 
-	fifo = &(CanIf_Global.rfifo);
-
-	while(fifo->counter > 0)
+	pdu = RB_OUTP(canifRx);
+	while(NULL != pdu)
 	{
-		pdu = &(fifo->pdu[fifo->r_pos++]);
-
-		Irq_Save(imask);
-		fifo->counter --;
-
-		if(fifo->r_pos >= CANIF_TX_FIFO_SIZE)
-		{
-			fifo->r_pos = 0;
-		}
-		Irq_Restore(imask);
-
 		scheduleRxIndication(pdu->hrh,pdu->canid,pdu->dlc,pdu->data);
+		RB_DROP(canifRx, sizeof(CanIf_PduType));
+		pdu = RB_OUTP(canifRx);
 	}
+
 }
 #endif /* CANIF_TASK_FIFO_MODE */
 
@@ -477,6 +441,9 @@ void CanIf_Init(const CanIf_ConfigType *ConfigPtr)
 #if defined(USE_SHELL) && !defined(USE_SHELL_SYMTAB)
 	SHELL_AddCmd(&canIfCmd);
 #endif
+
+	RB_INIT(canifRx);
+	RB_INIT(canifTx);
 }
 
 /*
@@ -1078,17 +1045,12 @@ void CanIf_TxConfirmation(PduIdType canTxPduId)
 	VALIDATE_NO_RV(canTxPduId < CanIf_ConfigPtr->InitConfig->CanIfNumberOfCanTXPduIds, CANIF_TXCONFIRMATION_ID,
 			CANIF_E_PARAM_LPDU);
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
-	CanIf_TxFifoType* fifo = &(CanIf_Global.tfifo);
-	if (fifo->counter < CANIF_TX_FIFO_SIZE)
-	{
-		fifo->pdu[fifo->w_pos] = canTxPduId;
+	rb_size_t r;
 
-		fifo->w_pos++;
-		if (fifo->w_pos >= CANIF_TX_FIFO_SIZE)
-		{
-			fifo->w_pos = 0;
-		}
-		fifo->counter++;
+	r = RB_PUSH(canifTx, &canTxPduId, sizeof(canTxPduId));
+
+	if (sizeof(canTxPduId) == r)
+	{
 		OsActivateTask(TaskCanIf);
 	}
 	else
@@ -1109,23 +1071,20 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 	VALIDATE_NO_RV(CanSduPtr != NULL, CANIF_RXINDICATION_ID, CANIF_E_PARAM_POINTER);
 
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
-	CanIf_RxFifoType* fifo = &(CanIf_Global.rfifo);
 	CanIf_PduType* pdu;
-	if (fifo->counter < CANIF_RX_FIFO_SIZE)
-	{
-		pdu = &(fifo->pdu[fifo->w_pos]);
 
+	pdu = RB_INP(canifRx);
+
+	if (NULL != pdu)
+	{
 		pdu->canid = CanId;
 		pdu->dlc   =CanDlc;
 		pdu->hrh   = Hrh;
 		asAssert(CanDlc<=CAN_LL_DL);
 		memcpy(pdu->data,CanSduPtr,CanDlc);
-		fifo->w_pos++;
-		if (fifo->w_pos >= CANIF_TX_FIFO_SIZE)
-		{
-			fifo->w_pos = 0;
-		}
-		fifo->counter++;
+
+		RB_PUSH(canifRx, NULL, sizeof(*pdu));
+
 		OsActivateTask(TaskCanIf);
 	}
 	else
@@ -1133,6 +1092,7 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 		/* buffer full, missing one message */
 		asAssert(0);
 	}
+
 #else
 	scheduleRxIndication(Hrh,CanId,CanDlc,CanSduPtr);
 #endif

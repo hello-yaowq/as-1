@@ -43,6 +43,7 @@
 #define RB_POLL(name, data, sz) RB_Poll(&rb_##name, data, sz)
 #define RB_DROP(name, sz)       RB_Drop(&rb_##name, sz)
 #define RB_POP(name, data, sz)  RB_Pop(&rb_##name, data, sz)
+#define RB_INIT(name)           RB_Init(&rb_##name)
 #define RB_LEFT(name)           RB_Left(&rb_##name)
 #define RB_SIZE(name)           RB_Size(&rb_##name)
 #define RB_INP(name)            RB_InP(&rb_##name)
