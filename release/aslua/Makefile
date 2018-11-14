@@ -303,6 +303,7 @@ dep-posix: aslibaws
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
 	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/shell TRUE)
+	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/libraries/ringbuffer TRUE)
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
