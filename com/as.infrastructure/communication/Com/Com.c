@@ -133,8 +133,6 @@ static void ListSignal(void) {
 					}
 				}
 			}
-
-
 		}
 		Irq_Restore(irq_state);
 	}

@@ -194,8 +194,8 @@ def GenC():
                                                                  (Interger(GAGet(sig,'Size'))+7)/8,
                                                                  GAGet(sig,'InitialValue')))
         for gsig in GLGet(pdu,'GroupSignalList'):
-            fp.write('/* TODO */static uint8 %s_ShadowBuffer[8];\n'%(GAGet(gsig,'Name')))
-            fp.write('/* TODO */static const uint8 %s_ShadowBufferMask[8]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};\n'%(GAGet(gsig,'Name')))
+            fp.write('/* TODO */static uint8 %s_ShadowBuffer[%s];\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize')))
+            fp.write('/* TODO */static const uint8 %s_ShadowBufferMask[%s]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize')))
             for sig in GLGet(gsig,'SignalList'):
                 if(GAGet(sig,'Type')=='uint8' or GAGet(sig,'Type')=='uint16' or GAGet(sig,'Type')=='uint32'):
                     fp.write('static const %s %s_InitValue = %s;\n'%(GAGet(sig,'Type'),GAGet(sig,'Name'),
@@ -255,9 +255,9 @@ static const ComGroupSignal_type ComGroupSignal[] = {
 
 //IPdu buffers and signal group buffers\n"""%(cstr1,cstr2)) 
     for pdu in GLGet('IPduList'): 
-        fp.write('static uint8 %s_IPduBuffer[8];\n'%(GAGet(pdu,'PduRef'))) 
+        fp.write('static uint8 %s_IPduBuffer[%s];\n'%(GAGet(pdu,'PduRef'),GAGet(pdu,'PduSize')))
         if(GAGet(pdu,'RxSignalProcessing')=='DEFERRED' and GAGet(pdu,'Direction')=='RECEIVE'):
-            fp.write('static uint8 %s_IPduDefferredBuffer[8];\n'%(GAGet(pdu,'PduRef'))) 
+            fp.write('static uint8 %s_IPduDefferredBuffer[%s];\n'%(GAGet(pdu,'PduRef'),GAGet(pdu,'PduSize')))
     cstr = ''
     id = 0
     for pdu in GLGet('IPduList'):
@@ -407,7 +407,7 @@ static const ComIPduGroup_type ComIPduGroup[] = {
         .ComIPduCallout =  %s,
         .ArcIPduOutgoingId =  PDUR_ID_%s,
         .ComIPduSignalProcessing =  COM_%s,
-        .ComIPduSize =  8,
+        .ComIPduSize =  %s,
         .ComIPduDirection =  COM_%s,
         .ComIPduGroupRef =  COM_IPDU_GROUP_%s,
         .ComTxIPdu ={
@@ -430,6 +430,7 @@ static const ComIPduGroup_type ComIPduGroup[] = {
              GAGet(pdu,'Callout'),
              GAGet(pdu,'PduRef'),
              GAGet(pdu,'RxSignalProcessing'),
+             GAGet(pdu,'PduSize'),
              GAGet(pdu,'Direction'),
              GAGet(pdu,'PduGroupRef'),
              GAGet(pdu,'TxMinimumDelayFactor'),
@@ -508,4 +509,4 @@ const Com_Arc_Config_type Com_Arc_Config = {
 };
 #endif /* USE_COM */\n""")
     fp.close()
-    
+

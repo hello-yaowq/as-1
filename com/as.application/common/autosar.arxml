@@ -55,6 +55,8 @@
 <Pdu Comment="*" Name="TX_J1939TP_DirectNPdu" Size="64" />
 <Pdu Comment="*" Name="J1939TP_RX" Size="64" />
 <Pdu Comment="*" Name="J1939TP_TX" Size="64" />
+<Pdu Comment="*" Name="RxMsgFD" Size="512" />
+<Pdu Comment="*" Name="TxMsgFD" Size="512" />
 </PduList>
 </EcuC>
 <Can>
@@ -87,6 +89,7 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DtNPdu" HthRef="LS_Hth" Identifier="0x762" Name="TX_J1939TP_DtNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_FcNPdu" HthRef="LS_Hth" Identifier="0x763" Name="TX_J1939TP_FcNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DirectNPdu" HthRef="LS_Hth" Identifier="0x764" Name="TX_J1939TP_DirectNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
+<Pdu Comment="*" DataLengthCode="64" EcuCPduRef="TxMsgFD" HthRef="LS_Hth" Identifier="0x103" Name="TxMsgFD" TransmitNotifier="PduR" UserNotification="CanIf_User" />
 </TxPduList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
@@ -102,6 +105,7 @@
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="RX_J1939TP_DT" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x752" Name="RX_J1939TP_DT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="RX_J1939TP_CM" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x753" Name="RX_J1939TP_CM" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="RX_J1939TP_DIRECT" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x754" Name="RX_J1939TP_DIRECT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
+<Pdu Comment="*" DataLengthCode="64" EcuCPduRef="RxMsgFD" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x104" Name="RxMsgCanFD" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
 </RxPduList>
 </Channel>
 </ChannelList>
@@ -170,6 +174,16 @@
 <Destination Comment="*" Module="Dcm" Name="Destination1" PduRef="J1939TP_RX" />
 </DestinationList>
 </Source>
+<Source Comment="*" Module="CanIf" Name="RxMsgFD" PduRef="RxMsgFD">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="Com" Name="Destination1" PduRef="RxMsgFD" />
+</DestinationList>
+</Source>
+<Source Comment="*" Module="Com" Name="TxMsgFD" PduRef="TxMsgFD">
+<DestinationList Max="TBD">
+<Destination Comment="*" Module="CanIf" Name="Destination1" PduRef="TxMsgFD" />
+</DestinationList>
+</Source>
 </RoutineList>
 </PduR>
 <Com>
@@ -178,7 +192,7 @@
 <PduGroup Comment="*" Name="PduGroup1" />
 </PduGroupList>
 <IPduList Max="TBD">
-<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="MsgTime" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgTime" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
+<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="MsgTime" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgTime" PduSize="8" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <GroupSignalList Max="TBD">
 <GroupSignal Comment="*" Endianess="OPAQUE" FirstTimeoutFactor="TBD" Name="SystemTime" ReceivedNotification="NULL" Size="56" StartBit="0" TimeoutAction="REPLACE" TimeoutFactor="TBD" TimeoutNotification="NULL" TransferProperty="PENDING" UpdateBitPosition="0" UpdateBitUsed="False">
 <SignalList Max="TBD">
@@ -192,13 +206,29 @@
 </GroupSignal>
 </GroupSignalList>
 </IPdu>
-<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="RECEIVE" Name="AbsInfo" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="RxMsgAbsInfo" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="10" TxMinimumDelayFactor="1" TxMode="PERIODIC">
+<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="RECEIVE" Name="AbsInfo" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="RxMsgAbsInfo" PduSize="8" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="10" TxMinimumDelayFactor="1" TxMode="PERIODIC">
 <SignalList Max="TBD">
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="VehicleSpeed" ReceivedNotification="NULL" Size="16" StartBit="7" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="100" InitialValue="0" Name="TachoSpeed" ReceivedNotification="NULL" Size="16" StartBit="23" TimeoutAction="NONE" TimeoutFactor="100" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led1Sts" ReceivedNotification="NULL" Size="2" StartBit="39" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led2Sts" ReceivedNotification="NULL" Size="2" StartBit="37" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 <Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="Led3Sts" ReceivedNotification="NULL" Size="2" StartBit="35" TimeoutAction="NONE" TimeoutFactor="500" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+</SignalList>
+</IPdu>
+<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="RECEIVE" Name="RxMsgFD" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="RxMsgFD" PduSize="64" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="10" TxMinimumDelayFactor="1" TxMode="PERIODIC">
+<SignalList Max="TBD">
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="RxMsgFD_Signal1" ReceivedNotification="NULL" Size="32" StartBit="63" TimeoutAction="NONE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint32" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="RxMsgFD_Signal2" ReceivedNotification="NULL" Size="16" StartBit="95" TimeoutAction="NONE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="RxMsgFD_Signal3" ReceivedNotification="NULL" Size="8" StartBit="111" TimeoutAction="NONE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0" Name="RxMsgFD_Signal4" ReceivedNotification="NULL" Size="8" StartBit="511" TimeoutAction="NONE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+</SignalList>
+</IPdu>
+<IPdu Callout="NULL" Comment="*" DefaultValueForUnusedArea="0x5A" Direction="SEND" Name="TxMsgFD" NumberOfRepetions="0" PduGroupRef="PduGroup1" PduRef="TxMsgFD" PduSize="64" RepetionsPeriodFactor="10" RxSignalProcessing="DEFERRED" TimeOffsetFactor="0" TimePeriodFactor="100" TxMinimumDelayFactor="1" TxMode="PERIODIC">
+<SignalList Max="TBD">
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0x12345678" Name="TxMsgFD_Signal1" ReceivedNotification="NULL" Size="32" StartBit="63" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint32" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0xabcd" Name="TxMsgFD_Signal2" ReceivedNotification="NULL" Size="16" StartBit="95" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint16" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0xef" Name="TxMsgFD_Signal3" ReceivedNotification="NULL" Size="8" StartBit="111" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
+<Signal Comment="*" Endianess="BIG_ENDIAN" FirstTimeoutFactor="500" InitialValue="0xdb" Name="TxMsgFD_Signal4" ReceivedNotification="NULL" Size="8" StartBit="511" TimeoutAction="REPLACE" TimeoutFactor="200" TimeoutNotification="NULL" TransferProperty="PENDING" Type="uint8" UpdateBitPosition="TBD" UpdateBitUsed="False" />
 </SignalList>
 </IPdu>
 </IPduList>

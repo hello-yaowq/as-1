@@ -27,9 +27,13 @@ __all__ = ['Network']
 # big endian bits map
 _bebm = []
 
-for i in range(8):
+#cstr = 'COM big endian bits map:\n'
+for i in range(64):
+#    cstr += '\n\tB%2d '%(i)
     for j in range(8):
         _bebm.append(i*8 + 7-j)
+#        cstr += '%3d '%(i*8 + 7-j)
+#print(cstr)
 
 class Sdu():
     def __init__(self, length):
@@ -107,7 +111,7 @@ class Message():
         self.msg = msg
         self.busid = busid
         self.sgs = {}
-        self.sdu = Sdu(8)
+        self.sdu = Sdu(msg['length'])
         if('period' in msg):
             self.period = msg['period']
         else:

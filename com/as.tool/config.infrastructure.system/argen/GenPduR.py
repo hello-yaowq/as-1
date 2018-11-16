@@ -123,8 +123,9 @@ def GenH():
 
 /* The maximum numbers of Tx buffers. */
 #define PDUR_MAX_TX_BUFFER_NUMBER            10 /* Not used */
-#define PDUR_N_TP_ROUTES_WITH_BUFFER        0 //"not understand by parai"
-#define PDUR_N_TP_BUFFERS                    2
+/* TBD: not supported by easySAR */
+#define PDUR_N_TP_ROUTES_WITH_BUFFER         0
+#define PDUR_N_TP_BUFFERS                    0
 
 // Multicast,not understand by parai
 #define PDUR_MULTICAST_TOIF_SUPPORT            STD_ON

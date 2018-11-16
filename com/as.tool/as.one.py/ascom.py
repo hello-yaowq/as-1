@@ -62,7 +62,10 @@ class UIMsg(QScrollArea):
 
     def updateMsg(self):
         for sig in self.msg:
-            sig.set_value(self.toInteger(str(self.leData[sig['name']].text())))
+            try:
+                sig.set_value(self.toInteger(str(self.leData[sig['name']].text())))
+            except ValueError:
+                pass # as just type '0x' maybe
         period = self.toInteger(str(self.lePeriod.text()))
         self.msg.set_period(period)
 

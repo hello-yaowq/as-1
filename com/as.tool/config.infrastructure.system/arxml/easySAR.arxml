@@ -136,7 +136,7 @@
 	<PduList Max="65535">
 		<Pdu
 			Name="Text PosGUI=0"
-			Size="Integer Default=64 Range=1~64 PosGUI=1 Unit=Bit"
+			Size="Integer Default=64 Range=1~512 PosGUI=1 Unit=Bit"
 			Comment="TextArea Default=* PosGUI=2"
 		/>
 	</PduList>
@@ -202,7 +202,7 @@
 				Identifier="Integer Range=0~0x1FFFFFFFF PosGUI=2"
 				TransmitNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=3"
 				UserNotification="Text Default=CanIf_User PosGUI=4 Enabled=(Self.TransmitNotifier==User)"
-				DataLengthCode="Integer Range=1~8 Default=8 PosGUI=5"
+				DataLengthCode="Integer Range=1~256 Default=8 PosGUI=5"
 				HthRef="EnumRef=CanIf.ChannelList.(Self.Parent.Parent.Name).HthList PosGUI=6"
 				Comment="TextArea Default=* PosGUI=7"
 				>
@@ -225,7 +225,7 @@
 				FilterMask="Integer Range=0~0x1FFFFFFFF Default=0x7FF PosGUI=3 \n Enabled=(CanIf.ChannelList.(Self.Parent.Parent.Name).HrhList.(Self.HrhRef).SoftwareFilterUsed==True) \n Comment=(If $FilterMask and `Identifier==$Identifier, then valid)"
 				ReceivedNotifier="Enum=(Nobody,PduR,CanTp,CanNm,J1939Tp,Xcp,User) Default=PduR PosGUI=4"
 				UserNotification="Text Default=CanIf_UserRxIndication PosGUI=5 Enabled=(Self.ReceivedNotifier==User)"
-				DataLengthCode="Integer Range=1~8 Default=8 PosGUI=6"
+				DataLengthCode="Integer Range=1~256 Default=8 PosGUI=6"
 				HrhRef="EnumRef=CanIf.ChannelList.(Self.Parent.Parent.Name).HrhList PosGUI=7"
 				Comment="TextArea Default=* PosGUI=8"
 				>
@@ -340,14 +340,15 @@
 			RepetionsPeriodFactor="Integer Range=0~255 Default=10 \n Enabled=(Self.TxMode==DIRECT || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=10 \n Unit=ms"
 			TimeOffsetFactor="Integer Range=0~255 Default=0 \n Enabled=(Self.TxMode==PERIODIC || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=11 \n Unit=ms"
 			TimePeriodFactor="Integer Range=0~255 Default=10 \n Enabled=(Self.TxMode==PERIODIC || Self.TxMode==MIXED and Self.Direction==SEND) PosGUI=12 \n Unit=ms"
-			Comment="TextArea Default=* PosGUI=13"
+			PduSize="Integer Range=1~64 Unit=byte Default=8 PosGUI=13"
+			Comment="TextArea Default=* PosGUI=14"
 			>
 			<GroupSignalList Max="1">
 				<GroupSignal
 					Name="Text PosGUI=0"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=2 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=3 
+					StartBit="Integer Range=0~511 PosGUI=3
 					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
@@ -357,9 +358,9 @@
 					\n BYTE5 47 46 45 44 43 42 41 40
 					\n BYTE6 55 54 53 52 51 50 49 48
 					\n BYTE7 63 62 61 60 59 58 57 56"
-					Size="Integer Range=1~64 Default=8 PosGUI=4"
+					Size="Integer Range=1~512 Default=8 Unit=bit PosGUI=4"
 					UpdateBitUsed="Boolean Default=False PosGUI=5"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+					UpdateBitPosition="Integer Range=0~511 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
 					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
@@ -376,12 +377,12 @@
 					ReceivedNotification="Text Default=NULL \n Enabled=(Self.Parent.Parent.Direction==RECEIVE) PosGUI=11"
 					Comment="TextArea Default=* PosGUI=12"
 					>
-					<SignalList Max="64">
+					<SignalList Max="512">
 						<Signal 
 							Name="Text PosGUI=0"
 							Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 							Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
-							StartBit="Integer Range=0~63 PosGUI=3
+							StartBit="Integer Range=0~511 PosGUI=3
 							\n BITMAP MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
@@ -391,9 +392,9 @@
 							\n BYTE5 47 46 45 44 43 42 41 40
 							\n BYTE6 55 54 53 52 51 50 49 48
 							\n BYTE7 63 62 61 60 59 58 57 56"
-							Size="Integer Range=1~64 Default=8 PosGUI=4"
+							Size="Integer Range=1~512 Default=8 Unit=bit PosGUI=4"
 							UpdateBitUsed="Boolean Default=False PosGUI=5"
-							UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
+							UpdateBitPosition="Integer Range=0~511 Enabled=(Self.UpdateBitUsed==True) PosGUI=6
 							\n BITMAP MSB              LSB
 							\n BYTE0  7  6  5  4  3  2  1  0
 							\n BYTE1 15 14 13 12 11 10  9  8
@@ -410,13 +411,13 @@
 				</SignalList>
 				</GroupSignal>
 			</GroupSignalList>
-			<SignalList Max="64">
+			<SignalList Max="512">
 				<Signal 
 					Name="Text PosGUI=0"
 					Type="Enum=(uint8,uint16,uint32,uint8_n,uint16_n,uint32_n) Default=uint8 PosGUI=1"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=2"
 					TransferProperty="Enum=(TRIGGERED,PENDING) Default=PENDING PosGUI=3 \n Enabled=(Self.Parent.Parent.Direction==SEND)"
-					StartBit="Integer Range=0~63 PosGUI=4
+					StartBit="Integer Range=0~511 PosGUI=4
 					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
@@ -426,10 +427,10 @@
 					\n BYTE5 47 46 45 44 43 42 41 40
 					\n BYTE6 55 54 53 52 51 50 49 48
 					\n BYTE7 63 62 61 60 59 58 57 56"
-					Size="Integer Range=1~64 Default=8 PosGUI=5"
+					Size="Integer Range=1~512 Default=8 Unit=bit PosGUI=5"
 					InitialValue="Text Default=0 PosGUI=6"
 					UpdateBitUsed="Boolean Default=False PosGUI=7"
-					UpdateBitPosition="Integer Range=0~63 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
+					UpdateBitPosition="Integer Range=0~511 Enabled=(Self.UpdateBitUsed==True) PosGUI=8
 					\n BITMAP MSB              LSB
 					\n BYTE0  7  6  5  4  3  2  1  0
 					\n BYTE1 15 14 13 12 11 10  9  8
