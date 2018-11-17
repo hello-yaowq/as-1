@@ -98,6 +98,13 @@ typedef struct Can_PduType_s {
 	uint8 		*sdu;
 } Can_PduType;
 
+#define SCANID(id) (((uint32_t)(id[0]<<24))+((uint32_t)(id[1]<<16))+((uint32_t)(id[2]<<8))+((uint32_t)(id[3])))
+#define SETSCANID(id, ID) do {	\
+	id[0] = (ID>>24)&0xFF;		\
+	id[1] = (ID>>16)&0xFF;		\
+	id[2] = (ID>>8)&0xFF;		\
+	id[3] = (ID)&0xFF;			\
+} while(0)
 typedef struct {
 	uint8_t busid;
 	uint8_t canid[4];

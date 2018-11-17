@@ -27,14 +27,6 @@
 #define CAN_SERIAL_Q_SIZE 32
 #endif
 #define CAN_EMPTY_MESSAGE_BOX 0xFFFF
-
-#define SCANID(id) (((uint32_t)(id[0]<<24))+((uint32_t)(id[1]<<16))+((uint32_t)(id[2]<<8))+((uint32_t)(id[3])))
-#define SETSCANID(id, ID) do {	\
-	id[0] = (ID>>24)&0xFF;		\
-	id[1] = (ID>>16)&0xFF;		\
-	id[2] = (ID>>8)&0xFF;		\
-	id[3] = (ID)&0xFF;			\
-} while(0)
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 

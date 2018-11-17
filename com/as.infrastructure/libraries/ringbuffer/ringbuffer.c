@@ -20,9 +20,9 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef enum
 {
-	RB_POLL,
-	RB_POP,
-	RB_DROP
+	eRB_POLL,
+	eRB_POP,
+	eRB_DROP
 } rb_action_t;
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
@@ -62,10 +62,10 @@ static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len,
 			{
 				l = len;
 			}
-			if(action != RB_DROP) memcpy(data, &buffer[out], l);
+			if(action != eRB_DROP) memcpy(data, &buffer[out], l);
 			out += l - 1;
 
-			if(action != RB_POLL) rb->V->out = out;
+			if(action != eRB_POLL) rb->V->out = out;
 		}
 		else
 		{
@@ -74,7 +74,7 @@ static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len,
 			{
 				doSz = len;
 			}
-			if(action != RB_DROP) memcpy(data, &buffer[out], doSz);
+			if(action != eRB_DROP) memcpy(data, &buffer[out], doSz);
 			out += doSz;
 			l += doSz;
 			len = len-doSz;
@@ -91,12 +91,12 @@ static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len,
 				{
 					doSz = len;
 				}
-				if(action != RB_DROP) memcpy(&((char*)data)[l], &buffer[out], doSz);
+				if(action != eRB_DROP) memcpy(&((char*)data)[l], &buffer[out], doSz);
 				out += doSz;
 				l += doSz;
 			}
 
-			if(action != RB_POLL)
+			if(action != eRB_POLL)
 			{
 				if(0 == out)
 				{
@@ -209,17 +209,17 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 
 rb_size_t RB_Pop (const RingBufferType* rb, void* data, rb_size_t len)
 {
-	return RB_Action(rb, data, len, RB_POP);
+	return RB_Action(rb, data, len, eRB_POP);
 }
 
 rb_size_t RB_Poll (const RingBufferType* rb, void* data, rb_size_t len)
 {
-	return RB_Action(rb, data, len, RB_POLL);
+	return RB_Action(rb, data, len, eRB_POLL);
 }
 
 rb_size_t RB_Drop (const RingBufferType* rb, rb_size_t len)
 {
-	return RB_Action(rb, NULL, len, RB_DROP);
+	return RB_Action(rb, NULL, len, eRB_DROP);
 }
 
 void* RB_OutP(const RingBufferType* rb)

@@ -563,12 +563,6 @@ uint32_t HAL_GetTick(void)
 {
 	return GetOsTick();
 }
-
-void _Error_Handler(char *file, int line)
-{
-	printf("%s %d\n", file, line);
-	asAssert(0);
-}
 #endif
 
 void TaskIdleHook(void)
@@ -576,8 +570,14 @@ void TaskIdleHook(void)
 #ifdef USE_USB
   {
 	static uint8 flag = 0;
+	extern void MX_GPIO_Init(void);
+	extern void MX_CAN1_Init(void);
 	extern void MX_USB_DEVICE_Init(void);
 	if(0 == flag) {
+		MX_GPIO_Init();
+#ifndef __AS_BOOTLOADER__
+		MX_CAN1_Init();
+#endif
 		MX_USB_DEVICE_Init();
 		flag = 1;
 	}

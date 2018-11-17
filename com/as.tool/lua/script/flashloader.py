@@ -55,10 +55,15 @@ class AsFlashloader(QThread):
                   (self.routine_erase_flash_cmd,True), (self.download_application_cmd,True),
                   (self.dummy,False), (self.dummy,False) ]
         self.enable = []
+        print('INFO: set FL_CAN_BUSID=1 to change the busid')
+        if(os.getenv('FL_CAN_BUSID')):
+            self.busid = int(os.getenv('FL_CAN_BUSID'))
+        else:
+            self.busid = 0
         for s in self.steps:
             self.enable.append(s[1])
-        self.dcm = dcm(0,0x732,0x731)
-        self.xcp = xcp(0, 0x554, 0x555)
+        self.dcm = dcm(self.busid,0x732,0x731)
+        self.xcp = xcp(self.busid, 0x554, 0x555)
         self.app = None
         self.flsdrv = None
         self.protocol = 'UDS'
@@ -364,16 +369,16 @@ class AsFlashloader(QThread):
     def set_protocol(self,p):
         if(p == 'UDS on CAN'):
             self.protocol = 'UDS'
-            self.dcm = dcm(0,0x732,0x731)
+            self.dcm = dcm(self.busid,0x732,0x731)
             self.ability = 4096
         elif(p == 'UDS on USBCAN'):
             self.protocol = 'UDS'
-            self.dcm = dcm(0,0x732,0x731)
+            self.dcm = dcm(self.busid,0x732,0x731)
             self.ability = 4096
             self.dcm.usbcan=True
         elif(p == 'UDS on CANFD'):
             self.protocol = 'UDS'
-            self.dcm = dcm(0,0x732,0x731)
+            self.dcm = dcm(self.busid,0x732,0x731)
             self.dcm.set_ll_dl(64)
             self.ability = 4096
         elif(p == 'UDS on DOIP'):
