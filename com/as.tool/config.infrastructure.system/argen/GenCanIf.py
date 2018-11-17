@@ -151,18 +151,6 @@ def GenC():
 /* ============================ [ MACROS    ] ====================================================== */
 #define PDUR_ID2_STDOUT 0
 #define PDUR_ID_STDIN 0
-#ifndef USE_XCP
-#define Xcp_CanIfTxConfirmation NULL
-#endif
-#ifndef USE_J1939TP
-#define J1939Tp_TxConfirmation NULL
-#endif
-#ifndef USE_CANTP
-#define CanTp_TxConfirmation NULL
-#endif
-#ifndef USE_CANNM
-#define CanNm_TxConfirmation NULL
-#endif
 /* ============================ [ DECLARES  ] ====================================================== */
 /* Imported structs from Can_PBcfg.c */
 extern const Can_ControllerConfigType Can_ControllerCfgData[];
@@ -285,7 +273,6 @@ const CanIf_DispatchConfigType CanIfDispatchConfig =
                 IdPrfix='J1939TP_ID'
             else:
                 IdPrfix='PDUR_ID2'
-            fp.write('#ifndef {0}_{1}\n#define {0}_{1} -1\n#endif\n'.format(IdPrfix,GAGet(pdu,'EcuCPduRef')))
             if(GAGet(pdu,'TransmitNotifier')=='Nobody'):
                 notifier='NULL'
             elif(GAGet(pdu,'TransmitNotifier')!='User'):
@@ -343,7 +330,6 @@ CanIf_TxPduConfigType CanIfTxPduConfigData[] =
                 IdPrfix='J1939TP'
             else:
                 IdPrfix='PDUR'
-            fp.write('#ifndef {0}_ID_{1}\n#define {0}_ID_{1} -1\n#endif\n'.format(IdPrfix,GAGet(pdu,'EcuCPduRef')))
             if((GAGet(pdu,'ReceivedNotifier')!='Nobody') and
                (GAGet(pdu,'ReceivedNotifier')!='User')):
                 notifier='NULL'

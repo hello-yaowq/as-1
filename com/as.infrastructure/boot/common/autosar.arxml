@@ -15,10 +15,14 @@
 <PduList Max="TBD">
 <Pdu Comment="*" Name="TxDiagP2P" Size="64" />
 <Pdu Comment="*" Name="RxDiagP2P" Size="64" />
+#ifdef USE_XCP
 <Pdu Comment="*" Name="XCP_RX" Size="64" />
 <Pdu Comment="*" Name="XCP_TX" Size="64" />
+#endif
+#ifdef USE_SOAD
 <Pdu Comment="*" Name="SOAD_RX" Size="64" />
 <Pdu Comment="*" Name="SOAD_TX" Size="64" />
+#endif
 </PduList>
 </EcuC>
 <Can>
@@ -41,14 +45,18 @@
 </HthList>
 <TxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" HthRef="LS_Hth" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
+#ifdef USE_XCP
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="XCP_TX" HthRef="LS_Hth" Identifier="0x555" Name="XCP_TX" TransmitNotifier="Xcp" UserNotification="CanIf_User" />
+#endif
 </TxPduList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
 </HrhList>
 <RxPduList Max="TBD">
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
+#ifdef USE_XCP
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
+#endif
 </RxPduList>
 </Channel>
 </ChannelList>
@@ -75,6 +83,7 @@
 <Destination Comment="*" Module="Dcm" Name="DcmP2P" PduRef="RxDiagP2P" />
 </DestinationList>
 </Source>
+#ifdef USE_SOAD
 <Source Comment="*" Module="Dcm" Name="DoIP_TX" PduRef="SOAD_TX">
 <DestinationList Max="TBD">
 <Destination Comment="*" Module="SoAdTp" Name="Destination1" PduRef="SOAD_TX" />
@@ -85,6 +94,7 @@
 <Destination Comment="*" Module="Dcm" Name="Destination1" PduRef="SOAD_RX" />
 </DestinationList>
 </Source>
+#endif
 </RoutineList>
 </PduR>
 <Com>
@@ -231,6 +241,7 @@
 </Connection>
 </ConnectionList>
 </Protocol>
+#ifdef USE_SOAD
 <Protocol Comment="*" Name="DoIP" ProtocolID="UDS_ON_DOIP" RxBufferRef="Buffer1" ServiceTableRef="ServiceTable1" TimingLimitRef="Timing1" TransmissionType="TYPE_1" TxBufferRef="Buffer2">
 <ConnectionList Max="TBD">
 <Connection Comment="*" Name="Connection1">
@@ -241,6 +252,7 @@
 </Connection>
 </ConnectionList>
 </Protocol>
+#endif
 </ProtocolList>
 <RequestServiceList Max="TBD">
 <RequestService Comment="*" Name="RequestService1" ProtocolIndicationCbk="BL_ProtocolIndicationCbk" StartProtocolCbk="BL_StartProtocolCbk" StopProtocolCbk="BL_StopProtocolCbk" />

@@ -260,17 +260,6 @@ def GenC():
     fp = open('%s/PduR_PbCfg.c'%(__dir),'w')
     fp.write(GHeader('PduR'))
     fp.write('#ifdef USE_PDUR\n')
-    ucstr = ''
-    for path in GLGet('RoutineList'):
-        ucstr += '#ifndef USE_%s\n'%(GAGet(path,'Module').upper())
-        ucstr += '#ifndef %s_ID_%s\n'%(GAGet(path,'Module').upper(), GAGet(path,'PduRef'))
-        ucstr += '#define %s_ID_%s -1\n'%(GAGet(path,'Module').upper(), GAGet(path,'PduRef'))
-        ucstr += '#endif\n#endif\n'
-        for dest in GLGet(path,'DestinationList'):
-            ucstr += '#ifndef USE_%s\n'%(GAGet(dest,'Module').upper())
-            ucstr += '#ifndef %s_ID_%s\n'%(GAGet(dest,'Module').upper(), GAGet(dest,'PduRef'))
-            ucstr += '#define %s_ID_%s -1\n'%(GAGet(dest,'Module').upper(), GAGet(dest,'PduRef'))
-            ucstr += '#endif\n#endif\n'
     cstr = ''
     for path in GLGet('RoutineList'):
         for dest in GLGet(path,'DestinationList'):
@@ -307,13 +296,12 @@ def GenC():
 #ifdef USE_SOAD
 #include "SoAd.h"
 #endif
-/* helper macros if that module is disabled */
-%s
+
 #if(PDUR_ZERO_COST_OPERATION == STD_OFF)
 const PduRDestPdu_type PduR_PduRDestination[] = {
 %s
 };
-    """%(ucstr, cstr))
+    """%(cstr))
     cstr = ''
     Index = -1
     for path in GLGet('RoutineList'):

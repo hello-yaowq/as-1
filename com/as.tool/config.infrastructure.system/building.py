@@ -62,7 +62,7 @@ def PrepareRTTHREAD(opt):
     BuildOptions = opt
 
 def IsPlatformWSL():
-    infor = RunSysCmd('uname -a')
+    err,infor = RunSysCmd('uname -a')
     if('Microsoft' in str(infor)):
         return True
     return False
@@ -165,7 +165,7 @@ def PrepareBuilding(env):
             env['pkgconfig'] = mpath + '/pkg-config'
             env['EXTRAPATH'] = '%s;%s'%(mpath, os.path.abspath(mpath+'/../usr/bin'))
     elif(IsPlatformWindows()):
-        uname = RunSysCmd('uname')
+        err,uname = RunSysCmd('uname')
         if('MSYS_NT' in str(uname)):
             print('build on %s, default assume 64 bit machine'%(uname.strip()))
             env['msys2'] = True
@@ -419,7 +419,8 @@ def Download(url, tgt=None):
             return False
         for t,v in tL.items():
             if(f.endswith(t)):
-                if(v not in RunSysCmd('file %s'%(tgt))):
+                err,info = RunSysCmd('file %s'%(tgt))
+                if(v not in info):
                     return False
                 break
         return True
@@ -588,7 +589,7 @@ def RunSysCmd(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
-    return output
+    return err, output
 
 def DefineGroup(name, src, depend, **parameters):
     global Env
@@ -1089,6 +1090,23 @@ def BuildOFS(ofs):
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
         MKObject([src], tgt, cmd)
 
+def PreProcess(cfgdir, fil):
+    print('  PP %s'%(fil))
+    filR = '%s/%s'%(cfgdir,os.path.basename(fil))
+    filC = filR + '.h'
+    MKSymlink(fil,filC)
+    cmd = 'gcc -E --include %s/asmconfig.h %s'%(cfgdir, filC)
+    err, txt = RunSysCmd(cmd)
+    if(0 == err):
+        raise Exception('gcc preprocessing %s failed:\n%s'%(fil, txt))
+    newTxt = ''
+    for line in txt.decode('utf-8').split('\n'):
+        line = line.strip()
+        if((not line.startswith('#')) and (line != '')):
+            newTxt += line+'\n'
+    MKFile(filR, newTxt)
+    return filR
+
 def BuildDTS(dts,bdir):
     if(len(dts) > 0):
         dtc = Package('dtc')+'/dtc'
@@ -1118,7 +1136,7 @@ def Building(target, sobjs, env=None):
     env.Append(CPPPATH=['%s'%(cfgdir)])
     env.Append(ASFLAGS='-I%s'%(cfgdir))
     if('gcc' in env['CC']):
-        env.Append(CCFLAGS=['--include','%s/asmconfig.h'%(cfgdir)])
+        env.Append(CCFLAGS=['--include', '%s/asmconfig.h'%(cfgdir)])
 
     if('PACKAGES' in env):
         for p in env['PACKAGES']:
@@ -1149,11 +1167,12 @@ def Building(target, sobjs, env=None):
     if(((not os.path.exists(cfgdone)) and (not GetOption('clean'))) or GetOption('force')):
         MKDir(cfgdir)
         RMFile(cfgdone)
+        xcc.XCC(cfgdir, env, True)
+        arxmlR = PreProcess(cfgdir, str(arxml))
         for xml in xmls:
             MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
-        MKSymlink(str(arxml),'%s/%s'%(cfgdir,os.path.basename(str(arxml))))
-        xcc.XCC(cfgdir,env)
-        argen.ArGen.ArGenMain(str(arxml),cfgdir)
+        xcc.XCC(cfgdir)
+        argen.ArGen.ArGenMain(arxmlR,cfgdir)
         MKFile(cfgdone)
     if('studio' in COMMAND_LINE_TARGETS):
         studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')

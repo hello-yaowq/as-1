@@ -23,7 +23,7 @@ __gen__ = [KsmGen,OsGen]
 def SetDefaultRTOS(name):
     SetOS(name)
 
-def XCC(gendir, env=None):
+def XCC(gendir, env=None, genEnvOnly=False):
     if(not os.path.exists(gendir)):os.mkdir(gendir)
     if(env is not None):
         fp = open('%s/asmconfig.h'%(gendir),'w')
@@ -48,10 +48,21 @@ def XCC(gendir, env=None):
             fp.write('#if defined(USE_RTTHREAD) && defined(USE_ARCH_X86)\n'
                  '#define _EXFUN(N,P) N P\n'
                  '#endif\n')
+        if('CPPDEFINES' in env):
+            for macro in env['CPPDEFINES']:
+                mm = macro.split('=')
+                m = mm[0]
+                if(len(mm) == 2):
+                    v = mm[1]
+                    fp.write('#ifndef %s\n#define %s %s\n#endif\n'%(m,m,v))
+                else:
+                    fp.write('#ifndef %s\n#define %s\n#endif\n'%(m,m))
         fp.write('#endif /* _AS_MCONF_H_ */\n')
         fp.close()
         cfgdone = '%s/config.done'%(gendir)
         if(os.path.exists(cfgdone)):
+            return
+        if(genEnvOnly==True):
             return
     for g in __gen__:
         print('  %s ...'%(g.__name__))
