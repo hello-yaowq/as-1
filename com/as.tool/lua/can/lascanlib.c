@@ -190,6 +190,7 @@ static struct Can_Pdu_s* getQ(struct Can_Bus_s* b)
 		/* when remove, should remove from the both queue */
 		STAILQ_REMOVE_HEAD(&b->headQ,entry);
 		b->sizeQ --;
+
 	}
 	(void)pthread_mutex_unlock(&canbusH.q_lock);
 	return pdu;
@@ -892,10 +893,8 @@ int can_read(unsigned long busid,unsigned long canid,unsigned long* p_canid,unsi
 		}
 		else
 		{
-			size_t size = 0;
 			*p_canid = pdu->msg.id;
 			*dlc = pdu->msg.length;
-			saveQ(b,pdu->msg.id,pdu->msg.length,pdu->msg.sdu);
 			#if defined(__AS_CAN_BUS__)
 			asAssert(data);
 			memcpy(data,pdu->msg.sdu,*dlc);

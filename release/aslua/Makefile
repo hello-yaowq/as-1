@@ -436,7 +436,7 @@ clean-dist:clean
 ifeq ($(host), Linux)
 	@(cd $(exe-dir);make all CXX="${CXX}")
 else
-	@(cd $(exe-dir);make all -f $(LUA)/pyas/Makefile)
+	@(cd $(exe-dir);make all -B -f $(LUA)/pyas/Makefile)
 endif
 ifeq ($(host), Linux)	
 	@(cp -v $(exe-dir)/*.so $(prj-dir)/com/as.tool/lua/script)

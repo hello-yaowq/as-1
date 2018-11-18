@@ -229,7 +229,7 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 		pdu.dlc = dlc;
 		memcpy(pdu.data, data, dlc);
 		ASLOG(OFF, "Tx busid=%X, CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
-				port, canid, dlc, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+				pdu.busid, canid, dlc, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
 		if( CAN_TCP_SERIAL_PORT == handle->port)
 		{
 			if(sizeof(pdu) == send(handle->s, (void*)&pdu, sizeof(pdu),0))
@@ -351,6 +351,9 @@ static void * rx_daemon(void * param)
 
 				if(size == sizeof(pdu))
 				{
+					ASLOG(OFF, "Rx busid=%X, CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+							pdu.busid, SCANID(pdu.canid), pdu.dlc, pdu.data[0], pdu.data[1], pdu.data[2],
+							pdu.data[3], pdu.data[4], pdu.data[5], pdu.data[6], pdu.data[7]);
 					if(NULL != handle->rx_notification)
 					{
 						handle->rx_notification(pdu.busid,SCANID(pdu.canid),pdu.dlc,pdu.data);
