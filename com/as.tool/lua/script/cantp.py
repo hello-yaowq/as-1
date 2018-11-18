@@ -244,6 +244,11 @@ class cantp():
          
     def transmit(self,request):
         assert(len(request) < 4096)
+        result = True
+        while(result):
+            result,canid,data= can_read(self.canbus,self.rxid)
+            if(result):
+                print('cantp: there is unconsumed message 0x%X %s, drop it...'%(canid, data))
         self.state = CANTP_ST_IDLE
         if( (len(request) < 7) or 
            ( (self.ll_dl > 8) and ((len(request)<=(self.ll_dl-2))) ) ):

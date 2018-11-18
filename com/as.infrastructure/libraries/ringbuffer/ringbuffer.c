@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include <string.h>
-#include <assert.h>
+#include "asdebug.h"
 #include "ringbuffer.h"
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
@@ -41,7 +41,7 @@ static rb_size_t RB_Action (const RingBufferType* rb, void* data, rb_size_t len,
 	min = rb->C->min;
 	max = rb->C->max;
 
-	assert((len%min) == 0);
+	asAssert((len%min) == 0);
 
 	if(out == in)
 	{
@@ -133,7 +133,7 @@ rb_size_t RB_Push(const RingBufferType* rb, void* data, rb_size_t len)
 	min = rb->C->min;
 	max = rb->C->max;
 
-	assert((len%min) == 0);
+	asAssert((len%min) == 0);
 
 	in ++;
 	if(in >= max)
