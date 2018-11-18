@@ -103,3 +103,10 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 ## 8. Setup Environment and Run
 
 Check the page [as-study-platform](http://parai.github.io/as/autosar/2018/02/20/as-study-platform.html)
+
+## 9. AS USB2CAN device
+
+[stm32f107vc USB2CAN](https://github.com/parai/stm32f107vc)
+
+![stm32](https://github.com/parai/stm32f107vc/blob/master/doc/usb2can_dut_demo.jpg)
+
