@@ -352,7 +352,11 @@
 <SessionControl Comment="*" GetSessionChangePermissionCbk="BL_GetSessionChangePermission" Name="SessionControl" />
 </SessionControlList>
 <TimingList Max="TBD">
+#ifdef USE_USB_CAN
+<Timing Comment="*" Name="Timing1" P2ServerMaxTimeMs="100" P2ServerMinTimeMs="20" S3ServerTimeMs="10000" />
+#else
 <Timing Comment="*" Name="Timing1" P2ServerMaxTimeMs="100" P2ServerMinTimeMs="20" S3ServerTimeMs="5000" />
+#endif
 </TimingList>
 </Dcm>
 <Fls>

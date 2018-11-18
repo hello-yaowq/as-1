@@ -92,12 +92,17 @@ do{										\
 #define DCM_SERVICE_LIST_IN_SESSION ((uint8**)DCM_RTE.parameter[11])
 #define DCM_SERVICE_LIST_IN_LEVEL   ((uint8**)DCM_RTE.parameter[12])
 
+#ifdef USE_USB_CAN
+#define DCM_S3SERVER_CFG_TIMEOUT_MS 10000
+#else
+#define DCM_S3SERVER_CFG_TIMEOUT_MS 5000
+#endif
 #define DCM_INSTANCE_DEFAULT_PARAMETER	\
 	{ (Dcm_ParameterType)&rxPduInfo, (Dcm_ParameterType)&txPduInfo, \
 	  (Dcm_ParameterType)sesList, (Dcm_ParameterType)DCM_GET_SESSION_CHANGE_PERMISSION_FNC, \
 	  (Dcm_ParameterType)secList, (Dcm_ParameterType)secSeedKeySizeList,  (Dcm_ParameterType)secSeedKeySizeList, \
 	  (Dcm_ParameterType)getSeedList, (Dcm_ParameterType)compareKeyList, \
-	  (Dcm_ParameterType)5000, (Dcm_ParameterType)100, \
+	  (Dcm_ParameterType)DCM_S3SERVER_CFG_TIMEOUT_MS, (Dcm_ParameterType)100, \
 	  (Dcm_ParameterType)sesServiseList, (Dcm_ParameterType)secServiseList, \
 	}
 /* ============================ [ TYPES     ] ====================================================== */
