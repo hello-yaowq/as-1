@@ -23,7 +23,7 @@ except:
     from doip import *
     from J1939Tp import *
 import time
-__all__ = ['dcm']
+__all__ = ['dcm','DFTBUS']
 
 class dcm():
     __service__ = { 0x10:"diagnostic session control",0x11:"ecu reset",0x14:"clear diagnostic information",

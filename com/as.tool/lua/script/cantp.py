@@ -21,7 +21,7 @@ except:
 import time
 
 
-__all__ = ['cantp']
+__all__ = ['cantp','DFTBUS']
 
 ISO15765_TPCI_MASK =  0x30
 ISO15765_TPCI_SF = 0x00         #/* Single Frame */

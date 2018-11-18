@@ -22,7 +22,7 @@ import time
 from bitarray import bitarray
 
 
-__all__ = ['xcp','xcpbits']
+__all__ = ['xcp','xcpbits','DFTBUS']
 
 # Dictionary of XCP error codes, mapping (code -> (error, description))
 XCP_ERROR_CODES = {

@@ -103,15 +103,31 @@ class UICan(QWidget):
         self.canTrace.setReadOnly(True)
         self.canTraceEnable = QCheckBox("CAN trace log enable")
         self.canTraceEnable.setChecked(False)
+        self.canTraceClear = QPushButton('Clear')
+
         vbox.addLayout(grid)
         vbox.addLayout(hbox)
-        vbox.addWidget(self.canTraceEnable)
+        hbox2 = QHBoxLayout()
+        hbox2.addWidget(self.canTraceEnable)
+        hbox2.addWidget(self.canTraceClear)
+        hbox2.addWidget(QLabel('Default:'))
+        self.cmbxDftCanBus = QComboBox()
+        self.cmbxDftCanBus.addItems(['bus 0','bus 1','bus 2','bus 3','bus 4','bus 5','bus 6','bus 7'])
+        self.cmbxDftCanBus.setEditable(True)
+        hbox2.addWidget(self.cmbxDftCanBus)
+        vbox.addLayout(hbox2)
         vbox.addWidget(self.canTrace)
         self.canTraceEnable.stateChanged.connect(self.on_canTraceEnable_stateChanged)
+        self.canTraceClear.clicked.connect(self.on_canTraceClear_clicked)
+        self.cmbxDftCanBus.currentIndexChanged.connect(self.on_cmbxDftCanBus_currentIndexChanged)
         self.setLayout(vbox)
 
         self.canSendTimer = None
         self.traceTimer = None
+
+    def on_cmbxDftCanBus_currentIndexChanged(self, index):
+        bus = int(str(self.cmbxDftCanBus.currentText()).replace('bus',''))
+        can_set_default(bus)
 
     def canSend(self):
         canid = int(str(self.leCanID.text()),16)
@@ -129,6 +145,9 @@ class UICan(QWidget):
                 self.killTimer(self.canSendTimer)
             self.canSendTimer = self.startTimer(period)
         self.canSend()
+
+    def on_canTraceClear_clicked(self):
+        self.canTrace.clear()
 
     def on_canTraceEnable_stateChanged(self, state):
         if(state):

@@ -31,14 +31,14 @@ from pyas.xcp import *
 
 __all__ = ['UIXcp']
 
-xcp_instance = xcp(0, 0x554, 0x555)
+xcp_instance = xcp(DFTBUS, 0x554, 0x555)
 
 def Xcp_PollDAQMessage():
     data= xcp_instance.poll()
     return data
 
 def Xcp_TransmitMessage(req):
-     return xcp_instance.transmit(req)
+    return xcp_instance.transmit(req)
 
 def Xcp_GetLastError():
     return xcp_instance.get_response()

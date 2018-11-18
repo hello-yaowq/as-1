@@ -71,7 +71,7 @@ def str2int(sstr):
     else:
         return int(sstr,10)
 
-__dcm__ = dcm(0,0x732,0x731)
+__dcm__ = dcm(DFTBUS,0x732,0x731)
 
 def switch_to_protocol(protocol):
     global __dcm__
@@ -98,11 +98,11 @@ def switch_to_protocol(protocol):
         __dcm__ = dcm(config)
         print("switch to UDS on J1939TP mode")
     elif(protocol == 'CANFD'):
-        __dcm__ = dcm(0,0x732,0x731)
+        __dcm__ = dcm(DFTBUS,0x732,0x731)
         __dcm__.set_ll_dl(64)
         print("switch to UDS on CANFD mode")
     else:
-        __dcm__ = dcm(0,0x732,0x731)
+        __dcm__ = dcm(DFTBUS,0x732,0x731)
         print("switch to UDS on CAN mode")
 
 def Dcm_TransmitMessage(req):

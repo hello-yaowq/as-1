@@ -176,7 +176,7 @@ class Message():
         self.sgs[key].set_value(value)
 
 class Network(threading.Thread):
-    def __init__(self, dbcf, busid=0):
+    def __init__(self, dbcf, busid=DFTBUS):
         threading.Thread.__init__(self)
         dbc = self.parseCANDBC(dbcf)
         self.msgs = {}
