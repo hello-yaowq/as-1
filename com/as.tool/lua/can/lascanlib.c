@@ -569,7 +569,7 @@ int luai_can_write (lua_State *L)
 		{
 			if(b->device.ops->write)
 			{
-				boolean rv = b->device.ops->write(b->device.port,canid,dlc,data);
+				boolean rv = b->device.ops->write(b->device.busid,b->device.port,canid,dlc,data);
 				ASLOG(CAN,"can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 										busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);
 				saveQ(b,canid,dlc,data);
@@ -679,7 +679,7 @@ int luai_can_close  (lua_State *L)
 		}
 
 		(void)pthread_mutex_lock(&canbusH.q_lock);
-		b->device.ops->close(b->device.port);
+		b->device.ops->close(b->device.busid,b->device.port);
 		STAILQ_REMOVE(&canbusH.head,b,Can_Bus_s,entry);
 		free(b);
 		(void)pthread_mutex_unlock(&canbusH.q_lock);
@@ -763,7 +763,7 @@ void luai_canlib_close(void)
 		struct Can_Bus_s* b;
 		STAILQ_FOREACH(b,&canbusH.head,entry)
 		{
-			b->device.ops->close(b->device.port);
+			b->device.ops->close(b->device.busid,b->device.port);
 		}
 		freeH(&canbusH);
 		canbusH.initialized = FALSE;
@@ -845,7 +845,7 @@ int can_write(unsigned long busid,unsigned long canid,unsigned long dlc,unsigned
 		{
 			/*printf("can_write(bus=%d,canid=%X,dlc=%d,data=[%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
 			  busid,canid,dlc,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]);*/
-			rv = b->device.ops->write(b->device.port,canid,dlc,data);
+			rv = b->device.ops->write(b->device.busid,b->device.port,canid,dlc,data);
 			saveQ(b,canid,dlc,data);
 			if(rv)
 			{
@@ -924,7 +924,7 @@ int can_close(unsigned long busid)
 	else
 	{
 		(void)pthread_mutex_lock(&canbusH.q_lock);
-		b->device.ops->close(b->device.port);
+		b->device.ops->close(b->device.busid,b->device.port);
 		STAILQ_REMOVE(&canbusH.head,b,Can_Bus_s,entry);
 		free(b);
 		(void)pthread_mutex_unlock(&canbusH.q_lock);
@@ -946,7 +946,7 @@ int can_reset(unsigned long busid)
 	{
 		if(NULL != b->device.ops->reset)
 		{
-			rv = b->device.ops->reset(b->device.port);
+			rv = b->device.ops->reset(b->device.busid,b->device.port);
 		}
 		else
 		{

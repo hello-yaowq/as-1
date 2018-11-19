@@ -36,8 +36,8 @@ struct Can_RPmsgHandleList_s
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean rpmsg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean rpmsg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void rpmsg_close(uint32_t port);
+static boolean rpmsg_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void rpmsg_close(uint32_t busid,uint32_t port);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_rpmsg_ops =
 {
@@ -95,10 +95,10 @@ static boolean rpmsg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_de
 
 	return rv;
 }
-static boolean rpmsg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean rpmsg_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
-
+	(void)busid;
 	if(RPmsg_IsOnline())
 	{
 		Can_RPmsgPduType pduInfo;
@@ -123,9 +123,10 @@ static boolean rpmsg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* da
 
 	return rv;
 }
-static void rpmsg_close(uint32_t port)
+static void rpmsg_close(uint32_t busid,uint32_t port)
 {
 	struct Can_RPmsgHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(NULL != handle)
 	{
 		STAILQ_REMOVE(&rpmsgH->head,handle,Can_RPmsgHandle_s,entry);

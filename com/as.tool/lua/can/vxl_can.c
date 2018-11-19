@@ -49,8 +49,8 @@ struct Can_VxlHandleList_s
 extern char* strncpy_s(char* __to, size_t dsize, const char* __from, size_t doSz);
 #endif
 static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean vxl_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void vxl_close(uint32_t port);
+static boolean vxl_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void vxl_close(uint32_t busid,uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_vxl_ops =
@@ -225,10 +225,11 @@ static boolean vxl_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 
 	return rv;
 }
-static boolean vxl_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean vxl_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
 	struct Can_VxlHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(handle != NULL)
 	{
 		XLstatus status;
@@ -254,9 +255,10 @@ static boolean vxl_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data
 
 	return rv;
 }
-static void vxl_close(uint32_t port)
+static void vxl_close(uint32_t busid,uint32_t port)
 {
 	struct Can_VxlHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(NULL != handle)
 	{
 		STAILQ_REMOVE(&vxlH->head,handle,Can_VxlHandle_s,entry);

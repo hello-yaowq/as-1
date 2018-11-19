@@ -47,8 +47,8 @@ struct Can_ZLGHandleList_s
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean zlg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean zlg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void zlg_close(uint32_t port);
+static boolean zlg_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void zlg_close(uint32_t busid,uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_zlg_ops =
@@ -231,11 +231,12 @@ static boolean zlg_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_devi
 
 	return rv;
 }
-static boolean zlg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean zlg_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
 	uint32_t status;
 	struct Can_ZLGHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(handle != NULL)
 	{
 		VCI_CAN_OBJ msg;
@@ -272,9 +273,10 @@ static boolean zlg_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data
 
 	return rv;
 }
-static void zlg_close(uint32_t port)
+static void zlg_close(uint32_t busid,uint32_t port)
 {
 	struct Can_ZLGHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(NULL != handle)
 	{
 		STAILQ_REMOVE(&zlgH->head,handle,Can_ZLGHandle_s,entry);

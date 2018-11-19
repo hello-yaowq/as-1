@@ -26,9 +26,9 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef void (*can_device_rx_notification_t)(uint32_t busid,uint32_t canid,uint32_t dlc,uint8_t* data);
 typedef boolean (*can_device_probe_t)(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-typedef boolean (*can_device_write_t)(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-typedef boolean (*can_device_reset_t)(uint32_t port);
-typedef void (*can_device_close_t)(uint32_t port);
+typedef boolean (*can_device_write_t)(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+typedef boolean (*can_device_reset_t)(uint32_t busid,uint32_t port);
+typedef void (*can_device_close_t)(uint32_t busid,uint32_t port);
 
 typedef struct
 {

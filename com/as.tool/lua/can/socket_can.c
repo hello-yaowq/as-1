@@ -60,8 +60,8 @@ struct Can_SocketHandleList_s
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void socket_close(uint32_t port);
+static boolean socket_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void socket_close(uint32_t busid,uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_socket_ops =
@@ -187,7 +187,7 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 
 	return rv;
 }
-static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean socket_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
 	struct Can_SocketHandle_s* handle = getHandle(port);
@@ -212,7 +212,7 @@ static boolean socket_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 
 	return rv;
 }
-static void socket_close(uint32_t port)
+static void socket_close(uint32_t busid,uint32_t port)
 {
 	struct Can_SocketHandle_s* handle = getHandle(port);
 	if(NULL != handle)

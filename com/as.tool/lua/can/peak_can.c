@@ -44,8 +44,8 @@ struct Can_PeakHandleList_s
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean peak_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void peak_close(uint32_t port);
+static boolean peak_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void peak_close(uint32_t busid,uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_peak_ops =
@@ -198,10 +198,11 @@ static boolean peak_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_dev
 
 	return rv;
 }
-static boolean peak_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean peak_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
 	struct Can_PeakHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(handle != NULL)
 	{
 		TPCANMsg msg;
@@ -237,9 +238,10 @@ static boolean peak_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* dat
 
 	return rv;
 }
-static void peak_close(uint32_t port)
+static void peak_close(uint32_t busid,uint32_t port)
 {
 	struct Can_PeakHandle_s* handle = getHandle(port);
+	(void)busid;
 	if(NULL != handle)
 	{
 		STAILQ_REMOVE(&peakH->head,handle,Can_PeakHandle_s,entry);

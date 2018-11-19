@@ -72,9 +72,9 @@ struct Can_SerialHandleList_s
 };
 /* ============================ [ DECLARES  ] ====================================================== */
 static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification);
-static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
-static void serial_close(uint32_t port);
-static boolean serial_reset(uint32_t port);
+static boolean serial_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data);
+static void serial_close(uint32_t busid,uint32_t port);
+static boolean serial_reset(uint32_t busid,uint32_t port);
 static void * rx_daemon(void *);
 /* ============================ [ DATAS     ] ====================================================== */
 const Can_DeviceOpsType can_serial_ops =
@@ -87,21 +87,24 @@ const Can_DeviceOpsType can_serial_ops =
 };
 static struct Can_SerialHandleList_s* serialH = NULL;
 /* ============================ [ LOCALS    ] ====================================================== */
-static struct Can_SerialHandle_s* getHandle(uint32_t port)
+static struct Can_SerialHandle_s* getHandle(uint32_t busid, uint32_t port)
 {
 	struct Can_SerialHandle_s *handle,*h;
 	handle = NULL;
+	pthread_mutex_lock(&serialH->mutex);
 	if(NULL != serialH)
 	{
 		STAILQ_FOREACH(h,&serialH->head,entry)
 		{
-			if(h->port == port)
+			if((h->port == port) &&
+			   ((busid == ((uint32_t)-1)) || (h->busid == busid)))
 			{
 				handle = h;
 				break;
 			}
 		}
 	}
+	pthread_mutex_unlock(&serialH->mutex);
 	return handle;
 }
 static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_device_rx_notification_t rx_notification)
@@ -118,7 +121,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 		pthread_mutex_init(&serialH->mutex, NULL);
 	}
 
-	handle = getHandle(port);
+	handle = getHandle(busid, port);
 
 	if(handle)
 	{
@@ -177,10 +180,11 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 				handle->online = TRUE;
 				STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
 				pthread_mutex_unlock(&serialH->mutex);
-				ASLOG(STDOUT,"CAN Serial TCP open OK\n");
+				ASLOG(RS232,"CAN Serial TCP open OK\n");
 			}
 		}
-		else if( 0 == RS232_OpenComport(port,baudrate,"8N1"))
+		else if( (NULL != getHandle((uint32_t)-1, port)) ||
+				 (0 == RS232_OpenComport(port,baudrate,"8N1")) )
 		{	/* open port OK */
 			handle = malloc(sizeof(struct Can_SerialHandle_s));
 			asAssert(handle);
@@ -192,7 +196,7 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 			handle->online = TRUE;
 			STAILQ_INSERT_TAIL(&serialH->head,handle,entry);
 			pthread_mutex_unlock(&serialH->mutex);
-			ASLOG(STDOUT,"CAN Serial open port %d OK\n",port);
+			ASLOG(RS232,"CAN Serial open port %d as busid %d OK\n",port, busid);
 		}
 		else
 		{
@@ -216,10 +220,10 @@ static boolean serial_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 
 	return rv;
 }
-static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
+static boolean serial_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* data)
 {
 	boolean rv = TRUE;
-	struct Can_SerialHandle_s* handle = getHandle(port);
+	struct Can_SerialHandle_s* handle = getHandle(busid, port);
 
 	if(handle != NULL)
 	{
@@ -259,9 +263,9 @@ static boolean serial_write(uint32_t port,uint32_t canid,uint32_t dlc,uint8_t* d
 
 	return rv;
 }
-static void serial_close(uint32_t port)
+static void serial_close(uint32_t busid,uint32_t port)
 {
-	struct Can_SerialHandle_s* handle = getHandle(port);
+	struct Can_SerialHandle_s* handle = getHandle(busid, port);
 	if(NULL != handle)
 	{
 		pthread_mutex_lock(&serialH->mutex);
@@ -278,7 +282,15 @@ static void serial_close(uint32_t port)
 		}
 		else
 		{
-			RS232_CloseComport(handle->port);
+			if(NULL == getHandle((uint32_t)-1, port))
+			{
+				RS232_CloseComport(handle->port);
+				ASLOG(RS232,"CAN Serial close port %d as busid %d\n",port,busid);
+			}
+			else
+			{
+				ASLOG(RS232,"CAN Serial keep port %d open, close only busid %d\n",port,busid);
+			}
 		}
 
 		free(handle);
@@ -289,10 +301,10 @@ static void serial_close(uint32_t port)
 		}
 	}
 }
-static boolean serial_reset(uint32_t port)
+static boolean serial_reset(uint32_t busid,uint32_t port)
 {
 	boolean rv = TRUE;
-	struct Can_SerialHandle_s* handle = getHandle(port);
+	struct Can_SerialHandle_s* handle = getHandle(busid, port);
 	if(NULL != handle)
 	{
 		if(CAN_TCP_SERIAL_PORT != port)
