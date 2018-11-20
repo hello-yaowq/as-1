@@ -30,13 +30,12 @@ KSM(LEDsAPP,Init)
 	LED_Configure(LED_GREEN);
 	LED_Set(LED_RED);
 
-	StartTimer(&ledTimer);
-
-	KGS(LEDsAPP,Running);
+	KGS(LEDsAPP,Start);
 }
 KSM(LEDsAPP,Start)
 {
-
+	StartTimer(&ledTimer);
+	KGS(LEDsAPP,Running);
 }
 KSM(LEDsAPP,Stop)
 {

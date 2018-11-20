@@ -26,19 +26,18 @@ static Dio_LevelType ioStsLed1;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 KSM(LEDsAPP,Init)
 {
-
 	ioStsLed1 = STD_HIGH;
-	StartTimer(&ledTimer);
 
 	/* turn off led2 and led3 */
 	Dio_WriteChannel(DIO_CHL_LED2,STD_LOW);
 	Dio_WriteChannel(DIO_CHL_LED3,STD_LOW);
 
-	KGS(LEDsAPP,Running);
+	KGS(LEDsAPP,Start);
 }
 KSM(LEDsAPP,Start)
 {
-
+	StartTimer(&ledTimer);
+	KGS(LEDsAPP,Running);
 }
 KSM(LEDsAPP,Stop)
 {
