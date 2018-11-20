@@ -91,7 +91,6 @@ if('DEMO_LED_APP' in MODULES):
 
 if('USB' in MODULES):
     asenv['PACKAGES'].append({'url':'https://gitlab.com/as-boards/stm32f107vc.git'})
-    objs += Glob('common/isr_usb.xml')
 
 asenv.Append(CPPDEFINES=['CHIP_STM32F10X','STM32F10X_CL'])
 asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])

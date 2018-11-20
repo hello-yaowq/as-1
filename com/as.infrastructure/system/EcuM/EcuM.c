@@ -200,6 +200,7 @@ void EcuM_Init(void) {
 		//TODO: Report error.
 	}
 
+	KSM_INIT();
 	StartOS(appMode); /** @req EcuM2141 */
 }
 

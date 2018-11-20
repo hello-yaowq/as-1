@@ -558,39 +558,8 @@ void Mcu_ConfigureFlash(void)
 
 }
 
-#ifdef USE_USB
-uint32_t HAL_GetTick(void)
-{
-	return GetOsTick();
-}
-#endif
-
 void TaskIdleHook(void)
 {
-#ifdef USE_USB
-  {
-	static uint8 flag = 0;
-	extern void MX_GPIO_Init(void);
-	extern void MX_CAN1_Init(void);
-	extern void MX_USB_DEVICE_Init(void);
-	if(0 == flag) {
-		MX_GPIO_Init();
-#ifndef __AS_BOOTLOADER__
-		MX_CAN1_Init();
-#endif
-		MX_USB_DEVICE_Init();
-		flag = 1;
-	}
-  }
-#if defined(USE_USB_SERIAL) || defined(USE_USB_CAN)
-  {
-	extern void CDC_MainFunction(void);
-	CDC_MainFunction();
-  }
-#endif
-#endif
-
-
 	FLUSH_STDIO_IF(USART_GetFlagStatus(USART2, USART_FLAG_TC) != RESET);
 }
 
