@@ -497,6 +497,8 @@ const Com_ConfigType ComConfiguration = {
     cstr += '};\n\n'
     cstr += 'Com_Arc_Signal_type Com_Arc_Signal[] = {\n'
     for pdu in GetPduList():
+        if(GAGet(pdu,'Direction')!='RECEIVE'):
+            break
         for sig in GLGet(pdu,'SignalList'):
             cstr += """
     { // %s

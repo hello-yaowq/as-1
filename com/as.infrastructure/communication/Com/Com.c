@@ -222,10 +222,6 @@ const Com_ConfigType * ComConfig;
 
 
 void Com_Init(const Com_ConfigType *config ) {
-	DEBUG(DEBUG_LOW, "--Initialization of COM--\n");
-
-	uint8 failure = 0;
-
 	uint32 firstTimeout;
 
 	//lint --e(928)	PC-Lint exception Misra 11.4, Must be like this. /tojo
@@ -257,7 +253,6 @@ void Com_Init(const Com_ConfigType *config ) {
 
 		if (i >= COM_N_IPDUS) {
 			DET_REPORTERROR(COM_MODULE_ID, COM_INSTANCE_ID, 0x01, COM_E_TOO_MANY_IPDU);
-			failure = 1;
 			break;
 		}
 
@@ -284,7 +279,7 @@ void Com_Init(const Com_ConfigType *config ) {
 			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
 
 			// Configure signal deadline monitoring if used.
-			if (Signal->ComTimeoutFactor > 0) {
+			if ((COM_RECEIVE == IPdu->ComIPduDirection) && (Signal->ComTimeoutFactor > 0)) {
 
 				if (Signal->ComSignalArcUseUpdateBit) {
 					// This signal uses an update bit, and hence has its own deadline monitoring.
@@ -322,12 +317,12 @@ void Com_Init(const Com_ConfigType *config ) {
 				Com_WriteSignalDataToPdu(Signal->ComHandleId, Signal->ComSignalInitValue);
 			}
 		}
-		if (IPdu->ComIPduDirection == COM_RECEIVE && IPdu->ComIPduSignalProcessing == COM_DEFERRED) {
+		if ((IPdu->ComIPduDirection == COM_RECEIVE) && (IPdu->ComIPduSignalProcessing == COM_DEFERRED)) {
 			// Copy the initialized pdu to deferred buffer
 			memcpy(IPdu->ComIPduDeferredDataPtr,IPdu->ComIPduDataPtr,IPdu->ComIPduSize);
 		}
 		// Configure per I-PDU based deadline monitoring.
-		for (uint16 j = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL); j++) {
+		for (uint16 j = 0; (COM_RECEIVE == IPdu->ComIPduDirection) && (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[j] != NULL); j++) {
 			Signal = IPdu->ComIPduSignalRef[j];
 			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(Signal->ComHandleId);
 
@@ -339,14 +334,6 @@ void Com_Init(const Com_ConfigType *config ) {
 	for (uint16 i = 0; i < COM_N_IPDUS; i++) {
 		Com_BufferPduState[i].currentPosition = 0;
 		Com_BufferPduState[i].locked = false;
-	}
-
-	// An error occurred.
-	if (failure) {
-		DEBUG(DEBUG_LOW, "--Initialization of COM failed--\n");
-		//DET_REPORTERROR(COM_MODULE_ID, COM_INSTANCE_ID, 0x01, COM_E_INVALID_FILTER_CONFIGURATION);
-	} else {
-		DEBUG(DEBUG_LOW, "--Initialization of COM completed--\n");
 	}
 }
 

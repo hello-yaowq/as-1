@@ -40,7 +40,7 @@ void Com_MainFunctionRx(void) {
 		Com_Arc_IPdu_type *Arc_IPdu = GET_ArcIPdu(pduId);
 		imask_t irq_state;
 		Irq_Save(irq_state);
-		for (uint16 i = 0; (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[i] != NULL); i++) {
+		for (uint16 i = 0; (COM_RECEIVE == IPdu->ComIPduDirection) && (IPdu->ComIPduSignalRef != NULL) && (IPdu->ComIPduSignalRef[i] != NULL); i++) {
 			const ComSignal_type *signal = IPdu->ComIPduSignalRef[i];
 			Com_Arc_Signal_type * Arc_Signal = GET_ArcSignal(signal->ComHandleId);
 			// Monitor signal reception deadline
