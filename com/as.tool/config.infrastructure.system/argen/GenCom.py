@@ -37,11 +37,21 @@ def GenCom(root,dir):
     GenRTE()
     print('    >>> Gen Com DONE <<<')
 
+def GetPduList():
+    L = []
+    for pdu in GLGet('IPduList'):
+        if(GAGet(pdu,'Direction')=='RECEIVE'):
+            L.append(pdu)
+    for pdu in GLGet('IPduList'):
+        if(GAGet(pdu,'Direction')!='RECEIVE'):
+            L.append(pdu)
+    return L
+
 def GenRTE():
     fp = open('%s/BSWCOM.py'%(__dir),'w')
     fp.write('import autosar\n\n')
     sigL = []
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         for sig in GLGet(pdu,'SignalList'):
             sigL.append(sig)
         for grpSig in GLGet(pdu,'GroupSignalList'):
@@ -63,7 +73,7 @@ def GenH():
     fp = open('%s/Com_Cfg.h'%(__dir),'w')
     fp.write(GHeader('Com'))
     sigNbr=sigGrpNbr=0
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         sigNbr+=len(GLGet(pdu,'SignalList'))+len(GLGet(pdu,'GroupSignalList'))
         for grpSig in GLGet(pdu,'GroupSignalList'):
             sigGrpNbr+=len(GLGet(grpSig,'SignalList'))
@@ -102,7 +112,7 @@ def GenH():
 #define COM_MAIN_FUNCTION_TX_PERIOD  10
 
 #endif /*COM_CFG_H*/
-    """%(len(GLGet('IPduList')),sigNbr,sigGrpNbr))
+    """%(len(GetPduList()),sigNbr,sigGrpNbr))
     fp.close()
     # ====================
     fp = open('%s/Com_PbCfg.h'%(__dir),'w')
@@ -126,7 +136,7 @@ extern const Com_ConfigType ComConfiguration;
         id += 2
     cstr = ''
     id = 0
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         cstr += '#define COM_ID_%-32s %s\n'%(GAGet(pdu,'PduRef'),id)
         id += 1
     fp.write("""
@@ -134,7 +144,7 @@ extern const Com_ConfigType ComConfiguration;
 %s \n\n"""%(cstr))
     id1 = id2 = 0
     cstr1 = cstr2 = cstr3 = cstr4 =''
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         if(GAGet(pdu,'Callout')!='NULL'):
             cstr4 += 'extern boolean %s(PduIdType, const uint8*);/* %s Callout */\n'%(GAGet(pdu,'Callout'),GAGet(pdu,'Name'))
         for sig in GLGet(pdu,'SignalList'):
@@ -184,7 +194,7 @@ def GenC():
 #endif 
 
 //Signal init values.\n""")
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         for sig in GLGet(pdu,'SignalList'):
             if(GAGet(sig,'Type')=='uint8' or GAGet(sig,'Type')=='uint16' or GAGet(sig,'Type')=='uint32'):
                 fp.write('static const %s %s_InitValue = %s;\n'%(GAGet(sig,'Type'),GAGet(sig,'Name'),
@@ -205,13 +215,13 @@ def GenC():
                                                                  (Interger(GAGet(sig,'Size'))+7)/8,
                                                                  GAGet(sig,'InitialValue')))
     sigNbr=sigGrpNbr=0
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         sigNbr+=len(GLGet(pdu,'SignalList'))+len(GLGet(pdu,'GroupSignalList'))
         for grpSig in GLGet(pdu,'GroupSignalList'):
             sigGrpNbr+=len(GLGet(grpSig,'SignalList'))
     cstr1 = cstr2 = ''
     Number = -1
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         for gsig in GLGet(pdu,'GroupSignalList'):
             for sig in GLGet(gsig,'SignalList'):
                 Number += 1
@@ -239,7 +249,7 @@ def GenC():
              GAGet(sig,'Name'),
              GAGet(sig,'Type').upper(),
              isEol)
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         for gsig in GLGet(pdu,'GroupSignalList'):
             cstr2+='static const ComGroupSignal_type * const %s_GrpSignalRefs[] =\n{\n'%(GAGet(gsig,'Name'))
             for sig in GLGet(gsig,'SignalList'):
@@ -254,18 +264,22 @@ static const ComGroupSignal_type ComGroupSignal[] = {
 %s
 
 //IPdu buffers and signal group buffers\n"""%(cstr1,cstr2)) 
-    for pdu in GLGet('IPduList'): 
+    for pdu in GetPduList(): 
         fp.write('static uint8 %s_IPduBuffer[%s];\n'%(GAGet(pdu,'PduRef'),GAGet(pdu,'PduSize')))
         if(GAGet(pdu,'RxSignalProcessing')=='DEFERRED' and GAGet(pdu,'Direction')=='RECEIVE'):
             fp.write('static uint8 %s_IPduDefferredBuffer[%s];\n'%(GAGet(pdu,'PduRef'),GAGet(pdu,'PduSize')))
     cstr = ''
     id = 0
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         if(GAGet(pdu,'Direction')=='RECEIVE'):
             period = 'COM_MAIN_FUNCTION_RX_PERIOD'
         else:
             period = 'COM_MAIN_FUNCTION_TX_PERIOD'
         for sig in GLGet(pdu,'SignalList'):
+            if(GAGet(pdu,'Direction')=='RECEIVE'):
+                TimeoutAction = GAGet(sig,'TimeoutAction')
+            else:
+                TimeoutAction = 'NONE'
             cstr += """
     {
         #if defined(USE_SHELL)
@@ -298,7 +312,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
              GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'Name'),
              GAGet(sig,'ReceivedNotification'),
-             GAGet(sig,'TimeoutAction'),
+             TimeoutAction,
              GAGet(sig,'Endianess'),
              GAGet(sig,'Name'),
              GAGet(sig,'Type').upper(),
@@ -310,6 +324,10 @@ static const ComGroupSignal_type ComGroupSignal[] = {
              GAGet(pdu,'PduRef')
              )
         for sig in GLGet(pdu,'GroupSignalList'):
+            if(GAGet(pdu,'Direction')=='RECEIVE'):
+                TimeoutAction = GAGet(sig,'TimeoutAction')
+            else:
+                TimeoutAction = 'NONE'
             cstr += """
     {
         #if defined(USE_SHELL)
@@ -342,7 +360,7 @@ static const ComGroupSignal_type ComGroupSignal[] = {
              GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
              GAGet(sig,'Name'),
              GAGet(sig,'ReceivedNotification'),
-             GAGet(sig,'TimeoutAction'),
+             TimeoutAction,
              GAGet(sig,'Endianess'),
              GAGet(sig,'Name'),
              GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
@@ -382,7 +400,7 @@ static const ComIPduGroup_type ComIPduGroup[] = {
 %s
 };\n\n"""%(cstr))
     cstr = ''
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         cstr += 'static const ComSignal_type * const %s_SignalRefs[] = {\n'%(GAGet(pdu,'PduRef'))
         for sig in GLGet(pdu,'SignalList'):
             cstr += '\t&ComSignal[ COM_SID_%s ],\n'%(GAGet(sig,'Name'))
@@ -394,7 +412,7 @@ static const ComIPduGroup_type ComIPduGroup[] = {
 %s    
     """%(cstr))
     cstr = ''
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         if(GAGet(pdu,'RxSignalProcessing')=='DEFERRED' and GAGet(pdu,'Direction')=='RECEIVE'):
             dbf='%s_IPduDefferredBuffer'%(GAGet(pdu,'PduRef'))
         else:
@@ -465,7 +483,7 @@ const Com_ConfigType ComConfiguration = {
 #endif
 };\n\n"""%(cstr))
     cstr = 'static Com_Arc_IPdu_type Com_Arc_IPdu[] = {\n'
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         cstr += """
     { // %s
         .Com_Arc_TxIPduTimers ={
@@ -478,7 +496,7 @@ const Com_ConfigType ComConfiguration = {
     },\n"""%(GAGet(pdu,'PduRef'))
     cstr += '};\n\n'
     cstr += 'Com_Arc_Signal_type Com_Arc_Signal[] = {\n'
-    for pdu in GLGet('IPduList'):
+    for pdu in GetPduList():
         for sig in GLGet(pdu,'SignalList'):
             cstr += """
     { // %s
@@ -490,7 +508,7 @@ const Com_ConfigType ComConfiguration = {
     { // %s
         .Com_Arc_DeadlineCounter =  0,
         .ComSignalUpdated =  0,
-    },\n"""%(GAGet(sig,'Name'))
+    },\n"""%(GAGet(grpSig,'Name'))
     cstr += '};\n\n'   
     fp.write(cstr)
     fp.write("""   

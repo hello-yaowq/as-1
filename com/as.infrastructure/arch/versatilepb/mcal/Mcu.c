@@ -103,12 +103,10 @@ Mcu_ResetType Mcu_GetResetReason( void )
 	return MCU_POWER_ON_RESET;
 }
 
-#ifdef __AS_BOOTLOADER__
 void StartOsTick(void)
 {
 	timer_init(NULL);
 }
-#endif
 
 void tpl_shutdown(void)
 {
