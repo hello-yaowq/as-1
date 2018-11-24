@@ -67,6 +67,130 @@ def GenRTE():
         fp.write("{0} = autosar.createSenderReceiverPortTemplate('{0}', {0}_I, C_{0}_IV, aliveTimeout=30)\n".format(GAGet(sig,'Name')))
     fp.close()
 
+def toSignal(sig,pdu,isGroupSignal=False):
+    if(GAGet(pdu,'Direction')=='RECEIVE'):
+        period = 'COM_MAIN_FUNCTION_RX_PERIOD'
+        FirstTimeoutFactor = '(%s+%s-1)/%s'%(GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period)
+        TimeoutFactor = '(%s+%s-1)/%s'%(GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period)
+        TimeoutNotification = GAGet(sig,'TimeoutNotification')
+    else:
+        period = 'COM_MAIN_FUNCTION_TX_PERIOD'
+        TimeoutFactor = 0
+        FirstTimeoutFactor = 0
+        TimeoutNotification = 'NULL'
+    if(isGroupSignal):
+        ComSignalType = 'COM_SIGNAL_TYPE_UINT8_N'
+        Com_Arc_IsSignalGroup = 'TRUE'
+        SignalInitValue = '%s_InitValue'%(GAGet(sig,'Name'))
+        ComGroupSignal = '%s_GrpSignalRefs'%(GAGet(sig,'Name'))
+        Com_Arc_ShadowBuffer = '%s_ShadowBuffer'%(GAGet(sig,'Name'))
+        Com_Arc_ShadowBuffer_Mask = '%s_ShadowBufferMask'%(GAGet(sig,'Name'))
+    else:
+        ComSignalType =  'COM_SIGNAL_TYPE_%s'%(GAGet(sig,'Type').upper())
+        Com_Arc_IsSignalGroup = 'FALSE'
+        if(GAGet(sig,'Type')=='uint8' or GAGet(sig,'Type')=='uint16' or GAGet(sig,'Type')=='uint32'):
+            SignalInitValue = '&%s_InitValue'%(GAGet(sig,'Name'))
+        else:
+            SignalInitValue = '%s_InitValue'%(GAGet(sig,'Name'))
+        ComGroupSignal = 'NULL'
+        Com_Arc_ShadowBuffer = 'NULL'
+        Com_Arc_ShadowBuffer_Mask = 'NULL'
+    if(GAGet(pdu,'Direction')=='RECEIVE'):
+        TimeoutAction = GAGet(sig,'TimeoutAction')
+    else:
+        TimeoutAction = 'NONE'
+    cstr = """
+    {
+        #if defined(USE_SHELL)
+        .name = "%s",
+        #endif
+        .ComBitPosition = %s,
+        .ComBitSize = %s,
+        .ComErrorNotification = NULL,
+        .ComFirstTimeoutFactor = %s,
+        .ComHandleId = COM_SID_%s,
+        .ComNotification = %s,
+        .ComRxDataTimeoutAction = COM_TIMEOUT_DATA_ACTION_%s,
+        .ComSignalEndianess = COM_%s,
+        .ComSignalInitValue = %s,
+        .ComSignalType = %s,
+        .ComTimeoutFactor = %s,
+        .ComTimeoutNotification = %s,
+        .ComTransferProperty = COM_%s,
+        .ComUpdateBitPosition = %s,
+        .ComSignalArcUseUpdateBit = %s,
+        .Com_Arc_IsSignalGroup = %s,
+        .ComGroupSignal = %s,
+        .Com_Arc_ShadowBuffer = %s,
+        .Com_Arc_ShadowBuffer_Mask = %s,
+        .ComIPduHandleId = COM_ID_%s,
+        .Com_Arc_EOL = FALSE
+    },\n"""%(GAGet(sig,'Name'),
+             GAGet(sig,'StartBit'),
+             GAGet(sig,'Size'),
+             FirstTimeoutFactor,
+             GAGet(sig,'Name'),
+             GAGet(sig,'ReceivedNotification'),
+             TimeoutAction,
+             GAGet(sig,'Endianess'),
+             SignalInitValue,
+             ComSignalType,
+             TimeoutFactor,
+             TimeoutNotification,
+             GAGet(sig,'TransferProperty'),
+             GAGet(sig,'UpdateBitPosition').replace('TBD','0xDB'),
+             GAGet(sig,'UpdateBitUsed').upper(),
+             Com_Arc_IsSignalGroup,
+             ComGroupSignal,
+             Com_Arc_ShadowBuffer,
+             Com_Arc_ShadowBuffer_Mask,
+             GAGet(pdu,'PduRef')
+             )
+    return cstr
+
+# big endian bits map
+_bebm = []
+for i in range(64):
+    for j in range(8):
+        _bebm.append(i*8 + 7-j)
+
+def beSet(data, start, size, value):
+    # for big endian only
+    rBit = size-1
+    nBit = _bebm.index(start)
+    wByte = 0
+    wBit = 0
+    for i in range(size):
+        wBit = _bebm[nBit]
+        wByte = int(wBit/8)
+        wBit  = wBit%8
+        if(value&(1<<rBit) != 0):
+            data[wByte] |= 1<<wBit
+        else:
+            data[wByte] &= ~(1<<wBit)
+        nBit += 1
+        rBit -= 1
+
+def toGSignalMaskAndInitValue(gsig, pduSize):
+    mask = []
+    init = []
+    for i in range(pduSize):
+        init.append(0)
+        mask.append(0)
+    for sig in GLGet(gsig,'SignalList'):
+        InitialValue = int(GAGet(sig,'InitialValue'))
+        StartBit = int(GAGet(sig,'StartBit'))
+        Size = int(GAGet(sig,'Size'))
+        beSet(mask, StartBit, Size, 0xFFFFFFFF)
+        beSet(init, StartBit, Size, InitialValue)
+    cstrM = ''
+    for d in mask:
+        cstrM += '0x%02X,'%(d)
+    cstrI = ''
+    for d in init:
+        cstrI += '0x%02X,'%(d)
+    return cstrM,cstrI
+
 def GenH():
     global __dir
     # =========================  PduR_Cfg.h ==================
@@ -204,8 +328,10 @@ def GenC():
                                                                  (Interger(GAGet(sig,'Size'))+7)/8,
                                                                  GAGet(sig,'InitialValue')))
         for gsig in GLGet(pdu,'GroupSignalList'):
-            fp.write('/* TODO */static uint8 %s_ShadowBuffer[%s];\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize')))
-            fp.write('/* TODO */static const uint8 %s_ShadowBufferMask[%s]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize')))
+            mask,init = toGSignalMaskAndInitValue(gsig, int(GAGet(pdu,'PduSize')))
+            fp.write('static uint8 %s_ShadowBuffer[%s];\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize')))
+            fp.write('static const uint8 %s_InitValue[%s] = {%s};\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize'),init))
+            fp.write('static const uint8 %s_ShadowBufferMask[%s]={%s};\n'%(GAGet(gsig,'Name'),GAGet(pdu,'PduSize'),mask))
             for sig in GLGet(gsig,'SignalList'):
                 if(GAGet(sig,'Type')=='uint8' or GAGet(sig,'Type')=='uint16' or GAGet(sig,'Type')=='uint32'):
                     fp.write('static const %s %s_InitValue = %s;\n'%(GAGet(sig,'Type'),GAGet(sig,'Name'),
@@ -271,108 +397,10 @@ static const ComGroupSignal_type ComGroupSignal[] = {
     cstr = ''
     id = 0
     for pdu in GetPduList():
-        if(GAGet(pdu,'Direction')=='RECEIVE'):
-            period = 'COM_MAIN_FUNCTION_RX_PERIOD'
-        else:
-            period = 'COM_MAIN_FUNCTION_TX_PERIOD'
         for sig in GLGet(pdu,'SignalList'):
-            if(GAGet(pdu,'Direction')=='RECEIVE'):
-                TimeoutAction = GAGet(sig,'TimeoutAction')
-            else:
-                TimeoutAction = 'NONE'
-            cstr += """
-    {
-        #if defined(USE_SHELL)
-        .name = "%s",
-        #endif
-        .ComBitPosition =  %s,
-        .ComBitSize =  %s,
-        .ComErrorNotification =  NULL,
-        .ComFirstTimeoutFactor =  (%s+%s-1)/%s,
-        .ComHandleId =  COM_SID_%s,
-        .ComNotification =  %s,
-        .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_%s,
-        .ComSignalEndianess =  COM_%s, 
-        .ComSignalInitValue =  &%s_InitValue,
-        .ComSignalType =  COM_SIGNAL_TYPE_%s,
-        .ComTimeoutFactor =  (%s+%s-1)/%s,
-        .ComTimeoutNotification =  %s,
-        .ComTransferProperty =  COM_%s,    
-        .ComUpdateBitPosition =  %s,         
-        .ComSignalArcUseUpdateBit =  %s, 
-        .Com_Arc_IsSignalGroup =  FALSE,
-        .ComGroupSignal =  NULL,
-        .Com_Arc_ShadowBuffer =  NULL,
-        .Com_Arc_ShadowBuffer_Mask =  NULL,
-        .ComIPduHandleId = COM_ID_%s,
-        .Com_Arc_EOL =  FALSE
-    },\n"""%(GAGet(sig,'Name'),
-             GAGet(sig,'StartBit'),
-             GAGet(sig,'Size'),
-             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
-             GAGet(sig,'Name'),
-             GAGet(sig,'ReceivedNotification'),
-             TimeoutAction,
-             GAGet(sig,'Endianess'),
-             GAGet(sig,'Name'),
-             GAGet(sig,'Type').upper(),
-             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
-             GAGet(sig,'TimeoutNotification'),
-             GAGet(sig,'TransferProperty'),
-             GAGet(sig,'UpdateBitPosition').replace('TBD','0xDB'),
-             GAGet(sig,'UpdateBitUsed').upper(),
-             GAGet(pdu,'PduRef')
-             )
+            cstr += toSignal(sig, pdu)
         for sig in GLGet(pdu,'GroupSignalList'):
-            if(GAGet(pdu,'Direction')=='RECEIVE'):
-                TimeoutAction = GAGet(sig,'TimeoutAction')
-            else:
-                TimeoutAction = 'NONE'
-            cstr += """
-    {
-        #if defined(USE_SHELL)
-        .name = "%s",
-        #endif
-        .ComBitPosition =  %s,
-        .ComBitSize =  %s,
-        .ComErrorNotification =  NULL,
-        .ComFirstTimeoutFactor =  (%s+%s-1)/%s,
-        .ComHandleId =  COM_SID_%s,
-        .ComNotification =  %s,
-        .ComRxDataTimeoutAction =  COM_TIMEOUT_DATA_ACTION_%s,
-        .ComSignalEndianess =  COM_%s, 
-        .ComSignalInitValue =  %s_ShadowBuffer,
-        .ComSignalType =  COM_SIGNAL_TYPE_UINT8_N, // For group signal, this means nothing
-        .ComTimeoutFactor =  (%s+%s-1)/%s,
-        .ComTimeoutNotification =  %s,
-        .ComTransferProperty =  COM_%s,    
-        .ComUpdateBitPosition =  %s,         
-        .ComSignalArcUseUpdateBit =  %s, 
-        .Com_Arc_IsSignalGroup =  TRUE,
-        .ComGroupSignal =  %s_GrpSignalRefs,
-        .Com_Arc_ShadowBuffer =  %s_ShadowBuffer,
-        .Com_Arc_ShadowBuffer_Mask =  %s_ShadowBufferMask,
-        .ComIPduHandleId = COM_ID_%s,
-        .Com_Arc_EOL =  FALSE
-    },\n"""%(GAGet(sig,'Name'),
-             GAGet(sig,'StartBit'),
-             GAGet(sig,'Size'),
-             GAGet(sig,'FirstTimeoutFactor').replace('TBD','0xDB'),period,period,
-             GAGet(sig,'Name'),
-             GAGet(sig,'ReceivedNotification'),
-             TimeoutAction,
-             GAGet(sig,'Endianess'),
-             GAGet(sig,'Name'),
-             GAGet(sig,'TimeoutFactor').replace('TBD','0xDB'),period,period,
-             GAGet(sig,'TimeoutNotification'),
-             GAGet(sig,'TransferProperty'),
-             GAGet(sig,'UpdateBitPosition').replace('TBD','0xDB'),
-             GAGet(sig,'UpdateBitUsed').upper(),
-             GAGet(sig,'Name'),
-             GAGet(sig,'Name'),
-             GAGet(sig,'Name'),
-             GAGet(pdu,'PduRef'),
-             )
+            cstr += toSignal(sig, pdu, True)
     fp.write("""
 //Signal definitions
 static const ComSignal_type ComSignal[] = {

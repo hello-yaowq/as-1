@@ -343,7 +343,7 @@
 			PduSize="Integer Range=1~64 Unit=byte Default=8 PosGUI=13"
 			Comment="TextArea Default=* PosGUI=14"
 			>
-			<GroupSignalList Max="1">
+			<GroupSignalList Max="512">
 				<GroupSignal
 					Name="Text PosGUI=0"
 					Endianess="Enum=(BIG_ENDIAN,LITTLE_ENDIAN,OPAQUE) Default=BIG_ENDIAN PosGUI=1"
