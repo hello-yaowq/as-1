@@ -1093,6 +1093,14 @@ def BuildOFS(ofs):
 def PreProcess(cfgdir, fil):
     print('  PP %s'%(fil))
     filR = '%s/%s'%(cfgdir,os.path.basename(fil))
+    mtime = os.path.getmtime(fil)
+    if(os.path.exists(filR)):
+        mtimeR = os.path.getmtime(filR)
+    else:
+        mtimeR = -1
+    if(mtime < mtimeR):
+        print('WARNING: temporary %s is newer than %s, please save it safely!'%(filR, fil))
+        return filR
     filC = filR + '.h'
     MKSymlink(fil,filC)
     cmd = 'gcc -E --include %s/asmconfig.h %s'%(cfgdir, filC)

@@ -171,6 +171,22 @@ def beSet(data, start, size, value):
         nBit += 1
         rBit -= 1
 
+def leSet(data, start, size, value):
+    rBit = size-1
+    nBit = start+size-1
+    wByte = 0
+    wBit = 0
+    for i in range(size):
+        wBit = nBit
+        wByte = int(wBit/8)
+        wBit  = wBit%8
+        if(value&(1<<rBit) != 0):
+            data[wByte] |= 1<<wBit
+        else:
+            data[wByte] &= ~(1<<wBit)
+        nBit -= 1
+        rBit -= 1
+
 def toGSignalMaskAndInitValue(gsig, pduSize):
     mask = []
     init = []
@@ -181,8 +197,12 @@ def toGSignalMaskAndInitValue(gsig, pduSize):
         InitialValue = int(GAGet(sig,'InitialValue'))
         StartBit = int(GAGet(sig,'StartBit'))
         Size = int(GAGet(sig,'Size'))
-        beSet(mask, StartBit, Size, 0xFFFFFFFF)
-        beSet(init, StartBit, Size, InitialValue)
+        if(GAGet(sig, 'Endianess') == 'BIG_ENDIAN'):
+            beSet(mask, StartBit, Size, 0xFFFFFFFF)
+            beSet(init, StartBit, Size, InitialValue)
+        else:
+            leSet(mask, StartBit, Size, 0xFFFFFFFF)
+            leSet(init, StartBit, Size, InitialValue)
     cstrM = ''
     for d in mask:
         cstrM += '0x%02X,'%(d)

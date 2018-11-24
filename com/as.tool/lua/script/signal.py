@@ -39,7 +39,7 @@ class Sdu():
     def __init__(self, length):
         self.data = []
         for i in range(0,length):
-            self.data.append(0x55)
+            self.data.append(0x5A)
 
     def __iter__(self):
         for v in self.data:
@@ -48,8 +48,7 @@ class Sdu():
     def __len__(self):
         return len(self.data)
 
-    def set(self, start, size, value):
-        # for big endian only
+    def beset(self, start, size, value):
         rBit = size-1
         nBit = _bebm.index(start)
         wByte = 0
@@ -65,11 +64,33 @@ class Sdu():
             nBit += 1
             rBit -= 1
 
-    def get(self, start, size):
-        # for big endian only
+    def leset(self, start, size, value):
         rBit = size-1
+        nBit = start+size-1
+        wByte = 0
+        wBit = 0
+        for i in range(size):
+            wBit = nBit
+            wByte = int(wBit/8)
+            wBit  = wBit%8
+            if(value&(1<<rBit) != 0):
+                self.data[wByte] |= 1<<wBit
+            else:
+                self.data[wByte] &= ~(1<<wBit)
+            nBit -= 1
+            rBit -= 1
+
+    def set(self, sig, value):
+        start = sig['start']
+        size = sig['size']
+        endian = sig['endian'] # 1:Little 0: BIG
+        if(endian == 0):
+            self.beset(start, size, value)
+        else:
+            self.leset(start, size, value)
+
+    def beget(self, start, size):
         nBit = _bebm.index(start)
-        rByte = 0
         value = 0
         for i in range(size):
             rBit = _bebm[nBit]
@@ -79,8 +100,30 @@ class Sdu():
             else:
                 value = (value<<1)+0
             nBit += 1
-            rBit -= 1
         return value
+
+    def leget(self, start, size):
+        nBit = start+size-1
+        value = 0
+        for i in range(size):
+            rBit = nBit
+            rByte = int(rBit/8)
+            if(self.data[rByte]&(1<<(rBit%8)) != 0):
+                value = (value<<1)+1
+            else:
+                value = (value<<1)+0
+            nBit -= 1
+        return value
+
+    def get(self, sig):
+        # for big endian only
+        start = sig['start']
+        size = sig['size']
+        endian = sig['endian'] # 1:Little 0: BIG
+        if(endian == 0):
+            return self.beget(start, size)
+        else:
+            return self.leget(start, size)
 
     def __str__(self):
         cstr = ''
@@ -132,7 +175,7 @@ class Message():
 
     def transmit(self):
         for sig in self:
-            self.sdu.set(sig['start'], sig['size'], sig.value)
+            self.sdu.set(sig, sig.value)
         ercd = can_write(self.busid, self.msg['id'], self.sdu)
         if(ercd == False):
             print('cansend can%s %03X#%s failed'%(self.busid, self.msg['id'], self.sdu))
@@ -149,7 +192,7 @@ class Message():
         if(result):
             self.sdu.data = data
             for sig in self:
-                sig.value = self.sdu.get(sig['start'], sig['size'])
+                sig.value = self.sdu.get(sig)
 
     def IsTransmit(self):
         if(self.msg['node'] != 'AS'):
@@ -170,6 +213,7 @@ class Message():
             yield sig
 
     def __getitem__(self, key):
+        self.sgs[key].value = self.sdu.get(self.sgs[key])
         return  self.sgs[key].value
 
     def __setitem__(self, key, value):

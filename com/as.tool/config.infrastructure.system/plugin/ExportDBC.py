@@ -80,13 +80,21 @@ class Plugin(QAction):
         for gsigL in GLGet(comPdu, 'GroupSignalList'):
             for gsig in GLGet(gsigL, 'SignalList'):
                 StartBit, Size = self.GetSigPos(gsig)
-                fp.write('SG_ %s_%s : %s|%s@0+ (1,0) [0|4294967295] "" %s\n'%(
+                if(GAGet(gsig, 'Endianess') == 'BIG_ENDIAN'):
+                    endian = 0
+                else:
+                    endian = 1
+                fp.write('SG_ %s_%s : %s|%s@%s+ (1,0) [0|4294967295] "" %s\n'%(
                     GAGet(gsigL,'Name'), GAGet(gsig, 'Name'),
-                    StartBit, Size, node))
+                    StartBit, Size, endian, node))
         for sig in GLGet(comPdu,'SignalList'):
             StartBit, Size = self.GetSigPos(sig)
-            fp.write('SG_ %s : %s|%s@0+ (1,0) [0|4294967295] "" %s\n'%(
-                    GAGet(sig, 'Name'), StartBit, Size, node))
+            if(GAGet(sig, 'Endianess') == 'BIG_ENDIAN'):
+                endian = 0
+            else:
+                endian = 1
+            fp.write('SG_ %s : %s|%s@%s+ (1,0) [0|4294967295] "" %s\n'%(
+                    GAGet(sig, 'Name'), StartBit, Size, endian, node))
 
     def onAction(self):
         com = self.root.getModule('Com').toArxml()

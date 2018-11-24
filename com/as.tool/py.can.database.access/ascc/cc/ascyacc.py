@@ -230,7 +230,7 @@ def p_sgList(p):
 def p_sg(p):
     '''sg : SG_ ID COLON digit OR digit AT digit PLUS  LPAREN digit COMMA digit RPAREN LBK digit OR digit RBK STR rxNodeList EOL
         |   SG_ ID COLON digit OR digit AT digit MINUS LPAREN digit COMMA digit RPAREN LBK digit OR digit RBK STR idList EOL'''
-    p[0] = {'sg':{'name':p[2],'start':p[4],'size':p[6],'u':p[8],'factor':p[11],'offset':p[13],'min':p[16],'max':p[18],'unit':p[20],'node':p[21]}}
+    p[0] = {'sg':{'name':p[2],'start':p[4],'size':p[6],'endian':p[8],'sign':p[9],'factor':p[11],'offset':p[13],'min':p[16],'max':p[18],'unit':p[20],'node':p[21]}}
 
 def p_idList(p):
     '''idList : idList ID
