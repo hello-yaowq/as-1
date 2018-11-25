@@ -1,5 +1,7 @@
 #include <stdio.h>
+#ifdef USE_PTHREAD
 #include <pthread.h>
+#endif
 #include <unistd.h>
 
 void goodBye(void)
@@ -46,10 +48,11 @@ int main(int argc, char* argv[])
 	}
 
 	printf("Hello World!\n");
-
+#ifdef USE_PTHREAD
 	pthread_create(NULL,NULL, child, (void*)1);
 	pthread_create(NULL,NULL, child, (void*)2);
 	sleep(5);
+#endif
 	goodBye();
 	return 0;
 }

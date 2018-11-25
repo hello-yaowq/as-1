@@ -763,6 +763,9 @@ class Qemu():
             print('%s is not exits, try build it out locally!'%(qemu))
             self.BuildASQemu()
         self.params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
+        if(self.arch == 'i386'):
+            etc = os.path.abspath('%s/../etc/qemu'%(os.path.dirname(qemu)))
+            self.params += ' -L %s'%(etc)
         return qemu
 
     def Run(self, params, where=None):

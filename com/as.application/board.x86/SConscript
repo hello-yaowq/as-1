@@ -12,7 +12,8 @@ asenv.Append(CPPDEFINES='configTOTAL_HEAP_SIZE=0x800000')
 asenv.Append(CPPDEFINES='PAGE_SIZE=0x1000')
 asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000')
 asenv.Append(CPPDEFINES='USECONDS_PER_TICK=10000')
-asenv.Append(CPPDEFINES='ENABLE_SHELL_ECHO_BACK')
+if(not IsPlatformWindows()):
+    asenv.Append(CPPDEFINES='ENABLE_SHELL_ECHO_BACK')
 
 lds = '%s/script/linker-app.lds'%(cwd)
 asenv.Append(LINKFLAGS='-static -T %s'%(lds))
@@ -23,8 +24,13 @@ MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_STDIO_PRINTF','CLIB_NEWLIB',
            'SHELL','CLIB_STRTOK_R',
+           'CLIB_MBOX','CLIB_QSORT',
+           'PCI',
+           'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
+           'DCM','CANNM','CANSM','NM','OSEKNM','XCP',
+           'SOAD','DOIP','LWIP','FTP',
            'ASKAR',
-           'FATFS','FATFS_DRV','PCI',
+           'FATFS','FATFS_DRV','LIBELF','LIBDL','VFS'
            ]
 
 ARCH='x86'
