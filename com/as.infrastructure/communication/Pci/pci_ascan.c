@@ -185,13 +185,27 @@ static const Can_HardwareObjectType * Can_FindHoh( Can_Arc_HTHType hth , uint32*
 
 static void can_isr(void)
 {
-	uint32 flag = readl(__iobase+REG_CANSTATUS);
+	uint32 flag;
 	Can_UnitType *canUnit;
 	const Can_ControllerConfigType *canHwConfig;
 	uint8 ctlrId;
 
+	#ifdef USE_ASKAR
+	imask_t imask;
+	extern unsigned int CallLevel;
+	unsigned int savedCallLevel;
+	#endif
+
 	if(Can_Global.initRun == CAN_READY)
 	{
+		#ifdef USE_ASKAR
+		Irq_Save(imask);
+		savedCallLevel = CallLevel;
+		CallLevel = 2 /*TCL_ISR2 */;
+		#endif
+
+		flag = readl(__iobase+REG_CANSTATUS);
+
 		for (int configId=0; configId < CAN_CTRL_CONFIG_CNT; configId++) {
 			canHwConfig = GET_CONTROLLER_CONFIG(configId);
 			ctlrId = canHwConfig->CanControllerId;
@@ -227,21 +241,28 @@ static void can_isr(void)
 					}
 				}while(FALSE == hoh->Can_Arc_EOL);
 				asAssert(0xFFFF != Hrh);
+
 				writel(__iobase+REG_BUSID,ctlrId);
 				canid = readl(__iobase+REG_CANID);
 				dlc   = readl(__iobase+REG_CANDLC);
+				asAssert(dlc <= CAN_LL_DL);
 				for(i=0; i<dlc; i++)
 				{
 					data[i] = readl(__iobase+REG_CANDATA);
 				}
+
 				asAssert(Can_Global.config->CanConfigSet->CanCallbacks->RxIndication);
-				Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(Hrh, canid, dlc, data);
 				ASLOG(CANRX,"CAN%d ID=0x%08X LEN=%d DATA=[%02X %02X %02X %02X %02X %02X %02X %02X]\n",ctlrId,
 						canid,dlc,data[0],data[1],data[2],data[3],
 					data[4],data[5],data[6],data[7]);
+				Can_Global.config->CanConfigSet->CanCallbacks->RxIndication(Hrh, canid, dlc, data);
 
 			}
 		}
+		#ifdef USE_ASKAR
+		CallLevel = savedCallLevel;
+		Irq_Restore(imask);
+		#endif
 	}
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */

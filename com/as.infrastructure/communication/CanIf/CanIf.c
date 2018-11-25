@@ -54,6 +54,7 @@
 #include "ringbuffer.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_CANIF  0
+#define AS_LOG_CANIFE 1
 
 #if  ( CANIF_DEV_ERROR_DETECT == STD_ON )
 #define VALIDATE(_exp,_api,_err ) \
@@ -403,21 +404,28 @@ static void scheduleRxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 	}
 
 // Did not find the PDU, something is wrong
+	ASLOG(CANIFE,
+			"Rx Hrh=%X, CanId=%X, CanDlc=%X [%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X]\n",
+			Hrh, CanId, CanDlc, CanSduPtr[0], CanSduPtr[1], CanSduPtr[2],
+			CanSduPtr[3], CanSduPtr[4], CanSduPtr[5], CanSduPtr[6],
+			CanSduPtr[7]);
 	VALIDATE_NO_RV(FALSE, CANIF_RXINDICATION_ID, CANIF_E_PARAM_LPDU);
 }
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
 static void scheduldRxFifo(void)
 {
-	CanIf_PduType* pdu;;
+	CanIf_PduType* pdu;
+	imask_t imask;
 
 	pdu = RB_OUTP(canifRx);
 	while(NULL != pdu)
 	{
 		scheduleRxIndication(pdu->hrh,pdu->canid,pdu->dlc,pdu->data);
+		Irq_Save(imask);
 		RB_DROP(canifRx, sizeof(CanIf_PduType));
+		Irq_Restore(imask);
 		pdu = RB_OUTP(canifRx);
 	}
-
 }
 #endif /* CANIF_TASK_FIFO_MODE */
 
@@ -1072,6 +1080,7 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 
 #if (CANIF_TASK_FIFO_MODE==STD_ON)
 	CanIf_PduType* pdu;
+	imask_t imask;
 
 	pdu = RB_INP(canifRx);
 
@@ -1083,7 +1092,9 @@ void CanIf_RxIndication(uint16 Hrh, Can_IdType CanId, uint8 CanDlc,
 		asAssert(CanDlc<=CAN_LL_DL);
 		memcpy(pdu->data,CanSduPtr,CanDlc);
 
+		Irq_Save(imask);
 		RB_PUSH(canifRx, NULL, sizeof(*pdu));
+		Irq_Restore(imask);
 
 		OsActivateTask(TaskCanIf);
 	}
