@@ -63,4 +63,6 @@ if('FLS' in MODULES):
 if('RTTHREAD' in MODULES):
     asenv.Append(CPPDEFINES=['RT_HEAP_SIZE=0x800000','__x86__'])
 
+asenv.Append(CPPDEFINES=['OS_STK_SIZE_SCALER=2'])
+
 Return('objs')

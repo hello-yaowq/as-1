@@ -7,6 +7,7 @@
 #include "Std_Types.h"
 #include "mmu.h"
 #include "x86.h"
+#include "asdebug.h"
 #ifndef USE_STDRT
 #include "kernel_internal.h"
 #else
@@ -233,6 +234,7 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 			cs,
 			eip,
 			err_code);
+	asAssert(0);
 }
 
 void cstart(void)
