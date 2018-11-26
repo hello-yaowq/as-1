@@ -20,6 +20,7 @@
 #include "vfs.h"
 #endif
 #ifdef USE_PTHREAD
+#include "Os.h"
 #include "pthread.h"
 #include "semaphore.h"
 #endif

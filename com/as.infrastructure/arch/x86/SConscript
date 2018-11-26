@@ -70,6 +70,9 @@ if(('LWIP' in MODULES) or ('UIP' in MODULES)):
         if(os.getenv('PACKET_LIB_ADAPTER_NR')):
             asenv.Append(CPPDEFINES=['PACKET_LIB_ADAPTER_NR=%s'%(os.getenv('PACKET_LIB_ADAPTER_NR'))])
 
+if('PTHREAD' in MODULES):
+    asenv.Append(CPPDEFINES=['_SYS__PTHREADTYPES_H_'])
+
 asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])

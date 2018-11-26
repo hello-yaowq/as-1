@@ -16,6 +16,7 @@ if(asenv['RELEASE']=='asboot'):
     asenv.Append(CPPDEFINES=['__AS_BOOTLOADER__','NO_STDIO_RINGBUFFER'])
     if('MINIBLT' in MODULES):
         asenv.Prepend(CPPPATH=['%s/mininc'%(cwd)])
+    if(True):
         MKDir('%s/mininc'%(cwd))
         for f in ['CanIf_Cbk.h', 'CanIf.h', 'CanTp_Cbk.h',
                   'CanTp.h', 'Dcm.h', 'Dcm_Internal.h',
