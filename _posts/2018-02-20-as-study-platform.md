@@ -66,17 +66,17 @@ export PYTHONPATH=/path/to/com/as.tool/config.infrastructure.system/third_party:
 
 ## 3.2 choose a board want to be used
 
-* Note: x86 can only be built out by Ubunut.
-
 ![scons-set-board.png](/as/images/rewoa/scons-set-board.png)
 
-## 3.3 do menuconfig by command "```scons --menuconfig```"
+## 3.3 *[optional]* do menuconfig by command "```scons --menuconfig```"
+
+NOTE: this step better to be skipped if you are not familiar with AS.
 
 Generally it's better to remove the previous config by command "rm .config" when switch the BOARD, and it's okay to leave all conifig as default.
 
 ![scons-menuconfig.png](/as/images/rewoa/scons-menuconfig.png)
 
-## 3.3 do AUTOSAR config by command "scons studio"
+## 3.4 *[optional]* do AUTOSAR config by command "scons studio"
 
 * Note: The OS panel is an additional OS configuration to the *.xml OS configuration, you can check the xml files under directory "/as/release/ascore/build/$BOARD/config" for how to add a Task/Alarm/Counter/Resource etc by new a xml or use the OS panel to do OS configuration.
 
@@ -110,9 +110,9 @@ WIFI WLAN:
    Gateway                           : 192.168.1.1
 ```
 
-## 3.4 do build by command "scons" and do clean by command "scons -c"
+## 3.5 do build by command "scons" and do clean by command "scons -c"
 
-## 3.5 after build sucessfully, we can run it now by command "scons run".
+## 3.6 after build sucessfully, we can run it now by command "scons run".
 
 For the first time, it will pop up a msys2 windows which its path is "/as/com/as.tool/qemu", in which the below 2 command should be executed to compile the qemu out and then install it.
 
@@ -127,11 +127,11 @@ The below picture gives a demo that how to use FTP to push a file to ascore VFS 
 
 ![scons-run](/as/images/rewoa/scons-run.png)
 
-## 3.6 debug by eclipse
+## 3.7 debug by eclipse
 
-### 3.6.1 firstly, run command "scons run gdb" to launch the qemu machine with gdb server, which waiting the connection from eclipse plugin qemu-dbg
+### 3.7.1 firstly, run command "scons run gdb" to launch the qemu machine with gdb server, which waiting the connection from eclipse plugin qemu-dbg
 
-### 3.6.2 make sure the eclipse has installed the plugin "GNU MCU C/C++ QEMU Debugging", and then follow below steps to start the debug.
+### 3.7.2 make sure the eclipse has installed the plugin "GNU MCU C/C++ QEMU Debugging", and then follow below steps to start the debug.
 
 New a qemu debug configuration, and as showed by below picture, click "browse" to select the build out target(*.exe) under directory "/as/release/ascore".
 
