@@ -60,7 +60,7 @@ if('LWIP' in MODULES):
         pcap=Package('https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip')+'/WpdPack'
         MKSymlink(pcap,'%s/WpdPack'%(cwd))
         asenv.Append(CPPPATH=['%s/WpdPack/Include'%(cwd)])
-        if(asenv['msys2']):
+        if(asenv['mingw64']):
             objs += Glob('%s/WpdPack/Lib/x64/*.lib'%(cwd))
         else:
             asenv.Append(LIBS=['packet','wpcap'])
@@ -102,7 +102,7 @@ elif('OPENVG' in MODULES):
                '%s/com/as.infrastructure/system/gui/Sg/openvg/include/VG'%(ASROOT)
                ]
     asenv.Append(CPPPATH=CPPPATH)
-    if(asenv['msys2'] is True):
+    if(asenv['mingw64'] is True):
         asenv.Append(LIBS = ['Gdi32'])
         env = Environment() # default is (TOOLS=['msvc'])
         env.Append(CPPPATH=CPPPATH)
@@ -124,7 +124,7 @@ asenv.Append(LIBS=['pthread','stdc++','m'])
 if(IsPlatformWindows()):
     asenv.Append(LIBS=['wsock32'])
     asenv.Append(CPPDEFINES='__WINDOWS__')
-    if(asenv['msys2']):
+    if(asenv['mingw64']):
         asenv.Append(CPPDEFINES='__X86_64__')
         print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2tcpip.h line 86-103, add WS2TCPIP_INLINE')
         print('WARNING: need modify the c:/msys64/mingw64/x86_64-w64-mingw32/include/ws2ipdef.h line 127, add WS2TCPIP_INLINE')

@@ -38,36 +38,18 @@ ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
 debug ?= TRUE
 ifeq ($(host), Linux)
-PY27 ?= python2
-PY34 ?= python3
+PY ?= python3
 else
-ifeq ($(host), MINGW64_NT-10.0)
-export msys2 = yes
-endif
-ifeq ($(host), MSYS_NT-10.0)
-export msys2 = yes
-endif
-ifeq ($(host), MINGW32_NT-6.2)
-export msys2 = yes
-endif
-# force using msys2 if invoke from Console.bat
-ifeq ($(ISMSYS2), YES)
-export msys2 = yes
-endif
-
-ifeq ($(msys2),yes)
-PY27 ?= /c/Python27/python
-PY34 ?= /c/Anaconda3/python
-else
-PY27 ?= C:/Python27/python
-PY34 ?= C:/Anaconda3/python
+PY ?= python
+ifeq ($(shell which gcc),/mingw64/bin/gcc)
+export ISMINGW64=YES
 endif
 endif
-LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
-DEPC  = $(PY34) $(prj-dir)/release/make/dep.py
-XCC   = $(PY34) xcc.py
-STUDIO = $(PY34) studio.py
-SG    = $(PY34) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+LNFS  = $(PY) $(prj-dir)/release/make/lnfs.py
+DEPC  = $(PY) $(prj-dir)/release/make/dep.py
+XCC   = $(PY) xcc.py
+STUDIO = $(PY) studio.py
+SG    = $(PY) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
 
 WGET?=curl -O
 # --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
@@ -76,7 +58,7 @@ WGET?=curl -O
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 export AS  = gcc
 export CC  = gcc
 export AR  = ar
@@ -115,10 +97,10 @@ def-y += -D__X86_64__
 else
 def-y += -D__WINDOWS__
 def-y +=  -DDYNAMIC_XLDRIVER_DLL -DPOINTER_32=
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 def-y += -D__X86_64__
-def-y += -DFORCEINLINE=static\ inline
 endif
+def-y += -DFORCEINLINE=static\ inline
 endif	
 ifeq ($(host),Linux)
 ldflags-y +=-lrt
@@ -254,7 +236,7 @@ else
 	@(echo ">>>> maybe the ControlCAN has been updated,")
 	@(echo ">>>> please manually make things working by make sure")
 	@(echo ">>>> that there is path $(ZLGCAN)/ControlCAN/64/ControlCAN.dll")
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 	@(cp -fv $(ZLGCAN)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 else
 	@(cp -fv $(ZLGCAN)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
@@ -276,7 +258,7 @@ endif
 aspeak:$(download)/pcan-basic
 ifeq ($(host),Linux)
 else
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/x64/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 else
 	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
@@ -307,7 +289,7 @@ dep-posix: aslibaws
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
 	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
 else
@@ -344,8 +326,8 @@ endif
 ifeq ($(USE_AWS),YES)
 	@(cd $(exe-dir);$(LNFS) $(LUA)/device/websock/out/libaws.a)
 endif
-	@echo $(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir)
-	@(cd $(exe-dir);$(PY34) $(src-dir)/configure.py pyas.sip $(exe-dir))	
+	@echo $(PY) $(src-dir)/configure.py pyas.sip $(exe-dir)
+	@(cd $(exe-dir);$(PY) $(src-dir)/configure.py pyas.sip $(exe-dir))
 	@echo "  >> pysip build done "
 
 dep-pyas: aslibaws
@@ -356,7 +338,7 @@ dep-pyas: aslibaws
 ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
-ifeq ($(msys2),yes)
+ifeq ($(ISMINGW64),YES)
 	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
 	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
 else

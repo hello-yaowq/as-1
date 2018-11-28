@@ -85,6 +85,7 @@ def AppendPythonPath(lp):
         sep = ';'
     for l in lp:
         pypath += sep+os.path.abspath(l)
+        sys.path.append(os.path.abspath(l))
     os.environ['PYTHONPATH'] = pypath
     if(not IsPlatformWindows()):
         print('please run command below if you see import error of autosar\n'
@@ -141,6 +142,12 @@ def PrepareEnv(release):
         help()
         exit(-1)
 
+    if(IsPlatformWindows()):
+        asEnvPath = os.getenv('ASENV')
+        if(os.path.exists(os.path.join(asEnvPath,'Console.bat'))):
+            asenv['ASENV'] = asEnvPath
+            print('Welcome to the world of asenv for %s!'%(ASROOT))
+
     asenv['BOARD'] = BOARD
     Export('asenv')
     PrepareBuilding(asenv)
@@ -151,29 +158,22 @@ def PrepareBuilding(env):
     Env = env
     GetConfig('.config',env)
     env['pkgconfig'] = 'pkg-config'
-    env['msys2'] = False
+    env['mingw64'] = False
     env['POSTACTION'] = []
-    if(IsPlatformWindows() and (env['CONFIGS'] != None)):
-        if('PLATFORM_MINGW' in env['MODULES']):
-            env['CC'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/gcc'
-            env['pkgconfig'] = env['CONFIGS']['MINGW_GCC_PATH'] + '/pkg-config'
-            env['EXTRAPATH'] = env['CONFIGS']['MINGW_GCC_PATH']
-        elif('PLATFORM_MSYS2' in env['MODULES']):
-            env['msys2'] = True
-            mpath = env['CONFIGS']['MSYS2_GCC_PATH']
-            env['CC'] = mpath + '/gcc'
-            env['pkgconfig'] = mpath + '/pkg-config'
-            env['EXTRAPATH'] = '%s;%s'%(mpath, os.path.abspath(mpath+'/../usr/bin'))
-    elif(IsPlatformWindows()):
-        err,uname = RunSysCmd('uname')
-        if('MSYS_NT' in str(uname)):
-            print('build on %s, default assume 64 bit machine'%(uname.strip()))
-            env['msys2'] = True
-            mpath = os.path.abspath(os.getenv('MSYS2').replace('"',''))
-            env['pkgconfig'] = '%s/mingw64/bin/pkg-config'%(mpath)
-            env['CC'] = '%s/mingw64/bin/gcc'%(mpath)
-            env['LINK'] = '%s/mingw64/bin/gcc'%(mpath)
-            env['EXTRAPATH'] = '{0}/mingw64/bin;{0}/usr/bin'.format(mpath)
+    if(IsPlatformWindows()):
+        mpath = os.path.abspath(os.getenv('MSYS2').replace('"',''))
+        err,txt = RunSysCmd('which gcc')
+        if(None != err):
+            print('ERROR: not msys2 enviroment!')
+            exit(-1)
+        gcc = os.path.abspath(mpath+txt).strip()
+        gccpath = os.path.dirname(gcc)
+        if('mingw64' in gcc):
+            env['mingw64'] = True
+        env['pkgconfig'] = '%s/pkg-config'%(gccpath)
+        env['CC'] = gcc
+        env['LINK'] = gcc
+        env['EXTRAPATH'] = '{0};{1}/usr/bin'.format(gccpath,mpath)
     env['python3'] = 'python3'
     if(IsPlatformWindows()):
         env['python3'] = 'python'
@@ -313,7 +313,10 @@ def menuconfig(env):
     import time
     import xcc
     kconfig = '%s/com/as.tool/kconfig-frontends/kconfig-mconf'%(env['ASROOT'])
-    if(IsPlatformWindows()):
+    if(IsPlatformWindows() and ('ASENV' in Env)):
+        kconfig='%s/tools/kconfig-frontends/kconfig-mconf.exe'%(Env['ASENV'])
+        cmd = 'set BOARD=%s && set ASROOT=%s && '%(env['BOARD'],env['ASROOT'])
+    elif(IsPlatformWindows()):
         kconfig += '.exe'
         cmd2  = 'cd %s/com/as.tool/kconfig-frontends'%(env['ASROOT'])
         kurl = 'http://distortos.org/files/kconfig-frontends-3.12.0-windows.7z'
@@ -589,7 +592,7 @@ def RunSysCmd(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
-    return err, output
+    return err, output.decode('utf-8')
 
 def DefineGroup(name, src, depend, **parameters):
     global Env
@@ -749,10 +752,7 @@ class Qemu():
         MKObject(candrvsrc, candrvtgt, cmd)
         if(IsPlatformWindows()):
             # try default install location of qemu
-            try:
-                qemu = '%s/qemu-system-%s'%(Env['CONFIGS']['MSYS2_GCC_PATH'],self.arch)
-            except:
-                qemu = '%s/qemu-system-%s'%(Env['CC'][:-3],self.arch)
+            qemu = '%s/qemu-system-%s'%(Env['CC'][:-3],self.arch)
             if(not os.path.exists(qemu+'.exe')):
                 qemu = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/%s-softmmu/qemu-system-%s'%(ASROOT, self.arch, self.arch)
         else:
@@ -803,10 +803,7 @@ class Qemu():
         print('Create a New DiskImg "%s"!'%(file))
         if(IsPlatformWindows()):
             # try default install location of qemu
-            try:
-                qemuimg = '%s/qemu-img'%(Env['CONFIGS']['MSYS2_GCC_PATH'])
-            except:
-                qemuimg = '%s/qemu-img'%(Env['CC'][:-3])
+            qemuimg = '%s/qemu-img'%(Env['CC'][:-3])
             if(not os.path.exists(qemuimg+'.exe')):
                 qemuimg = '%s/com/as.tool/qemu/src/build-x86_64-w64-mingw32/qemu-img'%(ASROOT)
         else:
@@ -928,9 +925,12 @@ def SelectCompilerArmNoneEabi():
         gccarm = 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-win32.zip'
     else:
         gccarm = 'https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-linux.tar.bz2'
-    cpl = Package(gccarm)
-    if(not IsPlatformWindows()):
-       cpl += '/gcc-arm-none-eabi-5_4-2016q3'
+    if(IsPlatformWindows() and ('ASENV' in Env)):
+        cpl = '%s/tools/gcc-arm-none-eabi-5_4-2016q3-20160926-win32'%(Env['ASENV'])
+    else:
+        cpl = Package(gccarm)
+        if(not IsPlatformWindows()):
+            cpl += '/gcc-arm-none-eabi-5_4-2016q3'
     Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
     Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
     Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
@@ -966,7 +966,10 @@ def SelectCompilerX86():
               ' ln -fs /usr/bin/ld i686-elf-ld\n'
               ' echo native > ../../{1}\n'
               ' cd -'.format(Env['ASROOT'],gccx86))
-    cpl = Package('https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/%s'%(gccx86))
+    if(IsPlatformWindows() and ('ASENV' in Env)):
+        cpl = '%s/tools/i686-elf-tools-windows'%(Env['ASENV'])
+    else:
+        cpl = Package('https://github.com/lordmilko/i686-elf-tools/releases/download/7.1.0/%s'%(gccx86))
     Env['CC']   = '%s/bin/i686-elf-gcc -m32 -std=gnu99 -fno-stack-protector'%(cpl)
     Env['AS']   = '%s/bin/i686-elf-gcc -m32 -c'%(cpl)
     Env['CXX']  = '%s/bin/i686-elf-g++ -m32 -fno-stack-protector'%(cpl)
@@ -1111,7 +1114,7 @@ def PreProcess(cfgdir, fil):
     if(0 == err):
         raise Exception('gcc preprocessing %s failed:\n%s'%(fil, txt))
     newTxt = ''
-    for line in txt.decode('utf-8').split('\n'):
+    for line in txt.split('\n'):
         line = line.strip()
         if((not line.startswith('#')) and (line != '')):
             newTxt += line+'\n'

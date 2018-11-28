@@ -22,7 +22,7 @@ if(IsPlatformWindows()):
     MKSymlink('%s/../../cancasexl.access/vxlapi.h'%(cwd),'%s/vxlapi.h'%(cwd))
     MKSymlink('%s/../../cancasexl.access/xlLoadlib.cpp'%(cwd),'%s/xlLoadlib.c'%(cwd))
     asenv.Append(CCFLAGS=['-DDYNAMIC_XLDRIVER_DLL', '-DPOINTER_32='])
-    if(asenv['msys2']):
+    if(asenv['mingw64']):
         asenv.Append(CCFLAGS='-I%s/ControlCAN/64'%(zlgcan))
         
         MKSymlink('%s/ControlCAN/64/ControlCAN.dll'%(zlgcan),
@@ -40,7 +40,7 @@ objs +=  Glob('*.c')
 objs +=  Glob('rs232/*.c')
 
 if(IsPlatformWindows()):
-    if(asenv['msys2']):
+    if(asenv['mingw64']):
         objs += Glob('%s/PCAN-Basic API/x64/VC_LIB/PCANBasic.lib'%(peakcan))
         objs += Glob('%s/ControlCAN/64/ControlCAN.lib'%(zlgcan))
     else:

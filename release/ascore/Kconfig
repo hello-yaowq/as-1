@@ -10,7 +10,6 @@ config ASROOT
     option env="ASROOT"
     default "../.."
 
-source "$ASROOT/com/as.tool/Kconfig"
 source "$ASROOT/com/as.application/Kconfig"
 source "$ASROOT/com/as.infrastructure/Kconfig"
 source "SgDesign/Kconfig"

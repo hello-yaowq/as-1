@@ -17,7 +17,7 @@ lwext4 = Package('https://github.com/parai/lwext4.git', cmd=cmd)
 
 MKSymlink(lwext4,'%s/lwext4'%(cwd))
 
-if((IsPlatformWindows()) and asenv['msys2']):
+if(IsPlatformWindows()):
     src = Glob('%s/src/*.c'%(lwext4))
     tgt = '%s/build_generic/fs_test/lwext4-mkfs.exe'%(lwext4)
     cmd = 'cd %s && make && cd build_generic && make'%(lwext4)

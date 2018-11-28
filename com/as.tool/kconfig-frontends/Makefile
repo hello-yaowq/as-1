@@ -22,13 +22,6 @@ CC = gcc
 LD = gcc
 BISON = bison
 
-ifeq ($(host), MINGW64_NT-10.0)
-msys2 = yes
-endif
-ifeq ($(host), MSYS_NT-10.0)
-msys2 = yes
-endif
-
 CFLAGS += -c -O3
 CFLAGS += -DCURSES_LOC=\"ncurses.h\"
 CFLAGS += -DROOTMENU=\"Configuration\"
@@ -43,11 +36,7 @@ ifeq ($(host), Linux)
 else
 LIBS += -lregex
 CFLAGS += -D__WINDOWS__
-ifeq ($(msys2), yes)
-CFLAGS += -I/c/msys64/usr/include
-else
-$(error MinGW is not suppoterd)
-endif
+CFLAGS += -I$(MSYS2)/usr/include
 endif
 
 PARSER += $(src-dir)/libs/parser/yconf.c
