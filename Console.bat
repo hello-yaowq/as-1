@@ -1,15 +1,18 @@
 @echo off
 
 set ASPATH=%~dp0
-set astmp="%ASPATH%"
+set astmp=%ASPATH%
 set ASDISK=%astmp:~1,2%
-set MSYS2="C:\msys64"
+set MSYS2=C:\msys64
 
 %ASDISK%
 cd %ASPATH%
 
 if NOT EXIST "%ASPATH%\Console.bat" goto perror
 if NOT EXIST %MSYS2%\usr\bin goto install_msys2
+
+REM base env PATH
+set PATH=C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0
 
 set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;%MSYS2%\mingw64\bin;%MSYS2%\usr\bin;%MSYS2%\mingw32\bin;%PATH%
 

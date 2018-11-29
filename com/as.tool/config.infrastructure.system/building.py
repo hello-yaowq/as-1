@@ -144,7 +144,7 @@ def PrepareEnv(release):
 
     if(IsPlatformWindows()):
         asEnvPath = os.getenv('ASENV')
-        if(os.path.exists(os.path.join(asEnvPath,'Console.bat'))):
+        if((asEnvPath != None) and os.path.exists(os.path.join(asEnvPath,'Console.bat'))):
             asenv['ASENV'] = asEnvPath
             print('Welcome to the world of asenv for %s!'%(ASROOT))
 
