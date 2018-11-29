@@ -20,7 +20,7 @@ MKSymlink(lwext4,'%s/lwext4'%(cwd))
 if(IsPlatformWindows()):
     src = Glob('%s/src/*.c'%(lwext4))
     tgt = '%s/build_generic/fs_test/lwext4-mkfs.exe'%(lwext4)
-    cmd = 'cd %s && make && cd build_generic && make'%(lwext4)
+    cmd = 'cd %s && make && cd build_generic && make -i'%(lwext4)
     MKObject(src, tgt, cmd, False)
 
 objs = []
