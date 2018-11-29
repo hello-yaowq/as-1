@@ -14,8 +14,8 @@ asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
 
 if(IsPlatformWindows()):
     peakcan = Package('https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip')
-    zlgcan_o = Package('http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip')
-    zlgcan = str(Glob('%s/CAN_lib/CAN*'%(zlgcan_o))[0])
+    zlgcan_o = Package('http://www.zlg.cn/data/upload/software/Can/CAN_lib.rar')
+    zlgcan = str(Glob('%s/CAN*'%(zlgcan_o))[0])
 
 if(IsPlatformWindows()):
     asenv.Append(CCFLAGS='-I%s/"PCAN-Basic API"/Include'%(peakcan))
@@ -35,6 +35,16 @@ if(IsPlatformWindows()):
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
         MKSymlink('%s/"PCAN-Basic API"/Win32/PCANBasic.dll'%(peakcan),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+
+AddOption('--canlib',
+        dest = 'canlib',
+        action = 'store_true',
+        default = False,
+        help = 'do only downloading the 3rd party canlib')
+
+if(GetOption('canlib')):
+    print('zlgcan and peakcan is ready.')
+    exit()
 
 objs +=  Glob('*.c')
 objs +=  Glob('rs232/*.c')

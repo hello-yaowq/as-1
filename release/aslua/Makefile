@@ -39,8 +39,10 @@ ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 debug ?= TRUE
 ifeq ($(host), Linux)
 PY ?= python3
+SCONS ?= scons
 else
 PY ?= python
+SCONS ?= scons.bat
 ifeq ($(shell which gcc),/mingw64/bin/gcc)
 export ISMINGW64=YES
 endif
@@ -178,7 +180,7 @@ ldflags-y += -lwsock32
 inc-y += -I$(download)/pcan-basic/"PCAN-Basic API"/Include
 endif
 
-ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN_lib/CAN*)
+ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN*)
 
 # --------------------------------- [ BUILD ACTIONs ] ------------------------------------------- #
 $(inc-dir)/utility:
@@ -217,53 +219,19 @@ $(LUA)/device/websock/out/libaws.a:libaws
 
 aslibaws:$(LUA)/device/websock/out/libaws.a
 
-$(download)/CAN_lib.zip:
-ifeq ($(host),Linux)
+dep-canlib:
+	@(cd $(prj-dir)/release/ascore; export BOARD=posix; ${SCONS} --canlib)
+ifeq ($(host), Linux)
 else
-	@(cd $(download);${WGET} http://www.zlg.cn/data/upload/software/Can/CAN_lib.zip)
-endif
-
-$(download)/CAN_lib: $(download)/CAN_lib.zip
-ifeq ($(host),Linux)
-else
-	@mkdir -p $@
-	@(cd $(download);unzip CAN_lib.zip -d CAN_lib)
-endif
-
-aszlg:$(download)/CAN_lib
-ifeq ($(host),Linux)
-else
-	@(echo ">>>> maybe the ControlCAN has been updated,")
-	@(echo ">>>> please manually make things working by make sure")
-	@(echo ">>>> that there is path $(ZLGCAN)/ControlCAN/64/ControlCAN.dll")
 ifeq ($(ISMINGW64),YES)
 	@(cp -fv $(ZLGCAN)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
-else
-	@(cp -fv $(ZLGCAN)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
-endif
-endif
-
-$(download)/pcan-basic.zip:
-ifeq ($(host), Linux)
-else
-	@(cd $(download);${WGET} https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip)
-endif
-
-$(download)/pcan-basic:$(download)/pcan-basic.zip
-ifeq ($(host), Linux)
-else
-	@(cd $(download); mkdir -p pcan-basic; cd pcan-basic; unzip ../pcan-basic.zip)
-endif
-
-aspeak:$(download)/pcan-basic
-ifeq ($(host),Linux)
-else
-ifeq ($(ISMINGW64),YES)
 	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/x64/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 else
+	@(cp -fv $(ZLGCAN)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 endif
 endif
+
 dep-arm:asreadline asncurse aslibaws
 	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
 	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
@@ -431,5 +399,5 @@ endif
 $(download):
 	mkdir -p $@
 
-aslua: $(download) libaws aszlg aspeak 81 82 91 92
+aslua: $(download) libaws dep-canlib 81 82 91 92
 

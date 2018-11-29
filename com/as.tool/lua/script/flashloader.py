@@ -1,4 +1,3 @@
-from networkx.algorithms.flow.mincost import cost_of_flow
 __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai

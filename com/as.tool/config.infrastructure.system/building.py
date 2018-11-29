@@ -459,6 +459,19 @@ def Package(url, ** parameters):
             except Exception as e:
                 print('WARNING:',e)
             MKFile(flag,'url')
+    elif(pkgBaseName.endswith('.rar')):
+        tgt = '%s/%s'%(download, pkgBaseName)
+        Download(url, tgt)
+        pkgName = pkgBaseName[:-4]
+        pkg = '%s/%s'%(download, pkgName)
+        MKDir(pkg)
+        flag = '%s/.unrar.done'%(pkg)
+        if(not os.path.exists(flag)):
+            try:
+                RunCommand('cd %s && unrar x ../%s'%(pkg, pkgBaseName))
+            except Exception as e:
+                print('WARNING:',e)
+            MKFile(flag,'url')
     elif(pkgBaseName.endswith('.tar.gz') or pkgBaseName.endswith('.tar.xz')):
         tgt = '%s/%s'%(download, pkgBaseName)
         Download(url, tgt)
@@ -548,7 +561,7 @@ def MKSymlink(src,dst):
 
     if(not os.path.exists(dst)):
         if(IsPlatformWindows()):
-            RunSysCmd('rmdir %s'%(adst))
+            RunSysCmd('del %s'%(adst))
             if((sys.platform == 'msys') and
                (os.getenv('MSYS') == 'winsymlinks:nativestrict')):
                 RunCommand('ln -fs %s %s'%(asrc,adst))
