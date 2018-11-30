@@ -29,6 +29,10 @@ I didn't get the dispatch(asm "svc 0") works now as it may hardfaut, so it can o
 
 # 2. Set up environment on windows
 
+This is a struggling processs for some new beginners who are totally not familiar with shell commands as most of people working with IDE. So you can choose to skip this section 2 by downloading the portable asenv.zip file and run the Console.bat(if encounter mklink permission error, run it as administrator) inside it, then start from section 3.2.
+
+* [pan.baidu.com asenv.zip](https://pan.baidu.com/s/1NNNiSBCyYsdsvSknBKe3JQ)
+
 ## 2.1 install [Anaconda3 64bit](https://www.anaconda.com/download/) as C:\Anaconda3
 
 ## 2.2 install [msys2 x86_64](http://www.msys2.org/) as C:\msys64
@@ -37,15 +41,11 @@ I didn't get the dispatch(asm "svc 0") works now as it may hardfaut, so it can o
 
 ```sh
 set PATH=C:\Anaconda3;C:\Anaconda3\Scripts;C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
-pacman -Sy
-pacman -S unzip wget curl git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
-pacman -S ncurses-devel gperf curl
 pacman -Syuu
-wget https://pypi.python.org/packages/1f/3b/ee6f354bcb1e28a7cd735be98f39ecf80554948284b41e9f7965951befa6/pyserial-3.2.1.tar.gz#md5=7142a421c8b35d2dac6c47c254db023d
-tar xf pyserial-3.2.1.tar.gz
-cd pyserial-3.2.1
-python setup.py install
-conda install scons
+pacman -S unzip wget curl git mingw-w64-x86_64-gcc mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3
+pacman -S ncurses-devel gperf curl make cmake automake-wrapper libtool
+pacman -S unrar mingw-w64-x86_64-pkg-config
+conda install scons pyserial
 ```
 
 # 3. How to build ascore and run
