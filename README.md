@@ -102,7 +102,9 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 
 ## 8. Setup Environment and Run
 
-Check the page [as-study-platform](http://parai.github.io/as/autosar/2018/02/20/as-study-platform.html)
+* [pan.baidu.com asenv.zip](https://pan.baidu.com/s/1NNNiSBCyYsdsvSknBKe3JQ)
+
+>Check the page [as-study-platform](http://parai.github.io/as/autosar/2018/02/20/as-study-platform.html) for how to use asenv or how to setup the environment from zero by yourself.
 
 ## 9. AS USB2CAN device
 
