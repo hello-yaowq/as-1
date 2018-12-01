@@ -73,7 +73,6 @@ inc-y += -I$(INFRASTRUCTURE)/arch/posix/mcal
 VPATH += $(APPLICATION)/common/config \
 	$(APPLICATION)/board.$(board)/common \
 	$(INFRASTRUCTURE)/arch/posix/mcal \
-	$(INFRASTRUCTURE)/clib \
 	$(INFRASTRUCTURE)/diagnostic/Det
 
 src-y += $(APPLICATION)/common/config/Rproc_Cfg.c
@@ -81,8 +80,12 @@ src-y += $(APPLICATION)/common/config/VirtQ_Cfg.c
 src-y += $(APPLICATION)/common/config/RPmsg_Cfg.c
 src-y += $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c
 src-y += $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c
-src-y += $(INFRASTRUCTURE)/clib/strtok_r.c
 src-y += $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c
+ifeq ($(host),Linux)
+else
+VPATH += $(INFRASTRUCTURE)/clib
+src-y += $(INFRASTRUCTURE)/clib/strtok_r.c
+endif
 endif
 ifeq ($(board),pyas)
 dir-y += $(LUA)/can
@@ -243,12 +246,15 @@ endif
 endif
 
 dep-posix: aslibaws
+ifeq ($(host),Linux)
+else
 ifeq ($(ISMINGW64),YES)
 	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib .)
 	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/64/ControlCAN.lib .)
 else
 	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib .)
 	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/32/ControlCAN.lib .)
+endif
 endif
 	@(echo "  >> prepare link for posix done")
 
