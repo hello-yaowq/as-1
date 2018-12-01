@@ -28,6 +28,7 @@ syntax: glob
 *.bin
 *.dbc
 out
+*.sbf
 
 # switch to regexp syntax.
 syntax: regexp

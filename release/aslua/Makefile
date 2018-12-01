@@ -32,7 +32,7 @@ host = $(shell uname)
 INFRASTRUCTURE = $(prj-dir)/com/as.infrastructure
 APPLICATION = $(prj-dir)/com/as.application
 VIRTUAL = $(prj-dir)/com/as.virtual
-LUA   = $(prj-dir)/com/as.tool/lua
+export LUA = $(prj-dir)/com/as.tool/lua
 ASCORE = $(prj-dir)/release/ascore
 ASCONFIG = $(prj-dir)/com/as.tool/config.infrastructure.system
 # --------------------------------- [ GENERAL SPECIFICATION ] ------------------------------------------- #		 
@@ -52,11 +52,55 @@ DEPC  = $(PY) $(prj-dir)/release/make/dep.py
 XCC   = $(PY) xcc.py
 STUDIO = $(PY) studio.py
 SG    = $(PY) $(prj-dir)/com/as.tool/config.infrastructure.gui/Sg.py
+# --------------------------------- [ OBJECT SPECIFICATION ] ---------------------------------------- #
+ifeq ($(board),posix)
+dir-y += $(LUA)
+dir-y += $(LUA)/src
+dir-y += $(LUA)/can
+dir-y += $(LUA)/can/rs232
+dir-y += $(LUA)/device
+dir-y += $(INFRASTRUCTURE)/system/shell
+dir-y += $(INFRASTRUCTURE)/libraries/ringbuffer
+dir-y += $(INFRASTRUCTURE)/communication/RPmsg
 
-WGET?=curl -O
-# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #		 
-# on C disk do the following command:
-## mklink /D IAR "D:/Program Files (x86)/IAR Systems/Embedded Workbench 7.0"
+inc-y += -I$(INFRASTRUCTURE)/include
+inc-y += -I$(INFRASTRUCTURE)/include/sys
+inc-y += -I$(APPLICATION)/common/config
+inc-y += -I$(APPLICATION)/board.$(board)/common
+inc-y += -I$(prj-dir)/com/as.tool/cancasexl.access
+inc-y += -I$(INFRASTRUCTURE)/arch/posix/mcal
+
+VPATH += $(APPLICATION)/common/config \
+	$(APPLICATION)/board.$(board)/common \
+	$(INFRASTRUCTURE)/arch/posix/mcal \
+	$(INFRASTRUCTURE)/clib \
+	$(INFRASTRUCTURE)/diagnostic/Det
+
+src-y += $(APPLICATION)/common/config/Rproc_Cfg.c
+src-y += $(APPLICATION)/common/config/VirtQ_Cfg.c
+src-y += $(APPLICATION)/common/config/RPmsg_Cfg.c
+src-y += $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c
+src-y += $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c
+src-y += $(INFRASTRUCTURE)/clib/strtok_r.c
+src-y += $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c
+endif
+ifeq ($(board),pyas)
+dir-y += $(LUA)/can
+dir-y += $(LUA)/can/rs232
+dir-y += $(LUA)/device
+dir-y += $(LUA)/pyas
+inc-y += -I$(INFRASTRUCTURE)/include
+inc-y += -I$(INFRASTRUCTURE)/include/sys
+
+VPATH += $(INFRASTRUCTURE)/diagnostic/Det
+src-y += $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c
+ifeq ($(host),Linux)
+else
+VPATH += $(INFRASTRUCTURE)/clib
+src-y += $(INFRASTRUCTURE)/clib/strtok_r.c
+endif
+endif
+# --------------------------------- [ COMPILER SPECIFICATION ] ---------------------------------------- #
 ifeq ($(compiler),posix-gcc)
 #cflags-y += -Werror
 COMPILER_DIR = 
@@ -67,29 +111,8 @@ export AR  = ar
 endif
 include ../make/posix.mk
 endif
-
-ifeq ($(compiler),arm-gcc)
-#cflags-y += -Werror
-COMPILER_DIR = /usr
-COMPILER_PREFIX = arm-linux-gnueabi-
-AS  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
-CC  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
-LD  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)gcc
-AR  = $(COMPILER_DIR)/bin/$(COMPILER_PREFIX)ar
-include ../make/posix.mk
-endif
-
 # --------------------------------- [ BOARD SPECIFICATION ] ------------------------------------------- #
 def-y    += -DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1
-ifeq ($(board),arm)
-def-y += -DLUA_USE_LINUX
-def-y += -D__LINUX__
-ldflags-y += -lrt -lm -lpthread -lg -ldl -lc
-ldflags-y += /usr/arm-linux-gnueabi/lib/libgcc_s.so.1
-ldflags-y += -lreadline -L$(download)/readline -lncurses -L$(download)/ncurses-6.0/lib
-inc-y += -I$(download)
-endif # board arm
-
 ifeq ($(board),posix)
 ifeq ($(host),Linux)
 def-y += -DLUA_USE_LINUX
@@ -117,7 +140,7 @@ ldflags-y += -lm -lstdc++
 def-y += -DUSE_IPC -DUSE_VIRTQ -DUSE_RPMSG -DUSE_SHELL
 
 cflags-y +=-Wextra 
-dllflags-y += -Wl,--version-script=$(src-dir)/asvirtual.version
+dllflags-y += -Wl,--version-script=$(VIRTUAL)/source/asvirtual.version
 endif	# posix end
 
 ifeq ($(board),pyas)
@@ -154,7 +177,6 @@ def-y += -D__TERMUX__
 inc-y += -I$(download)
 endif
 
-
 inc-y += -I$(inc-dir)
 def-y += -D__AS_BY_PARAI__	 
 def-y += -D$(board)_board
@@ -174,14 +196,19 @@ endif
 
 ldflags-y += -lpthread
 
+ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN*)
+
 ifeq ($(host), Linux)
 else
 ldflags-y += -lwsock32
 inc-y += -I$(download)/pcan-basic/"PCAN-Basic API"/Include
+
+ifeq ($(ISMINGW64),YES)
+inc-y += -I$(ZLGCAN)/ControlCAN/64
+else
+inc-y += -I$(ZLGCAN)/ControlCAN/32
 endif
-
-ZLGCAN?=$(wildcard $(download)/CAN_lib/CAN*)
-
+endif
 # --------------------------------- [ BUILD ACTIONs ] ------------------------------------------- #
 $(inc-dir)/utility:
 	@mkdir -p $@
@@ -189,23 +216,6 @@ $(inc-dir):
 	@mkdir -p $@
 $(src-dir):
 	@mkdir -p $@
-
-$(download)/readline:
-	@(cd $(download);git clone git://git.sv.gnu.org/readline.git;	\
-		cd readline;git checkout readline-7.0)
-
-asreadline:$(download)/readline
-	@(cd $(download)/readline; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all);
-
-$(download)/ncurses-6.0.tar.gz:
-	@(cd $(download);${WGET} http://ftp.gnu.org/gnu/ncurses/ncurses-6.0.tar.gz)
-
-$(download)/ncurses-6.0:$(download)/ncurses-6.0.tar.gz
-	@(cd $(download); tar xzf ncurses-6.0.tar.gz -C .)
-
-asncurse:$(download)/ncurses-6.0
-	@(cd $(download)/ncurses-6.0; ./configure --host=arm CC=arm-linux-gnueabi-gcc;make clean;make all)
-
 
 cleanaws:
 	@(cd $(LUA)/device/websock; make clean)
@@ -232,92 +242,46 @@ else
 endif
 endif
 
-dep-arm:asreadline asncurse aslibaws
-	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
-	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
-	@(echo "  >> prepare link for posix done")
-
 dep-posix: aslibaws
-	@(cd $(src-dir);$(LNFS) $(LUA)/src TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/main.c)
-	@(cd $(src-dir);$(LNFS) $(LUA)/laslib.c)
-	@(cd $(src-dir);$(LNFS) $(VIRTUAL)/source/asvirtual.version)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/system/shell TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/libraries/ringbuffer TRUE)
-ifeq ($(host),Linux)
-else
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(ISMINGW64),YES)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib .)
+	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/64/ControlCAN.lib .)
 else
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib .)
+	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/32/ControlCAN.lib .)
 endif
-endif
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/communication/RPmsg FALSE)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.c)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/RPmsg_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.c)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/Rproc_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.c)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/common/config/VirtQ_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.c)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/arch/posix/mcal/Ipc.h)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.c)
-	@(cd $(src-dir);$(LNFS) $(APPLICATION)/board.$(board)/common/Ipc_Cfg.h)
-	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
-	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)
 	@(echo "  >> prepare link for posix done")
 
 # check http://pyqt.sourceforge.net/Docs/sip4/installation.html	
 pysip:$(exe-dir)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pycan.h)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyasdev.h)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/pyas.sip)
 ifeq ($(host),Linux)
 else
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/PCANBasic.lib libPCANBasic.a)
-	@(cd $(exe-dir);$(LNFS) $(src-dir)/ControlCAN.lib libZLGCAN.a)
+ifeq ($(ISMINGW64),YES)
+	@(cd $(exe-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir);cp -f $(ZLGCAN)/ControlCAN/64/ControlCAN.lib libZLGCAN.a)
+else
+	@(cd $(exe-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib libPCANBasic.a)
+	@(cd $(exe-dir);cp -f $(ZLGCAN)/ControlCAN/32/ControlCAN.lib libZLGCAN.a)
+endif
 endif
 ifeq ($(USE_AWS),YES)
-	@(cd $(exe-dir);$(LNFS) $(LUA)/device/websock/out/libaws.a)
+	@(cd $(exe-dir);cp -f $(LUA)/device/websock/out/libaws.a .)
 endif
-	@echo $(PY) $(src-dir)/configure.py pyas.sip $(exe-dir)
-	@(cd $(exe-dir);$(PY) $(src-dir)/configure.py pyas.sip $(exe-dir))
+	@echo $(PY) $(LUA)/pyas/configure.py $(LUA)/pyas/pyas.sip $(exe-dir)
+	@(cd $(exe-dir);$(PY) $(LUA)/pyas/configure.py $(LUA)/pyas/pyas.sip $(exe-dir))
 	@echo "  >> pysip build done "
 
 dep-pyas: aslibaws
-	@(cd $(src-dir);$(LNFS) $(LUA)/can TRUE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/device FALSE)
-	@(cd $(src-dir);$(LNFS) $(LUA)/pyas TRUE)
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
 ifeq ($(host),Linux)
 else
-	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(ISMINGW64),YES)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib libPCANBasic.a)
+	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/64/ControlCAN.lib libZLGCAN.a)
 else
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(ZLGCAN)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib libPCANBasic.a)
+	@(cd $(src-dir);cp -f $(ZLGCAN)/ControlCAN/32/ControlCAN.lib libZLGCAN.a)
 endif
 endif
-	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
-	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/xlLoadlib.cpp xlLoadlib.c)	
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include FALSE)
-	@(cd $(inc-dir);$(LNFS) $(INFRASTRUCTURE)/include/sys)
 	@(make pysip)
 
 dep:$(src-dir) $(inc-dir) $(inc-dir)/utility dep-$(board)
@@ -328,7 +292,7 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ -I$(INFRASTRUCTURE)/include $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ -I$(INFRASTRUCTURE)/include $(LUA)/can/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
 	@cp -v $(exe-dir)/socketwin_can_driver.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 endif
@@ -347,21 +311,6 @@ clean-dist:clean
 	@rm -fv $(inc-dir)/*
 
 00:clean-dist
-
-# ---------------------------------- [ arm       ] ---------------------------------- #
-31:
-	make dep board=arm compiler=arm-gcc
-32:
-	make all board=arm compiler=arm-gcc debug=true
-	@cp $(exe-dir)/arm.exe $(rootfs)/usr/bin/aslua -v
-#	@cp /usr/arm-linux-gnueabi/lib/*.so* $(rootfs)/lib -v
-	@cp $(prj-dir)/com/as.tool/lua/script/*.lua $(rootfs)/example -v
-
-33:
-	make all board=arm compiler=arm-gcc debug=false	
-34:
-	make dll board=arm compiler=arm-gcc debug=true
-
 # ---------------------------------- [ posix       ] ---------------------------------- #
 91:
 	make dep board=posix compiler=posix-gcc
@@ -393,7 +342,7 @@ ifeq ($(host), Linux)
 else
 	@(cp -v $(exe-dir)/*.pyd $(prj-dir)/com/as.tool/lua/script)
 endif
-	@(cd $(prj-dir)/com/as.tool/as.one.py; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)
+	@(cd $(prj-dir)/com/as.tool/as.one.py; rm pyas; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)
 	@(cp -v $(exe-dir)/libpyas.a $(VIRTUAL)/source/libpyas.so)
 
 $(download):

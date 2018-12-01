@@ -50,10 +50,10 @@ endif
 debug ?= true
 ifeq ($(debug),true)
 cflags-y   += -c -g  -O0 -Wall
-ldflags-y  += -g  -O0 -Wall	
+ldflags-y  += -g  -O0 -Wall
 else
 cflags-y   += -c -O2 -Wall
-ldflags-y  += -O2 -Wall	
+ldflags-y  += -O2 -Wall
 endif
 
 dir-y += $(src-dir)
@@ -61,13 +61,14 @@ dir-y += $(src-dir)
 VPATH += $(dir-y)
 inc-y += $(foreach x,$(dir-y),$(addprefix -I,$(x)))
 
-ldflags-y += -Wl,-Map,$(exe-dir)/$(target-y).map	
+ldflags-y += -Wl,-Map,$(exe-dir)/$(target-y).map
 
 dllflags-y += -shared
 #dllflags-y += --share
-	
-obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))	
-obj-y += $(patsubst %.cpp,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.cpp)))))	
+
+obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(src-y),$(notdir $(x))))
+obj-y += $(patsubst %.c,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.c)))))
+obj-y += $(patsubst %.cpp,$(obj-dir)/%.o,$(foreach x,$(dir-y),$(notdir $(wildcard $(addprefix $(x)/*,.cpp)))))
 
 #common rules
 $(obj-dir)/%.o:%.cpp
@@ -91,7 +92,7 @@ ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> CC $(notdir $<)\"" >> build.bat
 	@echo "$(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<" >> build.bat
 endif
-	$(Q) $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<	
+	$(Q) $(CC) $(cflags-y) $(inc-y) $(def-y) -o $@ $<
 	
 .PHONY:all clean
 
@@ -119,11 +120,11 @@ ifeq ($(gen-mk),yes)
 	@echo "$(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe" >> build.bat
 endif
 	$(Q) $(LD) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).exe 
-	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"	
+	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 	
 dll: gen_mk_start $(obj-dir) $(exe-dir) $(obj-y) exe
 	@echo "  >> LD $(target-y).DLL"
-ifeq ($(gen-mk),yes)	
+ifeq ($(gen-mk),yes)
 	@echo "echo \"  >> LD $(target-y).DLL\"" >> build.bat
 	@echo "$(CC) $(dllflags-y) $(obj-y) $(ldflags-y) -o $(exe-dir)/$(target-y).dll" >> build.bat
 	@echo "pause" >> build.bat
@@ -134,7 +135,7 @@ endif
 lib:$(obj-dir) $(exe-dir) $(obj-y)
 	@echo "  >> LD $(target-y).LIB"
 	$(Q) $(AR) -r $(exe-dir)/lib$(target-y).a $(obj-y)
-	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"		
+	@echo ">>>>>>>>>>>>>>>>>  BUILD $(exe-dir)/$(target-y)  DONE   <<<<<<<<<<<<<<<<<<<<<<"
 
 clean-obj:
 	@rm -fv $(obj-dir)/*

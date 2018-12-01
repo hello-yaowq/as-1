@@ -28,7 +28,7 @@ def sip_makefile(sipfile,output):
     makefile.extra_libs = [module,'aws','pthread','m']
     makefile.extra_lib_dirs = [output]
     makefile.extra_defines  = []
-    makefile.extra_cflags = ['--std=gnu99']
+    makefile.extra_cflags = ['--std=gnu99','-I$(LUA)/pyas']
     if(os.name=='nt'):
        makefile.extra_libs.append('PCANBasic')
        makefile.extra_libs.append('pyas')

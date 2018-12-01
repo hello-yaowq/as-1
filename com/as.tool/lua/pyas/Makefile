@@ -9,7 +9,7 @@ PYDIR ?= $(shell dirname $(shell which python))
 CC = gcc
 CXX = g++
 LINK = g++
-CPPFLAGS = -DNDEBUG -DUNICODE -DQT_LARGEFILE_SUPPORT -I. -I$(PYDIR)/include
+CPPFLAGS = -DNDEBUG -DUNICODE -DQT_LARGEFILE_SUPPORT -I. -I$(PYDIR)/include -I$(LUA)/pyas
 CFLAGS = --std=gnu99 -O2 -Wall
 CXXFLAGS = -O2 -Wall
 CXXFLAGS += -D_hypot=hypot
