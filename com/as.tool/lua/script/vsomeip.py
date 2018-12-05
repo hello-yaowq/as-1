@@ -2,7 +2,7 @@ __lic__ = '''
 /**
  * AS - the open source Automotive Software on https://github.com/parai
  *
- * Copyright (C) 2017  AS <parai@foxmail.com>
+ * Copyright (C) 2018  AS <parai@foxmail.com>
  *
  * This source code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by the
@@ -16,9 +16,21 @@ __lic__ = '''
  '''
 
 # REF: https://github.com/GENIVI/vsomeip/wiki/vsomeip-in-10-minutes
-__all__ = ['vsomeip']
-
 import socket
+import struct
+
+VSOMEIP_SD_SERVICE=0xFFFF
+VSOMEIP_SD_METHOD =0x8100
+
+class sdentry():
+    def __init__(self, data=None):
+        if(data != None):
+            self.header = data[:16]
+            self.payload = data[16:]
+        else:
+            self.header = [0 for i in range(16)]
+            self.payload = []
+            self.set_protocol(1)
 
 class message():
     def __init__(self, data=None):
@@ -136,13 +148,26 @@ class message():
         return cstr
 
 class vsomeip():
-    def __init__(self, url='127.0.0.1', port=30490, udp=True):
+    def __init__(self, url='172.18.0.100', port=30509, 
+                 sdurl='224.244.224.245', sdport=30490,
+                 udp=True):
         if(udp):
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.sock.connect((url, port))
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((url, port))
+
+        self.sdsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.sdsock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        self.sdsock.bind(('', sdport))
+        mreq = struct.pack("4sl", socket.inet_aton(sdurl), socket.INADDR_ANY)
+        self.sdsock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+    def find_service(self):
+        data = self.sdsock.recv(4096)
+        return message(data)
+
     def request_service(self, data):
         self.sock.send(data)
         return self.receive()
@@ -156,11 +181,15 @@ if(__name__ == '__main__'):
     someip = vsomeip()
     msg = message()
     msg.set_service(0x1234)
-    msg.set_method(0x0421)
+    msg.set_method(0x5678)
     msg.set_client(1)
     msg.set_session(2)
     msg.set_payload([i for i in range(10)])
     print('TX', msg)
-    msg = someip.request_service(msg.data)
+    #msg = someip.request_service(msg.data)
+    msg = someip.find_service()
     print('RX', msg)
+    msg = someip.find_service()
+    print('RX', msg)
+
 
