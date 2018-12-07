@@ -38,6 +38,13 @@ typedef struct {
 	sint8 			sa_data[16];	// Address value
 } SoAd_SockAddrType;	/** @req SOAD113 */
 
+/* 10.2.16 SoAdRoutingGroup */
+typedef struct{
+	uint16  RoutingGroupId;
+	boolean RoutingGroupIsEnabledAtInit;
+	boolean RoutingGroupTxTriggerable;
+} SoAd_RoutingGroupType;
+
 typedef enum {
 	POLLIN = 0x0001,		// Any readable data available
 	POLLPRI = 0x0002,		// OOB/Urgent readable data

@@ -44,6 +44,7 @@ CirqBufferType CirqBuffStatCreate(void *buffer, int maxCnt, size_t dataSize);
 
 int CirqBuffPush( CirqBufferType *cPtr, void *dataPtr );
 int CirqBuffPop(CirqBufferType *cPtr, void *dataPtr );
+void *CirqBuff_Peek( CirqBufferType *cPtr, uint32 index );
 void *CirqBuff_PushLock( CirqBufferType *cPtr);
 void *CirqBuff_PopLock(CirqBufferType *cPtr );
 void CirqBuff_Init(CirqBufferType *cirqbuffer, void *buffer, int maxCnt, size_t dataSize);
@@ -57,6 +58,10 @@ static inline void CirqBuff_PushRelease( CirqBufferType *cPtr) {
 
 static inline void CirqBuff_PopRelease( CirqBufferType *cPtr) {
 	--cPtr->currCnt;
+}
+
+static inline int CirqBuff_Size( CirqBufferType *cPtr ){
+	return cPtr->currCnt;
 }
 
 

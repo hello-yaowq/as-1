@@ -49,6 +49,9 @@ if('RPMSG' in MODULES):
 if('SOAD' in MODULES):
     objs += Glob('config/SoAd*.c')
 
+if('SD' in MODULES):
+    objs += Glob('config/SD*.c')
+
 if('RTE' in MODULES):
     objs += Glob('rte/*.c')
     objs += Glob('rte/*.xml')

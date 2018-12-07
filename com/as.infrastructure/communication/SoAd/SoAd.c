@@ -839,11 +839,90 @@ void TcpIp_MainFunctionCyclic(void)
 
 }
 
-
-/** @req SOAD196*/
 Std_ReturnType TcpIp_SetDhcpHostNameOption(uint8* HostNameOption, uint8 HostNameLen)
 {
 	return E_OK;
 }
+
+#ifdef USE_SD
+Std_ReturnType SoAd_OpenSoCon( SoAd_SoConIdType SoConId )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_CloseSoCon( SoAd_SoConIdType SoConId, boolean abort )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_SetRemoteAddr( SoAd_SoConIdType SoConId, const TcpIp_SockAddrType* RemoteAddrPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_IfTransmit( PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_GetRemoteAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* IpAddrPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_GetSoConId( PduIdType TxPduId, SoAd_SoConIdType* SoConIdPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+Std_ReturnType SoAd_RequestIpAddrAssignment( SoAd_SoConIdType SoConId,
+		TcpIp_IpAddrAssignmentType Type, const TcpIp_SockAddrType* LocalIpAddrPtr,
+		uint8 Netmask, const TcpIp_SockAddrType* DefaultRouterPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_GetLocalAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* LocalAddrPtr,
+		uint8* NetmaskPtr, TcpIp_SockAddrType* DefaultRouterPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_EnableRouting( SoAd_RoutingGroupIdType id )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+Std_ReturnType SoAd_EnableSpecificRouting( SoAd_RoutingGroupIdType id, SoAd_SoConIdType SoConId )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_DisableRouting( SoAd_RoutingGroupIdType id )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_DisableSpecificRouting( SoAd_RoutingGroupIdType id, SoAd_SoConIdType SoConId )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+
+Std_ReturnType SoAd_Arc_GetSoConIdFromRxPdu( PduIdType RxPduId, SoAd_SoConIdType* SoConIdPtr )
+{
+	Std_ReturnType ercd = E_NOT_OK;
+	return ercd;
+}
+#endif
 #endif /* USE_SOAD */
 

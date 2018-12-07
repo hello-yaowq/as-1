@@ -42,6 +42,22 @@ class message():
             self.payload = []
             self.set_protocol(1)
 
+    def toHex(self,data):
+        cstr = ''
+        cstr2 = ''
+        for i,c in enumerate(data):
+            if((i%16) == 0):
+                cstr += '%s\n\t'%(cstr2)
+                cstr2 = ''
+            cstr += '%02X '%(c)
+            if(c>=32 and c<=126):
+                cstr2 += '%c'%(c)
+            else:
+                cstr2 += '.'
+        if(cstr2 != ''):
+            cstr += '   '*(15-i%16)+'%s'%(cstr2)
+        return cstr
+
     def set_message(self, message):
         self.header[0] = (message>>24)&0xFF
         self.header[1] = (message>>16)&0xFF
@@ -144,7 +160,7 @@ class message():
         cstr += ' ProtocolVersion=%d, InterfaceVersion=%d, MessageType=0x%02X, ReturnCode=%d\n'%(
             self.get_protocol(), self.get_interface(), self.get_type(), self.get_return())
         if(self.get_length()):
-            cstr += ' Payload=%s'%(self.get_payload())
+            cstr += ' Payload=%s'%(self.toHex(self.get_payload()))
         return cstr
 
 class vsomeip():
@@ -186,7 +202,7 @@ if(__name__ == '__main__'):
     msg.set_session(2)
     msg.set_payload([i for i in range(10)])
     print('TX', msg)
-    #msg = someip.request_service(msg.data)
+    msg = someip.request_service(msg.data)
     msg = someip.find_service()
     print('RX', msg)
     msg = someip.find_service()

@@ -147,6 +147,21 @@ int CirqBuffPop(CirqBufferType *cPtr, void *dataPtr ) {
 	return 0;
 }
 
+void *CirqBuff_Peek( CirqBufferType *cPtr, uint32 offset ){
+	void *dataPtr;
+	if( (cPtr==NULL) || (cPtr->currCnt == 0) || (offset > cPtr->currCnt) ) {
+		return NULL;
+	}
+	dataPtr = cPtr->tail;
+	for(uint32 i=0;i<offset;i++){
+		dataPtr = (char *)dataPtr + cPtr->dataSize;
+		if( dataPtr == cPtr->bufEnd) {
+			dataPtr = cPtr->bufStart;
+		}
+	}
+	return dataPtr;
+}
+
 void *CirqBuff_PushLock( CirqBufferType *cPtr) {
 	void *dataPtr;
 	if( (cPtr->currCnt == cPtr->maxCnt) || (cPtr==NULL) ) {
