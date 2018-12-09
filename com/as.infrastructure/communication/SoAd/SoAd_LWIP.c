@@ -65,6 +65,9 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 
 int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 {
+	int r;
+	ip_addr_t ipaddr;
+	ip_mreq mreq;
 	struct sockaddr_in sLocalAddr;
 
 	int on = 1;
@@ -88,7 +91,21 @@ int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 
 	sLocalAddr.sin_port = htons(SocketLocalPort);
 
-	return lwip_bind(s, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr));
+	r = lwip_bind(s, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr));
+
+	if(0 == r)
+	{
+		ipaddr.addr = sLocalAddr.sin_addr.s_addr;
+
+		if(ip_addr_ismulticast(&ipaddr))
+		{
+			mreq.imr_multiaddr.s_addr = sLocalAddr.sin_addr.s_addr;
+			mreq.imr_interface.s_addr = ipaddr_addr(LWIP_AS_LOCAL_IP_ADDR);
+			r = lwip_setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
+		}
+	}
+
+	return r;
 }
 
 int SoAd_ListenImpl(int s, int backlog)
