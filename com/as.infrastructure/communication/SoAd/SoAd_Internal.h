@@ -159,7 +159,7 @@ int SoAd_SocketStatusCheckImpl(int s);
 int SoAd_SendImpl(int s, const void *data, size_t size, int flags);
 int SoAd_SendToImpl(int s, const void *data, size_t size, uint32 RemoteIpAddress, uint16 RemotePort);
 int SoAd_CreateSocketImpl(int domain, int type, int protocol);
-int SoAd_BindImpl(int s, uint16 SocketLocalPort);
+int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress);
 int SoAd_ListenImpl(int s, int backlog);
 int SoAd_AcceptImpl(int s, uint32 *RemoteIpAddress, uint16 *RemotePort);
 int SoAd_RecvFromImpl(int s, void *mem, size_t len, int flags,

@@ -79,14 +79,6 @@ static const Sd_ClientServiceType Sd_ClientService[1];
 
 static const Sd_ServerServiceType Sd_ServerService[1];
 
-
-static const Sd_InstanceType Sd_Instance[SD_NUMBER_OF_INSTANCES] =
-{
-	{
-		.HostName = "someip",
-	}
-};
-
 static const Sd_InstanceType Sd_InstanceCfg =
 {
 	.HostName = "someip",
@@ -96,10 +88,10 @@ static const Sd_InstanceType Sd_InstanceCfg =
 #if defined(USE_DEM)
 	.DemEventParameterRefs = NULL,
 #endif
-	.MulticastRxPduId = 0xDB,
+	.MulticastRxPduId = SD_RX_MULTICAST_PDUID,
 	.MulticastRxPduSoConRef = 0xDB,
 	.TxPduId = 0xDB,
-	.UnicastRxPduId = 0xDB,
+	.UnicastRxPduId = SD_RX_UNICAST_PDUID,
 	.UnicastRxPduSoConRef = 0xDB,
 	.SdNoOfServerServices = ARRAY_SIZE(Sd_ServerService),
 	.SdServerService = Sd_ServerService,
@@ -113,7 +105,7 @@ static Sd_DynInstanceType Sd_DynInstance = {
 };
 
 const Sd_ConfigType Sd_Config = {
-	.Instance = Sd_Instance
+	.Instance = &Sd_InstanceCfg
 };
 
 const Sd_DynConfigType Sd_DynConfig =

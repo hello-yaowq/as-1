@@ -66,7 +66,8 @@ typedef enum {
 	SOAD_UL_CDD,
 	SOAD_UL_PDUR,
 	SOAD_UL_UDPNM,
-	SOAD_UL_XCP
+	SOAD_UL_XCP,
+	SOAD_UL_SD
 } SoAd_ULType;
 
 // 10.2.5 SoAdSocketConnection

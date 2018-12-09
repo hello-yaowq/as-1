@@ -280,7 +280,8 @@ static void socketCreate(uint16 sockNr)
     sockFd = SoAd_CreateSocketImpl(AF_INET, sockType, 0);
     if (sockFd >= 0) {
         ASLOG(SOAD,"SoAd create socket[%d] okay.\n",sockNr);
-		r = SoAd_BindImpl(sockFd, SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
+		r = SoAd_BindImpl(sockFd, SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort,
+				SocketAdminList[sockNr].SocketConnectionRef->SocketLocalIpAddress);
 		if(r >= 0) {
 			ASLOG(SOAD,"SoAd bind socket[%d] on port %d okay.\n",sockNr,
                 SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
@@ -463,11 +464,16 @@ static void socketUdpRead(uint16 sockNr)
 							/* NOTE Find out how autosar connector and user really shall be used. This is just one interpretation
 							 * support for XCP, CDD will have to be added later when supported */
 							switch(SocketAdminList[sockNr].SocketRouteRef->UserRxIndicationUL){
-	#if defined(USE_UDPNM)
+							#if defined(USE_UDPNM)
 							case SOAD_UL_UDPNM:
 								(void)UdpNm_SoAdIfRxIndication(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, &pduInfo);
 								break;
-	#endif
+							#endif
+							#ifdef USE_SD
+							case SOAD_UL_SD:
+								Sd_RxIndication(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, &pduInfo);
+								break;
+							#endif
 							default:
 								(void)PduR_SoAdIfRxIndication(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, &pduInfo);
 								break;
@@ -874,8 +880,7 @@ Std_ReturnType SoAd_SetRemoteAddr( SoAd_SoConIdType SoConId, const TcpIp_SockAdd
 
 Std_ReturnType SoAd_IfTransmit( PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr )
 {
-	Std_ReturnType ercd = E_NOT_OK;
-	return ercd;
+	return SoAdIf_Transmit(SoAdSrcPduId, SoAdSrcPduInfoPtr);
 }
 
 Std_ReturnType SoAd_GetRemoteAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* IpAddrPtr )

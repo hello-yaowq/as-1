@@ -16,6 +16,9 @@
 #ifdef USE_SOAD
 #include "SoAd.h"
 #include "PduR.h"
+#ifdef USE_SD
+#include "SD.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
@@ -23,19 +26,30 @@
 static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT] =
 {
 	{	/* for DCM */
-		.SocketRemoteIpAddress = "172.18.0.200",
-		.SocketRemotePort = 8989,
-		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
+		.SocketId = 0,
+		.SocketLocalIpAddress = NULL,
 		.SocketLocalPort = 8989,
+		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	},
-	{	/* for COM */
-		.SocketRemoteIpAddress = "172.18.0.200",
-		.SocketRemotePort = 3344,
-		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
-		.SocketLocalPort = 3344,
+#ifdef USE_SD
+	{	/* for SD UNICAST */
+		.SocketId = 1,
+		.SocketLocalIpAddress = NULL,
+		.SocketLocalPort = 30509,
+		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_PDUR,
-	}
+		.PduProvideBufferEnable = FALSE,
+	},
+	{	/* for SD MULTICAST */
+		.SocketId = 2,
+		.SocketLocalIpAddress = "224.244.224.245",
+		.SocketLocalPort = 30490,
+		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
+		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_PDUR,
+		.PduProvideBufferEnable = FALSE,
+	},
+#endif
 };
 static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[DOIP_TARGET_COUNT]=
 {
@@ -71,14 +85,37 @@ static const SoAd_PduRouteType SoAd_PduRoute[SOAD_PDU_ROUTE_COUNT] =
 	{	/* for DCM */
 		.DestinationSocketRef = &SoAd_SocketConnection[0],
 		.SourcePduId = PDUR_ID_SOAD_TX,
-	},
-	{	/* for COM */
-		.DestinationSocketRef = &SoAd_SocketConnection[1]
-	},
+	}
 };
+
+static const SoAd_SocketRouteType SoAd_SocketRoute[SOAD_SOCKET_ROUTE_COUNT] =
+{
+	{
+		.SourceSocketRef = &SoAd_SocketConnection[0],
+		.SourceId = 0,
+	},
+#ifdef USE_SD
+	{
+		.SourceSocketRef = &SoAd_SocketConnection[1],
+		.SourceId = 1,
+		.DestinationPduId = SD_RX_UNICAST_PDUID,
+		.DestinationSduLength = 16, /* the SOMEIP message header size is 16 */
+		.UserRxIndicationUL = SOAD_UL_SD
+	},
+	{
+		.SourceSocketRef = &SoAd_SocketConnection[2],
+		.SourceId = 2,
+		.DestinationPduId = SD_RX_MULTICAST_PDUID,
+		.DestinationSduLength = 16, /* the SOMEIP message header size is 16 */
+		.UserRxIndicationUL = SOAD_UL_SD
+	},
+#endif
+};
+
 const SoAd_ConfigType SoAd_Config =
 {
 	.SocketConnection = SoAd_SocketConnection,
+	.SocketRoute = SoAd_SocketRoute,
 	.DoIpTargetAddresses = SoAd_DoIpTargetAddresses,
 	.DoIpTesters= SoAd_DoIpTesters,
 	.DoIpRoutingActivations = SoAd_DoIpRoutingActivations,

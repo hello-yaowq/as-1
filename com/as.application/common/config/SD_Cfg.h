@@ -26,6 +26,9 @@
 
 #define SchM_Enter_SD_EA_0() Irq_Disable()
 #define SchM_Exit_SD_EA_0() Irq_Enable()
+
+#define SD_RX_UNICAST_PDUID   0
+#define SD_RX_MULTICAST_PDUID 1
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DECLARES  ] ====================================================== */

@@ -63,7 +63,7 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 	return lwip_socket(domain, type, protocol);
 }
 
-int SoAd_BindImpl(int s, uint16 SocketLocalPort)
+int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 {
 	struct sockaddr_in sLocalAddr;
 
@@ -77,7 +77,15 @@ int SoAd_BindImpl(int s, uint16 SocketLocalPort)
 	sLocalAddr.sin_family = AF_INET;
 	sLocalAddr.sin_len = sizeof(sLocalAddr);
 
-	sLocalAddr.sin_addr.s_addr = htonl(INADDR_ANY);		/* NOTE: Use IP from configuration instead */
+	if(NULL == SocketLocalIpAddress)
+	{
+		sLocalAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	}
+	else
+	{
+		sLocalAddr.sin_addr.s_addr = ipaddr_addr(SocketLocalIpAddress);
+	}
+
 	sLocalAddr.sin_port = htons(SocketLocalPort);
 
 	return lwip_bind(s, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr));

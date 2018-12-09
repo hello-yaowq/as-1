@@ -181,7 +181,7 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 	return r;
 }
 
-int SoAd_BindImpl(int s, uint16 SocketLocalPort)
+int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 {
 	int r = -1;
 	if((s < 32) && ((1<<s)&tcpSocketFlag))

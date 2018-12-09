@@ -19,6 +19,7 @@
 #include <sys/time.h>
 /* ============================ [ MACROS    ] ====================================================== */
 #define LWIP_ICMP 1
+#define LWIP_IGMP 1
 #ifndef LWIP_DHCP
 #define LWIP_DHCP 0
 #endif
@@ -32,6 +33,8 @@
 #define EVENT_MASK_SLEEP_TCPIP EVENT_MASK_TaskLwip_Event22
 #define EVENT_MASK_START_TCPIP EVENT_MASK_TaskLwip_Event23
 #define TASK_ID_tcpip_task TASK_ID_TaskLwip
+
+#define LWIP_RAND() rand()
 
 #ifndef MEM_ALIGNMENT
 #define MEM_ALIGNMENT 4

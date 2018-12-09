@@ -164,7 +164,7 @@ class message():
         return cstr
 
 class vsomeip():
-    def __init__(self, url='172.18.0.100', port=30509, 
+    def __init__(self, url='172.18.0.200', port=30509, 
                  sdurl='224.244.224.245', sdport=30490,
                  udp=True):
         if(udp):
@@ -203,6 +203,8 @@ if(__name__ == '__main__'):
     msg.set_payload([i for i in range(10)])
     print('TX', msg)
     msg = someip.request_service(msg.data)
+    print('ACK', msg)
+    exit()
     msg = someip.find_service()
     print('RX', msg)
     msg = someip.find_service()
