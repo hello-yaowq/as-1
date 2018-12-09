@@ -142,6 +142,10 @@
 #define malloc rt_malloc
 #define strcmp rt_strcmp
 #endif
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
+#endif
 /* ============================ [ TYPES     ] ====================================================== */
 #if defined(USE_LINUX)
 /* Exact integral types.  */

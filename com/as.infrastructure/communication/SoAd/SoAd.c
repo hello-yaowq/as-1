@@ -24,6 +24,10 @@
 #include "SchM_cfg.h"
 #include "MemMap.h"
 
+#ifdef USE_SD
+#include "SD.h"
+#endif
+
 #include "Det.h"
 #if defined(USE_DEM)
 #include "Dem.h"
@@ -818,11 +822,16 @@ void TcpIp_Init(void)
 #endif
 
 	#ifdef USE_LWIP
-    LwIP_Init();
+	LwIP_Init();
 	#endif
 	#ifdef USE_UIP
 	/* contiki uip socket is started up by EcuM */
 	#endif
+
+#ifdef USE_SD
+	Sd_Init(NULL);
+#endif
+
 }
 
 
