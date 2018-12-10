@@ -316,6 +316,7 @@
 #include "SchM_SoAd.h"
 #else
 #define SCHM_MAINFUNCTION_SOAD()
+#define SCHM_MAINFUNCTION_SD()
 #endif
 
 #ifdef USE_STMO

@@ -16,13 +16,15 @@ __lic__ = '''
  '''
 
 # REF: https://github.com/GENIVI/vsomeip/wiki/vsomeip-in-10-minutes
+# CMD: route add -nv 224.224.224.245 dev eth0
+# CMD: route add -nv 224.224.224.246 dev wifi0
 import socket
 import struct
 
 VSOMEIP_SD_SERVICE=0xFFFF
 VSOMEIP_SD_METHOD =0x8100
 
-class sdentry():
+class Message():
     def __init__(self, data=None):
         if(data != None):
             self.header = data[:16]
@@ -32,31 +34,11 @@ class sdentry():
             self.payload = []
             self.set_protocol(1)
 
-class message():
-    def __init__(self, data=None):
-        if(data != None):
-            self.header = data[:16]
-            self.payload = data[16:]
-        else:
-            self.header = [0 for i in range(16)]
-            self.payload = []
-            self.set_protocol(1)
-
-    def toHex(self,data):
-        cstr = ''
-        cstr2 = ''
-        for i,c in enumerate(data):
-            if((i%16) == 0):
-                cstr += '%s\n\t'%(cstr2)
-                cstr2 = ''
-            cstr += '%02X '%(c)
-            if(c>=32 and c<=126):
-                cstr2 += '%c'%(c)
-            else:
-                cstr2 += '.'
-        if(cstr2 != ''):
-            cstr += '   '*(15-i%16)+'%s'%(cstr2)
-        return cstr
+    def is_malformed(self):
+        ret = False
+        if((self.get_length()+4) != (len(self.header)+len(self.payload))):
+            ret = True
+        return ret
 
     def set_message(self, message):
         self.header[0] = (message>>24)&0xFF
@@ -143,7 +125,7 @@ class message():
 
     def set_payload(self, payload):
         self.payload = payload
-        self.set_length(len(payload))
+        self.set_length(len(payload)+12)
 
     def get_payload(self):
         return self.payload
@@ -152,20 +134,113 @@ class message():
     def data(self):
         return bytes(self.header+self.payload)
 
-    def __str__(self):
+    def tostr_header(self):
         cstr = 'SOMEIP Message:\n'
         cstr += ' Service=0x%04X, Method=0x%04X\n'%(self.get_service(), self.get_method())
         cstr += ' Length=0x%08X\n'%(self.get_length())
         cstr += ' Client=0x%04X, Session=0x%04X\n'%(self.get_client(), self.get_session())
         cstr += ' ProtocolVersion=%d, InterfaceVersion=%d, MessageType=0x%02X, ReturnCode=%d\n'%(
-            self.get_protocol(), self.get_interface(), self.get_type(), self.get_return())
+                self.get_protocol(), self.get_interface(), self.get_type(), self.get_return())
+        return cstr
+
+    def __str__(self):
+        cstr = self.tostr_header()
         if(self.get_length()):
-            cstr += ' Payload=%s'%(self.toHex(self.get_payload()))
+            cstr += ' Payload=%s'%(self.get_payload())
+        return cstr
+
+class SDMessage(Message):
+    def __init__(self, data=None):
+        Message.__init__(self,data)
+        if(data != None):
+            self.is_malformed()
+    
+    def is_malformed(self):
+        cstr=''
+        if(self.get_service() != VSOMEIP_SD_SERVICE):
+            cstr+=' serivce is 0x%04X != 0x%04X'%(self.get_service(), VSOMEIP_SD_SERVICE)
+        if(self.get_method() != VSOMEIP_SD_METHOD):
+            cstr+=' method is 0x%04X != 0x%04X'%(self.get_method(), VSOMEIP_SD_METHOD)
+        numberOfEntry = int(self.get_entry_length()/16)
+        for index in range(numberOfEntry):
+            if(self.get_entry_type(index) not in [0,1,6,7]):
+                cstr += ' entry %d wrong type %d'%(index, self.get_entry_type(index))
+        if(cstr != ''):
+            print('malformed SD message:\n%s'%(cstr))
+            return True
+        else:
+            return False
+
+    def get_flags(self):
+        return self.payload[0]
+
+    def get_reserved(self):
+        return (self.payload[1]<<16)+(self.payload[2]<<8)+self.payload[3]
+
+    def get_entry_length(self):
+        return (self.payload[4]<<24)+(self.payload[5]<<16)+(self.payload[6]<<8)+self.payload[7]
+
+    def get_entry_type(self, index):
+        return self.payload[8+index*16+0]
+
+    def get_entry_index_1st_options(self, index):
+        return self.payload[8+index*16+1]
+
+    def get_entry_index_2nd_options(self, index):
+        return self.payload[8+index*16+2]
+
+    def get_entry_of_opt_1(self, index):
+        return (self.payload[8+index*16+3]>>4)&0xF
+
+    def get_entry_of_opt_2(self, index):
+        return self.payload[8+index*16+3]&0xF
+
+    def get_entry_service(self, index):
+        return (self.payload[8+index*16+4]<<8)+self.payload[8+index*16+5]
+
+    def get_entry_instance(self, index):
+        return (self.payload[8+index*16+6]<<8)+self.payload[8+index*16+7]
+
+    def get_entry_major(self, index):
+        return self.payload[8+index*16+8]
+
+    def get_entry_ttl(self, index):
+        return (self.payload[8+index*16+9]<<16)+(self.payload[8+index*16+10]<<8)+self.payload[8+index*16+11]
+
+    def get_entry_reserved(self, index):
+        return (self.payload[8+index*16+12]<<4)+((self.payload[8+index*16+13]>>4)&0xF)
+
+    def get_entry_counter(self, index):
+        return (self.payload[8+index*16+13]&0xF)
+
+    def get_entry_enent_group(self, index):
+        return (self.payload[8+index*16+14]<<8)+self.payload[8+index*16+15]
+
+    def get_entry_minor(self, index):
+        return (self.payload[8+index*16+12]<<24)+(self.payload[8+index*16+13]<<16)+(self.payload[8+index*16+14]<<8)+self.payload[8+index*16+15]
+
+    def __str__(self):
+        cstr = self.tostr_header()
+        #cstr += ' Payload=%s\n'%(self.get_payload())
+        cstr += ' flags=0x%02X, reserved=0x%06X\n'%(self.get_flags(), self.get_reserved())
+        cstr += ' entry length=0x%08X\n'%(self.get_entry_length())
+        numberOfEntry = int(self.get_entry_length()/16)
+        for index in range(numberOfEntry):
+            cstr += ' Entry %d:\n'%(index)
+            cstr += '  type=0x%02X, index 1st options=0x%02X, index 2nd options=0x%02X, # of opt 1=0x%X, # of opt 2=0x%X\n'%(
+                self.get_entry_type(index), self.get_entry_index_1st_options(index), self.get_entry_index_2nd_options(index),
+                self.get_entry_of_opt_1(index), self.get_entry_of_opt_2(index))
+            cstr += '  service=0x%04X, instance=0x%04X\n'%(self.get_entry_service(index), self.get_entry_instance(index))
+            cstr += '  major=0x%02X, ttl=0x%06X\n'%(self.get_entry_major(index), self.get_entry_ttl(index))
+            if((self.get_entry_type(index)==6) or (self.get_entry_type(index)==7)):
+                cstr += '  minor=0x%08X\n'%(self.get_entry_minor(index))
+            else:
+                cstr += '  minor=0x%08X\n'%(self.get_entry_minor(index))
         return cstr
 
 class vsomeip():
-    def __init__(self, url='172.18.0.200', port=30509, 
-                 sdurl='224.244.224.245', sdport=30490,
+    def __init__(self, url='192.168.1.100', port=30509, 
+                 sdurl='224.244.224.246', sdport=30490,
                  udp=True):
         if(udp):
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -182,7 +257,7 @@ class vsomeip():
 
     def find_service(self):
         data = self.sdsock.recv(4096)
-        return message(data)
+        return SDMessage(data)
 
     def request_service(self, data):
         self.sock.send(data)
@@ -190,21 +265,21 @@ class vsomeip():
 
     def receive(self):
         data = self.sock.recv(4096)
-        return message(data)
+        return Message(data)
 
 if(__name__ == '__main__'):
     import sys
     someip = vsomeip()
-    msg = message()
+    msg = Message()
     msg.set_service(0x1234)
     msg.set_method(0x5678)
-    msg.set_client(1)
-    msg.set_session(2)
+    msg.set_client(0)
+    msg.set_session(0x053E)
     msg.set_payload([i for i in range(10)])
     print('TX', msg)
-    msg = someip.request_service(msg.data)
+    #msg = someip.request_service(msg.data)
+    #msg = receive()
     print('ACK', msg)
-    exit()
     msg = someip.find_service()
     print('RX', msg)
     msg = someip.find_service()

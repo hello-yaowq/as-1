@@ -129,9 +129,9 @@ int SoAd_AcceptImpl(int s, uint32 *RemoteIpAddress, uint16 *RemotePort)
 
 		/* New connection established */
 		int on = 1;
-    	lwip_ioctl(clientFd, FIONBIO, &on);	/* Set socket to non block mode */
+		lwip_ioctl(clientFd, FIONBIO, &on);	/* Set socket to non block mode */
 
-    	lwip_setsockopt(clientFd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));	/* Set socket to no delay */
+		lwip_setsockopt(clientFd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));	/* Set socket to no delay */
 
 		*RemotePort = client_addr.sin_port;
 		*RemoteIpAddress = client_addr.sin_addr.s_addr;
