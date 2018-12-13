@@ -2,6 +2,8 @@
  * Copyright (C) 2013, ArcCore AB, Sweden, www.arccore.com.
  * Contact: <contact@arccore.com>
  *
+ * Copyright (C) 2018  AS <parai@foxmail.com>
+ *
  * You may ONLY use this file:
  * 1)if you have a valid commercial ArcCore license and then in accordance with
  * the terms contained in the written license agreement between you and ArcCore,
@@ -16,8 +18,6 @@
 
 #include "SD.h"
 #include "SD_Internal.h"
-
-#define SD_LITTLE_ENDIAN TRUE /* IMPROVEMENT:  Can this be fetched somewhere, or made configurable? */
 
 #define CONFIG_TYPE        0x01
 #define IPV4ENDPOINT_TYPE  0x04
@@ -34,95 +34,35 @@ uint32 RandomDelay(uint32 min_ms, uint32 max_ms)
     return r;
 }
 
-/* Convert to network byte order */
-/** @req 4.2.2/SWS_SD_00037 */
-uint32 htonl(uint32 lValue1) {
-    uint32 lValue2 = 0;
-
-    if (SD_LITTLE_ENDIAN){
-        lValue2 |= (lValue1 & 0xFF000000) >> 24;
-        lValue2 |= (lValue1 & 0x00FF0000) >> 8;
-        lValue2 |= (lValue1 & 0x0000FF00) << 8;
-        lValue2 |= (lValue1 & 0x000000FF) << 24;
-    }
-    else
-    {
-        lValue2 = lValue1;
-    }
-
-    return (lValue2);
-}
-
-/* Convert to network byte order */
-uint16 htonl16(uint16 lValue1) {
-    uint16 lValue2 = 0;
-
-    if (SD_LITTLE_ENDIAN){
-        lValue2 |= (lValue1 & 0xFF00) >> 8;
-        lValue2 |= (lValue1 & 0x00FF) << 8;
-    }
-    else
-    {
-        lValue2 = lValue1;
-    }
-
-    return (lValue2);
-}
-
 /* Fills the uint8 array with data from the Sd_Message
  * according to message format in chapter 7.3 of SD spec.
  *
  */
-/** @req 4.2.2/SWS_SD_00030 **/
-/** @req 4.2.2/SWS_SD_00031 **/
-/** @req 4.2.2/SWS_SD_00032 **/
-/** @req 4.2.2/SWS_SD_00158 **/
-void FillMessage(Sd_Message msg, uint8* message, uint32 *length)
+void FillMessage(Sd_Message* msg, uint8* message, uint32 *length)
 {
+    WRITE32_NA(&message[0], msg->MessageID);
+    WRITE32_NA(&message[4], msg->Length);
+    WRITE32_NA(&message[8], msg->RequestID);
 
-    /* Header information incl. Entries array length*/
-    uint32 offset = 0;
-    uint32 row = 0;
+    message[12] = msg->ProtocolVersion;
+    message[13] = msg->InterfaceVersion;
+    message[14] = msg->MessageType;
+    message[15] = msg->ReturnCode;
 
-    row = htonl(msg.RequestID);
-    memcpy(&message[offset], &row, 4);
+    message[16] = msg->Flags;
+    WRITE24_NA(&message[17], msg->Reserved);
 
-    offset += 4;
-    /** @req 4.2.2/SWS_SD_00140 **/
-    message[offset] = msg.ProtocolVersion;
-    /** @req 4.2.2/SWS_SD_00142 **/
-    message[offset + 1] = msg.InterfaceVersion;
-    /** @req 4.2.2/SWS_SD_00144 **/
-    message[offset + 2] = msg.MessageType;
-    /** @req 4.2.2/SWS_SD_00146 **/
-    message[offset + 3] = msg.ReturnCode;
-
-    offset += 4;
-    /** @req 4.2.2/SWS_SD_00149 **/
-    /** @req 4.2.2/SWS_SD_00155 **/
-    row = (uint32) ((msg.Flags << 24) | msg.Reserved);
-    row = htonl(row);
-    memcpy(&message[offset], &row, 4);
-
-    /** @req 4.2.2/SWS_SD_00157 **/
-    offset += 4;
-    row = htonl(msg.LengthOfEntriesArray);
-    memcpy(&message[offset], &row, 4);
+    WRITE32_NA(&message[20], msg->LengthOfEntriesArray);
 
     /* Entries Array */
-    offset += 4;
-    memcpy(&message[offset], msg.EntriesArray, msg.LengthOfEntriesArray);
+    memcpy(&message[24], msg->EntriesArray, msg->LengthOfEntriesArray);
 
-    /* Options array length */
-    offset += msg.LengthOfEntriesArray;
-    row = htonl(msg.LengthOfOptionsArray);
-    memcpy(&message[offset], &row, 4);
+    WRITE32_NA(&message[24+msg->LengthOfEntriesArray], msg->LengthOfOptionsArray);
 
     /* Options array */
-    offset += 4;
-    memcpy(&message[offset], msg.OptionsArray, msg.LengthOfOptionsArray);
+    memcpy(&message[28+msg->LengthOfEntriesArray], msg->OptionsArray, msg->LengthOfOptionsArray);
 
-    *length = offset + msg.LengthOfOptionsArray;
+    *length = 28+msg->LengthOfEntriesArray+msg->LengthOfOptionsArray;
 }
 
 /* Fills the uint8 array with data from the Sd_Type1Entry
@@ -133,35 +73,18 @@ void FillMessage(Sd_Message msg, uint8* message, uint32 *length)
 /** @req 4.2.2/SWS_SD_00159 **/
 void FillType1Entry(Sd_Entry_Type1_Services entry, uint8 *entry_array){
 
-    uint32 row = 0;
-    uint16 value = 0;
-
-    /** @req 4.2.2/SWS_SD_0163 */
-    /** @req 4.2.2/SWS_SD_0165 */
-    /** @req 4.2.2/SWS_SD_0167 */
-    /** @req 4.2.2/SWS_SD_0169 */
     entry_array[0] = entry.Type;
     entry_array[1] = entry.IndexFirstOptionRun;
     entry_array[2] = entry.IndexSecondOptionRun;
     entry_array[3] = (((entry.NumberOfOption1 << 4) & 0xF0) | (entry.NumberOfOption2 & 0x0F));
 
-    /** @req 4.2.2/SWS_SD_0172 */
-    value = htonl16(entry.ServiceID);
-    memcpy(&entry_array[4], &value, 2);
+    WRITE16_NA(&entry_array[4], entry.ServiceID);
+    WRITE16_NA(&entry_array[6], entry.InstanceID);
 
-    /** @req 4.2.2/SWS_SD_0174 */
-    value = htonl16(entry.InstanceID);
-    memcpy(&entry_array[6], &value, 2);
-
-    /** @req 4.2.2/SWS_SD_0177 */
-    /** @req 4.2.2/SWS_SD_0179 */
-    row = htonl(entry.TTL);
-    memcpy (&entry_array[8], &row, 4);
     entry_array[8] = entry.MajorVersion;
+    WRITE24_NA(&entry_array[9], entry.TTL);
 
-    /** @req 4.2.2/SWS_SD_0181 */
-    row = htonl(entry.MinorVersion);
-    memcpy (&entry_array[12], &row, 4);
+    WRITE32_NA(&entry_array[12], entry.MinorVersion);
 }
 
 /* Fills the uint8 array with data from the Sd_Type2Entry
@@ -172,44 +95,17 @@ void FillType1Entry(Sd_Entry_Type1_Services entry, uint8 *entry_array){
 void FillType2Entry(Sd_Entry_Type2_EventGroups entry, uint8 *entry_array){
 
     uint32 row = 0;
-    uint16 value = 0;
 
-    /** @req 4.2.2/SWS_SD_0163 */
-    /** @req 4.2.2/SWS_SD_0165 */
-    /** @req 4.2.2/SWS_SD_0167 */
-    /** @req 4.2.2/SWS_SD_0169 */
     entry_array[0] = entry.Type;
-    /** @req 4.2.2/SWS_SD_0185 **/
     entry_array[1] = entry.IndexFirstOptionRun;
-    /** @req 4.2.2/SWS_SD_0186 **/
     entry_array[2] = entry.IndexSecondOptionRun;
-    /** @req 4.2.2/SWS_SD_0387 **/
-    /** @req 4.2.2/SWS_SD_0189 **/
     entry_array[3] = (((entry.NumberOfOption1 << 4) & 0xF0) | (entry.NumberOfOption2 & 0x0F));
-
-    /** @req 4.2.2/SWS_SD_0192 **/
-    value = htonl16(entry.ServiceID);
-    memcpy(&entry_array[4], &value, 2);
-    /** @req 4.2.2/SWS_SD_0194 **/
-    value = htonl16(entry.InstanceID);
-    memcpy(&entry_array[6], &value, 2);
-
-    /** @req 4.2.2/SWS_SD_0199 **/
-    row = htonl(entry.TTL);
-    memcpy (&entry_array[8], &row, 4);
-    /** @req 4.2.2/SWS_SD_0197 **/
+    WRITE16_NA(&entry_array[4], entry.ServiceID);
+    WRITE16_NA(&entry_array[6], entry.InstanceID);
     entry_array[8] = entry.MajorVersion;
-
-    /** @req 4.2.2/SWS_SD_0201 **/
-    /** @req 4.2.2/SWS_SD_0202 **/
-    /** @req 4.2.2/SWS_SD_0300 */
-    /** @req 4.2.2/SWS_SD_0156 */
-    row = (uint32)0; /* Assure reserved field is all 0 */
-    /** @req 4.2.2/SWS_SD_0203 **/
-    /** @req 4.2.2/SWS_SD_0691 **/
+    WRITE24_NA(&entry_array[9], entry.TTL);
     row = (uint32) (((entry.Counter & 0x0F) << 16) | (entry.EventgroupID));
-    row = htonl(row);
-    memcpy (&entry_array[12], &row, 4);
+    WRITE32_NA(&entry_array[12], row);
 
 }
 
@@ -228,12 +124,9 @@ void DecodeType1Entry(uint8 *entries_array, Sd_Entry_Type1_Services *entry)
     entry->InstanceID = entries_array[6] * 256 + entries_array[7];
 
     entry->MajorVersion = entries_array[8];
-    memcpy(&row, &entries_array[8], 4);
-    row = htonl(row);
-    entry->TTL = (uint32) (row & 0x00FFFFFF);
+    entry->TTL = (uint32) READ24_NA(&entries_array[9]);
 
-    memcpy(&row, &entries_array[12], 4);
-    entry->MinorVersion = htonl(row);
+    entry->MinorVersion = READ32_NA(&entries_array[12]);;
 
 }
 
@@ -251,12 +144,9 @@ void DecodeType2Entry(uint8 *entries_array, Sd_Entry_Type2_EventGroups *entry)
     entry->InstanceID = entries_array[6] * 256 + entries_array[7];
 
     entry->MajorVersion = entries_array[8];
-    memcpy(&row, &entries_array[8], 4);
-    row = htonl(row);
-    entry->TTL = (uint32) (row & 0x00FFFFFF);
+    entry->TTL = (uint32) READ24_NA(&entries_array[9]);;
 
-    memcpy(&row, &entries_array[12], 4);
-    row = htonl(row);
+    row = READ32_NA(&entries_array[12]);
     entry->Counter = (uint8) ((row &0x000F0000) >> 16);
     entry->EventgroupID = (uint16) (row & 0x0000FFFF);
 
@@ -265,36 +155,26 @@ void DecodeType2Entry(uint8 *entries_array, Sd_Entry_Type2_EventGroups *entry)
 /** @req 4.2.2/SWS_SD_0479 **/
 void DecodeMessage(Sd_Message *msg, uint8* message, uint32 length)
 {
-    uint32 offset = 0;
-    uint32 row = 0;
+    msg->MessageID = READ32_NA(&message[0]);
+    msg->Length    = READ32_NA(&message[4]);
+    msg->RequestID = READ32_NA(&message[8]);
 
-    memcpy (&row, &message[offset], 4);
-    msg->RequestID = htonl(row);
+    msg->ProtocolVersion = message[12];
+    msg->InterfaceVersion = message[13];
+    msg->MessageType = message[14];
+    msg->ReturnCode = message[15];
 
-    offset += 4;
-    msg->ProtocolVersion = message[offset];
-    msg->InterfaceVersion = message[offset + 1];
-    msg->MessageType = message[offset + 2];
-    msg->ReturnCode = message[offset + 3];
+    msg->Flags = message[16];
+    msg->Reserved = READ24_NA(&message[17]);
 
-    offset += 4;
-    memcpy (&row, &message[offset], 4);
-    row = htonl(row);
-    msg->Flags = (row & 0xFF000000) >> 24;
-    msg->Reserved = (row & 0x00FFFFFF);
+    msg->LengthOfEntriesArray = READ32_NA(&message[20]);
 
-    offset += 4;
-    memcpy (&row, &message[offset], 4);
-    msg->LengthOfEntriesArray = htonl(row);
+    msg->EntriesArray = (uint8 *)&message[24];
 
-    offset += 4;
-    msg->EntriesArray = (uint8 *)&message[offset];
-
-    const uint32 OptionsArrayOffset = (msg->LengthOfEntriesArray + 16);
+    const uint32 OptionsArrayOffset = (msg->LengthOfEntriesArray + 24);
 
     if (length > OptionsArrayOffset){
-        memcpy (&row, &message[OptionsArrayOffset], 4);
-        msg->LengthOfOptionsArray = htonl(row);
+        msg->LengthOfOptionsArray = READ32_NA(&message[OptionsArrayOffset]);
 
         if (msg->LengthOfOptionsArray > 0) {
             msg->OptionsArray = (uint8 *)&message[OptionsArrayOffset + 4];
@@ -368,13 +248,9 @@ void DecodeOptionIpv4Endpoint (uint8 *options[], Ipv4Endpoint endpoint[], uint8 
         if (options[opt] != NULL){
             uint8 type = options[opt][2];
             if (type == IPV4ENDPOINT_TYPE){
-                memcpy(&row, &options[opt][4], 4);
-                row = htonl(row);
-                endpoint[index].IPv4Address = row;
+                endpoint[index].IPv4Address = READ32_NA(&options[opt][4]);
                 endpoint[index].Protocol = options[opt] [9];
-                memcpy(&value, &options[opt][10], 2);
-                value = htonl16(value);
-                endpoint[index].PortNumber = value;
+                endpoint[index].PortNumber = READ16_NA(&options[opt][10]);
                 index++;
             }
         }
@@ -392,13 +268,9 @@ void DecodeOptionIpv4Multicast (uint8 *options[], Ipv4Multicast multicast[], uin
         if (options[opt] != NULL){
             uint8 type = options[opt][2];
             if (type == IPV4MULTICAST_TYPE){
-                memcpy(&row, &options[opt][4], 4);
-                row = htonl(row);
-                multicast[index].IPv4Address = row;
+                multicast[index].IPv4Address = READ32_NA(&options[opt][4]);
                 multicast[index].Protocol = options[opt] [9];
-                memcpy(&value, &options[opt][10], 2);
-                value = htonl16(value);
-                multicast[index].PortNumber = value;
+                multicast[index].PortNumber = READ16_NA(&options[opt][10]);
                 index++;
             }
         }

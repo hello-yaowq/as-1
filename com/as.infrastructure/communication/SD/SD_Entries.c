@@ -285,8 +285,7 @@ void BuildIpv4EndpointOption(const uint16* socket_connection_group, uint8 protoc
             memcpy(&endpoint_option[4],LocalAddrPtr.addr,4);
             /* Set port number */
             /** @req SWS_SD_0215 */
-            uint16 port = htonl16(LocalAddrPtr.port);
-            memcpy(&endpoint_option[10],&port,2);
+            WRITE16_NA(&endpoint_option[10],LocalAddrPtr.port);
             break;
         }
     }
@@ -326,8 +325,7 @@ void BuildIpv4MulticastOption(const uint16 socket_connection, uint32* offset, ui
         memcpy(&multicast_option[4],LocalAddrPtr.addr,4);
         /** @req SWS_SD_00396 */
         /* Set port number */
-        uint16 port = htonl16(LocalAddrPtr.port);
-        memcpy(&multicast_option[10],&port,2);
+        WRITE16_NA(&multicast_option[10],LocalAddrPtr.port);
     }
 
     if (multicast_option[1] == 0x09){

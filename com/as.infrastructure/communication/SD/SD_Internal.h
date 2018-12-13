@@ -162,11 +162,20 @@ typedef enum {
 /** @req SWS_SD_0183 */
 #define ENTRY_TYPE_2_SIZE 16
 
+#define ENTRY_TYPE_SIZE 16
+
+#define LENGTH_OF_ENTRYIES_ARRAY_INDEX 20u
+#define ENTRY_TYPE_INDEX 24u
+
+#define SOMEIP_SD_MESSAGE_ID 0xFFFF8100u
+
 #define TTL_TIMER_MAX 0xFFFFFFu
 
 #define MAX_OPTIONS 15u
 
 typedef struct{
+    uint32 MessageID;
+    uint32 Length;
     uint32 RequestID;
     uint8 ProtocolVersion;  /* = 0x01 */
     uint8 InterfaceVersion; /* = 0x01; */
@@ -268,7 +277,7 @@ void BuildOptionsArray(Sd_EntryType entry_type,  const Sd_DynClientServiceType *
 
 /* -------------------------Sd_Messages-----------------------------------*/
 
-void FillMessage(Sd_Message msg, uint8* message, uint32 *length);
+void FillMessage(Sd_Message *msg, uint8* message, uint32 *length);
 
 void FillType1Entry(Sd_Entry_Type1_Services entry, uint8 *entry_array);
 

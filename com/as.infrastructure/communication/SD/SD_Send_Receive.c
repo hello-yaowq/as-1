@@ -2,6 +2,8 @@
  * Copyright (C) 2013, ArcCore AB, Sweden, www.arccore.com.
  * Contact: <contact@arccore.com>
  *
+ * Copyright (C) 2018  AS <parai@foxmail.com>
+ *
  * You may ONLY use this file:
  * 1)if you have a valid commercial ArcCore license and then in accordance with
  * the terms contained in the written license agreement between you and ArcCore,
@@ -161,10 +163,11 @@ void InitMessagePool()
 
 void Handle_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr) {
 
-#define ENTRY_TYPE_INDEX 16u
-
     Sd_InstanceType *svcInstance = NULL;
     boolean is_multicast = FALSE;
+    uint32 lengthOfEntriesArray;
+    uint8 entry_type;
+    uint8 queue;
 
     /** @req 4.2.2/SWS_SD_00482 */
     /* Determine service instance. */
@@ -187,15 +190,23 @@ void Handle_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr) {
         return;
     }
 
-    /* Peek the type of message */
-    /* IMPROVEMENT: Currently only supports one entry per message */
-    uint8 entry_type = PduInfoPtr->SduDataPtr[ENTRY_TYPE_INDEX];
-    uint8 queue = CLIENT_QUEUE;
+    if (READ32_NA(PduInfoPtr->SduDataPtr) != SOMEIP_SD_MESSAGE_ID) {
+        return;
+    }
+
+    lengthOfEntriesArray = READ32_NA(PduInfoPtr->SduDataPtr+LENGTH_OF_ENTRYIES_ARRAY_INDEX);
+
+    if (((lengthOfEntriesArray%16) != 0) && (lengthOfEntriesArray > 0)) {
+        return;
+    }
+    /* TODO: handle for each entry type */
+    entry_type = PduInfoPtr->SduDataPtr[ENTRY_TYPE_INDEX];
+    queue = CLIENT_QUEUE;
     if ((entry_type == FIND_SERVICE_TYPE)
             || (entry_type == SUBSCRIBE_EVENTGROUP_TYPE)) {
         queue = SERVER_QUEUE;
     } else if (entry_type == OFFER_SERVICE_TYPE)
-/*			|| (entry_type == SUBSCRIBE_EVENTGROUP_ACK_TYPE)*/
+/*            || (entry_type == SUBSCRIBE_EVENTGROUP_ACK_TYPE)*/
     {
         queue = CLIENT_QUEUE;
     } else if  /*(entry_type == OFFER_SERVICE_TYPE)
@@ -324,6 +335,7 @@ void TransmitSdMessage(Sd_DynInstanceType *instance,
         const uint8 Flags = 0u;
         const uint8 NoOfEntries = 1; /* IMPROVEMENT:Change this later.*/
 
+        sd_msg.MessageID = SOMEIP_SD_MESSAGE_ID;
         sd_msg.RequestID = (uint32) ((CLIENT_ID << 16)); /* SessionID is filled in later */ /*lint !e835 Want to use CLIENT_ID even though zero as left argument */
         sd_msg.ProtocolVersion = (uint8) PROTOCOL_VERSION;
         sd_msg.InterfaceVersion = (uint8) INTERFACE_VERSION;
@@ -545,7 +557,8 @@ void TransmitSdMessage(Sd_DynInstanceType *instance,
 
         /* Combine entries and options to sd message */
         memset(message,0,PAYLOAD_MAX);
-        FillMessage(sd_msg, message, &messagelength);
+        sd_msg.Length = 28+sd_msg.LengthOfEntriesArray+sd_msg.LengthOfOptionsArray;
+        FillMessage(&sd_msg, message, &messagelength);
         pduinfo.SduDataPtr = message;
         pduinfo.SduLength = (uint16) messagelength;
 

@@ -52,6 +52,10 @@
 									  (((uint32_t)(((uint8_t *)address)[2]))<<8) +	\
 									  ((uint32_t)(((uint8_t *)address)[3])) )
 
+#define READ24_NA(address )			( (((uint32_t)(((uint8_t *)address)[0]))<<16) +	\
+									  (((uint32_t)(((uint8_t *)address)[1]))<<8) +	\
+									  ((uint32_t)(((uint8_t *)address)[2])) )
+
 #define READ16_NA(address )			( (((uint16_t)(((uint8_t *)address)[0]))<<8) +	\
 									  (((uint16_t)(((uint8_t *)address)[1]))) )
 
@@ -80,6 +84,13 @@
     	((uint8_t *)address)[1] = ((value>>16)&0xff); \
     	((uint8_t *)address)[2] = ((value>>8)&0xff);  \
     	((uint8_t *)address)[3] = ((value&0xff)); \
+	} while(0)
+
+#define WRITE24_NA(address, value ) \
+	do { \
+    	((uint8_t *)address)[0] = ((value>>16)&0xff); \
+    	((uint8_t *)address)[1] = ((value>>8)&0xff);  \
+    	((uint8_t *)address)[2] = ((value&0xff)); \
 	} while(0)
 
 #define WRITE16_NA(address, value ) \
