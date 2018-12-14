@@ -30,7 +30,7 @@ static const TcpIp_SockAddrType wildcard = {
 };
 
 
-Sd_Message msg;
+static Sd_Message msg;
 
 static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Services **entry1, Sd_Entry_Type2_EventGroups **entry2, TcpIp_SockAddrType *ipaddress, boolean *is_multicast)
 {
@@ -109,7 +109,6 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
                 (void)SoAd_GetRemoteAddr(client_socket, ipaddress);
                 (void)SoAd_SetRemoteAddr(Sd_DynConfig.Instance->TxSoCon, &wildcard);
             }
-            FreeSdMessage(SERVER_QUEUE);
         }
 
     } else if (entry2 != NULL) {
@@ -147,15 +146,14 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
                     server->EventHandlers[EventHandlerIndex].TcpEndpoint.valid = TRUE;
                }
             }
-            FreeSdMessage(SERVER_QUEUE);
         }
-
     }
 
     if (msg.EntriesArray == (msg.OptionsArray - 4)) {
         /* All entries are processed in this message.
          * Set protcolversion to 0 to indicate that a new message
          * should be fetched for the next entry. */
+        FreeSdMessage(SERVER_QUEUE);
         msg.ProtocolVersion = 0x00;
     }
 

@@ -54,7 +54,7 @@ static void EntryReceived(Sd_DynClientServiceType *client, Sd_Entry_Type1_Servic
             return;
         } else
         {
-        	start_of_entries = msg.EntriesArray;
+            start_of_entries = msg.EntriesArray;
         }
 
     }
@@ -156,14 +156,12 @@ static void EntryReceived(Sd_DynClientServiceType *client, Sd_Entry_Type1_Servic
                 (void)SoAd_GetRemoteAddr(server_socket, ipaddress);
                 (void)SoAd_SetRemoteAddr(Sd_DynConfig.Instance->TxSoCon, &wildcard);
             }
-            FreeSdMessage(CLIENT_QUEUE);
         }
         else
         {
             *entry1 = NULL;
             *entry2 = NULL;
         }
-
     } else if (entry2 != NULL) {
         /* Received SubscribeEventgroupAck or SubscribeEventgroupNack */
         /** @req 4.2.2/SWS_SD_00490 */
@@ -185,14 +183,13 @@ static void EntryReceived(Sd_DynClientServiceType *client, Sd_Entry_Type1_Servic
         {
             *entry1 = NULL;
             *entry2 = NULL;
-        }else{
-            FreeSdMessage(CLIENT_QUEUE);
         }
     }
-	if ((msg.EntriesArray - start_of_entries) >= msg.LengthOfEntriesArray) {
+    if ((msg.EntriesArray - start_of_entries) >= msg.LengthOfEntriesArray) {
         /* All entries are processed in this message.
          * Set protcolversion to 0 to indicate that a new message
          * should be fetched for the next entry. */
+        FreeSdMessage(CLIENT_QUEUE);
         msg.ProtocolVersion = 0x00;
     }
 

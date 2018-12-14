@@ -458,7 +458,7 @@ static void socketUdpRead(uint16 sockNr)
 					if(nBytes >= SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength) {
 						if  (!SocketAdminList[sockNr].SocketConnectionRef->PduProvideBufferEnable) {
 							// IF-type
-							pduInfo.SduLength = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, 0, &RemoteIpAddress, &RemotePort);
+							pduInfo.SduLength = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, nBytes, 0, &RemoteIpAddress, &RemotePort);
 							SocketAdminList[sockNr].RemotePort = RemotePort;
 							SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 							/* NOTE Find out how autosar connector and user really shall be used. This is just one interpretation

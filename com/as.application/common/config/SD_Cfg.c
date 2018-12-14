@@ -25,9 +25,9 @@ static const Sd_ClientServiceType Sd_ClientServiceCfg =
 {
 	.AutoRequire = TRUE,
 	.HandleId = 0xDB,
-	.Id = 0xDB,
-	.InstanceId = 0xDB,
-	.MajorVersion = 1,
+	.Id = 0x1234,
+	.InstanceId = 0x5678,
+	.MajorVersion = 0,
 	.MinorVersion = 0,
 	.TcpSocketConnectionGroupId = 0xDB,
 	.TcpSocketConnectionGroupSocketConnectionIdsPtr = NULL,

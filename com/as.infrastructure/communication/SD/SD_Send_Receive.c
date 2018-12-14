@@ -76,7 +76,7 @@ static MsgType *fetched_message;
 
 
 
-static void * rec_insert(uint8 queue)
+static void * PushSdMessage(uint8 queue)
 {
     // Sanity check of queue parameter
     if (queue > (NO_OF_TOTAL_QUEUES-1)){
@@ -92,7 +92,7 @@ static void * rec_insert(uint8 queue)
 }
 
 
-static void *  rec_fetch(uint8 queue)
+static void *  PeekSdMessage(uint8 queue)
 {
     // Sanity check of queue parameter
     if (queue >  (NO_OF_TOTAL_QUEUES-1)){
@@ -128,14 +128,14 @@ void Handle_PendingRespMessages(void)
     uint32 sdBufferedMsgs =  GetNumofQueueSdMessages(DELAYRESP_QUEUE);
     for (uint32 i = 0; i < sdBufferedMsgs; i++){
         /* Fetch next item in queue */
-        DelayedRespType *respMsg = (DelayedRespType*)rec_fetch(DELAYRESP_QUEUE);
+        DelayedRespType *respMsg = (DelayedRespType*)PeekSdMessage(DELAYRESP_QUEUE);
         if(respMsg != NULL){
             timerDec(respMsg->wait_delay_cntr);
             if(respMsg->wait_delay_cntr == 0u){
-                FreeSdMessage(DELAYRESP_QUEUE);
                 TransmitSdMessage(respMsg->sd_instance, \
                                    respMsg->client,respMsg->server,respMsg->subscribe_entry, \
                                    respMsg->event_index,respMsg->entry_type,respMsg->address, FALSE); /* last parameter should be FALSE */
+                FreeSdMessage(DELAYRESP_QUEUE);
             }
         }
     }
@@ -216,9 +216,15 @@ void Handle_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr) {
 
     /* save Message and address */
     SchM_Enter_SD_EA_0();
-    MsgType *received_message = (MsgType *)rec_insert(queue);
+    MsgType *received_message = (MsgType *)PushSdMessage(queue);
     if (received_message == NULL) {
         /* Message Pool empty or Error -  IMPROVEMENT: Add error handling */
+        SchM_Exit_SD_EA_0();
+        return;
+    }
+
+    if (PAYLOAD_MAX < PduInfoPtr->SduLength) {
+    	FreeSdMessage(queue);
         SchM_Exit_SD_EA_0();
         return;
     }
@@ -242,7 +248,7 @@ void Handle_RxIndication(PduIdType RxPduId, const PduInfoType* PduInfoPtr) {
 boolean ReceiveSdMessage(Sd_Message *msg,  TcpIp_SockAddrType *ipaddress, uint8 queue, Sd_InstanceType **server_svc, boolean *is_multicast)
 {
     /* Fetch next item in queue */
-    fetched_message = rec_fetch(queue);
+    fetched_message = PeekSdMessage(queue);
 
     /* Error */
     if (fetched_message == NULL) {
@@ -293,7 +299,7 @@ void TransmitSdMessage(Sd_DynInstanceType *instance,
         /** @req 4.2.2/SWS_SD_00494 */
         if(wait_delay_cntr != 0){
             SchM_Enter_SD_EA_0();
-            DelayedRespType *respMsg = (DelayedRespType*) rec_insert(DELAYRESP_QUEUE);
+            DelayedRespType *respMsg = (DelayedRespType*) PushSdMessage(DELAYRESP_QUEUE);
             if (respMsg == NULL) {
                 /* IMPROVEMENT: DET ERROR - ticket pending*/
                 SchM_Exit_SD_EA_0();

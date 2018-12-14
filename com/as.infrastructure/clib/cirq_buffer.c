@@ -186,7 +186,7 @@ void * CirqBuff_PopLock(CirqBufferType *cPtr ) {
 	if( cPtr->tail == cPtr->bufEnd) {
 		cPtr->tail = cPtr->bufStart;
 	}
-	--cPtr->currCnt;
+
 	return dataPtr;
 }
 
