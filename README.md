@@ -67,29 +67,7 @@ For the purpose that to be able to run most of the common applications which are
 
 ![as.one.py bootloader](http://parai.github.io/as/images/python3-asone-tool.png)
 
-## 6. aslinux simulation environment on QEMU
-* Now use one [makefile](https://github.com/parai/as/blob/master/release/aslinux/makefile) to bring up the QEMU [AGL](https://www.automotivelinux.org/) environment.
-* very simple and easy, with one single [Makefile](https://github.com/parai/as/blob/master/release/aslinux/script/vexpress-ca9.mk) to build out the kernel and the rootfs, and a [shell script](https://github.com/parai/as/blob/master/release/aslinux/script/run-vexpress.sh) to kick off the qemu virtual machine to execute that kernel and mount that rootfs.(for details check my [github.io page](http://parai.github.io/as/navigations/categories.html) on category linux)
-* aslinux build step
-
-```sh
-git clone https://github.com/parai/as.git
-cd $(patch-to)/as/release/aslinux
-mkdir build
-cd build
-ln -fs ../script/vexpress-ca9.mk Makefile
-ln -fs ../script/run-vexpress.sh run.sh
-make all
-./run.sh
-# if aslua want to be used
-cd $(path-to)/as/release/aslua && make 31 && make 33 
-cp out/arm.exe $(path-to)/as/release/aslinux/build/out/rootfs/usr/bin/aslua -v
-cp /usr/arm-linux-gnueabi/lib/*.so* $(path-to)/as/release/aslinux/build/out/rootfs/lib -v
-# then the sdcard need to be rebuilt
-cd $(path-to)/as/release/aslinux/build && make sdcard
-```
-
-## 7. Other 3rd part package
+## 6. Other 3rd part package
 * [LWIP](http://savannah.nongnu.org/projects/lwip/): about text:133Kb, data:11Kb
 * [contiki-net](http://contiki-os.org/): about text:54Kb(including the protothread), data:4Kb
 * [afbinder/websock](https://github.com/automotive-grade-linux/docs-agl/blob/master/docs/app-framework/index.md)
@@ -100,13 +78,13 @@ cd $(path-to)/as/release/aslinux/build && make sdcard
 * [LVGL](https://github.com/littlevgl/lvgl):Littlev Graphics Libraray
 * [DTC/LIBFDT](https://github.com/dgibson/dtc) 
 
-## 8. Setup Environment and Run
+## 7. Setup Environment and Run
 
 * [pan.baidu.com asenv.zip](https://pan.baidu.com/s/1NNNiSBCyYsdsvSknBKe3JQ)
 
 >Check the page [as-study-platform](http://parai.github.io/as/autosar/2018/02/20/as-study-platform.html) for how to use asenv or how to setup the environment from zero by yourself.
 
-## 9. AS USB2CAN device
+## 8. AS USB2CAN device
 
 [stm32f107vc USB2CAN](https://github.com/parai/stm32f107vc)
 
