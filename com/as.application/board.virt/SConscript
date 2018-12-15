@@ -53,4 +53,6 @@ if('EEP' in MODULES):
 if('FLS' in MODULES):
     objs += Glob('%s/../board.posix/common/Fls*.c'%(cwd))
 
+asenv.Append(CCFLAGS=['-mcpu=cortex-a57+nofp'])
+
 Return('objs')

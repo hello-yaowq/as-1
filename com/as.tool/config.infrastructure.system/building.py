@@ -738,7 +738,6 @@ class Qemu():
         ASROOT = Env['ASROOT']
         ARCH = Env['ARCH']
         self.arch = Env['arch']
-        self.params = ''
         self.params = '-serial tcp:127.0.0.1:1103,server'
         if('gdb' in COMMAND_LINE_TARGETS):
             self.params += ' -gdb tcp::1234 -S'
@@ -776,7 +775,7 @@ class Qemu():
             print('%s is not exits, try build it out locally!'%(qemu))
             self.BuildASQemu()
         self.params += ' -device pci-ascan -device pci-asnet -device pci-asblk'
-        if(self.arch == 'i386'):
+        if(IsPlatformWindows()):
             etc = os.path.abspath('%s/../etc/qemu'%(os.path.dirname(qemu)))
             self.params += ' -L %s'%(etc)
         return qemu
@@ -960,7 +959,7 @@ def SelectCompilerArm64():
     else:
         gccarm = 'gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf.tar.xz'
     pkg = Package('https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-elf/%s'%(gccarm))
-    cpl = '%s/%s'%(pkg, gccarm)
+    cpl = '%s/%s'%(pkg, gccarm[:-7])
     Env['CC']='%s/bin/aarch64-elf-gcc -std=gnu99 -fno-stack-protector'%(cpl)
     Env['CXX']='%s/bin/aarch64-elf-g++'%(cpl)
     Env['AS']='%s/bin/aarch64-elf-gcc -c'%(cpl)

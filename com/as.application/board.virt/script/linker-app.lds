@@ -38,6 +38,6 @@ SECTIONS
 	__bss_end = .;
     _end = .;
 	. = ALIGN(8);
-	. = . + 0x1000; /* 4kB of stack memory */
+	. = . + 0x4000; /* 16kB of stack memory */
 	stack_top = .;
 }

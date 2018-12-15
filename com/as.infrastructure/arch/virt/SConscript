@@ -9,6 +9,8 @@ cwd = GetCurrentDir()
 
 objs = []
 
+objs += Glob('bsp/serial.c')
+
 if('PCI' in MODULES):
     objs += Glob('bsp/pci-virt.c')
 
@@ -33,7 +35,6 @@ asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])
 
 asenv.Append(CPPPATH=['%s/bsp'%(cwd),'%s/mcal'%(cwd)])
-
 
 asenv.Append(CCFLAGS=['-ffunction-sections','-fdata-sections'])
 asenv.Append(LINKFLAGS='--gc-sections')
