@@ -29,6 +29,9 @@
 	.extern Irq_Disable
 	.extern Os_PortIsrHandler
 	.extern Sched_Preempt
+	.extern Sched_GetReady
+	.extern PreTaskHook
+	.extern PostTaskHook
 /* ============================ [ DATAS     ] ====================================================== */
 	.extern RunningVar
 	.extern ReadyVar
@@ -152,7 +155,7 @@ Os_PortDispatch:
 	str     w2,[x1]
 	stp     x0,x1, [sp, #-16]!
 	stp     x2,x3, [sp, #-16]!
-	//bl      PostTaskHook
+	bl      PostTaskHook
 	ldp     x2,x3, [sp], #16
 	ldp     x0,x1, [sp], #16
 	str     w3,[x1]  /* restore CallLevel */
@@ -160,10 +163,6 @@ Os_PortDispatch:
 
 	b       Os_PortStartDispatch
 
-	.global vector_irq
-	.type   vector_irq, %function
-vector_irq:
-	/* Save working register to IRQ stack */
 
 EnterISR:
 	/* save context on fisrt ISR enter                                          */
@@ -184,3 +183,69 @@ l_nopreempt:
 
 l_nodispatch:
 
+
+.balign 0x800
+.global vector_table_el1
+vector_table_el1:
+curr_el_sp0_sync:
+	b .
+
+.balign 0x80
+curr_el_sp0_irq:
+	b .
+
+.balign 0x80
+curr_el_sp0_fiq:
+	b .
+
+.balign 0x80
+curr_el_sp0_serror:
+	b .
+
+.balign 0x80
+curr_el_spx_sync:
+	b .
+
+.balign 0x80
+curr_el_spx_irq:
+	b .
+
+.balign 0x80
+curr_el_spx_fiq:
+	b .
+
+.balign 0x80
+curr_el_spx_serror:
+	b .
+
+.balign 0x80
+lower_el_aarch64_sync:
+	b .
+
+.balign 0x80
+lower_el_aarch64_irq:
+	b .
+
+.balign 0x80
+lower_el_aarch64_fiq:
+	b .
+
+.balign 0x80
+lower_el_aarch64_serror:
+	b .
+
+.balign 0x80
+lower_el_aarch32_sync:
+	b .
+
+.balign 0x80
+lower_el_aarch32_irq:
+	b .
+
+.balign 0x80
+lower_el_aarch32_fiq:
+	b .
+
+.balign 0x80
+lower_el_aarch32_serror:
+	b .
