@@ -25,7 +25,9 @@
 #include "Dem.h"
 #endif
 #include "Os.h"
-
+#ifdef USE_SHELL
+#include "shell.h"
+#endif
 /* ============================ [ MACROS    ] ====================================================== */
 
 /* ============================ [ TYPES     ] ====================================================== */
@@ -38,6 +40,9 @@ void __weak uart_putc(unsigned char byte)
 {
 	(void)byte;
 }
+
+int __weak uart_getc(void) { return -1; }
+
 void __putchar(char ch)
 {
 	uart_putc(ch);
@@ -50,6 +55,8 @@ int putchar( int ch )	/* for printf */
   return ch;
 }
 #endif
+
+void __weak Irq_Init(void) {}
 void Mcu_Init(const Mcu_ConfigType *configPtr)
 {
 	(void)configPtr;
@@ -89,5 +96,15 @@ Mcu_ResetType Mcu_GetResetReason( void )
 
 void Mcu_DistributePllClock( void )
 {
-
+	Irq_Init();
 }
+#ifdef USE_SHELL
+void TaskIdleHook(void)
+{
+	int ch = uart_getc();
+	if(-1 != ch)
+	{
+		SHELL_input(ch);
+	}
+}
+#endif

@@ -1,40 +1,49 @@
+MEMORY
+{
+	RAM			(rwx)	: ORIGIN = 0x40000000, LENGTH = 128M
+}
+
 ENTRY(_start)
 SECTIONS
 {
-	. = 0x40000000;
 	.init : {
 		KEEP(*(.init))
-	}
+	} > RAM
 
 	.text : {
+		. = ALIGN(8);
 		*(.text*)
         /* section information for shell */
-        . = ALIGN(4);
+        . = ALIGN(8);
         __ssymtab_start = .;
         KEEP(*(SSymTab))
         __ssymtab_end = .;
         /* section information for ELF Symbols */
-        . = ALIGN(4);
+        . = ALIGN(8);
         __elfsymtab_start = .;
         KEEP(*(ELFSymTab))
         __elfsymtab_end = .;
-        . = ALIGN(4);
+        . = ALIGN(8);
         autostart_processes = .;
         KEEP(*(ProtoSymTab))
         KEEP(*(ProtoSymTabEnd))
-	}
+	} > RAM
     _etext = .;
 
 	.data : {
+		. = ALIGN(8);
 		*(.data*)
-	}
+		. = ALIGN(8);
+		*(.rodata*)
+	} > RAM
 
 	.bss :
 	{
+		. = ALIGN(8);
 		__bss_start = .;	
 		*(.bss)
 		*(.bss.*)
-	}
+	} > RAM
 	__bss_end = .;
     _end = .;
 	. = ALIGN(8);

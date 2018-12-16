@@ -23,6 +23,56 @@
 #define MACROS_ONLY
 #include "Os_Cfg.h"
 /* ============================ [ MACROS    ] ====================================================== */
+.macro SaveContext
+	sub sp, sp, 33*8
+	stp x0, x1, [sp], +16
+	stp x2, x3, [sp], +16
+	stp x4, x5, [sp], +16
+	stp x6, x7, [sp], +16
+	stp x8, x9, [sp], +16
+	stp x10, x11, [sp], +16
+	stp x12, x13, [sp], +16
+	stp x14, x15, [sp], +16
+	stp x16, x17, [sp], +16
+	stp x18, x19, [sp], +16
+	stp x20, x21, [sp], +16
+	stp x22, x23, [sp], +16
+	stp x24, x25, [sp], +16
+	stp x26, x27, [sp], +16
+	stp x28, x29, [sp], +16
+	str x30, [sp], +8
+
+	mrs x0, spsr_el1
+	mrs x1, elr_el1
+	stp x0, x1, [sp], +16
+
+	sub sp, sp, 33*8
+.endm
+
+.macro RestoreContext
+	add sp, sp, 33*8
+	ldp x0, x1, [sp, #-16]!
+	msr spsr_el1, x0
+	msr elr_el1, x1
+
+	ldr x30, [sp, #-8]!
+	ldp x29, x28, [sp, #-16]!
+	ldp x27, x26, [sp, #-16]!
+	ldp x25, x24, [sp, #-16]!
+	ldp x23, x22, [sp, #-16]!
+	ldp x21, x20, [sp, #-16]!
+	ldp x19, x18, [sp, #-16]!
+	ldp x17, x16, [sp, #-16]!
+	ldp x15, x14, [sp, #-16]!
+	ldp x13, x12, [sp, #-16]!
+	ldp x11, x10, [sp, #-16]!
+	ldp x9, x8, [sp, #-16]!
+	ldp x7, x6, [sp, #-16]!
+	ldp x5, x4, [sp, #-16]!
+	ldp x3, x2, [sp, #-16]!
+	ldp x1, x0, [sp, #-16]!
+	add sp, sp, 33*8
+.endm
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 	.extern Irq_Enable
@@ -32,6 +82,7 @@
 	.extern Sched_GetReady
 	.extern PreTaskHook
 	.extern PostTaskHook
+	.extern Os_PortActivateImpl
 /* ============================ [ DATAS     ] ====================================================== */
 	.extern RunningVar
 	.extern ReadyVar
@@ -54,12 +105,12 @@ l_idle:
 	ble     l_idle
 	bl      Irq_Disable
 	bl      Sched_GetReady
-	b       Os_PortStartDispatch
+	b       Os_PortStartDispatchImpl
 
-	.global Os_PortStartDispatch
-	.type   Os_PortStartDispatch, %function
-/* void Os_PortStartDispatch( void ); */
-Os_PortStartDispatch:
+	.global Os_PortStartDispatchImpl
+	.type   Os_PortStartDispatchImpl, %function
+/* void Os_PortStartDispatchImpl( void ); */
+Os_PortStartDispatchImpl:
 	ldr     x0, =ReadyVar
 	ldr     x0, [x0]
 	cmp     x0, #0
@@ -87,53 +138,20 @@ Os_PortDispatchFormISR:
 	.global Os_PortResume
 	.type   Os_PortResume, %function
 Os_PortResume:
-	ldp x0, x1, [sp, #-16]!
-	msr spsr_el1, x0
+	RestoreContext
+	eret
+
+	.global Os_PortActivate
+	.type   Os_PortActivate, %function
+Os_PortActivate:
+	ldr x1, =Os_PortActivateImpl
 	msr elr_el1, x1
+	eret
 
-	ldr x30, [sp, #-8]!
-	ldp x29, x28, [sp, #-16]!
-	ldp x27, x26, [sp, #-16]!
-	ldp x25, x24, [sp, #-16]!
-	ldp x23, x22, [sp, #-16]!
-	ldp x21, x20, [sp, #-16]!
-	ldp x19, x18, [sp, #-16]!
-	ldp x17, x16, [sp, #-16]!
-	ldp x15, x14, [sp, #-16]!
-	ldp x13, x12, [sp, #-16]!
-	ldp x11, x10, [sp, #-16]!
-	ldp x9, x8, [sp, #-16]!
-	ldp x7, x6, [sp, #-16]!
-	ldp x5, x4, [sp, #-16]!
-	ldp x3, x2, [sp, #-16]!
-	ldp x1, x0, [sp, #-16]!
-	add sp, sp, 33*8
-	ret
-
-	.global Os_PortDispatch
-	.type   Os_PortDispatch, %function
-Os_PortDispatch:
-	sub sp, sp, 33*8
-	stp x0, x1, [sp], +16
-	stp x2, x3, [sp], +16
-	stp x4, x5, [sp], +16
-	stp x6, x7, [sp], +16
-	stp x8, x9, [sp], +16
-	stp x10, x11, [sp], +16
-	stp x12, x13, [sp], +16
-	stp x14, x15, [sp], +16
-	stp x16, x17, [sp], +16
-	stp x18, x19, [sp], +16
-	stp x20, x21, [sp], +16
-	stp x22, x23, [sp], +16
-	stp x24, x25, [sp], +16
-	stp x26, x27, [sp], +16
-	stp x28, x29, [sp], +16
-	str x30, [sp], +8
-
-	mrs x0, spsr_el1
-	mrs x1, elr_el1
-	stp x0, x1, [sp], +16
+	.global Os_PortDispatchImpl
+	.type   Os_PortDispatchImpl, %function
+Os_PortDispatchImpl:
+	SaveContext
 
 	ldr     x3, =RunningVar
 	ldr     x4, [x3]
@@ -145,8 +163,8 @@ Os_PortDispatch:
 	str     x12, [x4, #0x08]
 
 	/* loading system stack */
-	ldr x30, =stack_top
-	mov sp, x30
+	ldr x0, =stack_top
+	mov sp, x0
 
 	#ifdef OS_USE_POSTTASK_HOOK
 	ldr     x1, = CallLevel
@@ -161,28 +179,95 @@ Os_PortDispatch:
 	str     w3,[x1]  /* restore CallLevel */
 	#endif
 
-	b       Os_PortStartDispatch
-
+	b       Os_PortStartDispatchImpl
 
 EnterISR:
-	/* save context on fisrt ISR enter                                          */
+	ldr     x3, =RunningVar
+	ldr     x4, [x3]
+	cmp     x4, #0
+	beq     l_nosave    /* no task is running */
 
+	ldr     x1, =ISR2Counter
+	ldr     w2, [x1]
+	add     w2, w2, #1  /* ISR2Counter++ */
+	str     w2, [x1]
+	cmp     w2, #1      /* previous CirticalCounter==0 */
+	bne     l_nosave
 
-l_nosave:
+	mov     x5, sp
+	str     x5, [x4, #0x0 ]
 
-ExitISR:
+	ldr     x12, =Os_PortResume
+	str     x12, [x4, #0x08]
 
+	/* loading system stack */
+	ldr x0, =stack_top
+	mov sp, x0
 
-	#ifdef OS_USE_PRETASK_HOOK
-
+	#ifdef OS_USE_POSTTASK_HOOK
+	ldr     x1, = CallLevel
+	ldr     w3, [x1]
+	mov     w2, #8   /* CallLevel = TCL_PREPOST */
+	str     w2,[x1]
+	stp     x0,x1, [sp, #-16]!
+	stp     x2,x3, [sp, #-16]!
+	stp     x29,x30, [sp, #-16]!
+	bl      PostTaskHook
+	ldp     x29,x30, [sp], #16
+	ldp     x2,x3, [sp], #16
+	ldp     x0,x1, [sp], #16
+	str     w3,[x1]  /* restore CallLevel */
 	#endif
 
+l_nosave:
+	ldr     x1, = CallLevel
+	ldr     w0, [x1]
+	stp     x0,x1, [sp, #-16]!	/* previous CallLevel */
+	mov     w0, #2   /* CallLevel = TCL_ISR2 */
+	str     w0,[x1]
+	ret
 
+ExitISR:
+	ldp     x0,x1, [sp], #16
+	str     w0,[x1] /* restore CallLevel */
+
+	ldr     x0, = RunningVar
+	ldr     x0, [x0]
+	cmp     x0, #0
+	beq     l_nodispatch
+
+	ldr     x3, =ISR2Counter
+	ldr     w1, [x3]
+	sub     w1, w1, #1
+	str     w1, [x3]
+	cmp     w1, #0
+	bne     l_nodispatch
+
+	ldr     x1, = CallLevel
+	ldr     w3, [x1]
+	cmp     w3, #1  /* TCL_TASK */
+	bne     l_nopreempt
+
+	ldr     x1, = ReadyVar
+	ldr     x1, [x1]
+
+	cmp     x0, x1	/* ReadyVar == RunningVar */
+	beq     l_nopreempt
+
+	ldrb    w2, [x1, #16]  /* priority of ReadyVar */
+	ldrb    w3, [x0, #16]  /* priority of RunningVar */
+	cmp     w3, w2
+	bge     l_nopreempt
+
+	bl      Sched_Preempt
+
+	b       Os_PortStartDispatchImpl
 l_nopreempt:
-
+	b       Os_PortDispatchFormISR
 
 l_nodispatch:
-
+	RestoreContext
+	eret
 
 .balign 0x800
 .global vector_table_el1
@@ -204,11 +289,23 @@ curr_el_sp0_serror:
 
 .balign 0x80
 curr_el_spx_sync:
-	b .
+	stp     x0,x1, [sp, #-16]!
+	ldr     x0, = RunningVar
+	ldr     x0, [x0]
+	cmp     x0, #0
+	beq     l_svc_start_disatch
+	ldp     x0,x1, [sp], #16
+	b       Os_PortDispatchImpl
+l_svc_start_disatch:
+	ldp     x0,x1, [sp], #16
+	b     Os_PortStartDispatchImpl
 
 .balign 0x80
 curr_el_spx_irq:
-	b .
+	SaveContext
+	bl EnterISR
+	bl Os_PortIsrHandler
+	b  ExitISR
 
 .balign 0x80
 curr_el_spx_fiq:

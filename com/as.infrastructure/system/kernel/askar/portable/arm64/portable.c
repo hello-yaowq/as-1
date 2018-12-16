@@ -20,11 +20,13 @@
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void Os_PortResume(void);
+extern void Os_PortActivate(void);
+extern void Os_PortStartSysTick(void);
 /* ============================ [ DATAS     ] ====================================================== */
 uint32 ISR2Counter;
 /* ============================ [ LOCALS    ] ====================================================== */
 /* ============================ [ FUNCTIONS ] ====================================================== */
-void Os_PortActivate(void)
+void Os_PortActivateImpl(void)
 {
 	/* get internal resource or NON schedule */
 	RunningVar->priority = RunningVar->pConst->runPriority;
@@ -46,12 +48,26 @@ void Os_PortActivate(void)
 void Os_PortInit(void)
 {
 	ISR2Counter = 0;
+	Os_PortStartSysTick();
 }
 
 void Os_PortInitContext(TaskVarType* pTaskVar)
 {
 	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4;
 	pTaskVar->context.pc = Os_PortActivate;
+}
+
+
+void Os_PortDispatch(void)
+{
+	__asm("svc 0");
+}
+
+void Os_PortStartDispatch(void)
+{
+	RunningVar = NULL;
+	Os_PortDispatch();
+	asAssert(0);
 }
 
 void EnterISR(void)
@@ -63,6 +79,7 @@ void LeaveISR(void)
 {
 	/* do nothing */
 }
+
 #ifdef USE_PTHREAD_SIGNAL
 void Os_PortCallSignal(int sig, void (*handler)(int), void* sp, void (*pc)(void))
 {

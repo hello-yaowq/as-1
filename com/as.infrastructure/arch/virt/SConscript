@@ -10,6 +10,8 @@ cwd = GetCurrentDir()
 objs = []
 
 objs += Glob('bsp/serial.c')
+objs += Glob('bsp/timer.c')
+objs += Glob('bsp/interrupt.c')
 
 if('PCI' in MODULES):
     objs += Glob('bsp/pci-virt.c')

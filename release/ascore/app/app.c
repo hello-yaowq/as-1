@@ -161,10 +161,13 @@ void* lv_task_thread(void* args)
 #endif
 #endif
 
+void __weak TaskAppHook(void) { }
 TASK(TaskApp)
 {
 	OS_TASK_BEGIN();
 	ASLOG(OFF,"TaskApp is running\n");
+
+	TaskAppHook();
 #ifdef USE_SG
 	ASPERF_MEASURE_START();
 	Sg_ManagerTask();

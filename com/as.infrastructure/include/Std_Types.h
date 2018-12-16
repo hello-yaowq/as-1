@@ -258,9 +258,9 @@ typedef uint8 CoreIdType;
 /* ============================ [ FUNCTIONS ] ====================================================== */
 extern void Irq_Enable(void);
 extern void Irq_Disable(void);
-#define Irq_Save(irq_state) irq_state=__Irq_Save()
+#define Irq_Save(imask) imask=__Irq_Save()
 extern imask_t __Irq_Save(void);
-extern void Irq_Restore(imask_t irq_state);
+extern void Irq_Restore(imask_t imask);
 
 extern void *asmalloc( size_t xWantedSize );
 extern void  asfree( void *pv );
