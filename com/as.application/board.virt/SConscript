@@ -14,6 +14,7 @@ asenv.Append(CPPDEFINES='OS_TICKS_PER_SECOND=1000')
 asenv.Append(CPPDEFINES='USECONDS_PER_TICK=10000')
 if(not IsPlatformWindows()):
     asenv.Append(CPPDEFINES='ENABLE_SHELL_ECHO_BACK')
+asenv.Append(CPPDEFINES='OS_STK_SIZE_SCALER=4')
 
 lds = '%s/script/linker-app.lds'%(cwd)
 asenv.Append(LINKFLAGS='-static -T %s'%(lds))

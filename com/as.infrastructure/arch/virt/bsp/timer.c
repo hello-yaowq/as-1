@@ -99,6 +99,8 @@ static void timer_isr_handler(void)
 	uint64_t ticks,current_cnt;
 	uint32_t cntfrq;
 
+	disable_cntv();
+
 	OsTick();
 	SignalCounter(0);
 
