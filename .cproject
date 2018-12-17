@@ -115,6 +115,7 @@
 									<listOptionValue builtIn="false" value="USE_UIP"/>
 									<listOptionValue builtIn="false" value="USE_RINGBUFFER"/>
 									<listOptionValue builtIn="false" value="STM32F107xC"/>
+									<listOptionValue builtIn="false" value="USE_SD"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1824387882" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
 							</tool>

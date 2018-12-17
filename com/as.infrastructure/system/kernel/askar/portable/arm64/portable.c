@@ -101,7 +101,7 @@ void Os_PortExitSignalCall(void)
 int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 {
 	void* sp;
-	uint32_t* stk;
+	uint64_t* stk;
 
 	sp = pTaskVar->context.sp;
 
@@ -113,6 +113,42 @@ int Os_PortInstallSignal(TaskVarType* pTaskVar, int sig, void* handler)
 	}
 
 	stk = sp;
+
+	*(--stk) = (uint64_t)handler;                /* x1 */
+	*(--stk) = (uint64_t)sig;                    /* x0 */
+	*(--stk) = (uint64_t)pTaskVar->context.pc;   /* x3 */
+	*(--stk) = (uint64_t)sp;                     /* x2 */
+
+	*(--stk) = 5 ;                               /* x5  */
+	*(--stk) = 4 ;                               /* x4  */
+	*(--stk) = 7 ;                               /* x7  */
+	*(--stk) = 6 ;                               /* x6  */
+	*(--stk) = 9 ;                               /* x9  */
+	*(--stk) = 8 ;                               /* x8  */
+	*(--stk) = 11;                               /* x11 */
+	*(--stk) = 10;                               /* x10 */
+	*(--stk) = 13;                               /* x13 */
+	*(--stk) = 12;                               /* x12 */
+	*(--stk) = 15;                               /* x15 */
+	*(--stk) = 14;                               /* x14 */
+	*(--stk) = 17;                               /* x17 */
+	*(--stk) = 16;                               /* x16 */
+	*(--stk) = 19;                               /* x19 */
+	*(--stk) = 18;                               /* x18 */
+	*(--stk) = 21;                               /* x21 */
+	*(--stk) = 20;                               /* x20 */
+	*(--stk) = 23;                               /* x23 */
+	*(--stk) = 22;                               /* x22 */
+	*(--stk) = 25;                               /* x25 */
+	*(--stk) = 24;                               /* x24 */
+	*(--stk) = 27;                               /* x27 */
+	*(--stk) = 26;                               /* x26 */
+	*(--stk) = 29;                               /* x29 */
+	*(--stk) = 28;                               /* x28 */
+
+	*(--stk) = (uint64_t)Os_PortExitSignalCall;  /* x30 */
+	*(--stk) = (uint64_t)Os_PortCallSignal;      /* elr_el1 */
+	*(--stk) = 0x20000305;                       /* spsr_el1 */
 
 	pTaskVar->context.sp = stk;
 	pTaskVar->context.pc = Os_PortResume;

@@ -14,7 +14,7 @@
  */
 /* ============================ [ INCLUDES  ] ====================================================== */
 
-#if defined(USE_SHELL) //&& defined(USE_VFS) && defined(USE_FDT)
+#if defined(USE_SHELL) && defined(USE_VFS) && defined(USE_FDT)
 #include "shell.h"
 #include "libfdt.h"
 #include "asdebug.h"

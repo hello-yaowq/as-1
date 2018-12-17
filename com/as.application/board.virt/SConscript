@@ -24,6 +24,8 @@ MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
            'CLIB_STDIO_PRINTF',
            'SHELL','CLIB_STRTOK_R',
+           'PTHREAD', 'PTHREAD_SIGNAL',
+           'TEST',
            'ASKAR',
            ]
 

@@ -47,6 +47,13 @@ For the purpose that to be able to run most of the common applications which are
 * posix message queue
 * posix signals
 
+General supported CPU architecture list:
+
+* arm32: cortex-m3 arm926
+* arm64: cortex-a57
+* ppc: mpc5634
+* intel: i386
+
 
 ## 3. BSW configuration tool
 > This GUI tool is the one from [OpenSAR](https://github.com/parai/OpenSAR.git) which is also developed by me, the GUI can be automatically created from xml.
