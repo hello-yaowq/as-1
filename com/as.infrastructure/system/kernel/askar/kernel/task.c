@@ -71,12 +71,12 @@ static const char* taskStateToString(TaskStateType state)
 
 	return p;
 }
-static int checkStackUsage(const TaskConstType* pTaskConst, uint32_t* used)
+static uint32_t checkStackUsage(const TaskConstType* pTaskConst, uint32_t* used)
 {
 	uint32_t i;
-	uint8_t* pStack = pTaskConst->pStack;
+	uint32_t* pStack = pTaskConst->pStack;
 
-	for(i=0; (i<pTaskConst->stackSize) && (0u == *pStack); i++, pStack++)
+	for(i=0; (i<pTaskConst->stackSize) && (0u == *pStack); i+=sizeof(uint32_t), pStack++)
 	{
 		/* do nothing */
 	}
@@ -95,7 +95,7 @@ static int checkStackUsage(const TaskConstType* pTaskConst, uint32_t* used)
 /* | Parameter (Out): | none                                                       | */
 /* |------------------+------------------------------------------------------------| */
 /* | Description:     | The task <TaskID> is transferred from the suspended state  | */
-/* |                  | into the ready state. The operating system encheckStackUsagesures that    | */
+/* |                  | into the ready state. The operating system ensures that    | */
 /* |                  | the task code is being executed from the first statement.  | */
 /* |------------------+------------------------------------------------------------| */
 /* | Particularities: | 1) The service may be called from interrupt level and from | */
@@ -611,7 +611,7 @@ void statOsTask(void)
 
 	const TaskConstType* pTaskConst;
 	TaskVarType* pTaskVar;
-	int pused;
+	uint32_t pused;
 	uint32_t used;
 	SHELL_printf("Name             State      Prio IPrio RPrio  StackBase  StackSize"
 			"   Used       Event(set/wait)   Act/ActSum parent\n");

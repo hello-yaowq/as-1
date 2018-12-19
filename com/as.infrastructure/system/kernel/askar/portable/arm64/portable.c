@@ -53,7 +53,8 @@ void Os_PortInit(void)
 
 void Os_PortInitContext(TaskVarType* pTaskVar)
 {
-	pTaskVar->context.sp = pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize-4;
+	/* 8 byte aligned */
+	pTaskVar->context.sp = (void*)((uint64_t)(pTaskVar->pConst->pStack + pTaskVar->pConst->stackSize - 8)&(~(uint64_t)0x7UL));
 	pTaskVar->context.pc = Os_PortActivate;
 }
 

@@ -457,12 +457,19 @@ int vsnprintf (char *__restrict buf, size_t size,
 		else if (qualifier == 'h')
 		{
 			num = (unsigned short)va_arg(args, long);
-			if (flags & SIGN) num = ( short)num;
+			if (flags & SIGN) num = (short)num;
 		}
 		else
 		{
 			num = va_arg(args, unsigned long);
-			if (flags & SIGN) num = (long)num;
+			if (flags & SIGN)
+			{
+				num = (int32_t)num;
+			}
+			else
+			{
+				num = (uint32_t)num;
+			}
 		}
 #ifdef TM_PRINTF_PRECISION
 		str = print_number(str, end, num, base, field_width, precision, flags);
