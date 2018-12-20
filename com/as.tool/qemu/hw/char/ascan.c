@@ -247,18 +247,32 @@ static uint64_t ascan_mmioread(void *opaque, hwaddr addr, unsigned size) {
 		return rv;
 	break;
 	case REG_CANID:
-		assert(d->curbus);
-		return d->curbus->canid;
+		if(d->curbus) {
+			return d->curbus->canid;
+		} else {
+			printf("%s@%d: invalid CAN bus\n", __func__, __LINE__);
+			return -1;
+		}
 	break;
 	case REG_CANDLC:
-		assert(d->curbus);
-		/* read DLC and then read data */
-		d->curbus->rwpos = 0;
-		return d->curbus->candlc;
+		if(d->curbus) {
+			/* read DLC and then read data */
+			d->curbus->rwpos = 0;
+			return d->curbus->candlc;
+		} else {
+			printf("%s@%d: invalid CAN bus\n", __func__, __LINE__);
+			return -1;
+		}
 	break;
 	case REG_CANDATA:
-		assert(d->curbus);
-		assert(d->curbus->rwpos<sizeof(d->curbus->data));
+		if(NULL == d->curbus) {
+			printf("%s@%d: invalid CAN bus", __func__, __LINE__);
+			return -1;
+		}
+		if(!(d->curbus->rwpos<sizeof(d->curbus->data))) {
+			printf("%s@%d: CAN data read overflow\n", __func__, __LINE__);
+			return -2;
+		}
 		return d->curbus->data[d->curbus->rwpos++];
 	break;
 	default:
@@ -275,32 +289,46 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 	switch (addr) {
 	case REG_BUS_NAME:
 		/* change the id */
-		if(d->bn_pos < (sizeof(d->bus_name)-1))
-		{
+		if(d->bn_pos < (sizeof(d->bus_name)-1)) {
 			d->bus_name[d->bn_pos] = value;
 			d->bn_pos++;
+		} else {
+			printf("%s@%d: bus name overflow\n", __func__, __LINE__);
 		}
 		break;
 	case REG_BUSID:
-		d->busid = value;
-		assert(value < 8);
-		d->curbus = getBus(d, d->busid);
+		if(value < 8) {
+			d->busid = value;
+			d->curbus = getBus(d, d->busid);
+		} else {
+			printf("%s@%d: invalid CAN busid\n", __func__, __LINE__);
+		}
 		break;
 	case REG_PORT:
 		d->port = value;
 		break;
 	case REG_CANID:
-		assert(d->curbus);
-		d->curbus->canid = value;
+		if(d->curbus) {
+			d->curbus->canid = value;
+		} else {
+			printf("%s@%d: invalid CAN bus\n", __func__, __LINE__);
+		}
 	break;
 	case REG_CANDLC:
-		assert(d->curbus);
-		d->curbus->candlc = value;
-		d->curbus->rwpos = 0;
+		if(d->curbus) {
+			d->curbus->candlc = value;
+			d->curbus->rwpos = 0;
+		} else {
+			printf("%s@%d: invalid CAN bus\n", __func__, __LINE__);
+		}
 	break;
 	case REG_CANDATA:
-		assert(d->curbus);
-		assert(d->curbus->rwpos < sizeof(d->curbus->data));
+		if(NULL == d->curbus) {
+			printf("%s@%d: invalid CAN bus\n", __func__, __LINE__);
+		}
+		if(!(d->curbus->rwpos < sizeof(d->curbus->data))) {
+			printf("%s@%d: CAN data write overflow\n", __func__, __LINE__);
+		}
 		d->curbus->data[d->curbus->rwpos++] = value;
 	break;
 	case REG_CMD:

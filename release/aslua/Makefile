@@ -243,6 +243,7 @@ else
 	@(cp -fv $(ZLGCAN)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 endif
+	@(cp -fv $(ZLGCAN)/ControlCAN/64/ControlCAN.lib /mingw64/lib)
 endif
 
 dep-posix: aslibaws
@@ -338,6 +339,8 @@ clean-dist:clean
 	make dep board=pyas compiler=posix-gcc
 82:
 	make lib board=pyas compiler=posix-gcc debug=true
+ifeq ($(forceclib),yes)
+else
 ifeq ($(host), Linux)
 	@(cd $(exe-dir);make all CXX="${CXX}")
 else
@@ -350,6 +353,7 @@ else
 endif
 	@(cd $(prj-dir)/com/as.tool/as.one.py; rm pyas; $(LNFS) $(prj-dir)/com/as.tool/lua/script pyas)
 	@(cp -v $(exe-dir)/libpyas.a $(VIRTUAL)/source/libpyas.so)
+endif
 
 $(download):
 	mkdir -p $@

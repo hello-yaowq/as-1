@@ -162,8 +162,14 @@ static uint64_t asblk_mmioread(void *opaque, hwaddr addr, unsigned size) {
 		return rv;
 		break;
 	case REG_LENGTH:
-		assert(d->blkid<MAX_BLK);
-		assert(d->fp[d->blkid]);
+		if(!(d->blkid<MAX_BLK)) {
+			printf("%s@%d: invalid BLK id\n", __func__, __LINE__);
+			return 0;
+		}
+		if(NULL == d->fp[d->blkid]) {
+			printf("%s@%d: BLK is not opened\n", __func__, __LINE__);
+			return 0;
+		}
 		fseek(d->fp[d->blkid], 0L, SEEK_END);
 		rv = ftell(d->fp[d->blkid]);
 		return rv;
@@ -186,11 +192,17 @@ static void asblk_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 
 	switch (addr) {
 	case REG_BLKID:
-		assert(value<MAX_BLK);
+		if(!(d->blkid<MAX_BLK)) {
+			printf("%s@%d: invalid BLK id\n", __func__, __LINE__);
+			return;
+		}
 		d->blkid = value;
 		break;
 	case REG_BLKSZ:
-		assert(d->blksz <= sizeof(d->data));
+		if(!(d->blksz <= sizeof(d->data))) {
+			printf("%s@%d: invalid BLK size\n", __func__, __LINE__);
+			return;
+		}
 		d->blksz = value;
 		d->rwpos = 0;
 		break;

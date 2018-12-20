@@ -685,10 +685,13 @@ static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size) {
 		return d->mtu;
 		break;
 	case REG_DATA:
-		assert(d->rxpos < (sizeof(d->rxdata)));
-		val = d->rxdata[d->rxpos];
-		d->rxpos++;
-		return val;
+		if(d->rxpos < (sizeof(d->rxdata))) {
+			val = d->rxdata[d->rxpos];
+			d->rxpos++;
+			return val;
+		} else {
+			printf("%s@%d: NET read overflow\n", __func__, __LINE__);
+		}
 		break;
 	case REG_LENGTH:
 		d->rxpos = 0;
@@ -727,9 +730,12 @@ static void asnet_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 		break;
 #endif
 	case REG_DATA:
-		assert(d->txpos < (sizeof(d->txdata)/sizeof(d->txdata[0])));
-		d->txdata[d->txpos] = value;
-		d->txpos ++;
+		if(d->txpos < (sizeof(d->txdata)/sizeof(d->txdata[0]))) {
+			d->txdata[d->txpos] = value;
+			d->txpos ++;
+		} else {
+			printf("%s@%d: NET write overflow\n", __func__, __LINE__);
+		}
 		break;
 	case REG_LENGTH:
 		assert(value <= sizeof(d->txdata));

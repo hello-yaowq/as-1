@@ -42,8 +42,8 @@ prepare() {
 
   cd ${asdir}/release/aslua
   make clean
-  make 81 -i
-  make 82 forceclib=yes msys=yes -i
+  make dep-canlib SCONS=scons MSYS2=/
+  make 82 forceclib=yes
   cp ${asdir}/release/aslua/out/libpyas.a /mingw64/lib -v
 
   if ! [[ -d ${asdir}/release/download/WpdPack_4_1_2/WpdPack ]] ; then
@@ -61,10 +61,6 @@ prepare() {
   
   if ! [[ -f /mingw64/lib/PCANBasic.lib ]] ; then
     cp ${asdir}/release/download/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib /mingw64/lib -v
-  fi
-
-  if ! [[ -f /mingw64/lib/ControlCAN.lib ]] ; then
-    cp ${asdir}/release/download/ControlCAN/64/ControlCAN.lib /mingw64/lib -v
   fi
 
   if ! [[ -f /mingw64/include/sys/queue.h ]] ; then
