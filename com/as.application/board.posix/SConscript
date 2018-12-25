@@ -61,7 +61,12 @@ if(not IsPlatformWindows()):
 ARCH='posix'
 arch='posix'
 
-MODULES += ['SOAD','DOIP','LWIP','LWIP_POSIX_ARCH','SD']
+MODULES += ['SOAD','DOIP','LWIP','LWIP_POSIX_ARCH']
+
+if(os.getenv('VSOMEIP')=='YES'):
+    MODULES += ['VSOMEIP']
+else:
+    MODULES += ['SD']
 
 MODULES += ['FATFS','LWEXT4','VFS','FTP']
 

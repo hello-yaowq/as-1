@@ -1,0 +1,23 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+Import('asenv')
+ASROOT = asenv['ASROOT']
+MODULES=asenv['MODULES']
+
+vsomeip = Package('https://github.com/parai/vsomeip.git', version='dev')
+
+MKSymlink(vsomeip,'%s/vsomeip'%(cwd))
+
+asenv.Append(CPPPATH = ['%s/vsomeip/interface'%(cwd)])
+asenv.Append(CPPPATH = ['%s/vsomeip/implementation/service_discovery/include'%(cwd)])
+asenv.Append(CPPPATH = ['%s/vsomeip/implementation/platform'%(cwd)])
+
+
+objs = Glob('*.c')
+
+objs += Glob('vsomeip/implementation/service_discovery/src/*.cpp')
+
+Return('objs')

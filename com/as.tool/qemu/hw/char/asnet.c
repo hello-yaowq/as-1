@@ -691,6 +691,7 @@ static uint64_t asnet_mmioread(void *opaque, hwaddr addr, unsigned size) {
 			return val;
 		} else {
 			printf("%s@%d: NET read overflow\n", __func__, __LINE__);
+			return -1;
 		}
 		break;
 	case REG_LENGTH:

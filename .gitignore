@@ -339,4 +339,5 @@ com/as.infrastructure/boot/mininc
 *.csv
 minix
 .gitconfig
+vsomeip
 

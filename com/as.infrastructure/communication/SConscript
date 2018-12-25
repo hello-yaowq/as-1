@@ -74,6 +74,9 @@ if('J1939TP' in MODULES):
     objs += Glob('J1939Tp/*.c')
     asenv.Append(CPPPATH=['%s/J1939Tp'%(cwd)])
 
+if('VSOMEIP' in MODULES):
+    objs += SConscript('vsomeip/SConscript')
+
 if('SD' in MODULES):
     objs += Glob('SD/*.c')
     asenv.Append(CPPPATH=['%s/SD'%(cwd)])

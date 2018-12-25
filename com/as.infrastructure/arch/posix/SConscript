@@ -131,7 +131,9 @@ if(IsPlatformWindows()):
 else:
     asenv.Append(CPPDEFINES='__LINUX__')
 
-asenv.Append(CCFLAGS='-std=gnu99')
+asenv['CC'] += ' -std=gnu99'
+asenv['CXX'] += ' -std=c++11'
+asenv.Append(CXXFLAGS=['-fno-operator-names'])
 asenv.Append(CCFLAGS='-O0')
 asenv.Append(CCFLAGS='-g')
 
