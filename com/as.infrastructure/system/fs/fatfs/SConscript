@@ -26,10 +26,7 @@ srcs = Glob('%s/com/as.infrastructure/arch/posix/mcal/diskio.c'%(ASROOT))
 srcs += Glob('%s/com/as.infrastructure/diagnostic/Det/asdebug.c'%(ASROOT))
 srcs += Glob('fatfs/source/*.c')
 if(IsPlatformWindows()):
-    try:
-        cmd = '%s/gcc -D__WINDOWS__'%(asenv['CONFIGS']['MSYS2_GCC_PATH'])
-    except TypeError:
-        cmd = 'gcc -D__WINDOWS__'
+    cmd = 'gcc -D__WINDOWS__'
 else:
     cmd ='gcc -D__LINUX__'
 for src in srcs:

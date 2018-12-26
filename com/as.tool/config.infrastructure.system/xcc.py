@@ -34,7 +34,6 @@ def XCC(gendir, env=None, genEnvOnly=False):
         if(env['CONFIGS'] is not None):
             reD = re.compile(r'([0-9]+|0x[0-9A-Fa-f]+)')
             for m,v in env['CONFIGS'].items():
-                print(m,v)
                 if(reD.search(v)):
                     fp.write('#ifndef %s\n#define %s %s\n#endif\n\n'%(m,m,v))
                 else:

@@ -222,11 +222,6 @@ def PrepareBuilding(env):
     if(GetOption('menuconfig')):
         menuconfig(env)
 
-    if(0 != os.system('%s --version'%(env['pkgconfig']))):
-        print('WARNING: no pkg-config installed, fix the path maybe, or run command to install GTK\n\tpacman -S mingw-w64-x86_64-glib2 mingw-w64-x86_64-gtk3')
-    if(0 != os.system('%s --version'%(env['CC']))):
-        print('WARNING: no C Compiler installed, fix the path maybe, or run command to install GCC\n\tpacman -S mingw-w64-x86_64-gcc')
-
 def mk_rtconfig(filename):
     try:
         config = open(filename)
@@ -289,7 +284,6 @@ def GetConfig(cfg,env):
         # None to use default confiuration
         env['MODULES'] = None
         env['CONFIGS'] = None
-        print('WARNING: no menuconfig file(".config") found, will use default configuration!')
         return
     env['MODULES'] = []
     env['CONFIGS'] = {}
