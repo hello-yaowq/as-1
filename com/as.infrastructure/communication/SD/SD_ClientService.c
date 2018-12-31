@@ -21,7 +21,7 @@
 
 #include "asdebug.h"
 
-#define AS_LOG_SD 1
+#define AS_LOG_SDCLIENT 1
 
 static const TcpIp_SockAddrType wildcard = {
         (TcpIp_DomainType) TCPIP_AF_INET,
@@ -112,7 +112,7 @@ static int EntryReceived(uint32 instanceno, Sd_Entry_Type *entry, TcpIp_SockAddr
 
     if(NULL == *client) {
         entryType = SD_ENTRY_UNKNOWN;
-        ASLOG(SD, "unknown service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+        ASLOG(SDCLIENT, "unknown service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
     } else {
         /* Decode and store the option parameters */
         /** @req 4.2.2/SWS_SD_00484 */
@@ -343,7 +343,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
         if (SD_ENTRY_TYPE_1 == entryType) {
             if ((entry->type1.Type == STOP_OFFER_SERVICE_TYPE) && (entry->type1.TTL == 0)) {
                 client->OfferActive = FALSE;
-                ASLOG(SD, "DOWN: STOP OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                ASLOG(SDCLIENT, "DOWN: STOP OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
             }
         }
 
@@ -361,7 +361,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
                         client->TTL_Timer_Running = TRUE;
                         client->OfferActive = TRUE;
                         client->CurrentState = SD_CLIENT_SERVICE_AVAILABLE;
-                        ASLOG(SD, "DOWN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                        ASLOG(SDCLIENT, "DOWN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                     }
                 }
 
@@ -392,7 +392,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             /** @req 4.2.2/SWS_SD_00463 */
             if (SD_ENTRY_TYPE_1 == entryType){
                 if ((entry->type1.Type == OFFER_SERVICE_TYPE) && (entry->type1.TTL > 0)) {
-                    ASLOG(SD, "DOWN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                    ASLOG(SDCLIENT, "DOWN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                     /* Start TTL timer */
                     client->TTL_Timer_Value_ms = entry->type1.TTL * 1000u;
                     client->TTL_Timer_Running = TRUE;
@@ -488,7 +488,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             /** @req 4.2.2/SWS_SD_00352 */
             if (SD_ENTRY_TYPE_1 == entryType) {
                 if ((entry->type1.Type == OFFER_SERVICE_TYPE) && (entry->type1.TTL > 0)) {
-                    ASLOG(SD, "INITIAL WAIT: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                    ASLOG(SDCLIENT, "INITIAL WAIT: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                     /** @req 4.2.2/SWS_SD_00604 */
                     OpenSocketConnections(client);
 
@@ -509,6 +509,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
                     /* Send out SubscribeEventGroup entries for all REQUESTED eventgroups */
                     for (uint8 event_group_index= 0; event_group_index < client->ClientServiceCfg->NoOfConsumedEventGroups; event_group_index++){
                         if (client->ConsumedEventGroups[event_group_index].ConsumedEventGroupMode == SD_CONSUMED_EVENTGROUP_REQUESTED) {
+                            ASLOG(SDCLIENT, "INITIAL WAIT: SUBSCRIBE event %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                             TransmitSdMessage(sd_instance, client, NULL, NULL, event_group_index, SD_SUBSCRIBE_EVENTGROUP, ipaddress, is_multicast);
                             client->ConsumedEventGroups[event_group_index].Acknowledged = FALSE;
                         }
@@ -523,6 +524,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             client->FindDelay_Timer_Value_ms -= SD_MAIN_FUNCTION_CYCLE_TIME_MS;
             if (client->FindDelay_Timer_Value_ms <= 0) {
                 /* Send FindService Entry */
+                ASLOG(SDCLIENT, "INITIAL WAIT: FIND service %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                 TransmitSdMessage(sd_instance, client, NULL, NULL, 0, SD_FIND_SERVICE, ipaddress,FALSE);
                 /** @req 4.2.2/SWS_SD_00456 */
                 client->FindDelayTimerOn = FALSE;
@@ -603,7 +605,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             /** @req 4.2.2/SWS_SD_00365 */
             if (SD_ENTRY_TYPE_1 == entryType){
                 if ((entry->type1.Type == OFFER_SERVICE_TYPE)) {
-                    ASLOG(SD, "REPETITION: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                    ASLOG(SDCLIENT, "REPETITION: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                     client->FindRepDelay_Timer_Value_ms = 0;
                     client->FindRepDelayTimerOn = FALSE;
                     client->CurrentState = SD_CLIENT_SERVICE_AVAILABLE;
@@ -620,6 +622,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
                     /* Send out SubscribeEventGroup entries for all REQUESTED eventgroups */
                     for (uint8 event_group_index=0; event_group_index < client->ClientServiceCfg->NoOfConsumedEventGroups; event_group_index++){
                         if (client->ConsumedEventGroups[event_group_index].ConsumedEventGroupMode == SD_CONSUMED_EVENTGROUP_REQUESTED) {
+                            ASLOG(SDCLIENT, "REPETITION: SUBSCRIBE event %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                             TransmitSdMessage(sd_instance, client, NULL, NULL, event_group_index, SD_SUBSCRIBE_EVENTGROUP, ipaddress, is_multicast);
                             client->ConsumedEventGroups[event_group_index].Acknowledged = FALSE;
                         }
@@ -635,6 +638,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             /** @req 4.2.2/SWS_SD_00457 */
             if (client->FindRepDelay_Timer_Value_ms <= 0) {
                 /* Send FindService Entry */
+                ASLOG(SDCLIENT, "REPETITION: FIND service %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                 TransmitSdMessage(sd_instance, client, NULL, NULL, 0, SD_FIND_SERVICE, ipaddress, FALSE);
                 client->FindRepDelayTimerOn = FALSE;
                 client->FindRepetitions++;
@@ -695,7 +699,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
         /** @req 4.2.2/SWS_SD_00376 */
         if (SD_ENTRY_TYPE_1 == entryType){
             if ((entry->type1.Type == OFFER_SERVICE_TYPE) && entry->type1.TTL != 0) {
-                ASLOG(SD, "MAIN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                ASLOG(SDCLIENT, "MAIN: OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                 client->CurrentState = SD_CLIENT_SERVICE_AVAILABLE;
 
                 /* OpenTCP connection if SdClientServiceTcpRef is configured and was not opened before */
@@ -717,12 +721,14 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
                          * and the current OfferService entry was received via Multicast. */
                         if ((client->ConsumedEventGroups[eg].ConsumedEventGroupState == SD_CONSUMED_EVENTGROUP_AVAILABLE) &&
                            (!client->ConsumedEventGroups[eg].Acknowledged)) {
+                            ASLOG(SDCLIENT, "MAIN: STOP SUBSCRIBE event %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                             TransmitSdMessage(sd_instance, client, NULL, NULL, eg, SD_STOP_SUBSCRIBE_EVENTGROUP, ipaddress, is_multicast);
                             client->ConsumedEventGroups[eg].ConsumedEventGroupState = SD_CONSUMED_EVENTGROUP_DOWN;
                         }
 
                         if (client->ConsumedEventGroups[eg].ConsumedEventGroupState == SD_CONSUMED_EVENTGROUP_DOWN){
                             /* Send out SubscribeEventGroup entries */
+                            ASLOG(SDCLIENT, "MAIN: SUBSCRIBE event %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                             TransmitSdMessage(sd_instance, client, NULL, NULL, eg, SD_SUBSCRIBE_EVENTGROUP, ipaddress, is_multicast);
                             client->ConsumedEventGroups[eg].Acknowledged = FALSE;
                         }
@@ -734,7 +740,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             /** @req 4.2.2/SWS_SD_00367 */
             /** @req 4.2.2/SWS_SD_00422 */
             else if ((entry->type1.Type == STOP_OFFER_SERVICE_TYPE) && (entry->type1.TTL == 0)) {
-                ASLOG(SD, "MAIN: STOP OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+                ASLOG(SDCLIENT, "MAIN: STOP OFFER service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
                 /* Stop the TTL timers */
                 client->TTL_Timer_Running = FALSE;
 
@@ -846,6 +852,7 @@ static void UpdateClientService(uint32 instanceno, uint32 clientno,
             for (uint32 eg = 0; eg < client->ClientServiceCfg->NoOfConsumedEventGroups; eg++) {
                 if (client->ConsumedEventGroups[eg].ConsumedEventGroupState == SD_CONSUMED_EVENTGROUP_AVAILABLE) {
 
+                    ASLOG(SDCLIENT, "MAIN: STOP SUBSCRIBE event %04X:%04X\n", client->ClientServiceCfg->Id, client->ClientServiceCfg->InstanceId);
                     /* Send out StopSubscribeEventgroup entry, */
                     TransmitSdMessage(sd_instance, client, NULL, NULL, eg, SD_STOP_SUBSCRIBE_EVENTGROUP, ipaddress, FALSE);
 

@@ -29,6 +29,11 @@
 
 #define SD_RX_UNICAST_PDUID   0
 #define SD_RX_MULTICAST_PDUID 1
+
+#define SD_CLIENT_SERVICE_SAMPLE1 0
+#define SD_CLIENT_SERVICE_SAMPLE2 1
+
+#define SD_SERVER_SERVICE_SAMPLE1 0
 /* ============================ [ TYPES     ] ====================================================== */
 
 /* ============================ [ DECLARES  ] ====================================================== */

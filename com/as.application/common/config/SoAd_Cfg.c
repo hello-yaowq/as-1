@@ -48,6 +48,9 @@ static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT]
 		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_PDUR,
 		.PduProvideBufferEnable = FALSE,
+
+		.SocketRemoteIpAddress = "224.244.224.245",
+		.SocketRemotePort = 30490,
 	},
 #endif
 };
@@ -85,7 +88,17 @@ static const SoAd_PduRouteType SoAd_PduRoute[SOAD_PDU_ROUTE_COUNT] =
 	{	/* for DCM */
 		.DestinationSocketRef = &SoAd_SocketConnection[0],
 		.SourcePduId = PDUR_ID_SOAD_TX,
-	}
+	},
+	{
+		.SourceSduLength = 16,
+		.DestinationSocketRef = &SoAd_SocketConnection[1],
+		.UserTxConfirmationUL = SOAD_UL_SD
+	},
+	{
+		.SourceSduLength = 16,
+		.DestinationSocketRef = &SoAd_SocketConnection[2],
+		.UserTxConfirmationUL = SOAD_UL_SD
+	},
 };
 
 static const SoAd_SocketRouteType SoAd_SocketRoute[SOAD_SOCKET_ROUTE_COUNT] =

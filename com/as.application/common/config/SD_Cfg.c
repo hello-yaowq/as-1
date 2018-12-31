@@ -21,11 +21,45 @@
 /* ============================ [ DATAS     ] ====================================================== */
 static const Sd_ClientTimerType Sd_ClientTimer[1];
 static const Sd_ServerTimerType  Sd_ServerTimer[1];
+static Sd_DynConsumedEventGroupType Sd_DynConsumedEventGroup0[1];
+static Sd_DynConsumedEventGroupType Sd_DynConsumedEventGroup1[1];
+
+static const Sd_ConsumedEventGroupType Sd_ConsumedEventGroup0[1] =
+{
+	{
+		.AutoRequire = TRUE,
+		.HandleId = 0,
+		.Id = 0,
+		.MulticastActivationRef = 0,
+		.MulticastGroupRef = NULL,
+		.NoOfMulticastGroups = 0,
+		.TimerRef = NULL,
+		.UdpActivationRef = 0,
+		.CapabilityRecord = NULL,
+		.SdNoOfCapabiltyRecord = 0
+	},
+};
+
+static const Sd_ConsumedEventGroupType Sd_ConsumedEventGroup1[1] =
+{
+	{
+		.AutoRequire = TRUE,
+		.HandleId = 1,
+		.Id = 1,
+		.MulticastActivationRef = 0,
+		.MulticastGroupRef = NULL,
+		.NoOfMulticastGroups = 0,
+		.TimerRef = NULL,
+		.UdpActivationRef = 0,
+		.CapabilityRecord = NULL,
+		.SdNoOfCapabiltyRecord = 0
+	},
+};
 static const Sd_ClientServiceType Sd_ClientServiceCfg[] =
 {
 	{
 		.AutoRequire = TRUE,
-		.HandleId = 0xDB,
+		.HandleId = SD_CLIENT_SERVICE_SAMPLE1,
 		.Id = 0x1234,
 		.InstanceId = 0x5678,
 		.MajorVersion = 0,
@@ -37,13 +71,13 @@ static const Sd_ClientServiceType Sd_ClientServiceCfg[] =
 		.UdpSocketConnectionGroupSocketConnectionIdsPtr = NULL,
 		.CapabilityRecord = NULL,
 		.SdNoOfCapabiltyRecord = 0,
-		.ConsumedEventGroup = NULL,
-		.NoOfConsumedEventGroups = 0,
+		.ConsumedEventGroup = Sd_ConsumedEventGroup0,
+		.NoOfConsumedEventGroups = ARRAY_SIZE(Sd_DynConsumedEventGroup0),
 		.ConsumedMethods.ClientServiceActivationRef = 0x5678
 	},
 	{
 		.AutoRequire = TRUE,
-		.HandleId = 0xDB,
+		.HandleId = SD_CLIENT_SERVICE_SAMPLE2,
 		.Id = 0x1235,
 		.InstanceId = 0x5678,
 		.MajorVersion = 0,
@@ -55,8 +89,8 @@ static const Sd_ClientServiceType Sd_ClientServiceCfg[] =
 		.UdpSocketConnectionGroupSocketConnectionIdsPtr = NULL,
 		.CapabilityRecord = NULL,
 		.SdNoOfCapabiltyRecord = 0,
-		.ConsumedEventGroup = NULL,
-		.NoOfConsumedEventGroups = 0,
+		.ConsumedEventGroup = Sd_ConsumedEventGroup1,
+		.NoOfConsumedEventGroups = ARRAY_SIZE(Sd_DynConsumedEventGroup1),
 		.ConsumedMethods.ClientServiceActivationRef = 0x5678
 	}
 };
@@ -65,7 +99,7 @@ static const Sd_ServerServiceType Sd_ServerServiceCfg[] =
 {
 	{
 		.AutoAvailable = TRUE,
-		.HandleId = 0xDB,
+		.HandleId = SD_SERVER_SERVICE_SAMPLE1,
 		.Id = 0xDB,
 		.InstanceId = 0xDB,
 		.MajorVersion = 1,
@@ -86,10 +120,12 @@ static const Sd_ServerServiceType Sd_ServerServiceCfg[] =
 static Sd_DynClientServiceType Sd_DynClientService[] =
 {
 	{
-		.ClientServiceCfg = &Sd_ClientServiceCfg[0]
+		.ClientServiceCfg = &Sd_ClientServiceCfg[0],
+		.ConsumedEventGroups = Sd_DynConsumedEventGroup0,
 	},
 	{
-		.ClientServiceCfg = &Sd_ClientServiceCfg[1]
+		.ClientServiceCfg = &Sd_ClientServiceCfg[1],
+		.ConsumedEventGroups = Sd_DynConsumedEventGroup1,
 	}
 };
 
@@ -110,10 +146,10 @@ static const Sd_InstanceType Sd_InstanceCfg =
 	.DemEventParameterRefs = NULL,
 #endif
 	.MulticastRxPduId = SD_RX_MULTICAST_PDUID,
-	.MulticastRxPduSoConRef = 0xDB,
-	.TxPduId = 0xDB,
+	.MulticastRxPduSoConRef = SOCKET_CONNECTION_GROUP_NOT_SET,
+	.TxPduId = SOADIF_ID_SD_MULTICAST_TX,
 	.UnicastRxPduId = SD_RX_UNICAST_PDUID,
-	.UnicastRxPduSoConRef = 0xDB,
+	.UnicastRxPduSoConRef = SOCKET_CONNECTION_GROUP_NOT_SET,
 	.SdNoOfServerServices = ARRAY_SIZE(Sd_ServerServiceCfg),
 	.SdServerService = Sd_ServerServiceCfg,
 	.SdServerTimer = Sd_ServerTimer
@@ -123,6 +159,9 @@ static Sd_DynInstanceType Sd_DynInstance = {
 	.InstanceCfg = &Sd_InstanceCfg,
 	.SdClientService = Sd_DynClientService,
 	.SdServerService = Sd_DynServerService,
+	.TxSoCon = SOADIF_ID_SD_MULTICAST_TX,
+	.MulticastRxSoCon = SOADIF_ID_SD_MULTICAST_RX,
+	.UnicastRxSoCon = SOADIF_ID_SD_UNICAST_RX,
 };
 
 const Sd_ConfigType Sd_Config = {

@@ -251,14 +251,19 @@ void SoAd_SocketStatusCheck(uint16 sockNr, int sockHandle)
 
 uint16 SoAd_SendIpMessage(uint16 sockNr, uint32 msgLen, uint8* buff)
 {
-	uint16 bytesSent;
+	uint16 bytesSent = 0;
+	int rv;
 	ASMEM(SOAD,"TX",buff,msgLen);
 	if (SocketAdminList[sockNr].SocketProtocolIsTcp) {
-		bytesSent = SoAd_SendImpl(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
+		rv = SoAd_SendImpl(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
 	} else {
-		bytesSent = SoAd_SendToImpl(SocketAdminList[sockNr].SocketHandle, buff, msgLen,
+		rv = SoAd_SendToImpl(SocketAdminList[sockNr].SocketHandle, buff, msgLen,
 									SocketAdminList[sockNr].RemoteIpAddress,
 									SocketAdminList[sockNr].RemotePort);
+	}
+
+	if(rv > 0) {
+		bytesSent = (uint16) rv;
 	}
 
 	return bytesSent;
@@ -442,8 +447,6 @@ static void socketUdpRead(uint16 sockNr)
 {
 #ifdef USE_PDUR
     BufReq_ReturnType result;
-	uint32 RemoteIpAddress;
-	uint16 RemotePort;
 	int nBytes;
 	PduInfoType pduInfo;
 
@@ -451,16 +454,16 @@ static void socketUdpRead(uint16 sockNr)
 	case SOAD_AUTOSAR_CONNECTOR_PDUR:
 		if (SocketAdminList[sockNr].SocketRouteRef != NULL) {
 			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
-			    nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK, &RemoteIpAddress, &RemotePort);
+				nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SOAD_RX_BUFFER_SIZE, MSG_PEEK,
+							&SocketAdminList[sockNr].RemoteIpAddress, &SocketAdminList[sockNr].RemotePort);
 				SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].SocketHandle);
 
 				if (nBytes > 0){
 					if(nBytes >= SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength) {
 						if  (!SocketAdminList[sockNr].SocketConnectionRef->PduProvideBufferEnable) {
 							// IF-type
-							pduInfo.SduLength = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, nBytes, 0, &RemoteIpAddress, &RemotePort);
-							SocketAdminList[sockNr].RemotePort = RemotePort;
-							SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
+							pduInfo.SduLength = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, nBytes, 0,
+										&SocketAdminList[sockNr].RemoteIpAddress, &SocketAdminList[sockNr].RemotePort);
 							/* NOTE Find out how autosar connector and user really shall be used. This is just one interpretation
 							 * support for XCP, CDD will have to be added later when supported */
 							switch(SocketAdminList[sockNr].SocketRouteRef->UserRxIndicationUL){
@@ -484,9 +487,8 @@ static void socketUdpRead(uint16 sockNr)
 							result = PduR_SoAdTpStartOfReception(SocketAdminList[sockNr].SocketRouteRef->DestinationPduId, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, &len);
 							if (result == BUFREQ_OK && len > 0) {
 								pduInfo.SduLength = SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength;
-								nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, 0, &RemoteIpAddress, &RemotePort);
-								SocketAdminList[sockNr].RemotePort = RemotePort;
-									SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
+								nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, pduInfo.SduDataPtr, SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength, 0,
+											&SocketAdminList[sockNr].RemoteIpAddress, &SocketAdminList[sockNr].RemotePort);
 
 								/* Let pdur copy received data */
 								if(len < SocketAdminList[sockNr].SocketRouteRef->DestinationSduLength)
@@ -704,7 +706,7 @@ Std_ReturnType SoAdIf_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 	VALIDATE_RV(SoAdSrcPduId < SOAD_PDU_ROUTE_COUNT, SOAD_IF_TRANSMIT_ID, SOAD_E_INVAL, E_NOT_OK);	/** @req SOAD214 */
 
 
-	if (SoAd_Config.PduRoute[SoAdSrcPduId].SourceSduLength == SoAdSrcPduInfoPtr->SduLength) {
+	if (SoAd_Config.PduRoute[SoAdSrcPduId].SourceSduLength <= SoAdSrcPduInfoPtr->SduLength) {
 		if (PduAdminList[SoAdSrcPduId].PduStatus == PDU_IDLE ) {
 			if (SoAd_Config.PduRoute[SoAdSrcPduId].DestinationSocketRef != NULL ) {
 				socketNr = SoAd_Config.PduRoute[SoAdSrcPduId].DestinationSocketRef->SocketId;
@@ -720,6 +722,8 @@ Std_ReturnType SoAdIf_Transmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSr
 							UdpNm_SoAdIfTxConfirmation(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId);
 							break;
 #endif
+						case SOAD_UL_SD:
+							break;
 						default:
 							PduR_SoAdIfTxConfirmation(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId);
 							break;
@@ -875,6 +879,14 @@ Std_ReturnType SoAd_CloseSoCon( SoAd_SoConIdType SoConId, boolean abort )
 Std_ReturnType SoAd_SetRemoteAddr( SoAd_SoConIdType SoConId, const TcpIp_SockAddrType* RemoteAddrPtr )
 {
 	Std_ReturnType ercd = E_NOT_OK;
+
+	if (SoConId < SOAD_PDU_ROUTE_COUNT)
+	{
+		SocketAdminList[SoConId].RemotePort = RemoteAddrPtr->port;
+		memcpy(&SocketAdminList[SoConId].RemoteIpAddress, RemoteAddrPtr->addr, sizeof(SocketAdminList[SoConId].RemoteIpAddress));
+		ercd = E_OK;
+	}
+
 	return ercd;
 }
 
@@ -886,6 +898,14 @@ Std_ReturnType SoAd_IfTransmit( PduIdType SoAdSrcPduId, const PduInfoType* SoAdS
 Std_ReturnType SoAd_GetRemoteAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* IpAddrPtr )
 {
 	Std_ReturnType ercd = E_NOT_OK;
+
+	if (SoConId < SOAD_PDU_ROUTE_COUNT)
+	{
+		IpAddrPtr->port = SocketAdminList[SoConId].RemotePort;
+		memcpy(IpAddrPtr->addr, &SocketAdminList[SoConId].RemoteIpAddress, sizeof(SocketAdminList[SoConId].RemoteIpAddress));
+		ercd = E_OK;
+	}
+
 	return ercd;
 }
 
@@ -906,6 +926,14 @@ Std_ReturnType SoAd_GetLocalAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* 
 		uint8* NetmaskPtr, TcpIp_SockAddrType* DefaultRouterPtr )
 {
 	Std_ReturnType ercd = E_NOT_OK;
+	uint32 localIpAddress;
+	if (SoConId < SOAD_PDU_ROUTE_COUNT)
+	{
+		localIpAddress = inet_addr(SocketAdminList[SoConId].SocketConnectionRef->SocketLocalIpAddress);
+		LocalAddrPtr->port = htons(SocketAdminList[SoConId].SocketConnectionRef->SocketLocalPort);
+		memcpy(LocalAddrPtr->addr, &localIpAddress, sizeof(localIpAddress));
+		ercd = E_OK;
+	}
 	return ercd;
 }
 

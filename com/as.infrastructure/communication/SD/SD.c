@@ -39,6 +39,41 @@
 
 #include "SD_Internal.h"
 
+#ifdef USE_SHELL
+#include "shell.h"
+
+static int shellSD(int argc, char *argv[] )
+{
+	int rv = 0;
+
+	Sd_LocalIpAddrAssignmentChg(0,TCPIP_IPADDR_STATE_ASSIGNED);
+
+	if(0 == strcmp(argv[1], "find"))
+	{
+		rv = Sd_ClientServiceSetState(strtoul(argv[2], NULL, 10), SD_CLIENT_SERVICE_REQUESTED);
+	}
+	else if(0 == strcmp(argv[1], "offer"))
+	{
+		rv = Sd_ServerServiceSetState(strtoul(argv[2], NULL, 10), SD_SERVER_SERVICE_AVAILABLE);
+	}
+	else
+	{
+	}
+
+	return rv;
+}
+
+SHELL_CONST ShellCmdT cmdSD  = {
+		shellSD,
+		2,2,
+		"sd",
+		"sd <find/offer> id",
+		"  service discovery\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cmdSD)
+#endif
+
 
 /* ----------------------------[private macro]-------------------------------*/
 /** @req 4.2.2/SWS_SD_00109 */
@@ -255,6 +290,9 @@ void Sd_Init( const Sd_ConfigType* ConfigPtr ){
         (void)SoAd_OpenSoCon(Sd_DynConfig.Instance->UnicastRxSoCon);
     }
 
+#if !defined(USE_SHELL_SYMTAB) && defined(USE_SHELL)
+	SHELL_AddCmd(&cmdSD);
+#endif
 }
 
 /** @req 4.2.2/SWS_SD_00126 */

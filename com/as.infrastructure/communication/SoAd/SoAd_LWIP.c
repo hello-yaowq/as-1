@@ -80,26 +80,19 @@ int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 	sLocalAddr.sin_family = AF_INET;
 	sLocalAddr.sin_len = sizeof(sLocalAddr);
 
-	if(NULL == SocketLocalIpAddress)
-	{
-		sLocalAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	}
-	else
-	{
-		sLocalAddr.sin_addr.s_addr = ipaddr_addr(SocketLocalIpAddress);
-	}
+	sLocalAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	sLocalAddr.sin_port = htons(SocketLocalPort);
 
 	r = lwip_bind(s, (struct sockaddr *)&sLocalAddr, sizeof(sLocalAddr));
 
-	if(0 == r)
+	if((0 == r) && (SocketLocalIpAddress != NULL))
 	{
-		ipaddr.addr = sLocalAddr.sin_addr.s_addr;
+		ipaddr.addr = ipaddr_addr(SocketLocalIpAddress);
 
 		if(ip_addr_ismulticast(&ipaddr))
 		{
-			mreq.imr_multiaddr.s_addr = sLocalAddr.sin_addr.s_addr;
+			mreq.imr_multiaddr.s_addr = ipaddr.addr;
 			mreq.imr_interface.s_addr = ipaddr_addr(LWIP_AS_LOCAL_IP_ADDR);
 			r = lwip_setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
 		}
