@@ -63,6 +63,14 @@ int SoAd_CreateSocketImpl(int domain, int type, int protocol)
 	return lwip_socket(domain, type, protocol);
 }
 
+uint32 SoAd_GetLocalIp(void)
+{
+	extern struct netif* sys_get_netif(void);
+	struct netif* netif = sys_get_netif();
+
+	return netif->ip_addr.addr;
+}
+
 int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 {
 	int r;
@@ -93,7 +101,7 @@ int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 		if(ip_addr_ismulticast(&ipaddr))
 		{
 			mreq.imr_multiaddr.s_addr = ipaddr.addr;
-			mreq.imr_interface.s_addr = ipaddr_addr(LWIP_AS_LOCAL_IP_ADDR);
+			mreq.imr_interface.s_addr = SoAd_GetLocalIp();;
 			r = lwip_setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
 		}
 	}

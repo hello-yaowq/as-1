@@ -264,6 +264,12 @@ void BuildIpv4EndpointOption(const uint16* socket_connection_group, uint8 protoc
     TcpIp_SockAddrType LocalAddrPtr;
     uint8 NetmaskPtr;
     TcpIp_SockAddrType DefaultRouterPtr;
+    uint16 groupNbr = 0;
+
+    if(NULL != socket_connection_group) {
+        groupNbr = socket_connection_group[0];
+        socket_connection_group++;
+    }
 
     /** @req SWS_SD_0210 */
     /** @req SWS_SD_0211 */
@@ -274,7 +280,7 @@ void BuildIpv4EndpointOption(const uint16* socket_connection_group, uint8 protoc
     LocalAddrPtr.domain = TCPIP_AF_INET;
     DefaultRouterPtr.domain = TCPIP_AF_INET;
     /* Get local ipaddress data from the first SoCon in the Group */
-    for (uint16 i=0;i<sizeof(socket_connection_group)/sizeof(uint16); i++){
+    for (uint16 i=0;i<groupNbr; i++){
         (void)SoAd_GetLocalAddr(socket_connection_group[i], &LocalAddrPtr, &NetmaskPtr, &DefaultRouterPtr);
         if (LocalAddrPtr.domain == TCPIP_AF_INET) {
             /* Set option length = always 9 */
@@ -487,7 +493,7 @@ void BuildOptionsArray(Sd_EntryType entry_type,  const Sd_DynClientServiceType *
         prev_offset =  offset;
 
         /* Build Tcp options if socket connection is configured */
-        if ((server->ServerServiceCfg->TcpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET))
+        if ((server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr != NULL))
         {
             BuildIpv4EndpointOption(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr, TCP_PROTO, &offset, options_array, options_length);
         }
@@ -498,7 +504,7 @@ void BuildOptionsArray(Sd_EntryType entry_type,  const Sd_DynClientServiceType *
         }
 
         /* Build Udp option if socket connection is configured */
-        if ((server->ServerServiceCfg->UdpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET))
+        if ((server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr != NULL))
         {
             BuildIpv4EndpointOption(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr, UDP_PROTO, &offset, options_array, options_length);
         }
@@ -516,7 +522,7 @@ void BuildOptionsArray(Sd_EntryType entry_type,  const Sd_DynClientServiceType *
         prev_offset =  offset;
 
         /* Build Tcp options if socket connection is configured */
-        if ((client->ClientServiceCfg->TcpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET))
+        if ((client->ClientServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr != NULL))
         {
             BuildIpv4EndpointOption(client->ClientServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr, TCP_PROTO, &offset, options_array, options_length);
         }
@@ -527,7 +533,7 @@ void BuildOptionsArray(Sd_EntryType entry_type,  const Sd_DynClientServiceType *
         }
 
         /* Build Udp option if socket connection is configured */
-        if ((client->ClientServiceCfg->UdpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET))
+        if ((client->ClientServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr != NULL))
         {
             BuildIpv4EndpointOption(client->ClientServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr, UDP_PROTO, &offset, options_array, options_length);
         }

@@ -196,7 +196,7 @@ typedef enum {
 	SOAD_DOIP_NODETYPE_NOF_VALID_MODES, // Reserved 2..255
 } SoAd_DoIp_ArcNodeTypeType;
 
-typedef uint8 SoAd_SoConIdType;
+typedef uint16 SoAd_SoConIdType;
 
 typedef uint8 SoAd_DoIp_PowerMode;
 

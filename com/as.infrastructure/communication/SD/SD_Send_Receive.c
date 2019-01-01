@@ -563,7 +563,7 @@ void TransmitSdMessage(Sd_DynInstanceType *instance,
 
         /* Combine entries and options to sd message */
         memset(message,0,PAYLOAD_MAX);
-        sd_msg.Length = 28+sd_msg.LengthOfEntriesArray+sd_msg.LengthOfOptionsArray;
+        sd_msg.Length = 20+sd_msg.LengthOfEntriesArray+sd_msg.LengthOfOptionsArray;
         FillMessage(&sd_msg, message, &messagelength);
         pduinfo.SduDataPtr = message;
         pduinfo.SduLength = (uint16) messagelength;

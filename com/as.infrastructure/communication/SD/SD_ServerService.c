@@ -180,11 +180,11 @@ static void SetRemoteTcpConnection(Sd_DynServerServiceType *server)
 /* Open TCP Connection if TcpRef is configured and was not opened before*/
 static void OpenTcpConnection(Sd_DynServerServiceType *server)
 {
-    if ((server->ServerServiceCfg->TcpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET) && !(server->TcpSoConOpened))
+    if ((server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr != NULL) && !(server->TcpSoConOpened))
     {
         /* Open all SoCons in Group */
-        for (uint16 i=0;i<sizeof(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr)/sizeof(uint16); i++){
-            (void)SoAd_OpenSoCon(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[i]);
+        for (uint16 i=0;i<server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[0]; i++){
+            (void)SoAd_OpenSoCon(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[1+i]);
         }
         server->TcpSoConOpened = TRUE;
     }
@@ -193,11 +193,11 @@ static void OpenTcpConnection(Sd_DynServerServiceType *server)
 /* Open Udp Connection if UdpRef is configured and was not opened before*/
 static void OpenUdpConnection(Sd_DynServerServiceType *server)
 {
-    if ((server->ServerServiceCfg->UdpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET) && !(server->UdpSoConOpened))
+    if ((server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr != NULL) && !(server->UdpSoConOpened))
     {
         /* Open all SoCons in Group */
-        for (uint16 i=0;i<sizeof(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr)/sizeof(uint16); i++){
-            (void)SoAd_OpenSoCon(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[i]);
+        for (uint16 i=0;i<server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[0]; i++){
+            (void)SoAd_OpenSoCon(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[1+i]);
         }
         server->UdpSoConOpened = TRUE;
     }
@@ -213,10 +213,10 @@ static void OpenSocketConnections(Sd_DynServerServiceType *server)
 /* Close TCP Connection if TcpRef is configured and was not opened before*/
 static void CloseTcpConnection(Sd_DynServerServiceType *server, boolean abort)
 {
-    if ((server->ServerServiceCfg->TcpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET) && (server->TcpSoConOpened)) {
+    if ((server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr != NULL) && (server->TcpSoConOpened)) {
         /* Open all SoCons in Group */
-        for (uint16 i=0;i<sizeof(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr)/sizeof(uint16); i++) {
-            (void)SoAd_CloseSoCon(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[i], abort);
+        for (uint16 i=0;i<server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[0]; i++) {
+            (void)SoAd_CloseSoCon(server->ServerServiceCfg->TcpSocketConnectionGroupSocketConnectionIdsPtr[1+i], abort);
         }
 
         server->TcpSoConOpened = FALSE;
@@ -226,9 +226,9 @@ static void CloseTcpConnection(Sd_DynServerServiceType *server, boolean abort)
 /* Close Udp Connection if UdpRef is configured and was not opened before*/
 static void CloseUdpConnection(Sd_DynServerServiceType *server, boolean abort)
 {
-    if ((server->ServerServiceCfg->UdpSocketConnectionGroupId != SOCKET_CONNECTION_GROUP_NOT_SET) && (server->UdpSoConOpened)) {
-        for (uint16 i=0;i<sizeof(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr)/sizeof(uint16); i++) {
-            (void)SoAd_CloseSoCon(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[i], abort);
+    if ((server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr != NULL) && (server->UdpSoConOpened)) {
+        for (uint16 i=0;i<server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[0]; i++) {
+            (void)SoAd_CloseSoCon(server->ServerServiceCfg->UdpSocketConnectionGroupSocketConnectionIdsPtr[1+i], abort);
         }
         server->UdpSoConOpened = FALSE;
     }

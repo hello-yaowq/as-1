@@ -562,7 +562,7 @@ void Sd_MainFunction( void ){
 
         for (uint32 server=0; server < SdCfgPtr->Instance[instance].SdNoOfServerServices; server++)
         {
-            UpdateServerService(SdCfgPtr, instance, server);
+            // UpdateServerService(SdCfgPtr, instance, server);
         }
     }
 

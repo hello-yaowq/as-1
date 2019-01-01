@@ -929,8 +929,15 @@ Std_ReturnType SoAd_GetLocalAddr( SoAd_SoConIdType SoConId, TcpIp_SockAddrType* 
 	uint32 localIpAddress;
 	if (SoConId < SOAD_PDU_ROUTE_COUNT)
 	{
-		localIpAddress = inet_addr(SocketAdminList[SoConId].SocketConnectionRef->SocketLocalIpAddress);
-		LocalAddrPtr->port = htons(SocketAdminList[SoConId].SocketConnectionRef->SocketLocalPort);
+		if(NULL != SocketAdminList[SoConId].SocketConnectionRef->SocketLocalIpAddress)
+		{
+			localIpAddress = inet_addr(SocketAdminList[SoConId].SocketConnectionRef->SocketLocalIpAddress);
+		}
+		else
+		{
+			localIpAddress = SoAd_GetLocalIp();
+		}
+		LocalAddrPtr->port = SocketAdminList[SoConId].SocketConnectionRef->SocketLocalPort;
 		memcpy(LocalAddrPtr->addr, &localIpAddress, sizeof(localIpAddress));
 		ercd = E_OK;
 	}

@@ -192,6 +192,11 @@ int SoAd_BindImpl(int s, uint16 SocketLocalPort, char* SocketLocalIpAddress)
 	return r;
 }
 
+uint32 SoAd_GetLocalIp(void)
+{
+	return ((uint32)uip_hostaddr.u8[3]<<24)+((uint32)uip_hostaddr.u8[2]<<16)+((uint32)uip_hostaddr.u8[1]<<8)+(uint32)uip_hostaddr.u8[0];
+}
+
 int SoAd_ListenImpl(int s, int backlog)
 {
 	return 0;

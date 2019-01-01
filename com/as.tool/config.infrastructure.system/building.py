@@ -776,6 +776,7 @@ class Qemu():
 
     def Run(self, params, where=None):
         ASROOT = Env['ASROOT']
+        MODULES = Env['MODULES']
         build = '%s/release/%s'%(ASROOT, Env['RELEASE'])
         if(where is None):
             where = build
@@ -785,7 +786,7 @@ class Qemu():
         if('asone' in COMMAND_LINE_TARGETS):
             RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
         if(IsPlatformWindows()):
-            if(self.isAsQemu):
+            if(self.isAsQemu and ('CAN' in MODULES)):
                 RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 0'%(ASROOT))
                 RunCommand('start %s/com/as.tool/lua/script/socketwin_can_driver.exe 1'%(ASROOT))
             RunCommand('cd %s && start cmd /C %s %s %s'%(where, self.qemu, params, self.params))
