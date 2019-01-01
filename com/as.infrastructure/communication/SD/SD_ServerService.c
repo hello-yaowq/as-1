@@ -19,9 +19,9 @@
 #include "SD.h"
 #include "SD_Internal.h"
 
-static Sd_Entry_Type1_Services entry11;
-static Sd_Entry_Type2_EventGroups entry22;
-static TcpIp_SockAddrType ipaddress;
+#include "asdebug.h"
+
+#define AS_LOG_SDSERVER 1
 
 static const TcpIp_SockAddrType wildcard = {
         (TcpIp_DomainType) TCPIP_AF_INET,
@@ -32,8 +32,28 @@ static const TcpIp_SockAddrType wildcard = {
 
 static Sd_Message msg;
 
-static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Services **entry1, Sd_Entry_Type2_EventGroups **entry2, TcpIp_SockAddrType *ipaddress, boolean *is_multicast)
+static Sd_DynServerServiceType * findServerService(uint32 instanceno,
+        uint16 ServiceID, uint16 InstanceID)
 {
+    int i;
+    Sd_DynServerServiceType * server = NULL;
+    for (i=0; i<SdCfgPtr->Instance[instanceno].SdNoOfServerServices; i++)
+    {
+        if( (Sd_DynConfig.Instance[instanceno].SdServerService[i].ServerServiceCfg->Id == ServiceID)
+            && (Sd_DynConfig.Instance[instanceno].SdServerService[i].ServerServiceCfg->InstanceId == InstanceID) )
+        {
+            server = &(Sd_DynConfig.Instance[instanceno].SdServerService[i]);
+            break;
+        }
+    }
+
+    return server;
+}
+
+static int EntryReceived(uint32 instanceno, Sd_Entry_Type * entry,
+        TcpIp_SockAddrType *ipaddress, boolean *is_multicast, Sd_DynServerServiceType **server)
+{
+    int entryType = 0;
     Sd_InstanceType *server_svc = NULL;
     uint8 *option_run1 [MAX_OPTIONS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
     uint8 *option_run2 [MAX_OPTIONS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -42,13 +62,14 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
     Ipv4Endpoint endpoint[MAX_OPTIONS];
     Sd_CapabilityRecordType capabilty_record[MAX_OPTIONS];
 
+    *server = NULL;
+    *is_multicast = FALSE;
+
     /* First check if there are more entries in the last read message to fetch */
     if (msg.ProtocolVersion != 0x01) {
         /* Fetch a new message from the queue */
         if (!ReceiveSdMessage(&msg, ipaddress, SERVER_QUEUE, &server_svc, is_multicast)) {
-            *entry1 = NULL;
-            *entry2 = NULL;
-            return;
+            return SD_ENTRY_EMPTY;
         }
     }
 
@@ -57,45 +78,54 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
 
     if ((type == 0) || (type == 1)) {
         /* FIND_SERVICE */
-        DecodeType1Entry (msg.EntriesArray, *entry1);
-        *entry2 = NULL;
+        DecodeType1Entry (msg.EntriesArray, &(entry->type1));
+        entryType = SD_ENTRY_TYPE_1;
         if (msg.LengthOfOptionsArray > 0) {
-            OptionsReceived(msg.OptionsArray, msg.LengthOfOptionsArray, *entry1, NULL, option_run1, option_run2);
+            OptionsReceived(msg.OptionsArray, msg.LengthOfOptionsArray, &(entry->type1), NULL, option_run1, option_run2);
         }
         /* Move entry pointer */
         msg.EntriesArray += ENTRY_TYPE_1_SIZE;
     }
     else if ((type == 6) || (type == 7)) {
         /* SUBSCRIBE_EVENTGROUP or STOP_SUBSCRIBE_EVENTGROUP */
-        DecodeType2Entry (msg.EntriesArray, *entry2);
-        *entry1 = NULL;
+        DecodeType2Entry (msg.EntriesArray, &(entry->type2));
+        entryType = SD_ENTRY_TYPE_2;
         if (msg.LengthOfOptionsArray > 0) {
-            OptionsReceived(msg.OptionsArray, msg.LengthOfOptionsArray, NULL, *entry2, option_run1, option_run2);
+            OptionsReceived(msg.OptionsArray, msg.LengthOfOptionsArray, NULL, &(entry->type2), option_run1, option_run2);
         }
         /* Move entry pointer */
         msg.EntriesArray += ENTRY_TYPE_2_SIZE;
+    } else
+    {
+        entryType = SD_ENTRY_INVALID;
     }
 
-
-    /* Decode configuration option attribute */
-    DecodeOptionConfiguration(option_run1,capabilty_record,&no_of_capabilty_records);
+    if(entryType > 0) {
+        *server = findServerService(instanceno, entry->type1.ServiceID, entry->type1.InstanceID);
+    }
+    if(NULL == *server) {
+        entryType = SD_ENTRY_UNKNOWN;
+        ASLOG(SDSERVER, "unknown service %04X:%04X\n", entry->type1.ServiceID, entry->type1.InstanceID);
+    } else {
+        /* Decode configuration option attribute */
+        DecodeOptionConfiguration(option_run1,capabilty_record,&no_of_capabilty_records);
+    }
 
     /* Check if this message is aimed for this server instance */
-    if (*entry1 != NULL) {
+    if (SD_ENTRY_TYPE_1 == entryType) {
         /** @req 4.2.2/SWS_SD_00486 */
         /* Received FindService  */
 
-        boolean matchServiceID = (((*entry1)->ServiceID == 0xFFFF) || ((*entry1)->ServiceID == server->ServerServiceCfg->Id));
+        boolean matchServiceID = ((entry->type1.ServiceID == 0xFFFF) || (entry->type1.ServiceID == (*server)->ServerServiceCfg->Id));
         /** @req 4.2.2/SWS_SD_00295 */
-        boolean matchInstanceID = (((*entry1)->InstanceID == 0xFFFF) || ((*entry1)->InstanceID == server->ServerServiceCfg->InstanceId));
-        boolean matchMajorVersion = (((*entry1)->MajorVersion == 0xFF) || ((*entry1)->MajorVersion == server->ServerServiceCfg->MajorVersion));
-        boolean matchMinorVersion = (((*entry1)->MinorVersion == 0xFFFFFFFF) || ((*entry1)->MinorVersion == server->ServerServiceCfg->MinorVersion));
+        boolean matchInstanceID = ((entry->type1.InstanceID == 0xFFFF) || (entry->type1.InstanceID == (*server)->ServerServiceCfg->InstanceId));
+        boolean matchMajorVersion = ((entry->type1.MajorVersion == 0xFF) || (entry->type1.MajorVersion == (*server)->ServerServiceCfg->MajorVersion));
+        boolean matchMinorVersion = ((entry->type1.MinorVersion == 0xFFFFFFFF) || (entry->type1.MinorVersion == (*server)->ServerServiceCfg->MinorVersion));
 
 
         /* This server is the intended one. No endpoint option need to be analyzed for FindService entries.  */
         if (!(matchServiceID && matchInstanceID && matchMajorVersion && matchMinorVersion)){
-            *entry1 = NULL;
-            *entry2 = NULL;
+            entryType = SD_ENTRY_VERSION_NOT_MATCH;
         } else {
             /* This server is the intended one. No endpoint option need to be analyzed for FindService entries.
              * Fetch remote address from RxPdu  */
@@ -111,16 +141,16 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
             }
         }
 
-    } else if (entry2 != NULL) {
+    } else if (SD_ENTRY_TYPE_2 == entryType) {
         /* Received SubscribeEventgroup or StopSubscribeEventgroup */
         /** @req 4.2.2/SWS_SD_00490 */
         boolean EventHandlerFound = FALSE;
         uint8 EventHandlerIndex = 0;
-        for (uint8 i=0; i < server->ServerServiceCfg->NoOfEventHandlers; i++){
-            if (((*entry2)->ServiceID == server->ServerServiceCfg->Id) &&
-                ((*entry2)->InstanceID == server->ServerServiceCfg->InstanceId) &&
-                ((*entry2)->MajorVersion == server->ServerServiceCfg->MajorVersion) &&
-                ((*entry2)->EventgroupID == server->ServerServiceCfg->EventHandler[i].EventGroupId))
+        for (uint8 i=0; i < (*server)->ServerServiceCfg->NoOfEventHandlers; i++){
+            if ((entry->type2.ServiceID == (*server)->ServerServiceCfg->Id) &&
+                (entry->type2.InstanceID == (*server)->ServerServiceCfg->InstanceId) &&
+                (entry->type2.MajorVersion == (*server)->ServerServiceCfg->MajorVersion) &&
+                (entry->type2.EventgroupID == (*server)->ServerServiceCfg->EventHandler[i].EventGroupId))
             {
                 /* The entry was aimed for this server instance. */
                 EventHandlerFound = TRUE;
@@ -131,19 +161,18 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
 
         if (!EventHandlerFound)
         {
-            *entry1 = NULL;
-            *entry2 = NULL;
+            entryType = SD_ENTRY_GROUP_NOT_FOUND;
         } else {
             /* Decode and store the option parameters */
             DecodeOptionIpv4Endpoint(option_run1, endpoint, &no_of_endpoints);
             for (uint8 i=0; i < no_of_endpoints; i++){
                if (endpoint[i].Protocol == UDP_PROTO) {
-                    memcpy(&server->EventHandlers[EventHandlerIndex].UdpEndpoint, &endpoint[i], sizeof(Ipv4Endpoint));
-                    server->EventHandlers[EventHandlerIndex].UdpEndpoint.valid = TRUE;
+                    memcpy(&(*server)->EventHandlers[EventHandlerIndex].UdpEndpoint, &endpoint[i], sizeof(Ipv4Endpoint));
+                    (*server)->EventHandlers[EventHandlerIndex].UdpEndpoint.valid = TRUE;
                }
                else if (endpoint[i].Protocol == TCP_PROTO) {
-                    memcpy(&server->EventHandlers[EventHandlerIndex].TcpEndpoint, &endpoint[i], sizeof(Ipv4Endpoint));
-                    server->EventHandlers[EventHandlerIndex].TcpEndpoint.valid = TRUE;
+                    memcpy(&(*server)->EventHandlers[EventHandlerIndex].TcpEndpoint, &endpoint[i], sizeof(Ipv4Endpoint));
+                    (*server)->EventHandlers[EventHandlerIndex].TcpEndpoint.valid = TRUE;
                }
             }
         }
@@ -157,6 +186,7 @@ static void EntryReceived(Sd_DynServerServiceType *server, Sd_Entry_Type1_Servic
         msg.ProtocolVersion = 0x00;
     }
 
+    return entryType;
 }
 
 #if 0
@@ -241,16 +271,11 @@ static void CloseSocketConnections(Sd_DynServerServiceType *server, boolean abor
     server->SocketConnectionOpened = FALSE;
 }
 
-void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 serverno){
+static void UpdateServerService(uint32 instanceno, uint32 serverno,
+        int entryType, Sd_Entry_Type* entry, TcpIp_SockAddrType *ipaddress,
+        boolean is_multicast) {
     Sd_DynServerServiceType *server = &Sd_DynConfig.Instance[instanceno].SdServerService[serverno];
     Sd_DynInstanceType *sd_instance = &Sd_DynConfig.Instance[instanceno];
-    Sd_Entry_Type1_Services *entry1 = &entry11;
-    Sd_Entry_Type2_EventGroups *entry2 = &entry22;
-    boolean is_multicast = FALSE;
-    memset(&entry11, 0, sizeof(Sd_Entry_Type1_Services));
-    memset(&entry22, 0, sizeof(Sd_Entry_Type2_EventGroups));
-
-    EntryReceived(server, &entry1, &entry2, &ipaddress, &is_multicast);
 
     switch (server->Phase)
     {
@@ -324,6 +349,8 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
             server->InitialOffer_Timer_Value_ms -= SD_MAIN_FUNCTION_CYCLE_TIME_MS;
             if (server->InitialOffer_Timer_Value_ms <= 0) {
                 /* Send OfferService Entry */
+                ASLOG(SDSERVER, "Offer Service %04X:%04X\n",
+                        server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
                 TransmitSdMessage(sd_instance, (Sd_DynClientServiceType *)NULL, server, NULL, 0, SD_OFFER_SERVICE, NULL, is_multicast); // IMPROVEMENT: Should ipaddress parameter be used
                 server->InitialOffer_Timer_Value_ms = 0;
                 server->InitialOfferTimerOn = FALSE;
@@ -414,14 +441,16 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
             server->OfferRepDelay_Timer_Value_ms = server->RepetitionFactor * server->ServerServiceCfg->TimerRef->InitialOfferRepetitionBaseDelay_ms;
             server->OfferRepDelayTimerOn = TRUE;
         }
-//		else
-//		{
+//        else
+//        {
             /** @req 4.2.2/SWS_SD_00331 */
             /* IMPROVEMENT: Check the calculation for the timer step. */
             server->OfferRepDelay_Timer_Value_ms -= SD_MAIN_FUNCTION_CYCLE_TIME_MS;
 
             if (server->OfferRepDelay_Timer_Value_ms <= 0) {
                 /* Send OfferService Entry */
+                ASLOG(SDSERVER, "Offer Service %04X:%04X\n",
+                        server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
                 TransmitSdMessage(sd_instance, NULL, server, NULL, 0, SD_OFFER_SERVICE,NULL,FALSE); // IMPROVEMENT: Should ipaddress parameter be used
                 server->OfferRepDelayTimerOn = FALSE;
                 server->OfferRepetitions++;
@@ -436,75 +465,77 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
             }
 
             /** @req 4.2.2/SWS_SD_00332 */
-            if (entry1 != (Sd_Entry_Type1_Services *) NULL){
-                if ((entry1->Type == FIND_SERVICE_TYPE)) {
+            if (SD_ENTRY_TYPE_1 == entryType){
+                if ((entry->type1.Type == FIND_SERVICE_TYPE)) {
                     /* Send OfferService Entry */
+                    ASLOG(SDSERVER, "Offer Service %04X:%04X\n",
+                            server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
                     TransmitSdMessage(sd_instance, NULL, server, NULL, 0, SD_OFFER_SERVICE,NULL,is_multicast); // IMPROVEMENT: Should ipaddress parameter be used
                 }
             }
 
             /** @req 4.2.2/SWS_SD_00333 */
-            if (entry2 != (Sd_Entry_Type2_EventGroups *) NULL){
-                if ((entry2->Type == SUBSCRIBE_EVENTGROUP_TYPE) && (entry2->TTL > 0)) {
+            if (SD_ENTRY_TYPE_2 == entryType){
+                if ((entry->type2.Type == SUBSCRIBE_EVENTGROUP_TYPE) && (entry->type2.TTL > 0)) {
                     boolean event_handler_found = FALSE;
                     uint8 event_handler_index = 0;
 
                     /* Find the subscribed event handler. Set it to REQUESTED, and start the TTL Timer for the subscriber
                      * IMROVEMENT: For now we use the Counter parameter as index. Maybe not correct? */
                     for (uint8 eh=0; eh < server->ServerServiceCfg->NoOfEventHandlers; eh++){
-                        if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry2->EventgroupID) {
+                        if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry->type2.EventgroupID) {
 
-//							/** @ req 4.2.2/SWS_SD_00454 */
-//							//IMPROVEMENT: More work is needed.
+//                            /** @ req 4.2.2/SWS_SD_00454 */
+//                            //IMPROVEMENT: More work is needed.
 //
-//							if (server->ServerServiceCfg->EventHandler[eh].Udp != NULL) {
-//								if (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
+//                            if (server->ServerServiceCfg->EventHandler[eh].Udp != NULL) {
+//                                if (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
 //
-//									/* Set socket remote address */
-//									/* IMPROVEMENT: Go through the udp socket connections and compare it with Ipv4EndpointOptionUdp for this eventgroup.
-//									 * If none is found, set the remote address on a wildcard. */
+//                                    /* Set socket remote address */
+//                                    /* IMPROVEMENT: Go through the udp socket connections and compare it with Ipv4EndpointOptionUdp for this eventgroup.
+//                                     * If none is found, set the remote address on a wildcard. */
 //
-//									/* Enable routing */
-//									if (server->EventHandlers[eh].NoOfSubscribers == 0){
-//										(void)SoAd_EnableSpecificRouting
-//											(server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef,
-//											        server->ServerServiceCfg->UdpSocketConnectionGroupId);
+//                                    /* Enable routing */
+//                                    if (server->EventHandlers[eh].NoOfSubscribers == 0){
+//                                        (void)SoAd_EnableSpecificRouting
+//                                            (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef,
+//                                                    server->ServerServiceCfg->UdpSocketConnectionGroupId);
 //
-////										(void)SoAd_IfSpecificRoutingGroupTransmit
-////											(server->ServerServiceCfg->EventHandler[eh].Udp->EventTriggeringRef,
-////											        server->ServerServiceCfg->UdpSocketConnectionGroupId);
+////                                        (void)SoAd_IfSpecificRoutingGroupTransmit
+////                                            (server->ServerServiceCfg->EventHandler[eh].Udp->EventTriggeringRef,
+////                                                    server->ServerServiceCfg->UdpSocketConnectionGroupId);
 //
-//									}
-//								}
-//							} else {
+//                                    }
+//                                }
+//                            } else {
 //
-//								/** @ req 4.2.2/SWS_SD_00453 */
-//								if (server->ServerServiceCfg->EventHandler[eh].Tcp != NULL) {
-//									if (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
+//                                /** @ req 4.2.2/SWS_SD_00453 */
+//                                if (server->ServerServiceCfg->EventHandler[eh].Tcp != NULL) {
+//                                    if (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
 //
-//										/* Set socket remote address */
-//										/* IMPROVEMENT: Go through the tcp socket connections and compare it with Ipv4EndpointOptionTcp.
-//										 * If none is found, set the remote address on a wildcard. */
+//                                        /* Set socket remote address */
+//                                        /* IMPROVEMENT: Go through the tcp socket connections and compare it with Ipv4EndpointOptionTcp.
+//                                         * If none is found, set the remote address on a wildcard. */
 //
-//										/* Enable routing */
-//										if (server->EventHandlers[eh].NoOfSubscribers == 0){
-//											(void)SoAd_EnableSpecificRouting
-//												(server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef,
-//														server->ServerServiceCfg->TcpSocketConnectionGroupId);
+//                                        /* Enable routing */
+//                                        if (server->EventHandlers[eh].NoOfSubscribers == 0){
+//                                            (void)SoAd_EnableSpecificRouting
+//                                                (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef,
+//                                                        server->ServerServiceCfg->TcpSocketConnectionGroupId);
 //
-////											(void)SoAd_IfSpecificRoutingGroupTransmit
-////												(server->ServerServiceCfg->EventHandler[eh].Tcp->EventTriggeringRef,
-////														server->ServerServiceCfg->TcpSocketConnectionGroupId);
+////                                            (void)SoAd_IfSpecificRoutingGroupTransmit
+////                                                (server->ServerServiceCfg->EventHandler[eh].Tcp->EventTriggeringRef,
+////                                                        server->ServerServiceCfg->TcpSocketConnectionGroupId);
 //
-//										}
-//									}
-//								}
-//							}
+//                                        }
+//                                    }
+//                                }
+//                            }
 
                             server->EventHandlers[eh].EventHandlerState = SD_EVENT_HANDLER_REQUESTED;
                             server->EventHandlers[eh].NoOfSubscribers++;
-                            server->EventHandlers[eh].FanOut [entry2->Counter].TTL_Timer_Value_ms = entry2->TTL * 1000;
-                            server->EventHandlers[eh].FanOut [entry2->Counter].TTL_Timer_On = TRUE;
+                            server->EventHandlers[eh].FanOut [entry->type2.Counter].TTL_Timer_Value_ms = entry->type2.TTL * 1000;
+                            server->EventHandlers[eh].FanOut [entry->type2.Counter].TTL_Timer_On = TRUE;
                             /* Change state for the EventHandler in BswM. */
                             if (server->EventHandlers[eh].NoOfSubscribers == 1) {
                                 BswM_Sd_EventHandlerCurrentState(server->ServerServiceCfg->EventHandler[eh].HandleId, SD_EVENT_HANDLER_REQUESTED);
@@ -517,53 +548,55 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
 
                     if (event_handler_found) {
                         /* Send SubscribeEventGroupAck Entry */
-                        TransmitSdMessage(sd_instance, NULL, server, entry2, event_handler_index, SD_SUBSCRIBE_EVENTGROUP_ACK, &ipaddress, is_multicast);
+                        ASLOG(SDSERVER, "Subscribe Event Group Ack %04X:%04X:%04X\n",
+                                entry->type2.ServiceID, entry->type2.InstanceID, entry->type2.EventgroupID);
+                        TransmitSdMessage(sd_instance, NULL, server, &(entry->type2), event_handler_index, SD_SUBSCRIBE_EVENTGROUP_ACK,ipaddress, is_multicast);
                     }
                 }
 
                 /** @req 4.2.2/SWS_SD_00334 */
-                if (entry2 != (Sd_Entry_Type2_EventGroups *) NULL){
-                    if ((entry2->Type == STOP_SUBSCRIBE_EVENTGROUP_TYPE) && (entry2->TTL == 0)) {
+                if (SD_ENTRY_TYPE_2 == entryType){
+                    if ((entry->type2.Type == STOP_SUBSCRIBE_EVENTGROUP_TYPE) && (entry->type2.TTL == 0)) {
 
                         /* Find the subscribed event handler. Set it to RELEASED, and stop the TTL Timer.
                          * IMROVEMENT: For now we use the Counter parameter as index. Maybe not correct? */
                         for (uint8 eh=0; eh < server->ServerServiceCfg->NoOfEventHandlers; eh++){
-                            if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry2->EventgroupID) {
+                            if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry->type2.EventgroupID) {
 
 
 
-                                server->EventHandlers[eh].FanOut[entry2->Counter].TTL_Timer_On = FALSE;
-                                server->EventHandlers[eh].FanOut[entry2->Counter].TTL_Timer_Value_ms = 0;
+                                server->EventHandlers[eh].FanOut[entry->type2.Counter].TTL_Timer_On = FALSE;
+                                server->EventHandlers[eh].FanOut[entry->type2.Counter].TTL_Timer_Value_ms = 0;
                                 server->EventHandlers[eh].NoOfSubscribers--;
                                 if (server->EventHandlers[eh].NoOfSubscribers == 0) {
 
-//									/** @ req 4.2.2/SWS_SD_00454 */
+//                                    /** @ req 4.2.2/SWS_SD_00454 */
 
                                     /* IMPROVEMENT: More work is needed */
 
-//									if (server->ServerServiceCfg->EventHandler[eh].Udp != NULL) {
-//										if (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
+//                                    if (server->ServerServiceCfg->EventHandler[eh].Udp != NULL) {
+//                                        if (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
 //
-//											/* Disable routing */
-//											(void)SoAd_DisableSpecificRouting
-//												(server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef,
-//														server->ServerServiceCfg->UdpSocketConnectionGroupId);
+//                                            /* Disable routing */
+//                                            (void)SoAd_DisableSpecificRouting
+//                                                (server->ServerServiceCfg->EventHandler[eh].Udp->EventActivationRef,
+//                                                        server->ServerServiceCfg->UdpSocketConnectionGroupId);
 //
-//										}
-//									} else {
+//                                        }
+//                                    } else {
 //
-//										/** @ req 4.2.2/SWS_SD_00453 */
-//										if (server->ServerServiceCfg->EventHandler[eh].Tcp != NULL) {
-//											if (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
+//                                        /** @ req 4.2.2/SWS_SD_00453 */
+//                                        if (server->ServerServiceCfg->EventHandler[eh].Tcp != NULL) {
+//                                            if (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef != ACTIVATION_REF_NOT_SET) {
 //
-//												/* Disable routing */
-//												(void)SoAd_DisableSpecificRouting
-//													(server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef,
-//															server->ServerServiceCfg->TcpSocketConnectionGroupId);
-//												}
-//											}
-//										}
-//									}
+//                                                /* Disable routing */
+//                                                (void)SoAd_DisableSpecificRouting
+//                                                    (server->ServerServiceCfg->EventHandler[eh].Tcp->EventActivationRef,
+//                                                            server->ServerServiceCfg->TcpSocketConnectionGroupId);
+//                                                }
+//                                            }
+//                                        }
+//                                    }
 
 
 
@@ -578,7 +611,7 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
 
                     }
                 }
-//			}
+//            }
 
 
 
@@ -626,6 +659,8 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
                 server->OfferCyclicDelay_Timer_Value_ms -= SD_MAIN_FUNCTION_CYCLE_TIME_MS;
                 if (server->OfferCyclicDelay_Timer_Value_ms <= 0) {
                     /* Send OfferService Entry */
+                    ASLOG(SDSERVER, "Offer Service %04X:%04X\n",
+                            server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
                     TransmitSdMessage(sd_instance, NULL, server, NULL, 0, SD_OFFER_SERVICE,NULL, FALSE); // IMPROVEMENT: Should ipaddress parameter be used
                     /* Reset Timer */
                     server->OfferCyclicDelay_Timer_Value_ms = server->ServerServiceCfg->TimerRef->OfferCyclicDelay_ms;
@@ -634,16 +669,18 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
         }
 
         /** @req 4.2.2/SWS_SD_00343 */
-        if (entry1 != (Sd_Entry_Type1_Services *) NULL){
-            if ((entry1->Type == FIND_SERVICE_TYPE)) {
+        if (SD_ENTRY_TYPE_1 == entryType){
+            if ((entry->type1.Type == FIND_SERVICE_TYPE)) {
                 /* Send OfferService Entry */
+                ASLOG(SDSERVER, "Offer Service %04X:%04X\n",
+                        server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
                 TransmitSdMessage(sd_instance, NULL, server, NULL, 0, SD_OFFER_SERVICE,NULL,is_multicast); // IMPROVEMENT: Should ipaddress parameter be used
             }
         }
 
         /** @req 4.2.2/SWS_SD_00344 */
-        if (entry2 != (Sd_Entry_Type2_EventGroups *) NULL){
-            if ((entry2->Type == SUBSCRIBE_EVENTGROUP_TYPE) && (entry2->TTL > 0)) {
+        if (SD_ENTRY_TYPE_2 == entryType){
+            if ((entry->type2.Type == SUBSCRIBE_EVENTGROUP_TYPE) && (entry->type2.TTL > 0)) {
 
                 boolean event_handler_found = FALSE;
                 uint8 event_handler_index = 0;
@@ -651,11 +688,11 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
                 /* Find the subscribed event handler. Set it to REQUESTED, and start the TTL Timer for the subscriber
                  * IMROVEMENT: For now we use the Counter parameter as index. Maybe not correct? */
                 for (uint8 eh=0; eh < server->ServerServiceCfg->NoOfEventHandlers; eh++){
-                    if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry2->EventgroupID) {
+                    if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry->type2.EventgroupID) {
                         server->EventHandlers[eh].EventHandlerState = SD_EVENT_HANDLER_REQUESTED;
                         server->EventHandlers[eh].NoOfSubscribers++;
-                        server->EventHandlers[eh].FanOut [entry2->Counter].TTL_Timer_Value_ms = entry2->TTL * 1000;
-                        server->EventHandlers[eh].FanOut [entry2->Counter].TTL_Timer_On = TRUE;
+                        server->EventHandlers[eh].FanOut [entry->type2.Counter].TTL_Timer_Value_ms = entry->type2.TTL * 1000;
+                        server->EventHandlers[eh].FanOut [entry->type2.Counter].TTL_Timer_On = TRUE;
                         /* Change state for the EventHandler in BswM. */
                         if (server->EventHandlers[eh].NoOfSubscribers == 1) {
                             BswM_Sd_EventHandlerCurrentState(server->ServerServiceCfg->EventHandler[eh].HandleId, SD_EVENT_HANDLER_REQUESTED);
@@ -668,21 +705,23 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
 
                 if (event_handler_found) {
                     /* Send SubscribeEventGroupAck Entry */
-                    TransmitSdMessage(sd_instance, NULL, server, entry2, event_handler_index, SD_SUBSCRIBE_EVENTGROUP_ACK, &ipaddress,is_multicast);
+                    ASLOG(SDSERVER, "Subscribe Event Group Ack %04X:%04X:%04X\n",
+                            entry->type2.ServiceID, entry->type2.InstanceID, entry->type2.EventgroupID);
+                    TransmitSdMessage(sd_instance, NULL, server, &(entry->type2), event_handler_index, SD_SUBSCRIBE_EVENTGROUP_ACK, ipaddress,is_multicast);
                 }
 
             }
 
             /** @req 4.2.2/SWS_SD_00345 */
-            if (entry2 != (Sd_Entry_Type2_EventGroups *) NULL){
-                if ((entry2->Type == STOP_SUBSCRIBE_EVENTGROUP_TYPE) && (entry2->TTL == 0)) {
+            if (SD_ENTRY_TYPE_2 == entryType){
+                if ((entry->type2.Type == STOP_SUBSCRIBE_EVENTGROUP_TYPE) && (entry->type2.TTL == 0)) {
 
                     /* Find the subscribed event handler. Set it to RELEASED, and stop the TTL Timer.
                      * IMROVEMENT: For now we use the Counter parameter as index. Maybe not correct? */
                     for (uint8 eh=0; eh < server->ServerServiceCfg->NoOfEventHandlers; eh++){
-                        if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry2->EventgroupID) {
-                            server->EventHandlers[eh].FanOut[entry2->Counter].TTL_Timer_On = FALSE;
-                            server->EventHandlers[eh].FanOut[entry2->Counter].TTL_Timer_Value_ms = 0;
+                        if (server->ServerServiceCfg->EventHandler[eh].EventGroupId == entry->type2.EventgroupID) {
+                            server->EventHandlers[eh].FanOut[entry->type2.Counter].TTL_Timer_On = FALSE;
+                            server->EventHandlers[eh].FanOut[entry->type2.Counter].TTL_Timer_Value_ms = 0;
                             server->EventHandlers[eh].NoOfSubscribers--;
                             if (server->EventHandlers[eh].NoOfSubscribers <= 0) {
                                 server->EventHandlers[eh].EventHandlerState = SD_EVENT_HANDLER_RELEASED;
@@ -738,6 +777,8 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
             server->Phase = SD_DOWN_PHASE; /* INITIAL_WAIT -> DOWN */
 
             /* Send a StopOffer Message */
+            ASLOG(SDSERVER, "Stop Offer Service %04X:%04X\n",
+                    server->ServerServiceCfg->Id, server->ServerServiceCfg->InstanceId);
             TransmitSdMessage(sd_instance, NULL, server, NULL, 0, SD_STOP_OFFER_SERVICE, NULL, FALSE); // IMPROVEMENT: Should ipaddress parameter be used
 
             /* Set all EventHandlersCurrentState to RELEASED */
@@ -772,5 +813,36 @@ void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 
     }
 }
 
+void Sd_UpdateServerService(uint32 instanceno)
+{
+    uint8 flags[(SdCfgPtr->Instance[instanceno].SdNoOfServerServices+7)/8];
+    Sd_Entry_Type entry;
+    TcpIp_SockAddrType ipaddress;
+    boolean is_multicast = FALSE;
+    uint32 serverno;
+    Sd_DynServerServiceType *server;
+    int entryType;
+
+    memset(flags, 0, sizeof(flags));
+
+    do {
+        memset(&entry, 0, sizeof(entry));
+
+        /* Fetch next entry and options, if any, from the queue */
+        entryType = EntryReceived(instanceno, &entry, &ipaddress,&is_multicast, &server);
+        if(entryType > 0){
+            serverno = server - Sd_DynConfig.Instance[instanceno].SdServerService;
+            flags[serverno>>3] |= 1<<(serverno&0x07);
+            UpdateServerService(instanceno, serverno, entryType, &entry, &ipaddress, is_multicast);
+        }
+    } while(entryType > 0);
+
+    for (serverno=0; serverno < SdCfgPtr->Instance[instanceno].SdNoOfServerServices; serverno++)
+    {
+        if(0 == (flags[serverno>>3]&(1<<(serverno&0x07)))) {
+            UpdateServerService(instanceno, serverno, SD_ENTRY_EMPTY, NULL, NULL, FALSE);
+        }
+    }
+}
 
 

@@ -25,7 +25,12 @@ static const Sd_ClientTimerType Sd_ClientTimer[1] =
 		.TTL = 100
 	},
 };
-static const Sd_ServerTimerType  Sd_ServerTimer[1];
+static const Sd_ServerTimerType  Sd_ServerTimer[1] =
+{
+	{
+		.TTL = 100
+	},
+};
 static Sd_DynConsumedEventGroupType Sd_DynConsumedEventGroup0[1];
 static Sd_DynConsumedEventGroupType Sd_DynConsumedEventGroup1[1];
 
@@ -95,8 +100,8 @@ static const Sd_ServerServiceType Sd_ServerServiceCfg[] =
 	{
 		.AutoAvailable = TRUE,
 		.HandleId = SD_SERVER_SERVICE_SAMPLE1,
-		.Id = 0xDB,
-		.InstanceId = 0xDB,
+		.Id = 0x1234,
+		.InstanceId = 0x5678,
 		.MajorVersion = 1,
 		.MinorVersion = 0,
 		.TcpSocketConnectionGroupId = SOCKET_CONNECTION_GROUP_NOT_SET,
@@ -133,7 +138,7 @@ static Sd_DynServerServiceType Sd_DynServerService[] =
 
 static const Sd_InstanceType Sd_InstanceCfg =
 {
-	.HostName = "someip",
+	.HostName = "as",
 	.SdNoOfClientServices = ARRAY_SIZE(Sd_ClientServiceCfg),
 	.SdClientService = Sd_ClientServiceCfg,
 	.SdClientTimer = Sd_ClientTimer,

@@ -173,6 +173,7 @@ typedef enum {
 #define SD_ENTRY_EMPTY           -2
 #define SD_ENTRY_UNKNOWN         -3
 #define SD_ENTRY_GROUP_NOT_FOUND -4
+#define SD_ENTRY_VERSION_NOT_MATCH -5
 
 #define LENGTH_OF_ENTRYIES_ARRAY_INDEX 20u
 #define ENTRY_TYPE_INDEX 24u
@@ -256,8 +257,7 @@ extern const Sd_ConfigType *SdCfgPtr;
 /* -------------------------Sd_Client/ServerServices--------------------*/
 
 void Sd_UpdateClientService(uint32 instanceno);
-
-void UpdateServerService(const Sd_ConfigType *cfgPtr, uint32 instanceno, uint32 serverno);
+void Sd_UpdateServerService(uint32 instanceno);
 
 /* Currently implemented in ClientService module. IMPROVEMENT: Where is the best place?*/
 uint32 RandomDelay(uint32 min, uint32 max); //lint !e526
