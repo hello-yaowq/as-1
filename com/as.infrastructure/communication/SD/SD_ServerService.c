@@ -31,6 +31,7 @@ static const TcpIp_SockAddrType wildcard = {
 
 
 static Sd_Message msg;
+static uint8 *start_of_entries;
 
 static Sd_DynServerServiceType * findServerService(uint32 instanceno,
         uint16 ServiceID, uint16 InstanceID)
@@ -70,6 +71,8 @@ static int EntryReceived(uint32 instanceno, Sd_Entry_Type * entry,
         /* Fetch a new message from the queue */
         if (!ReceiveSdMessage(&msg, ipaddress, SERVER_QUEUE, &server_svc, is_multicast)) {
             return SD_ENTRY_EMPTY;
+        } else {
+            start_of_entries = msg.EntriesArray;
         }
     }
 
@@ -178,7 +181,7 @@ static int EntryReceived(uint32 instanceno, Sd_Entry_Type * entry,
         }
     }
 
-    if (msg.EntriesArray == (msg.OptionsArray - 4)) {
+    if ((msg.EntriesArray - start_of_entries) >= msg.LengthOfEntriesArray) {
         /* All entries are processed in this message.
          * Set protcolversion to 0 to indicate that a new message
          * should be fetched for the next entry. */

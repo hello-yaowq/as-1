@@ -16,19 +16,33 @@
 #include "SD.h"
 #include "SD_Internal.h"
 /* ============================ [ MACROS    ] ====================================================== */
+#define DEFAULT_TTL 0xFFFFFF /* until next reboot */
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 /* ============================ [ DATAS     ] ====================================================== */
 static const Sd_ClientTimerType Sd_ClientTimer[1] =
 {
 	{
-		.TTL = 100
+		.InitialFindDelayMax_ms = 100,
+		.InitialFindDelayMin_ms = 10,
+		.InitialFindRepetitionBaseDelay_ms = 200,
+		.InitialFindRepetitionsMax = 3,
+		.RequestResponseMaxDelay_ms = 1500,
+		.RequestResponseMinDelay_ms = 0,
+		.TTL = DEFAULT_TTL
 	},
 };
 static const Sd_ServerTimerType  Sd_ServerTimer[1] =
 {
 	{
-		.TTL = 100
+		.InitialOfferDelayMax_ms = 100,
+		.InitialOfferDelayMin_ms = 10,
+		.InitialOfferRepetitionBaseDelay_ms = 200,
+		.InitialOfferRepetitionsMax = 3,
+		.OfferCyclicDelay_ms = 2000,
+		.RequestResponseMaxDelay_ms = 1500,
+		.RequestResponseMinDelay_ms = 0,
+		.TTL = DEFAULT_TTL
 	},
 };
 static Sd_DynConsumedEventGroupType Sd_DynConsumedEventGroup0[1];
