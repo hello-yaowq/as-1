@@ -22,6 +22,7 @@ asenv.Append(LINKFLAGS='-Map build/virt/virt.map')
 
 MODULES = ['ECUM','SCHM','MCU','DET',
            'CLIB_ASHEAP','CLIB_MISCLIB',
+           'CLIB_MBOX','CLIB_QSORT',
            'CLIB_STDIO_PRINTF',
            'SHELL','CLIB_STRTOK_R',
            'PTHREAD', 'PTHREAD_SIGNAL',
@@ -30,6 +31,12 @@ MODULES = ['ECUM','SCHM','MCU','DET',
            ]
 
 MODULES += ['PCI',
+            'FATFS','LWEXT4','VFS',
+            'LWIP','FTP',
+            'SOAD','DOIP','SD',
+            'EEP','FLS','EA','FEE','MEMIF','NVM',
+            'DEM',
+            'CLIB_STDIO_CAN',
             'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
             'DCM','CANNM','CANSM','NM','OSEKNM','XCP'
             ]

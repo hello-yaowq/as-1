@@ -108,3 +108,15 @@ void TaskIdleHook(void)
 	}
 }
 #endif
+
+int __weak rand (void)
+{
+	/* intentional not initialized to use the stack random value */
+	int rv;
+	uint32 seed;
+	uint32 u32Time = GetOsTick();
+
+	rv = rv ^ seed ^ u32Time ^ 0xfeedbeef;
+
+	return rv;
+}
