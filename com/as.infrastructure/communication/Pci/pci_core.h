@@ -91,7 +91,7 @@
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
-	uint32					mem_addr[6];
+	unsigned long			mem_addr[6];
 	uint32					mem_size[6];
 	uint16					io_addr[6];
 	uint16					io_size[6];

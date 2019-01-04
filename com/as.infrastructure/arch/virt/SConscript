@@ -15,6 +15,7 @@ objs += Glob('bsp/interrupt.c')
 
 if('PCI' in MODULES):
     objs += Glob('bsp/pci-virt.c')
+    asenv.Append(CPPDEFINES=['AS_LOG_PCI=1'])
 
 if('CAN' in MODULES):
     asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
@@ -32,6 +33,7 @@ if('LWIP' in MODULES):
     if(IsPlatformWindows()):
         asenv.Append(CPPDEFINES='USE_PCAPIF')
 
+asenv.Append(CPPDEFINES='__AARCH64__')
 asenv.Append(CCFLAGS=['-O0','-g'])
 asenv.Append(ASFLAGS=['-g'])
 asenv.Append(ASFLAGS=['-I%s/bsp'%(cwd)])

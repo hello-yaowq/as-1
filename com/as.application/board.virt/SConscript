@@ -29,6 +29,11 @@ MODULES = ['ECUM','SCHM','MCU','DET',
            'ASKAR',
            ]
 
+MODULES += ['PCI',
+            'CAN','CANIF','PDUR','COM','COMM','CANTP','CANNM',
+            'DCM','CANNM','CANSM','NM','OSEKNM','XCP'
+            ]
+
 ARCH='virt'
 arch='arm64'
 

@@ -29,7 +29,9 @@
 #include "mmu.h"
 #endif
 /* ============================ [ MACROS    ] ====================================================== */
+#ifndef AS_LOG_PCI
 #define AS_LOG_PCI 0
+#endif
 /* sys API wrapper */
 #if AS_LOG_PCI
 #define _sys_printf    printf
@@ -349,10 +351,10 @@ static void pciDecodeBar(pci_dev *device, uint8 offset, uint32 *base_addr,
 			break;
 		}
 #ifndef __X86__
-		if((addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL))
+		if( (addr == 0) && (device->vendor != NULL) && (device->vendor->mmio_cfg != NULL)
+				&& (size == device->vendor->mmio_cfg->mem_size[(offset-0x10)/4]) )
 		{
 			addr = device->vendor->mmio_cfg->mem_addr[(offset-0x10)/4];
-			asAssert(size == device->vendor->mmio_cfg->mem_size[(offset-0x10)/4]);
 			asAssert((addr & 0x0f) == 0); /* 16-Byte Aligned Base Address */
 			orig = (orig & ~0xf) | addr;
 		}
@@ -505,7 +507,7 @@ void* pci_get_memio(pci_dev *pdev, int index)
 {
 	void* addr;
 
-	addr = (void*)(pdev->mem_addr[index]);
+	addr = (void*)(unsigned long)(pdev->mem_addr[index]);
 #ifdef __X86__
 	addr = mmap(addr, pdev->mem_size[index], PROT_READ|PROT_WRITE);
 #endif

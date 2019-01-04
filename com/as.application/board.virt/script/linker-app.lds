@@ -1,6 +1,9 @@
 MEMORY
 {
 	RAM			(rwx)	: ORIGIN = 0x40000000, LENGTH = 128M
+
+	PCINP		(rw)	: ORIGIN = 0x10000000, LENGTH = 256M
+	PCIP		(rw)	: ORIGIN = 0x3eff0000, LENGTH = 64K
 }
 
 ENTRY(_start)
@@ -49,4 +52,16 @@ SECTIONS
 	. = ALIGN(8);
 	. = . + 0x4000; /* 16kB of stack memory */
 	stack_top = .;
+
+	.pcinp :
+	{
+		*(.pcinp)
+		*(.pcinp.*)
+	} > PCINP
+
+	.pcip :
+	{
+		*(.pcip)
+		*(.pcip.*)
+	} > PCIP
 }
