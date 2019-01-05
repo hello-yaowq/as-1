@@ -51,6 +51,8 @@ echo @echo !!!SCONS on MSYS2!!! >> scons.bat
 echo %MSYS2%\usr\bin\python2.exe %MSYS2%\usr\bin\scons %%* >> scons.bat
 
 :launchConsole
+REM env.asc in format "tokens=value" such as "PACKET_LIB_ADAPTER_NR=2" to set some environment
+if EXIST "%ASPATH%\env.asc" for /F "tokens=*" %%I in (%ASPATH%\env.asc) do set %%I
 cd %ASPATH%
 set ASROOT=%ASPATH%
 set PYTHONPATH=%ASPATH%/com/as.tool/config.infrastructure.system;%ASPATH%/com/as.tool/config.infrastructure.system/third_party;%PYTHONPATH%
