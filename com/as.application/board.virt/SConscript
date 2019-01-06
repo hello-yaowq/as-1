@@ -41,6 +41,8 @@ MODULES += ['PCI',
             'DCM','CANNM','CANSM','NM','OSEKNM','XCP'
             ]
 
+MODULES += ['FDT']
+
 ARCH='virt'
 arch='arm64'
 

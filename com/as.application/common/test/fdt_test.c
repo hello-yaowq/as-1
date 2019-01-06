@@ -45,7 +45,11 @@ static int shellLibfdt(int argc, char *argv[])
 	int node,property;
 	const struct fdt_property *prop;
 
-	if( (0==vfs_stat(dtb, &st)) &&
+	if(0 == strncmp(dtb,"0x",2))
+	{
+		faddr = (void*)strtoul(dtb, NULL, 16);
+	}
+	else if( (0==vfs_stat(dtb, &st)) &&
 		(VFS_ISREG(st.st_mode)) )
 	{
 		fp = vfs_fopen(dtb, "rb");
@@ -90,7 +94,7 @@ static int shellLibfdt(int argc, char *argv[])
 				}
 			}
 		}
-		free(faddr);
+		if(0 != strncmp(dtb,"0x",2)) free(faddr);
 	}
 
 	return 0;

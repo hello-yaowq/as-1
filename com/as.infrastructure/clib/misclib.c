@@ -303,6 +303,24 @@ void* __weak memmove (void *dest, const void *src, size_t len)
 	return dest;
 }
 
+void* __weak memchr(const void *s ,int c, size_t n)
+{
+	void* rv = NULL;
+	const char* s1 = (const char*)s;
+	int i;
+
+	for(i=0; (s1[i]!='\0') && (i<n); i++)
+	{
+		if (s1[i] == (char)c)
+		{
+			rv = (void*)&s1[i];
+			break;
+		}
+	}
+
+	return rv;
+}
+
 char* __weak strcpy (char* __to, const char* __from)
 {
 	char* dst = (char*) __to;
@@ -516,8 +534,9 @@ unsigned long int __weak strtoul(const char* string, char ** tailptr, int base)
 	{
 		v = IntH(*s);
 		if((uint32_t)-1 == v)
-		{
-			break;
+		{	/* ignore unknown character */
+			s++;
+			continue;
 		}
 		result = result*base + v;
 		s++;
