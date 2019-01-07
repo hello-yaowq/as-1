@@ -122,7 +122,7 @@ class easySARGui(QMainWindow):
         return ArxmlGetURL(ar,ref)
 
     def mOpen(self,default=None):
-        if(default == None):
+        if((default == None) or (type(default) == bool)):
             self.pdir = QFileDialog.getExistingDirectory(None,'Open OpenSAR Config',gDefault_GEN,QFileDialog.DontResolveSymlinks)
             if(self.pdir == ''):
                 return

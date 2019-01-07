@@ -309,7 +309,7 @@ void* __weak memchr(const void *s ,int c, size_t n)
 	const char* s1 = (const char*)s;
 	int i;
 
-	for(i=0; (s1[i]!='\0') && (i<n); i++)
+	for(i=0; i<n; i++)
 	{
 		if (s1[i] == (char)c)
 		{
@@ -327,7 +327,7 @@ char* __weak strcpy (char* __to, const char* __from)
 	const char* src = (const char*) __from;
 	while('\0' != *src)
 	{
-		*dst = * src;
+		*dst = *src;
 		dst ++;
 		src ++;
 	}

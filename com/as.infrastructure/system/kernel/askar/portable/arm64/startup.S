@@ -19,13 +19,24 @@
 .extern stack_top
 
 	.section .init
+
 	.globl _start
-;;
 _start:
-	ldr x0, =stack_top
-	mov sp, x0
-	ldr x0, =vector_table_el1
-	msr vbar_el1, x0
+	/* set up stack */
+	mov x4, #1
+	msr spsel, x4
+	isb
+	ldr x4, =stack_top
+	mov sp, x4
+
+	/* enable FP/ASIMD */
+	mov x4, #(3 << 20)
+	msr cpacr_el1, x4
+
+	/* set up exception handling */
+	ldr x4, =vector_table_el1
+	msr vbar_el1, x4
+	isb
+
 	b main
 	b .
-
