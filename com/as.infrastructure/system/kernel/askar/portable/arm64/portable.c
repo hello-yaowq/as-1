@@ -17,6 +17,7 @@
 #include "asdebug.h"
 /* ============================ [ MACROS    ] ====================================================== */
 #define AS_LOG_OS 0
+#define AS_LOG_OSE 1
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 extern void Os_PortResume(void);
@@ -68,6 +69,12 @@ void Os_PortStartDispatch(void)
 {
 	RunningVar = NULL;
 	Os_PortDispatch();
+	asAssert(0);
+}
+
+void Os_PortException(long exception, void* sp, long esr)
+{
+	ASLOG(OSE, "Exception %d happened!\n", exception);
 	asAssert(0);
 }
 

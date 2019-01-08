@@ -711,7 +711,9 @@ def GetELFEnv(so=True):
         env['SHLINKCOM'] = '$SHLINK $SHLINKFLAGS $SOURCES -o $TARGET'
     return env
 
-def ForkEnv(father):
+def ForkEnv(father=None):
+    if(father == None):
+        father = Env
     child = Environment()
     for key,v in father.items():
         if(type(v) is list):

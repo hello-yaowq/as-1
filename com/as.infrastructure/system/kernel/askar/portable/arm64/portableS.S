@@ -72,6 +72,24 @@
 	ldp x2, x3, [sp], #16
 	ldp x0, x1, [sp], #16
 .endm
+
+
+/*
+ * Vectors
+ * Adapted from arch/arm64/kernel/entry.S
+ */
+.macro vector_stub, name, vec
+\name:
+	SaveContext
+
+	mov	x0, \vec
+	mov	x1, sp
+	mrs	x2, esr_el1
+	bl	Os_PortException
+
+	RestoreContext
+	eret
+.endm
 /* ============================ [ TYPES     ] ====================================================== */
 /* ============================ [ DECLARES  ] ====================================================== */
 	.extern Irq_Enable
@@ -268,23 +286,45 @@ l_nodispatch:
 	RestoreContext
 	eret
 
+
+vector_stub el1t_sync,     0
+vector_stub el1t_irq,      1
+vector_stub el1t_fiq,      2
+vector_stub el1t_error,    3
+
+vector_stub el1h_sync,     4
+vector_stub el1h_irq,      5
+vector_stub el1h_fiq,      6
+vector_stub el1h_error,    7
+
+vector_stub el0_sync_64,   8
+vector_stub el0_irq_64,    9
+vector_stub el0_fiq_64,   10
+vector_stub el0_error_64, 11
+
+vector_stub el0_sync_32,  12
+vector_stub el0_irq_32,   13
+vector_stub el0_fiq_32,   14
+vector_stub el0_error_32, 15
+
+
 .balign 0x800
 .global vector_table_el1
 vector_table_el1:
 curr_el_sp0_sync:
-	b .
+	b el1t_sync
 
 .balign 0x80
 curr_el_sp0_irq:
-	b .
+	b el1t_irq
 
 .balign 0x80
 curr_el_sp0_fiq:
-	b .
+	b el1t_fiq
 
 .balign 0x80
 curr_el_sp0_serror:
-	b .
+	b el1t_error
 
 .balign 0x80
 curr_el_spx_sync:
@@ -308,40 +348,40 @@ curr_el_spx_irq:
 
 .balign 0x80
 curr_el_spx_fiq:
-	b .
+	b el1h_fiq
 
 .balign 0x80
 curr_el_spx_serror:
-	b .
+	b el1h_error
 
 .balign 0x80
 lower_el_aarch64_sync:
-	b .
+	b el0_sync_64
 
 .balign 0x80
 lower_el_aarch64_irq:
-	b .
+	b el0_irq_64
 
 .balign 0x80
 lower_el_aarch64_fiq:
-	b .
+	b el0_fiq_64
 
 .balign 0x80
 lower_el_aarch64_serror:
-	b .
+	b el0_error_64
 
 .balign 0x80
 lower_el_aarch32_sync:
-	b .
+	b el0_sync_32
 
 .balign 0x80
 lower_el_aarch32_irq:
-	b .
+	b el0_irq_32
 
 .balign 0x80
 lower_el_aarch32_fiq:
-	b .
+	b el0_fiq_32
 
 .balign 0x80
 lower_el_aarch32_serror:
-	b .
+	b el0_error_32
