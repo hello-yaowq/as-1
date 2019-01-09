@@ -12,6 +12,9 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
+/*
+ * https://developer.arm.com/docs/100336/latest/programmers-model/distributor-registers-gicdgicda-summary
+ */
 /* ============================ [ INCLUDES  ] ====================================================== */
 #include "Std_Types.h"
 /* ============================ [ MACROS    ] ====================================================== */
@@ -140,7 +143,7 @@ this register determines only Group 0 interrupt preemption. */
 
 /* Register access macros for GICD */
 #define REG_GIC_GICD_CTLR             ((volatile uint32_t *)(uintptr_t)GIC_GICD_CTLR)
-#define REG_GIC_GICD_TYPE             ((volatile uint32_t *)(uintptr_t)GIC_GICD_TYPE)
+#define REG_GIC_GICD_TYPE             ((volatile uint32_t *)(uintptr_t)GIC_GICD_TYPER)
 #define REG_GIC_GICD_IIDR             ((volatile uint32_t *)(uintptr_t)GIC_GICD_IIDR)
 #define REG_GIC_GICD_IGROUPR(n)       ((volatile uint32_t *)(uintptr_t)GIC_GICD_IGROUPR(n))
 #define REG_GIC_GICD_ISENABLER(n)     ((volatile uint32_t *)(uintptr_t)GIC_GICD_ISENABLER(n))
@@ -392,6 +395,13 @@ void Irq_Restore(imask_t imask)
 
 void Irq_Init(void)
 {
+	uint32 typer,gicType;
+
+	typer = *REG_GIC_GICD_TYPE;
+	gicType = (readl(GIC_BASE+0xFE8)>>4)&0xf; /* GICD_PIDR2 */
+
+	printf("GICv%d detected, %d ISRs, %s Security state\n", gicType,
+			32*(typer&0x1F), (typer>>10)&0x01?"two":"single");
 	gic_v3_initialize();
 }
 
