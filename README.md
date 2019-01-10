@@ -93,7 +93,7 @@ General supported CPU architecture list:
 
 ## 8. AS USB2CAN device
 
-[stm32f107vc USB2CAN](https://github.com/parai/stm32f107vc)
+[stm32f107vc USB2CAN](https://github.com/as-boards/stm32f107vc)
 
-![stm32](https://github.com/parai/stm32f107vc/blob/master/doc/usb2can_dut_demo.jpg)
+![stm32](https://github.com/as-boards/stm32f107vc/blob/master/doc/usb2can_dut_demo.jpg)
 

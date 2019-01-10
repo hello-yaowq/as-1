@@ -68,7 +68,7 @@ if('PORT' in MODULES):
 if('SHELL' in MODULES):
     asenv.Append(CPPDEFINES=['ENABLE_SHELL_ECHO_BACK'])
 
-pkg = Package('https://gitlab.com/as-boards/mpc56xx.git')
+pkg = Package('https://github.com/as-boards/mpc56xx.git')
 MKSymlink(pkg+'/MPC5634M_MLQB80',cwd+'/MPC5634M_MLQB80')
 if('MPC5634M_MLQB80' in MODULES):
     srcs = Glob('MPC5634M_MLQB80/Project/src/*.c')
