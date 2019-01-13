@@ -81,20 +81,20 @@ MODULES += ['CLIB_MISCLIB']
 MODULES += ['CLIB_STDIO_PRINTF']
 MODULES += ['CLIB_STDIO_CAN']
 
-MODULES += ['RTE','RTE_SWC_TELLTALE']
+MODULES += ['RTE']
 
 if(cwd.find('travis') != -1):
-    # this is on travis, GUI is not possible as rely on QT to generate pictures to C source code
     MODULES.remove('LCD')
     MODULES.remove('FATFS')
 else:
-    if(os.getenv('GUI') in ['GTK','OPENVG']):
+    print('INFO set GUI=xx, xx is one of GTK/SDL/OPENVG, defaut GTK')
+    if(os.getenv('GUI') in ['SDL','GTK','OPENVG']):
         MODULES.append(os.getenv('GUI'))
     else:
-        print('WARNING: use default GTK GUI for posix')
         MODULES.append('GTK')
 
     MODULES.append('SG')
+    MODULES += ['RTE_SWC_TELLTALE','RTE_SWC_GAUGE','SG_DEMO_CLUSTER']
 
 # post special process for asboot release
 if(asenv['RELEASE']=='asboot'):

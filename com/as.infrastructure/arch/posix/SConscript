@@ -11,7 +11,8 @@ objs = []
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
+    if(IsPlatformWindows()):
+        asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
     if(IsPlatformWSL()):
         asenv.Append(CPPDEFINES='CAN_DEV_NAME=\'"socketwin"\'')
 
@@ -86,7 +87,6 @@ objs += SConscript('%s/com/as.tool/lua/SConscript'%(asenv['ASROOT']))
 if('GTK' in MODULES):
     asenv.ParseConfig('%s --cflags gtk+-3.0'%(asenv['pkgconfig']))
     asenv.ParseConfig('%s --libs gtk+-3.0 glib-2.0 gthread-2.0'%(asenv['pkgconfig']))
-    asenv.Append(CCFLAGS='-DGUI_USE_GTK')
     if('-pthread' in asenv['CCFLAGS']):
         asenv['CCFLAGS'].remove('-pthread')
     if('-pthread' in asenv['LINKFLAGS']):
@@ -118,6 +118,8 @@ elif('OPENVG' in MODULES):
         objs += Glob('openvg/vg/win32/*.cpp')
         objs += Glob('openvg/vg/*.cpp')
     asenv.Append(CXXFLAGS=['-fpermissive'])
+elif('SDL' in MODULES):
+    asenv.Append(LIBS = ['SDL2'])
 
 asenv.Append(LIBS=['pthread','stdc++','m'])
 

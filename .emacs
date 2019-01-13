@@ -81,8 +81,8 @@
 (setq default-directory "~/") 
 ;;(set-scroll-bar-mode nil)
 
-;;(setq inhibit-startup-message t) 
-;;(setq indent-tabs-mode t)
+(setq inhibit-startup-message t) 
+(setq indent-tabs-mode t)
 
 ;;solve mess encode issue of shell-mode
 (ansi-color-for-comint-mode-on)
@@ -114,7 +114,7 @@
 	      (concat "..."
 		      (substring fname (- (length fname) max-len)))))
     fname))
-(setq frame-title-format '("Parai - Emacs@"(:eval (frame-title-string))))
+(setq frame-title-format '("AS - Emacs@"(:eval (frame-title-string))))
 
 (setq ediff-split-window-function 'split-window-horizontally)
 
@@ -166,3 +166,15 @@
   )
 (global-set-key (kbd "C-c d e t") 'deltags)
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(tab-width 4))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

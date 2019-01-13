@@ -597,7 +597,9 @@ void SoAd_Init(void)
 		SocketAdminList[i].SocketNr = i;
 		SocketAdminList[i].SocketState = SOCKET_INIT;
 		SocketAdminList[i].SocketConnectionRef = &SoAd_Config.SocketConnection[i];
-		SocketAdminList[i].RemoteIpAddress = inet_addr(SoAd_Config.SocketConnection[i].SocketRemoteIpAddress);
+		if(NULL != SoAd_Config.SocketConnection[i].SocketRemoteIpAddress) {
+			SocketAdminList[i].RemoteIpAddress = inet_addr(SoAd_Config.SocketConnection[i].SocketRemoteIpAddress);
+		}
 		SocketAdminList[i].RemotePort = htons(SoAd_Config.SocketConnection[i].SocketRemotePort);
 		SocketAdminList[i].SocketHandle = -1;
 		SocketAdminList[i].ConnectionHandle = -1;

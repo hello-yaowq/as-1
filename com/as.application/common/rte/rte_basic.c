@@ -56,11 +56,12 @@ ALARM(Alarm_Rte_Runnable)
 
 KSM(RteIdle,Init)
 {
-	OsSetRelAlarm(Alarm_Rte_Runnable, 1, MS2TICKS(10));
-	KGS(RteIdle,Running);
+	KGS(RteIdle,Start);
 }
 KSM(RteIdle,Start)
 {
+	OsSetRelAlarm(Alarm_Rte_Runnable, 1, MS2TICKS(10));
+	KGS(RteIdle,Running);
 }
 KSM(RteIdle,Stop)
 {
