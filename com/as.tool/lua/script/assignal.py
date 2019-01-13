@@ -137,6 +137,12 @@ class Signal():
         self.mask = (1<<sg['size'])-1
         self.set_value(0)
 
+    def get_max(self):
+        return 0xFFFFFFFF&self.mask
+
+    def get_min(self):
+        return 0
+
     def set_value(self, v):
         self.value = v&self.mask
 
@@ -190,7 +196,7 @@ class Message():
     def ProcessRX(self):
         result,canid,data = can_read(self.busid, self.msg['id'])
         if(result):
-            self.sdu.data = data
+            self.sdu.data = [d for d in data]
             for sig in self:
                 sig.value = self.sdu.get(sig)
 
@@ -202,8 +208,7 @@ class Message():
     def Process(self):
         if(self.msg['node'] != 'AS'):
             self.ProcessTX()
-        else:
-            self.ProcessRX()
+        self.ProcessRX()
 
     def __str__(self):
         return str(self.msg)
@@ -229,6 +234,13 @@ class Network(threading.Thread):
             self.msgs[msg['name']] = Message(msg, busid)
         self.start()
 
+    def lookup(self, name):
+        for msg in self:
+            for sig in msg:
+                if(sig['name'] == name):
+                    return sig
+        return None
+
     def stop(self):
         self.is_running = False
 
@@ -253,22 +265,84 @@ class Network(threading.Thread):
         import cc.ascp as ascp
         return ascp.parse(dbc)
 
+class View(object):
+    def __init__(self, sig, ax):
+        self.sig = sig
+        self.ax = ax
+        self.ymax = 1
+        self.tmax = 10
+        self.st = time.time()
+        self.tdata = []
+        self.ydata = []
+        self.line, = self.ax.plot([], [], lw=2)
+        self.ax.grid()
+        self.ax.set_ylim(self.sig.get_min(), self.sig.get_max())
+        self.ax.set_xlim(0, self.tmax)
+
+    def emitter(self):
+        while True:
+            yield self.sig.get_value()
+
+    def update(self, y):
+        t = time.time() - self.st
+        self.tdata.append(t)
+        self.ydata.append(y)
+
+        bDraw = False
+        if(t > self.tmax):
+            self.tmax += 10
+            self.ax.set_xlim(0, self.tmax)
+            bDraw = True
+
+        if(y > self.ymax):
+            self.ymax = y
+            self.ax.set_ylim(0, 1.1*self.ymax)
+            bDraw = True
+
+        if(bDraw):
+            self.ax.figure.canvas.draw()
+
+        self.line.set_data(self.tdata, self.ydata)
+        return self.line,
+
 if(__name__ == '__main__'):
-    can_open(0, 'socket', 0, 1000000)
-    nt = Network(sys.argv[1])
-    nt['RxMsgAbsInfo'].set_period(100)
-    nt['RxMsgAbsInfo']['VehicleSpeed'] = 24000
-    nt['RxMsgAbsInfo']['TachoSpeed'] = 8000
-    nt['RxMsgAbsInfo']['Led1Sts'] = 1
-    nt['RxMsgAbsInfo']['Led2Sts'] = 2
-    nt['RxMsgAbsInfo']['Led3Sts'] = 3
-    time.sleep(1)
-    print('year is', nt['TxMsgTime']['SystemTime_year'])
-    print('month is', nt['TxMsgTime']['SystemTime_month'])
-    print('day is', nt['TxMsgTime']['SystemTime_day'])
-    print('hour is', nt['TxMsgTime']['SystemTime_hour'])
-    print('minute is', nt['TxMsgTime']['SystemTime_minute'])
-    print('second is', nt['TxMsgTime']['SystemTime_second'])
+    import argparse
+    import atexit
+
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+
+    parser = argparse.ArgumentParser(description='view signal value by matplotlib scope')
+    parser.add_argument('-b', '--busid', help='can bus id', type=int, default=0, required=False)
+    parser.add_argument('-p', '--port', help='can bus port', type=int, default=0, required=False)
+    parser.add_argument('-t', '--type', help='can bus type', type=str, default='socket', required=False)
+    parser.add_argument('--baudrate', help='can bus baudrate', type=int, default=1000000, required=False)
+    parser.add_argument('-n', '--network', help='can network(*.dbc)', type=str, required=True)
+    parser.add_argument('-v', '--view', help='list of signals to be viewed', type=str, nargs='+', required=True)
+    args = parser.parse_args()
+
+    can_open(args.busid, args.type, args.port, args.baudrate)
+    nt = Network(args.network)
+
+    @atexit.register
+    def goodbye():
+        nt.stop()
+
+    aniList = []
+    for v in args.view:
+        sig = nt.lookup(v)
+        if(sig != None):
+            print('view signal %s'%(v))
+            fig, ax = plt.subplots()
+            fig.suptitle(v)
+            vv = View(sig, ax)
+            ani = animation.FuncAnimation(fig, vv.update, vv.emitter, interval=10, blit=False, repeat=False)
+            aniList.append(ani)
+        else:
+            print('could find signal %s'%(v))
+
+    if(len(aniList) > 0):
+        plt.show()
 
     nt.stop()
 

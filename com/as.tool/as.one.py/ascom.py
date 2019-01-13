@@ -18,7 +18,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from pyas.signal import *
+from pyas.assignal import *
 
 __all__ = ['UICom']
 
