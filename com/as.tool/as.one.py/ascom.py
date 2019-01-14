@@ -92,8 +92,28 @@ class UICom(QWidget):
         hbox.addWidget(self.leDbc)
         self.btnOpenDbc = QPushButton('...')
         hbox.addWidget(self.btnOpenDbc)
-
         self.vbox.addLayout(hbox)
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel('Signal:'))
+        self.cmbxSignals = QComboBox()
+        self.cmbxSignals.setEditable(True)
+        self.cmbxSignals.setMinimumWidth(300)
+        hbox.addWidget(self.cmbxSignals)
+        self.cmbxSignals.currentIndexChanged.connect(self.on_cmbxSignals_currentIndexChanged)
+        hbox.addWidget(QLabel('scale:'))
+        self.leScale = QLineEdit()
+        self.leScale.setText('1')
+        hbox.addWidget(self.leScale)
+        hbox.addWidget(QLabel('offset:'))
+        self.leOffset = QLineEdit()
+        self.leOffset.setText('0')
+        hbox.addWidget(self.leOffset)
+        self.btnView = QPushButton('View')
+        hbox.addWidget(self.btnView)
+        self.btnView.clicked.connect(self.on_btnView_clicked)
+        self.vbox.addLayout(hbox)
+
         self.tabWidget = QTabWidget(self)
         self.vbox.addWidget(self.tabWidget)
 
@@ -110,6 +130,23 @@ class UICom(QWidget):
         for key, msg in self.msgs.items():
             msg.Period()
 
+    def on_cmbxSignals_currentIndexChanged(self, index):
+        self.leScale.setText('1')
+        self.leOffset.setText('0')
+
+    def on_btnView_clicked(self):
+        if(self.network == None):
+            return
+        signal = str(self.cmbxSignals.currentText())
+        scale  = float(self.leScale.text())
+        offset = float(self.leOffset.text())
+        sig = self.network.lookup(signal)
+        if(sig != None):
+            print('view of signal:', signal)
+            QView(sig, scale, offset)
+        else:
+            print('can\'t find signal:', signal)
+
     def on_btnOpenDbc_clicked(self):
         rv = QFileDialog.getOpenFileName(None,'Vector CAN database', '','CAN database (*.dbc)')
         if(rv[0] != ''):
@@ -122,10 +159,14 @@ class UICom(QWidget):
             self.network.stop()
         self.network = Network(dbc)
         self.msgs = {}
+        signals = []
         for msg in self.network:
             self.msgs[msg.attrib('name')] = UIMsg(msg)
             self.tabWidget.addTab(self.msgs[msg.attrib('name')], msg.attrib('name'))
-
+            for sig in msg:
+                signals.append(sig['name'])
+        self.cmbxSignals.clear()
+        self.cmbxSignals.addItems(signals)
         self.startTimer(100)
 
 

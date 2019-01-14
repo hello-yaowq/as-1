@@ -20,7 +20,7 @@ import threading
 from bitarray import bitarray
 from pyas.can import *
 
-__all__ = ['Network']
+__all__ = ['Network', 'QView']
 
 
 
@@ -266,9 +266,11 @@ class Network(threading.Thread):
         return ascp.parse(dbc)
 
 class View(object):
-    def __init__(self, sig, ax):
+    def __init__(self, sig, ax, scale=1, offset=0):
         self.sig = sig
         self.ax = ax
+        self.scale = scale
+        self.offset = offset
         self.ymax = 1
         self.tmax = 10
         self.st = time.time()
@@ -281,7 +283,7 @@ class View(object):
 
     def emitter(self):
         while True:
-            yield self.sig.get_value()
+            yield self.sig.get_value()*self.scale+self.offset
 
     def update(self, y):
         t = time.time() - self.st
@@ -304,6 +306,23 @@ class View(object):
 
         self.line.set_data(self.tdata, self.ydata)
         return self.line,
+
+class QView(threading.Thread):
+    def __init__(self, sig, scale=1, offset=0):
+        threading.Thread.__init__(self)
+        self.sig = sig
+        self.scale = scale
+        self.offset = offset
+        self.start()
+
+    def run(self):
+        import matplotlib.pyplot as plt
+        import matplotlib.animation as animation
+        fig, ax = plt.subplots()
+        fig.suptitle(self.sig['name'])
+        self.view = View(self.sig, ax, self.scale, self.offset)
+        self.ani = animation.FuncAnimation(fig, self.view.update, self.view.emitter, interval=10, blit=False, repeat=False)
+        plt.show()
 
 if(__name__ == '__main__'):
     import argparse
