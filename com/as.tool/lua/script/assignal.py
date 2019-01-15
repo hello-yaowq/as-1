@@ -17,6 +17,7 @@ __lic__ = '''
 
 import os,sys,time
 import threading
+import multiprocessing
 from bitarray import bitarray
 from pyas.can import *
 
@@ -135,7 +136,14 @@ class Signal():
     def __init__(self, sg):
         self.sg = sg
         self.mask = (1<<sg['size'])-1
+        self.notifyMQ = []
         self.set_value(0)
+
+    def register_mq(self, mq):
+        self.notifyMQ.append(mq)
+
+    def unregister_mq(self, mq):
+        self.notifyMQ.remove(mq)
 
     def get_max(self):
         return 0xFFFFFFFF&self.mask
@@ -145,6 +153,8 @@ class Signal():
 
     def set_value(self, v):
         self.value = v&self.mask
+        for mq in self.notifyMQ:
+            mq.put(self.value)
 
     def get_value(self):
         return self.value&self.mask
@@ -307,22 +317,47 @@ class View(object):
         self.line.set_data(self.tdata, self.ydata)
         return self.line,
 
-class QView(threading.Thread):
+class QView(multiprocessing.Process):
     def __init__(self, sig, scale=1, offset=0):
-        threading.Thread.__init__(self)
+        self.mq = multiprocessing.Queue()
+        multiprocessing.Process.__init__(self)
         self.sig = sig
         self.scale = scale
         self.offset = offset
+        self.lastValue = 0
+        self.sig.register_mq(self.mq)
         self.start()
 
+    def get_value(self):
+        try:
+            v = self.mq.get_nowait()
+            self.lastValue = v
+        except:
+            v = self.lastValue
+        return v*self.scale+self.offset
+
+    def get_max(self):
+        if(self.scale > 0):
+            return self.sig.get_max()*self.scale+self.offset
+        else:
+            return self.sig.get_min()*self.scale+self.offset
+
+    def get_min(self):
+        if(self.scale < 0):
+            return self.sig.get_max()*self.scale+self.offset
+        else:
+            return self.sig.get_min()*self.scale+self.offset
+
     def run(self):
+        print('subplot for %s'%(self.sig['name']))
         import matplotlib.pyplot as plt
         import matplotlib.animation as animation
         fig, ax = plt.subplots()
         fig.suptitle(self.sig['name'])
-        self.view = View(self.sig, ax, self.scale, self.offset)
+        self.view = View(self, ax, self.scale, self.offset)
         self.ani = animation.FuncAnimation(fig, self.view.update, self.view.emitter, interval=10, blit=False, repeat=False)
         plt.show()
+        self.sig.unregister_mq(self.mq)
 
 if(__name__ == '__main__'):
     import argparse
