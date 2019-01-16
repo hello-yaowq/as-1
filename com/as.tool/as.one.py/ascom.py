@@ -19,8 +19,73 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from pyas.assignal import *
+import re,time,math,random
 
 __all__ = ['UICom']
+
+class SignalGenerator():
+    def __init__(self, sig):
+        self.sig = sig
+        self.leData = QLineEdit('0')
+        self.cbxLabel = QCheckBox(sig['name'])
+        self.cmbxGenerator = QComboBox()
+        self.min = self.sig.get_min()
+        self.max = self.sig.get_max()
+        self.generator = self.nan
+        self.reGen = re.compile(r'(\w+)\s+from\s+(\w+)\s+to\s+(\w+)\s+period\s+(\w+)\s+s')
+        pfix = ' from %s to %s period 5 s'%(self.min, self.max)
+        self.cmbxGenerator.addItems(['NAN','sin'+pfix,'rand'+pfix])
+        self.cmbxGenerator.setEditable(True)
+        self.cmbxGenerator.setVisible(False)
+
+        self.cbxLabel.stateChanged.connect(self.on_cbxLabel_stateChanged)
+        self.cmbxGenerator.currentIndexChanged.connect(self.on_cmbxGenerator_currentIndexChanged)
+
+        self.value = 0
+
+    def on_cbxLabel_stateChanged(self, state):
+        if(state):
+            self.leData.setVisible(False)
+            self.cmbxGenerator.setVisible(True)
+        else:
+            self.leData.setVisible(True)
+            self.cmbxGenerator.setVisible(False)
+
+    def nan(self):
+        return 0
+
+    def sin(self):
+        now = time.time()
+        if(now-self.preTime >= self.period):
+            self.preTime = now
+        v = math.sin((now-self.preTime)/self.period*math.pi)*(self.max-self.min)+self.min
+        return int(v)
+
+    def rand(self):
+        v = random.random()*(self.max-self.min)+self.min
+        return int(v)
+
+    def on_cmbxGenerator_currentIndexChanged(self, index):
+        text = str(self.cmbxGenerator.currentText())
+        if(self.reGen.search(text)):
+            grp = self.reGen.search(text).groups()
+            if(grp[0] == 'sin'):
+                self.generator = self.sin
+            elif(grp[0] == 'rand'):
+                self.generator = self.rand
+            else:
+                self.generator = self.nan
+                print('invalid generator', text)
+            self.min = float(grp[1])
+            self.max = float(grp[2])
+            self.period = float(grp[3])
+            self.preTime = time.time()
+
+    def text(self):
+        if(self.cbxLabel.isChecked()):
+            return str(self.generator())
+        else:
+            return self.leData.text()
 
 class UIMsg(QScrollArea):
     def __init__(self, msg, parent=None):
@@ -31,9 +96,16 @@ class UIMsg(QScrollArea):
         self.leData = {}
         row = col = 0
         for sig in self.msg:
-            grid.addWidget(QLabel(sig['name']), row, col)
-            self.leData[sig['name']] = QLineEdit('0')
-            grid.addWidget(self.leData[sig['name']], row, col+1)
+            if(self.msg.IsTransmit()):
+                sigGen = SignalGenerator(sig)
+                grid.addWidget(sigGen.cbxLabel, row, col)
+                grid.addWidget(sigGen.leData, row, col+1)
+                grid.addWidget(sigGen.cmbxGenerator, row, col+1)
+                self.leData[sig['name']] = sigGen
+            else:
+                grid.addWidget(QLabel(sig['name']), row, col)
+                self.leData[sig['name']] = QLineEdit('0')
+                grid.addWidget(self.leData[sig['name']], row, col+1)
             col += 2
             if(col > 3):
                 col = 0
