@@ -98,7 +98,7 @@ char * __weak strtok_r (char *s, const char *delim, char **lasts)
 	return _strtok_r (s, delim, lasts, 1);
 }
 
-char* __weak stpcpy(char* __to, const char* __from)
+char* stpcpy(char* __to, const char* __from)
 {
 	char* dst = (char*) __to;
 	const char* src = (const char*) __from;

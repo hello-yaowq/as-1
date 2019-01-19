@@ -26,13 +26,13 @@ if('run' in COMMAND_LINE_TARGETS):
     
     if('asone' in COMMAND_LINE_TARGETS):
         if(IsPlatformWindows()):
-            RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,python))
+            RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
         else:
             RunCommand('cd %s/com/as.tool/as.one.py && %s main.py &'%(ASROOT,python))
 
     if('sg' in COMMAND_LINE_TARGETS):
         if(IsPlatformWindows()):
-            RunCommand('cd %s/com/as.tool/as.one.py && start %s assg.py'%(ASROOT,python))
+            RunCommand('cd %s/com/as.tool/as.one.py && %s assg.py'%(ASROOT,python))
         else:
             RunCommand('cd %s/com/as.tool/as.one.py && %s assg.py &'%(ASROOT,python))
     time.sleep(1)
@@ -65,8 +65,7 @@ MODULES = ['ECUM','SCHM','MCU',
            'TRACE',
            ]
 
-if(not IsPlatformWindows()):
-    MODULES.append('AWS')
+MODULES.append('AWS')
 
 ARCH='posix'
 arch='posix'

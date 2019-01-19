@@ -185,11 +185,7 @@ def-y += -D__AS_BY_PARAI__
 def-y += -D$(board)_board
 def-y += -DUSE_DET
 
-ifeq ($(host), Linux)
-export USE_AWS=YES
-else
-export USE_AWS?=NO
-endif
+export USE_AWS?=YES
 
 ifeq ($(USE_AWS),YES)
 def-y += -DUSE_AWS
