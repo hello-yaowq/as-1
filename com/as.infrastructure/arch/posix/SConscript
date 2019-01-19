@@ -11,8 +11,7 @@ objs = []
 
 if('CAN' in MODULES):
     objs += Glob('mcal/Can.c')
-    if(IsPlatformWindows()):
-        asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
     if(IsPlatformWSL()):
         asenv.Append(CPPDEFINES='CAN_DEV_NAME=\'"socketwin"\'')
 

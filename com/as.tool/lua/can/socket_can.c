@@ -36,9 +36,14 @@
  * sudo modprobe vcan
  * sudo ip link add dev vcan0 type vcan
  * sudo ip link set up vcan0
+ * sudo ip link set vcan0 mtu 72 # for CANFD
  */
 #ifndef CAN_MTU
 #define CAN_MTU sizeof(struct can_frame)
+#endif
+
+#ifndef CANFD_MTU
+#define CANFD_MTU sizeof(struct canfd_frame)
 #endif
 /* ============================ [ TYPES     ] ====================================================== */
 struct Can_SocketHandle_s
@@ -151,6 +156,22 @@ static boolean socket_probe(uint32_t busid,uint32_t port,uint32_t baudrate,can_d
 				ASWARNING("CAN Socket port=%d bind failed!\n",port);
 				rv = FALSE;
 			}
+
+			if (ioctl(s, SIOCGIFMTU, &ifr) < 0) {
+				perror("CAN get MTU");
+				rv = FALSE;
+			}
+
+			if(ifr.ifr_mtu == CANFD_MTU)
+			{
+				int enable_canfd = 1;
+				/* interface is ok - try to switch the socket into CAN FD mode */
+				if (setsockopt(s, SOL_CAN_RAW, CAN_RAW_FD_FRAMES,
+						   &enable_canfd, sizeof(enable_canfd))){
+					printf("error when enabling CAN FD support\n");
+					rv = FALSE;
+				}
+			}
 		}
 
 		if( rv )
@@ -193,12 +214,13 @@ static boolean socket_write(uint32_t busid,uint32_t port,uint32_t canid,uint32_t
 	struct Can_SocketHandle_s* handle = getHandle(port);
 	if(handle != NULL)
 	{
-		struct can_frame frame;
+		int required_mtu = (dlc > CAN_MTU) ? CANFD_MTU : CAN_MTU;
+		struct canfd_frame frame;
 		frame.can_id = canid;
-		frame.can_dlc = dlc;
+		frame.len = dlc;
 		memcpy(frame.data,data,dlc);
 
-		if (write(handle->s, &frame, CAN_MTU) != CAN_MTU) {
+		if (write(handle->s, &frame, required_mtu) != required_mtu) {
 			perror("CAN socket write");
 			ASWARNING("CAN Socket port=%d send message failed!\n",port);
 			rv = FALSE;
@@ -232,7 +254,7 @@ static void socket_close(uint32_t busid,uint32_t port)
 static void rx_notifiy(struct Can_SocketHandle_s* handle)
 {
 	int nbytes,len;
-	struct can_frame frame;
+	struct canfd_frame frame;
 	nbytes = recvfrom(handle->s, &frame, sizeof(frame), 0, (struct sockaddr*)&handle->addr, &len);
 	if( -1 == nbytes )
 	{
@@ -244,7 +266,7 @@ static void rx_notifiy(struct Can_SocketHandle_s* handle)
 	}
 	else
 	{
-		handle->rx_notification(handle->busid,frame.can_id,frame.can_dlc,frame.data);
+		handle->rx_notification(handle->busid,frame.can_id,frame.len,frame.data);
 	}
 
 }

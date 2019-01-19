@@ -300,7 +300,11 @@ void Can_Init( const Can_ConfigType *config ) {
 	#else
 	if(FALSE == can_open(configId,CAN_DEV_NAME,ctlrId,canHwConfig->CanControllerBaudRate*1000))
 	{
-		ASLOG(STDOUT,"for device <socket> please start vcan for simulation:\n\tsudo modprobe vcan\n\tsudo ip link add dev can%d type vcan\n\tsudo ip link set up can%d\n", ctlrId, ctlrId);
+		ASLOG(STDOUT,"for device <socket> please start vcan for simulation:\n\t"
+				"sudo modprobe vcan\n\t"
+				"sudo ip link add dev can%d type vcan\n\t"
+				"sudo ip link set up can%d\n\t"
+				"sudo ip link set can%d mtu 72\n", ctlrId, ctlrId, ctlrId);
 		ASLOG(STDOUT,"for device <socketwin> please start the windows socket can bus driver /com/as.tool/lua/script/socketwin_can_driver.exe %d\n", ctlrId);
 		asAssert(0);
 	}
