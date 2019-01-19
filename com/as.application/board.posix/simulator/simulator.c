@@ -64,7 +64,7 @@ static LAS_WebsockParamType wsParam =
 static void on_hangup(void *closure, struct afb_wsj1 *wsj1)
 {
 	LAS_WebsockParamType *param=(LAS_WebsockParamType*)closure;
-	ASLOG(OFF,"ON-HANGUP on socket <%d> %s:%d\n",param->s,param->uri,param->port);
+	ASLOG(ON,"ON-HANGUP on socket <%d> %s:%d\n",param->s,param->uri,param->port);
 }
 static void on_call(void *closure, const char *api, const char *verb, struct afb_wsj1_msg *msg)
 {

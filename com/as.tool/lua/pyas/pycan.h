@@ -36,12 +36,10 @@ class can
 public:
 	explicit can()
 	{
-		printf("can()\n");
 		luai_canlib_open();
 	}
 	~can()
 	{
-		printf("~can()\n");
 		luai_canlib_close();
 	}
 

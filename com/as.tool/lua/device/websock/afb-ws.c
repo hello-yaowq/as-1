@@ -306,6 +306,10 @@ static void* daemon_main(void* param)
 		(void)pthread_mutex_lock(&afbwsList.q_lock);
 		STAILQ_FOREACH(ws,&afbwsList.head,entry)
 		{
+			if(NULL == ws->ws)
+			{
+				continue;
+			}
 			int rc = aws_on_readable(ws);
 			if(rc < 0)
 			{

@@ -36,12 +36,10 @@ class asdev
 public:
 	explicit asdev()
 	{
-		printf("asdev()\n");
 		luai_asdevlib_open();
 	}
 	~asdev()
 	{
-		printf("~asdev()\n");
 		luai_asdevlib_close();
 	}
 

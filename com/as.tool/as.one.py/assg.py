@@ -261,3 +261,10 @@ class UISg(QWidget):
         if(rv[0] != ''):
             self.leXml.setText(rv[0])
             self.loadXml(rv[0])
+
+if(__name__ == '__main__'):
+    app = QApplication(sys.argv)
+    mWain = QMainWindow()
+    mWain.setCentralWidget(UISg())
+    mWain.show()
+    sys.exit(app.exec_()) 

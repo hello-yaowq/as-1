@@ -1,4 +1,5 @@
 import os
+import time
 from building import *
 
 cwd = GetCurrentDir()
@@ -24,8 +25,17 @@ if('run' in COMMAND_LINE_TARGETS):
         RunCommand('start %s 1'%(candrvtgt))
     
     if('asone' in COMMAND_LINE_TARGETS):
-        RunCommand('cd %s/com/as.tool/as.one.py && %s main.py'%(ASROOT,python))
+        if(IsPlatformWindows()):
+            RunCommand('cd %s/com/as.tool/as.one.py && start %s main.py'%(ASROOT,python))
+        else:
+            RunCommand('cd %s/com/as.tool/as.one.py && %s main.py &'%(ASROOT,python))
 
+    if('sg' in COMMAND_LINE_TARGETS):
+        if(IsPlatformWindows()):
+            RunCommand('cd %s/com/as.tool/as.one.py && start %s assg.py'%(ASROOT,python))
+        else:
+            RunCommand('cd %s/com/as.tool/as.one.py && %s assg.py &'%(ASROOT,python))
+    time.sleep(1)
     target = '%s/release/%s/posix'%(ASROOT,asenv['RELEASE'])
     if(not IsPlatformWindows()):
         target = 'sudo ' + target
