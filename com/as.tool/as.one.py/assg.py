@@ -187,17 +187,19 @@ class SgWidget(QGraphicsView):
             if(w.attrib['name'][-10:]=='Background'):
                 for p in w:
                     if(p.tag=='SgBMP'):bg = '%s/%s'%(self.xmlpath,p.attrib['locate'])
-                self.widgets['Background'] = QImage(bg)
+                self.widgets['Background'] = {'sg':QImage(bg), 'layer':0 }
                 continue
             if(w.attrib['name'][-7:]=='Pointer'):
                 sg = SgPointer(w)
-                self.widgets[w.attrib['name']]={'sg':sg}
-                self.scene().addItem(sg)
+                self.widgets[w.attrib['name']]={'sg':sg, 'layer':int(w.attrib['layer'])}
                 sg.setPosDegree(cMechanicalZero)
             else:
                 sg = SgItem(self.xmlpath,w)
-                self.widgets[w.attrib['name']]={'sg':sg}
-                self.scene().addItem(sg)
+                self.widgets[w.attrib['name']]={'sg':sg, 'layer':int(w.attrib['layer'])}
+        for name, sg in sorted(self.widgets.items(),key=lambda sg: sg[1]['layer']):
+            if(name=='Background'): continue
+            self.scene().addItem(sg['sg'])
+
     def refresh(self,obj):
         for name,ite in self.widgets.items():
             if(name=='Background'): continue
@@ -207,7 +209,7 @@ class SgWidget(QGraphicsView):
             wgt.setPosLayer(int(wobj['layer']))
 
     def drawBackground(self,painter,rect ):
-        Image = self.widgets['Background']
+        Image = self.widgets['Background']['sg']
         self.scene().setSceneRect(0, 0, Image.size().width(), Image.size().height())
         painter.drawImage(0,0,Image); 
 
