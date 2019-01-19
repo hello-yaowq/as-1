@@ -1229,7 +1229,7 @@ if((not IsPlatformWindows()) and bScons):
               default = False,
               help = 'prepare build env for linux')
     if(GetOption('prepare')):
-        os.system('sudo apt-get install gtk+-3.0 autoconf libtool-bin curl flex bison gperf nasm '
+        os.system('sudo apt-get install libgtk-3-dev autoconf libtool-bin curl flex bison gperf nasm '
                   'libncurses-dev libreadline-dev glib2.0 libcurl4-openssl-dev '
                   'libsdl2-dev python3-tk '
                   'python3-pyqt5 python3-sip python3-sip-dev sip-dev python3-pip net-tools')

@@ -113,7 +113,10 @@ else:
 
 if(not IsPlatformWindows()):
     # MISCLIB may result LCD can't be created
-    asenv['MODULES'].remove('CLIB_MISCLIB')
+    try:
+        asenv['MODULES'].remove('CLIB_MISCLIB')
+    except:
+        pass
 
 asenv['ARCH'] = ARCH
 asenv['arch'] = arch
