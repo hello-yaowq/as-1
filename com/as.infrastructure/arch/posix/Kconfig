@@ -52,6 +52,10 @@ config OPENVG
 	bool "openvg(windows only)"
 	depends on LCD
 
+config SDL
+	bool "SDL2.0"
+	depends on LCD
+
 endchoice
 
 config MCU

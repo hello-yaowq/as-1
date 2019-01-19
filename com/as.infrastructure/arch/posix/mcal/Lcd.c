@@ -31,8 +31,20 @@
 #include <windows.h>
 #endif
 
+#include <stdio.h>
+#include <stdint.h>
+#include <assert.h>
 #include <sys/time.h>
 #include <pthread.h>
+#ifdef LCD_TEST
+/* gcc -DLCD_TEST -DUSE_LCD -DUSE_GTK Lcd.c `pkg-config --libs --cflags gtk+-3.0` */
+/* gcc -DLCD_TEST -DUSE_LCD -DUSE_SDL Lcd.c -lSDL2 */
+#define __SG_WIDTH__  1200
+#define __SG_HEIGHT__ 500
+#define __SG_PIXEL__ 1
+#define ASPERF_MEASURE_START()
+#define ASPERF_MEASURE_STOP(v)
+#else
 #ifdef USE_LVGL
 #include "lvgl/lvgl.h"
 #define __SG_WIDTH__ LV_HOR_RES
@@ -45,6 +57,7 @@
 
 //#define AS_PERF_ENABLED
 #include "asdebug.h"
+#endif /* LCD_TEST */
 /* ============================ [ MACROS    ] ====================================================== */
 // 0 --> use GtkImage
 // 1 --> use GtkDrawingArea  : this is more powerful, so use this
@@ -66,7 +79,7 @@ static GtkWidget*       pLcd        = NULL;
 static GdkPixbuf*       pLcdImage   = NULL;
 static GtkWidget*       pStatusbar  = NULL;
 #elif defined(USE_SDL)
-static boolean sdl_quit_qry = FALSE;
+static int sdl_quit_qry = 0;
 static SDL_Window*   pSdlWindow;
 static SDL_Renderer* pSdlRenderer;
 static SDL_Texture*  pSdlTexture;
@@ -78,10 +91,10 @@ EGLContext			eglcontext;
 #endif
 
 static void*            lcdThread   = NULL;
-static uint32*          pLcdBuffer;
-static uint32           lcdWidth    = 0;
-static uint32           lcdHeight   = 0;
-static uint8            lcdPixel    = 0;
+static uint32_t*          pLcdBuffer;
+static uint32_t           lcdWidth    = 0;
+static uint32_t           lcdHeight   = 0;
+static uint8_t            lcdPixel    = 0;
 #ifdef USE_LVGL
 static boolean left_button_down = FALSE;
 static int16_t last_x = 0;
@@ -119,7 +132,6 @@ scribble_motion_notify_event (GtkWidget      *widget,
    * we avoid getting a huge number of events faster than we
    * can cope.
    */
-
   gdk_window_get_device_position (event->window, event->device, &x, &y, &state);
 
 #ifdef USE_LVGL
@@ -155,11 +167,11 @@ button_release_event( GtkWidget *widget, GdkEventButton *event )
 
 static gboolean Refresh(gpointer data)
 {
-	uint32 x,y;
+	uint32_t x,y;
 	int width, height, rowstride, n_channels;
 	guchar *pixels, *p;
-	uint32 index;
-	uint32 color;
+	uint32_t index;
+	uint32_t color;
 #ifdef USE_SG
 	if(FALSE == Sg_IsDataReady()) { return TRUE; }
 #endif
@@ -208,7 +220,9 @@ static gboolean Refresh(gpointer data)
 static GtkWidget* Lcd(void)
 {
 	GtkWidget* pBox;
+
 	pBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
+
 	gtk_box_set_homogeneous(GTK_BOX(pBox),FALSE);
 
 	g_timeout_add(10,Refresh,NULL); // Refresh LCD 100 times each 1s
@@ -271,7 +285,7 @@ static void* Lcd_Thread(void* param)
 	}
 #endif
 
-	PRINTF("# Lcd_Thread Enter\n");
+	printf("# Lcd_Thread Enter\n");
 	gtk_init (NULL, NULL);
 	pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(pWindow),"LCD");
@@ -284,7 +298,7 @@ static void* Lcd_Thread(void* param)
 
 	gtk_main ();
 
-	PRINTF("# Lcd_Thread Exit\n");
+	printf("# Lcd_Thread Exit\n");
 
 	exit(0);
 
@@ -296,7 +310,7 @@ static int sdl_quit_filter(void * userdata, SDL_Event * event)
 	(void)userdata;
 
 	if(event->type == SDL_QUIT) {
-		sdl_quit_qry = TRUE;
+		sdl_quit_qry = 1;
 	}
 
 	return 1;
@@ -304,19 +318,29 @@ static int sdl_quit_filter(void * userdata, SDL_Event * event)
 
 static void sdl_init(void)
 {
+	SDL_SetMainReady();
 	SDL_Init(SDL_INIT_VIDEO);
 
+	sdl_quit_qry = 0;
 	SDL_SetEventFilter(sdl_quit_filter, NULL);
 
-	/*last param. SDL_WINDOW_BORDERLESS to hide borders*/
 	pSdlWindow = SDL_CreateWindow("TFT Simulator",
 				      SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 				      __SG_WIDTH__ * __SG_PIXEL__, __SG_HEIGHT__ * __SG_PIXEL__, 0);
+	if(NULL == pSdlWindow)
+	{
+		printf("SDL Error: %s\n", SDL_GetError());
+	}
+
+	assert(pSdlWindow);
 
 	pSdlRenderer = SDL_CreateRenderer(pSdlWindow, -1, 0);
+	assert(pSdlRenderer);
 
 	pSdlTexture = SDL_CreateTexture(pSdlRenderer,
 					SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, __SG_WIDTH__, __SG_HEIGHT__);
+	assert(pSdlTexture);
+
 	SDL_SetTextureBlendMode(pSdlTexture, SDL_BLENDMODE_BLEND);
 
 	/*Initialize the frame buffer to gray (77 is an empirical value) */
@@ -358,13 +382,16 @@ void mouse_handler(SDL_Event * event)
 static void sdl_refresh(void)
 {
 #ifdef USE_SG
-	if(FALSE == Sg_IsDataReady()) { return; }
+	if(TRUE == Sg_IsDataReady()) { 
 #endif
 
 	SDL_UpdateTexture(pSdlTexture, NULL, pLcdBuffer, __SG_WIDTH__ * sizeof(uint32_t));
 	SDL_RenderClear(pSdlRenderer);
 	SDL_RenderCopy(pSdlRenderer, pSdlTexture, NULL, NULL);
 	SDL_RenderPresent(pSdlRenderer);
+#ifdef USE_SG
+	}
+#endif
 
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
@@ -387,21 +414,21 @@ static void sdl_refresh(void)
 			}
 		}
 	}
-	/*Sleep some time*/
+
 	SDL_Delay(10);
 }
 
 static void* Lcd_Thread(void* param)
 {
-	PRINTF("# Lcd_Thread Enter\n");
+	printf("# Lcd_Thread Enter\n");
 	sdl_init();
 
-	while(FALSE == sdl_quit_qry)
+	while(0 == sdl_quit_qry)
 	{
 		sdl_refresh();
 	}
 
-	PRINTF("# Lcd_Thread Exit\n");
+	printf("# Lcd_Thread Exit\n");
 	sdl_cleanup();
 
 	exit(0);
@@ -456,10 +483,10 @@ static void render(int w, int h)
 #endif
 	ASPERF_MEASURE_START();
 	uint32 x,y;
-	uint8 n_channels = 4;
+	uint8_t n_channels = 4;
 	VGint dataStride = LCD_WIDTH*n_channels;
 
-	uint8* vgdata= malloc(n_channels*LCD_WIDTH*LCD_HEIGHT);
+	uint8_t* vgdata= malloc(n_channels*LCD_WIDTH*LCD_HEIGHT);
 
 	eglSwapBuffers(egldisplay, eglsurface);	//force EGL to recognize resize
 /*
@@ -479,7 +506,7 @@ static void render(int w, int h)
 			assert(index < (LCD_WIDTH*LCD_HEIGHT));
 			uint32 color = pLcdBuffer[index];
 
-			uint8* p = vgdata + (LCD_HEIGHT - y -1) * dataStride + x * n_channels;
+			uint8_t* p = vgdata + (LCD_HEIGHT - y -1) * dataStride + x * n_channels;
 			p[0] = (color>>24)&0xFF; // alpha
 			p[3] = (color>>16)&0xFF; // red
 			p[2] = (color>>8 )&0xFF; // green
@@ -687,11 +714,10 @@ void Lcd_Init(void)
 #else
 		lcdPixel  = __SG_PIXEL__;
 #endif
-		asAssert(lcdPixel);
+		assert(lcdPixel);
 
-		pLcdBuffer = malloc(LCD_WIDTH*LCD_HEIGHT*sizeof(uint32));
-		asAssert(pLcdBuffer);
-
+		pLcdBuffer = malloc(LCD_WIDTH*LCD_HEIGHT*sizeof(uint32_t));
+		assert(pLcdBuffer);
 		pthread_create( (pthread_t*)&lcdThread, NULL, Lcd_Thread, (void *)NULL );
 	}
 	else
@@ -700,9 +726,9 @@ void Lcd_Init(void)
 	}
 }
 
-void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
+void LCD_DrawPixel( uint32_t x, uint32_t y, uint32_t color )
 {
-	uint32 x0,y0;
+	uint32_t x0,y0;
 	if(NULL != lcdThread)
 	{
 		if((x<lcdWidth) && (y<lcdHeight))
@@ -717,7 +743,7 @@ void LCD_DrawPixel( uint32 x, uint32 y, uint32 color )
 				{
 					for(y0=LCD_Y0(y);y0<LCD_Y1(y);y0++)
 					{
-						uint32 index = y0*LCD_WIDTH + x0;
+						uint32_t index = y0*LCD_WIDTH + x0;
 						pLcdBuffer[index] = color;
 					}
 				}
@@ -751,6 +777,15 @@ void lv_hw_mouse_init(void)
 	indev_drv.type = LV_INDEV_TYPE_POINTER;
 	indev_drv.read = mouse_read;
 	lv_indev_drv_register(&indev_drv);
+}
+#endif
+
+#ifdef LCD_TEST
+int main(int argc, char* argv[])
+{
+	Lcd_Init();
+	while(1);
+	return 0;
 }
 #endif
 #endif /* USE_LCD */

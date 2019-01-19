@@ -249,7 +249,7 @@ bail:
     return str_end;
 }
 /* ============================ [ FUNCTIONS ] ====================================================== */
-int eval(const char *expr)
+int __weak eval(const char *expr)
 {
 	return _eval(&expr);
 }
