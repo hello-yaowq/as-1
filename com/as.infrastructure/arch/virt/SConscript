@@ -17,8 +17,7 @@ if('PCI' in MODULES):
     objs += Glob('bsp/pci-virt.c')
 
 if('CAN' in MODULES):
-    if(IsPlatformWindows()):
-        asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
+    asenv.Append(CPPDEFINES=['CAN_LL_DL=64'])
 
 if('MCU' in MODULES):
     objs += Glob('../common/mcal/Mcu.c')

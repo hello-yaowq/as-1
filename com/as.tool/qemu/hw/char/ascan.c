@@ -354,9 +354,10 @@ static void ascan_mmiowrite(void *opaque, hwaddr addr, uint64_t value,
 					printf("please start up %s for simulation:\n"
 							"\tsudo modprobe vcan\n"
 							"\tsudo ip link add dev can%d type vcan\n"
-							"\tsudo ip link set up can%d\n",
+							"\tsudo ip link set up can%d\n"
+							"\tsudo ip link set can%d mtu 72\n",
 							(0==strcmp(d->bus_name,"socket"))?"vcan":d->bus_name,
-									d->port,d->port);
+									d->port,d->port,d->port);
 				}
 			}
 			break;
