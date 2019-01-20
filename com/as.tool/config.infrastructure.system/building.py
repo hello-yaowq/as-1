@@ -1,4 +1,6 @@
 import os
+import glob
+import hashlib
 import sys
 import shutil
 import string
@@ -1102,6 +1104,17 @@ def BuildOFS(ofs):
         cmd += ' && sed -n "/#define/p" .tmp.S > %s'%(tgt)
         MKObject([src], tgt, cmd)
 
+def SHA256(v):
+    m = hashlib.sha256()
+    if(type(v) == list):
+        for vv in v:
+            with open(vv) as f:
+                m.update(f.read())
+    else:
+        with open(v) as f:
+            m.update(f.read())
+    return m.digest()
+
 def PreProcess(cfgdir, fil):
     print('  PP %s'%(fil))
     filR = '%s/%s'%(cfgdir,os.path.basename(fil))
@@ -1184,7 +1197,13 @@ def Building(target, sobjs, env=None):
     AppendPythonPath([cfgdir])
     os.environ['ARXML']=str(arxml)
     cfgdone = '%s/config.done'%(cfgdir)
-    if(((not os.path.exists(cfgdone)) and (not GetOption('clean'))) or GetOption('force')):
+    forceGen = GetOption('force')
+    if(os.path.exists(cfgdone) and not forceGen):
+        shaN = SHA256(glob.glob('%s/*xml'%(cfgdir)))
+        shaO = open(cfgdone).read()
+        if(shaN != shaO):
+            forceGen = True
+    if(((not os.path.exists(cfgdone)) and (not GetOption('clean'))) or forceGen):
         MKDir(cfgdir)
         RMFile(cfgdone)
         xcc.XCC(cfgdir, env, True)
@@ -1193,7 +1212,7 @@ def Building(target, sobjs, env=None):
             MKSymlink(str(xml),'%s/%s'%(cfgdir,os.path.basename(str(xml))))
         xcc.XCC(cfgdir)
         argen.ArGen.ArGenMain(arxmlR,cfgdir)
-        MKFile(cfgdone)
+        MKFile(cfgdone, SHA256(glob.glob('%s/*xml'%(cfgdir))))
     if('studio' in COMMAND_LINE_TARGETS):
         studio=os.path.abspath('../../com/as.tool/config.infrastructure.system/')
         assert(arxml)
@@ -1204,7 +1223,8 @@ def Building(target, sobjs, env=None):
     objs += Glob('%s/*.c'%(cfgdir))
 
     if(GetOption('clean')):
-        RMDir(cfgdir)
+        if(os.path.exists('%s/autosar.arxml'%(cfgdir))):
+            RunCommand('mv {0}/autosar.arxml . && rm -frv {0}/* {0}/../*.map && mv autosar.arxml {0}/'.format(cfgdir))
         RunCommand('rm -fv *.s19')
 
     BuildDTS(dts,bdir)
