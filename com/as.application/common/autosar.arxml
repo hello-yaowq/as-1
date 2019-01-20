@@ -30,12 +30,16 @@
 </OS>
 <EcuC>
 <PduList Max="TBD">
+#ifdef USE_DCM
 <Pdu Comment="*" Name="TxDiagP2P" Size="64" />
 <Pdu Comment="*" Name="RxDiagP2P" Size="64" />
 <Pdu Comment="*" Name="TxDiagP2A" Size="64" />
 <Pdu Comment="*" Name="RxDiagP2A" Size="64" />
+#endif
+#ifdef USE_COM
 <Pdu Comment="*" Name="TxMsgTime" Size="64" />
 <Pdu Comment="*" Name="RxMsgAbsInfo" Size="64" />
+#endif
 #ifdef USE_CANNM
 <Pdu Comment="*" Name="LS_NM_TX" Size="64" />
 #endif
@@ -67,9 +71,11 @@
 <Pdu Comment="*" Name="J1939TP_RX" Size="64" />
 <Pdu Comment="*" Name="J1939TP_TX" Size="64" />
 #endif
+#ifdef USE_COM
 #if CAN_LL_DL == 64
 <Pdu Comment="*" Name="RxMsgFD" Size="512" />
 <Pdu Comment="*" Name="TxMsgFD" Size="512" />
+#endif
 #endif
 </PduList>
 </EcuC>
@@ -92,12 +98,16 @@
 <Hth Comment="*" HthRef="Can0Hth" Name="LS_Hth" />
 </HthList>
 <TxPduList Max="TBD">
+#ifdef USE_DCM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2P" HthRef="LS_Hth" Identifier="0x732" Name="P2P" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxDiagP2A" HthRef="LS_Hth" Identifier="0x744" Name="P2A" TransmitNotifier="CanTp" UserNotification="CanIf_User" />
+#endif
 #ifdef USE_CANNM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="LS_NM_TX" HthRef="LS_Hth" Identifier="0x502" Name="LS_NM" TransmitNotifier="CanNm" UserNotification="CanIf_User" />
 #endif
+#ifdef USE_COM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TxMsgTime" HthRef="LS_Hth" Identifier="0x101" Name="Time" TransmitNotifier="PduR" UserNotification="CanIf_User" />
+#endif
 #ifdef USE_OSEKNM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_TX" HthRef="LS_Hth" Identifier="0x401" Name="OSEK_NM_TX" TransmitNotifier="User" UserNotification="CanIf_OsekNmUser" />
 #endif
@@ -113,19 +123,25 @@
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_FcNPdu" HthRef="LS_Hth" Identifier="0x763" Name="TX_J1939TP_FcNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="TX_J1939TP_DirectNPdu" HthRef="LS_Hth" Identifier="0x764" Name="TX_J1939TP_DirectNPdu" TransmitNotifier="J1939Tp" UserNotification="CanIf_User" />
 #endif
+#ifdef USE_COM
 #if CAN_LL_DL == 64
 <Pdu Comment="*" DataLengthCode="64" EcuCPduRef="TxMsgFD" HthRef="LS_Hth" Identifier="0x103" Name="TxMsgFD" TransmitNotifier="PduR" UserNotification="CanIf_User" />
+#endif
 #endif
 </TxPduList>
 <HrhList Max="TBD">
 <Hrh Comment="*" HrhRef="Can0Hrh" Name="LS_Hrh" SoftwareFilterUsed="True" />
 </HrhList>
 <RxPduList Max="TBD">
+#ifdef USE_DCM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2P" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x731" Name="P2P" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxDiagP2A" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x743" Name="P2A" ReceivedNotifier="CanTp" UserNotification="CanIf_UserRxIndication" />
+#endif
+#ifdef USE_COM
 <Pdu Comment="*" DataLengthCode="8" EcuCPduRef="RxMsgAbsInfo" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x102" Name="AbsInfo" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
+#endif
 #ifdef USE_OSEKNM
-<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUser" />
+<Pdu Comment="*" DataLengthCode="8" EcuCPduRef="OSEK_NM_RX" FilterMask="0x700" HrhRef="LS_Hrh" Identifier="0x400" Name="OSEK_NM_RX" ReceivedNotifier="User" UserNotification="CanIf_OsekNmUser" />
 #endif
 #ifdef USE_XCP
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="XCP_RX" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x554" Name="XCP_RX" ReceivedNotifier="Xcp" UserNotification="CanIf_UserRxIndication" />
@@ -139,8 +155,10 @@
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="RX_J1939TP_CM" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x753" Name="RX_J1939TP_CM" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
 <Pdu Comment="*" DataLengthCode="1" EcuCPduRef="RX_J1939TP_DIRECT" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x754" Name="RX_J1939TP_DIRECT" ReceivedNotifier="J1939Tp" UserNotification="CanIf_UserRxIndication" />
 #endif
+#ifdef USE_COM
 #if CAN_LL_DL == 64
 <Pdu Comment="*" DataLengthCode="64" EcuCPduRef="RxMsgFD" FilterMask="0x7FF" HrhRef="LS_Hrh" Identifier="0x104" Name="RxMsgCanFD" ReceivedNotifier="PduR" UserNotification="CanIf_UserRxIndication" />
+#endif
 #endif
 </RxPduList>
 </Channel>
@@ -160,6 +178,7 @@
 <PduR>
 <General CanIfUsed="True" CanTpUsed="True" ComUsed="True" Comment="*" DcmUsed="True" DevelopmentErrorDetection="ON" J1939TpUsed="True" LinIfUsed="False" LinTpUsed="False" VersionInfoApi="OFF" ZeroCostIf="CanIf" ZeroCostOperationMode="OFF" ZeroCostTp="CanTp" />
 <RoutineList Max="TBD">
+#ifdef USE_DCM
 <Source Comment="*" Module="Dcm" Name="DcmP2P" PduRef="TxDiagP2P">
 <DestinationList Max="TBD">
 <Destination Comment="*" Module="CanTp" Name="CanTpP2P" PduRef="TxDiagP2P" />
@@ -180,6 +199,8 @@
 <Destination Comment="*" Module="Dcm" Name="DcmP2A" PduRef="RxDiagP2A" />
 </DestinationList>
 </Source>
+#endif
+#ifdef USE_COM
 <Source Comment="*" Module="Com" Name="ComMsgTime" PduRef="TxMsgTime">
 <DestinationList Max="TBD">
 <Destination Comment="*" Module="CanIf" Name="CanIfMsgTime" PduRef="TxMsgTime" />
@@ -190,6 +211,7 @@
 <Destination Comment="*" Module="Com" Name="ComMsgAbs" PduRef="RxMsgAbsInfo" />
 </DestinationList>
 </Source>
+#endif
 #ifdef USE_SOAD
 <Source Comment="*" Module="SoAdTp" Name="SOAD_RX" PduRef="SOAD_RX">
 <DestinationList Max="TBD">
@@ -214,6 +236,7 @@
 </DestinationList>
 </Source>
 #endif
+#ifdef USE_COM
 #if CAN_LL_DL == 64
 <Source Comment="*" Module="CanIf" Name="RxMsgFD" PduRef="RxMsgFD">
 <DestinationList Max="TBD">
@@ -225,6 +248,7 @@
 <Destination Comment="*" Module="CanIf" Name="Destination1" PduRef="TxMsgFD" />
 </DestinationList>
 </Source>
+#endif
 #endif
 </RoutineList>
 </PduR>

@@ -26,7 +26,9 @@
 #include <string.h>
 
 #include "asdebug.h"
+#ifdef USE_PDUR
 #include "PduR.h"
+#endif
 
 #if defined(USE_CANTP)
 #include "CanTp_Cbk.h"
